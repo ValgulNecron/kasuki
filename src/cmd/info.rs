@@ -1,22 +1,34 @@
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
+use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::ChannelId;
-use serenity::model::prelude::interaction::application_command::CommandDataOption;
+use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
+use serenity::model::application::command::Command;
+use serenity::model::application::interaction::Interaction;
+use serenity::model::gateway::Ready;
+use serenity::prelude::*;
 
-pub async fn run(_options: &[CommandDataOption], msg_id: ChannelId, ctx: &Context) -> String {
-    msg_id.send_message(&ctx.http, |m| {
-        m.content("Discord bot that integrate anilist api")
-        .embed(|e| {
-            e.title("Bot Name")
-            .description("Description of the bot")
-            .field("This is the third field", "This is not an inline field", false)
-            .footer(|f| f.text("This is a footer"))
-            // Add a timestamp for the current time
-            // This also accepts a rfc3339 Timestamp
-            .timestamp(Timestamp::now())
-            })
-    });
+pub async fn run(_options: &[CommandDataOption], msg_id: ChannelId, ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+    if let Err(why) = command
+    .create_interaction_response(&ctx.http, |response| {
+        response
+            .kind(InteractionResponseType::ChannelMessageWithSource)
+            .interaction_response_data(|message| message.embed(
+                |m| {
+                m.title("No F idea")
+                    .description("This bot use the anilist api to give information on a show or a user")
+                    .footer(|f| f.text("creator valgul#8329"))
+                    // Add a timestamp for the current time
+                    // This also accepts a rfc3339 Timestamp
+                    .timestamp(Timestamp::now())
+    })
+            )
+    })
+    .await
+{
+    println!("Cannot respond to slash command: {}", why);
+}
     return "good".to_string()
 }
 

@@ -1,7 +1,6 @@
 mod cmd;
 
 use std::env;
-
 use serenity::async_trait;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
@@ -16,7 +15,8 @@ impl EventHandler for Handler {
         println!("{} is connected!", ready.user.name);
 
         let guild_command = Command::create_global_application_command(&ctx.http, |command| {
-            cmd::ping::register(command)
+            cmd::ping::register(command);
+            cmd::info::register(command)
         })
         .await;
         println!("I created the following global slash command: {:#?}", guild_command);
@@ -29,11 +29,14 @@ impl EventHandler for Handler {
             let content = match command.data.name.as_str() {
                 "ping" => cmd::ping::run(&command.data.options),
                 "info" => {
-                        cmd::info::run(&command.data.options, command.channel_id, &ctx)
+                        cmd::info::run(&command.data.options, command.channel_id, &ctx, &command)
                             .await
                     }
                 _ => "not implemented :(".to_string(),
             };
+            if content == "good".to_string() {
+                return;
+            }
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
                     response
@@ -51,10 +54,13 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
     // Configure the client with your Discord bot token in the environment.
-    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
-
+    let my_path = "C:\\Users\\valgul\\IdeaProjects\\DiscordAnilistBot\\src\\.env";
+    println!("{}", my_path.to_string());
+    let path = std::path::Path::new(my_path);
+    dotenv::from_path(path);
+    let token = env::var("DISCORD_TOKEN").expect("discord token");
     // Build our client.
-    let mut client = Client::builder(token, GatewayIntents::empty())
+    let mut client = Client::builder(token, GatewayIntents::all())
         .event_handler(Handler)
         .await
         .expect("Error creating client");
