@@ -1,11 +1,12 @@
-mod cmd;
-
 use std::env;
+
 use serenity::async_trait;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
 use serenity::model::gateway::Ready;
 use serenity::prelude::*;
+
+mod cmd;
 
 struct Handler;
 
@@ -16,9 +17,10 @@ impl EventHandler for Handler {
 
         let guild_command = Command::create_global_application_command(&ctx.http, |command| {
             cmd::ping::register(command);
-            cmd::info::register(command)
+            cmd::info::register(command);
+            cmd::user::register(command)
         })
-        .await;
+            .await;
         println!("I created the following global slash command: {:#?}", guild_command);
     }
 
@@ -29,9 +31,13 @@ impl EventHandler for Handler {
             let content = match command.data.name.as_str() {
                 "ping" => cmd::ping::run(&command.data.options),
                 "info" => {
-                        cmd::info::run(&command.data.options, &ctx, &command)
-                            .await
-                    }
+                    cmd::info::run(&command.data.options, &ctx, &command)
+                        .await
+                }
+                "user" => {
+                    cmd::user::run(&command.data.options, &ctx, &command)
+                        .await
+                }
                 _ => "not implemented :(".to_string(),
             };
             if content == "good".to_string() {
