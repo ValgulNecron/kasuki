@@ -1,4 +1,5 @@
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -8,7 +9,7 @@ use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
-use serde::{Deserialize, Serialize};
+use serenity::utils::Colour;
 
 #[derive(Debug, Deserialize)]
 struct Data {
@@ -26,6 +27,13 @@ struct User {
     name: String,
     avatar: Avatar,
     statistics: Statistics,
+    options: Options,
+    bannerImage: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct Options {
+    profileColor: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -56,7 +64,7 @@ struct Manga {
     standardDeviation: f64,
     chaptersRead: i32,
     tags: Vec<Tag>,
-        genres: Vec<Genre>,
+    genres: Vec<Genre>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -112,6 +120,10 @@ query ($name: String, $limit: Int = 1) {
         }
       }
     }
+options{
+      profileColor
+    }
+    bannerImage
   }
 }
 ";
@@ -127,49 +139,80 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let client = Client::new();
         let json = json!({"query": QUERY, "variables": {"name": user}});
         let resp = client.post("https://graphql.anilist.co/")
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .body(json.to_string())
-                .send()
-                .await
-                .unwrap()
-                .text()
-                .await;
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .body(json.to_string())
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await;
         // Get json
-                let data: Data = serde_json::from_str(&resp.unwrap()).unwrap();
-        let image_url = "https://s4.anilist.co/file/anilistcdn/user/avatar/large/b5399974-v6O5Klq9cY7e.jpg";
+        let data: Data = serde_json::from_str(&resp.unwrap()).unwrap();
+        let user_url = format!("https://anilist.co/user/{}", &data.data.User.id);
+        let mut color = Colour::FABLED_PINK;
+        match data.data.User.options.profileColor.as_str() {
+            "blue" => color = Colour::BLUE,
+            "purple" => color = Colour::PURPLE,
+            "pink" => color = Colour::MEIBE_PINK,
+            "orange" => color = Colour::ORANGE,
+            "red" => color = Colour::RED,
+            "green" => color = Colour::DARK_GREEN,
+            "gray" => color = Colour::LIGHT_GREY,
+            _ => color = Colour::FABLED_PINK,
+        }
+        let mut min = data.data.User.statistics.anime.minutesWatched;
+        let mut hour = 0;
+        let mut days = 0;
+        let mut week = 0;
+
+        if min >= 60 {
+            hour = min / 60;
+            min = min % 60;
+        }
+
+        if hour >= 24 {
+            days = hour / 24;
+            hour = hour % 24;
+        }
+
+        if days >= 7 {
+            week = days / 7;
+            days = days % 7;
+        }
+        let time_watched = format!("{} week(s), {} day(s), {} hour(s), {} minute(s)", week, days, hour, min);
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| message.embed(
                         |m| {
-                            m.title(data.data.User.name)
+                            m.title(&data.data.User.name)
+                                .url(&user_url)
                                 // Add a timestamp for the current time
                                 // This also accepts a rfc3339 Timestamp
                                 .timestamp(Timestamp::now())
-                                .image(data.data.User.avatar.large)
+                                .thumbnail(data.data.User.avatar.large)
+                                .image(data.data.User.bannerImage)
                                 .fields(vec![
-    ("Manga", format!("Count: {}\nChapters read: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
-        data.data.User.statistics.manga.count,
-        data.data.User.statistics.manga.chaptersRead,
-        data.data.User.statistics.manga.meanScore,
-        data.data.User.statistics.manga.standardDeviation,
-        data.data.User.statistics.manga.tags[0].tag.name,
-        data.data.User.statistics.manga.genres[0].genre
-    ), true),
-    ("Anime", format!("Count: {}\nTime watched: {} minutes\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
-        data.data.User.statistics.anime.count,
-        data.data.User.statistics.anime.minutesWatched,
-        data.data.User.statistics.anime.meanScore,
-        data.data.User.statistics.anime.standardDeviation,
-        data.data.User.statistics.anime.tags[0].tag.name,
-        data.data.User.statistics.anime.genres[0].genre
-    ), true),
-])
-
-
-
+                                    ("Manga", format!("Count: {}\nChapters read: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
+                                                      data.data.User.statistics.manga.count,
+                                                      data.data.User.statistics.manga.chaptersRead,
+                                                      data.data.User.statistics.manga.meanScore,
+                                                      data.data.User.statistics.manga.standardDeviation,
+                                                      data.data.User.statistics.manga.tags[0].tag.name,
+                                                      data.data.User.statistics.manga.genres[0].genre
+                                    ), false),
+                                    ("Anime", format!("Count: {}\nTime watched: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
+                                                      data.data.User.statistics.anime.count,
+                                                      time_watched,
+                                                      data.data.User.statistics.anime.meanScore,
+                                                      data.data.User.statistics.anime.standardDeviation,
+                                                      data.data.User.statistics.anime.tags[0].tag.name,
+                                                      data.data.User.statistics.anime.genres[0].genre
+                                    ), false),
+                                ])
+                                .color(color)
                         })
                     )
             })
