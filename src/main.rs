@@ -6,7 +6,6 @@ use serenity::async_trait;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
 use serenity::model::gateway::Ready;
-use serenity::model::id::GuildId;
 use serenity::prelude::*;
 
 struct Handler;
@@ -16,21 +15,8 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
 
-        let guild_id = GuildId(
-            env::var("GUILD_ID")
-                .expect("Expected GUILD_ID in environment")
-                .parse()
-                .expect("GUILD_ID must be an integer"),
-        );
-
-        let commands = GuildId::set_application_commands(&guild_id, &ctx.http, |commands| {
-            commands
-                .create_application_command(|command| commands::ping::register(command))
-        })
-        .await;
-        println!("I now have the following guild slash commands: {:#?}", commands);
         let guild_command = Command::create_global_application_command(&ctx.http, |command| {
-            commands::wonderful_command::register(command)
+            cmd::ping::register(command)
         })
         .await;
         println!("I created the following global slash command: {:#?}", guild_command);
@@ -41,7 +27,11 @@ impl EventHandler for Handler {
             println!("Received command interaction: {:#?}", command);
 
             let content = match command.data.name.as_str() {
-                "ping" => commands::ping::run(&command.data.options),
+                "ping" => cmd::ping::run(&command.data.options),
+                "info" => {
+                        cmd::info::run(&command.data.options, command.channel_id, &ctx)
+                            .await
+                    }
                 _ => "not implemented :(".to_string(),
             };
             if let Err(why) = command
