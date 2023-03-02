@@ -1,3 +1,4 @@
+use std::u32;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -159,7 +160,11 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             "red" => color = Colour::RED,
             "green" => color = Colour::DARK_GREEN,
             "gray" => color = Colour::LIGHT_GREY,
-            _ => color = Colour::FABLED_PINK,
+            _ => color = {
+                let hex_code = "#0D966D";
+                let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
+                Colour::new(color_code)
+            },
         }
         let mut min = data.data.User.statistics.anime.minutesWatched;
         let mut hour = 0;
@@ -204,13 +209,13 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                                       data.data.User.statistics.manga.genres[0].genre
                                     ), false),
                                     ("Anime", format!("Count: {}\nTime watched: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
-                                                      data.data.User.statistics.anime.count,
-                                                      time_watched,
-                                                      data.data.User.statistics.anime.meanScore,
-                                                      data.data.User.statistics.anime.standardDeviation,
-                                                      data.data.User.statistics.anime.tags[0].tag.name,
-                                                      data.data.User.statistics.anime.genres[0].genre
-                                    ), false),
+    data.data.User.statistics.anime.count,
+    time_watched,
+    data.data.User.statistics.anime.meanScore,
+    data.data.User.statistics.anime.standardDeviation,
+    data.data.User.statistics.anime.tags[0].tag.name,
+    data.data.User.statistics.anime.genres[0].genre
+), false)
                                 ])
                                 .color(color)
                         })
