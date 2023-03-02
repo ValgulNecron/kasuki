@@ -29,7 +29,7 @@ impl EventHandler for Handler {
             let content = match command.data.name.as_str() {
                 "ping" => cmd::ping::run(&command.data.options),
                 "info" => {
-                        cmd::info::run(&command.data.options, command.channel_id, &ctx, &command)
+                        cmd::info::run(&command.data.options, &ctx, &command)
                             .await
                     }
                 _ => "not implemented :(".to_string(),

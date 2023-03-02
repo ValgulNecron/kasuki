@@ -4,12 +4,8 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
-use serenity::model::application::command::Command;
-use serenity::model::application::interaction::Interaction;
-use serenity::model::gateway::Ready;
-use serenity::prelude::*;
 
-pub async fn run(_options: &[CommandDataOption], msg_id: ChannelId, ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(_options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     if let Err(why) = command
     .create_interaction_response(&ctx.http, |response| {
         response
