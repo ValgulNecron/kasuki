@@ -25,22 +25,22 @@ struct UserWrapper {
 
 #[derive(Debug, Deserialize)]
 struct User {
-    id: i32,
-    name: String,
+    id: Option<i32>,
+    name: Option<String>,
     avatar: Avatar,
     statistics: Statistics,
     options: Options,
-    bannerImage: String,
+    bannerImage: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct Options {
-    profileColor: String,
+    profileColor: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct Avatar {
-    large: String,
+    large: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -51,20 +51,20 @@ struct Statistics {
 
 #[derive(Debug, Deserialize)]
 struct Anime {
-    count: i32,
-    meanScore: f64,
-    standardDeviation: f64,
-    minutesWatched: i32,
+    count: Option<i32>,
+    meanScore: Option<f64>,
+    standardDeviation: Option<f64>,
+    minutesWatched: Option<i32>,
     tags: Vec<Tag>,
     genres: Vec<Genre>,
 }
 
 #[derive(Debug, Deserialize)]
 struct Manga {
-    count: i32,
-    meanScore: f64,
-    standardDeviation: f64,
-    chaptersRead: i32,
+    count: Option<i32>,
+    meanScore: Option<f64>,
+    standardDeviation: Option<f64>,
+    chaptersRead: Option<i32>,
     tags: Vec<Tag>,
     genres: Vec<Genre>,
 }
@@ -76,12 +76,12 @@ struct Tag {
 
 #[derive(Debug, Deserialize)]
 struct TagData {
-    name: String,
+    name: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Genre {
-    pub genre: String,
+    pub genre: Option<String>,
 }
 
 const QUERY: &str = "
@@ -150,8 +150,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .text()
             .await;
         // Get json
-        // don't crash but send an error msg if the user have one of the value
-        // null
         let data: Data = match serde_json::from_str(&resp.unwrap()) {
             Ok(result) => result,
             Err(e) => {
@@ -159,9 +157,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 return "Error: Failed to retrieve user data".to_string();
             }
         };
-        let user_url = format!("https://anilist.co/user/{}", &data.data.User.id);
+        let user_url = format!("https://anilist.co/user/{}", &data.data.User.id.unwrap_or_else(|| 1));
         let mut color = Colour::FABLED_PINK;
-        match data.data.User.options.profileColor.as_str() {
+        match data.data.User.options.profileColor.unwrap_or_else(|| "#FF00FF".to_string()).as_str() {
             "blue" => color = Colour::BLUE,
             "purple" => color = Colour::PURPLE,
             "pink" => color = Colour::MEIBE_PINK,
@@ -175,7 +173,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 Colour::new(color_code)
             },
         }
-        let mut min = data.data.User.statistics.anime.minutesWatched;
+        let mut min = data.data.User.statistics.anime.minutesWatched.unwrap_or_else(|| 0);
         let mut hour = 0;
         let mut days = 0;
         let mut week = 0;
@@ -194,36 +192,54 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             week = days / 7;
             days = days % 7;
         }
+        let chap = data.data.User.statistics.manga.chaptersRead.unwrap_or_else(|| 0);
         let time_watched = format!("{} week(s), {} day(s), {} hour(s), {} minute(s)", week, days, hour, min);
+        let manga_count = data.data.User.statistics.manga.count.unwrap_or_else(|| 0);
+        let manga_score = data.data.User.statistics.manga.meanScore.unwrap_or_else(|| 0 as f64);
+        let manga_standard_deviation = data.data.User.statistics.manga.standardDeviation.unwrap_or_else(|| 0 as f64);
+        let manga_tag_name = data.data.User.statistics.manga.tags[0].tag.name.as_ref().map(|t| t.clone())
+            .unwrap_or_else(|| "N/A".to_string());
+        let manga_genre = data.data.User.statistics.manga.genres[0].genre.as_ref().map(|t| t.clone())
+            .unwrap_or_else(|| "N/A".to_string());
+        let anime_count = data.data.User.statistics.anime.count.unwrap_or_else(|| 0);
+        let anime_score = data.data.User.statistics.anime.meanScore.unwrap_or_else(|| 0 as f64);
+        let anime_standard_deviation = data.data.User.statistics.anime.standardDeviation.unwrap_or_else(|| 0 as f64);
+        let anime_tag_name = data.data.User.statistics.anime.tags[0].tag.name.as_ref().map(|t| t.clone())
+            .unwrap_or_else(|| "N/A".to_string());
+        let anime_genre = data.data.User.statistics.anime.genres[0].genre.as_ref().map(|t| t.clone())
+            .unwrap_or_else(|| "N/A".to_string());
+        let user = data.data.User.name.unwrap_or_else(|| "N/A".to_string());
+        let profile_picture = data.data.User.avatar.large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
+        let banner = data.data.User.bannerImage.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| message.embed(
                         |m| {
-                            m.title(&data.data.User.name)
+                            m.title(user)
                                 .url(&user_url)
                                 // Add a timestamp for the current time
                                 // This also accepts a rfc3339 Timestamp
                                 .timestamp(Timestamp::now())
-                                .thumbnail(data.data.User.avatar.large)
-                                .image(data.data.User.bannerImage)
+                                .thumbnail(profile_picture)
+                                .image(banner)
                                 .fields(vec![
                                     ("Manga", format!("Count: {}\nChapters read: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
-                                                      data.data.User.statistics.manga.count,
-                                                      data.data.User.statistics.manga.chaptersRead,
-                                                      data.data.User.statistics.manga.meanScore,
-                                                      data.data.User.statistics.manga.standardDeviation,
-                                                      data.data.User.statistics.manga.tags[0].tag.name,
-                                                      data.data.User.statistics.manga.genres[0].genre
+                                                      manga_count,
+                                                      chap,
+                                                      manga_score,
+                                                      manga_standard_deviation,
+                                                      manga_tag_name,
+                                                      manga_genre
                                     ), false),
                                     ("Anime", format!("Count: {}\nTime watched: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
-                                                      data.data.User.statistics.anime.count,
+                                                      anime_count,
                                                       time_watched,
-                                                      data.data.User.statistics.anime.meanScore,
-                                                      data.data.User.statistics.anime.standardDeviation,
-                                                      data.data.User.statistics.anime.tags[0].tag.name,
-                                                      data.data.User.statistics.anime.genres[0].genre
+                                                      anime_score,
+                                                      anime_standard_deviation,
+                                                      anime_tag_name,
+                                                      anime_genre
                                     ), false),
                                 ])
                                 .color(color)
