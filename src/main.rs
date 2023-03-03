@@ -17,12 +17,14 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
 
-        let guild_command = Command::create_global_application_command(&ctx.http, |command| {
-            cmd::ping::register(command);
-            cmd::info::register(command);
-            cmd::user::register(command)
-        })
-            .await;
+        let guild_command = Command::set_global_application_commands(&ctx.http, |commands|
+            {
+                commands
+                    .create_application_command(|command| cmd::ping::register(command))
+                    .create_application_command(|command| cmd::info::register(command))
+                    .create_application_command(|command| cmd::user::register(command))
+                    .create_application_command(|command| cmd::manga::register(command))
+            }).await;
         println!("I created the following global slash command: {:#?}", guild_command);
     }
 
@@ -35,6 +37,9 @@ impl EventHandler for Handler {
                 "info" => {
                     cmd::info::run(&command.data.options, &ctx, &command)
                         .await
+                }
+                "manga" => {
+                    cmd::manga::run(&command.data.options, &ctx, &command).await
                 }
                 "user" => {
                     cmd::user::run(&command.data.options, &ctx, &command)

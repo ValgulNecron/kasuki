@@ -13,77 +13,6 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-#[derive(Debug, Deserialize)]
-struct Data {
-    data: UserWrapper,
-}
-
-#[derive(Debug, Deserialize)]
-struct UserWrapper {
-    User: User,
-}
-
-#[derive(Debug, Deserialize)]
-struct User {
-    id: i32,
-    name: String,
-    avatar: Avatar,
-    statistics: Statistics,
-    options: Options,
-    bannerImage: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Options {
-    profileColor: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Avatar {
-    large: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Statistics {
-    anime: Anime,
-    manga: Manga,
-}
-
-#[derive(Debug, Deserialize)]
-struct Anime {
-    count: i32,
-    meanScore: f64,
-    standardDeviation: f64,
-    minutesWatched: i32,
-    tags: Vec<Tag>,
-    genres: Vec<Genre>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Manga {
-    count: i32,
-    meanScore: f64,
-    standardDeviation: f64,
-    chaptersRead: i32,
-    tags: Vec<Tag>,
-    genres: Vec<Genre>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Tag {
-    tag: TagData,
-}
-
-#[derive(Debug, Deserialize)]
-struct TagData {
-    name: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Genre {
-    pub genre: String,
-}
-
 const QUERY: &str = "
 query ($name: String, $limit: Int = 1) {
   User(name: $name) {
@@ -133,10 +62,10 @@ options{
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
         .get(0)
-        .expect("Expected username option")
+        .expect("Expected name option")
         .resolved
         .as_ref()
-        .expect("Expected username object");
+        .expect("Expected name object");
     if let CommandDataOptionValue::String(user) = option {
         let client = Client::new();
         let json = json!({"query": QUERY, "variables": {"name": user}});
@@ -150,15 +79,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .text()
             .await;
         // Get json
-        // don't crash but send an error msg if the user have one of the value
-        // null
-        let data: Data = match serde_json::from_str(&resp.unwrap()) {
-            Ok(result) => result,
-            Err(e) => {
-                println!("Failed to parse json: {}", e);
-                return "Error: Failed to retrieve user data".to_string();
-            }
-        };
+        let data: Data = serde_json::from_str(&resp.unwrap()).unwrap();
         let user_url = format!("https://anilist.co/user/{}", &data.data.User.id);
         let mut color = Colour::FABLED_PINK;
         match data.data.User.options.profileColor.as_str() {
@@ -239,11 +160,11 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("user").description("Info of an anilist user").create_option(
+    command.name("anime").description("Info of an anime").create_option(
         |option| {
             option
-                .name("username")
-                .description("Username of the anilist user you want to check")
+                .name("animename")
+                .description("Name of the anime you want to check")
                 .kind(CommandOptionType::String)
                 .required(true)
         },
