@@ -51,6 +51,7 @@ struct Media {
     popularity: Option<i32>,
     favourites: Option<i32>,
     siteUrl: Option<String>,
+    staff: Staff,
 }
 
 #[derive(Debug, Deserialize)]
@@ -74,6 +75,30 @@ struct CoverImage {
 #[derive(Debug, Deserialize)]
 struct Tag {
     name: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Staff {
+    edges: Vec<Edge>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Edge {
+    node: Node,
+    id: Option<u32>,
+    role: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Node {
+    id: Option<u32>,
+    name: Name,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Name {
+    full: Option<String>,
+    userPreferred: Option<String>,
 }
 
 const QUERY: &str = "
@@ -117,6 +142,19 @@ const QUERY: &str = "
     popularity
     favourites
     siteUrl
+    staff {
+      edges {
+        node {
+          id
+          name {
+            full
+            userPreferred
+          }
+        }
+        id
+        role
+      }
+    }
   }
 }
 ";
@@ -173,7 +211,17 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         } else {
             format!("{}/{}/{}", start_d, start_m, start_y)
         };
-        let info = format!("format : {} / source : {}\n start date : {} \n end date : {} \n", format,source,start_date, end_date);
+
+        let mut staff = "".to_string();
+        let staffs = data.data.Media.staff.edges;
+        for s in staffs {
+            let full = s.node.name.full.unwrap_or_else(|| "N/A".to_string());
+            let user = s.node.name.userPreferred.unwrap_or_else(|| "N/A".to_string());
+            let role = s.role.unwrap_or_else(|| "N/A".to_string());
+            staff.push_str(&format!("Full name: {} / User preferred: {} / Role: {}\n", full, user, role));
+        }
+
+        let info = format!("format : {} / source : {}\n start date : {} \n end date : {} \n {}", format,source,start_date, end_date, staff);
         let mut genre = "".to_string();
         let genre_list = data.data.Media.genres;
         for g in genre_list {
