@@ -24,6 +24,7 @@ impl EventHandler for Handler {
                     .create_application_command(|command| cmd::info::register(command))
                     .create_application_command(|command| cmd::user::register(command))
                     .create_application_command(|command| cmd::manga::register(command))
+                    .create_application_command(|command| cmd::ln::register(command))
             }).await;
         println!("I created the following global slash command: {:#?}", guild_command);
     }
@@ -40,6 +41,9 @@ impl EventHandler for Handler {
                 }
                 "manga" => {
                     cmd::manga::run(&command.data.options, &ctx, &command).await
+                }
+                "lightnovel" => {
+                    cmd::ln::run(&command.data.options, &ctx, &command).await
                 }
                 "user" => {
                     cmd::user::run(&command.data.options, &ctx, &command)
