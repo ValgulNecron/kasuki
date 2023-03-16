@@ -197,17 +197,50 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let manga_count = data.data.User.statistics.manga.count.unwrap_or_else(|| 0);
         let manga_score = data.data.User.statistics.manga.meanScore.unwrap_or_else(|| 0 as f64);
         let manga_standard_deviation = data.data.User.statistics.manga.standardDeviation.unwrap_or_else(|| 0 as f64);
-        let manga_tag_name = data.data.User.statistics.manga.tags[0].tag.name.as_ref().map(|t| t.clone())
-            .unwrap_or_else(|| "N/A".to_string());
-        let manga_genre = data.data.User.statistics.manga.genres[0].genre.as_ref().map(|t| t.clone())
-            .unwrap_or_else(|| "N/A".to_string());
+         let mut manga_tag_name = String::new();
+        for i in 0..3 {
+            if let Some(tags) = data.data.User.statistics.manga.tags.get(i).and_then(|g| g.genre.as_ref()) {
+                manga_tag_name.push_str(&format!("{} / ", tags));
+            } else {
+                manga_tag_name.push_str("N/A / ");
+            }
+        }
+        manga_tag_name.pop();
+
+        let mut manga_genres = String::new();
+        for i in 0..3 {
+            if let Some(genre) = data.data.User.statistics.manga.genres.get(i).and_then(|g| g.genre.as_ref()) {
+                manga_genres.push_str(&format!("{} / ", genre));
+            } else {
+                manga_genres.push_str("N/A / ");
+            }
+        }
+        manga_genres.pop();
+
         let anime_count = data.data.User.statistics.anime.count.unwrap_or_else(|| 0);
         let anime_score = data.data.User.statistics.anime.meanScore.unwrap_or_else(|| 0 as f64);
         let anime_standard_deviation = data.data.User.statistics.anime.standardDeviation.unwrap_or_else(|| 0 as f64);
-        let anime_tag_name = data.data.User.statistics.anime.tags[0].tag.name.as_ref().map(|t| t.clone())
-            .unwrap_or_else(|| "N/A".to_string());
-        let anime_genre = data.data.User.statistics.anime.genres[0].genre.as_ref().map(|t| t.clone())
-            .unwrap_or_else(|| "N/A".to_string());
+
+        let mut anime_tag_name = String::new();
+        for i in 0..3 {
+            if let Some(tags) = data.data.User.statistics.anime.tags.get(i).and_then(|g| g.genre.as_ref()) {
+                anime_tag_name.push_str(&format!("{} / ", tags));
+            } else {
+                anime_tag_name.push_str("N/A / ");
+            }
+        }
+        anime_tag_name.pop();
+
+        let mut anime_genre = String::new();
+        for i in 0..3 {
+            if let Some(genre) = data.data.User.statistics.anime.genres.get(i).and_then(|g| g.genre.as_ref()) {
+                anime_genre.push_str(&format!("{} / ", genre));
+            } else {
+                anime_genre.push_str("N/A / ");
+            }
+        }
+        anime_genre.pop();
+
         let user = data.data.User.name.unwrap_or_else(|| "N/A".to_string());
         let profile_picture = data.data.User.avatar.large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
         let banner = data.data.User.bannerImage.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
