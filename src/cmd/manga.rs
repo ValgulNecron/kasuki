@@ -1,6 +1,7 @@
 use std::io::empty;
 use std::u32;
 
+use regex::Regex;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -14,7 +15,6 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-use regex::Regex;
 
 #[derive(Debug, Deserialize)]
 struct Data {
@@ -221,7 +221,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             staff.push_str(&format!("Full name: {} / User preferred: {} / Role: {}\n", full, user, role));
         }
 
-        let info = format!("format : {} / source : {}\n start date : {} \n end date : {} \n {}", format,source,start_date, end_date, staff);
+        let info = format!("format : {} / source : {}\n start date : {} \n end date : {} \n {}", format, source, start_date, end_date, staff);
         let mut genre = "".to_string();
         let genre_list = data.data.Media.genres;
         for g in genre_list {
@@ -249,10 +249,10 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                 .description(desc)
                                 .thumbnail(thumbnail)
                                 .image(banner_image)
-                                .field("Info",info, false)
+                                .field("Info", info, false)
                                 .fields(vec![
-                                    ("Genre",genre ,true),
-                                    ("Tag",tag , true),
+                                    ("Genre", genre, true),
+                                    ("Tag", tag, true),
                                 ])
                         })
                     )
