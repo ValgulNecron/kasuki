@@ -27,7 +27,6 @@ impl EventHandler for Handler {
                     .create_application_command(|command| cmd::ln::register(command))
                     .create_application_command(|command| cmd::user::register(command))
                     .create_application_command(|command| cmd::user::register(command))
-
             }).await;
         println!("I created the following global slash command: {:#?}", guild_command);
     }
@@ -77,7 +76,7 @@ async fn main() {
     let my_path = ".\\src\\.env";
     println!("{}", my_path.to_string());
     let path = std::path::Path::new(my_path);
-    dotenv::from_path(path).expect("Expected env file");
+    dotenv::from_path(path);
     let token = env::var("DISCORD_TOKEN").expect("discord token");
     // Build our client.
     let mut client = Client::builder(token, GatewayIntents::all())
