@@ -76,7 +76,7 @@ async fn main() {
     let my_path = ".\\src\\.env";
     println!("{}", my_path.to_string());
     let path = std::path::Path::new(my_path);
-    dotenv::from_path(path).expect("Expected env file");
+    dotenv::from_path(path);
     let token = env::var("DISCORD_TOKEN").expect("discord token");
     // Build our client.
     let mut client = Client::builder(token, GatewayIntents::all())
