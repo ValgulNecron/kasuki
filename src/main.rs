@@ -25,6 +25,9 @@ impl EventHandler for Handler {
                     .create_application_command(|command| cmd::user::register(command))
                     .create_application_command(|command| cmd::manga::register(command))
                     .create_application_command(|command| cmd::ln::register(command))
+                    .create_application_command(|command| cmd::user::register(command))
+                    .create_application_command(|command| cmd::user::register(command))
+
             }).await;
         println!("I created the following global slash command: {:#?}", guild_command);
     }
@@ -71,10 +74,10 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
     // Configure the client with your Discord bot token in the environment.
-    let my_path = "C:\\Users\\valgul\\IdeaProjects\\DiscordAnilistBot\\src\\.env";
+    let my_path = ".\\src\\.env";
     println!("{}", my_path.to_string());
     let path = std::path::Path::new(my_path);
-    dotenv::from_path(path);
+    dotenv::from_path(path).expect("Expected env file");
     let token = env::var("DISCORD_TOKEN").expect("discord token");
     // Build our client.
     let mut client = Client::builder(token, GatewayIntents::all())
