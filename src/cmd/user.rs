@@ -261,7 +261,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .name("username")
                 .description("Username of the anilist user you want to check")
                 .kind(CommandOptionType::String)
-                .required(true)
+                .required(false)
         },
     )
 }
