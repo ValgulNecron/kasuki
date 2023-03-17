@@ -100,7 +100,7 @@ struct Name {
 }
 
 const QUERY: &str = "
-    query ($search: String) {
+    query ($search: String, $limit: Int = 4) {
 		Media (search: $search, type: MANGA, format: MANGA){
     id
       description
@@ -140,7 +140,7 @@ const QUERY: &str = "
     popularity
     favourites
     siteUrl
-    staff {
+    staff(perPage: $limit) {
       edges {
         node {
           id

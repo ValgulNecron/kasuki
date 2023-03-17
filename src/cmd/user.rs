@@ -85,7 +85,7 @@ pub struct Genre {
 }
 
 const QUERY: &str = "
-query ($name: String, $limit: Int = 3) {
+query ($name: String, $limit: Int = 5) {
   User(name: $name) {
     id
     name
