@@ -221,13 +221,13 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let info = format!("format : {} / source : {}\n start date : {} \n end date : {} \n {}", format, source, start_date, end_date, staff);
         let mut genre = "".to_string();
         let genre_list = data.data.Media.genres;
-        for g in genre_list {
+        for g in genre_list.iter().take(5) {
             genre += &g.unwrap_or_else(|| "N/A".to_string());
             genre += "\n"
         }
         let mut tag = "".to_string();
         let tag_list = data.data.Media.tags;
-        for t in tag_list.iter().take(10) {
+        for t in tag_list.iter().take(5) {
             let tag_name: String = t.name.as_ref().map_or("N/A".to_string(), |s| s.to_string());
             tag += &tag_name;
             tag += "\n";
