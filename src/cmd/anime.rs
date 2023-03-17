@@ -222,7 +222,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let mut genre = "".to_string();
         let genre_list = data.data.Media.genres;
         for g in genre_list.iter().take(5) {
-            genre += &g.unwrap_or_else(|| "N/A".to_string());
+            genre += g.unwrap_or_else(|| "N/A".to_string()).as_str();
             genre += "\n"
         }
         let mut tag = "".to_string();
