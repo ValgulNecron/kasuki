@@ -1,4 +1,3 @@
-use std::io::empty;
 use std::u32;
 
 use regex::Regex;
@@ -7,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
-use serenity::futures::TryFutureExt;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::ChannelId;
