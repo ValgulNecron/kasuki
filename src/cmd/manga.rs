@@ -1,4 +1,3 @@
-use std::io::empty;
 use std::u32;
 
 use regex::Regex;
