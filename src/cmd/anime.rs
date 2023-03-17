@@ -1,10 +1,13 @@
+use std::io::empty;
 use std::u32;
 
+use regex::Regex;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
+use serenity::futures::TryFutureExt;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::ChannelId;
@@ -13,48 +16,145 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
+#[derive(Debug, Deserialize)]
+struct Data {
+    data: MediaData,
+}
+
+#[derive(Debug, Deserialize)]
+struct MediaData {
+    Media: Media,
+}
+
+#[derive(Debug, Deserialize)]
+struct Media {
+    id: i64,
+    description: Option<String>,
+    title: Title,
+    r#type: Option<String>,
+    format: Option<String>,
+    source: Option<String>,
+    isAdult: bool,
+    startDate: StartEndDate,
+    endDate: StartEndDate,
+    chapters: Option<i32>,
+    volumes: Option<i32>,
+    status: Option<String>,
+    season: Option<String>,
+    isLicensed: bool,
+    coverImage: CoverImage,
+    bannerImage: Option<String>,
+    genres: Vec<Option<String>>,
+    tags: Vec<Tag>,
+    averageScore: Option<i32>,
+    meanScore: Option<i32>,
+    popularity: Option<i32>,
+    favourites: Option<i32>,
+    siteUrl: Option<String>,
+    staff: Staff,
+}
+
+#[derive(Debug, Deserialize)]
+struct Title {
+    romaji: Option<String>,
+    english: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct StartEndDate {
+    year: Option<i32>,
+    month: Option<i32>,
+    day: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+struct CoverImage {
+    extraLarge: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Tag {
+    name: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Staff {
+    edges: Vec<Edge>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Edge {
+    node: Node,
+    id: Option<u32>,
+    role: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Node {
+    id: Option<u32>,
+    name: Name,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Name {
+    full: Option<String>,
+    userPreferred: Option<String>,
+}
+
 const QUERY: &str = "
-query ($name: String, $limit: Int = 1) {
-  User(name: $name) {
+    query ($search: String) {
+		Media (search: $search, type: ANIME){
     id
-    name
-    avatar {
-      large
+      description
+    title{
+      romaji
+      english
     }
-    statistics {
-      anime {
-        count
-        meanScore
-        standardDeviation
-        minutesWatched
-        tags(limit: $limit) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit) {
-          genre
-        }
-      }
-      manga {
-        count
-        meanScore
-        standardDeviation
-        chaptersRead
-        tags(limit: $limit) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit) {
-          genre
-        }
-      }
+    type
+    format
+    source
+    isAdult
+    startDate {
+      year
+      month
+      day
     }
-options{
-      profileColor
+    endDate {
+      year
+      month
+      day
+    }
+    chapters
+    volumes
+    status
+    season
+    isLicensed
+    coverImage {
+      extraLarge
     }
     bannerImage
+    genres
+    tags {
+      name
+    }
+    averageScore
+    meanScore
+    popularity
+    favourites
+    siteUrl
+    staff {
+      edges {
+        node {
+          id
+          name {
+            full
+            userPreferred
+          }
+        }
+        id
+        role
+      }
+    }
   }
 }
 ";
@@ -66,9 +166,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         .resolved
         .as_ref()
         .expect("Expected name object");
-    if let CommandDataOptionValue::String(user) = option {
+    if let CommandDataOptionValue::String(name) = option {
         let client = Client::new();
-        let json = json!({"query": QUERY, "variables": {"name": user}});
+        let json = json!({"query": QUERY, "variables": {"search": name}});
         let resp = client.post("https://graphql.anilist.co/")
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
@@ -80,74 +180,80 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .await;
         // Get json
         let data: Data = serde_json::from_str(&resp.unwrap()).unwrap();
-        let user_url = format!("https://anilist.co/user/{}", &data.data.User.id);
-        let mut color = Colour::FABLED_PINK;
-        match data.data.User.options.profileColor.as_str() {
-            "blue" => color = Colour::BLUE,
-            "purple" => color = Colour::PURPLE,
-            "pink" => color = Colour::MEIBE_PINK,
-            "orange" => color = Colour::ORANGE,
-            "red" => color = Colour::RED,
-            "green" => color = Colour::DARK_GREEN,
-            "gray" => color = Colour::LIGHT_GREY,
-            _ => color = {
-                let hex_code = "#0D966D";
-                let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
-                Colour::new(color_code)
-            },
-        }
-        let mut min = data.data.User.statistics.anime.minutesWatched;
-        let mut hour = 0;
-        let mut days = 0;
-        let mut week = 0;
+        let hex_code = "#0D966D";
+        let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
+        let color = Colour::new(color_code);
+        let banner_image = data.data.Media.bannerImage.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
+        let desc_no_br = data.data.Media.description.unwrap_or_else(|| "NA".to_string()).replace("<br>", "");
+        let re = Regex::new("<i>(.|\\n)*?</i>").unwrap();
+        let desc = re.replace_all(&desc_no_br, "");
+        let en_name = data.data.Media.title.english.unwrap_or_else(|| "NA".to_string());
+        let rj_name = data.data.Media.title.romaji.unwrap_or_else(|| "NA".to_string());
+        let thumbnail = data.data.Media.coverImage.extraLarge.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
+        let site_url = data.data.Media.siteUrl.unwrap_or_else(|| "https://example.com".to_string());
+        let name = format!("{} / {}", en_name, rj_name);
+        let format = data.data.Media.format.unwrap_or_else(|| "N/A".to_string());
+        let source = data.data.Media.source.unwrap_or_else(|| "N/A".to_string());
 
-        if min >= 60 {
-            hour = min / 60;
-            min = min % 60;
+        let start_y = data.data.Media.startDate.year.unwrap_or_else(|| 0);
+        let start_d = data.data.Media.startDate.day.unwrap_or_else(|| 0);
+        let start_m = data.data.Media.startDate.month.unwrap_or_else(|| 0);
+        let start_date = if start_y == 0 && start_d == 0 && start_m == 0 {
+            "N/A".to_string()
+        } else {
+            format!("{}/{}/{}", start_d, start_m, start_y)
+        };
+        let end_y = data.data.Media.endDate.year.unwrap_or_else(|| 0);
+        let end_d = data.data.Media.endDate.day.unwrap_or_else(|| 0);
+        let end_m = data.data.Media.endDate.month.unwrap_or_else(|| 0);
+        let end_date = if end_y == 0 && end_d == 0 && end_m == 0 {
+            "N/A".to_string()
+        } else {
+            format!("{}/{}/{}", start_d, start_m, start_y)
+        };
+
+        let mut staff = "".to_string();
+        let staffs = data.data.Media.staff.edges;
+        for s in staffs {
+            let full = s.node.name.full.unwrap_or_else(|| "N/A".to_string());
+            let user = s.node.name.userPreferred.unwrap_or_else(|| "N/A".to_string());
+            let role = s.role.unwrap_or_else(|| "N/A".to_string());
+            staff.push_str(&format!("Full name: {} / User preferred: {} / Role: {}\n", full, user, role));
         }
 
-        if hour >= 24 {
-            days = hour / 24;
-            hour = hour % 24;
+        let info = format!("format : {} / source : {}\n start date : {} \n end date : {} \n {}", format, source, start_date, end_date, staff);
+        let mut genre = "".to_string();
+        let genre_list = data.data.Media.genres;
+        for g in genre_list {
+            genre += &g.unwrap_or_else(|| "N/A".to_string());
+            genre += "\n"
+        }
+        let mut tag = "".to_string();
+        let tag_list = data.data.Media.tags;
+        for t in tag_list.iter().take(10) {
+            let tag_name: String = t.name.as_ref().map_or("N/A".to_string(), |s| s.to_string());
+            tag += &tag_name;
+            tag += "\n";
         }
 
-        if days >= 7 {
-            week = days / 7;
-            days = days % 7;
-        }
-        let time_watched = format!("{} week(s), {} day(s), {} hour(s), {} minute(s)", week, days, hour, min);
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| message.embed(
                         |m| {
-                            m.title(&data.data.User.name)
-                                .url(&user_url)
-                                // Add a timestamp for the current time
-                                // This also accepts a rfc3339 Timestamp
+                            m.title(name)
+                                .url(site_url)
                                 .timestamp(Timestamp::now())
-                                .thumbnail(data.data.User.avatar.large)
-                                .image(data.data.User.bannerImage)
-                                .fields(vec![
-                                    ("Manga", format!("Count: {}\nChapters read: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
-                                                      data.data.User.statistics.manga.count,
-                                                      data.data.User.statistics.manga.chaptersRead,
-                                                      data.data.User.statistics.manga.meanScore,
-                                                      data.data.User.statistics.manga.standardDeviation,
-                                                      data.data.User.statistics.manga.tags[0].tag.name,
-                                                      data.data.User.statistics.manga.genres[0].genre
-                                    ), false),
-                                    ("Anime", format!("Count: {}\nTime watched: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
-                                                      data.data.User.statistics.anime.count,
-                                                      time_watched,
-                                                      data.data.User.statistics.anime.meanScore,
-                                                      data.data.User.statistics.anime.standardDeviation,
-                                                      data.data.User.statistics.anime.tags[0].tag.name,
-                                                      data.data.User.statistics.anime.genres[0].genre
-                                    ), false),
-                                ])
                                 .color(color)
+                                .description(desc)
+                                .thumbnail(thumbnail)
+                                .image(banner_image)
+                                .field("Info", info, false)
+                                .fields(vec![
+                                    ("Genre", genre, true),
+                                    ("Tag", tag, true),
+                                ])
                         })
                     )
             })
