@@ -27,8 +27,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| message.embed(
                         |m| {
-                            m.color(color)
-                                .title("Registration Successful")
+                            m.title("Registration Successful")
                                 .description(format!("{} registered {} successfully", user_id, anilist_username))
                         })
                     )
