@@ -1,63 +1,11 @@
 use std::u32;
 
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
-use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
-use serenity::model::Timestamp;
-use serenity::utils::Colour;
-
-const QUERY: &str = "
-query ($name: String, $limit: Int = 1) {
-  User(name: $name) {
-    id
-    name
-    avatar {
-      large
-    }
-    statistics {
-      anime {
-        count
-        meanScore
-        standardDeviation
-        minutesWatched
-        tags(limit: $limit) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit) {
-          genre
-        }
-      }
-      manga {
-        count
-        meanScore
-        standardDeviation
-        chaptersRead
-        tags(limit: $limit) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit) {
-          genre
-        }
-      }
-    }
-options{
-      profileColor
-    }
-    bannerImage
-  }
-}
-";
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
