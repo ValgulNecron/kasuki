@@ -26,7 +26,6 @@ impl EventHandler for Handler {
                     .create_application_command(|command| cmd::manga::register(command))
                     .create_application_command(|command| cmd::ln::register(command))
                     .create_application_command(|command| cmd::user::register(command))
-                    .create_application_command(|command| cmd::register_user::register(command))
                     .create_application_command(|command| cmd::anime::register(command))
             }).await;
         println!("I created the following global slash command: {:#?}", guild_command);
@@ -50,10 +49,6 @@ impl EventHandler for Handler {
                 }
                 "user" => {
                     cmd::user::run(&command.data.options, &ctx, &command)
-                        .await
-                }
-                "register" => {
-                    cmd::register_user::run(&command.data.options, &ctx, &command)
                         .await
                 }
                 "anime" => {
