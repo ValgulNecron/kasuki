@@ -74,7 +74,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             conn.execute("CREATE TABLE User (discord_id TEXT PRIMARY KEY, anilist_username TEXT)").unwrap();
         }
         let sql = "INSERT OR REPLACE INTO User (discord_id, anilist_username) VALUES (?, ?)";
-        let color = Colour::
         conn.execute_with_params(sql, &[&user_id, &anilist_username]).unwrap();
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
