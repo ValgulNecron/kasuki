@@ -100,14 +100,14 @@ struct Name {
 
 const QUERY: &str = "
     query ($search: String, $limit: Int = 5) {
-		Media (search: $search, type: MANGA, format: NOVEL){
+		Media (search: $search, types: MANGA, format: NOVEL){
     id
       description
     title{
       romaji
       english
     }
-    type
+    types
     format
     source
     isAdult
