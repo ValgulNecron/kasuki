@@ -5,7 +5,10 @@ use std::env;
 use serenity::async_trait;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
+use serenity::model::channel::ReactionType;
+use serenity::model::gateway::ActivityType;
 use serenity::model::gateway::Ready;
+use serenity::model::user::OnlineStatus;
 use serenity::prelude::*;
 
 mod cmd;

@@ -246,6 +246,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         anime_genre.pop();
         anime_genre.pop();
 
+        let manga_url = format!("{}/mangalist", &user_url);
+        let anime_url = format!("{}/animelist", &user_url);
+
         let user = data.data.User.name.unwrap_or_else(|| "N/A".to_string());
         let profile_picture = data.data.User.avatar.large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
         let banner = data.data.User.bannerImage.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
@@ -263,21 +266,23 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                 .thumbnail(profile_picture)
                                 .image(banner)
                                 .fields(vec![
-                                    ("Manga", format!("Count: {}\nChapters read: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
-                                                      manga_count,
-                                                      chap,
-                                                      manga_score,
-                                                      manga_standard_deviation,
-                                                      manga_tag_name,
-                                                      manga_genre
+                                    ("".to_string(), format!("**[Manga]({})** \nCount: {}\nChapters read: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
+                                                             manga_url,
+                                                             manga_count,
+                                                             chap,
+                                                             manga_score,
+                                                             manga_standard_deviation,
+                                                             manga_tag_name,
+                                                             manga_genre
                                     ), false),
-                                    ("Anime", format!("Count: {}\nTime watched: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
-                                                      anime_count,
-                                                      time_watched,
-                                                      anime_score,
-                                                      anime_standard_deviation,
-                                                      anime_tag_name,
-                                                      anime_genre
+                                    ("".to_string(), format!("**[Anime]({})**\nCount: {} \nTime watched: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
+                                                             anime_url,
+                                                             anime_count,
+                                                             time_watched,
+                                                             anime_score,
+                                                             anime_standard_deviation,
+                                                             anime_tag_name,
+                                                             anime_genre
                                     ), false),
                                 ])
                                 .color(color)
