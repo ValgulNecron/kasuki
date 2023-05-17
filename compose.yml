@@ -1,0 +1,8 @@
+version: '3'
+services:
+  rust_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DISCORD_TOKEN=your_discord_token_here
