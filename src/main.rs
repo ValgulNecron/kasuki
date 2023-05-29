@@ -5,7 +5,10 @@ use std::env;
 use serenity::async_trait;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
+use serenity::model::channel::ReactionType;
+use serenity::model::gateway::ActivityType;
 use serenity::model::gateway::Ready;
+use serenity::model::user::OnlineStatus;
 use serenity::prelude::*;
 
 mod cmd;
@@ -22,10 +25,10 @@ impl EventHandler for Handler {
                 commands
                     .create_application_command(|command| cmd::ping::register(command))
                     .create_application_command(|command| cmd::info::register(command))
-                    .create_application_command(|command| cmd::user::register(command))
                     .create_application_command(|command| cmd::manga::register(command))
                     .create_application_command(|command| cmd::ln::register(command))
                     .create_application_command(|command| cmd::anime::register(command))
+                    .create_application_command(|command| cmd::user::register(command))
             }).await;
         println!("I created the following global slash command: {:#?}", guild_command);
     }

@@ -99,7 +99,7 @@ struct Name {
 }
 
 const QUERY: &str = "
-    query ($search: String) {
+    query ($search: String, $limit: Int = 5) {
 		Media (search: $search, type: ANIME){
     id
       description
@@ -139,7 +139,7 @@ const QUERY: &str = "
     popularity
     favourites
     siteUrl
-    staff {
+    staff(perPage: $limit) {
       edges {
         node {
           id
@@ -227,7 +227,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         }
         let mut tag = "".to_string();
         let tag_list = data.data.Media.tags;
-        for t in tag_list.iter().take(10) {
+        for t in tag_list.iter().take(5) {
             let tag_name: String = t.name.as_ref().map_or("N/A".to_string(), |s| s.to_string());
             tag += &tag_name;
             tag += "\n";
