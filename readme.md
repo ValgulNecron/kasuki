@@ -14,8 +14,8 @@
 ```bash
 git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 ```
-- edit docker-compose.yml file and add your discord bot token.
-- run docker-compose.
+- edit compose-default.yml file and add your discord bot token. (not sure if it works or need to be renamed to compose.yml or docker-compose.yml)
+- run docker compose.
 ```bash
 docker compose up -d
 ```
