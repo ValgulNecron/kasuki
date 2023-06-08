@@ -5,6 +5,9 @@
 - add staff search function.
 - add search feature with type.
 - find a name for the bot.
+- take https://anilist.co/forum/thread/64835 idea of generating image with seiyuu and va role.
+- activity command (auto send activity of a user to a channel).
+- add a bdd for some stuff prob sqllite but not sure.
 
 # How to use
 
@@ -14,8 +17,8 @@
 ```bash
 git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 ```
-- edit docker-compose.yml file and add your discord bot token.
-- run docker-compose.
+- edit compose-default.yml file and add your discord bot token. (not sure if it works or need to be renamed to compose.yml or docker-compose.yml)
+- run docker compose.
 ```bash
 docker compose up -d
 ```
