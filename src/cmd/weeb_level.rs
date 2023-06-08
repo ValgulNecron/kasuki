@@ -57,7 +57,7 @@ struct Anime {
     minutesWatched: Option<i32>,
     tags: Vec<Tag>,
     genres: Vec<Genre>,
-    statuses: Vec<Statuses>
+    statuses: Vec<Statuses>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -68,13 +68,13 @@ struct Manga {
     chaptersRead: Option<i32>,
     tags: Vec<Tag>,
     genres: Vec<Genre>,
-    statuses: Vec<Statuses>
+    statuses: Vec<Statuses>,
 }
 
 #[derive(Debug, Deserialize)]
 struct Statuses {
     count: i32,
-    status: String
+    status: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -181,25 +181,23 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let mut anime_watching: f64 = 0.0;
         let mut manga_completed: f64 = 0.0;
         let mut manga_reading: f64 = 0.0;
-        for i in anime.statuses{
-            if i.status == "COMPLETED"{
+        for i in anime.statuses {
+            if i.status == "COMPLETED".to_string() {
                 anime_completed = i.count as f64;
-            }
-            else if i.status == "CURRENT"{
+            } else if i.status == "CURRENT".to_string() {
                 anime_watching = i.count as f64
             }
         }
-        for i in manga.statuses{
-            if i.status == "COMPLETED"{
+        for i in manga.statuses {
+            if i.status == "COMPLETED".to_string() {
                 manga_completed = i.count as f64;
-            }
-            else if i.status == "CURRENT"{
+            } else if i.status == "CURRENT".to_string() {
                 manga_reading = i.count as f64
             }
         }
         let chap = manga.chaptersRead.unwrap_or_else(|| 0) as f64;
         let min = anime.minutesWatched.unwrap_or_else(|| 0) as f64;
-        let input = (anime_completed * 2.0 + anime_watching * 1.5) + (manga_completed * 2.0 + manga_reading * 1.5) + ((chap * 5.0  + min) / 10.0);
+        let input = (anime_completed * 2.0 + anime_watching * 1.5) + (manga_completed * 2.0 + manga_reading * 1.5) + ((chap * 5.0 + min) / 10.0);
         let scaling_factor = 2.0;
         let level = 5.0 * (1.0 + (input / scaling_factor)).ln();
 
@@ -229,8 +227,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                 .timestamp(Timestamp::now())
                                 .thumbnail(profile_picture)
                                 .fields(vec![
-                                    ("".to_string(),format!("Your level is : {}.\n You have a total of : {} xp."
-                                                            ,level, input) , false),
+                                    ("".to_string(), format!("Your level is : {}.\n You have a total of : {} xp."
+                                                             , level, input), false),
                                 ])
                                 .color(color)
                         })
