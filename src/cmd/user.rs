@@ -57,6 +57,7 @@ struct Anime {
     minutesWatched: Option<i32>,
     tags: Vec<Tag>,
     genres: Vec<Genre>,
+    statuses: Vec<Statuses>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -67,6 +68,13 @@ struct Manga {
     chaptersRead: Option<i32>,
     tags: Vec<Tag>,
     genres: Vec<Genre>,
+    statuses: Vec<Statuses>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Statuses {
+    count: i32,
+    status: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -106,6 +114,10 @@ query ($name: String, $limit: Int = 5) {
         genres(limit: $limit) {
           genre
         }
+        statuses(sort: COUNT_DESC){
+          count
+          status
+        }
       }
       manga {
         count
@@ -119,6 +131,10 @@ query ($name: String, $limit: Int = 5) {
         }
         genres(limit: $limit) {
           genre
+        }
+        statuses(sort: COUNT_DESC){
+          count
+          status
         }
       }
     }
@@ -249,6 +265,21 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let manga_url = format!("{}/mangalist", &user_url);
         let anime_url = format!("{}/animelist", &user_url);
 
+        let anime_statuses = data.data.User.statistics.anime.statuses;
+        let mut anime_completed = 0;
+        for i in anime_statuses {
+            if i.status == "COMPLETED".to_string() {
+                anime_completed = i.count;
+            }
+        }
+
+        let manga_statuses = data.data.User.statistics.manga.statuses;
+        let mut manga_completed = 0;
+        for i in manga_statuses {
+            if i.status == "COMPLETED".to_string() {
+                manga_completed = i.count;
+            }
+        }
         let user = data.data.User.name.unwrap_or_else(|| "N/A".to_string());
         let profile_picture = data.data.User.avatar.large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
         let banner = data.data.User.bannerImage.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
@@ -266,18 +297,20 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                 .thumbnail(profile_picture)
                                 .image(banner)
                                 .fields(vec![
-                                    ("".to_string(), format!("**[Manga]({})** \nCount: {}\nChapters read: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
+                                    ("".to_string(), format!("**[Manga]({})** \nCount: {} And completed : {}\nChapters read: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
                                                              manga_url,
                                                              manga_count,
+                                                             manga_completed,
                                                              chap,
                                                              manga_score,
                                                              manga_standard_deviation,
                                                              manga_tag_name,
                                                              manga_genre
                                     ), false),
-                                    ("".to_string(), format!("**[Anime]({})**\nCount: {} \nTime watched: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
+                                    ("".to_string(), format!("**[Anime]({})**\nCount: {} And completed : {}\nTime watched: {}\nMean score: {:.2}\nStandard deviation: {:.2}\nPreferred tag: {}\nPreferred genre: {}",
                                                              anime_url,
                                                              anime_count,
+                                                             anime_completed,
                                                              time_watched,
                                                              anime_score,
                                                              anime_standard_deviation,
@@ -304,7 +337,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .name("username")
                 .description("Username of the anilist user you want to check")
                 .kind(CommandOptionType::String)
-                .required(false)
+                .required(true)
         },
     )
 }
