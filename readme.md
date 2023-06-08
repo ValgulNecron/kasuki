@@ -5,6 +5,9 @@
 - add staff search function.
 - add search feature with type.
 - find a name for the bot.
+- take https://anilist.co/forum/thread/64835 idea of generating image with seiyuu and va role.
+- activity command (auto send activity of a user to a channel).
+- add a bdd for some stuff prob sqllite but not sure.
 
 # How to use
 
