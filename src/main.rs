@@ -30,6 +30,7 @@ impl EventHandler for Handler {
                     .create_application_command(|command| cmd::anime::register(command))
                     .create_application_command(|command| cmd::user::register(command))
                     .create_application_command(|command| cmd::weeb_level::register(command))
+                    .create_application_command(|command| cmd::comparison::register(command))
             }).await;
         println!("I created the following global slash command: {:#?}", guild_command);
     }
@@ -59,6 +60,10 @@ impl EventHandler for Handler {
                 }
                 "level" => {
                     cmd::weeb_level::run(&command.data.options, &ctx, &command)
+                        .await
+                }
+                "compare" => {
+                    cmd::comparison::run(&command.data.options, &ctx, &command)
                         .await
                 }
                 _ => "not implemented :(".to_string(),

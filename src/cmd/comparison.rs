@@ -145,3 +145,21 @@ options{
   }
 }
 ";
+
+
+pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
+    command.name("compare").description("compare stats of two uer").create_option(
+        |option| {
+            option
+                .name("username")
+                .description("Username of the 1st anilist user to compare")
+                .kind(CommandOptionType::String)
+                .required(true);
+            option
+                .name("username")
+                .description("Username of the 1st anilist user to compare")
+                .kind(CommandOptionType::String)
+                .required(true)
+        },
+    )
+}
