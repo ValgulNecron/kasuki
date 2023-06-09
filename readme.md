@@ -12,6 +12,8 @@
   - try to do the same for manga with https://www.mangaupdates.com/series.html?id=70263 (for this one only selected manga not all seasonal) 
   - activity command (auto send activity of a user to a channel).
   - add a "delay" option to delay notification. (like 1h for a translation) 
+- random /random {anime, manga}
+  
 
 
 
