@@ -19,7 +19,7 @@
 
 # How to use
 
-## 1. Docker. 
+### 1. Docker. 
 - Install docker and docker compose.
 - Clone this repo. 
 ```bash
@@ -30,7 +30,7 @@ git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 ```bash
 docker compose up -d
 ```
-## 2. Rust.
+### 2. Rust.
 - Install rust.
 - Clone this repo. 
 ```bash
