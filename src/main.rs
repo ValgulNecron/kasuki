@@ -3,9 +3,12 @@ extern crate core;
 use std::env;
 
 use serenity::async_trait;
+use serenity::client::Context;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
+use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
+use serenity::model::gateway::Activity;
 use serenity::model::gateway::ActivityType;
 use serenity::model::gateway::Ready;
 use serenity::model::user::OnlineStatus;
@@ -15,9 +18,13 @@ mod cmd;
 
 struct Handler;
 
+const ACTIVITY_NAME: &str = "Do /help to get the list of command";
+const ACTIVITY_TYPE: Activity = Activity::playing(ACTIVITY_NAME);
+
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
+        ctx.set_activity(ACTIVITY_TYPE).await;
         println!("{} is connected!", ready.user.name);
 
         let guild_command = Command::set_global_application_commands(&ctx.http, |commands|
@@ -93,6 +100,7 @@ async fn main() {
     let path = std::path::Path::new(my_path);
     dotenv::from_path(path);
     let token = env::var("DISCORD_TOKEN").expect("discord token");
+
     // Build our client.
     let mut client = Client::builder(token, GatewayIntents::all())
         .event_handler(Handler)
