@@ -32,17 +32,19 @@ pub async fn run(_options: &[CommandDataOption], ctx: &Context, command: &Applic
                                         .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=17861158751296&scope=bot")
                                         .style(ButtonStyle::Link)
                                 })
-                                .create_button(|button| {
-                                    button.label("Official discord")
-                                        .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=17861158751296&scope=bot")
-                                        .style(ButtonStyle::Link)
-                                })
-                                .create_button(|button| {
-                                    button.label("Add the bot.")
-                                        .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=17861158751296&scope=bot")
-                                        .style(ButtonStyle::Link)
-                                })
                         })
+                            .create_action_row(|button| {
+                                button.create_button(|button| {
+                                    button.label("Official discord")
+                                        .url("https://discord.gg/dWGU6mkw7J")
+                                        .style(ButtonStyle::Link)
+                                })
+                                    .create_button(|button| {
+                                        button.label("Add the bot.")
+                                            .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=17861158751296&scope=bot")
+                                            .style(ButtonStyle::Link)
+                                    })
+                            })
                     })
                 )
         })
