@@ -6,12 +6,20 @@
 - add search feature with type.
 - find a name for the bot.
 - take https://anilist.co/forum/thread/64835 idea of generating image with seiyuu and va role.
-- activity command (auto send activity of a user to a channel).
 - add a bdd for some stuff prob sqllite but not sure.
+  - bind anilist account to discord for /user and /search user.
+  - send anime release to a channel.
+  - try to do the same for manga with https://www.mangaupdates.com/series.html?id=70263 (for this one only selected manga not all seasonal) 
+  - activity command (auto send activity of a user to a channel).
+  - add a "delay" option to delay notification. (like 1h for a translation) 
+- random /random {anime, manga}
+  
+
+
 
 # How to use
 
-## 1. Docker. 
+### 1. Docker. 
 - Install docker and docker compose.
 - Clone this repo. 
 ```bash
@@ -22,7 +30,7 @@ git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 ```bash
 docker compose up -d
 ```
-## 2. Rust.
+### 2. Rust.
 - Install rust.
 - Clone this repo. 
 ```bash
