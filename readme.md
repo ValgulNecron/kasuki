@@ -1,4 +1,9 @@
 # TODO 
+
+### Website
+for those of you who don't know rust. 
+
+### BOT
 - clean the code.
 - finish comparison function.
 - add character search function.
