@@ -4,7 +4,7 @@
 for those of you who don't know rust. \
 [https://github.com/ValgulNecron/Website_DiscordAnilistBot](https://github.com/ValgulNecron/Website_DiscordAnilistBot)
 ### BOT
-- clean the code.
+[] clean the code.
 - finish comparison function.
 - add character search function.
 - add staff search function.
