@@ -19,12 +19,12 @@ mod cmd;
 struct Handler;
 
 const ACTIVITY_NAME: &str = "Do /help to get the list of command";
-const ACTIVITY_TYPE: Activity = Activity::playing(ACTIVITY_NAME);
 
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
-        ctx.set_activity(ACTIVITY_TYPE).await;
+        let activity_type: Activity = Activity::playing(ACTIVITY_NAME);
+        ctx.set_activity(activity_type).await;
         println!("{} is connected!", ready.user.name);
 
         let guild_command = Command::set_global_application_commands(&ctx.http, |commands|
