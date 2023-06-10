@@ -1,7 +1,8 @@
 # TODO 
 
 ### Website
-for those of you who don't know rust. 
+for those of you who don't know rust. \
+https://github.com/ValgulNecron/Website_DiscordAnilistBot
 
 ### BOT
 - clean the code.
