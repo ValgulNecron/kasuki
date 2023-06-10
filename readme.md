@@ -13,7 +13,7 @@
   - activity command (auto send activity of a user to a channel).
   - add a "delay" option to delay notification. (like 1h for a translation) 
 - random /random {anime, manga}
-  
+- when everything else is finished change how the text is display to support localisation. 
 
 
 
