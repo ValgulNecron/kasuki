@@ -54,7 +54,7 @@ impl EventHandler for Handler {
 
                 // Check which command was called and dispatch it to it run function.
                 "ping" => {
-                    cmd::ping::run(&command.data.options, &ctx, &command).await
+                    cmd::ping::run(&command.data.options)
                 }
 
                 "info" => {
