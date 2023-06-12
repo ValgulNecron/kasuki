@@ -13,6 +13,8 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
+// Define all the structure used to store anime data. could be moved somewhere else for it to be more
+// clean and readable.
 #[derive(Debug, Deserialize)]
 struct Data {
     data: MediaData,
@@ -98,6 +100,7 @@ struct Name {
     userPreferred: Option<String>,
 }
 
+// Query made to the anilist api.
 const QUERY: &str = "
     query ($search: String, $limit: Int = 5) {
 		Media (search: $search, type: ANIME){
@@ -157,12 +160,14 @@ const QUERY: &str = "
 ";
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+    // Get the content of the first option.
     let option = options
         .get(0)
         .expect("Expected name option")
         .resolved
         .as_ref()
         .expect("Expected name object");
+    // Check if the option variable contain the correct value.
     if let CommandDataOptionValue::String(name) = option {
         let client = Client::new();
         let json = json!({"query": QUERY, "variables": {"search": name}});
