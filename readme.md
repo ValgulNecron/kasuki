@@ -17,6 +17,7 @@ for those of you who don't know rust. \
   - [ ] try to do the same for manga with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for this one only selected manga not all seasonal) 
   - [ ] activity command (auto send activity of a user to a channel).
   - [ ] add a "delay" option to delay notification. (like 1h for a translation) 
+  - [ ] add caching to all request.
 - [ ] random /random {anime, manga}
 - [ ] when everything else is finished change how the text is display to support localisation. 
 
