@@ -146,6 +146,23 @@ options{
 }
 ";
 
+pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+    let option = options
+        .get(0)
+        .expect("Expected username option")
+        .resolved
+        .as_ref()
+        .expect("Expected username object");
+    let option2 = options
+        .get(1)
+        .expect("Expected username option")
+        .resolved
+        .as_ref()
+        .expect("Expected username object");
+
+    return "good".to_string();
+}
+
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     command.name("compare").description("compare stats of two uer").create_option(

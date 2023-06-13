@@ -165,6 +165,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .unwrap()
             .text()
             .await;
+
         // Get json
         let data: Data = match serde_json::from_str(&resp.unwrap()) {
             Ok(result) => result,

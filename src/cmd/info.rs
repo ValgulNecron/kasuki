@@ -5,8 +5,11 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
+use serenity::utils::Colour;
 
 pub async fn run(_options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+    let color = Colour::FABLED_PINK;
+
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
             response
@@ -19,6 +22,7 @@ pub async fn run(_options: &[CommandDataOption], ctx: &Context, command: &Applic
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
+                            .color(color)
                     })
                     .components(|components| {
                         components.create_action_row(|row| {
