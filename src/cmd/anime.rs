@@ -237,7 +237,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             tag += &tag_name;
             tag += "\n";
         }
-                        let color = Colour::FABLED_PINK;
+        let color = Colour::FABLED_PINK;
 
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
