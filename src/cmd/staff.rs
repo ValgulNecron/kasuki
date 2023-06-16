@@ -68,3 +68,21 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
   }
 }
 ";
+
+pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+
+
+    return "good".to_string();
+}
+
+pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
+    command.name("staff").description("Get info of a staff").create_option(
+        |option| {
+            option
+                .name("staff_name")
+                .description("Name of the staff you want info about.")
+                .kind(CommandOptionType::String)
+                .required(true)
+        },
+    )
+}
