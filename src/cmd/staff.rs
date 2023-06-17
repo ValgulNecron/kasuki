@@ -78,7 +78,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         .expect("Expected name object");
 
 
-
     return "good".to_string();
 }
 
