@@ -1,5 +1,3 @@
-use std::u32;
-
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -146,6 +144,9 @@ options{
 }
 ";
 
+const WIDTH: u32 = 400;
+const HEIGHT: u32 = 40;
+
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
         .get(0)
@@ -197,9 +198,13 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         }
         let chap = manga.chaptersRead.unwrap_or_else(|| 0) as f64;
         let min = anime.minutesWatched.unwrap_or_else(|| 0) as f64;
-        let input = (anime_completed * 2.0 + anime_watching * 1.5) + (manga_completed * 2.0 + manga_reading * 1.5) + ((chap * 5.0 + min) / 10.0);
-        let scaling_factor = 2.0;
-        let level = 5.0 * (1.0 + (input / scaling_factor)).ln();
+        let input = (anime_completed * 2.0 + anime_watching * 1.0) + (manga_completed * 2.0 + manga_reading * 1.0) + chap * 5.0 + (min / 10.0);
+        let a = 5.0;
+        let b = 0.000005;
+        let level_float = a * (input).ln() + (b * input);
+        let level = level_float.floor();
+
+        let progress_percent = (level_float - level) * 100.0;
 
         let mut color = Colour::FABLED_PINK;
         match data.data.User.options.profileColor.unwrap_or_else(|| "#FF00FF".to_string()).as_str() {
@@ -227,14 +232,14 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                 .timestamp(Timestamp::now())
                                 .thumbnail(profile_picture)
                                 .fields(vec![
-                                    ("".to_string(), format!("Your level is : {}.\n You have a total of : {} xp."
-                                                             , level, input), false),
+                                    ("".to_string(), format!("Your level is : {}.\n You have a total \
+                                    of : {} xp. \n Your are at {}% to the next level."
+                                                             , level, input, progress_percent.floor()), false),
                                 ])
                                 .color(color)
-                        })
+                        }),
                     )
-            })
-            .await
+            }).await
         {
             println!("Cannot respond to slash command: {}", why);
         }

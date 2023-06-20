@@ -6,3 +6,4 @@ pub mod ln;
 pub mod anime;
 pub mod comparison;
 pub mod weeb_level;
+pub mod staff;

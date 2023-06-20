@@ -70,6 +70,12 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
 ";
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+    let option = options
+        .get(0)
+        .expect("Expected name option")
+        .resolved
+        .as_ref()
+        .expect("Expected name object");
 
 
     return "good".to_string();
