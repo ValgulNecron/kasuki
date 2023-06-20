@@ -46,6 +46,12 @@ git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 docker compose up -d
 ```
 
+Please remember that after a pull you will need to rebuild 
+
+```bash
+docker compose up -d --build 
+```
+
 ### 2. Rust.
 
 - Install rust.
