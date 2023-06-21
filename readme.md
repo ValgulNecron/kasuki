@@ -15,7 +15,7 @@ for those of you who don't know rust. \
 - [ ] find a name for the bot.
 - [ ] take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
   seiyuu and va role.
-- [ ] add a bdd for some stuff prob sqllite but not sure.
+- [x] add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
     - [ ] bind anilist account to discord for /user and /search user.
     - [ ] send anime release to a channel.
     - [ ] try to do the same for manga
@@ -23,8 +23,8 @@ for those of you who don't know rust. \
       this one only selected manga not all seasonal)
     - [ ] activity command (auto send activity of a user to a channel).
     - [ ] add a "delay" option to delay notification. (like 1h for a translation)
-    - [ ] add caching to all request.
-- [ ] random /random {anime, manga}
+    - [ ] add caching to all request. - In Progress, Added caching for random.
+- [ ] random /random {anime, manga} - In Progress, Command and Cache here some error but do not respond. 
 - [ ] when everything else is finished change how the text is display to support localisation.
 
 # How to use
