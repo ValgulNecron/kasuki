@@ -13,6 +13,7 @@ use serenity::model::gateway::ActivityType;
 use serenity::model::gateway::Ready;
 use serenity::model::user::OnlineStatus;
 use serenity::prelude::*;
+
 use crate::cmd::anilist_module::*;
 
 mod cmd;
@@ -42,6 +43,7 @@ impl EventHandler for Handler {
                     .create_application_command(|command| user::register(command))
                     .create_application_command(|command| weeb_level::register(command))
                     .create_application_command(|command| comparison::register(command))
+                    .create_application_command(|command| random::register(command))
             }).await;
 
         println!("I created the following global slash command: {:#?}", guild_command);
@@ -90,6 +92,10 @@ impl EventHandler for Handler {
                         .await
                 }
 
+                "random" => {
+                    random::run(&command.data.options, &ctx, &command)
+                        .await
+                }
                 _ => "not implemented :(".to_string(),
             };
 

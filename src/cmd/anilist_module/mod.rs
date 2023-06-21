@@ -7,3 +7,4 @@ pub mod anime;
 pub mod comparison;
 pub mod weeb_level;
 pub mod staff;
+pub mod random;
