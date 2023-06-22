@@ -14,6 +14,8 @@ use serenity::model::gateway::Ready;
 use serenity::model::user::OnlineStatus;
 use serenity::prelude::*;
 
+use crate::cmd::anilist_module::*;
+
 mod cmd;
 
 struct Handler;
@@ -33,14 +35,15 @@ impl EventHandler for Handler {
         let guild_command = Command::set_global_application_commands(&ctx.http, |commands|
             {
                 commands
-                    .create_application_command(|command| cmd::ping::register(command))
-                    .create_application_command(|command| cmd::info::register(command))
-                    .create_application_command(|command| cmd::manga::register(command))
-                    .create_application_command(|command| cmd::ln::register(command))
-                    .create_application_command(|command| cmd::anime::register(command))
-                    .create_application_command(|command| cmd::user::register(command))
-                    .create_application_command(|command| cmd::weeb_level::register(command))
-                    .create_application_command(|command| cmd::comparison::register(command))
+                    .create_application_command(|command| ping::register(command))
+                    .create_application_command(|command| info::register(command))
+                    .create_application_command(|command| manga::register(command))
+                    .create_application_command(|command| ln::register(command))
+                    .create_application_command(|command| anime::register(command))
+                    .create_application_command(|command| user::register(command))
+                    .create_application_command(|command| weeb_level::register(command))
+                    .create_application_command(|command| comparison::register(command))
+                    .create_application_command(|command| random::register(command))
             }).await;
 
         println!("I created the following global slash command: {:#?}", guild_command);
@@ -54,40 +57,45 @@ impl EventHandler for Handler {
 
                 // Check which command was called and dispatch it to it run function.
                 "ping" => {
-                    cmd::ping::run(&command.data.options)
+                    ping::run(&command.data.options)
                 }
 
                 "info" => {
-                    cmd::info::run(&command.data.options, &ctx, &command)
+                    info::run(&command.data.options, &ctx, &command)
                         .await
                 }
 
                 "manga" => {
-                    cmd::manga::run(&command.data.options, &ctx, &command).await
+                    manga::run(&command.data.options, &ctx, &command).await
                 }
+
                 "lightnovel" => {
-                    cmd::ln::run(&command.data.options, &ctx, &command).await
+                    ln::run(&command.data.options, &ctx, &command).await
                 }
 
                 "user" => {
-                    cmd::user::run(&command.data.options, &ctx, &command)
+                    user::run(&command.data.options, &ctx, &command)
                         .await
                 }
 
                 "anime" => {
-                    cmd::anime::run(&command.data.options, &ctx, &command).await
+                    anime::run(&command.data.options, &ctx, &command).await
                 }
 
                 "level" => {
-                    cmd::weeb_level::run(&command.data.options, &ctx, &command)
+                    weeb_level::run(&command.data.options, &ctx, &command)
                         .await
                 }
 
                 "compare" => {
-                    cmd::comparison::run(&command.data.options, &ctx, &command)
+                    comparison::run(&command.data.options, &ctx, &command)
                         .await
                 }
 
+                "random" => {
+                    random::run(&command.data.options, &ctx, &command)
+                        .await
+                }
                 _ => "not implemented :(".to_string(),
             };
 
