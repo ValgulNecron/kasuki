@@ -67,36 +67,11 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         if let Some(updated) = last_updated {
             let duration_since_updated = Utc::now().timestamp() - updated;
             if duration_since_updated < 24 * 60 * 60 {
-                embed(cached_response, random_type.to_string(), options, ctx, command);
-            }
-        } else {
-            while true {
-                let client = Client::new();
-                let query = json!({
-                        "query": r#"
-                            query($manga_page: Int = 1444){
-                                SiteStatistics{
-                                    manga(perPage: 1, page: $manga_page){
-                                        pageInfo{
-                                            currentPage
-                                            lastPage
-                                            total
-                                            hasNextPage
-                                        }
-                                        nodes{
-                                            date
-                                            count
-                                            change
-                                        }
-                                    }
-                                }
-                            }
-                        "#,
-                        "variables": {
-                            "manga_page": page_number
-                        }
-                    });
-                if random_type.as_str() == "manga" {
+                embed(cached_response, random_type.to_string(), options, ctx, command)
+                    .await;
+            } else {
+                loop {
+                    let client = Client::new();
                     let query = json!({
                         "query": r#"
                             query($manga_page: Int = 1444){
@@ -121,8 +96,33 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                             "manga_page": page_number
                         }
                     });
-                } else if random_type.as_str() == "anime" {
-                    let query = json!({
+                    if random_type.as_str() == "manga" {
+                        let query = json!({
+                        "query": r#"
+                            query($manga_page: Int = 1444){
+                                SiteStatistics{
+                                    manga(perPage: 1, page: $manga_page){
+                                        pageInfo{
+                                            currentPage
+                                            lastPage
+                                            total
+                                            hasNextPage
+                                        }
+                                        nodes{
+                                            date
+                                            count
+                                            change
+                                        }
+                                    }
+                                }
+                            }
+                        "#,
+                        "variables": {
+                            "manga_page": page_number
+                        }
+                    });
+                    } else if random_type.as_str() == "anime" {
+                        let query = json!({
                         "query": r#"
                             query($anime_page: Int = 1444){
                                 SiteStatistics{
@@ -146,39 +146,41 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                             "anime_page": page_number
                         }
                     });
+                    }
+
+
+                    let res = client.post("https://graphql.anilist.co")
+                        .json(&query)
+                        .send()
+                        .await
+                        .unwrap()
+                        .json::<Value>()
+                        .await
+                        .unwrap();
+
+                    let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"].as_bool().unwrap_or(true);
+                    let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number as i64);
+
+                    if !has_next_page {
+                        break;
+                    }
+
+                    cached_response = res.to_string();
+                    previous_page = page_number;
+                    page_number += 1;
                 }
 
-
-                let res = client.post("https://graphql.anilist.co")
-                    .json(&query)
-                    .send()
-                    .await
-                    .unwrap()
-                    .json::<Value>()
-                    .await
-                    .unwrap();
-
-                let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"].as_bool().unwrap_or(true);
-                let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number as i64);
-
-                if !has_next_page {
-                    break;
-                }
-
-                cached_response = res.to_string();
-                previous_page = page_number;
-                page_number += 1;
+                sqlx::query("INSERT OR REPLACE INTO cache (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
+                    .bind(random_type)
+                    .bind(&cached_response)
+                    .bind(now)
+                    .bind(previous_page)
+                    .execute(&pool)
+                    .await.unwrap();
+                println!("before embed no cache");
+                embed(cached_response, random_type.to_string(), options, ctx, command)
+                    .await;
             }
-
-            sqlx::query("INSERT OR REPLACE INTO cache (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
-                .bind(random_type)
-                .bind(&cached_response)
-                .bind(now)
-                .bind(previous_page)
-                .execute(&pool)
-                .await.unwrap();
-
-            embed(cached_response, random_type.to_string(), options, ctx, command);
         }
     }
     return "good".to_string();
