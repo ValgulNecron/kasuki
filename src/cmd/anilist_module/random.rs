@@ -3,6 +3,8 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::u32;
 
 use chrono::Utc;
+use rand::prelude::*;
+use rand::rngs::StdRng;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -56,7 +58,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         let mut page_number = match last_page {
             Some(page) => page,
-            None => 1444, // or whatever default starting page number you want
+            None => 1444, // This is as today date the last page, i will update it sometime.
         };
 
         let mut previous_page = page_number - 1;
@@ -67,7 +69,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         if let Some(updated) = last_updated {
             let duration_since_updated = Utc::now().timestamp() - updated;
             if duration_since_updated < 24 * 60 * 60 {
-                embed(cached_response, random_type.to_string(), options, ctx, command)
+                embed(cached_response, page_number, random_type.to_string(), options, ctx, command)
                     .await;
             } else {
                 loop {
@@ -178,7 +180,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                     .execute(&pool)
                     .await.unwrap();
                 println!("before embed no cache");
-                embed(cached_response, random_type.to_string(), options, ctx, command)
+                embed(cached_response, previous_page, random_type.to_string(), options, ctx, command)
                     .await;
             }
         }
@@ -200,53 +202,132 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     )
 }
 
-pub async fn embed(res: String, random_type: String, options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) {
+pub async fn embed(res: String, last_page: i64, random_type: String, options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
+    let client = Client::new();
+    let number = thread_rng().gen_range(1..=last_page);
 
-    if let Err(why) = command
-        .create_interaction_response(&ctx.http, |response| {
-            response
-                .kind(InteractionResponseType::ChannelMessageWithSource)
-                .interaction_response_data(|message| message.embed(
-                    |m| {
-                        m.title("Info")
-                            .description("This bot use the anilist api to give information on a show or a user")
-                            .footer(|f| f.text("creator valgul#8329"))
-                            // Add a timestamp for the current time
-                            // This also accepts a rfc3339 Timestamp
-                            .timestamp(Timestamp::now())
-                            .color(color)
-                    })
-                    .components(|components| {
-                        components.create_action_row(|row| {
-                            row.create_button(|button| {
-                                button.label("See on github")
-                                    .url("https://github.com/ValgulNecron/DIscordAnilistBotRS")
-                                    .style(ButtonStyle::Link)
-                            })
-                                .create_button(|button| {
-                                    button.label("Official website")
-                                        .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=17861158751296&scope=bot")
-                                        .style(ButtonStyle::Link)
-                                })
+    if random_type == "manga" {
+        println!("{}", number);
+        let query = "
+                    query($manga_page: Int){
+                        Page(page: $manga_page, perPage: 1){
+                            media(type: MANGA){
+                            id
+                            title {
+                                native
+                                userPreferred
+                            }
+                            meanScore
+                            description
+                            tags {
+                                name
+                            }
+                            genres
+                            format
+                            status
+                        }
+                    }
+                }";
+
+        let json = json!({"query": query, "variables": {"manga_page": number}});
+        let res = client.post("https://graphql.anilist.co")
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .body(json.to_string())
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await;
+
+        let api_response: ApiResponse = serde_json::from_str(&res.unwrap()).unwrap();
+
+        let media = &api_response.data.Page.media[0];
+        let title_user = &media.title.userPreferred;
+        let title = &media.title.native;
+
+        let tag = &media.tags;
+        let genre = &media.genres;
+
+        let genres_str = genre.join("/");
+        let tags_str = tag.into_iter().map(|tag| tag.name.clone()).collect::<Vec<String>>().join("/");
+
+
+        let url = format!("https://anilist.co/anime/{}", &media.id);
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| message.embed(
+                        |m| {
+                            m.title(format!("{}/{}", title_user, title))
+                                .description(format!("Genre: {}. \n Tags: {}.", genres_str, tags_str))
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                                .url(url)
                         })
-                            .create_action_row(|button| {
-                                button.create_button(|button| {
-                                    button.label("Official discord")
-                                        .url("https://discord.gg/dWGU6mkw7J")
-                                        .style(ButtonStyle::Link)
-                                })
-                                    .create_button(|button| {
-                                        button.label("Add the bot.")
-                                            .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=2048&scope=bot")
-                                            .style(ButtonStyle::Link)
-                                    })
-                            })
-                    })
-                )
-        })
-        .await
-    {
-        println!("Cannot respond to slash command: {}", why);
+                    )
+            })
+            .await
+        {
+            println!("Cannot respond to slash command: {}", why);
+        }
+    } else if random_type == "anime" {} else {
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| message.embed(
+                        |m| {
+                            m.title("Error")
+                                .description("seem like you really fucked up something. \n this message should not appear since you need to give on one of the two type.")
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                        })
+                    )
+            })
+            .await
+        {
+            println!("Cannot respond to slash command: {}", why);
+        }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Media {
+    id: i32,
+    title: Title,
+    meanScore: i32,
+    description: String,
+    tags: Vec<Tag>,
+    genres: Vec<String>,
+    format: String,
+    status: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Title {
+    native: String,
+    userPreferred: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Tag {
+    name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Page {
+    media: Vec<Media>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Data {
+    Page: Page,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ApiResponse {
+    data: Data,
 }
