@@ -24,7 +24,7 @@ for those of you who don't know rust. \
     - [ ] activity command (auto send activity of a user to a channel).
     - [ ] add a "delay" option to delay notification. (like 1h for a translation)
     - [ ] add caching to all request. - In Progress, Added caching for random.
-- [ ] random /random {anime, manga} - In Progress, Command and Cache here some error but do not respond. 
+- [ ] random /random {anime, manga} - In Progress, Command and Cache, Random manga here will need more work.
 - [ ] when everything else is finished change how the text is display to support localisation.
 
 # How to use
