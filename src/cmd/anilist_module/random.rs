@@ -260,7 +260,7 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
 
         let format = &media.format;
 
-        let url = format!("https://anilist.co/anime/{}", &media.id);
+        let url = format!("https://anilist.co/manga/{}", &media.id);
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response
