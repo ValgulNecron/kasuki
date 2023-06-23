@@ -65,7 +65,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let mut cached_response = response.unwrap_or("Nothing".to_string());
 
         let now = Utc::now().timestamp();
-
         if let Some(updated) = last_updated {
             let duration_since_updated = Utc::now().timestamp() - updated;
             if duration_since_updated < 24 * 60 * 60 {
@@ -182,6 +181,116 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 embed(cached_response, previous_page, random_type.to_string(), options, ctx, command)
                     .await;
             }
+        } else {
+            loop {
+                let client = Client::new();
+                let query = json!({
+                        "query": r#"
+                            query($manga_page: Int = 1444){
+                                SiteStatistics{
+                                    manga(perPage: 1, page: $manga_page){
+                                        pageInfo{
+                                            currentPage
+                                            lastPage
+                                            total
+                                            hasNextPage
+                                        }
+                                        nodes{
+                                            date
+                                            count
+                                            change
+                                        }
+                                    }
+                                }
+                            }
+                        "#,
+                        "variables": {
+                            "manga_page": page_number
+                        }
+                    });
+                if random_type.as_str() == "manga" {
+                    let query = json!({
+                        "query": r#"
+                            query($manga_page: Int = 1444){
+                                SiteStatistics{
+                                    manga(perPage: 1, page: $manga_page){
+                                        pageInfo{
+                                            currentPage
+                                            lastPage
+                                            total
+                                            hasNextPage
+                                        }
+                                        nodes{
+                                            date
+                                            count
+                                            change
+                                        }
+                                    }
+                                }
+                            }
+                        "#,
+                        "variables": {
+                            "manga_page": page_number
+                        }
+                    });
+                } else if random_type.as_str() == "anime" {
+                    let query = json!({
+                        "query": r#"
+                            query($anime_page: Int = 1444){
+                                SiteStatistics{
+                                    anime(perPage: 1, page: $anime_page){
+                                        pageInfo{
+                                            currentPage
+                                            lastPage
+                                            total
+                                            hasNextPage
+                                        }
+                                        nodes{
+                                            date
+                                            count
+                                            change
+                                        }
+                                    }
+                                }
+                            }
+                        "#,
+                        "variables": {
+                            "anime_page": page_number
+                        }
+                    });
+                }
+
+
+                let res = client.post("https://graphql.anilist.co")
+                    .json(&query)
+                    .send()
+                    .await
+                    .unwrap()
+                    .json::<Value>()
+                    .await
+                    .unwrap();
+
+                let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"].as_bool().unwrap_or(true);
+                let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number as i64);
+
+                if !has_next_page {
+                    break;
+                }
+
+                cached_response = res.to_string();
+                previous_page = page_number;
+                page_number += 1;
+            }
+
+            sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
+                .bind(random_type)
+                .bind(&cached_response)
+                .bind(now)
+                .bind(previous_page)
+                .execute(&pool)
+                .await.unwrap();
+            embed(cached_response, previous_page, random_type.to_string(), options, ctx, command)
+                .await;
         }
     }
     return "good".to_string();
