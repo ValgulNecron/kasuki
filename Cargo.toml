@@ -16,3 +16,4 @@ serenity = { version = "0.11.5", default-features = false, features = ["client",
 tokio = { version = "1.28.2", features = ["full"] }
 sqlx = { version = "0.6.3", features = ["sqlite", "runtime-tokio-native-tls"] }
 rand = "0.8.5"
+rs_openai = "0.4.1"
