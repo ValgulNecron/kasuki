@@ -179,7 +179,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                     .bind(previous_page)
                     .execute(&pool)
                     .await.unwrap();
-                println!("before embed no cache");
                 embed(cached_response, previous_page, random_type.to_string(), options, ctx, command)
                     .await;
             }
@@ -206,9 +205,7 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
     let color = Colour::FABLED_PINK;
     let client = Client::new();
     let number = thread_rng().gen_range(1..=last_page);
-
     if random_type == "manga" {
-        println!("{}", number);
         let query = "
                     query($manga_page: Int){
                         Page(page: $manga_page, perPage: 1){
@@ -226,6 +223,9 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
                             genres
                             format
                             status
+                            coverImage {
+                                extraLarge
+                            }
                         }
                     }
                 }";
@@ -253,6 +253,12 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let genres_str = genre.join("/");
         let tags_str = tag.into_iter().map(|tag| tag.name.clone()).collect::<Vec<String>>().join("/");
 
+        let cover_image = &media.coverImage.extraLarge;
+
+        let description = &media.description;
+        let desc_no_br = description.replace("<br>", "");
+
+        let format = &media.format;
 
         let url = format!("https://anilist.co/anime/{}", &media.id);
         if let Err(why) = command
@@ -262,9 +268,11 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
                     .interaction_response_data(|message| message.embed(
                         |m| {
                             m.title(format!("{}/{}", title_user, title))
-                                .description(format!("Genre: {}. \n Tags: {}.", genres_str, tags_str))
+                                .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
+                                                     , genres_str, tags_str, format, desc_no_br))
                                 .timestamp(Timestamp::now())
                                 .color(color)
+                                .thumbnail(cover_image)
                                 .url(url)
                         })
                     )
@@ -273,15 +281,91 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         {
             println!("Cannot respond to slash command: {}", why);
         }
-    } else if random_type == "anime" {} else {
+    } else if random_type == "anime" {
+        let query = "
+                    query($anime_page: Int){
+                        Page(page: $anime_page, perPage: 1){
+                            media(type: ANIME){
+                            id
+                            title {
+                                native
+                                userPreferred
+                            }
+                            meanScore
+                            description
+                            tags {
+                                name
+                            }
+                            genres
+                            format
+                            status
+                            coverImage {
+                                extraLarge
+                            }
+                        }
+                    }
+                }";
+
+        let json = json!({"query": query, "variables": {"anime_page": number}});
+        let res = client.post("https://graphql.anilist.co")
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .body(json.to_string())
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await;
+
+        let api_response: ApiResponse = serde_json::from_str(&res.unwrap()).unwrap();
+
+        let media = &api_response.data.Page.media[0];
+        let title_user = &media.title.userPreferred;
+        let title = &media.title.native;
+
+        let tag = &media.tags;
+        let genre = &media.genres;
+
+        let genres_str = genre.join("/");
+        let tags_str = tag.into_iter().map(|tag| tag.name.clone()).collect::<Vec<String>>().join("/");
+
+        let cover_image = &media.coverImage.extraLarge;
+
+        let description = &media.description;
+        let desc_no_br = description.replace("<br>", "");
+
+        let format = &media.format;
+
+        let url = format!("https://anilist.co/anime/{}", &media.id);
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| message.embed(
                         |m| {
-                            m.title("Error")
-                                .description("seem like you really fucked up something. \n this message should not appear since you need to give on one of the two type.")
+                            m.title(format!("{}/{}", title_user, title))
+                                .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
+                                                     , genres_str, tags_str, format, desc_no_br))
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                                .thumbnail(cover_image)
+                                .url(url)
+                        })
+                    )
+            })
+            .await
+        {
+            println!("Cannot respond to slash command: {}", why);
+        }
+    } else {
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| message.embed(
+                        |m| {
+                            m.title("You fucked up.")
+                                .description("How the heck did you managed this ?")
                                 .timestamp(Timestamp::now())
                                 .color(color)
                         })
@@ -304,6 +388,7 @@ struct Media {
     genres: Vec<String>,
     format: String,
     status: String,
+    coverImage: CoverImage, // New field added
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -330,4 +415,9 @@ struct Data {
 #[derive(Debug, Serialize, Deserialize)]
 struct ApiResponse {
     data: Data,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct CoverImage {
+    extraLarge: String,
 }
