@@ -31,7 +31,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
     };
 
     sqlx::query(
-        "CREATE TABLE IF NOT EXISTS cache (
+        "CREATE TABLE IF NOT EXISTS cache_stats (
             key TEXT PRIMARY KEY,
             response TEXT NOT NULL,
             last_updated INTEGER NOT NULL,
@@ -49,7 +49,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         .expect("Expected username object");
 
     if let CommandDataOptionValue::String(random_type) = option {
-        let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as("SELECT response, last_updated, last_page FROM cache WHERE key = ?")
+        let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as("SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?")
             .bind(random_type)
             .fetch_one(&pool)
             .await.unwrap_or((None, None, None));
@@ -172,7 +172,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                     page_number += 1;
                 }
 
-                sqlx::query("INSERT OR REPLACE INTO cache (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
+                sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
                     .bind(random_type)
                     .bind(&cached_response)
                     .bind(now)
