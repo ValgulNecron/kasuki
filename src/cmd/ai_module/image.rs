@@ -49,8 +49,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         dotenv::from_path(path);
         let prompt = description;
         let api_key = env::var("AI_API_TOKEN").expect("token");
-        let api_url = env::var("AI_API_BASE_URL").expect("token");
-
+        let api_base_url = env::var("AI_API_BASE_URL").expect("token");
+        let api_url = format!("{}images/generations", api_base_url);
         let client = reqwest::Client::new();
 
         let mut headers = HeaderMap::new();
