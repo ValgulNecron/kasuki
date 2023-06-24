@@ -6,4 +6,4 @@ COPY . .
 
 RUN cargo build --release
 
-CMD ["./target/release/DiscordAnilistBot"]
+CMD ["./target/release/kasuki"]
