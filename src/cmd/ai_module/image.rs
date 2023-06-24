@@ -96,6 +96,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                     e.title("Here your generated image")
                         .image(format!("attachment://{}", filename))
                         .timestamp(Timestamp::now())
+                        .color(color)
                 })
                 )).await.expect("TODO");
 
