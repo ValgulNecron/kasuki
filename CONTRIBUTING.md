@@ -18,6 +18,6 @@ please tell me and i change it.
 first focus on a working version and after do it more properly and clean (except if you want to do it from the start)
 since all new functionality will not be accepted or added having a "prototype" is best.
 
-## When editing an already existing functionality
+### When editing an already existing functionality
 
 please tell what have changed and the impact better performance, more readable, using new api.

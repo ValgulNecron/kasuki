@@ -16,6 +16,7 @@ use serenity::prelude::*;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
+use crate::cmd::general_module::*;
 
 mod cmd;
 
@@ -38,12 +39,14 @@ impl EventHandler for Handler {
                 commands
                     .create_application_command(|command| ping::register(command))
                     .create_application_command(|command| info::register(command))
+
+
                     .create_application_command(|command| manga::register(command))
                     .create_application_command(|command| ln::register(command))
                     .create_application_command(|command| anime::register(command))
                     .create_application_command(|command| user::register(command))
-                    .create_application_command(|command| weeb_level::register(command))
-                    .create_application_command(|command| comparison::register(command))
+                    .create_application_command(|command| level::register(command))
+                    .create_application_command(|command| compare::register(command))
                     .create_application_command(|command| random::register(command))
                     .create_application_command(|command| staff::register(command))
 
@@ -64,51 +67,50 @@ impl EventHandler for Handler {
                 "ping" => {
                     ping::run(&command.data.options)
                 }
-
                 "info" => {
                     info::run(&command.data.options, &ctx, &command)
                         .await
                 }
 
+
+
+
+                "anime" => {
+                    anime::run(&command.data.options, &ctx, &command).await
+                }
+                "compare" => {
+                    compare::run(&command.data.options, &ctx, &command)
+                        .await
+                }
+                "level" => {
+                    level::run(&command.data.options, &ctx, &command)
+                        .await
+                }
+                "ln" => {
+                    ln::run(&command.data.options, &ctx, &command).await
+                }
                 "manga" => {
                     manga::run(&command.data.options, &ctx, &command).await
                 }
-
-                "lightnovel" => {
-                    ln::run(&command.data.options, &ctx, &command).await
+                "random" => {
+                    random::run(&command.data.options, &ctx, &command)
+                        .await
                 }
-
+                "staff" => {
+                    staff::run(&command.data.options, &ctx, &command)
+                        .await
+                }
                 "user" => {
                     user::run(&command.data.options, &ctx, &command)
                         .await
                 }
 
-                "anime" => {
-                    anime::run(&command.data.options, &ctx, &command).await
-                }
 
-                "level" => {
-                    weeb_level::run(&command.data.options, &ctx, &command)
-                        .await
-                }
 
-                "compare" => {
-                    comparison::run(&command.data.options, &ctx, &command)
-                        .await
-                }
 
-                "random" => {
-                    random::run(&command.data.options, &ctx, &command)
-                        .await
-                }
 
                 "image" => {
                     image::run(&command.data.options, &ctx, &command)
-                        .await
-                }
-
-                "staff" => {
-                    staff::run(&command.data.options, &ctx, &command)
                         .await
                 }
 

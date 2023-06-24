@@ -13,7 +13,7 @@ for those of you who don't know rust. \
   - [ ] add character search function.
   - [X] add staff search function. Added staff research with name.
   - [ ] add search feature with type.
-  - [ ] find a name for the bot.
+  - [ ] find a name for the bot. - In progress have a temporary one kazuki. (will need to find a better one)
   - [ ] take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
    seiyuu and va role.
   - [x] add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
@@ -74,16 +74,23 @@ cargo run --release
 
 # Commands
 
-- /info - show info about bot.
-- /level - show your level based on what you read and watched.
-- /user - show info about user.
-- /anime - show info about anime.
-- /manga - show info about manga.
-- /ln - show info about light novel.
-- /random - give a random anime or manga.
-- /staff - give information about a specified staff.
+- General:
+  - /info - Show info about bot. 
+  - /ping - Check if the bot respond to command.  
+  - /help - Give a list of all command.
+- Anime:
+  - /anime - Show info about anime.
+  - /compare - Compare 2 different user.
+  - /level - Show your level based on what you read and watched.
+  - /ln - Show info about light novel.
+  - /manga - Show info about manga.
+  - /random - Give a random anime or manga.
+  - /staff - Give information about a specified staff.
+  - /user - Show info about user.
+- AI:
+  - /image - Generate an image from a description.
 
 # Credit
 
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation idea.
-- Annie May for the idea of creation the bot (not the only one but the one I used and do not work anymore.)
+- Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work anymore.)
