@@ -13,7 +13,7 @@ for those of you who don't know rust. \
   - [ ] add character search function.
   - [X] add staff search function. Added staff research with name.
   - [ ] add search feature with type.
-  - [ ] find a name for the bot. - In progress have a temporary one Kazuki. (will need to find a better one)
+  - [ ] find a name for the bot. - In progress have a temporary one kazuki. (will need to find a better one)
   - [ ] take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
    seiyuu and va role.
   - [x] add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
