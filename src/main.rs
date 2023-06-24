@@ -14,8 +14,8 @@ use serenity::model::gateway::Ready;
 use serenity::model::user::OnlineStatus;
 use serenity::prelude::*;
 
-use crate::cmd::anilist_module::*;
 use crate::cmd::ai_module::*;
+use crate::cmd::anilist_module::*;
 
 mod cmd;
 
@@ -45,7 +45,10 @@ impl EventHandler for Handler {
                     .create_application_command(|command| weeb_level::register(command))
                     .create_application_command(|command| comparison::register(command))
                     .create_application_command(|command| random::register(command))
-                    .create_application_command(|command | image::register(command))
+                    .create_application_command(|command| staff::register(command))
+
+
+                    .create_application_command(|command| image::register(command))
             }).await;
 
         println!("I created the following global slash command: {:#?}", guild_command);
@@ -104,6 +107,11 @@ impl EventHandler for Handler {
                         .await
                 }
 
+                "staff" => {
+                    staff::run(&command.data.options, &ctx, &command)
+                        .await
+                }
+
                 _ => "not implemented :(".to_string(),
             };
 
@@ -135,7 +143,7 @@ async fn main() {
     let token = env::var("DISCORD_TOKEN").expect("discord token");
 
     // Build our client.
-    let mut client = Client::builder(token, GatewayIntents::all())
+    let mut client = Client::builder(token, GatewayIntents::empty())
         .event_handler(Handler)
         .await
         .expect("Error creating client");

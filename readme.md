@@ -11,20 +11,20 @@ for those of you who don't know rust. \
   - [ ] clean the code.
   - [ ] finish comparison function.
   - [ ] add character search function.
-  - [ ] add staff search function. - In Progress
+  - [X] add staff search function. Added staff research with name.
   - [ ] add search feature with type.
   - [ ] find a name for the bot.
   - [ ] take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
    seiyuu and va role.
   - [x] add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
-     - [ ] bind anilist account to discord for /user and /search user.
-     - [ ] send anime release to a channel.
-     - [ ] try to do the same for manga
-       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
-       this one only selected manga not all seasonal)
-     - [ ] activity command (auto send activity of a user to a channel).
-     - [ ] add a "delay" option to delay notification. (like 1h for a translation)
-     - [ ] add caching to all request. - In Progress, Added caching for random.
+  - [ ] bind anilist account to discord for /user and /search user. 
+  - [ ] send anime release to a channel.
+  - [ ] try to do the same for manga
+    with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
+    this one only selected manga not all seasonal)
+  - [ ] activity command (auto send activity of a user to a channel).
+  - [ ] add a "delay" option to delay notification. (like 1h for a translation)
+  - [ ] add caching to all request. - In Progress, Added caching for random.
   - [X] random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
   - [ ] when everything else is finished change how the text is display to support localisation.
 
@@ -80,6 +80,8 @@ cargo run --release
 - /anime - show info about anime.
 - /manga - show info about manga.
 - /ln - show info about light novel.
+- /random - give a random anime or manga.
+- /staff - give information about a specified staff.
 
 # Credit
 

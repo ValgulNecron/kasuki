@@ -45,7 +45,7 @@ pub async fn run(_options: &[CommandDataOption], ctx: &Context, command: &Applic
                                 })
                                     .create_button(|button| {
                                         button.label("Add the bot.")
-                                            .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=2048&scope=bot")
+                                            .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=517543913536&scope=bot")
                                             .style(ButtonStyle::Link)
                                     })
                             })
