@@ -7,16 +7,19 @@ for those of you who don't know rust. \
 
 ### BOT
 
-- Anime submodule
+- General part:
+  - [ ] When everything else is finished change how the text is display to support localisation.
   - [ ] Clean the code.
+  - [ ] Find a name for the bot. - In progress have a temporary one kazuki. (will need to find a better one)
+  - [x] Add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
+
+- Anime submodule:
   - [ ] Finish comparison function.
   - [ ] Add character search function.
   - [X] Add staff search function. Added staff research with name.
   - [ ] Add search feature with type.
-  - [ ] Find a name for the bot. - In progress have a temporary one kazuki. (will need to find a better one)
   - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
    seiyuu and va role.
-  - [x] Add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
   - [ ] Bind anilist account to discord for /user and /search user. 
   - [ ] Send anime release to a channel.
   - [ ] Try to do the same for manga
@@ -26,9 +29,8 @@ for those of you who don't know rust. \
   - [ ] Add a "delay" option to delay notification. (like 1h for a translation)
   - [ ] Add caching to all request. - In Progress, Added caching for random.
   - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
-  - [ ] When everything else is finished change how the text is display to support localisation.
 
-- AI submodule.
+- AI submodule:
     - [X] Image generation with ai.
     - [ ] Video transcription.
     - [ ] Video translation.
