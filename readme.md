@@ -7,29 +7,33 @@ for those of you who don't know rust. \
 
 ### BOT
 
-- Anime submodule
-  - [ ] clean the code.
-  - [ ] finish comparison function.
-  - [ ] add character search function.
-  - [X] add staff search function. Added staff research with name.
-  - [ ] add search feature with type.
-  - [ ] find a name for the bot. - In progress have a temporary one kazuki. (will need to find a better one)
-  - [ ] take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
+- General part:
+  - [ ] When everything else is finished change how the text is display to support localisation.
+  - [ ] Clean the code.
+  - [ ] Find a name for the bot. - In progress have a temporary one kazuki. (will need to find a better one)
+  - [x] Add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
+
+- Anime submodule:
+  - [ ] Finish comparison function.
+  - [ ] Add character search function.
+  - [X] Add staff search function. Added staff research with name.
+  - [ ] Add search feature with type.
+  - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
    seiyuu and va role.
-  - [x] add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
-  - [ ] bind anilist account to discord for /user and /search user. 
-  - [ ] send anime release to a channel.
-  - [ ] try to do the same for manga
+  - [ ] Bind anilist account to discord for /user and /search user. 
+  - [ ] Send anime release to a channel.
+  - [ ] Try to do the same for manga
     with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
     this one only selected manga not all seasonal)
-  - [ ] activity command (auto send activity of a user to a channel).
-  - [ ] add a "delay" option to delay notification. (like 1h for a translation)
-  - [ ] add caching to all request. - In Progress, Added caching for random.
-  - [X] random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
-  - [ ] when everything else is finished change how the text is display to support localisation.
+  - [ ] Activity command (auto send activity of a user to a channel).
+  - [ ] Add a "delay" option to delay notification. (like 1h for a translation)
+  - [ ] Add caching to all request. - In Progress, Added caching for random.
+  - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
 
-- AI submodule.
+- AI submodule:
     - [X] Image generation with ai.
+    - [ ] Video transcription.
+    - [ ] Video translation.
 
 # How to use
 
