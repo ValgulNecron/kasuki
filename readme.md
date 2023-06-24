@@ -17,7 +17,7 @@ for those of you who don't know rust. \
   - [ ] take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
    seiyuu and va role.
   - [x] add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
-  - [ ] bind anilist account to discord for /user and /search user.
+  - [ ] bind anilist account to discord for /user and /search user. 
   - [ ] send anime release to a channel.
   - [ ] try to do the same for manga
     with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
@@ -80,6 +80,8 @@ cargo run --release
 - /anime - show info about anime.
 - /manga - show info about manga.
 - /ln - show info about light novel.
+- /random - give a random anime or manga.
+- /staff - give information about a specified staff.
 
 # Credit
 
