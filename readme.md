@@ -11,7 +11,7 @@ for those of you who don't know rust. \
   - [ ] clean the code.
   - [ ] finish comparison function.
   - [ ] add character search function.
-  - [ ] add staff search function. - In Progress
+  - [X] add staff search function. Added staff research with name.
   - [ ] add search feature with type.
   - [ ] find a name for the bot.
   - [ ] take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
