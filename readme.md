@@ -75,18 +75,20 @@ cargo run --release
 # Commands
 
 - General:
-  - /info - show info about bot. 
-  - /ping - check if the bot respond to command.  
-  - /help - give a list of all command.
+  - /info - Show info about bot. 
+  - /ping - Check if the bot respond to command.  
+  - /help - Give a list of all command.
 - Anime:
-  - /anime - show info about anime.
-  - /comparison - compare 2 different user.
-  - /level - show your level based on what you read and watched.
-  - /user - show info about user.
-  - /manga - show info about manga.
-  - /ln - show info about light novel.
-  - /random - give a random anime or manga.
-  - /staff - give information about a specified staff.
+  - /anime - Show info about anime.
+  - /compare - Compare 2 different user.
+  - /level - Show your level based on what you read and watched.
+  - /ln - Show info about light novel.
+  - /manga - Show info about manga.
+  - /random - Give a random anime or manga.
+  - /staff - Give information about a specified staff.
+  - /user - Show info about user.
+- AI:
+  - /image - Generate an image from a description.
 
 # Credit
 
