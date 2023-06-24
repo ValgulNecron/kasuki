@@ -266,7 +266,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("lightnovel").description("Info of a light novel").create_option(
+    command.name("ln").description("Info of a light novel").create_option(
         |option| {
             option
                 .name("lnname")
