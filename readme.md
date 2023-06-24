@@ -86,4 +86,4 @@ cargo run --release
 # Credit
 
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation idea.
-- Annie May for the idea of creation the bot (not the only one but the one I used and do not work anymore.)
+- Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work anymore.)
