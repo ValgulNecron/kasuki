@@ -114,13 +114,13 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         let age = data.data.Character.age;
         let date_of_birth = format!("{}/{}/{}", data.data.Character.dateOfBirth.month.unwrap_or_else(|| 0),
-        data.data.Character.dateOfBirth.day.unwrap_or_else(|| 0), data.data.Character.dateOfBirth.year.unwrap_or_else(|| 0));
+                                    data.data.Character.dateOfBirth.day.unwrap_or_else(|| 0), data.data.Character.dateOfBirth.year.unwrap_or_else(|| 0));
         let gender = data.data.Character.gender;
         let favourite = data.data.Character.favourites;
 
         let full_description = format!("Age: {}. \n Gender: {}. \n Date of birth: {}. \n\
         Number of favourite: {}. \n Description: {}.", age, gender, date_of_birth, favourite
-        , desc);
+                                       , desc);
 
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {

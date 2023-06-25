@@ -8,27 +8,28 @@ for those of you who don't know rust. \
 ### BOT
 
 - General part:
-  - [ ] When everything else is finished change how the text is display to support localisation.
-  - [ ] Clean the code.
-  - [ ] Find a name for the bot. - In progress have a temporary one kazuki. (will need to find a better one)
-  - [x] Add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
+    - [ ] When everything else is finished change how the text is display to support localisation.
+    - [ ] Clean the code.
+    - [ ] Find a name for the bot. - In progress have a temporary one kazuki. (will need to find a better one)
+    - [x] Add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
 
 - Anime submodule:
-  - [ ] Finish comparison function.
-  - [X] Add character search function. Added character research with name.
-  - [X] Add staff search function. Added staff research with name.
-  - [ ] Add search feature with type.
-  - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
-   seiyuu and va role.
-  - [ ] Bind anilist account to discord for /user and /search user. 
-  - [ ] Send anime release to a channel.
-  - [ ] Try to do the same for manga
-    with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
-    this one only selected manga not all seasonal)
-  - [ ] Activity command (auto send activity of a user to a channel).
-  - [ ] Add a "delay" option to delay notification. (like 1h for a translation)
-  - [ ] Add caching to all request. - In Progress, Added caching for random.
-  - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
+    - [ ] Finish comparison function.
+    - [X] Add character search function. Added character research with name.
+    - [X] Add staff search function. Added staff research with name.
+    - [ ] Add search feature with type.
+    - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
+      with
+      seiyuu and va role.
+    - [ ] Bind anilist account to discord for /user and /search user.
+    - [ ] Send anime release to a channel.
+    - [ ] Try to do the same for manga
+      with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
+      this one only selected manga not all seasonal)
+    - [ ] Activity command (auto send activity of a user to a channel).
+    - [ ] Add a "delay" option to delay notification. (like 1h for a translation)
+    - [ ] Add caching to all request. - In Progress, Added caching for random.
+    - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
 
 - AI submodule:
     - [X] Image generation with ai.
@@ -79,23 +80,25 @@ cargo run --release
 # Commands
 
 - General:
-  - /info - Show info about bot. 
-  - /ping - Check if the bot respond to command.  
-  - /help - Give a list of all command.
+    - /info - Show info about bot.
+    - /ping - Check if the bot respond to command.
+    - /help - Give a list of all command.
 - Anime:
-  - /anime - Show info about anime.
-  - /character - Show info on a character.
-  - /compare - Compare 2 different user.
-  - /level - Show your level based on what you read and watched.
-  - /ln - Show info about light novel.
-  - /manga - Show info about manga.
-  - /random - Give a random anime or manga.
-  - /staff - Give information about a specified staff.
-  - /user - Show info about user.
+    - /anime - Show info about anime.
+    - /character - Show info on a character.
+    - /compare - Compare 2 different user.
+    - /level - Show your level based on what you read and watched.
+    - /ln - Show info about light novel.
+    - /manga - Show info about manga.
+    - /random - Give a random anime or manga.
+    - /staff - Give information about a specified staff.
+    - /user - Show info about user.
 - AI:
-  - /image - Generate an image from a description.
+    - /image - Generate an image from a description.
 
 # Credit
 
-- [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation idea.
-- Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work anymore.)
+- [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
+  idea.
+- Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
+  anymore.)

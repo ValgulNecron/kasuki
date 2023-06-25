@@ -171,12 +171,13 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .name("username")
                 .description("Username of the 1st anilist user to compare")
                 .kind(CommandOptionType::String)
-                .required(true);
-            option
-                .name("username")
-                .description("Username of the 1st anilist user to compare")
-                .kind(CommandOptionType::String)
                 .required(true)
-        },
-    )
+        }
+    ).create_option(|option| {
+        option
+            .name("username")
+            .description("Username of the 1st anilist user to compare")
+            .kind(CommandOptionType::String)
+            .required(true)
+    })
 }
