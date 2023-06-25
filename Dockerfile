@@ -6,4 +6,6 @@ COPY . .
 
 RUN cargo build --release
 
-CMD ["cargo run --release"]
+RUN ls
+
+CMD ["./target/release/kasuki"]
