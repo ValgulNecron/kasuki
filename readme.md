@@ -17,7 +17,7 @@ for those of you who don't know rust. \
     - [ ] Finish comparison function.
     - [X] Add character search function. Added character research with name.
     - [X] Add staff search function. Added staff research with name.
-    - [ ] Add search feature with type.
+    - [X] Add search feature with type.
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
       with
       seiyuu and va role.
@@ -35,6 +35,7 @@ for those of you who don't know rust. \
     - [X] Image generation with ai.
     - [ ] Video transcription.
     - [ ] Video translation.
+    - [ ] Ask a question and reply the response. 
 
 # How to use
 
