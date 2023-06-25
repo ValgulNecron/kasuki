@@ -248,7 +248,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                             m.title(name)
                                 .url(site_url)
                                 .timestamp(Timestamp::now())
-                                .color(color)
                                 .description(desc)
                                 .thumbnail(thumbnail)
                                 .image(banner_image)
