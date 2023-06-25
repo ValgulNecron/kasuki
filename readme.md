@@ -10,7 +10,7 @@ for those of you who don't know rust. \
 - General part:
     - [ ] When everything else is finished change how the text is display to support localisation.
     - [ ] Clean the code.
-    - [ ] Find a name for the bot. - In progress have a temporary one kazuki. (will need to find a better one)
+    - [X] Find a name for the bot. Found one kasuki. if you have any better don't hesitate to recommend. 
     - [x] Add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
 
 - Anime submodule:
