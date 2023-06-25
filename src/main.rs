@@ -37,20 +37,22 @@ impl EventHandler for Handler {
         let guild_command = Command::set_global_application_commands(&ctx.http, |commands|
             {
                 commands
+                    // General module.
                     .create_application_command(|command| ping::register(command))
                     .create_application_command(|command| info::register(command))
 
-
-                    .create_application_command(|command| manga::register(command))
-                    .create_application_command(|command| ln::register(command))
+                    // Anilist module.
                     .create_application_command(|command| anime::register(command))
-                    .create_application_command(|command| user::register(command))
-                    .create_application_command(|command| level::register(command))
+                    .create_application_command(|command| character::register(command))
                     .create_application_command(|command| compare::register(command))
+                    .create_application_command(|command| level::register(command))
+                    .create_application_command(|command| ln::register(command))
+                    .create_application_command(|command| manga::register(command))
                     .create_application_command(|command| random::register(command))
                     .create_application_command(|command| staff::register(command))
+                    .create_application_command(|command| user::register(command))
 
-
+                    // AI module.
                     .create_application_command(|command| image::register(command))
             }).await;
 
@@ -63,28 +65,26 @@ impl EventHandler for Handler {
 
             let content = match command.data.name.as_str() {
 
-                // Check which command was called and dispatch it to it run function.
+                // General module.
                 "ping" => {
                     ping::run(&command.data.options)
                 }
                 "info" => {
-                    info::run(&command.data.options, &ctx, &command)
-                        .await
+                    info::run(&command.data.options, &ctx, &command).await
                 }
 
-
-
-
+                // Anilist module
                 "anime" => {
                     anime::run(&command.data.options, &ctx, &command).await
                 }
+                "character" => {
+                    character::run(&command.data.options, &ctx, &command).await
+                }
                 "compare" => {
-                    compare::run(&command.data.options, &ctx, &command)
-                        .await
+                    compare::run(&command.data.options, &ctx, &command).await
                 }
                 "level" => {
-                    level::run(&command.data.options, &ctx, &command)
-                        .await
+                    level::run(&command.data.options, &ctx, &command).await
                 }
                 "ln" => {
                     ln::run(&command.data.options, &ctx, &command).await
@@ -93,25 +93,18 @@ impl EventHandler for Handler {
                     manga::run(&command.data.options, &ctx, &command).await
                 }
                 "random" => {
-                    random::run(&command.data.options, &ctx, &command)
-                        .await
+                    random::run(&command.data.options, &ctx, &command).await
                 }
                 "staff" => {
-                    staff::run(&command.data.options, &ctx, &command)
-                        .await
+                    staff::run(&command.data.options, &ctx, &command).await
                 }
                 "user" => {
-                    user::run(&command.data.options, &ctx, &command)
-                        .await
+                    user::run(&command.data.options, &ctx, &command).await
                 }
 
-
-
-
-
+                // AI module
                 "image" => {
-                    image::run(&command.data.options, &ctx, &command)
-                        .await
+                    image::run(&command.data.options, &ctx, &command).await
                 }
 
                 _ => "not implemented :(".to_string(),

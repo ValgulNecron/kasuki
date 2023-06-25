@@ -1,4 +1,5 @@
 pub mod anime;
+pub mod character;
 pub mod compare;
 pub mod level;
 pub mod ln;

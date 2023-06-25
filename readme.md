@@ -3,7 +3,7 @@
 ### Website
 
 for those of you who don't know rust. \
-[https://github.com/ValgulNecron/Website_DiscordAnilistBot](https://github.com/ValgulNecron/Website_DiscordAnilistBot)
+[https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
 
 ### BOT
 
@@ -15,7 +15,7 @@ for those of you who don't know rust. \
 
 - Anime submodule:
   - [ ] Finish comparison function.
-  - [ ] Add character search function.
+  - [X] Add character search function. Added character research with name.
   - [X] Add staff search function. Added staff research with name.
   - [ ] Add search feature with type.
   - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with
@@ -84,6 +84,7 @@ cargo run --release
   - /help - Give a list of all command.
 - Anime:
   - /anime - Show info about anime.
+  - /character - Show info on a character.
   - /compare - Compare 2 different user.
   - /level - Show your level based on what you read and watched.
   - /ln - Show info about light novel.
