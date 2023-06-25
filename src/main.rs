@@ -37,20 +37,22 @@ impl EventHandler for Handler {
         let guild_command = Command::set_global_application_commands(&ctx.http, |commands|
             {
                 commands
+                    // general module.
                     .create_application_command(|command| ping::register(command))
                     .create_application_command(|command| info::register(command))
 
-
-                    .create_application_command(|command| manga::register(command))
-                    .create_application_command(|command| ln::register(command))
+                    // anilist module.
                     .create_application_command(|command| anime::register(command))
-                    .create_application_command(|command| user::register(command))
-                    .create_application_command(|command| level::register(command))
+                    .create_application_command(|command |character::register(command))
                     .create_application_command(|command| compare::register(command))
+                    .create_application_command(|command| level::register(command))
+                    .create_application_command(|command| ln::register(command))
+                    .create_application_command(|command| manga::register(command))
                     .create_application_command(|command| random::register(command))
                     .create_application_command(|command| staff::register(command))
+                    .create_application_command(|command| user::register(command))
 
-
+                    // ai module.
                     .create_application_command(|command| image::register(command))
             }).await;
 
