@@ -3,7 +3,7 @@
 ### Website
 
 for those of you who don't know rust. \
-[https://github.com/ValgulNecron/Website_DiscordAnilistBot](https://github.com/ValgulNecron/Website_DiscordAnilistBot)
+[https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
 
 ### BOT
 
