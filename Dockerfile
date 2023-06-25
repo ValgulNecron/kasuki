@@ -2,10 +2,10 @@ FROM rust:latest
 
 WORKDIR /app
 
+RUN apt update && apt install -y libssl-dev
+
 COPY . .
 
 RUN cargo build --release
-
-RUN ls
 
 CMD ["./target/release/kasuki"]
