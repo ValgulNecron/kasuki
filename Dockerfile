@@ -6,4 +6,4 @@ COPY . .
 
 RUN cargo build --release
 
-CMD ["./target/release/kasuki"]
+CMD ["/app/target/release/kasuki"]
