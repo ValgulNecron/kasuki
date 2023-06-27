@@ -10,18 +10,18 @@ for those of you who don't know rust. \
 - General part:
     - [ ] When everything else is finished change how the text is display to support localisation.
     - [ ] Clean the code.
-    - [ ] Find a name for the bot. - In progress have a temporary one kazuki. (will need to find a better one)
+    - [X] Find a name for the bot. Found one kasuki. if you have any better don't hesitate to recommend.
     - [x] Add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
 
 - Anime submodule:
     - [ ] Finish comparison function.
     - [X] Add character search function. Added character research with name.
     - [X] Add staff search function. Added staff research with name.
-    - [ ] Add search feature with type.
+    - [X] Add search feature with type.
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
       with
       seiyuu and va role.
-    - [ ] Bind anilist account to discord for /user and /search user.
+    - [X] Bind anilist account to discord for /user and /search user. - Added register command and edited user command.
     - [ ] Send anime release to a channel.
     - [ ] Try to do the same for manga
       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
@@ -35,6 +35,7 @@ for those of you who don't know rust. \
     - [X] Image generation with ai.
     - [ ] Video transcription.
     - [ ] Video translation.
+    - [ ] Ask a question and reply the response.
 
 # How to use
 
@@ -102,3 +103,5 @@ cargo run --release
   idea.
 - Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
   anymore.)
+- Thanks Srayeals for the badge I use as the bot pfp. (
+  [https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))

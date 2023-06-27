@@ -49,6 +49,7 @@ impl EventHandler for Handler {
                     .create_application_command(|command| ln::register(command))
                     .create_application_command(|command| manga::register(command))
                     .create_application_command(|command| random::register(command))
+                    .create_application_command(|command| register::register(command))
                     .create_application_command(|command| search::register(command))
                     .create_application_command(|command| staff::register(command))
                     .create_application_command(|command| user::register(command))
@@ -95,6 +96,9 @@ impl EventHandler for Handler {
                 }
                 "random" => {
                     random::run(&command.data.options, &ctx, &command).await
+                }
+                "register" => {
+                    register::run(&command.data.options, &ctx, &command).await
                 }
                 "search" => {
                     search::run(&command.data.options, &ctx, &command).await

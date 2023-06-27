@@ -6,5 +6,6 @@ pub mod ln;
 pub mod manga;
 pub mod random;
 pub mod search;
+pub mod register;
 pub mod staff;
 pub mod user;
