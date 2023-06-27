@@ -14,28 +14,27 @@ for those of you who don't know rust. \
     - [x] Add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
 
 - Anime submodule:
-    - [ ] Finish comparison function.
+    - [ ] Finish comparison function. - Yeah I'll do it this should not be hard.
     - [X] Add character search function. Added character research with name.
     - [X] Add staff search function. Added staff research with name.
-    - [X] Add search feature with type.
+    - [X] Add search feature with type. Work for all.
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
-      with
-      seiyuu and va role.
-    - [X] Bind anilist account to discord for /user and /search user. - Added register command and edited user command.
-    - [ ] Send anime release to a channel.
+      with seiyuu and va role. - This is clearly possible will probs be the next thing I do.
+    - [X] Bind anilist account to discord for /user and /search user. Added register command and edited user command.
+    - [ ] Send anime release to a channel. - Will need some digging but should be possible.
     - [ ] Try to do the same for manga
       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
-      this one only selected manga not all seasonal)
-    - [ ] Activity command (auto send activity of a user to a channel).
-    - [ ] Add a "delay" option to delay notification. (like 1h for a translation)
+      this one only selected manga not all seasonal). - Not sure if possible.
+    - [ ] Activity command (auto send activity of a user to a channel). - This should be possible.
+    - [ ] Add a "delay" option to delay notification. (like 1h for a translation). - Need anime notification first.
     - [ ] Add caching to all request. - In Progress, Added caching for random.
     - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
 
 - AI submodule:
     - [X] Image generation with ai.
-    - [ ] Video transcription.
-    - [ ] Video translation.
-    - [ ] Ask a question and reply the response.
+    - [ ] Video transcription. - Not a priority
+    - [ ] Video translation. - Not a priority
+    - [ ] Ask a question and reply the response. - Not a priority
 
 # How to use
 
