@@ -33,7 +33,7 @@ pub async fn run(_options: &[CommandDataOption], ctx: &Context, command: &Applic
                             })
                                 .create_button(|button| {
                                     button.label("Official website")
-                                        .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=17861158751296&scope=bot")
+                                        .url("https://kasuki.valgul.moe/")
                                         .style(ButtonStyle::Link)
                                 })
                         })
