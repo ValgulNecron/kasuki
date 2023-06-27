@@ -38,7 +38,18 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
     if let CommandDataOptionValue::String(username) = option {
         let user_id = &command.user.id.to_string();
-        let profile_picture = format!("https://cdn.discordapp.com/avatars/{}", &command.user.avatar.as_ref().unwrap());
+        let user_pfp_ref = &command.user.avatar.as_ref().unwrap();
+        let profile_picture;
+        if let Some(first) = user_pfp_ref.split('_').next() {
+            if first == "a" {
+                profile_picture = format!("https://cdn.discordapp.com/avatars/{}/{}.gif?size=1024", user_id, user_pfp_ref);
+            } else {
+                profile_picture = format!("https://cdn.discordapp.com/avatars/{}/{}.webp?size=1024", user_id, user_pfp_ref);
+            }
+        } else {
+            profile_picture = format!("https://cdn.discordapp.com/avatars//{}/{}.webp?size=1024", user_id, user_pfp_ref);
+        }
+        println!("{}", profile_picture);
         sqlx::query("INSERT OR REPLACE INTO registered_user (user_id, anilist_username) VALUES (?, ?)")
             .bind(user_id)
             .bind(username)
@@ -54,7 +65,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                 // Add a timestamp for the current time
                                 // This also accepts a rfc3339 Timestamp
                                 .timestamp(Timestamp::now())
-                                .image(profile_picture)
+                                .thumbnail(profile_picture)
                                 .color(color)
                                 .description(format!("The user {} was linked to {} anilist", user_id, username))
                         })
