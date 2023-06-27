@@ -21,7 +21,7 @@ use serenity::utils::Colour;
 use sqlx::{Row, SqlitePool};
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
-    let database_url = "./cache";
+    let database_url = "./cache.db";
     let pool = match SqlitePool::connect(&database_url).await {
         Ok(pool) => pool,
         Err(e) => {
