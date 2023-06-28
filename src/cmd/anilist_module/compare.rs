@@ -240,7 +240,7 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     } else if user1.statistics.anime.count < user2.statistics.anime.count {
         anime_count_text = format!("{} as more anime than {}", user_name2, user_name1)
     } else {
-        anime_count_text = format!("{} and {} as the same amount of anime.", user_name1, user_name2)
+        anime_count_text = format!("{} and {} as the same amount of anime watched.", user_name1, user_name2)
     }
 
     let anime_watch_time;
@@ -249,25 +249,25 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     } else if user1.statistics.anime.minutesWatched < user2.statistics.anime.minutesWatched {
         anime_watch_time = format!("{} as watched anime for longer than {}", user_name2, user_name1)
     } else {
-        anime_watch_time = format!("{} and {} as the same amount of anime watch time,.", user_name1, user_name2)
+        anime_watch_time = format!("{} and {} as the same amount of anime watch time.", user_name1, user_name2)
     }
 
     let manga_count_text;
     if user1.statistics.manga.count > user2.statistics.manga.count {
-        manga_count_text = format!("{} as watched anime for longer than {}", user_name1, user_name2)
+        manga_count_text = format!("{} as read more manga than {}", user_name1, user_name2)
     } else if user1.statistics.manga.count < user2.statistics.manga.count {
-        manga_count_text = format!("{} as watched anime for longer than {}", user_name2, user_name1)
+        manga_count_text = format!("{} as read more manga than {}", user_name2, user_name1)
     } else {
-        manga_count_text = format!("{} and {} as the same amount of anime watch time,.", user_name1, user_name2)
+        manga_count_text = format!("{} and {} as the same amount of manga read.", user_name1, user_name2)
     }
 
     let manga_chapter_count;
     if user1.statistics.manga.chaptersRead > user2.statistics.manga.chaptersRead {
-        manga_chapter_count = format!("{} as watched anime for longer than {}", user_name1, user_name2)
+        manga_chapter_count = format!("{} as read more chapter than {}", user_name1, user_name2)
     } else if user1.statistics.manga.chaptersRead < user2.statistics.manga.chaptersRead {
-        manga_chapter_count = format!("{} as watched anime for longer than {}", user_name2, user_name1)
+        manga_chapter_count = format!("{} as read more chapter than {}", user_name2, user_name1)
     } else {
-        manga_chapter_count = format!("{} and {} as the same amount of anime watch time,.", user_name1, user_name2)
+        manga_chapter_count = format!("{} and {} as the same amount of chapter read.", user_name1, user_name2)
     }
 
     let color = Colour::FABLED_PINK;
