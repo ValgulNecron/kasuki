@@ -13,17 +13,17 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Data {
     data: UserWrapper,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct UserWrapper {
     User: User,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct User {
     id: Option<i32>,
     name: Option<String>,
@@ -33,23 +33,23 @@ struct User {
     bannerImage: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Options {
     profileColor: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Avatar {
     large: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Statistics {
     anime: Anime,
     manga: Manga,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Anime {
     count: Option<i32>,
     meanScore: Option<f64>,
@@ -60,7 +60,7 @@ struct Anime {
     statuses: Vec<Statuses>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Manga {
     count: Option<i32>,
     meanScore: Option<f64>,
@@ -71,23 +71,23 @@ struct Manga {
     statuses: Vec<Statuses>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Statuses {
     count: i32,
     status: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Tag {
     tag: TagData,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct TagData {
     name: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Genre {
     pub genre: Option<String>,
 }
@@ -270,6 +270,15 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         manga_chapter_count = format!("{} and {} as the same amount of chapter read.", user_name1, user_name2)
     }
 
+    let pref_genre1 = user1.statistics.anime.genres[0].clone().genre.unwrap();
+    let pref_genre2 = user2.statistics.anime.genres[0].clone().genre.unwrap();
+    let pref_genre_text;
+    if pref_genre1 == pref_genre2 {
+        pref_genre_text = format!("Both {} and {} prefer {} genre.", user_name1, user_name2, pref_genre1);
+    } else {
+        pref_genre_text = format!("{} prefer {} while {} prefer {}", user_name1, pref_genre1, user_name2, pref_genre2);
+    }
+
     let color = Colour::FABLED_PINK;
 
     if let Err(why) = command
@@ -282,9 +291,10 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
-                            .field("", format!("Anime: {}. \n Watch Time: {}. \n Manga: {}. \n Chapter read {}.",
+                            .field("", format!("Anime: {}. \n Watch Time: {}. \n Manga: {}. \n Chapter read: {}. \n Preferred genre: {}",
                                            anime_count_text, anime_watch_time,
-                                           manga_count_text, manga_chapter_count), false)
+                                           manga_count_text, manga_chapter_count
+                            , pref_genre_text), false)
                             .color(color)
                     })
                 )
