@@ -320,9 +320,9 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
                             .field("", format!("Anime: {}. \n Watch Time: {}. \n Manga: {}. \
                             \n Chapter read: {}. \n Preferred genre for anime: {}. \n Preferred tag for anime: {} \
                             \n Preferred genre for manga: {}. \n Preferred tag for manga: {}",
-                                               anime_count_text, anime_watch_time, manga_count_text, manga_chapter_count,
-                                               pref_anime_genre_text, pref_anime_tag_text, pref_manga_genre_text,
-                                               pref_manga_tag_text), false)
+                                               anime_count_text, anime_watch_time, manga_count_text,
+                                               manga_chapter_count, pref_anime_genre_text, pref_anime_tag_text,
+                                               pref_manga_genre_text, pref_manga_tag_text), false)
                             .color(color)
                     })
                 )
