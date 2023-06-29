@@ -106,12 +106,12 @@ query ($name: String, $limit: Int = 5) {
         meanScore
         standardDeviation
         minutesWatched
-        tags(limit: $limit) {
+        tags(limit: $limit, sort: COUNT_DESC) {
           tag {
             name
           }
         }
-        genres(limit: $limit) {
+        genres(limit: $limit, sort: COUNT_DESC) {
           genre
         }
         statuses(sort: COUNT_DESC){
@@ -162,7 +162,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
     if let CommandDataOptionValue::String(username1) = option {
         if let CommandDataOptionValue::String(username2) = option2 {
             let result = embed(options, ctx, command, username1, username2).await;
-            return result
+            return result;
         }
     }
     return "good".to_string();
@@ -270,17 +270,43 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         manga_chapter_count = format!("{} and {} as the same amount of chapter read.", user_name1, user_name2)
     }
 
-    let pref_genre1 = user1.statistics.anime.genres[0].clone().genre.unwrap();
-    let pref_genre2 = user2.statistics.anime.genres[0].clone().genre.unwrap();
-    let pref_genre_text;
-    if pref_genre1 == pref_genre2 {
-        pref_genre_text = format!("Both {} and {} prefer {} genre.", user_name1, user_name2, pref_genre1);
+    let pref_anime_genre1 = user1.statistics.anime.genres[0].clone().genre.unwrap();
+    let pref_anime_genre2 = user2.statistics.anime.genres[0].clone().genre.unwrap();
+    let pref_anime_genre_text;
+    if pref_anime_genre1 == pref_anime_genre2 {
+        pref_anime_genre_text = format!("Both {} and {} prefer {} genre for anime.", user_name1, user_name2, pref_anime_genre1);
     } else {
-        pref_genre_text = format!("{} prefer {} while {} prefer {}", user_name1, pref_genre1, user_name2, pref_genre2);
+        pref_anime_genre_text = format!("{} prefer {} while {} prefer {} for anime.", user_name1, pref_anime_genre1, user_name2, pref_anime_genre2);
+    }
+
+    let pref_anime_tag1 = user1.statistics.anime.tags[0].clone().tag.name.unwrap();
+    let pref_anime_tag2 = user2.statistics.anime.tags[0].clone().tag.name.unwrap();
+    let pref_anime_tag_text;
+    if pref_anime_tag1 == pref_anime_tag2 {
+        pref_anime_tag_text = format!("Both {} and {} prefer {} tag for anime.", user_name1, user_name2, pref_anime_tag1);
+    } else {
+        pref_anime_tag_text = format!("{} prefer {} while {} prefer {} for anime.", user_name1, pref_anime_tag1, user_name2, pref_anime_tag2);
+    }
+
+    let pref_manga_genre1 = user1.statistics.manga.genres[0].clone().genre.unwrap();
+    let pref_manga_genre2 = user2.statistics.manga.genres[0].clone().genre.unwrap();
+    let pref_manga_genre_text;
+    if pref_manga_genre1 == pref_manga_genre2 {
+        pref_manga_genre_text = format!("Both {} and {} prefer {} genre for manga.", user_name1, user_name2, pref_manga_genre1);
+    } else {
+        pref_manga_genre_text = format!("{} prefer {} while {} prefer {} for manga.", user_name1, pref_manga_genre1, user_name2, pref_manga_genre2);
+    }
+
+    let pref_manga_tag1 = user1.statistics.manga.tags[0].clone().tag.name.unwrap();
+    let pref_manga_tag2 = user2.statistics.manga.tags[0].clone().tag.name.unwrap();
+    let pref_manga_tag_text;
+    if pref_manga_tag1 == pref_manga_tag2 {
+        pref_manga_tag_text = format!("Both {} and {} prefer {} tag for manga.", user_name1, user_name2, pref_manga_tag1);
+    } else {
+        pref_manga_tag_text = format!("{} prefer {} while {} prefer {} for manga.", user_name1, pref_manga_tag1, user_name2, pref_manga_tag2);
     }
 
     let color = Colour::FABLED_PINK;
-
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
             response
@@ -291,10 +317,12 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
-                            .field("", format!("Anime: {}. \n Watch Time: {}. \n Manga: {}. \n Chapter read: {}. \n Preferred genre: {}",
-                                           anime_count_text, anime_watch_time,
-                                           manga_count_text, manga_chapter_count
-                            , pref_genre_text), false)
+                            .field("", format!("Anime: {}. \n Watch Time: {}. \n Manga: {}. \
+                            \n Chapter read: {}. \n Preferred genre for anime: {}. \n Preferred tag for anime: {} \
+                            \n Preferred genre for manga: {}. \n Preferred tag for manga: {}",
+                                               anime_count_text, anime_watch_time, manga_count_text, manga_chapter_count,
+                                               pref_anime_genre_text, pref_anime_tag_text, pref_manga_genre_text,
+                                               pref_manga_tag_text), false)
                             .color(color)
                     })
                 )
