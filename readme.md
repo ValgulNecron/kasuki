@@ -36,6 +36,9 @@ for those of you who don't know rust. \
     - [ ] Video translation. - Not a priority
     - [ ] Ask a question and reply the response. - Not a priority
 
+### Issue
+- Seem like there is some memory leak will need more research.
+
 # How to use
 
 ### 1. Docker.
