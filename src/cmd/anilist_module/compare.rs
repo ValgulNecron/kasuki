@@ -317,9 +317,9 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
-                            .field("", format!("Anime: {}. \n Watch Time: {}. \n Manga: {}. \
-                            \n Chapter read: {}. \n Preferred genre for anime: {}. \n Preferred tag for anime: {} \
-                            \n Preferred genre for manga: {}. \n Preferred tag for manga: {}",
+                            .field("", format!("Anime: {}. \n \n Watch Time: {}. \n \n Manga: {}. \
+                            \n \n Chapter read: {}. \n \n Preferred genre for anime: {}. \n \n  Preferred tag for anime: {} \
+                            \n \n Preferred genre for manga: {}. \n \n Preferred tag for manga: {}",
                                                anime_count_text, anime_watch_time, manga_count_text,
                                                manga_chapter_count, pref_anime_genre_text, pref_anime_tag_text,
                                                pref_manga_genre_text, pref_manga_tag_text), false)
