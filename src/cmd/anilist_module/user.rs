@@ -107,12 +107,12 @@ query ($name: String, $limit: Int = 5) {
         meanScore
         standardDeviation
         minutesWatched
-        tags(limit: $limit) {
+        tags(limit: $limit, sort: COUNT_DESC) {
           tag {
             name
           }
         }
-        genres(limit: $limit) {
+        genres(limit: $limit, sort: COUNT_DESC) {
           genre
         }
         statuses(sort: COUNT_DESC){
