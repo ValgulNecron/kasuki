@@ -56,6 +56,7 @@ impl EventHandler for Handler {
 
                     // AI module.
                     .create_application_command(|command| image::register(command))
+                    .create_application_command(|command| transcript::register(command))
             }).await;
 
         println!("I created the following global slash command: {:#?}", guild_command);
@@ -113,6 +114,9 @@ impl EventHandler for Handler {
                 // AI module
                 "image" => {
                     image::run(&command.data.options, &ctx, &command).await
+                }
+                "transcript" => {
+                    transcript::run(&command.data.options, &ctx, &command).await
                 }
 
                 _ => "not implemented :(".to_string(),
