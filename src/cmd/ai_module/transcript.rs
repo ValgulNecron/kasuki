@@ -1,10 +1,11 @@
-use std::env;
+use std::{env, fs};
 use std::fs::File;
 use std::io::{empty, Write, copy};
 use std::path::Path;
+use std::str::Bytes;
 
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
-use reqwest::multipart;
+use reqwest::{multipart, Url};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -28,9 +29,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         .expect("Expected attachement object");
     if let CommandDataOptionValue::Attachment(attachement) = option {
         let content_type = attachement.content_type.clone().unwrap();
-        println!("{}", content_type);
         let content = attachement.proxy_url.clone();
-        println!("{}", content);
 
         if !content_type.starts_with("audio/") && !content_type.starts_with("video/"){
             return "wrong file type".to_string();
@@ -39,28 +38,37 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let allowed_extensions = vec![
                 "mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm",
             ];
-       let extension = match content.split('/').nth(1) {
-        Some(extension) => extension,
-            None => {
-                return "invalid content type".to_string();
-            }
-        };
+        let parsed_url = Url::parse(&*content).expect("Failed to parse URL");
+        let path_segments = parsed_url.path_segments().expect("Failed to retrieve path segments");
+        let last_segment = path_segments.last().expect("URL has no path segments");
 
-        if !allowed_extensions.contains(&extension) {
-            return "wrong file extension".to_string();
-        }
+        let file_extension = last_segment
+            .rsplit('.')
+            .next()
+            .expect("No file extension found")
+            .to_lowercase();
+
+            if !allowed_extensions.contains(&&**&file_extension) {
+                return "wrong file extension".to_string();
+            }
 
         let response = reqwest::get(content).await.expect("download");
 
-        let client = reqwest::Client::new();
-
-        let fname = Path::new("./").join(format!("video.{}", extension));
-        let string_fname = format!("./video.{}", extension);
+        let fname = Path::new("./").join(format!("video.{}", file_extension));
+        let file_name = format!("/video.{}", file_extension);
+        let mut string_fname = format!("/video.{}", file_extension);
         let mut file = File::create(fname.clone()).expect("file name");
-        let content = response.text().await.expect("response");
-        copy(&mut content.as_bytes(),&mut file);
-
+        let mut resp_byte = response.bytes().await.unwrap();
+        copy(&mut resp_byte.as_ref(), &mut file).unwrap();
         let color = Colour::FABLED_PINK;
+
+        if let Ok(current_dir) = env::current_dir() {
+            let current_dir_str = current_dir.display().to_string();
+            let current_dir_str = current_dir_str.replace("\\", "/");
+            string_fname = format!("{}{}", current_dir_str, string_fname)
+        } else {
+            println!("Failed to retrieve the current directory.");
+        }
 
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
@@ -89,32 +97,46 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let api_base_url = env::var("AI_API_BASE_URL").expect("token");
         let api_url = format!("{}audio/transcriptions", api_base_url);
         let client = reqwest::Client::new();
-
         let mut headers = HeaderMap::new();
         headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("multipart/form-data"));
+
+
+        let file = fs::read(fname).unwrap();
+        let part = multipart::Part::bytes(file).file_name(file_name)
+            .mime_str(&*content_type).unwrap();
+        let form = multipart::Form::new()
+            .part("file", part);
 
         let data = json!({
             "model": "whisper-1"
         });
 
-        let path = multipart::Part::stream(string_fname);
-        println!("form");
-        let form = multipart::Form::new()
-            .part("file", path)
-            .text("data", data.to_string());
-        println!("after form");
-
-        let res: Value = client.post(api_url)
+        let response_result = client
+            .post(api_url)
             .headers(headers)
             .multipart(form)
+            .json(&data)
             .send()
-            .await
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
-        println!("after request");
+            .await;
+        println!("1st");
+        let response = match response_result {
+            Ok(res) => res,
+            Err(err) => {
+                eprintln!("Error sending the request: {}", err);
+                return format!("Error sending the request: {}", err);
+            }
+        };
+        println!("2nd");
+        let res_result: Result<Value, reqwest::Error> = response.json().await;
+
+        let res = match res_result {
+            Ok(value) => value,
+            Err(err) => {
+                eprintln!("Error parsing response as JSON: {}", err);
+                return format!("Error sending the request: {}", err);
+            }
+        };
         println!("{}", res)
     }
     return "good".to_string();
