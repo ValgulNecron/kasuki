@@ -140,7 +140,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let form = multipart::Form::new()
             .part("file", part)
             .text("model", "whisper-1")
-            .text("prompt", prompt);
+            .text("prompt", prompt)
+            .text("language", lang);
 
         let data = json!({
             "model": "whisper-1"
