@@ -14,7 +14,7 @@ for those of you who don't know rust. \
     - [x] Add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
 
 - Anime submodule:
-    - [ ] Finish comparison function. - Yeah I'll do it this should not be hard.
+    - [X] Finish comparison function. - V1 done.
     - [X] Add character search function. Added character research with name.
     - [X] Add staff search function. Added staff research with name.
     - [X] Add search feature with type. Work for all.
@@ -31,10 +31,13 @@ for those of you who don't know rust. \
     - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
 
 - AI submodule:
-    - [X] Image generation with ai.
-    - [ ] Video transcription. - Not a priority
-    - [ ] Video translation. - Not a priority
+    - [X] Image generation with ai. - Done
+    - [X] Video transcription. - Done
+    - [ ] Video translation. - In progress
     - [ ] Ask a question and reply the response. - Not a priority
+
+### Issue
+- Seem like there is some memory leak will need more research.
 
 # How to use
 
