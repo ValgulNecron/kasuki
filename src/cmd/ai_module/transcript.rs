@@ -99,14 +99,14 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let client = reqwest::Client::new();
         let mut headers = HeaderMap::new();
         headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
-        headers.insert(CONTENT_TYPE, HeaderValue::from_static("multipart/form-data"));
 
 
         let file = fs::read(fname).unwrap();
         let part = multipart::Part::bytes(file).file_name(file_name)
             .mime_str(&*content_type).unwrap();
         let form = multipart::Form::new()
-            .part("file", part);
+            .part("file", part)
+            .text("model", "whisper-1");
 
         let data = json!({
             "model": "whisper-1"
@@ -116,10 +116,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .post(api_url)
             .headers(headers)
             .multipart(form)
-            .json(&data)
             .send()
             .await;
-        println!("1st");
         let response = match response_result {
             Ok(res) => res,
             Err(err) => {
@@ -127,7 +125,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 return format!("Error sending the request: {}", err);
             }
         };
-        println!("2nd");
         let res_result: Result<Value, reqwest::Error> = response.json().await;
 
         let res = match res_result {
@@ -137,7 +134,18 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 return format!("Error sending the request: {}", err);
             }
         };
-        println!("{}", res)
+
+        let text = res["text"].as_str().unwrap_or("");
+        let mut real_message = message.unwrap();
+        real_message.edit(&ctx.http, |m|
+            m.embed((|e| {
+                    e.title("Here your transcript")
+                        .description(format!("{}", text))
+                        .timestamp(Timestamp::now())
+                        .color(color)
+                })
+                )).await.expect("TODO");
+
     }
     return "good".to_string();
 }
@@ -147,7 +155,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         |option| {
             option
                 .name("video")
-                .description("File of the video you want the transcript of 10mb max.")
+                .description("File of the video you want the transcript of 25mb max.")
                 .kind(Attachment)
                 .required(true)
         },
