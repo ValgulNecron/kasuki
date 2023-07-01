@@ -13,93 +13,8 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-#[derive(Debug, Deserialize, Clone)]
-struct Data {
-    data: UserWrapper,
-}
+use crate::cmd::anilist_module::struct_user::*;
 
-#[derive(Debug, Deserialize, Clone)]
-struct UserWrapper {
-    #[serde(rename = "User")]
-    user: User,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct User {
-    id: Option<i32>,
-    name: Option<String>,
-    avatar: Avatar,
-    statistics: Statistics,
-    options: Options,
-    #[serde(rename = "bannerImage")]
-    banner_image: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Options {
-    #[serde(rename = "profileColor")]
-    profile_color: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Avatar {
-    large: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Statistics {
-    anime: Anime,
-    manga: Manga,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Anime {
-    count: Option<i32>,
-    #[serde(rename = "mean_score")]
-    mean_score: Option<f64>,
-    #[serde(rename = "standard_deviation")]
-    standard_deviation: Option<f64>,
-    #[serde(rename = "minutesWatched")]
-    minutes_watched: Option<i32>,
-    tags: Vec<Tag>,
-    genres: Vec<Genre>,
-    statuses: Vec<Statuses>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Manga {
-    count: Option<i32>,
-    #[serde(rename = "meanScore")]
-    mean_score: Option<f64>,
-    #[serde(rename = "standardDeviation")]
-    standard_deviation: Option<f64>,
-    #[serde(rename = "chaptersRead")]
-    chapters_read: Option<i32>,
-    tags: Vec<Tag>,
-    genres: Vec<Genre>,
-    statuses: Vec<Statuses>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Statuses {
-    count: i32,
-    status: String,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Tag {
-    tag: TagData,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct TagData {
-    name: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Genre {
-    pub genre: Option<String>,
-}
 
 const QUERY: &str = "
 query ($name: String, $limit: Int = 5) {
@@ -221,7 +136,7 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         .text()
         .await;
 
-    let data: Data = match serde_json::from_str(&resp.unwrap()) {
+    let data: UserData = match serde_json::from_str(&resp.unwrap()) {
         Ok(result) => result,
         Err(e) => {
             println!("Failed to parse json: {}", e);
@@ -229,7 +144,7 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         }
     };
 
-    let data2: Data = match serde_json::from_str(&resp2.unwrap()) {
+    let data2: UserData = match serde_json::from_str(&resp2.unwrap()) {
         Ok(result) => result,
         Err(e) => {
             println!("Failed to parse json: {}", e);
@@ -340,7 +255,5 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     {
         println!("Cannot respond to slash command: {}", why);
     }
-
-    let mut color = Colour::FABLED_PINK;
     return "good".to_string();
 }

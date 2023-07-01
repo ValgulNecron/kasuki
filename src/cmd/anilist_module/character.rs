@@ -13,53 +13,7 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-#[derive(Deserialize)]
-struct ApiResponse {
-    data: Data,
-}
-
-#[derive(Deserialize)]
-struct Data {
-    #[serde(rename = "Character")]
-    character: Character,
-}
-
-#[derive(Deserialize)]
-struct Character {
-    id: u32,
-    name: Name,
-    #[serde(rename = "siteUrl")]
-    site_url: String,
-    description: String,
-    gender: String,
-    age: String,
-    #[serde(rename = "dateOfBirth")]
-    date_of_birth: DateOfBirth,
-    image: Image,
-    favourites: u32,
-    #[serde(rename = "modNotes")]
-    mod_notes: Option<String>,
-}
-
-#[derive(Deserialize)]
-struct Name {
-    full: String,
-    native: String,
-    #[serde(rename = "userPreferred")]
-    user_preferred: String,
-}
-
-#[derive(Deserialize)]
-struct DateOfBirth {
-    year: Option<u32>,
-    month: Option<u32>,
-    day: Option<u32>,
-}
-
-#[derive(Deserialize)]
-struct Image {
-    large: String,
-}
+use crate::cmd::anilist_module::struct_character::*;
 
 const QUERY: &str = "
 query ($name: String) {
@@ -108,7 +62,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .text()
             .await;
 
-        let data: ApiResponse = serde_json::from_str(&resp.unwrap()).unwrap();
+        let data: CharacterData = serde_json::from_str(&resp.unwrap()).unwrap();
         let color = Colour::FABLED_PINK;
 
         let name = format!("{}/{}", data.data.character.name.user_preferred, data.data.character.name.native);

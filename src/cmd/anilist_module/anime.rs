@@ -13,103 +13,7 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-// Define all the structure used to store anime data. could be moved somewhere else for it to be more
-// clean and readable.
-#[derive(Debug, Deserialize)]
-struct Data {
-    data: MediaData,
-}
-
-#[derive(Debug, Deserialize)]
-struct MediaData {
-    Media: Media,
-}
-
-#[derive(Debug, Deserialize)]
-struct Media {
-    id: i64,
-    description: Option<String>,
-    title: Title,
-    r#type: Option<String>,
-    format: Option<String>,
-    source: Option<String>,
-    #[serde(rename = "isAdult")]
-    is_adult: bool,
-    #[serde(rename = "startDate")]
-    start_date: StartEndDate,
-    #[serde(rename = "endDate")]
-    end_date: StartEndDate,
-    chapters: Option<i32>,
-    volumes: Option<i32>,
-    status: Option<String>,
-    season: Option<String>,
-    #[serde(rename = "isLicensed")]
-    is_licensed: bool,
-    #[serde(rename = "coverImage")]
-    cover_image: CoverImage,
-    #[serde(rename = "bannerImage")]
-    banner_image: Option<String>,
-    genres: Vec<Option<String>>,
-    tags: Vec<Tag>,
-    #[serde(rename = "averageScore")]
-    average_score: Option<i32>,
-    #[serde(rename = "meanScore")]
-    mean_score: Option<i32>,
-    popularity: Option<i32>,
-    favourites: Option<i32>,
-    #[serde(rename = "siteUrl")]
-    site_url: Option<String>,
-    staff: Staff,
-}
-
-#[derive(Debug, Deserialize)]
-struct Title {
-    romaji: Option<String>,
-    english: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct StartEndDate {
-    year: Option<i32>,
-    month: Option<i32>,
-    day: Option<i32>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CoverImage {
-    #[serde(rename = "extraLarge")]
-    extra_large: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Tag {
-    name: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Staff {
-    edges: Vec<Edge>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Edge {
-    node: Node,
-    id: Option<u32>,
-    role: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Node {
-    id: Option<u32>,
-    name: Name,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Name {
-    full: Option<String>,
-    #[serde(rename = "userPreferred")]
-    user_preferred: Option<String>,
-}
+use crate::cmd::anilist_module::struct_media::*;
 
 // Query made to the anilist api.
 const QUERY: &str = "
@@ -192,34 +96,34 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .text()
             .await;
         // Get json
-        let data: Data = serde_json::from_str(&resp.unwrap()).unwrap();
+        let data: MediaData = serde_json::from_str(&resp.unwrap()).unwrap();
         let hex_code = "#0D966D";
         let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
         let color = Colour::new(color_code);
-        let banner_image_old = data.data.Media.banner_image.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
-        let banner_image = format!("https://img.anili.st/media/{}", data.data.Media.id);
-        let desc_no_br = data.data.Media.description.unwrap_or_else(|| "NA".to_string()).replace("<br>", "");
+        let banner_image_old = data.data.media.banner_image.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
+        let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
+        let desc_no_br = data.data.media.description.unwrap_or_else(|| "NA".to_string()).replace("<br>", "");
         let re = Regex::new("<i>(.|\\n)*?</i>").unwrap();
         let desc = re.replace_all(&desc_no_br, "");
-        let en_name = data.data.Media.title.english.unwrap_or_else(|| "NA".to_string());
-        let rj_name = data.data.Media.title.romaji.unwrap_or_else(|| "NA".to_string());
-        let thumbnail = data.data.Media.cover_image.extra_large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
-        let site_url = data.data.Media.site_url.unwrap_or_else(|| "https://example.com".to_string());
+        let en_name = data.data.media.title.english.unwrap_or_else(|| "NA".to_string());
+        let rj_name = data.data.media.title.romaji.unwrap_or_else(|| "NA".to_string());
+        let thumbnail = data.data.media.cover_image.extra_large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
+        let site_url = data.data.media.site_url.unwrap_or_else(|| "https://example.com".to_string());
         let name = format!("{} / {}", en_name, rj_name);
-        let format = data.data.Media.format.unwrap_or_else(|| "N/A".to_string());
-        let source = data.data.Media.source.unwrap_or_else(|| "N/A".to_string());
+        let format = data.data.media.format.unwrap_or_else(|| "N/A".to_string());
+        let source = data.data.media.source.unwrap_or_else(|| "N/A".to_string());
 
-        let start_y = data.data.Media.start_date.year.unwrap_or_else(|| 0);
-        let start_d = data.data.Media.start_date.day.unwrap_or_else(|| 0);
-        let start_m = data.data.Media.start_date.month.unwrap_or_else(|| 0);
+        let start_y = data.data.media.start_date.year.unwrap_or_else(|| 0);
+        let start_d = data.data.media.start_date.day.unwrap_or_else(|| 0);
+        let start_m = data.data.media.start_date.month.unwrap_or_else(|| 0);
         let start_date = if start_y == 0 && start_d == 0 && start_m == 0 {
             "N/A".to_string()
         } else {
             format!("{}/{}/{}", start_d, start_m, start_y)
         };
-        let end_y = data.data.Media.end_date.year.unwrap_or_else(|| 0);
-        let end_d = data.data.Media.end_date.day.unwrap_or_else(|| 0);
-        let end_m = data.data.Media.end_date.month.unwrap_or_else(|| 0);
+        let end_y = data.data.media.end_date.year.unwrap_or_else(|| 0);
+        let end_d = data.data.media.end_date.day.unwrap_or_else(|| 0);
+        let end_m = data.data.media.end_date.month.unwrap_or_else(|| 0);
         let end_date = if end_y == 0 && end_d == 0 && end_m == 0 {
             "N/A".to_string()
         } else {
@@ -227,7 +131,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         };
 
         let mut staff = "".to_string();
-        let staffs = data.data.Media.staff.edges;
+        let staffs = data.data.media.staff.edges;
         for s in staffs {
             let full = s.node.name.full.unwrap_or_else(|| "N/A".to_string());
             let user = s.node.name.user_preferred.unwrap_or_else(|| "N/A".to_string());
@@ -237,13 +141,13 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         let info = format!("format : {} / source : {}\n start date : {} \n end date : {} \n {}", format, source, start_date, end_date, staff);
         let mut genre = "".to_string();
-        let genre_list = data.data.Media.genres;
+        let genre_list = data.data.media.genres;
         for g in genre_list {
             genre += &g.unwrap_or_else(|| "N/A".to_string());
             genre += "\n"
         }
         let mut tag = "".to_string();
-        let tag_list = data.data.Media.tags;
+        let tag_list = data.data.media.tags;
         for t in tag_list.iter().take(5) {
             let tag_name: String = t.name.as_ref().map_or("N/A".to_string(), |s| s.to_string());
             tag += &tag_name;
