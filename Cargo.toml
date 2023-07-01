@@ -16,3 +16,4 @@ tokio = { version = "1.28.2", features = ["full"] }
 sqlx = { version = "0.6.3", features = ["sqlite", "runtime-tokio-native-tls"] }
 rand = "0.8.5"
 chrono = "0.4.26"
+uuid = { version = "1.4.0", features = ["v4"] }

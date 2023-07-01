@@ -13,6 +13,7 @@ use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+use uuid::Uuid;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
@@ -85,10 +86,12 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let mut real_message = message.unwrap();
         let response = reqwest::get(url_string).await.unwrap();
         let bytes = response.bytes().await.unwrap();
-        let filename = "image.png";
-        std::fs::write(filename, &bytes).unwrap();
+        let uuid_name = Uuid::new_v4();
+        let filename = format!("{}.png", uuid_name);
+        let filename_str = filename.as_str();
+        std::fs::write(filename.clone(), &bytes).unwrap();
 
-        let path = Path::new(filename);
+        let path = Path::new(filename_str);
 
         real_message.edit(&ctx.http, |m|
             m.attachment(path)
@@ -100,7 +103,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 })
                 )).await.expect("TODO");
 
-        std::fs::remove_file(filename);
+        std::fs::remove_file(filename_str);
     }
     return "good".to_string();
 }
