@@ -58,8 +58,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         lang = "en".to_string();
     }
     if let CommandDataOptionValue::Attachment(attachement) = option {
-        println!("{}", lang);
-        println!("{}", prompt);
         let content_type = attachement.content_type.clone().unwrap();
         let content = attachement.proxy_url.clone();
 
