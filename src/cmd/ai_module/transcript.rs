@@ -19,6 +19,7 @@ use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+use uuid::Uuid;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
@@ -83,14 +84,15 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         }
 
         let response = reqwest::get(content).await.expect("download");
-
-        let fname = Path::new("./").join(format!("video.{}", file_extension));
-        let file_name = format!("/video.{}", file_extension);
-        let mut string_fname = format!("/video.{}", file_extension);
+        let uuid_name = Uuid::new_v4();
+        let fname = Path::new("./").join(format!("{}.{}", uuid_name, file_extension));
+        let file_name = format!("/{}.{}", uuid_name, file_extension);
+        let mut string_fname = format!("/{}.{}", uuid_name, file_extension);
         let mut file = File::create(fname.clone()).expect("file name");
         let mut resp_byte = response.bytes().await.unwrap();
         copy(&mut resp_byte.as_ref(), &mut file).unwrap();
         let color = Colour::FABLED_PINK;
+        let file_to_delete = fname.clone();
 
         if let Ok(current_dir) = env::current_dir() {
             let current_dir_str = current_dir.display().to_string();
@@ -106,6 +108,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             })
             .await
         {
+            std::fs::remove_file(&file_to_delete);
             println!("Cannot respond to slash command: {}", why);
         }
 
@@ -155,6 +158,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             Ok(res) => res,
             Err(err) => {
                 eprintln!("Error sending the request: {}", err);
+                std::fs::remove_file(&file_to_delete);
                 return format!("Error sending the request: {}", err);
             }
         };
@@ -164,9 +168,12 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             Ok(value) => value,
             Err(err) => {
                 eprintln!("Error parsing response as JSON: {}", err);
+                std::fs::remove_file(&file_to_delete);
                 return format!("Error sending the request: {}", err);
             }
         };
+
+        std::fs::remove_file(&file_to_delete);
 
         let text = res["text"].as_str().unwrap_or("");
         let mut real_message = message.unwrap();

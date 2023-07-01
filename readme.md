@@ -31,9 +31,9 @@ for those of you who don't know rust. \
     - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
 
 - AI submodule:
-    - [X] Image generation with ai. - Done
+    - [X] Image generation with AI. - Done
     - [X] Video transcription. - Done
-    - [ ] Video translation. - In progress
+    - [X] Video translation. - Done
     - [ ] Ask a question and reply the response. - Not a priority
 
 ### Issue
