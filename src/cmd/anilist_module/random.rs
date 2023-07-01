@@ -20,6 +20,8 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use sqlx::{Row, SqlitePool};
 
+use crate::cmd::anilist_module::struct_random::*;
+
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let database_url = "./cache.db";
     let pool = match SqlitePool::connect(&database_url).await {
@@ -49,6 +51,14 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         .expect("Expected username object");
 
     if let CommandDataOptionValue::String(random_type) = option {
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response.kind(InteractionResponseType::DeferredChannelMessageWithSource)
+            })
+            .await
+        {
+            println!("Cannot respond to slash command: {}", why);
+        }
         let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as("SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?")
             .bind(random_type)
             .fetch_one(&pool)
@@ -317,14 +327,14 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
     if random_type == "manga" {
         let query = "
                     query($manga_page: Int){
-                        page(page: $manga_page, perPage: 1){
+                        Page(page: $manga_page, perPage: 1){
                             media(type: MANGA){
                             id
                             title {
                                 native
-                                user_preferred
+                                userPreferred
                             }
-                            mean_score
+                            meanScore
                             description
                             tags {
                                 name
@@ -332,8 +342,8 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
                             genres
                             format
                             status
-                            cover_image {
-                                extra_large
+                            coverImage {
+                                extraLarge
                             }
                         }
                     }
@@ -350,7 +360,7 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
             .text()
             .await;
 
-        let api_response: ApiResponse = serde_json::from_str(&res.unwrap()).unwrap();
+        let api_response: PageData = serde_json::from_str(&res.unwrap()).unwrap();
 
         let media = &api_response.data.page.media[0];
         let title_user = &media.title.user_preferred;
@@ -371,10 +381,8 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
 
         let url = format!("https://anilist.co/manga/{}", &media.id);
         if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.embed(
+            .create_followup_message(&ctx.http, |f| {
+                    f.embed(
                         |m| {
                             m.title(format!("{}/{}", title_user, title))
                                 .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
@@ -383,7 +391,7 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
                                 .color(color)
                                 .thumbnail(cover_image)
                                 .url(url)
-                        })
+                        }
                     )
             })
             .await
@@ -393,14 +401,14 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
     } else if random_type == "anime" {
         let query = "
                     query($anime_page: Int){
-                        page(page: $anime_page, perPage: 1){
+                        Page(page: $anime_page, perPage: 1){
                             media(type: ANIME){
                             id
                             title {
                                 native
-                                user_preferred
+                                userPreferred
                             }
-                            mean_score
+                            meanScore
                             description
                             tags {
                                 name
@@ -408,8 +416,8 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
                             genres
                             format
                             status
-                            cover_image {
-                                extra_large
+                            coverImage {
+                                extraLarge
                             }
                         }
                     }
@@ -426,7 +434,7 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
             .text()
             .await;
 
-        let api_response: ApiResponse = serde_json::from_str(&res.unwrap()).unwrap();
+        let api_response: PageData = serde_json::from_str(&res.unwrap()).unwrap();
 
         let media = &api_response.data.page.media[0];
         let title_user = &media.title.user_preferred;
@@ -447,10 +455,8 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
 
         let url = format!("https://anilist.co/anime/{}", &media.id);
         if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.embed(
+            .create_followup_message(&ctx.http, |f| {
+                    f.embed(
                         |m| {
                             m.title(format!("{}/{}", title_user, title))
                                 .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
@@ -459,7 +465,7 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
                                 .color(color)
                                 .thumbnail(cover_image)
                                 .url(url)
-                        })
+                        }
                     )
             })
             .await
@@ -468,16 +474,14 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         }
     } else {
         if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.embed(
+            .create_followup_message(&ctx.http, |f| {
+                f.embed(
                         |m| {
                             m.title("You fucked up.")
                                 .description("How the heck did you managed this ?")
                                 .timestamp(Timestamp::now())
                                 .color(color)
-                        })
+                        }
                     )
             })
             .await
@@ -487,51 +491,4 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Media {
-    id: i32,
-    title: Title,
-    #[serde(rename = "meanScore")]
-    mean_score: i32,
-    description: String,
-    tags: Vec<Tag>,
-    genres: Vec<String>,
-    format: String,
-    status: String,
-    #[serde(rename = "coverImage")]
-    cover_image: CoverImage, // New field added
-}
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Title {
-    native: String,
-    #[serde(rename = "userPreferred")]
-    user_preferred: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Tag {
-    name: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Page {
-    media: Vec<Media>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Data {
-    #[serde(rename = "Page")]
-    page: Page,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ApiResponse {
-    data: Data,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CoverImage {
-    #[serde(rename = "extraLarge")]
-    extra_large: String,
-}
