@@ -8,4 +8,8 @@ pub mod random;
 pub mod search;
 pub mod register;
 pub mod staff;
+pub mod struct_character;
+pub mod struct_media;
+pub mod struct_staff;
+pub mod struct_user;
 pub mod user;

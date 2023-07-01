@@ -1,3 +1,4 @@
+use std::any::Any;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -11,93 +12,7 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-#[derive(Debug, Deserialize)]
-struct Data {
-    data: UserWrapper,
-}
-
-#[derive(Debug, Deserialize)]
-struct UserWrapper {
-    #[serde(rename = "User")]
-    user: User,
-}
-
-#[derive(Debug, Deserialize)]
-struct User {
-    id: Option<i32>,
-    name: Option<String>,
-    avatar: Avatar,
-    statistics: Statistics,
-    options: Options,
-    #[serde(rename = "bannerImage")]
-    banner_image: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Options {
-    #[serde(rename = "profileColor")]
-    profile_color: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Avatar {
-    large: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Statistics {
-    anime: Anime,
-    manga: Manga,
-}
-
-#[derive(Debug, Deserialize)]
-struct Anime {
-    count: Option<i32>,
-    #[serde(rename = "meanScore")]
-    mean_score: Option<f64>,
-    #[serde(rename = "standardDeviation")]
-    standard_deviation: Option<f64>,
-    #[serde(rename = "minutesWatched")]
-    minutes_watched: Option<i32>,
-    tags: Vec<Tag>,
-    genres: Vec<Genre>,
-    statuses: Vec<Statuses>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Manga {
-    count: Option<i32>,
-    #[serde(rename = "mean_score")]
-    mean_score: Option<f64>,
-    #[serde(rename = "standard_deviation")]
-    standard_deviation: Option<f64>,
-    #[serde(rename = "chaptersRead")]
-    chapters_read: Option<i32>,
-    tags: Vec<Tag>,
-    genres: Vec<Genre>,
-    statuses: Vec<Statuses>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Statuses {
-    count: i32,
-    status: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Tag {
-    tag: TagData,
-}
-
-#[derive(Debug, Deserialize)]
-struct TagData {
-    name: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Genre {
-    pub genre: Option<String>,
-}
+use crate::cmd::anilist_module::struct_user::*;
 
 const QUERY: &str = "
 query ($name: String, $limit: Int = 5) {
@@ -176,7 +91,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .text()
             .await;
         // Get json
-        let data: Data = match serde_json::from_str(&resp.unwrap()) {
+        let data: UserData = match serde_json::from_str(&resp.unwrap()) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse json: {}", e);

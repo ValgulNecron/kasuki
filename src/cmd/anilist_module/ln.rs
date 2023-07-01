@@ -13,102 +13,7 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-#[derive(Debug, Deserialize)]
-struct Data {
-    data: MediaData,
-}
-
-#[derive(Debug, Deserialize)]
-struct MediaData {
-    #[serde(rename = "Media")]
-    media: Media,
-}
-
-#[derive(Debug, Deserialize)]
-struct Media {
-    id: i64,
-    description: Option<String>,
-    title: Title,
-    r#type: Option<String>,
-    format: Option<String>,
-    source: Option<String>,
-    #[serde(rename = "isAdult")]
-    is_adult: bool,
-    #[serde(rename = "startDate")]
-    start_date: StartEndDate,
-    #[serde(rename = "endDate")]
-    end_date: StartEndDate,
-    chapters: Option<i32>,
-    volumes: Option<i32>,
-    status: Option<String>,
-    season: Option<String>,
-    #[serde(rename = "isLicensed")]
-    is_licensed: bool,
-    #[serde(rename = "coverImage")]
-    cover_image: CoverImage,
-    #[serde(rename = "bannerImage")]
-    banner_image: Option<String>,
-    genres: Vec<Option<String>>,
-    tags: Vec<Tag>,
-    #[serde(rename = "averageScore")]
-    average_score: Option<i32>,
-    #[serde(rename = "meanScore")]
-    mean_score: Option<i32>,
-    popularity: Option<i32>,
-    favourites: Option<i32>,
-    #[serde(rename = "siteUrl")]
-    site_url: Option<String>,
-    staff: Staff,
-}
-
-#[derive(Debug, Deserialize)]
-struct Title {
-    romaji: Option<String>,
-    english: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct StartEndDate {
-    year: Option<i32>,
-    month: Option<i32>,
-    day: Option<i32>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CoverImage {
-    #[serde(rename = "extraLarge")]
-    extra_large: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Tag {
-    name: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Staff {
-    edges: Vec<Edge>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Edge {
-    node: Node,
-    id: Option<u32>,
-    role: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Node {
-    id: Option<u32>,
-    name: Name,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Name {
-    full: Option<String>,
-    #[serde(rename = "userPreferred")]
-    user_preferred: Option<String>,
-}
+use crate::cmd::anilist_module::struct_media::*;
 
 const QUERY: &str = "
     query ($search: String, $limit: Int = 5) {
@@ -188,7 +93,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .text()
             .await;
         // Get json
-        let data: Data = serde_json::from_str(&resp.unwrap()).unwrap();
+        let data: MediaData = serde_json::from_str(&resp.unwrap()).unwrap();
         let hex_code = "#0D966D";
         let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
         let color = Colour::new(color_code);

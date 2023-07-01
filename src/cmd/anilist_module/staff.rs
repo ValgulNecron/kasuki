@@ -13,99 +13,7 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Name {
-    full: Option<String>,
-    native: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Image {
-    large: String,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Date {
-    year: Option<i32>,
-    month: Option<i32>,
-    day: Option<i32>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Title {
-    romaji: Option<String>,
-    english: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Node {
-    title: Title,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct StaffMedia {
-    edges: Vec<Edge>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Edge {
-    node: Node,
-    #[serde(rename = "roleNotes")]
-    role_notes: Option<String>,
-    #[serde(rename = "relationType")]
-    relation_type: Option<String>,
-    #[serde(rename = "staffRole")]
-    staff_role: String,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Character {
-    name: Name,
-    image: Image,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Characters {
-    nodes: Vec<Character>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Staff {
-    name: Name,
-    id: i32,
-    #[serde(rename = "languageV2")]
-    language_v2: String,
-    image: Image,
-    description: String,
-    #[serde(rename = "primaryOccupations")]
-    primary_occupations: Vec<String>,
-    gender: String,
-    #[serde(rename = "dateOfBirth")]
-    date_of_birth: Date,
-    #[serde(rename = "dateOfDeath")]
-    date_of_death: Date,
-    age: Option<i32>,
-    #[serde(rename = "yearsActive")]
-    years_active: Vec<i32>,
-    #[serde(rename = "homeTown")]
-    home_town: Option<String>,
-    #[serde(rename = "siteUrl")]
-    site_url: String,
-    #[serde(rename = "staffMedia")]
-    staff_media: StaffMedia,
-    characters: Characters,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Data {
-    #[serde(rename = "Staff")]
-    staff: Staff,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Response {
-    data: Data,
-}
+use crate::cmd::anilist_module::struct_staff::*;
 
 const QUERY: &str = "
 query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
@@ -184,7 +92,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .await;
 
         // Get json
-        let data: Response = match serde_json::from_str(&resp.unwrap()) {
+        let data: StaffData = match serde_json::from_str(&resp.unwrap()) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse json: {}", e);
@@ -192,7 +100,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             }
         };
         let staff_url = format!("https://anilist.co/staff/{}", &data.data.staff.id);
-        let mut color = Colour::FABLED_PINK;
+        let color = Colour::FABLED_PINK;
 
         let staff_name = format!("{}/{}", &data.data.staff.name.native.
             unwrap_or_else(|| "N/A".to_string()), &data.data.staff.name.full.unwrap_or_else(|| "N/A".to_string()));
