@@ -20,7 +20,8 @@ struct Data {
 
 #[derive(Debug, Deserialize, Clone)]
 struct UserWrapper {
-    User: User,
+    #[serde(rename = "User")]
+    user: User,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -30,12 +31,14 @@ struct User {
     avatar: Avatar,
     statistics: Statistics,
     options: Options,
-    bannerImage: Option<String>,
+    #[serde(rename = "bannerImage")]
+    banner_image: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 struct Options {
-    profileColor: Option<String>,
+    #[serde(rename = "profileColor")]
+    profile_color: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -52,9 +55,12 @@ struct Statistics {
 #[derive(Debug, Deserialize, Clone)]
 struct Anime {
     count: Option<i32>,
-    meanScore: Option<f64>,
-    standardDeviation: Option<f64>,
-    minutesWatched: Option<i32>,
+    #[serde(rename = "mean_score")]
+    mean_score: Option<f64>,
+    #[serde(rename = "standard_deviation")]
+    standard_deviation: Option<f64>,
+    #[serde(rename = "minutesWatched")]
+    minutes_watched: Option<i32>,
     tags: Vec<Tag>,
     genres: Vec<Genre>,
     statuses: Vec<Statuses>,
@@ -63,9 +69,12 @@ struct Anime {
 #[derive(Debug, Deserialize, Clone)]
 struct Manga {
     count: Option<i32>,
-    meanScore: Option<f64>,
-    standardDeviation: Option<f64>,
-    chaptersRead: Option<i32>,
+    #[serde(rename = "meanScore")]
+    mean_score: Option<f64>,
+    #[serde(rename = "standardDeviation")]
+    standard_deviation: Option<f64>,
+    #[serde(rename = "chaptersRead")]
+    chapters_read: Option<i32>,
     tags: Vec<Tag>,
     genres: Vec<Genre>,
     statuses: Vec<Statuses>,
@@ -228,8 +237,8 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         }
     };
 
-    let user1 = data.data.User;
-    let user2 = data2.data.User;
+    let user1 = data.data.user;
+    let user2 = data2.data.user;
 
     let user_name1 = user1.name.unwrap().clone();
     let user_name2 = user2.name.unwrap().clone();
@@ -244,9 +253,9 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     }
 
     let anime_watch_time;
-    if user1.statistics.anime.minutesWatched > user2.statistics.anime.minutesWatched {
+    if user1.statistics.anime.minutes_watched > user2.statistics.anime.minutes_watched {
         anime_watch_time = format!("{} as watched anime for longer than {}", user_name1, user_name2)
-    } else if user1.statistics.anime.minutesWatched < user2.statistics.anime.minutesWatched {
+    } else if user1.statistics.anime.minutes_watched < user2.statistics.anime.minutes_watched {
         anime_watch_time = format!("{} as watched anime for longer than {}", user_name2, user_name1)
     } else {
         anime_watch_time = format!("{} and {} as the same amount of anime watch time.", user_name1, user_name2)
@@ -262,9 +271,9 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     }
 
     let manga_chapter_count;
-    if user1.statistics.manga.chaptersRead > user2.statistics.manga.chaptersRead {
+    if user1.statistics.manga.chapters_read > user2.statistics.manga.chapters_read {
         manga_chapter_count = format!("{} as read more chapter than {}", user_name1, user_name2)
-    } else if user1.statistics.manga.chaptersRead < user2.statistics.manga.chaptersRead {
+    } else if user1.statistics.manga.chapters_read < user2.statistics.manga.chapters_read {
         manga_chapter_count = format!("{} as read more chapter than {}", user_name2, user_name1)
     } else {
         manga_chapter_count = format!("{} and {} as the same amount of chapter read.", user_name1, user_name2)

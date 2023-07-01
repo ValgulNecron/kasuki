@@ -20,28 +20,33 @@ struct ApiResponse {
 
 #[derive(Deserialize)]
 struct Data {
-    Character: Character,
+    #[serde(rename = "Character")]
+    character: Character,
 }
 
 #[derive(Deserialize)]
 struct Character {
     id: u32,
     name: Name,
-    siteUrl: String,
+    #[serde(rename = "siteUrl")]
+    site_url: String,
     description: String,
     gender: String,
     age: String,
-    dateOfBirth: DateOfBirth,
+    #[serde(rename = "dateOfBirth")]
+    date_of_birth: DateOfBirth,
     image: Image,
     favourites: u32,
-    modNotes: Option<String>,
+    #[serde(rename = "modNotes")]
+    mod_notes: Option<String>,
 }
 
 #[derive(Deserialize)]
 struct Name {
     full: String,
     native: String,
-    userPreferred: String,
+    #[serde(rename = "userPreferred")]
+    user_preferred: String,
 }
 
 #[derive(Deserialize)]
@@ -106,17 +111,17 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let data: ApiResponse = serde_json::from_str(&resp.unwrap()).unwrap();
         let color = Colour::FABLED_PINK;
 
-        let name = format!("{}/{}", data.data.Character.name.userPreferred, data.data.Character.name.native);
-        let desc = data.data.Character.description;
+        let name = format!("{}/{}", data.data.character.name.user_preferred, data.data.character.name.native);
+        let desc = data.data.character.description;
 
-        let image = data.data.Character.image.large;
-        let url = data.data.Character.siteUrl;
+        let image = data.data.character.image.large;
+        let url = data.data.character.site_url;
 
-        let age = data.data.Character.age;
-        let date_of_birth = format!("{}/{}/{}", data.data.Character.dateOfBirth.month.unwrap_or_else(|| 0),
-                                    data.data.Character.dateOfBirth.day.unwrap_or_else(|| 0), data.data.Character.dateOfBirth.year.unwrap_or_else(|| 0));
-        let gender = data.data.Character.gender;
-        let favourite = data.data.Character.favourites;
+        let age = data.data.character.age;
+        let date_of_birth = format!("{}/{}/{}", data.data.character.date_of_birth.month.unwrap_or_else(|| 0),
+                                    data.data.character.date_of_birth.day.unwrap_or_else(|| 0), data.data.character.date_of_birth.year.unwrap_or_else(|| 0));
+        let gender = data.data.character.gender;
+        let favourite = data.data.character.favourites;
 
         let full_description = format!("Age: {}. \n Gender: {}. \n Date of birth: {}. \n\
         Number of favourite: {}. \n Description: {}.", age, gender, date_of_birth, favourite
