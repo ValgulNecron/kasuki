@@ -27,7 +27,39 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         .resolved
         .as_ref()
         .expect("Expected attachement object");
+    let mut prompt: String;
+    let mut lang: String;
+    if let Some(option) = options.get(1) {
+        let resolved = option.resolved.as_ref().unwrap();
+        if let CommandDataOptionValue::String(prompt_op) = resolved {
+            prompt = prompt_op.clone();
+        } else {
+            return "error".to_string();
+        }
+        if !(option.name == "prompt") {
+            lang = prompt.clone();
+            prompt = "Do a transcript by first detecting the langage and then transcribing it in the detected langage".to_string();
+        }
+    } else {
+        prompt = "Do a transcript by first detecting the langage and then transcribing it in the detected langage".to_string();
+    }
+    if let Some(option) = options.get(2) {
+        let resolved = option.resolved.as_ref().unwrap();
+        if let CommandDataOptionValue::String(prompt_op) = resolved {
+            lang = prompt_op.clone();
+        } else {
+            return "error".to_string();
+        }
+        if !(option.name == "lang") {
+            prompt = lang.clone();
+            lang = "en".to_string();
+        }
+    } else {
+        lang = "en".to_string();
+    }
     if let CommandDataOptionValue::Attachment(attachement) = option {
+        println!("{}", lang);
+        println!("{}", prompt);
         let content_type = attachement.content_type.clone().unwrap();
         let content = attachement.proxy_url.clone();
 
@@ -104,9 +136,11 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let file = fs::read(fname).unwrap();
         let part = multipart::Part::bytes(file).file_name(file_name)
             .mime_str(&*content_type).unwrap();
+        let prompt = prompt;
         let form = multipart::Form::new()
             .part("file", part)
-            .text("model", "whisper-1");
+            .text("model", "whisper-1")
+            .text("prompt", prompt);
 
         let data = json!({
             "model": "whisper-1"
@@ -159,5 +193,21 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(Attachment)
                 .required(true)
         },
+    ).create_option(
+        |option| {
+            option
+                .name("prompt")
+                .description("Optional prompt, should be used to specify style and content langage for better result.")
+                .kind(CommandOptionType::String)
+                .required(false)
+        }
+    ).create_option(
+        |option| {
+            option
+                .name("lang")
+                .description("Lang in ISO-639-1 format.")
+                .kind(CommandOptionType::String)
+                .required(false)
+        }
     )
 }
