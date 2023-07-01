@@ -1,8 +1,11 @@
 extern crate core;
 
 use std::env;
+use std::sync::Arc;
+use std::time::Duration;
 
 use serenity::async_trait;
+use serenity::client::bridge::gateway::ShardManager;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
@@ -13,10 +16,12 @@ use serenity::model::gateway::ActivityType;
 use serenity::model::gateway::Ready;
 use serenity::model::user::OnlineStatus;
 use serenity::prelude::*;
+use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
 use crate::cmd::general_module::*;
+use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
 
 mod cmd;
 
@@ -58,7 +63,6 @@ impl EventHandler for Handler {
                     .create_application_command(|command| image::register(command))
                     .create_application_command(|command| transcript::register(command))
                     .create_application_command(|command| translation::register(command))
-
             }).await;
 
         println!("I created the following global slash command: {:#?}", guild_command);
@@ -72,7 +76,7 @@ impl EventHandler for Handler {
 
                 // General module.
                 "ping" => {
-                    ping::run(&command.data.options)
+                    ping::run(&command.data.options, &ctx, &command).await
                 }
                 "info" => {
                     info::run(&command.data.options, &ctx, &command).await
@@ -148,7 +152,7 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
     // Configure the client with your Discord bot token in the environment.
-    let my_path = ".\\src\\.env";
+    let my_path = "./src/.env";
     println!("{}", my_path.to_string());
     let path = std::path::Path::new(my_path);
     dotenv::from_path(path);
@@ -160,11 +164,31 @@ async fn main() {
         .await
         .expect("Error creating client");
 
-    // Finally, start a single shard, and start listening to events.
-    //
-    // Shards will automatically attempt to reconnect, and will perform
-    // exponential backoff until it reconnects.
-    if let Err(why) = client.start().await {
+    let manager = client.shard_manager.clone();
+
+    tokio::spawn(async move {
+        loop {
+            sleep(Duration::from_secs(600)).await;
+
+            let lock = manager.lock().await;
+            let shard_runners = lock.runners.lock().await;
+
+            for (id, runner) in shard_runners.iter() {
+                println!(
+                    "Shard ID {} is {} with a latency of {:?}",
+                    id, runner.stage, runner.latency,
+                );
+            }
+        }
+    });
+
+    {
+        let mut data = client.data.write().await;
+
+        data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
+    }
+
+    if let Err(why) = client.start_shards(2).await {
         println!("Client error: {:?}", why);
     }
 }

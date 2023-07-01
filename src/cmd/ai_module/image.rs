@@ -44,7 +44,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             })
             .await;
 
-        let my_path = ".\\src\\.env";
+        let my_path = "./src/.env";
         let path = std::path::Path::new(my_path);
         dotenv::from_path(path);
         let prompt = description;

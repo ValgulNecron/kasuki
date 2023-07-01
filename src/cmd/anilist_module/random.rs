@@ -160,7 +160,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                         .unwrap();
 
                     let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"].as_bool().unwrap_or(true);
-                    let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number as i64);
+                    let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number);
 
                     if !has_next_page {
                         break;
@@ -271,7 +271,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                     .unwrap();
 
                 let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"].as_bool().unwrap_or(true);
-                let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number as i64);
+                let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number);
 
                 if !has_next_page {
                     break;
@@ -317,14 +317,14 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
     if random_type == "manga" {
         let query = "
                     query($manga_page: Int){
-                        Page(page: $manga_page, perPage: 1){
+                        page(page: $manga_page, perPage: 1){
                             media(type: MANGA){
                             id
                             title {
                                 native
-                                userPreferred
+                                user_preferred
                             }
-                            meanScore
+                            mean_score
                             description
                             tags {
                                 name
@@ -332,8 +332,8 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
                             genres
                             format
                             status
-                            coverImage {
-                                extraLarge
+                            cover_image {
+                                extra_large
                             }
                         }
                     }
@@ -352,8 +352,8 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
 
         let api_response: ApiResponse = serde_json::from_str(&res.unwrap()).unwrap();
 
-        let media = &api_response.data.Page.media[0];
-        let title_user = &media.title.userPreferred;
+        let media = &api_response.data.page.media[0];
+        let title_user = &media.title.user_preferred;
         let title = &media.title.native;
 
         let tag = &media.tags;
@@ -362,7 +362,7 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let genres_str = genre.join("/");
         let tags_str = tag.into_iter().map(|tag| tag.name.clone()).collect::<Vec<String>>().join("/");
 
-        let cover_image = &media.coverImage.extraLarge;
+        let cover_image = &media.cover_image.extra_large;
 
         let description = &media.description;
         let desc_no_br = description.replace("<br>", "");
@@ -393,14 +393,14 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
     } else if random_type == "anime" {
         let query = "
                     query($anime_page: Int){
-                        Page(page: $anime_page, perPage: 1){
+                        page(page: $anime_page, perPage: 1){
                             media(type: ANIME){
                             id
                             title {
                                 native
-                                userPreferred
+                                user_preferred
                             }
-                            meanScore
+                            mean_score
                             description
                             tags {
                                 name
@@ -408,8 +408,8 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
                             genres
                             format
                             status
-                            coverImage {
-                                extraLarge
+                            cover_image {
+                                extra_large
                             }
                         }
                     }
@@ -428,8 +428,8 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
 
         let api_response: ApiResponse = serde_json::from_str(&res.unwrap()).unwrap();
 
-        let media = &api_response.data.Page.media[0];
-        let title_user = &media.title.userPreferred;
+        let media = &api_response.data.page.media[0];
+        let title_user = &media.title.user_preferred;
         let title = &media.title.native;
 
         let tag = &media.tags;
@@ -438,7 +438,7 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let genres_str = genre.join("/");
         let tags_str = tag.into_iter().map(|tag| tag.name.clone()).collect::<Vec<String>>().join("/");
 
-        let cover_image = &media.coverImage.extraLarge;
+        let cover_image = &media.cover_image.extra_large;
 
         let description = &media.description;
         let desc_no_br = description.replace("<br>", "");
@@ -488,45 +488,50 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Media {
+pub struct Media {
     id: i32,
     title: Title,
-    meanScore: i32,
+    #[serde(rename = "meanScore")]
+    mean_score: i32,
     description: String,
     tags: Vec<Tag>,
     genres: Vec<String>,
     format: String,
     status: String,
-    coverImage: CoverImage, // New field added
+    #[serde(rename = "coverImage")]
+    cover_image: CoverImage, // New field added
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Title {
+pub struct Title {
     native: String,
-    userPreferred: String,
+    #[serde(rename = "userPreferred")]
+    user_preferred: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Tag {
+pub struct Tag {
     name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Page {
+pub struct Page {
     media: Vec<Media>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Data {
-    Page: Page,
+pub struct Data {
+    #[serde(rename = "Page")]
+    page: Page,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ApiResponse {
+pub struct ApiResponse {
     data: Data,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CoverImage {
-    extraLarge: String,
+pub struct CoverImage {
+    #[serde(rename = "extraLarge")]
+    extra_large: String,
 }

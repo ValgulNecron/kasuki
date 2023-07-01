@@ -8,10 +8,6 @@ always add comment on why you did this or that (I know I'm the first not doing i
 ### Naming convention
 
 please respect https://github.com/rust-lang/rfcs/blob/master/text/0430-finalizing-naming-conventions.md. \
-if you create structure from the api not respecting this naming convention is not an isssue since it seem that changing
-the name from bannerImage to banner_image make it stop working. if this is something that i missed and it's really
-possible
-please tell me and i change it.
 
 ### When adding new functionality to the bot
 

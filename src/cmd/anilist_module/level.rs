@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -11,84 +13,7 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-#[derive(Debug, Deserialize)]
-struct Data {
-    data: UserWrapper,
-}
-
-#[derive(Debug, Deserialize)]
-struct UserWrapper {
-    User: User,
-}
-
-#[derive(Debug, Deserialize)]
-struct User {
-    id: Option<i32>,
-    name: Option<String>,
-    avatar: Avatar,
-    statistics: Statistics,
-    options: Options,
-    bannerImage: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Options {
-    profileColor: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Avatar {
-    large: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Statistics {
-    anime: Anime,
-    manga: Manga,
-}
-
-#[derive(Debug, Deserialize)]
-struct Anime {
-    count: Option<i32>,
-    meanScore: Option<f64>,
-    standardDeviation: Option<f64>,
-    minutesWatched: Option<i32>,
-    tags: Vec<Tag>,
-    genres: Vec<Genre>,
-    statuses: Vec<Statuses>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Manga {
-    count: Option<i32>,
-    meanScore: Option<f64>,
-    standardDeviation: Option<f64>,
-    chaptersRead: Option<i32>,
-    tags: Vec<Tag>,
-    genres: Vec<Genre>,
-    statuses: Vec<Statuses>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Statuses {
-    count: i32,
-    status: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Tag {
-    tag: TagData,
-}
-
-#[derive(Debug, Deserialize)]
-struct TagData {
-    name: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Genre {
-    pub genre: Option<String>,
-}
+use crate::cmd::anilist_module::struct_user::*;
 
 const QUERY: &str = "
 query ($name: String, $limit: Int = 5) {
@@ -104,12 +29,12 @@ query ($name: String, $limit: Int = 5) {
         meanScore
         standardDeviation
         minutesWatched
-        tags(limit: $limit) {
+        tags(limit: $limit, sort: COUNT_DESC) {
           tag {
             name
           }
         }
-        genres(limit: $limit) {
+        genres(limit: $limit, sort: COUNT_DESC) {
           genre
         }
         statuses(sort: COUNT_DESC){
@@ -167,17 +92,17 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .text()
             .await;
         // Get json
-        let data: Data = match serde_json::from_str(&resp.unwrap()) {
+        let data: UserData = match serde_json::from_str(&resp.unwrap()) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse json: {}", e);
                 return "Error: Failed to retrieve user data".to_string();
             }
         };
-        let profile_picture = data.data.User.avatar.large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
-        let user = data.data.User.name.unwrap_or_else(|| "N/A".to_string());
-        let anime = data.data.User.statistics.anime;
-        let manga = data.data.User.statistics.manga;
+        let profile_picture = data.data.user.avatar.large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
+        let user = data.data.user.name.unwrap_or_else(|| "N/A".to_string());
+        let anime = data.data.user.statistics.anime;
+        let manga = data.data.user.statistics.manga;
         let mut anime_completed: f64 = 0.0;
         let mut anime_watching: f64 = 0.0;
         let mut manga_completed: f64 = 0.0;
@@ -196,8 +121,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 manga_reading = i.count as f64
             }
         }
-        let chap = manga.chaptersRead.unwrap_or_else(|| 0) as f64;
-        let min = anime.minutesWatched.unwrap_or_else(|| 0) as f64;
+        let chap = manga.chapters_read.unwrap_or_else(|| 0) as f64;
+        let min = anime.minutes_watched.unwrap_or_else(|| 0) as f64;
         let input = (anime_completed * 2.0 + anime_watching * 1.0) + (manga_completed * 2.0 + manga_reading * 1.0) + chap * 5.0 + (min / 10.0);
         let a = 5.0;
         let b = 0.000005;
@@ -207,7 +132,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let progress_percent = (level_float - level) * 100.0;
 
         let mut color = Colour::FABLED_PINK;
-        match data.data.User.options.profileColor.unwrap_or_else(|| "#FF00FF".to_string()).as_str() {
+        match data.data.user.options.profile_color.unwrap_or_else(|| "#FF00FF".to_string()).as_str() {
             "blue" => color = Colour::BLUE,
             "purple" => color = Colour::PURPLE,
             "pink" => color = Colour::MEIBE_PINK,

@@ -13,48 +13,7 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-#[derive(Deserialize)]
-struct ApiResponse {
-    data: Data,
-}
-
-#[derive(Deserialize)]
-struct Data {
-    Character: Character,
-}
-
-#[derive(Deserialize)]
-struct Character {
-    id: u32,
-    name: Name,
-    siteUrl: String,
-    description: String,
-    gender: String,
-    age: String,
-    dateOfBirth: DateOfBirth,
-    image: Image,
-    favourites: u32,
-    modNotes: Option<String>,
-}
-
-#[derive(Deserialize)]
-struct Name {
-    full: String,
-    native: String,
-    userPreferred: String,
-}
-
-#[derive(Deserialize)]
-struct DateOfBirth {
-    year: Option<u32>,
-    month: Option<u32>,
-    day: Option<u32>,
-}
-
-#[derive(Deserialize)]
-struct Image {
-    large: String,
-}
+use crate::cmd::anilist_module::struct_character::*;
 
 const QUERY: &str = "
 query ($name: String) {
@@ -103,20 +62,20 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .text()
             .await;
 
-        let data: ApiResponse = serde_json::from_str(&resp.unwrap()).unwrap();
+        let data: CharacterData = serde_json::from_str(&resp.unwrap()).unwrap();
         let color = Colour::FABLED_PINK;
 
-        let name = format!("{}/{}", data.data.Character.name.userPreferred, data.data.Character.name.native);
-        let desc = data.data.Character.description;
+        let name = format!("{}/{}", data.data.character.name.user_preferred, data.data.character.name.native);
+        let desc = data.data.character.description;
 
-        let image = data.data.Character.image.large;
-        let url = data.data.Character.siteUrl;
+        let image = data.data.character.image.large;
+        let url = data.data.character.site_url;
 
-        let age = data.data.Character.age;
-        let date_of_birth = format!("{}/{}/{}", data.data.Character.dateOfBirth.month.unwrap_or_else(|| 0),
-                                    data.data.Character.dateOfBirth.day.unwrap_or_else(|| 0), data.data.Character.dateOfBirth.year.unwrap_or_else(|| 0));
-        let gender = data.data.Character.gender;
-        let favourite = data.data.Character.favourites;
+        let age = data.data.character.age;
+        let date_of_birth = format!("{}/{}/{}", data.data.character.date_of_birth.month.unwrap_or_else(|| 0),
+                                    data.data.character.date_of_birth.day.unwrap_or_else(|| 0), data.data.character.date_of_birth.year.unwrap_or_else(|| 0));
+        let gender = data.data.character.gender;
+        let favourite = data.data.character.favourites;
 
         let full_description = format!("Age: {}. \n Gender: {}. \n Date of birth: {}. \n\
         Number of favourite: {}. \n Description: {}.", age, gender, date_of_birth, favourite

@@ -13,84 +13,7 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-#[derive(Debug, Deserialize, Clone)]
-struct Data {
-    data: UserWrapper,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct UserWrapper {
-    User: User,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct User {
-    id: Option<i32>,
-    name: Option<String>,
-    avatar: Avatar,
-    statistics: Statistics,
-    options: Options,
-    bannerImage: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Options {
-    profileColor: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Avatar {
-    large: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Statistics {
-    anime: Anime,
-    manga: Manga,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Anime {
-    count: Option<i32>,
-    meanScore: Option<f64>,
-    standardDeviation: Option<f64>,
-    minutesWatched: Option<i32>,
-    tags: Vec<Tag>,
-    genres: Vec<Genre>,
-    statuses: Vec<Statuses>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Manga {
-    count: Option<i32>,
-    meanScore: Option<f64>,
-    standardDeviation: Option<f64>,
-    chaptersRead: Option<i32>,
-    tags: Vec<Tag>,
-    genres: Vec<Genre>,
-    statuses: Vec<Statuses>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Statuses {
-    count: i32,
-    status: String,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Tag {
-    tag: TagData,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct TagData {
-    name: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Genre {
-    pub genre: Option<String>,
-}
+use crate::cmd::anilist_module::struct_user::*;
 
 const QUERY: &str = "
 query ($name: String, $limit: Int = 5) {
@@ -212,7 +135,7 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         .text()
         .await;
 
-    let data: Data = match serde_json::from_str(&resp.unwrap()) {
+    let data: UserData = match serde_json::from_str(&resp.unwrap()) {
         Ok(result) => result,
         Err(e) => {
             println!("Failed to parse json: {}", e);
@@ -220,7 +143,7 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         }
     };
 
-    let data2: Data = match serde_json::from_str(&resp2.unwrap()) {
+    let data2: UserData = match serde_json::from_str(&resp2.unwrap()) {
         Ok(result) => result,
         Err(e) => {
             println!("Failed to parse json: {}", e);
@@ -228,8 +151,8 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         }
     };
 
-    let user1 = data.data.User;
-    let user2 = data2.data.User;
+    let user1 = data.data.user;
+    let user2 = data2.data.user;
 
     let user_name1 = user1.name.unwrap().clone();
     let user_name2 = user2.name.unwrap().clone();
@@ -244,9 +167,9 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     }
 
     let anime_watch_time;
-    if user1.statistics.anime.minutesWatched > user2.statistics.anime.minutesWatched {
+    if user1.statistics.anime.minutes_watched > user2.statistics.anime.minutes_watched {
         anime_watch_time = format!("{} as watched anime for longer than {}", user_name1, user_name2)
-    } else if user1.statistics.anime.minutesWatched < user2.statistics.anime.minutesWatched {
+    } else if user1.statistics.anime.minutes_watched < user2.statistics.anime.minutes_watched {
         anime_watch_time = format!("{} as watched anime for longer than {}", user_name2, user_name1)
     } else {
         anime_watch_time = format!("{} and {} as the same amount of anime watch time.", user_name1, user_name2)
@@ -262,9 +185,9 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     }
 
     let manga_chapter_count;
-    if user1.statistics.manga.chaptersRead > user2.statistics.manga.chaptersRead {
+    if user1.statistics.manga.chapters_read > user2.statistics.manga.chapters_read {
         manga_chapter_count = format!("{} as read more chapter than {}", user_name1, user_name2)
-    } else if user1.statistics.manga.chaptersRead < user2.statistics.manga.chaptersRead {
+    } else if user1.statistics.manga.chapters_read < user2.statistics.manga.chapters_read {
         manga_chapter_count = format!("{} as read more chapter than {}", user_name2, user_name1)
     } else {
         manga_chapter_count = format!("{} and {} as the same amount of chapter read.", user_name1, user_name2)
@@ -331,7 +254,5 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     {
         println!("Cannot respond to slash command: {}", why);
     }
-
-    let mut color = Colour::FABLED_PINK;
     return "good".to_string();
 }
