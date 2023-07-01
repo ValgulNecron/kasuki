@@ -151,7 +151,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("transcript").description("generate an image").create_option(
+    command.name("transcript").description("generate a transcript").create_option(
         |option| {
             option
                 .name("video")
