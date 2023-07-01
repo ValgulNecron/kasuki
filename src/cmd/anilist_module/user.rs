@@ -96,7 +96,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let (user, _): (Option<String>, Option<String>) = row;
         let result = embed(options, ctx, command, &user.unwrap_or("N/A".parse().unwrap())).await;
         result
-    }
+    };
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

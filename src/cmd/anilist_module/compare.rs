@@ -15,7 +15,6 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_user::*;
 
-
 const QUERY: &str = "
 query ($name: String, $limit: Int = 5) {
   User(name: $name) {

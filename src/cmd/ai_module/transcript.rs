@@ -1,11 +1,11 @@
 use std::{env, fs};
 use std::fs::File;
-use std::io::{empty, Write, copy};
+use std::io::{copy, empty, Write};
 use std::path::Path;
 use std::str::Bytes;
 
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use reqwest::{multipart, Url};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -45,8 +45,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
     }
     if let Some(option) = options.get(2) {
         let resolved = option.resolved.as_ref().unwrap();
-        if let CommandDataOptionValue::String(prompt_op) = resolved {
-            lang = prompt_op.clone();
+        if let CommandDataOptionValue::String(lang_op) = resolved {
+            lang = lang_op.clone();
         } else {
             return "error".to_string();
         }
@@ -61,13 +61,13 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let content_type = attachement.content_type.clone().unwrap();
         let content = attachement.proxy_url.clone();
 
-        if !content_type.starts_with("audio/") && !content_type.starts_with("video/"){
+        if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
             return "wrong file type".to_string();
         }
 
         let allowed_extensions = vec![
-                "mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm",
-            ];
+            "mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm",
+        ];
         let parsed_url = Url::parse(&*content).expect("Failed to parse URL");
         let path_segments = parsed_url.path_segments().expect("Failed to retrieve path segments");
         let last_segment = path_segments.last().expect("URL has no path segments");
@@ -78,9 +78,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .expect("No file extension found")
             .to_lowercase();
 
-            if !allowed_extensions.contains(&&**&file_extension) {
-                return "wrong file extension".to_string();
-            }
+        if !allowed_extensions.contains(&&**&file_extension) {
+            return "wrong file extension".to_string();
+        }
 
         let response = reqwest::get(content).await.expect("download");
 
@@ -120,7 +120,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             })
             .await;
 
-        let my_path = ".\\src\\.env";
+        let my_path = "./src/.env";
         let path = std::path::Path::new(my_path);
         dotenv::from_path(path);
         let api_key = env::var("AI_API_TOKEN").expect("token");
@@ -172,13 +172,12 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let mut real_message = message.unwrap();
         real_message.edit(&ctx.http, |m|
             m.embed((|e| {
-                    e.title("Here your transcript")
-                        .description(format!("{}", text))
-                        .timestamp(Timestamp::now())
-                        .color(color)
-                })
-                )).await.expect("TODO");
-
+                e.title("Here your transcript")
+                    .description(format!("{}", text))
+                    .timestamp(Timestamp::now())
+                    .color(color)
+            })
+            )).await.expect("TODO");
     }
     return "good".to_string();
 }
@@ -196,7 +195,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         |option| {
             option
                 .name("prompt")
-                .description("Optional prompt, should be used to specify style and content langage for better result.")
+                .description("Use optional text to guide style or continue audio. Match audio language.")
                 .kind(CommandOptionType::String)
                 .required(false)
         }
@@ -204,7 +203,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         |option| {
             option
                 .name("lang")
-                .description("Lang in ISO-639-1 format.")
+                .description("Input language in ISO-639-1 format improves accuracy and latency.")
                 .kind(CommandOptionType::String)
                 .required(false)
         }
