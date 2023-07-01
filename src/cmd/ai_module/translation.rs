@@ -153,6 +153,42 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             text:
             {}
             ", lang, text);
+
+            let api_key = env::var("AI_API_TOKEN").expect("token");
+            let api_base_url = env::var("AI_API_BASE_URL").expect("token");
+            let api_url = format!("{}chat/completions", api_base_url);
+            let client = reqwest::Client::new();
+            let mut headers = HeaderMap::new();
+            headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
+            headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
+             let data = json!({
+                 "model": "gpt-3.5-turbo-16k",
+                 "messages": [{"role": "system", "content": "You are a expert in translating and only do that."},{"role": "user", "content": prompt_gpt}]
+            });
+
+            let res: Value = client.post(api_url)
+                .headers(headers)
+                .json(&data)
+                .send()
+                .await
+                .unwrap()
+                .json()
+                .await
+                .unwrap();
+
+            let content = res["choices"][0]["message"]["content"].to_string();
+            let no_quote = content.replace("\"", "");
+            let line_break = no_quote.replace("\\n", " \\n ");
+            let mut real_message = message.unwrap();
+            real_message.edit(&ctx.http, |m|
+                m.embed((|e| {
+                    e.title("Here your translation")
+                        .description(format!("{}", line_break))
+                        .timestamp(Timestamp::now())
+                        .color(color)
+                })
+                )).await.expect("TODO");
         } else {
             let mut real_message = message.unwrap();
             real_message.edit(&ctx.http, |m|
