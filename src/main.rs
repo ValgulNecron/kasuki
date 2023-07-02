@@ -16,14 +16,14 @@ use serenity::model::gateway::ActivityType;
 use serenity::model::gateway::Ready;
 use serenity::model::user::OnlineStatus;
 use serenity::prelude::*;
+
 use tokio::time::sleep;
 
+mod cmd;
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
 use crate::cmd::general_module::*;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
-
-mod cmd;
 
 struct Handler;
 
@@ -155,7 +155,7 @@ async fn main() {
     let my_path = "./src/.env";
     println!("{}", my_path.to_string());
     let path = std::path::Path::new(my_path);
-    dotenv::from_path(path);
+    let _ = dotenv::from_path(path);
     let token = env::var("DISCORD_TOKEN").expect("discord token");
 
     // Build our client.

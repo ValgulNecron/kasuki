@@ -1,8 +1,10 @@
 use std::u32;
 
 use reqwest::Client;
+
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -12,9 +14,13 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+
 use sqlx::SqlitePool;
 
 use crate::cmd::anilist_module::struct_user::*;
+use crate::cmd::general_module::color::get_user_color;
+use crate::cmd::general_module::pool::get_pool;
+use crate::cmd::general_module::request::make_request;
 
 const QUERY: &str = "
 query ($name: String, $limit: Int = 5) {
@@ -81,13 +87,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         }
     } else {
         let database_url = "./data.db";
-        let pool = match SqlitePool::connect(&database_url).await {
-            Ok(pool) => pool,
-            Err(e) => {
-                eprintln!("Failed to connect to the database: {}", e);
-                return "Error: Failed to connect to the database.".to_string();
-            }
-        };
+        let pool = get_pool(database_url).await;
         let user_id = &command.user.id.to_string();
         let row: (Option<String>, Option<String>) = sqlx::query_as("SELECT anilist_username, user_id FROM registered_user WHERE user_id = ?")
             .bind(user_id)
@@ -115,18 +115,10 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction, user: &String) -> String {
     let client = Client::new();
     let json = json!({"query": QUERY, "variables": {"name": user}});
-    let resp = client.post("https://graphql.anilist.co/")
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .body(json.to_string())
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await;
+    let resp = make_request(json).await;
 
     // Get json
-    let data: UserData = match serde_json::from_str(&resp.unwrap()) {
+    let data: UserData = match serde_json::from_str(&resp) {
         Ok(result) => result,
         Err(e) => {
             println!("Failed to parse json: {}", e);
@@ -134,21 +126,8 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         }
     };
     let user_url = format!("https://anilist.co/user/{}", &data.data.user.id.unwrap_or_else(|| 1));
-    let mut color = Colour::FABLED_PINK;
-    match data.data.user.options.profile_color.unwrap_or_else(|| "#FF00FF".to_string()).as_str() {
-        "blue" => color = Colour::BLUE,
-        "purple" => color = Colour::PURPLE,
-        "pink" => color = Colour::MEIBE_PINK,
-        "orange" => color = Colour::ORANGE,
-        "red" => color = Colour::RED,
-        "green" => color = Colour::DARK_GREEN,
-        "gray" => color = Colour::LIGHT_GREY,
-        _ => color = {
-            let hex_code = "#0D966D";
-            let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
-            Colour::new(color_code)
-        },
-    }
+    let color = get_user_color(data.clone());
+
     let mut min = data.data.user.statistics.anime.minutes_watched.unwrap_or_else(|| 0);
     let mut hour = 0;
     let mut days = 0;

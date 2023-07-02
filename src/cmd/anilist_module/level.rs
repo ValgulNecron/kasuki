@@ -14,6 +14,8 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_user::*;
+use crate::cmd::general_module::color::get_user_color;
+use crate::cmd::general_module::request::make_request;
 
 const QUERY: &str = "
 query ($name: String, $limit: Int = 5) {
@@ -82,45 +84,22 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
     if let CommandDataOptionValue::String(user) = option {
         let client = Client::new();
         let json = json!({"query": QUERY, "variables": {"name": user}});
-        let resp = client.post("https://graphql.anilist.co/")
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .body(json.to_string())
-            .send()
-            .await
-            .unwrap()
-            .text()
-            .await;
+        let resp = make_request(json).await;
         // Get json
-        let data: UserData = match serde_json::from_str(&resp.unwrap()) {
+        let data: UserData = match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse json: {}", e);
                 return "Error: Failed to retrieve user data".to_string();
             }
         };
-        let profile_picture = data.data.user.avatar.large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
-        let user = data.data.user.name.unwrap_or_else(|| "N/A".to_string());
-        let anime = data.data.user.statistics.anime;
-        let manga = data.data.user.statistics.manga;
-        let mut anime_completed: f64 = 0.0;
-        let mut anime_watching: f64 = 0.0;
-        let mut manga_completed: f64 = 0.0;
-        let mut manga_reading: f64 = 0.0;
-        for i in anime.statuses {
-            if i.status == "COMPLETED".to_string() {
-                anime_completed = i.count as f64;
-            } else if i.status == "CURRENT".to_string() {
-                anime_watching = i.count as f64
-            }
-        }
-        for i in manga.statuses {
-            if i.status == "COMPLETED".to_string() {
-                manga_completed = i.count as f64;
-            } else if i.status == "CURRENT".to_string() {
-                manga_reading = i.count as f64
-            }
-        }
+        let profile_picture = data.data.user.avatar.large.clone().unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
+        let user = data.data.user.name.clone().unwrap_or_else(|| "N/A".to_string());
+        let anime = data.data.user.statistics.anime.clone();
+        let manga = data.data.user.statistics.manga.clone();
+        let (anime_completed, anime_watching) = get_total(anime.statuses.clone());
+        let (manga_completed, manga_reading) = get_total(manga.statuses.clone());
+
         let chap = manga.chapters_read.unwrap_or_else(|| 0) as f64;
         let min = anime.minutes_watched.unwrap_or_else(|| 0) as f64;
         let input = (anime_completed * 2.0 + anime_watching * 1.0) + (manga_completed * 2.0 + manga_reading * 1.0) + chap * 5.0 + (min / 10.0);
@@ -131,21 +110,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         let progress_percent = (level_float - level) * 100.0;
 
-        let mut color = Colour::FABLED_PINK;
-        match data.data.user.options.profile_color.unwrap_or_else(|| "#FF00FF".to_string()).as_str() {
-            "blue" => color = Colour::BLUE,
-            "purple" => color = Colour::PURPLE,
-            "pink" => color = Colour::MEIBE_PINK,
-            "orange" => color = Colour::ORANGE,
-            "red" => color = Colour::RED,
-            "green" => color = Colour::DARK_GREEN,
-            "gray" => color = Colour::LIGHT_GREY,
-            _ => color = {
-                let hex_code = "#0D966D";
-                let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
-                Colour::new(color_code)
-            },
-        }
+        let color = get_user_color(data.clone());
 
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
@@ -182,4 +147,18 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .required(true)
         },
     )
+}
+
+pub fn get_total(media: Vec<Statuses>) -> (f64, f64) {
+    let mut watching = 0.0;
+    let mut completed = 0.0;
+    for i in media {
+            if i.status == "COMPLETED".to_string() {
+                completed = i.count as f64;
+            } else if i.status == "CURRENT".to_string() {
+                watching = i.count as f64
+            }
+        }
+    let tuple = (watching, completed);
+    return tuple
 }

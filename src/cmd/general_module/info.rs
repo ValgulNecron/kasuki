@@ -18,7 +18,7 @@ pub async fn run(_options: &[CommandDataOption], ctx: &Context, command: &Applic
                     |m| {
                         m.title("Info")
                             .description("This bot use the anilist api to give information on a show or a user")
-                            .footer(|f| f.text("creator valgul#8329"))
+                            .footer(|f| f.text("creator valgul"))
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())

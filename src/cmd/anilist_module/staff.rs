@@ -1,8 +1,10 @@
 use std::u32;
 
 use reqwest::Client;
+
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -14,6 +16,7 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_staff::*;
+use crate::cmd::general_module::request::make_request;
 
 const QUERY: &str = "
 query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
@@ -81,18 +84,10 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
     if let CommandDataOptionValue::String(staff) = option {
         let client = Client::new();
         let json = json!({"query": QUERY, "variables": {"name": staff}});
-        let resp = client.post("https://graphql.anilist.co/")
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .body(json.to_string())
-            .send()
-            .await
-            .unwrap()
-            .text()
-            .await;
+        let resp = make_request(json).await;
 
         // Get json
-        let data: StaffData = match serde_json::from_str(&resp.unwrap()) {
+        let data: StaffData = match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse json: {}", e);
