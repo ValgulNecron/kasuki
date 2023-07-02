@@ -36,9 +36,10 @@ for those of you who don't know rust. \
     - [X] Video translation. - Done
     - [ ] Ask a question and reply the response. - Not a priority
 
-### Issue
+# Vision
 
-- Seem like there is some memory leak will need more research.
+The bot is in the first place a bot that interface the anilist api with discord letting user get different information
+from it. there is also secondary module that will be added when I have idea or want to test thing.
 
 # How to use
 
