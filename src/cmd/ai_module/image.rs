@@ -2,7 +2,9 @@ use std::{env, fs};
 use std::path::Path;
 
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+
 use serde_json::{json, Value};
+
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -13,7 +15,10 @@ use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+
 use uuid::Uuid;
+
+use crate::cmd::general_module::differed_response::differed_response;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
@@ -25,14 +30,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
     if let CommandDataOptionValue::String(description) = option {
         let color = Colour::FABLED_PINK;
 
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response.kind(InteractionResponseType::DeferredChannelMessageWithSource)
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
-        }
+        differed_response(ctx, command).await;
 
         let message = command
             .create_followup_message(&ctx.http, |f| {
