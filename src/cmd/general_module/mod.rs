@@ -1,6 +1,7 @@
 pub mod color;
 pub mod differed_response;
 pub mod help;
+pub mod in_progress;
 pub mod info;
 pub mod ping;
 pub mod pool;

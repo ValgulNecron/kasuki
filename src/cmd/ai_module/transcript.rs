@@ -21,6 +21,9 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
+use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
+use crate::cmd::general_module::in_progress::in_progress_embed;
+
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
         .get(0)
@@ -102,26 +105,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             println!("Failed to retrieve the current directory.");
         }
 
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response.kind(InteractionResponseType::DeferredChannelMessageWithSource)
-            })
-            .await
-        {
-            let _ = fs::remove_file(&file_to_delete);
-            println!("Cannot respond to slash command: {}", why);
-        }
+        differed_response_with_file_deletion(ctx, command, file_to_delete).await;
 
-        let message = command
-            .create_followup_message(&ctx.http, |f| {
-                f.embed(|e| {
-                    e.title("In progress")
-                        .description("The task is being processed...be patient, it may take some time!")
-                        .timestamp(Timestamp::now())
-                        .color(color)
-                })
-            })
-            .await;
+        let message = in_progress_embed(ctx, command).await;
 
         let my_path = "./src/.env";
         let path = Path::new(my_path);
