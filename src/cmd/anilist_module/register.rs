@@ -8,7 +8,6 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-
 use sqlx::{Row, SqlitePool};
 
 use crate::cmd::general_module::pool::get_pool;

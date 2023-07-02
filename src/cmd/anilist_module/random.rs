@@ -3,15 +3,11 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::u32;
 
 use chrono::Utc;
-
 use rand::prelude::*;
 use rand::rngs::StdRng;
-
 use reqwest::Client;
-
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::component::ButtonStyle;
@@ -22,7 +18,6 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-
 use sqlx::{Row, SqlitePool};
 
 use crate::cmd::anilist_module::struct_random::*;
@@ -380,17 +375,17 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let url = format!("https://anilist.co/manga/{}", &media.id);
         if let Err(why) = command
             .create_followup_message(&ctx.http, |f| {
-                    f.embed(
-                        |m| {
-                            m.title(format!("{}/{}", title_user, title))
-                                .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
-                                                     , genres_str, tags_str, format, desc_no_br))
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                                .thumbnail(cover_image)
-                                .url(url)
-                        }
-                    )
+                f.embed(
+                    |m| {
+                        m.title(format!("{}/{}", title_user, title))
+                            .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
+                                                 , genres_str, tags_str, format, desc_no_br))
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                            .thumbnail(cover_image)
+                            .url(url)
+                    }
+                )
             })
             .await
         {
@@ -454,17 +449,17 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let url = format!("https://anilist.co/anime/{}", &media.id);
         if let Err(why) = command
             .create_followup_message(&ctx.http, |f| {
-                    f.embed(
-                        |m| {
-                            m.title(format!("{}/{}", title_user, title))
-                                .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
-                                                     , genres_str, tags_str, format, desc_no_br))
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                                .thumbnail(cover_image)
-                                .url(url)
-                        }
-                    )
+                f.embed(
+                    |m| {
+                        m.title(format!("{}/{}", title_user, title))
+                            .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
+                                                 , genres_str, tags_str, format, desc_no_br))
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                            .thumbnail(cover_image)
+                            .url(url)
+                    }
+                )
             })
             .await
         {
@@ -474,13 +469,13 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         if let Err(why) = command
             .create_followup_message(&ctx.http, |f| {
                 f.embed(
-                        |m| {
-                            m.title("You fucked up.")
-                                .description("How the heck did you managed this ?")
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        }
-                    )
+                    |m| {
+                        m.title("You fucked up.")
+                            .description("How the heck did you managed this ?")
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    }
+                )
             })
             .await
         {

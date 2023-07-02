@@ -7,7 +7,7 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-pub async fn run(_options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let color = Colour::FABLED_PINK;
 
     if let Err(why) = command

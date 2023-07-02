@@ -87,3 +87,13 @@ pub struct TagData {
 pub struct Genre {
     pub genre: Option<String>,
 }
+
+pub fn resp_to_user_data(resp: String) -> Result<UserData, String> {
+    match serde_json::from_str(&resp) {
+        Ok(result) => Ok(result),
+        Err(e) => {
+            println!("Failed to parse JSON: {}", e);
+            Err(String::from("Error: Failed to retrieve user data"))
+        }
+    }
+}

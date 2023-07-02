@@ -120,19 +120,21 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     let json2 = json!({"query": QUERY, "variables": {"name": username2}});
     let resp2 = make_request(json2).await;
 
-    let data: UserData = match serde_json::from_str(&resp) {
-        Ok(result) => result,
-        Err(e) => {
-            println!("Failed to parse json: {}", e);
-            return "Error: Failed to retrieve user data".to_string();
+    let data: UserData = match resp_to_user_data(resp) {
+        Ok(data) => {
+            data
+        }
+        Err(error) => {
+            return error;
         }
     };
 
-    let data2: UserData = match serde_json::from_str(&resp2) {
-        Ok(result) => result,
-        Err(e) => {
-            println!("Failed to parse json: {}", e);
-            return "Error: Failed to retrieve user data".to_string();
+    let data2: UserData = match resp_to_user_data(resp2) {
+        Ok(data) => {
+            data
+        }
+        Err(error) => {
+            return error;
         }
     };
 

@@ -37,6 +37,7 @@ for those of you who don't know rust. \
     - [ ] Ask a question and reply the response. - Not a priority
 
 ### Issue
+
 - Seem like there is some memory leak will need more research.
 
 # How to use
@@ -83,25 +84,25 @@ cargo run --release
 # Commands
 
 - General:
-  - /help - Give a list of all command.
-  - /info - Show info about bot.
-  - /ping - Check if the bot respond to command.
+    - /help - Give a list of all command.
+    - /info - Show info about bot.
+    - /ping - Check if the bot respond to command.
 - Anime:
-  - /anime - Show info about anime.
-  - /character - Show info on a character.
-  - /compare - Compare 2 different user.
-  - /level - Show your level based on what you read and watched.
-  - /ln - Show info about light novel.
-  - /manga - Show info about manga.
-  - /random - Give a random anime or manga.
-  - /register - Link your anilist and discord account.
-  - /search - Let you search for different type. Like ln, manga, etc...
-  - /staff - Give information about a specified staff.
-  - /user - Show info about user.
+    - /anime - Show info about anime.
+    - /character - Show info on a character.
+    - /compare - Compare 2 different user.
+    - /level - Show your level based on what you read and watched.
+    - /ln - Show info about light novel.
+    - /manga - Show info about manga.
+    - /random - Give a random anime or manga.
+    - /register - Link your anilist and discord account.
+    - /search - Let you search for different type. Like ln, manga, etc...
+    - /staff - Give information about a specified staff.
+    - /user - Show info about user.
 - AI:
-  - /image - Generate an image from a description.
-  - /transcript - Transcript a video or an audio file with a size limit of 25mb.
-  - /translation - Create a translated transcript of video or an audio file with a size limit of 25mb.
+    - /image - Generate an image from a description.
+    - /transcript - Transcript a video or an audio file with a size limit of 25mb.
+    - /translation - Create a translated transcript of video or an audio file with a size limit of 25mb.
 
 # Credit
 

@@ -86,11 +86,12 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let json = json!({"query": QUERY, "variables": {"name": user}});
         let resp = make_request(json).await;
         // Get json
-        let data: UserData = match serde_json::from_str(&resp) {
-            Ok(result) => result,
-            Err(e) => {
-                println!("Failed to parse json: {}", e);
-                return "Error: Failed to retrieve user data".to_string();
+        let data: UserData = match resp_to_user_data(resp) {
+            Ok(data) => {
+                data
+            }
+            Err(error) => {
+                return error;
             }
         };
         let profile_picture = data.data.user.avatar.large.clone().unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
@@ -153,12 +154,12 @@ pub fn get_total(media: Vec<Statuses>) -> (f64, f64) {
     let mut watching = 0.0;
     let mut completed = 0.0;
     for i in media {
-            if i.status == "COMPLETED".to_string() {
-                completed = i.count as f64;
-            } else if i.status == "CURRENT".to_string() {
-                watching = i.count as f64
-            }
+        if i.status == "COMPLETED".to_string() {
+            completed = i.count as f64;
+        } else if i.status == "CURRENT".to_string() {
+            watching = i.count as f64
         }
+    }
     let tuple = (watching, completed);
-    return tuple
+    return tuple;
 }

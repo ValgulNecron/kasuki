@@ -5,7 +5,6 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 
 use crate::cmd::anilist_module::command_media_ln::embed;
 
-
 const QUERY: &str = "
     query ($search: String, $limit: Int = 4) {
 		Media (search: $search, type: MANGA, format: MANGA){
@@ -65,7 +64,7 @@ const QUERY: &str = "
 ";
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
-    return embed(options, ctx, command, QUERY).await
+    return embed(options, ctx, command, QUERY).await;
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

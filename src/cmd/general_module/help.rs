@@ -1,7 +1,5 @@
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
-
 use serde_json::{json, Value};
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -25,7 +23,7 @@ pub struct Option {
     option_description: String,
 }
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let command_list: Vec<Command> = Vec::new();
 
     let user_option1 = Option {

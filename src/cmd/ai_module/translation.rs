@@ -169,7 +169,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
             headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
-             let data = json!({
+            let data = json!({
                  "model": "gpt-3.5-turbo-16k",
                  "messages": [{"role": "system", "content": "You are a expert in translating and only do that."},{"role": "user", "content": prompt_gpt}]
             });
