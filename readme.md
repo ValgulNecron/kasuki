@@ -11,7 +11,7 @@ for those of you who don't know rust. \
     - [ ] When everything else is finished change how the text is display to support localisation.
     - [ ] Clean the code. - In progress
     - [X] Find a name for the bot. Found one kasuki. if you have any better don't hesitate to recommend.
-    - [x] Add a bdd for some stuff prob sqllite but not sure. Added SQLLite db.
+    - [x] Add a bdd for some stuff prob sqlite but not sure. Added SQLLite db.
 
 - Anime submodule:
     - [X] Finish comparison function. - V1 done.
@@ -19,7 +19,7 @@ for those of you who don't know rust. \
     - [X] Add staff search function. Added staff research with name.
     - [X] Add search feature with type. Work for all.
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
-      with seiyuu and va role. - This is clearly possible will probs be the next thing I do.
+      with seiyuu and va role. - This is clearly possible will prob be the next thing I do.
     - [X] Bind anilist account to discord for /user and /search user. Added register command and edited user command.
     - [ ] Send anime release to a channel. - Will need some digging but should be possible.
     - [ ] Try to do the same for manga
