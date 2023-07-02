@@ -3,11 +3,15 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::u32;
 
 use chrono::Utc;
+
 use rand::prelude::*;
 use rand::rngs::StdRng;
+
 use reqwest::Client;
+
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::component::ButtonStyle;
@@ -18,9 +22,11 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+
 use sqlx::{Row, SqlitePool};
 
 use crate::cmd::anilist_module::struct_random::*;
+use crate::cmd::general_module::request::make_request;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let database_url = "./cache.db";
@@ -350,17 +356,9 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
                 }";
 
         let json = json!({"query": query, "variables": {"manga_page": number}});
-        let res = client.post("https://graphql.anilist.co")
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .body(json.to_string())
-            .send()
-            .await
-            .unwrap()
-            .text()
-            .await;
+        let res = make_request(json).await;
 
-        let api_response: PageData = serde_json::from_str(&res.unwrap()).unwrap();
+        let api_response: PageData = serde_json::from_str(&res).unwrap();
 
         let media = &api_response.data.page.media[0];
         let title_user = &media.title.user_preferred;

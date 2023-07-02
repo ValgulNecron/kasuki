@@ -14,6 +14,7 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_user::*;
+use crate::cmd::general_module::request::make_request;
 
 const QUERY: &str = "
 query ($name: String, $limit: Int = 5) {
@@ -113,29 +114,13 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction, username1: &String, username2: &String) -> String {
     let client = Client::new();
     let json = json!({"query": QUERY, "variables": {"name": username1}});
-    let resp = client.post("https://graphql.anilist.co/")
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .body(json.to_string())
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await;
+    let resp = make_request(json).await;
 
     let client2 = Client::new();
     let json2 = json!({"query": QUERY, "variables": {"name": username2}});
-    let resp2 = client2.post("https://graphql.anilist.co/")
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .body(json2.to_string())
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await;
+    let resp2 = make_request(json2).await;
 
-    let data: UserData = match serde_json::from_str(&resp.unwrap()) {
+    let data: UserData = match serde_json::from_str(&resp) {
         Ok(result) => result,
         Err(e) => {
             println!("Failed to parse json: {}", e);
@@ -143,7 +128,7 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         }
     };
 
-    let data2: UserData = match serde_json::from_str(&resp2.unwrap()) {
+    let data2: UserData = match serde_json::from_str(&resp2) {
         Ok(result) => result,
         Err(e) => {
             println!("Failed to parse json: {}", e);

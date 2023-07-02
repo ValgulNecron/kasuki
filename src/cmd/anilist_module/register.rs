@@ -8,17 +8,14 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+
 use sqlx::{Row, SqlitePool};
+
+use crate::cmd::general_module::pool::get_pool;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let database_url = "./data.db";
-    let pool = match SqlitePool::connect(&database_url).await {
-        Ok(pool) => pool,
-        Err(e) => {
-            eprintln!("Failed to connect to the database: {}", e);
-            return "Error: Failed to connect to the database.".to_string();
-        }
-    };
+    let pool = get_pool(database_url).await;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user (

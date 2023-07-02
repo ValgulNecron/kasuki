@@ -1,5 +1,6 @@
 pub mod anime;
 pub mod character;
+pub mod command_media_ln;
 pub mod compare;
 pub mod level;
 pub mod ln;
