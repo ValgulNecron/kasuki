@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs};
 use std::path::Path;
 
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
@@ -7,6 +7,7 @@ use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
+use serenity::model::channel::Message;
 use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::command::CommandOptionType::Attachment;
@@ -14,6 +15,9 @@ use serenity::model::prelude::interaction::application_command::{ApplicationComm
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
+
+use crate::cmd::general_module::differed_response::differed_response;
+use crate::cmd::general_module::in_progress::in_progress_embed;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
@@ -25,29 +29,13 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
     if let CommandDataOptionValue::String(description) = option {
         let color = Colour::FABLED_PINK;
 
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response.kind(InteractionResponseType::DeferredChannelMessageWithSource)
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
-        }
+        differed_response(ctx, command).await;
 
-        let message = command
-            .create_followup_message(&ctx.http, |f| {
-                f.embed(|e| {
-                    e.title("In progress")
-                        .description("The task is being processed...be patient, it may take some time!")
-                        .timestamp(Timestamp::now())
-                        .color(color)
-                })
-            })
-            .await;
+        let message = in_progress_embed(ctx, command).await;
 
         let my_path = "./src/.env";
-        let path = std::path::Path::new(my_path);
-        dotenv::from_path(path);
+        let path = Path::new(my_path);
+        let _ = dotenv::from_path(path);
         let prompt = description;
         let api_key = env::var("AI_API_TOKEN").expect("token");
         let api_base_url = env::var("AI_API_BASE_URL").expect("token");
@@ -89,7 +77,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let uuid_name = Uuid::new_v4();
         let filename = format!("{}.png", uuid_name);
         let filename_str = filename.as_str();
-        std::fs::write(filename.clone(), &bytes).unwrap();
+        fs::write(filename.clone(), &bytes).unwrap();
 
         let path = Path::new(filename_str);
 
@@ -103,7 +91,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 })
                 )).await.expect("TODO");
 
-        std::fs::remove_file(filename_str);
+        let _ = fs::remove_file(filename_str);
     }
     return "good".to_string();
 }

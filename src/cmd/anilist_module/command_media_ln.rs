@@ -1,12 +1,9 @@
 use std::u32;
 
 use regex::Regex;
-
 use reqwest::Client;
-
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;

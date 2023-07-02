@@ -14,6 +14,7 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_character::*;
+use crate::cmd::general_module::request::make_request;
 
 const QUERY: &str = "
 query ($name: String) {
@@ -52,17 +53,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
     if let CommandDataOptionValue::String(name) = option {
         let client = Client::new();
         let json = json!({"query": QUERY, "variables": {"name": name}});
-        let resp = client.post("https://graphql.anilist.co/")
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .body(json.to_string())
-            .send()
-            .await
-            .unwrap()
-            .text()
-            .await;
+        let resp = make_request(json).await;
 
-        let data: CharacterData = serde_json::from_str(&resp.unwrap()).unwrap();
+        let data: CharacterData = serde_json::from_str(&resp).unwrap();
         let color = Colour::FABLED_PINK;
 
         let name = format!("{}/{}", data.data.character.name.user_preferred, data.data.character.name.native);

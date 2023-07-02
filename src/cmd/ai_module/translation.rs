@@ -21,6 +21,9 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
+use crate::cmd::ai_module::translation_embed::translation_embed;
+use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
+
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
         .get(0)
@@ -84,15 +87,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             println!("Failed to retrieve the current directory.");
         }
 
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response.kind(InteractionResponseType::DeferredChannelMessageWithSource)
-            })
-            .await
-        {
-            std::fs::remove_file(&file_to_delete);
-            println!("Cannot respond to slash command: {}", why);
-        }
+        differed_response_with_file_deletion(ctx, command, file_to_delete).await;
 
         let message = command
             .create_followup_message(&ctx.http, |f| {
@@ -106,8 +101,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .await;
 
         let my_path = "./src/.env";
-        let path = std::path::Path::new(my_path);
-        dotenv::from_path(path);
+        let path = Path::new(my_path);
+        let _ = dotenv::from_path(path);
         let api_key = env::var("AI_API_TOKEN").expect("token");
         let api_base_url = env::var("AI_API_BASE_URL").expect("token");
         let api_url = format!("{}audio/translations", api_base_url);
@@ -135,7 +130,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let response = match response_result {
             Ok(res) => res,
             Err(err) => {
-                std::fs::remove_file(&file_to_delete);
+                let _ = fs::remove_file(&file_to_delete);
                 eprintln!("Error sending the request: {}", err);
                 return format!("Error sending the request: {}", err);
             }
@@ -145,14 +140,14 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let res = match res_result {
             Ok(value) => value,
             Err(err) => {
-                std::fs::remove_file(&file_to_delete);
+                let _ = fs::remove_file(&file_to_delete);
                 eprintln!("Error parsing response as JSON: {}", err);
                 return format!("Error sending the request: {}", err);
             }
         };
 
         let text = res["text"].as_str().unwrap_or("");
-        std::fs::remove_file(&file_to_delete);
+        let _ = fs::remove_file(&file_to_delete);
         if lang != "en" {
             let prompt_gpt = format!("
             i will give you a text and a ISO-639-1 code and you will translate it in the corresponding langage
@@ -169,7 +164,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
             headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
-             let data = json!({
+            let data = json!({
                  "model": "gpt-3.5-turbo-16k",
                  "messages": [{"role": "system", "content": "You are a expert in translating and only do that."},{"role": "user", "content": prompt_gpt}]
             });
@@ -187,25 +182,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             let content = res["choices"][0]["message"]["content"].to_string();
             let no_quote = content.replace("\"", "");
             let line_break = no_quote.replace("\\n", " \\n ");
-            let mut real_message = message.unwrap();
-            real_message.edit(&ctx.http, |m|
-                m.embed((|e| {
-                    e.title("Here your translation")
-                        .description(format!("{}", line_break))
-                        .timestamp(Timestamp::now())
-                        .color(color)
-                })
-                )).await.expect("TODO");
+            translation_embed(ctx, text, message).await;
         } else {
-            let mut real_message = message.unwrap();
-            real_message.edit(&ctx.http, |m|
-                m.embed((|e| {
-                    e.title("Here your translation")
-                        .description(format!("{}", text))
-                        .timestamp(Timestamp::now())
-                        .color(color)
-                })
-                )).await.expect("TODO");
+            translation_embed(ctx, text, message).await;
         }
     }
     return "good".to_string();

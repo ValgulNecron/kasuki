@@ -1,10 +1,8 @@
 use std::u32;
 
 use reqwest::Client;
-
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -14,7 +12,6 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-
 use sqlx::SqlitePool;
 
 use crate::cmd::anilist_module::struct_user::*;
@@ -118,11 +115,12 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     let resp = make_request(json).await;
 
     // Get json
-    let data: UserData = match serde_json::from_str(&resp) {
-        Ok(result) => result,
-        Err(e) => {
-            println!("Failed to parse json: {}", e);
-            return "Error: Failed to retrieve user data".to_string();
+    let data: UserData = match resp_to_user_data(resp) {
+        Ok(data) => {
+            data
+        }
+        Err(error) => {
+            return error;
         }
     };
     let user_url = format!("https://anilist.co/user/{}", &data.data.user.id.unwrap_or_else(|| 1));

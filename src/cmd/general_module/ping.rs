@@ -9,7 +9,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let latency = {
         let data_read = ctx.data.read().await;
         let shard_manager = data_read.get::<ShardManagerContainer>().unwrap();

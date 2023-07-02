@@ -16,14 +16,14 @@ use serenity::model::gateway::ActivityType;
 use serenity::model::gateway::Ready;
 use serenity::model::user::OnlineStatus;
 use serenity::prelude::*;
-
 use tokio::time::sleep;
 
-mod cmd;
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
 use crate::cmd::general_module::*;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
+
+mod cmd;
 
 struct Handler;
 
@@ -76,10 +76,10 @@ impl EventHandler for Handler {
 
                 // General module.
                 "ping" => {
-                    ping::run(&command.data.options, &ctx, &command).await
+                    ping::run(&ctx, &command).await
                 }
                 "info" => {
-                    info::run(&command.data.options, &ctx, &command).await
+                    info::run(&ctx, &command).await
                 }
 
                 // Anilist module

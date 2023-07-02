@@ -3,15 +3,11 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::u32;
 
 use chrono::Utc;
-
 use rand::prelude::*;
 use rand::rngs::StdRng;
-
 use reqwest::Client;
-
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::component::ButtonStyle;
@@ -22,10 +18,10 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-
-use sqlx::{Row, SqlitePool};
+use sqlx::{Pool, Row, Sqlite, SqlitePool};
 
 use crate::cmd::anilist_module::struct_random::*;
+use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::request::make_request;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
@@ -57,14 +53,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         .expect("Expected username object");
 
     if let CommandDataOptionValue::String(random_type) = option {
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response.kind(InteractionResponseType::DeferredChannelMessageWithSource)
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
-        }
+        differed_response(ctx, command).await;
         let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as("SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?")
             .bind(random_type)
             .fetch_one(&pool)
@@ -77,236 +66,21 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             None => 1444, // This is as today date the last page, i will update it sometime.
         };
 
-        let mut previous_page = page_number - 1;
-        let mut cached_response = response.unwrap_or("Nothing".to_string());
+        let previous_page = page_number - 1;
+        let cached_response = response.unwrap_or("Nothing".to_string());
 
-        let now = Utc::now().timestamp();
         if let Some(updated) = last_updated {
             let duration_since_updated = Utc::now().timestamp() - updated;
             if duration_since_updated < 24 * 60 * 60 {
                 embed(cached_response, page_number, random_type.to_string(), options, ctx, command)
                     .await;
             } else {
-                loop {
-                    let client = Client::new();
-                    let query = json!({
-                        "query": r#"
-                            query($manga_page: Int = 1444){
-                                SiteStatistics{
-                                    manga(perPage: 1, page: $manga_page){
-                                        pageInfo{
-                                            currentPage
-                                            lastPage
-                                            total
-                                            hasNextPage
-                                        }
-                                        nodes{
-                                            date
-                                            count
-                                            change
-                                        }
-                                    }
-                                }
-                            }
-                        "#,
-                        "variables": {
-                            "manga_page": page_number
-                        }
-                    });
-                    if random_type.as_str() == "manga" {
-                        let query = json!({
-                        "query": r#"
-                            query($manga_page: Int = 1444){
-                                SiteStatistics{
-                                    manga(perPage: 1, page: $manga_page){
-                                        pageInfo{
-                                            currentPage
-                                            lastPage
-                                            total
-                                            hasNextPage
-                                        }
-                                        nodes{
-                                            date
-                                            count
-                                            change
-                                        }
-                                    }
-                                }
-                            }
-                        "#,
-                        "variables": {
-                            "manga_page": page_number
-                        }
-                    });
-                    } else if random_type.as_str() == "anime" {
-                        let query = json!({
-                        "query": r#"
-                            query($anime_page: Int = 1444){
-                                SiteStatistics{
-                                    anime(perPage: 1, page: $anime_page){
-                                        pageInfo{
-                                            currentPage
-                                            lastPage
-                                            total
-                                            hasNextPage
-                                        }
-                                        nodes{
-                                            date
-                                            count
-                                            change
-                                        }
-                                    }
-                                }
-                            }
-                        "#,
-                        "variables": {
-                            "anime_page": page_number
-                        }
-                    });
-                    }
-
-
-                    let res = client.post("https://graphql.anilist.co")
-                        .json(&query)
-                        .send()
-                        .await
-                        .unwrap()
-                        .json::<Value>()
-                        .await
-                        .unwrap();
-
-                    let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"].as_bool().unwrap_or(true);
-                    let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number);
-
-                    if !has_next_page {
-                        break;
-                    }
-
-                    cached_response = res.to_string();
-                    previous_page = page_number;
-                    page_number += 1;
-                }
-
-                sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
-                    .bind(random_type)
-                    .bind(&cached_response)
-                    .bind(now)
-                    .bind(previous_page)
-                    .execute(&pool)
-                    .await.unwrap();
-                embed(cached_response, previous_page, random_type.to_string(), options, ctx, command)
-                    .await;
+                update_cache(page_number, random_type, options, ctx, command, previous_page,
+                             cached_response, pool).await
             }
         } else {
-            loop {
-                let client = Client::new();
-                let query = json!({
-                        "query": r#"
-                            query($manga_page: Int = 1444){
-                                SiteStatistics{
-                                    manga(perPage: 1, page: $manga_page){
-                                        pageInfo{
-                                            currentPage
-                                            lastPage
-                                            total
-                                            hasNextPage
-                                        }
-                                        nodes{
-                                            date
-                                            count
-                                            change
-                                        }
-                                    }
-                                }
-                            }
-                        "#,
-                        "variables": {
-                            "manga_page": page_number
-                        }
-                    });
-                if random_type.as_str() == "manga" {
-                    let query = json!({
-                        "query": r#"
-                            query($manga_page: Int = 1444){
-                                SiteStatistics{
-                                    manga(perPage: 1, page: $manga_page){
-                                        pageInfo{
-                                            currentPage
-                                            lastPage
-                                            total
-                                            hasNextPage
-                                        }
-                                        nodes{
-                                            date
-                                            count
-                                            change
-                                        }
-                                    }
-                                }
-                            }
-                        "#,
-                        "variables": {
-                            "manga_page": page_number
-                        }
-                    });
-                } else if random_type.as_str() == "anime" {
-                    let query = json!({
-                        "query": r#"
-                            query($anime_page: Int = 1444){
-                                SiteStatistics{
-                                    anime(perPage: 1, page: $anime_page){
-                                        pageInfo{
-                                            currentPage
-                                            lastPage
-                                            total
-                                            hasNextPage
-                                        }
-                                        nodes{
-                                            date
-                                            count
-                                            change
-                                        }
-                                    }
-                                }
-                            }
-                        "#,
-                        "variables": {
-                            "anime_page": page_number
-                        }
-                    });
-                }
-
-
-                let res = client.post("https://graphql.anilist.co")
-                    .json(&query)
-                    .send()
-                    .await
-                    .unwrap()
-                    .json::<Value>()
-                    .await
-                    .unwrap();
-
-                let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"].as_bool().unwrap_or(true);
-                let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number);
-
-                if !has_next_page {
-                    break;
-                }
-
-                cached_response = res.to_string();
-                previous_page = page_number;
-                page_number += 1;
-            }
-
-            sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
-                .bind(random_type)
-                .bind(&cached_response)
-                .bind(now)
-                .bind(previous_page)
-                .execute(&pool)
-                .await.unwrap();
-            embed(cached_response, previous_page, random_type.to_string(), options, ctx, command)
-                .await;
+            update_cache(page_number, random_type, options, ctx, command, previous_page,
+                         cached_response, pool).await
         }
     }
     return "good".to_string();
@@ -378,24 +152,8 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let format = &media.format;
 
         let url = format!("https://anilist.co/manga/{}", &media.id);
-        if let Err(why) = command
-            .create_followup_message(&ctx.http, |f| {
-                    f.embed(
-                        |m| {
-                            m.title(format!("{}/{}", title_user, title))
-                                .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
-                                                     , genres_str, tags_str, format, desc_no_br))
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                                .thumbnail(cover_image)
-                                .url(url)
-                        }
-                    )
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
-        }
+        follow_up_message(ctx, command, genres_str, tags_str, format, desc_no_br, title_user, title,
+                          color, cover_image, url).await;
     } else if random_type == "anime" {
         let query = "
                     query($anime_page: Int){
@@ -452,35 +210,19 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let format = &media.format;
 
         let url = format!("https://anilist.co/anime/{}", &media.id);
-        if let Err(why) = command
-            .create_followup_message(&ctx.http, |f| {
-                    f.embed(
-                        |m| {
-                            m.title(format!("{}/{}", title_user, title))
-                                .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
-                                                     , genres_str, tags_str, format, desc_no_br))
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                                .thumbnail(cover_image)
-                                .url(url)
-                        }
-                    )
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
-        }
+        follow_up_message(ctx, command, genres_str, tags_str, format, desc_no_br, title_user, title,
+                          color, cover_image, url).await;
     } else {
         if let Err(why) = command
             .create_followup_message(&ctx.http, |f| {
                 f.embed(
-                        |m| {
-                            m.title("You fucked up.")
-                                .description("How the heck did you managed this ?")
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        }
-                    )
+                    |m| {
+                        m.title("You fucked up.")
+                            .description("How the heck did you managed this ?")
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    }
+                )
             })
             .await
         {
@@ -489,4 +231,118 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
     }
 }
 
+pub async fn follow_up_message(ctx: &Context, command: &ApplicationCommandInteraction, genres_str: String,
+                               tags_str: String, format: &String, desc_no_br: String, title_user: &String,
+                               title: &String, color: Colour, cover_image: &String, url: String) {
+    if let Err(why) = command
+        .create_followup_message(&ctx.http, |f| {
+            f.embed(
+                |m| {
+                    m.title(format!("{}/{}", title_user, title))
+                        .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
+                                             , genres_str, tags_str, format, desc_no_br))
+                        .timestamp(Timestamp::now())
+                        .color(color)
+                        .thumbnail(cover_image)
+                        .url(url)
+                }
+            )
+        })
+        .await
+    {
+        println!("Cannot respond to slash command: {}", why);
+    }
+}
 
+pub async fn update_cache(mut page_number: i64, random_type: &String, options: &[CommandDataOption],
+                          ctx: &Context, command: &ApplicationCommandInteraction, mut previous_page: i64,
+                          mut cached_response: String, pool: Pool<Sqlite>) {
+    loop {
+        let client = Client::new();
+        let query;
+        if random_type.as_str() == "manga" {
+            query = json!({
+                "query": r#"
+                    query($manga_page: Int = 1444){
+                        SiteStatistics{
+                            manga(perPage: 1, page: $manga_page){
+                                pageInfo{
+                                    currentPage
+                                    lastPage
+                                    total
+                                    hasNextPage
+                                }
+                                nodes{
+                                    date
+                                    count
+                                    change
+                                }
+                            }
+                        }
+                    }
+                "#,
+                "variables": {
+                    "manga_page": page_number
+                }
+            });
+        } else if random_type.as_str() == "anime" {
+            query = json!({
+                "query": r#"
+                    query($anime_page: Int = 1444){
+                        SiteStatistics{
+                            anime(perPage: 1, page: $anime_page){
+                                pageInfo{
+                                    currentPage
+                                    lastPage
+                                    total
+                                    hasNextPage
+                                }
+                                nodes{
+                                    date
+                                    count
+                                    change
+                                }
+                            }
+                        }
+                    }
+                "#,
+                "variables": {
+                    "anime_page": page_number
+                }
+            });
+        } else {
+            return;
+        }
+        let res = client.post("https://graphql.anilist.co")
+            .json(&query)
+            .send()
+            .await
+            .unwrap()
+            .json::<Value>()
+            .await
+            .unwrap();
+
+        let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"].as_bool().unwrap_or(true);
+        let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number);
+
+        if !has_next_page {
+            break;
+        }
+
+        cached_response = res.to_string();
+        previous_page = page_number;
+        page_number += 1;
+    }
+
+    let now = Utc::now().timestamp();
+
+    sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
+        .bind(random_type)
+        .bind(&cached_response)
+        .bind(now)
+        .bind(previous_page)
+        .execute(&pool)
+        .await.unwrap();
+    embed(cached_response, previous_page, random_type.to_string(), options, ctx, command)
+        .await;
+}

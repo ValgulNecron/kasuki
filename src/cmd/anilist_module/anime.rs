@@ -14,6 +14,7 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_media::*;
+use crate::cmd::general_module::request::make_request;
 
 // Query made to the anilist api.
 const QUERY: &str = "
@@ -86,17 +87,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
     if let CommandDataOptionValue::String(name) = option {
         let client = Client::new();
         let json = json!({"query": QUERY, "variables": {"search": name}});
-        let resp = client.post("https://graphql.anilist.co/")
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .body(json.to_string())
-            .send()
-            .await
-            .unwrap()
-            .text()
-            .await;
+        let resp = make_request(json).await;
         // Get json
-        let data: MediaData = serde_json::from_str(&resp.unwrap()).unwrap();
+        let data: MediaData = serde_json::from_str(&resp).unwrap();
         let hex_code = "#0D966D";
         let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
         let color = Colour::new(color_code);
@@ -188,7 +181,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command.name("anime").description("Info of an anime").create_option(
         |option| {
             option
-                .name("animename")
+                .name("anime_name")
                 .description("Name of the anime you want to check")
                 .kind(CommandOptionType::String)
                 .required(true)

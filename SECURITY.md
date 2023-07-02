@@ -2,8 +2,8 @@
 
 ## Supported Versions
 
-The only supported version is the last one from this repos?
+The only supported version is the last one from this repo.
 
 ## Reporting a Vulnerability
 
-To report the vunerability please contact me to kasukisecurity@valgul.moe
+To report the vulnerability please contact me to kasukisecurity@valgul.moe

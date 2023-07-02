@@ -12,8 +12,8 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-use crate::cmd::anilist_module::command_media_ln::embed;
 
+use crate::cmd::anilist_module::command_media_ln::embed;
 use crate::cmd::anilist_module::struct_media::*;
 
 const QUERY: &str = "
@@ -75,7 +75,7 @@ const QUERY: &str = "
 ";
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
-    return embed(options, ctx, command, QUERY).await
+    return embed(options, ctx, command, QUERY).await;
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
