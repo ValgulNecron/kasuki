@@ -11,7 +11,7 @@ for those of you who don't know rust. \
     - [ ] When everything else is finished change how the text is display to support localisation.
     - [X] Clean the code. - Done.
     - [X] Find a name for the bot. Found one kasuki. if you have any better don't hesitate to recommend.
-    - [x] Add a bdd for some stuff prob sqlite but not sure. Added SQLLite db.
+    - [x] Add a bdd for some stuff prob sqlite but not sure. Added sqlite db.
 
 - Anime submodule:
     - [X] Finish comparison function. - V1 done.
