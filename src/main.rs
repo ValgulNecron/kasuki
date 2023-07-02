@@ -22,6 +22,7 @@ use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
 use crate::cmd::general_module::*;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
+
 mod cmd;
 
 struct Handler;

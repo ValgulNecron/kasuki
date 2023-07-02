@@ -181,7 +181,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command.name("anime").description("Info of an anime").create_option(
         |option| {
             option
-                .name("animename")
+                .name("anime_name")
                 .description("Name of the anime you want to check")
                 .kind(CommandOptionType::String)
                 .required(true)

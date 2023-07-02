@@ -108,7 +108,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             })
             .await
         {
-            std::fs::remove_file(&file_to_delete);
+            let _ = fs::remove_file(&file_to_delete);
             println!("Cannot respond to slash command: {}", why);
         }
 
@@ -124,8 +124,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .await;
 
         let my_path = "./src/.env";
-        let path = std::path::Path::new(my_path);
-        dotenv::from_path(path);
+        let path = Path::new(my_path);
+        let _ = dotenv::from_path(path);
         let api_key = env::var("AI_API_TOKEN").expect("token");
         let api_base_url = env::var("AI_API_BASE_URL").expect("token");
         let api_url = format!("{}audio/transcriptions", api_base_url);
@@ -158,7 +158,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             Ok(res) => res,
             Err(err) => {
                 eprintln!("Error sending the request: {}", err);
-                std::fs::remove_file(&file_to_delete);
+                let _ = fs::remove_file(&file_to_delete);
                 return format!("Error sending the request: {}", err);
             }
         };
@@ -168,12 +168,12 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             Ok(value) => value,
             Err(err) => {
                 eprintln!("Error parsing response as JSON: {}", err);
-                std::fs::remove_file(&file_to_delete);
+                let _ = fs::remove_file(&file_to_delete);
                 return format!("Error sending the request: {}", err);
             }
         };
 
-        std::fs::remove_file(&file_to_delete);
+        let _ = fs::remove_file(&file_to_delete);
 
         let text = res["text"].as_str().unwrap_or("");
         let mut real_message = message.unwrap();

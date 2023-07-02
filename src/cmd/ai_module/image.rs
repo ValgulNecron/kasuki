@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs};
 use std::path::Path;
 
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
@@ -46,8 +46,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .await;
 
         let my_path = "./src/.env";
-        let path = std::path::Path::new(my_path);
-        dotenv::from_path(path);
+        let path = Path::new(my_path);
+        let _ = dotenv::from_path(path);
         let prompt = description;
         let api_key = env::var("AI_API_TOKEN").expect("token");
         let api_base_url = env::var("AI_API_BASE_URL").expect("token");
@@ -89,7 +89,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let uuid_name = Uuid::new_v4();
         let filename = format!("{}.png", uuid_name);
         let filename_str = filename.as_str();
-        std::fs::write(filename.clone(), &bytes).unwrap();
+        fs::write(filename.clone(), &bytes).unwrap();
 
         let path = Path::new(filename_str);
 
@@ -103,7 +103,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 })
                 )).await.expect("TODO");
 
-        std::fs::remove_file(filename_str);
+        let _ = fs::remove_file(filename_str);
     }
     return "good".to_string();
 }
