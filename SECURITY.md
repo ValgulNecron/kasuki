@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-The only supported version is the last one from this repo?
+The only supported version is the last one from this repo.
 
 ## Reporting a Vulnerability
 
