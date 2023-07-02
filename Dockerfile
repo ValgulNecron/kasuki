@@ -2,9 +2,11 @@ FROM rust:latest
 
 WORKDIR /app
 
-RUN apt update && apt install -y libssl-dev
+RUN rustup target add aarch64-unknown-linux-gnu
 
 COPY . .
+
+RUN cargo update
 
 RUN cargo build --release
 
