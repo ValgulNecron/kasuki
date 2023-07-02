@@ -87,7 +87,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             println!("Failed to retrieve the current directory.");
         }
 
-        differed_response_with_file_deletion(ctx, command, file_to_delete).await;
+        differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
         let message = command
             .create_followup_message(&ctx.http, |f| {
