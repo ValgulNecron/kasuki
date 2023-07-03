@@ -2,7 +2,7 @@
 
 ### Website
 
-for those of you who don't know rust. \
+for those of you who prefer web dev.. \
 [https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
 
 ### BOT
