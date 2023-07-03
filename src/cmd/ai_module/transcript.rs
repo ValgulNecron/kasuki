@@ -130,10 +130,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .text("prompt", prompt)
             .text("language", lang);
 
-        let data = json!({
-            "model": "whisper-1"
-        });
-
         let response_result = client
             .post(api_url)
             .headers(headers)

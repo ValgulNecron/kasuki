@@ -117,9 +117,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let form = multipart::Form::new()
             .part("file", part)
             .text("model", "whisper-1");
-        let data = json!({
-            "model": "whisper-1"
-        });
 
         let response_result = client
             .post(api_url)
@@ -182,9 +179,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             let content = res["choices"][0]["message"]["content"].to_string();
             let no_quote = content.replace("\"", "");
             let line_break = no_quote.replace("\\n", " \\n ");
-            translation_embed(ctx, text, message).await;
+            translation_embed(ctx, line_break, message).await;
         } else {
-            translation_embed(ctx, text, message).await;
+            translation_embed(ctx, text.to_string(), message).await;
         }
     }
     return "good".to_string();
