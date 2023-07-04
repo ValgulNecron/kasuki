@@ -19,7 +19,7 @@ for those of you who prefer web dev.. \
     - [X] Add staff search function. Added staff research with name.
     - [X] Add search feature with type. Work for all.
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
-      with seiyuu and va role. - This is clearly possible will prob be the next thing I do.
+      with seiyuu and va role. - This is possible, I'm not comptent enough. 
     - [X] Bind anilist account to discord for /user and /search user. Added register command and edited user command.
     - [ ] Send anime release to a channel. - Will need some digging but should be possible.
     - [ ] Try to do the same for manga
