@@ -44,6 +44,7 @@ impl EventHandler for Handler {
                 commands
                     // General module.
                     .create_application_command(|command| ping::register(command))
+                    .create_application_command(|command| lang::register(command))
                     .create_application_command(|command| info::register(command))
 
                     // Anilist module.
@@ -78,9 +79,13 @@ impl EventHandler for Handler {
                 "ping" => {
                     ping::run(&ctx, &command).await
                 }
+                "lang" => {
+                    lang::run(&command.data.options, &ctx, &command).await
+                }
                 "info" => {
                     info::run(&ctx, &command).await
                 }
+
 
                 // Anilist module
                 "anime" => {

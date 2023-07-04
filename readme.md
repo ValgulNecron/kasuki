@@ -8,7 +8,7 @@ for those of you who prefer web dev.. \
 ### BOT
 
 - General part:
-    - [ ] When everything else is finished change how the text is display to support localisation.
+    - [ ] Change how the text is display to support localisation. - In progress. Top priority. 
     - [X] Clean the code. - Done.
     - [X] Find a name for the bot. Found one kasuki. if you have any better don't hesitate to recommend.
     - [x] Add a bdd for some stuff prob sqlite but not sure. Added sqlite db.
@@ -40,6 +40,21 @@ for those of you who prefer web dev.. \
 
 The bot is in the first place a bot that interface the anilist api with discord letting user get different information
 from it. there is also secondary module that will be added when I have idea or want to test thing.
+
+# Contributing.
+
+### I know how to code in rust.
+
+them please check the todo and follow CONTRIBUTING.md to add feature, if the todo is complete or you want to do something
+else just do it.
+
+### I don't know how to code in rust but still want to contribute.
+
+1. You can add new langage by adding a translation in the file located in lang_file and add in lang.rs found in  
+src/cmd/general_modules/ the option with .add_string_choice("ISO-639-1", "ISO-639-1") 
+please google for what is ISO-639-1
+2. Contribute to this guide by making it clearer on how to use/ how it work.
+3. Or by opening an issue with echancement or new feature you want to see.
 
 # How to use
 

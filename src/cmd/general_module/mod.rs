@@ -1,8 +1,11 @@
 pub mod color;
 pub mod differed_response;
+pub mod get_guild_langage;
 pub mod help;
 pub mod in_progress;
 pub mod info;
+pub mod lang;
+pub mod lang_struct;
 pub mod ping;
 pub mod pool;
 pub mod request;

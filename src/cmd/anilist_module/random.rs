@@ -22,17 +22,12 @@ use sqlx::{Pool, Row, Sqlite, SqlitePool};
 
 use crate::cmd::anilist_module::struct_random::*;
 use crate::cmd::general_module::differed_response::differed_response;
+use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::request::make_request;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let database_url = "./cache.db";
-    let pool = match SqlitePool::connect(&database_url).await {
-        Ok(pool) => pool,
-        Err(e) => {
-            eprintln!("Failed to connect to the database: {}", e);
-            return "Error: Failed to connect to the database.".to_string();
-        }
-    };
+    let pool = get_pool(database_url).await;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS cache_stats (
