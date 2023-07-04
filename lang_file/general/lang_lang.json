@@ -1,22 +1,18 @@
 {
   "En": {
     "title": "Lang",
-    "description": "The bot language was set to: ",
-    "footer": "creator valgul."
+    "description": "The bot language was set to : "
   },
   "Fr": {
     "title": "Langue",
-    "description": "La langue du bot a été définie sur : ",
-    "footer": "créé par valgul."
+    "description": "La langue du bot a été définie sur : "
   },
   "Jp": {
     "title": "言語",
-    "description": "ボットの言語が設定されました：",
-    "footer": "作成者：valgul。"
+    "description": "ボットの言語が設定されました ："
   },
   "De": {
     "title": "Sprache",
-    "description": "Die Botsprache wurde festgelegt auf: ",
-    "footer": "Ersteller: valgul."
+    "description": "Die Botsprache wurde festgelegt auf : "
   }
 }

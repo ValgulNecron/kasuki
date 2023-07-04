@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
+
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::command::CommandOptionType;
@@ -9,12 +10,13 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use sqlx::{Pool, Row, Sqlite, SqlitePool};
-use crate::cmd::general_module::pool::get_pool;
+
 use crate::cmd::general_module::lang_struct::LangLocalisedText;
+use crate::cmd::general_module::pool::get_pool;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let database_url = "./data.db";
-    let pool =  get_pool(database_url).await;
+    let pool = get_pool(database_url).await;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS guild_lang (
@@ -48,33 +50,31 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             serde_json::from_str(&json).expect("Failed to parse JSON");
 
         if let Some(localised_text) = json_data.get(lang) {
-        println!("{:?}", localised_text);
-        if let Err(why) = command
-        .create_interaction_response(&ctx.http, |response| {
-            response
-                .kind(InteractionResponseType::ChannelMessageWithSource)
-                .interaction_response_data(|message| message.embed(
-                    |m| {
-                        m.title(&localised_text.title)
-                            .description(format!("{}{}", &localised_text.description, lang))
-                            .footer(|f| f.text(&localised_text.footer))
-                            // Add a timestamp for the current time
-                            // This also accepts a rfc3339 Timestamp
-                            .timestamp(Timestamp::now())
-                            .color(color)
-                    })
-                )
-        })
-        .await
-    {
-        println!("Cannot respond to slash command: {}", why);
-    }
-    } else {
-        return "Language not found".to_string();
-    }
+            if let Err(why) = command
+                .create_interaction_response(&ctx.http, |response| {
+                    response
+                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                        .interaction_response_data(|message| message.embed(
+                            |m| {
+                                m.title(&localised_text.title)
+                                    .description(format!("{}{}", &localised_text.description, lang))
+                                    // Add a timestamp for the current time
+                                    // This also accepts a rfc3339 Timestamp
+                                    .timestamp(Timestamp::now())
+                                    .color(color)
+                            })
+                        )
+                })
+                .await
+            {
+                println!("Cannot respond to slash command: {}", why);
+            }
+        } else {
+            return "Language not found".to_string();
+        }
     }
 
-    return "good".to_string()
+    return "good".to_string();
 }
 
 
