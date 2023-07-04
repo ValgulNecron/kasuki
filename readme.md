@@ -53,8 +53,8 @@ else just do it.
 1. You can add new langage by adding a translation in the file located in lang_file and add in lang.rs found in  
 src/cmd/general_modules/ the option with .add_string_choice("ISO-639-1", "ISO-639-1") 
 please google for what is ISO-639-1
-2. Contribute to this guide by making it clearer on how to use/ how it work.
-3. Or by opening an issue with echancement or new feature you want to see.
+2. Contribute to this guide by making it clearer on how to use/ how it works.
+3. Or by opening an issue with enhancement or new feature you want to see.
 
 # How to use
 
