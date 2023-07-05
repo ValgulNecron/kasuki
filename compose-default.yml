@@ -9,4 +9,5 @@ services:
       - AI_API_TOKEN=your_token_here_for_the_ai_part
       - AI_API_BASE_URL=the_url_for_the_request_open_ai_or_any_openai_proxy_one_do_not_forget_to_end_with_a_/_the_url
     volumes:
-      - ./:/app
+      - ./db/data.db:/app/data.db
+      - ./db/cache.db:/app/cache.db
