@@ -17,7 +17,7 @@ use crate::cmd::general_module::lang_struct::InfoLocalisedText;
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let color = Colour::FABLED_PINK;
 
-    let mut file = File::open("lang_file/general/info_lang.json").expect("Failed to open file");
+    let mut file = File::open("lang_file/general/info.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 

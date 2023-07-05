@@ -24,3 +24,14 @@ pub struct PingLocalisedText {
     pub description_part_2: String,
     pub description_part_3: String
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ImageLocalisedText {
+    pub title: String
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct InProgressLocalisedText {
+    pub title: String,
+    pub description: String
+}

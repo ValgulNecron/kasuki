@@ -42,7 +42,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .execute(&pool)
             .await.unwrap();
 
-        let mut file = File::open("lang_file/general/lang_lang.json").expect("Failed to open file");
+        let mut file = File::open("lang_file/general/lang.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 
