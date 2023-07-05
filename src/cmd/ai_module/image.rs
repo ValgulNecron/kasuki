@@ -38,7 +38,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         let message = in_progress_embed(ctx, command).await;
 
-        let my_path = "./src/.env";
+        let my_path = "./.env";
         let path = Path::new(my_path);
         let _ = dotenv::from_path(path);
         let prompt = description;

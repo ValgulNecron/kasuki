@@ -157,7 +157,7 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
     // Configure the client with your Discord bot token in the environment.
-    let my_path = "./src/.env";
+    let my_path = "./.env";
     println!("{}", my_path.to_string());
     let path = std::path::Path::new(my_path);
     let _ = dotenv::from_path(path);
