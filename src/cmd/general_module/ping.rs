@@ -34,7 +34,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
 
     let color = Colour::FABLED_PINK;
 
-    let mut file = File::open("lang_file/general/ping.json").expect("Failed to open file");
+    let mut file = File::open(" lang_file/general/ping.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 
@@ -57,7 +57,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
                                 .timestamp(Timestamp::now())
                                 .color(color)
                                 .description(format!("{}{}{}{}{}", &localised_text.description_part_1,
-                                                     &localised_text.description_part_2 ,ctx.shard_id,
+                                                     &localised_text.description_part_2, ctx.shard_id,
                                                      &localised_text.description_part_3, latency))
                         })
                     )

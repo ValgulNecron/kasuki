@@ -103,6 +103,7 @@ cargo run --release
     - /help - Give a list of all command.
     - /info - Show info about bot.
     - /ping - Check if the bot respond to command.
+    - /lang - let you change the langage for your guild. require admin perm.  
 - Anime:
     - /anime - Show info about anime.
     - /character - Show info on a character.

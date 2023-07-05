@@ -1,18 +1,22 @@
 {
   "En": {
     "title": "Lang",
-    "description": "The bot language was set to : "
+    "description": "The bot language was set to: ",
+    "error_perm": "The user does not have the required permission to change this."
   },
   "Fr": {
     "title": "Langue",
-    "description": "La langue du bot a été définie sur : "
+    "description": "La langue du bot a été définie sur : ",
+    "error_perm": "L'utilisateur n'a pas l'autorisation requise pour effectuer ce changement."
   },
   "Jp": {
     "title": "言語",
-    "description": "ボットの言語が設定されました ："
+    "description": "ボットの言語が設定されました：",
+    "error_perm": "ユーザーには、この変更を行うための必要な権限がありません。"
   },
   "De": {
     "title": "Sprache",
-    "description": "Die Botsprache wurde festgelegt auf : "
+    "description": "Die Botsprache wurde festgelegt auf: ",
+    "error_perm": "Der Benutzer hat nicht die erforderliche Berechtigung, um dies zu ändern."
   }
 }

@@ -174,17 +174,16 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             real_message.edit(&ctx.http, |m|
-            m.embed((|e| {
-                e.title(&localised_text.title)
-                    .description(format!("{}", text))
-                    .timestamp(Timestamp::now())
-                    .color(color)
-            })
-            )).await.expect("TODO");
+                m.embed((|e| {
+                    e.title(&localised_text.title)
+                        .description(format!("{}", text))
+                        .timestamp(Timestamp::now())
+                        .color(color)
+                })
+                )).await.expect("TODO");
         } else {
             return "Language not found".to_string();
         }
-
     }
     return "good".to_string();
 }

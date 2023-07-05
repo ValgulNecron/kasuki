@@ -1,5 +1,14 @@
 {
   "En": {
-    "title": "Here your transcript"
+    "title": "Here's your transcript"
+  },
+  "Fr": {
+    "title": "Voici votre transcription"
+  },
+  "Jp": {
+    "title": "こちらがトランスクリプトです"
+  },
+  "De": {
+    "title": "Hier ist Ihr Transkript"
   }
 }

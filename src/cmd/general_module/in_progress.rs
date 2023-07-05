@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
+
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::InProgressLocalisedText;
 
@@ -24,13 +26,13 @@ pub async fn in_progress_embed(ctx: &Context, command: &ApplicationCommandIntera
     let message;
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         message = command
-        .create_followup_message(&ctx.http, |f| {
-            f.embed(|e| e.title(&localised_text.title)
-                .description(&localised_text.description)
-                .timestamp(Timestamp::now())
-                .color(color))
-        })
-        .await;
+            .create_followup_message(&ctx.http, |f| {
+                f.embed(|e| e.title(&localised_text.title)
+                    .description(&localised_text.description)
+                    .timestamp(Timestamp::now())
+                    .color(color))
+            })
+            .await;
     } else {
         message = command.create_followup_message(&ctx.http, |f| {
             f.embed(|e| e.title("Error"))

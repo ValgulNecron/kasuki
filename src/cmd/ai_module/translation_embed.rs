@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
+
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::TranslationLocalisedText;
 
@@ -24,12 +26,12 @@ pub async fn translation_embed(ctx: &Context, command: &ApplicationCommandIntera
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         real_message.edit(&ctx.http, |m|
-        m.embed((|e| {
-            e.title(&localised_text.title)
-                .description(format!("{}", text))
-                .timestamp(Timestamp::now())
-                .color(color)
-        })
-        )).await.unwrap()
+            m.embed((|e| {
+                e.title(&localised_text.title)
+                    .description(format!("{}", text))
+                    .timestamp(Timestamp::now())
+                    .color(color)
+            })
+            )).await.unwrap()
     }
 }

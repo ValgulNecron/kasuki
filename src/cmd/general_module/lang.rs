@@ -4,10 +4,11 @@ use std::io::Read;
 
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
+use serenity::model::{Permissions, Timestamp};
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue};
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::Timestamp;
+use serenity::prelude::Mentionable;
 use serenity::utils::Colour;
 use sqlx::{Pool, Row, Sqlite, SqlitePool};
 
@@ -50,6 +51,14 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             serde_json::from_str(&json).expect("Failed to parse JSON");
 
         if let Some(localised_text) = json_data.get(lang) {
+            let member = command.member.clone().unwrap();
+            let user = member.permissions.unwrap();
+
+            if !(user.contains(Permissions::ADMINISTRATOR)) {
+                return localised_text.error_perm.clone();
+            }
+
+
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
                     response
