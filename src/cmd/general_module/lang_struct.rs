@@ -35,3 +35,13 @@ pub struct InProgressLocalisedText {
     pub title: String,
     pub description: String
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct TranscriptLocalisedText {
+    pub title: String
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct TranslationLocalisedText {
+    pub title: String
+}

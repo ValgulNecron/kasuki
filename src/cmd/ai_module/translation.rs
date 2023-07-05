@@ -23,6 +23,7 @@ use uuid::Uuid;
 
 use crate::cmd::ai_module::translation_embed::translation_embed;
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
+use crate::cmd::general_module::in_progress::in_progress_embed;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
@@ -89,16 +90,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
-        let message = command
-            .create_followup_message(&ctx.http, |f| {
-                f.embed(|e| {
-                    e.title("In progress")
-                        .description("The task is being processed...be patient, it may take some time!")
-                        .timestamp(Timestamp::now())
-                        .color(color)
-                })
-            })
-            .await;
+        let message = in_progress_embed(ctx, command).await;
 
         let my_path = "./src/.env";
         let path = Path::new(my_path);
@@ -179,9 +171,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             let content = res["choices"][0]["message"]["content"].to_string();
             let no_quote = content.replace("\"", "");
             let line_break = no_quote.replace("\\n", " \\n ");
-            translation_embed(ctx, line_break, message).await;
+            translation_embed(ctx, command,line_break, message).await;
         } else {
-            translation_embed(ctx, text.to_string(), message).await;
+            translation_embed(ctx, command, text.to_string(), message).await;
         }
     }
     return "good".to_string();
