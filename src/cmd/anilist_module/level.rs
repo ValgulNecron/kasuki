@@ -71,9 +71,6 @@ options{
 }
 ";
 
-const WIDTH: u32 = 400;
-const HEIGHT: u32 = 40;
-
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
         .get(0)

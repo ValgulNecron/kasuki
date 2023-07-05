@@ -1,0 +1,18 @@
+{
+  "En": {
+    "title": "In progress",
+    "description": "The task is being processed... Please be patient, as it may take some time!"
+  },
+  "Fr": {
+    "title": "En cours",
+    "description": "La tâche est en cours de traitement... Veuillez patienter, cela peut prendre un certain temps !"
+  },
+  "Jp": {
+    "title": "進行中",
+    "description": "タスクが処理中です... しばらくお待ちください！時間がかかる場合があります！"
+  },
+  "De": {
+    "title": "In Bearbeitung",
+    "description": "Die Aufgabe wird verarbeitet... Bitte haben Sie Geduld, da dies einige Zeit in Anspruch nehmen kann!"
+  }
+}

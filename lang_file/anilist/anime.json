@@ -1,0 +1,50 @@
+{
+  "En": {
+    "title": "Here's your transcript",
+    "desc_part_1": "Format: ",
+    "desc_part_2": " / Source: ",
+    "desc_part_3": "\nStart Date: ",
+    "desc_part_4": "\nEnd Date: ",
+    "desc_part_5": "Full Name: ",
+    "desc_part_6": " / User Preferred: ",
+    "desc_part_7": " / Role: ",
+    "fields_name_1": "Genre",
+    "fields_name_2": "Tag"
+  },
+  "Fr": {
+    "title": "Voici votre transcription",
+    "desc_part_1": "Format : ",
+    "desc_part_2": " / Source : ",
+    "desc_part_3": "\nDate de début : ",
+    "desc_part_4": "\nDate de fin : ",
+    "desc_part_5": "Nom complet : ",
+    "desc_part_6": " / Préférence utilisateur : ",
+    "desc_part_7": " / Rôle : ",
+    "fields_name_1": "Genre",
+    "fields_name_2": "Tag"
+  },
+  "Jp": {
+    "title": "こちらがトランスクリプトです",
+    "desc_part_1": "フォーマット：",
+    "desc_part_2": " / ソース：",
+    "desc_part_3": "\n開始日：",
+    "desc_part_4": "\n終了日：",
+    "desc_part_5": "フルネーム：",
+    "desc_part_6": " / ユーザーの優先設定：",
+    "desc_part_7": " / 役割：",
+    "fields_name_1": "ジャンル",
+    "fields_name_2": "タグ"
+  },
+  "De": {
+    "title": "Hier ist Ihr Transkript",
+    "desc_part_1": "Format: ",
+    "desc_part_2": " / Quelle: ",
+    "desc_part_3": "\nStartdatum: ",
+    "desc_part_4": "\nEnddatum: ",
+    "desc_part_5": "Voller Name: ",
+    "desc_part_6": " / Benutzer bevorzugt: ",
+    "desc_part_7": " / Rolle: ",
+    "fields_name_1": "Genre",
+    "fields_name_2": "Tag"
+  }
+}

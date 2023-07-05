@@ -1,0 +1,26 @@
+{
+  "En": {
+    "title": "Ping",
+    "description_part_1": "Hey, I'm alive! \n ",
+    "description_part_2": "You are running on shard: ",
+    "description_part_3": "\n Latency is: "
+  },
+  "Fr": {
+    "title": "Ping",
+    "description_part_1": "Hey, je suis en ligne ! \n ",
+    "description_part_2": "Vous êtes connecté sur le fragment : ",
+    "description_part_3": "\n La latence est de : "
+  },
+  "Jp": {
+    "title": "Ping",
+    "description_part_1": "こんにちは、私は生きています！\n ",
+    "description_part_2": "シャード上で実行中です: ",
+    "description_part_3": "\n レイテンシは: "
+  },
+  "De": {
+    "title": "Ping",
+    "description_part_1": "Hey, ich lebe! \n ",
+    "description_part_2": "Du bist auf Shard: ",
+    "description_part_3": "\n Die Latenz beträgt: "
+  }
+}

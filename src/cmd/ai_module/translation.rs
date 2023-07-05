@@ -23,6 +23,7 @@ use uuid::Uuid;
 
 use crate::cmd::ai_module::translation_embed::translation_embed;
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
+use crate::cmd::general_module::in_progress::in_progress_embed;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
@@ -89,16 +90,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
-        let message = command
-            .create_followup_message(&ctx.http, |f| {
-                f.embed(|e| {
-                    e.title("In progress")
-                        .description("The task is being processed...be patient, it may take some time!")
-                        .timestamp(Timestamp::now())
-                        .color(color)
-                })
-            })
-            .await;
+        let message = in_progress_embed(ctx, command).await;
 
         let my_path = "./src/.env";
         let path = Path::new(my_path);
@@ -117,9 +109,6 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let form = multipart::Form::new()
             .part("file", part)
             .text("model", "whisper-1");
-        let data = json!({
-            "model": "whisper-1"
-        });
 
         let response_result = client
             .post(api_url)
@@ -149,42 +138,10 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let text = res["text"].as_str().unwrap_or("");
         let _ = fs::remove_file(&file_to_delete);
         if lang != "en" {
-            let prompt_gpt = format!("
-            i will give you a text and a ISO-639-1 code and you will translate it in the corresponding langage
-            iso code: {}
-            text:
-            {}
-            ", lang, text);
-
-            let api_key = env::var("AI_API_TOKEN").expect("token");
-            let api_base_url = env::var("AI_API_BASE_URL").expect("token");
-            let api_url = format!("{}chat/completions", api_base_url);
-            let client = reqwest::Client::new();
-            let mut headers = HeaderMap::new();
-            headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
-            headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-
-            let data = json!({
-                 "model": "gpt-3.5-turbo-16k",
-                 "messages": [{"role": "system", "content": "You are a expert in translating and only do that."},{"role": "user", "content": prompt_gpt}]
-            });
-
-            let res: Value = client.post(api_url)
-                .headers(headers)
-                .json(&data)
-                .send()
-                .await
-                .unwrap()
-                .json()
-                .await
-                .unwrap();
-
-            let content = res["choices"][0]["message"]["content"].to_string();
-            let no_quote = content.replace("\"", "");
-            let line_break = no_quote.replace("\\n", " \\n ");
-            translation_embed(ctx, text, message).await;
+            let text = translation(lang, text.to_string()).await;
+            translation_embed(ctx, command, text, message).await;
         } else {
-            translation_embed(ctx, text, message).await;
+            translation_embed(ctx, command, text.to_string(), message).await;
         }
     }
     return "good".to_string();
@@ -208,4 +165,40 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .required(false)
         }
     )
+}
+
+pub async fn translation(lang: String, text: String) -> String {
+    let prompt_gpt = format!("
+            i will give you a text and a ISO-639-1 code and you will translate it in the corresponding langage
+            iso code: {}
+            text:
+            {}
+            ", lang, text);
+
+    let api_key = env::var("AI_API_TOKEN").expect("token");
+    let api_base_url = env::var("AI_API_BASE_URL").expect("token");
+    let api_url = format!("{}chat/completions", api_base_url);
+    let client = reqwest::Client::new();
+    let mut headers = HeaderMap::new();
+    headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
+    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
+    let data = json!({
+                 "model": "gpt-3.5-turbo-16k",
+                 "messages": [{"role": "system", "content": "You are a expert in translating and only do that."},{"role": "user", "content": prompt_gpt}]
+            });
+
+    let res: Value = client.post(api_url)
+        .headers(headers)
+        .json(&data)
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    let content = res["choices"][0]["message"]["content"].to_string();
+    let no_quote = content.replace("\"", "");
+    let line_break = no_quote.replace("\\n", " \\n ");
+    return line_break;
 }

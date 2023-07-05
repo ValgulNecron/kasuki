@@ -1,4 +1,7 @@
 use std::{env, fs};
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
 use std::path::Path;
 
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
@@ -17,7 +20,9 @@ use serenity::utils::Colour;
 use uuid::Uuid;
 
 use crate::cmd::general_module::differed_response::differed_response;
+use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
+use crate::cmd::general_module::lang_struct::ImageLocalisedText;
 
 pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let option = options
@@ -81,15 +86,31 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         let path = Path::new(filename_str);
 
-        real_message.edit(&ctx.http, |m|
-            m.attachment(path)
-                .embed((|e| {
-                    e.title("Here your generated image")
-                        .image(format!("attachment://{}", filename))
-                        .timestamp(Timestamp::now())
-                        .color(color)
-                })
-                )).await.expect("TODO");
+        let color = Colour::FABLED_PINK;
+
+        let mut file = File::open("lang_file/ai/image.json").expect("Failed to open file");
+        let mut json = String::new();
+        file.read_to_string(&mut json).expect("Failed to read file");
+
+        let json_data: HashMap<String, ImageLocalisedText> =
+            serde_json::from_str(&json).expect("Failed to parse JSON");
+
+        let guild_id = command.guild_id.unwrap().0.to_string().clone();
+        let lang_choice = get_guild_langage(guild_id).await;
+
+        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+            real_message.edit(&ctx.http, |m|
+                m.attachment(path)
+                    .embed((|e| {
+                        e.title(&localised_text.title)
+                            .image(format!("attachment://{}", filename))
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    })
+                    )).await.expect("TODO");
+        } else {
+            return "Language not found".to_string();
+        }
 
         let _ = fs::remove_file(filename_str);
     }
