@@ -122,9 +122,9 @@ cargo run --release
 
 # Credit
 
-- [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
-  idea.
-- Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
-  anymore.)
 - Thanks Srayeals for the badge I use as the bot pfp. (
   [https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))
+- Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
+anymore.)
+- [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
+idea.
