@@ -23,7 +23,6 @@ pub async fn in_progress_embed(ctx: &Context, command: &ApplicationCommandIntera
 
     let message;
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        println!("{:?}", localised_text);
         message = command
         .create_followup_message(&ctx.http, |f| {
             f.embed(|e| e.title(&localised_text.title)
