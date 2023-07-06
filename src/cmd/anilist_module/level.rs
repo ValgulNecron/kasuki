@@ -136,7 +136,12 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                     .timestamp(Timestamp::now())
                                     .thumbnail(profile_picture)
                                     .fields(vec![
-                                        ("".to_string(), format!("test"), false),
+                                        ("".to_string(), format!("{}{}{}{}{}{}{}"
+                                                                 , &localised_text.level, level,
+                                                                 &localised_text.xp, input,
+                                                                 &localised_text.progression_1,
+                                                                 progress_percent.floor(),
+                                                                 &localised_text.progression_2), false),
                                     ])
                                     .color(color)
                             }),
