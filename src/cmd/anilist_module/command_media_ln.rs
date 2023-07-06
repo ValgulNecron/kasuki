@@ -90,7 +90,8 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
             }
 
             let info = format!("{}{}{}{}{}{}{}{} \n {}", &localised_text.format, format,
-                &localised_text.source, source, &localised_text.start_date, start_date, &localised_text.end_date ,end_date, staff);
+                               &localised_text.source, source, &localised_text.start_date, start_date,
+                               &localised_text.end_date, end_date, staff);
             let mut genre = "".to_string();
             let genre_list = data.data.media.genres;
             for g in genre_list {

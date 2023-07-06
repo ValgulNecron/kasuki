@@ -1,0 +1,34 @@
+{
+  "En": {
+    "error_title": "Something went wrong.",
+    "error_message": "How the heck did you manage this?",
+    "genre": "Genre: ",
+    "tag": ".\nTags: ",
+    "format": ".\nFormat: ",
+    "desc": ".\n\n\nDescription: "
+  },
+  "Fr": {
+    "error_title": "Quelque chose s'est mal passé.",
+    "error_message": "Comment diable avez-vous réussi cela ?",
+    "genre": "Genre : ",
+    "tag": ".\nTags : ",
+    "format": ".\nFormat : ",
+    "desc": ".\n\n\nDescription : "
+  },
+  "Jp": {
+    "error_title": "何かがうまくいかなかったようです。",
+    "error_message": "一体どうやってこれをやり遂げたのですか？",
+    "genre": "ジャンル：",
+    "tag": "。\nタグ：",
+    "format": "。\nフォーマット：",
+    "desc": "。\n\n\n説明："
+  },
+  "De": {
+    "error_title": "Etwas ist schiefgelaufen.",
+    "error_message": "Wie zum Teufel haben Sie das geschafft?",
+    "genre": "Genre: ",
+    "tag": ".\nTags: ",
+    "format": ".\nFormat: ",
+    "desc": ".\n\n\nBeschreibung: "
+  }
+}

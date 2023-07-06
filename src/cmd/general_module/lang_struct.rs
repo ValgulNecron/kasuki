@@ -91,3 +91,13 @@ pub struct LevelLocalisedText {
     pub progression_1: String,
     pub  progression_2: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct RandomLocalisedText {
+    pub error_title: String,
+    pub error_message: String,
+    pub genre: String,
+    pub tag: String,
+    pub format: String,
+    pub desc: String,
+}
