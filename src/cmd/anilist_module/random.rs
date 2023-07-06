@@ -264,7 +264,7 @@ pub async fn follow_up_message(ctx: &Context, command: &ApplicationCommandIntera
                         m.title(format!("{}/{}", title_user, title))
                             .description(format!("{}{}{}{}{}{}{}{}"
                                                  , &localised_text.genre, genres_str, &localised_text.tag,
-                                                 tags_str, &localised_text.format, format, &localised_text.format,
+                                                 tags_str, &localised_text.format, format, &localised_text.desc,
                                                  desc_no_br))
                             .timestamp(Timestamp::now())
                             .color(color)
