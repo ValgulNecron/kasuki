@@ -133,6 +133,8 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
             {
                 println!("Cannot respond to slash command: {}", why);
             }
+        } else {
+            return "Language not found".to_string();
         }
     }
     return "good".to_string();

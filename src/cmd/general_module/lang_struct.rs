@@ -83,3 +83,11 @@ pub struct MediaLocalisedText {
     pub fields_name_2: String,
     pub desc_title: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct LevelLocalisedText {
+    pub level: String,
+    pub xp: String,
+    pub progression_1: String,
+    pub  progression_2: String,
+}
