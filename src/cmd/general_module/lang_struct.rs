@@ -49,7 +49,7 @@ pub struct TranslationLocalisedText {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AnimeLocalisedText {
-    pub title: String,
+    pub desc_title: String,
     pub desc_part_1: String,
     pub desc_part_2: String,
     pub desc_part_3: String,
@@ -59,4 +59,13 @@ pub struct AnimeLocalisedText {
     pub desc_part_7: String,
     pub fields_name_1: String,
     pub fields_name_2: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct CharacterLocalisedText {
+    pub age: String,
+    pub gender: String,
+    pub date_of_birth: String,
+    pub favourite:String,
+    pub desc: String
 }
