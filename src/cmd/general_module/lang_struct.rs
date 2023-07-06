@@ -66,6 +66,20 @@ pub struct CharacterLocalisedText {
     pub age: String,
     pub gender: String,
     pub date_of_birth: String,
-    pub favourite:String,
-    pub desc: String
+    pub favourite: String,
+    pub desc: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct MediaLocalisedText {
+    pub full_name: String,
+    pub user_pref: String,
+    pub role: String,
+    pub format: String,
+    pub source: String,
+    pub start_date: String,
+    pub end_date: String,
+    pub fields_name_1: String,
+    pub fields_name_2: String,
+    pub desc_title: String,
 }
