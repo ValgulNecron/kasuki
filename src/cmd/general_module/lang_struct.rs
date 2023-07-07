@@ -108,3 +108,15 @@ pub struct RegisterLocalisedText {
     pub part_2: String,
     pub part_3: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct StaffLocalisedText {
+    pub desc_title: String,
+    pub date_of_birth: String,
+    pub date_of_death: String,
+    pub hometown: String,
+    pub primary_language: String,
+    pub primary_occupation: String,
+     pub media: String,
+     pub va: String,
+}

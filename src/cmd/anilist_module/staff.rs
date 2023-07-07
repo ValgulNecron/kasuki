@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
 use std::u32;
 
 use reqwest::Client;
@@ -14,6 +17,8 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_staff::*;
+use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::lang_struct::StaffLocalisedText;
 use crate::cmd::general_module::request::make_request;
 
 const QUERY: &str = "
@@ -125,30 +130,49 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .map(|character| format_node(character)).collect();
         let result_va: String = formatted_nodes_va.join(",\n");
 
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.embed(
-                        |m| {
-                            m.title(staff_name)
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                                .fields(vec![
-                                    ("Info".to_string(), format!("{}", desc), false),
-                                    ("".to_string(), format!("Date of birth: {}. \n Date of death: {}. \
-                                    \n Hometown: {}. Primary langage: {}. \n Occupation: {}", birth, death, hometown, lang, occupations_string), false),
-                                    ("MANGA".to_string(), format!("{}", result_role), true),
-                                    ("VA".to_string(), format!("{}", result_va), true),
-                                ])
-                                .url(staff_url)
-                                .image(image)
-                        })
-                    )
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
+        let mut file = File::open("lang_file/anilist/staff.json").expect("Failed to open file");
+        let mut json = String::new();
+        file.read_to_string(&mut json).expect("Failed to read file");
+
+        let json_data: HashMap<String, StaffLocalisedText> =
+            serde_json::from_str(&json).expect("Failed to parse JSON");
+
+        let guild_id = command.guild_id.unwrap().0.to_string().clone();
+        let lang_choice = get_guild_langage(guild_id).await;
+
+        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+            if let Err(why) = command
+                .create_interaction_response(&ctx.http, |response| {
+                    response
+                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                        .interaction_response_data(|message| message.embed(
+                            |m| {
+                                m.title(staff_name)
+                                    .timestamp(Timestamp::now())
+                                    .color(color)
+                                    .fields(vec![
+                                        (&localised_text.desc_title, format!("{}", desc), false),
+                                        (&"".to_string(), format!("{}{}{}{}{}{}{}{}{}{}",
+                                                                 &localised_text.date_of_birth, birth,
+                                                                 &localised_text.date_of_death, death,
+                                                                 &localised_text.hometown, hometown,
+                                                                 &localised_text.primary_language, lang,
+                                                                 &localised_text.primary_occupation,
+                                                                 occupations_string), false),
+                                        (&localised_text.media, format!("{}", result_role), true),
+                                        (&localised_text.va, format!("{}", result_va), true),
+                                    ])
+                                    .url(staff_url)
+                                    .image(image)
+                            })
+                        )
+                })
+                .await
+            {
+                println!("Cannot respond to slash command: {}", why);
+            }
+        } else {
+            return "Language not found".to_string();
         }
     }
     return "good".to_string();
@@ -181,6 +205,6 @@ fn format_edge(edge: &Edge) -> String {
 fn format_node(character: &Character) -> String {
     let name_natif = character.name.native.clone().unwrap_or_else(|| "N/A".to_string());
     let name_full = character.name.full.clone().unwrap_or_else(|| "N/A".to_string());
-    let name = format!("{}/{}", name_natif, name_full);
+    let name = format!("{} / {}", name_natif, name_full);
     format!("{}", name)
 }
