@@ -1,4 +1,7 @@
+use std::collections::HashMap;
 use std::env;
+use std::fs::File;
+use std::io::Read;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::u32;
 
@@ -22,6 +25,8 @@ use sqlx::{Pool, Row, Sqlite, SqlitePool};
 
 use crate::cmd::anilist_module::struct_random::*;
 use crate::cmd::general_module::differed_response::differed_response;
+use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::lang_struct::RandomLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::request::make_request;
 
@@ -208,14 +213,63 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         follow_up_message(ctx, command, genres_str, tags_str, format, desc_no_br, title_user, title,
                           color, cover_image, url).await;
     } else {
+        let mut file = File::open("lang_file/anilist/random.json").expect("Failed to open file");
+        let mut json = String::new();
+        file.read_to_string(&mut json).expect("Failed to read file");
+
+        let json_data: HashMap<String, RandomLocalisedText> =
+            serde_json::from_str(&json).expect("Failed to parse JSON");
+
+        let guild_id = command.guild_id.unwrap().0.to_string().clone();
+        let lang_choice = get_guild_langage(guild_id).await;
+
+        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+            if let Err(why) = command
+                .create_followup_message(&ctx.http, |f| {
+                    f.embed(
+                        |m| {
+                            m.title(&localised_text.error_title)
+                                .description(&localised_text.error_message)
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                        }
+                    )
+                })
+                .await
+            {
+                println!("Cannot respond to slash command: {}", why);
+            }
+        }
+    }
+}
+
+pub async fn follow_up_message(ctx: &Context, command: &ApplicationCommandInteraction, genres_str: String,
+                               tags_str: String, format: &String, desc_no_br: String, title_user: &String,
+                               title: &String, color: Colour, cover_image: &String, url: String) {
+    let mut file = File::open("lang_file/anilist/random.json").expect("Failed to open file");
+    let mut json = String::new();
+    file.read_to_string(&mut json).expect("Failed to read file");
+
+    let json_data: HashMap<String, RandomLocalisedText> =
+        serde_json::from_str(&json).expect("Failed to parse JSON");
+
+    let guild_id = command.guild_id.unwrap().0.to_string().clone();
+    let lang_choice = get_guild_langage(guild_id).await;
+
+    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         if let Err(why) = command
             .create_followup_message(&ctx.http, |f| {
                 f.embed(
                     |m| {
-                        m.title("You fucked up.")
-                            .description("How the heck did you managed this ?")
+                        m.title(format!("{}/{}", title_user, title))
+                            .description(format!("{}{}{}{}{}{}{}{}"
+                                                 , &localised_text.genre, genres_str, &localised_text.tag,
+                                                 tags_str, &localised_text.format, format, &localised_text.desc,
+                                                 desc_no_br))
                             .timestamp(Timestamp::now())
                             .color(color)
+                            .thumbnail(cover_image)
+                            .url(url)
                     }
                 )
             })
@@ -226,32 +280,11 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
     }
 }
 
-pub async fn follow_up_message(ctx: &Context, command: &ApplicationCommandInteraction, genres_str: String,
-                               tags_str: String, format: &String, desc_no_br: String, title_user: &String,
-                               title: &String, color: Colour, cover_image: &String, url: String) {
-    if let Err(why) = command
-        .create_followup_message(&ctx.http, |f| {
-            f.embed(
-                |m| {
-                    m.title(format!("{}/{}", title_user, title))
-                        .description(format!("Genre: {}. \n Tags: {}. \n Format: {}. \n \n \n Description: {}"
-                                             , genres_str, tags_str, format, desc_no_br))
-                        .timestamp(Timestamp::now())
-                        .color(color)
-                        .thumbnail(cover_image)
-                        .url(url)
-                }
-            )
-        })
-        .await
-    {
-        println!("Cannot respond to slash command: {}", why);
-    }
-}
-
 pub async fn update_cache(mut page_number: i64, random_type: &String, options: &[CommandDataOption],
                           ctx: &Context, command: &ApplicationCommandInteraction, mut previous_page: i64,
                           mut cached_response: String, pool: Pool<Sqlite>) {
+    let now = Utc::now().timestamp();
+
     loop {
         let client = Client::new();
         let query;
@@ -326,10 +359,20 @@ pub async fn update_cache(mut page_number: i64, random_type: &String, options: &
 
         cached_response = res.to_string();
         previous_page = page_number;
+
+        sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
+        .bind(random_type)
+        .bind(&cached_response)
+        .bind(now)
+        .bind(previous_page)
+        .execute(&pool)
+        .await.unwrap();
+    embed(cached_response.clone(), previous_page, random_type.to_string(), options, ctx, command)
+        .await;
+
         page_number += 1;
     }
 
-    let now = Utc::now().timestamp();
 
     sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
         .bind(random_type)

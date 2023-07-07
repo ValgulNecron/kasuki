@@ -112,7 +112,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         let message = in_progress_embed(ctx, command).await;
 
-        let my_path = "./src/.env";
+        let my_path = "./.env";
         let path = Path::new(my_path);
         let _ = dotenv::from_path(path);
         let api_key = env::var("AI_API_TOKEN").expect("token");
@@ -162,7 +162,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
         let text = res["text"].as_str().unwrap_or("");
         let mut real_message = message.unwrap();
-        let mut file = File::open("lang_file/ai/transcript.json.json").expect("Failed to open file");
+        let mut file = File::open("lang_file/ai/transcript.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 

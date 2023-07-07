@@ -1,0 +1,50 @@
+{
+  "En": {
+    "full_name": "Full name: ",
+    "user_pref": " / User preferred: ",
+    "role": " / Role: ",
+    "format": "format: ",
+    "source": " / source: ",
+    "start_date": "\nStart date: ",
+    "end_date": "\nEnd date: ",
+    "fields_name_1": "Genre",
+    "fields_name_2": "Tag",
+    "desc_title": "Info"
+  },
+  "Fr": {
+    "full_name": "Nom complet : ",
+    "user_pref": " / Préférence utilisateur : ",
+    "role": " / Rôle : ",
+    "format": "format : ",
+    "source": " / source : ",
+    "start_date": "\nDate de début : ",
+    "end_date": "\nDate de fin : ",
+    "fields_name_1": "Genre",
+    "fields_name_2": "Tag",
+    "desc_title": "Info"
+  },
+  "Jp": {
+    "full_name": "フルネーム：",
+    "user_pref": " / ユーザーの優先設定：",
+    "role": " / 役割：",
+    "format": "フォーマット：",
+    "source": " / ソース：",
+    "start_date": "\n開始日：",
+    "end_date": "\n終了日：",
+    "fields_name_1": "ジャンル",
+    "fields_name_2": "タグ",
+    "desc_title": "情報"
+  },
+  "De": {
+    "full_name": "Voller Name: ",
+    "user_pref": " / Benutzer bevorzugt: ",
+    "role": " / Rolle: ",
+    "format": "Format: ",
+    "source": " / Quelle: ",
+    "start_date": "\nStartdatum: ",
+    "end_date": "\nEnddatum: ",
+    "fields_name_1": "Genre",
+    "fields_name_2": "Tag",
+    "desc_title": "Info"
+  }
+}

@@ -8,7 +8,7 @@ for those of you who prefer web dev.. \
 ### BOT
 
 - General part:
-    - [ ] Change how the text is display to support localisation. - In progress. Top priority. 
+    - [ ] Change how the text is display to support localisation. - In progress. Top priority.
     - [X] Clean the code. - Done.
     - [X] Find a name for the bot. Found one kasuki. if you have any better don't hesitate to recommend.
     - [x] Add a bdd for some stuff prob sqlite but not sure. Added sqlite db.
@@ -19,7 +19,7 @@ for those of you who prefer web dev.. \
     - [X] Add staff search function. Added staff research with name.
     - [X] Add search feature with type. Work for all.
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
-      with seiyuu and va role. - This is possible, I'm not competent enough. 
+      with seiyuu and va role. - This is possible, I'm not competent enough.
     - [X] Bind anilist account to discord for /user and /search user. Added register command and edited user command.
     - [ ] Send anime release to a channel. - Will need some digging but should be possible.
     - [ ] Try to do the same for manga
@@ -45,14 +45,15 @@ from it. there is also secondary module that will be added when I have idea or w
 
 ### I know how to code in rust.
 
-them please check the todo and follow CONTRIBUTING.md to add feature, if the todo is complete or you want to do something
+them please check the todo and follow CONTRIBUTING.md to add feature, if the todo is complete or you want to do
+something
 else just do it.
 
 ### I don't know how to code in rust but still want to contribute.
 
 1. You can add new langage by adding a translation in the file located in lang_file and add in lang.rs found in  
-src/cmd/general_modules/ the option with .add_string_choice("ISO-639-1", "ISO-639-1") 
-please google for what is ISO-639-1
+   src/cmd/general_modules/ the option with .add_string_choice("ISO-639-1", "ISO-639-1")
+   please google for what is ISO-639-1
 2. Contribute to this guide by making it clearer on how to use/ how it works.
 3. Or by opening an issue with enhancement or new feature you want to see.
 
@@ -103,7 +104,7 @@ cargo run --release
     - /help - Give a list of all command.
     - /info - Show info about bot.
     - /ping - Check if the bot respond to command.
-    - /lang - let you change the langage for your guild. require admin perm.  
+    - /lang - let you change the langage for your guild. require admin perm.
 - Anime:
     - /anime - Show info about anime.
     - /character - Show info on a character.
@@ -126,6 +127,6 @@ cargo run --release
 - Thanks Srayeals for the badge I use as the bot pfp. (
   [https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))
 - Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
-anymore.)
+  anymore.)
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
-idea.
+  idea.

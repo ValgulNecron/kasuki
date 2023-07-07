@@ -49,7 +49,7 @@ pub struct TranslationLocalisedText {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AnimeLocalisedText {
-    pub title: String,
+    pub desc_title: String,
     pub desc_part_1: String,
     pub desc_part_2: String,
     pub desc_part_3: String,
@@ -59,4 +59,64 @@ pub struct AnimeLocalisedText {
     pub desc_part_7: String,
     pub fields_name_1: String,
     pub fields_name_2: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct CharacterLocalisedText {
+    pub age: String,
+    pub gender: String,
+    pub date_of_birth: String,
+    pub favourite: String,
+    pub desc: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct MediaLocalisedText {
+    pub full_name: String,
+    pub user_pref: String,
+    pub role: String,
+    pub format: String,
+    pub source: String,
+    pub start_date: String,
+    pub end_date: String,
+    pub fields_name_1: String,
+    pub fields_name_2: String,
+    pub desc_title: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct LevelLocalisedText {
+    pub level: String,
+    pub xp: String,
+    pub progression_1: String,
+    pub  progression_2: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct RandomLocalisedText {
+    pub error_title: String,
+    pub error_message: String,
+    pub genre: String,
+    pub tag: String,
+    pub format: String,
+    pub desc: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct RegisterLocalisedText {
+    pub part_1: String,
+    pub part_2: String,
+    pub part_3: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct StaffLocalisedText {
+    pub desc_title: String,
+    pub date_of_birth: String,
+    pub date_of_death: String,
+    pub hometown: String,
+    pub primary_language: String,
+    pub primary_occupation: String,
+     pub media: String,
+     pub va: String,
 }

@@ -1,6 +1,6 @@
 {
   "En": {
-    "title": "Here's your transcript",
+    "desc_title": "Info",
     "desc_part_1": "Format: ",
     "desc_part_2": " / Source: ",
     "desc_part_3": "\nStart Date: ",
@@ -12,7 +12,7 @@
     "fields_name_2": "Tag"
   },
   "Fr": {
-    "title": "Voici votre transcription",
+    "desc_title": "Infos",
     "desc_part_1": "Format : ",
     "desc_part_2": " / Source : ",
     "desc_part_3": "\nDate de début : ",
@@ -24,7 +24,7 @@
     "fields_name_2": "Tag"
   },
   "Jp": {
-    "title": "こちらがトランスクリプトです",
+    "desc_title": "情報",
     "desc_part_1": "フォーマット：",
     "desc_part_2": " / ソース：",
     "desc_part_3": "\n開始日：",
@@ -36,7 +36,7 @@
     "fields_name_2": "タグ"
   },
   "De": {
-    "title": "Hier ist Ihr Transkript",
+    "desc_title": "Informationen",
     "desc_part_1": "Format: ",
     "desc_part_2": " / Quelle: ",
     "desc_part_3": "\nStartdatum: ",

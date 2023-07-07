@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
 use std::u32;
 
 use reqwest::Client;
@@ -14,6 +17,8 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_character::*;
+use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::lang_struct::CharacterLocalisedText;
 use crate::cmd::general_module::request::make_request;
 
 const QUERY: &str = "
@@ -51,48 +56,62 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         .as_ref()
         .expect("Expected username object");
     if let CommandDataOptionValue::String(name) = option {
-        let client = Client::new();
-        let json = json!({"query": QUERY, "variables": {"name": name}});
-        let resp = make_request(json).await;
+        let mut file = File::open("lang_file/anilist/character.json").expect("Failed to open file");
+        let mut json = String::new();
+        file.read_to_string(&mut json).expect("Failed to read file");
 
-        let data: CharacterData = serde_json::from_str(&resp).unwrap();
-        let color = Colour::FABLED_PINK;
+        let json_data: HashMap<String, CharacterLocalisedText> =
+            serde_json::from_str(&json).expect("Failed to parse JSON");
 
-        let name = format!("{}/{}", data.data.character.name.user_preferred, data.data.character.name.native);
-        let desc = data.data.character.description;
+        let guild_id = command.guild_id.unwrap().0.to_string().clone();
+        let lang_choice = get_guild_langage(guild_id).await;
 
-        let image = data.data.character.image.large;
-        let url = data.data.character.site_url;
+        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+            let client = Client::new();
+            let json = json!({"query": QUERY, "variables": {"name": name}});
+            let resp = make_request(json).await;
 
-        let age = data.data.character.age;
-        let date_of_birth = format!("{}/{}/{}", data.data.character.date_of_birth.month.unwrap_or_else(|| 0),
-                                    data.data.character.date_of_birth.day.unwrap_or_else(|| 0), data.data.character.date_of_birth.year.unwrap_or_else(|| 0));
-        let gender = data.data.character.gender;
-        let favourite = data.data.character.favourites;
+            let data: CharacterData = serde_json::from_str(&resp).unwrap();
+            let color = Colour::FABLED_PINK;
 
-        let full_description = format!("Age: {}. \n Gender: {}. \n Date of birth: {}. \n\
-        Number of favourite: {}. \n Description: {}.", age, gender, date_of_birth, favourite
-                                       , desc);
+            let name = format!("{}/{}", data.data.character.name.user_preferred, data.data.character.name.native);
+            let desc = data.data.character.description;
 
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.embed(
-                        |m| {
-                            m.title(name)
-                                .url(url)
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                                .description(full_description)
-                                .thumbnail(image)
-                                .color(color)
-                        })
-                    )
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
+            let image = data.data.character.image.large;
+            let url = data.data.character.site_url;
+
+            let age = data.data.character.age;
+            let date_of_birth = format!("{}/{}/{}", data.data.character.date_of_birth.month.unwrap_or_else(|| 0),
+                                        data.data.character.date_of_birth.day.unwrap_or_else(|| 0), data.data.character.date_of_birth.year.unwrap_or_else(|| 0));
+            let gender = data.data.character.gender;
+            let favourite = data.data.character.favourites;
+
+
+            let full_description = format!("{}{}{}{}{}{}{}{}{}{}.", &localised_text.age, age,
+                                           &localised_text.gender, gender, &localised_text.date_of_birth,
+                                           date_of_birth, &localised_text.favourite, favourite,
+                                           &localised_text.desc, desc);
+
+            if let Err(why) = command
+                .create_interaction_response(&ctx.http, |response| {
+                    response
+                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                        .interaction_response_data(|message| message.embed(
+                            |m| {
+                                m.title(name)
+                                    .url(url)
+                                    .timestamp(Timestamp::now())
+                                    .color(color)
+                                    .description(full_description)
+                                    .thumbnail(image)
+                                    .color(color)
+                            })
+                        )
+                })
+                .await
+            {
+                println!("Cannot respond to slash command: {}", why);
+            }
         }
     }
     return "good".to_string();

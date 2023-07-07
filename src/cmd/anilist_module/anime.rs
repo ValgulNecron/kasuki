@@ -145,7 +145,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 let full = s.node.name.full.unwrap_or_else(|| "N/A".to_string());
                 let user = s.node.name.user_preferred.unwrap_or_else(|| "N/A".to_string());
                 let role = s.role.unwrap_or_else(|| "N/A".to_string());
-                staff.push_str(&format!("{}{}{}{}{}{}\n", &localised_text.desc_part_5, full, localised_text.desc_part_6, user, localised_text.desc_part_7,role));
+                staff.push_str(&format!("{}{}{}{}{}{}\n", &localised_text.desc_part_5, full, localised_text.desc_part_6, user, localised_text.desc_part_7, role));
             }
 
             let info = format!("{}{}{}{}{}{}{}{} \n {}", &localised_text.desc_part_1, format, &localised_text.desc_part_2, source, &localised_text.desc_part_3, start_date, &localised_text.desc_part_4, end_date, staff);
@@ -176,10 +176,10 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                     .description(desc)
                                     .thumbnail(thumbnail)
                                     .image(banner_image)
-                                    .field("Info", info, false)
+                                    .field(&localised_text.desc_title, info, false)
                                     .fields(vec![
-                                        ("Genre", genre, true),
-                                        ("Tag", tag, true),
+                                        (&localised_text.fields_name_1, genre, true),
+                                        (&localised_text.fields_name_2, tag, true),
                                     ])
                                     .color(color)
                             })
