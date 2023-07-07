@@ -361,14 +361,14 @@ pub async fn update_cache(mut page_number: i64, random_type: &String, options: &
         previous_page = page_number;
 
         sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
-        .bind(random_type)
-        .bind(&cached_response)
-        .bind(now)
-        .bind(previous_page)
-        .execute(&pool)
-        .await.unwrap();
-    embed(cached_response.clone(), previous_page, random_type.to_string(), options, ctx, command)
-        .await;
+            .bind(random_type)
+            .bind(&cached_response)
+            .bind(now)
+            .bind(previous_page)
+            .execute(&pool)
+            .await.unwrap();
+        embed(cached_response.clone(), previous_page, random_type.to_string(), options, ctx, command)
+            .await;
 
         page_number += 1;
     }
