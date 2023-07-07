@@ -89,7 +89,7 @@ pub struct LevelLocalisedText {
     pub level: String,
     pub xp: String,
     pub progression_1: String,
-    pub  progression_2: String,
+    pub progression_2: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -117,6 +117,30 @@ pub struct StaffLocalisedText {
     pub hometown: String,
     pub primary_language: String,
     pub primary_occupation: String,
-     pub media: String,
-     pub va: String,
+    pub media: String,
+    pub va: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct UserLocalisedText {
+    pub manga_title: String,
+    pub manga_count: String,
+    pub manga_completed: String,
+    pub manga_chapter_read: String,
+    pub manga_mean_score: String,
+    pub manga_standard_deviation: String,
+    pub manga_pref_tag: String,
+    pub manga_pref_genre: String,
+    pub anime_title: String,
+    pub anime_count: String,
+    pub anime_completed: String,
+    pub anime_time_watch: String,
+    pub anime_mean_score: String,
+    pub anime_standard_deviation: String,
+    pub anime_pref_tag: String,
+    pub anime_pref_genre: String,
+    pub week: String,
+    pub day: String,
+    pub hour: String,
+    pub minute: String,
 }
