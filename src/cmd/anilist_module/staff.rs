@@ -153,12 +153,12 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                     .fields(vec![
                                         (&localised_text.desc_title, format!("{}", desc), false),
                                         (&"".to_string(), format!("{}{}{}{}{}{}{}{}{}{}",
-                                                                 &localised_text.date_of_birth, birth,
-                                                                 &localised_text.date_of_death, death,
-                                                                 &localised_text.hometown, hometown,
-                                                                 &localised_text.primary_language, lang,
-                                                                 &localised_text.primary_occupation,
-                                                                 occupations_string), false),
+                                                                  &localised_text.date_of_birth, birth,
+                                                                  &localised_text.date_of_death, death,
+                                                                  &localised_text.hometown, hometown,
+                                                                  &localised_text.primary_language, lang,
+                                                                  &localised_text.primary_occupation,
+                                                                  occupations_string), false),
                                         (&localised_text.media, format!("{}", result_role), true),
                                         (&localised_text.va, format!("{}", result_va), true),
                                     ])
