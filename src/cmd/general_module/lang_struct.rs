@@ -101,3 +101,10 @@ pub struct RandomLocalisedText {
     pub format: String,
     pub desc: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct RegisterLocalisedText {
+    pub part_1: String,
+    pub part_2: String,
+    pub part_3: String,
+}

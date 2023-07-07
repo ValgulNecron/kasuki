@@ -1,0 +1,22 @@
+{
+  "En": {
+    "part_1": "The user ",
+    "part_2": " was linked to ",
+    "part_3": " AniList"
+  },
+  "Fr": {
+    "part_1": "L'utilisateur ",
+    "part_2": " a été lié à ",
+    "part_3": " AniList"
+  },
+  "Jp": {
+    "part_1": "ユーザー",
+    "part_2": " が ",
+    "part_3": " AniList にリンクされました"
+  },
+  "De": {
+    "part_1": "Der Benutzer ",
+    "part_2": " wurde mit ",
+    "part_3": " AniList verknüpft"
+  }
+}
