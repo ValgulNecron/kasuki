@@ -30,12 +30,12 @@ query ($name: String, $limit: Int = 5) {
         meanScore
         standardDeviation
         minutesWatched
-        tags(limit: $limit, sort: COUNT_DESC) {
+        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
           tag {
             name
           }
         }
-        genres(limit: $limit, sort: COUNT_DESC) {
+        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
           genre
         }
         statuses(sort: COUNT_DESC){
@@ -48,12 +48,12 @@ query ($name: String, $limit: Int = 5) {
         meanScore
         standardDeviation
         chaptersRead
-        tags(limit: $limit) {
+        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
           tag {
             name
           }
         }
-        genres(limit: $limit) {
+        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
           genre
         }
         statuses(sort: COUNT_DESC){
