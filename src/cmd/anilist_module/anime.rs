@@ -12,7 +12,9 @@ use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
@@ -80,7 +82,11 @@ const QUERY: &str = "
 }
 ";
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     // Get the content of the first option.
     let option = options
         .get(0)
@@ -111,13 +117,32 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             let color = Colour::new(color_code);
             let banner_image_old = data.data.media.banner_image.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
             let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
-            let desc_no_br = data.data.media.description.unwrap_or_else(|| "NA".to_string()).replace("<br>", "");
+            let desc_no_br = data
+                .data
+                .media
+                .description
+                .unwrap_or_else(|| "NA".to_string())
+                .replace("<br>", "");
             let re = Regex::new("<i>(.|\\n)*?</i>").unwrap();
             let desc = re.replace_all(&desc_no_br, "");
-            let en_name = data.data.media.title.english.unwrap_or_else(|| "NA".to_string());
-            let rj_name = data.data.media.title.romaji.unwrap_or_else(|| "NA".to_string());
+            let en_name = data
+                .data
+                .media
+                .title
+                .english
+                .unwrap_or_else(|| "NA".to_string());
+            let rj_name = data
+                .data
+                .media
+                .title
+                .romaji
+                .unwrap_or_else(|| "NA".to_string());
             let thumbnail = data.data.media.cover_image.extra_large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
-            let site_url = data.data.media.site_url.unwrap_or_else(|| "https://example.com".to_string());
+            let site_url = data
+                .data
+                .media
+                .site_url
+                .unwrap_or_else(|| "https://example.com".to_string());
             let name = format!("{} / {}", en_name, rj_name);
             let format = data.data.media.format.unwrap_or_else(|| "N/A".to_string());
             let source = data.data.media.source.unwrap_or_else(|| "N/A".to_string());
@@ -143,12 +168,35 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             let staffs = data.data.media.staff.edges;
             for s in staffs {
                 let full = s.node.name.full.unwrap_or_else(|| "N/A".to_string());
-                let user = s.node.name.user_preferred.unwrap_or_else(|| "N/A".to_string());
+                let user = s
+                    .node
+                    .name
+                    .user_preferred
+                    .unwrap_or_else(|| "N/A".to_string());
                 let role = s.role.unwrap_or_else(|| "N/A".to_string());
-                staff.push_str(&format!("{}{}{}{}{}{}\n", &localised_text.desc_part_5, full, localised_text.desc_part_6, user, localised_text.desc_part_7, role));
+                staff.push_str(&format!(
+                    "{}{}{}{}{}{}\n",
+                    &localised_text.desc_part_5,
+                    full,
+                    localised_text.desc_part_6,
+                    user,
+                    localised_text.desc_part_7,
+                    role
+                ));
             }
 
-            let info = format!("{}{}{}{}{}{}{}{} \n {}", &localised_text.desc_part_1, format, &localised_text.desc_part_2, source, &localised_text.desc_part_3, start_date, &localised_text.desc_part_4, end_date, staff);
+            let info = format!(
+                "{}{}{}{}{}{}{}{} \n {}",
+                &localised_text.desc_part_1,
+                format,
+                &localised_text.desc_part_2,
+                source,
+                &localised_text.desc_part_3,
+                start_date,
+                &localised_text.desc_part_4,
+                end_date,
+                staff
+            );
             let mut genre = "".to_string();
             let genre_list = data.data.media.genres;
             for g in genre_list {
@@ -168,8 +216,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 .create_interaction_response(&ctx.http, |response| {
                     response
                         .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| message.embed(
-                            |m| {
+                        .interaction_response_data(|message| {
+                            message.embed(|m| {
                                 m.title(name)
                                     .url(site_url)
                                     .timestamp(Timestamp::now())
@@ -183,7 +231,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                     ])
                                     .color(color)
                             })
-                        )
+                        })
                 })
                 .await
             {
@@ -197,13 +245,14 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("anime").description("Info of an anime").create_option(
-        |option| {
+    command
+        .name("anime")
+        .description("Info of an anime")
+        .create_option(|option| {
             option
                 .name("anime_name")
                 .description("Name of the anime you want to check")
                 .kind(CommandOptionType::String)
                 .required(true)
-        },
-    )
+        })
 }

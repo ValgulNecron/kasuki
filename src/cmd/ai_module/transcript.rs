@@ -1,12 +1,12 @@
-use std::{env, fs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{copy, empty, Read, Write};
 use std::path::Path;
 use std::str::Bytes;
+use std::{env, fs};
 
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -14,10 +14,12 @@ use serenity::futures::AsyncWriteExt;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::channel::AttachmentType;
-use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::command::CommandOptionType::Attachment;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
@@ -27,7 +29,11 @@ use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::TranscriptLocalisedText;
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     let option = options
         .get(0)
         .expect("Expected attachement option")
@@ -72,11 +78,11 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             return "wrong file type".to_string();
         }
 
-        let allowed_extensions = vec![
-            "mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm",
-        ];
+        let allowed_extensions = vec!["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
         let parsed_url = Url::parse(&*content).expect("Failed to parse URL");
-        let path_segments = parsed_url.path_segments().expect("Failed to retrieve path segments");
+        let path_segments = parsed_url
+            .path_segments()
+            .expect("Failed to retrieve path segments");
         let last_segment = path_segments.last().expect("URL has no path segments");
 
         let file_extension = last_segment
@@ -120,12 +126,16 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let api_url = format!("{}audio/transcriptions", api_base_url);
         let client = reqwest::Client::new();
         let mut headers = HeaderMap::new();
-        headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
-
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+        );
 
         let file = fs::read(fname).unwrap();
-        let part = multipart::Part::bytes(file).file_name(file_name)
-            .mime_str(&*content_type).unwrap();
+        let part = multipart::Part::bytes(file)
+            .file_name(file_name)
+            .mime_str(&*content_type)
+            .unwrap();
         let prompt = prompt;
         let form = multipart::Form::new()
             .part("file", part)
@@ -173,14 +183,19 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            real_message.edit(&ctx.http, |m|
-                m.embed((|e| {
-                    e.title(&localised_text.title)
-                        .description(format!("{}", text))
-                        .timestamp(Timestamp::now())
-                        .color(color)
+            real_message
+                .edit(&ctx.http, |m| {
+                    m.embed(
+                        (|e| {
+                            e.title(&localised_text.title)
+                                .description(format!("{}", text))
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                        }),
+                    )
                 })
-                )).await.expect("TODO");
+                .await
+                .expect("TODO");
         } else {
             return "Language not found".to_string();
         }
@@ -189,29 +204,30 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("transcript").description("generate a transcript").create_option(
-        |option| {
+    command
+        .name("transcript")
+        .description("generate a transcript")
+        .create_option(|option| {
             option
                 .name("video")
                 .description("File of the video you want the transcript of 25mb max.")
                 .kind(Attachment)
                 .required(true)
-        },
-    ).create_option(
-        |option| {
+        })
+        .create_option(|option| {
             option
                 .name("prompt")
-                .description("Use optional text to guide style or continue audio. Match audio language.")
+                .description(
+                    "Use optional text to guide style or continue audio. Match audio language.",
+                )
                 .kind(CommandOptionType::String)
                 .required(false)
-        }
-    ).create_option(
-        |option| {
+        })
+        .create_option(|option| {
             option
                 .name("lang")
                 .description("Input language in ISO-639-1 format improves accuracy and latency.")
                 .kind(CommandOptionType::String)
                 .required(false)
-        }
-    )
+        })
 }

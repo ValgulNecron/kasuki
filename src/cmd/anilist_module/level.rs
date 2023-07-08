@@ -10,9 +10,11 @@ use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
@@ -76,7 +78,11 @@ options{
 }
 ";
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     let option = options
         .get(0)
         .expect("Expected username option")
@@ -100,15 +106,18 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             let resp = make_request(json).await;
             // Get json
             let data: UserData = match resp_to_user_data(resp) {
-                Ok(data) => {
-                    data
-                }
+                Ok(data) => data,
                 Err(error) => {
                     return error;
                 }
             };
             let profile_picture = data.data.user.avatar.large.clone().unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
-            let user = data.data.user.name.clone().unwrap_or_else(|| "N/A".to_string());
+            let user = data
+                .data
+                .user
+                .name
+                .clone()
+                .unwrap_or_else(|| "N/A".to_string());
             let anime = data.data.user.statistics.anime.clone();
             let manga = data.data.user.statistics.manga.clone();
             let (anime_completed, anime_watching) = get_total(anime.statuses.clone());
@@ -116,7 +125,10 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
             let chap = manga.chapters_read.unwrap_or_else(|| 0) as f64;
             let min = anime.minutes_watched.unwrap_or_else(|| 0) as f64;
-            let input = (anime_completed * 2.0 + anime_watching * 1.0) + (manga_completed * 2.0 + manga_reading * 1.0) + chap * 5.0 + (min / 10.0);
+            let input = (anime_completed * 2.0 + anime_watching * 1.0)
+                + (manga_completed * 2.0 + manga_reading * 1.0)
+                + chap * 5.0
+                + (min / 10.0);
             let a = 5.0;
             let b = 0.000005;
             let level_float = a * (input).ln() + (b * input);
@@ -130,23 +142,30 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 .create_interaction_response(&ctx.http, |response| {
                     response
                         .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| message.embed(
-                            |m| {
+                        .interaction_response_data(|message| {
+                            message.embed(|m| {
                                 m.title(user)
                                     .timestamp(Timestamp::now())
                                     .thumbnail(profile_picture)
-                                    .fields(vec![
-                                        ("".to_string(), format!("{}{}{}{}{}{}{}"
-                                                                 , &localised_text.level, level,
-                                                                 &localised_text.xp, input,
-                                                                 &localised_text.progression_1,
-                                                                 progress_percent.floor(),
-                                                                 &localised_text.progression_2), false),
-                                    ])
+                                    .fields(vec![(
+                                        "".to_string(),
+                                        format!(
+                                            "{}{}{}{}{}{}{}",
+                                            &localised_text.level,
+                                            level,
+                                            &localised_text.xp,
+                                            input,
+                                            &localised_text.progression_1,
+                                            progress_percent.floor(),
+                                            &localised_text.progression_2
+                                        ),
+                                        false,
+                                    )])
                                     .color(color)
-                            }),
-                        )
-                }).await
+                            })
+                        })
+                })
+                .await
             {
                 println!("Cannot respond to slash command: {}", why);
             }
@@ -158,15 +177,16 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("level").description("Weeb level of a user").create_option(
-        |option| {
+    command
+        .name("level")
+        .description("Weeb level of a user")
+        .create_option(|option| {
             option
                 .name("username")
                 .description("Username of the anilist user you want to know the level of")
                 .kind(CommandOptionType::String)
                 .required(true)
-        },
-    )
+        })
 }
 
 pub fn get_total(media: Vec<Statuses>) -> (f64, f64) {

@@ -4,10 +4,12 @@ use std::io::Read;
 
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
-use serenity::model::{Permissions, Timestamp};
 use serenity::model::application::command::CommandOptionType;
-use serenity::model::application::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue};
+use serenity::model::application::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
+};
 use serenity::model::application::interaction::InteractionResponseType;
+use serenity::model::{Permissions, Timestamp};
 use serenity::prelude::Mentionable;
 use serenity::utils::Colour;
 use sqlx::{Pool, Row, Sqlite, SqlitePool};
@@ -15,7 +17,11 @@ use sqlx::{Pool, Row, Sqlite, SqlitePool};
 use crate::cmd::general_module::lang_struct::LangLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     let database_url = "./data.db";
     let pool = get_pool(database_url).await;
 
@@ -24,8 +30,10 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             guild TEXT PRIMARY KEY,
             lang TEXT NOT NULL
         )",
-    ).execute(&pool)
-        .await.unwrap();
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
 
     let option = options
         .get(0)
@@ -41,7 +49,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             .bind(guild_id)
             .bind(lang)
             .execute(&pool)
-            .await.unwrap();
+            .await
+            .unwrap();
 
         let mut file = File::open("lang_file/general/lang.json").expect("Failed to open file");
         let mut json = String::new();
@@ -58,13 +67,12 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 return localised_text.error_perm.clone();
             }
 
-
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
                     response
                         .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| message.embed(
-                            |m| {
+                        .interaction_response_data(|message| {
+                            message.embed(|m| {
                                 m.title(&localised_text.title)
                                     .description(format!("{}{}", &localised_text.description, lang))
                                     // Add a timestamp for the current time
@@ -72,7 +80,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                     .timestamp(Timestamp::now())
                                     .color(color)
                             })
-                        )
+                        })
                 })
                 .await
             {
@@ -86,18 +94,19 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
     return "good".to_string();
 }
 
-
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("lang").description("Change the lang of the bot response").create_option(|option| {
-        option
-            .name("lang")
-            .description("The lang you want to set the response to.")
-            .kind(CommandOptionType::String)
-            .add_string_choice("En", "En")
-            .add_string_choice("Fr", "Fr")
-            .add_string_choice("De", "De")
-            .add_string_choice("Jp", "Jp")
-            .required(true)
-    })
+    command
+        .name("lang")
+        .description("Change the lang of the bot response")
+        .create_option(|option| {
+            option
+                .name("lang")
+                .description("The lang you want to set the response to.")
+                .kind(CommandOptionType::String)
+                .add_string_choice("En", "En")
+                .add_string_choice("Fr", "Fr")
+                .add_string_choice("De", "De")
+                .add_string_choice("Jp", "Jp")
+                .required(true)
+        })
 }
-

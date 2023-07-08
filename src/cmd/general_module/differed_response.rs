@@ -16,7 +16,11 @@ pub async fn differed_response(ctx: &Context, command: &ApplicationCommandIntera
     }
 }
 
-pub async fn differed_response_with_file_deletion(ctx: &Context, command: &ApplicationCommandInteraction, file_to_delete: PathBuf) {
+pub async fn differed_response_with_file_deletion(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    file_to_delete: PathBuf,
+) {
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
             response.kind(InteractionResponseType::DeferredChannelMessageWithSource)

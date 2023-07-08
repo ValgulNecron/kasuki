@@ -16,9 +16,11 @@ use serenity::client::Context;
 use serenity::model::application::component::ButtonStyle;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use sqlx::{Pool, Row, Sqlite, SqlitePool};
@@ -30,7 +32,11 @@ use crate::cmd::general_module::lang_struct::RandomLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::request::make_request;
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     let database_url = "./cache.db";
     let pool = get_pool(database_url).await;
 
@@ -42,8 +48,9 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             last_page INTEGER NOT NULL
         )",
     )
-        .execute(&pool)
-        .await.unwrap();
+    .execute(&pool)
+    .await
+    .unwrap();
 
     let option = options
         .get(0)
@@ -54,10 +61,13 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 
     if let CommandDataOptionValue::String(random_type) = option {
         differed_response(ctx, command).await;
-        let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as("SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?")
-            .bind(random_type)
-            .fetch_one(&pool)
-            .await.unwrap_or((None, None, None));
+        let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as(
+            "SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?",
+        )
+        .bind(random_type)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None, None));
 
         let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
 
@@ -72,23 +82,50 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         if let Some(updated) = last_updated {
             let duration_since_updated = Utc::now().timestamp() - updated;
             if duration_since_updated < 24 * 60 * 60 {
-                embed(cached_response, page_number, random_type.to_string(), options, ctx, command)
-                    .await;
+                embed(
+                    cached_response,
+                    page_number,
+                    random_type.to_string(),
+                    options,
+                    ctx,
+                    command,
+                )
+                .await;
             } else {
-                update_cache(page_number, random_type, options, ctx, command, previous_page,
-                             cached_response, pool).await
+                update_cache(
+                    page_number,
+                    random_type,
+                    options,
+                    ctx,
+                    command,
+                    previous_page,
+                    cached_response,
+                    pool,
+                )
+                .await
             }
         } else {
-            update_cache(page_number, random_type, options, ctx, command, previous_page,
-                         cached_response, pool).await
+            update_cache(
+                page_number,
+                random_type,
+                options,
+                ctx,
+                command,
+                previous_page,
+                cached_response,
+                pool,
+            )
+            .await
         }
     }
     return "good".to_string();
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("random").description("Get a random manga or anime").create_option(
-        |option| {
+    command
+        .name("random")
+        .description("Get a random manga or anime")
+        .create_option(|option| {
             option
                 .name("type")
                 .description("Type of the media you want manga or anime. manga include ln atm.")
@@ -96,11 +133,17 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .required(true)
                 .add_string_choice("manga", "manga")
                 .add_string_choice("anime", "anime")
-        },
-    )
+        })
 }
 
-pub async fn embed(res: String, last_page: i64, random_type: String, options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) {
+pub async fn embed(
+    res: String,
+    last_page: i64,
+    random_type: String,
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) {
     let color = Colour::FABLED_PINK;
     let client = Client::new();
     let number = thread_rng().gen_range(1..=last_page);
@@ -142,7 +185,11 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let genre = &media.genres;
 
         let genres_str = genre.join("/");
-        let tags_str = tag.into_iter().map(|tag| tag.name.clone()).collect::<Vec<String>>().join("/");
+        let tags_str = tag
+            .into_iter()
+            .map(|tag| tag.name.clone())
+            .collect::<Vec<String>>()
+            .join("/");
 
         let cover_image = &media.cover_image.extra_large;
 
@@ -152,8 +199,20 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let format = &media.format;
 
         let url = format!("https://anilist.co/manga/{}", &media.id);
-        follow_up_message(ctx, command, genres_str, tags_str, format, desc_no_br, title_user, title,
-                          color, cover_image, url).await;
+        follow_up_message(
+            ctx,
+            command,
+            genres_str,
+            tags_str,
+            format,
+            desc_no_br,
+            title_user,
+            title,
+            color,
+            cover_image,
+            url,
+        )
+        .await;
     } else if random_type == "anime" {
         let query = "
                     query($anime_page: Int){
@@ -180,7 +239,8 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
                 }";
 
         let json = json!({"query": query, "variables": {"anime_page": number}});
-        let res = client.post("https://graphql.anilist.co")
+        let res = client
+            .post("https://graphql.anilist.co")
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .body(json.to_string())
@@ -200,7 +260,11 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let genre = &media.genres;
 
         let genres_str = genre.join("/");
-        let tags_str = tag.into_iter().map(|tag| tag.name.clone()).collect::<Vec<String>>().join("/");
+        let tags_str = tag
+            .into_iter()
+            .map(|tag| tag.name.clone())
+            .collect::<Vec<String>>()
+            .join("/");
 
         let cover_image = &media.cover_image.extra_large;
 
@@ -210,8 +274,20 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         let format = &media.format;
 
         let url = format!("https://anilist.co/anime/{}", &media.id);
-        follow_up_message(ctx, command, genres_str, tags_str, format, desc_no_br, title_user, title,
-                          color, cover_image, url).await;
+        follow_up_message(
+            ctx,
+            command,
+            genres_str,
+            tags_str,
+            format,
+            desc_no_br,
+            title_user,
+            title,
+            color,
+            cover_image,
+            url,
+        )
+        .await;
     } else {
         let mut file = File::open("lang_file/anilist/random.json").expect("Failed to open file");
         let mut json = String::new();
@@ -226,14 +302,12 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             if let Err(why) = command
                 .create_followup_message(&ctx.http, |f| {
-                    f.embed(
-                        |m| {
-                            m.title(&localised_text.error_title)
-                                .description(&localised_text.error_message)
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        }
-                    )
+                    f.embed(|m| {
+                        m.title(&localised_text.error_title)
+                            .description(&localised_text.error_message)
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    })
                 })
                 .await
             {
@@ -243,9 +317,19 @@ pub async fn embed(res: String, last_page: i64, random_type: String, options: &[
     }
 }
 
-pub async fn follow_up_message(ctx: &Context, command: &ApplicationCommandInteraction, genres_str: String,
-                               tags_str: String, format: &String, desc_no_br: String, title_user: &String,
-                               title: &String, color: Colour, cover_image: &String, url: String) {
+pub async fn follow_up_message(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    genres_str: String,
+    tags_str: String,
+    format: &String,
+    desc_no_br: String,
+    title_user: &String,
+    title: &String,
+    color: Colour,
+    cover_image: &String,
+    url: String,
+) {
     let mut file = File::open("lang_file/anilist/random.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
@@ -259,19 +343,24 @@ pub async fn follow_up_message(ctx: &Context, command: &ApplicationCommandIntera
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         if let Err(why) = command
             .create_followup_message(&ctx.http, |f| {
-                f.embed(
-                    |m| {
-                        m.title(format!("{}/{}", title_user, title))
-                            .description(format!("{}{}{}{}{}{}{}{}"
-                                                 , &localised_text.genre, genres_str, &localised_text.tag,
-                                                 tags_str, &localised_text.format, format, &localised_text.desc,
-                                                 desc_no_br))
-                            .timestamp(Timestamp::now())
-                            .color(color)
-                            .thumbnail(cover_image)
-                            .url(url)
-                    }
-                )
+                f.embed(|m| {
+                    m.title(format!("{}/{}", title_user, title))
+                        .description(format!(
+                            "{}{}{}{}{}{}{}{}",
+                            &localised_text.genre,
+                            genres_str,
+                            &localised_text.tag,
+                            tags_str,
+                            &localised_text.format,
+                            format,
+                            &localised_text.desc,
+                            desc_no_br
+                        ))
+                        .timestamp(Timestamp::now())
+                        .color(color)
+                        .thumbnail(cover_image)
+                        .url(url)
+                })
             })
             .await
         {
@@ -280,9 +369,16 @@ pub async fn follow_up_message(ctx: &Context, command: &ApplicationCommandIntera
     }
 }
 
-pub async fn update_cache(mut page_number: i64, random_type: &String, options: &[CommandDataOption],
-                          ctx: &Context, command: &ApplicationCommandInteraction, mut previous_page: i64,
-                          mut cached_response: String, pool: Pool<Sqlite>) {
+pub async fn update_cache(
+    mut page_number: i64,
+    random_type: &String,
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    mut previous_page: i64,
+    mut cached_response: String,
+    pool: Pool<Sqlite>,
+) {
     let now = Utc::now().timestamp();
 
     loop {
@@ -341,7 +437,8 @@ pub async fn update_cache(mut page_number: i64, random_type: &String, options: &
         } else {
             return;
         }
-        let res = client.post("https://graphql.anilist.co")
+        let res = client
+            .post("https://graphql.anilist.co")
             .json(&query)
             .send()
             .await
@@ -350,8 +447,12 @@ pub async fn update_cache(mut page_number: i64, random_type: &String, options: &
             .await
             .unwrap();
 
-        let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"].as_bool().unwrap_or(true);
-        let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"].as_i64().unwrap_or(page_number);
+        let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"]
+            .as_bool()
+            .unwrap_or(true);
+        let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"]
+            .as_i64()
+            .unwrap_or(page_number);
 
         if !has_next_page {
             break;
@@ -361,18 +462,24 @@ pub async fn update_cache(mut page_number: i64, random_type: &String, options: &
         previous_page = page_number;
 
         sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
-        .bind(random_type)
-        .bind(&cached_response)
-        .bind(now)
-        .bind(previous_page)
-        .execute(&pool)
-        .await.unwrap();
-    embed(cached_response.clone(), previous_page, random_type.to_string(), options, ctx, command)
+            .bind(random_type)
+            .bind(&cached_response)
+            .bind(now)
+            .bind(previous_page)
+            .execute(&pool)
+            .await.unwrap();
+        embed(
+            cached_response.clone(),
+            previous_page,
+            random_type.to_string(),
+            options,
+            ctx,
+            command,
+        )
         .await;
 
         page_number += 1;
     }
-
 
     sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
         .bind(random_type)
@@ -381,6 +488,13 @@ pub async fn update_cache(mut page_number: i64, random_type: &String, options: &
         .bind(previous_page)
         .execute(&pool)
         .await.unwrap();
-    embed(cached_response, previous_page, random_type.to_string(), options, ctx, command)
-        .await;
+    embed(
+        cached_response,
+        previous_page,
+        random_type.to_string(),
+        options,
+        ctx,
+        command,
+    )
+    .await;
 }

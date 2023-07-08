@@ -49,18 +49,23 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.embed(
-                        |m| {
+                    .interaction_response_data(|message| {
+                        message.embed(|m| {
                             m.title(&localised_text.title)
                                 // Add a timestamp for the current time
                                 // This also accepts a rfc3339 Timestamp
                                 .timestamp(Timestamp::now())
                                 .color(color)
-                                .description(format!("{}{}{}{}{}", &localised_text.description_part_1,
-                                                     &localised_text.description_part_2, ctx.shard_id,
-                                                     &localised_text.description_part_3, latency))
+                                .description(format!(
+                                    "{}{}{}{}{}",
+                                    &localised_text.description_part_1,
+                                    &localised_text.description_part_2,
+                                    ctx.shard_id,
+                                    &localised_text.description_part_3,
+                                    latency
+                                ))
                         })
-                    )
+                    })
             })
             .await
         {
@@ -75,4 +80,3 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     command.name("ping").description("A ping command")
 }
-

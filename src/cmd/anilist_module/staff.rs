@@ -10,9 +10,11 @@ use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
@@ -77,7 +79,11 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
 }
 ";
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     let option = options
         .get(0)
         .expect("Expected name option")
@@ -100,34 +106,75 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let staff_url = format!("https://anilist.co/staff/{}", &data.data.staff.id);
         let color = Colour::FABLED_PINK;
 
-        let staff_name = format!("{}/{}", &data.data.staff.name.native.
-            unwrap_or_else(|| "N/A".to_string()), &data.data.staff.name.full.unwrap_or_else(|| "N/A".to_string()));
+        let staff_name = format!(
+            "{}/{}",
+            &data
+                .data
+                .staff
+                .name
+                .native
+                .unwrap_or_else(|| "N/A".to_string()),
+            &data
+                .data
+                .staff
+                .name
+                .full
+                .unwrap_or_else(|| "N/A".to_string())
+        );
 
         let desc = &data.data.staff.description;
 
-        let birth = format!("{}/{}/{}", &data.data.staff.date_of_birth.month
-            .unwrap_or_else(|| 0), &data.data.staff.date_of_birth.day.unwrap_or_else(|| 0),
-                            &data.data.staff.date_of_birth.year.unwrap_or_else(|| 0));
-        let death = format!("{}/{}/{}", &data.data.staff.date_of_death.month
-            .unwrap_or_else(|| 0), &data.data.staff.date_of_death.day.unwrap_or_else(|| 0),
-                            &data.data.staff.date_of_death.year.unwrap_or_else(|| 0));
+        let birth = format!(
+            "{}/{}/{}",
+            &data.data.staff.date_of_birth.month.unwrap_or_else(|| 0),
+            &data.data.staff.date_of_birth.day.unwrap_or_else(|| 0),
+            &data.data.staff.date_of_birth.year.unwrap_or_else(|| 0)
+        );
+        let death = format!(
+            "{}/{}/{}",
+            &data.data.staff.date_of_death.month.unwrap_or_else(|| 0),
+            &data.data.staff.date_of_death.day.unwrap_or_else(|| 0),
+            &data.data.staff.date_of_death.year.unwrap_or_else(|| 0)
+        );
 
         let image = &data.data.staff.image.large;
         let lang = &data.data.staff.language_v2;
 
-        let hometown = &data.data.staff.home_town.unwrap_or_else(|| "N/A".to_string());
+        let hometown = &data
+            .data
+            .staff
+            .home_town
+            .unwrap_or_else(|| "N/A".to_string());
 
         let max_limit = 5;
-        let limited_occupations: Vec<String> = data.data.staff.primary_occupations.iter().take(max_limit)
-            .cloned().collect();
+        let limited_occupations: Vec<String> = data
+            .data
+            .staff
+            .primary_occupations
+            .iter()
+            .take(max_limit)
+            .cloned()
+            .collect();
         let occupations_string = limited_occupations.join(", ");
 
-        let formatted_edges_role: Vec<String> = data.data.staff.staff_media.edges.iter()
-            .map(|edge| format_edge(edge)).collect();
+        let formatted_edges_role: Vec<String> = data
+            .data
+            .staff
+            .staff_media
+            .edges
+            .iter()
+            .map(|edge| format_edge(edge))
+            .collect();
         let result_role: String = formatted_edges_role.join("\n");
 
-        let formatted_nodes_va: Vec<String> = data.data.staff.characters.nodes.iter()
-            .map(|character| format_node(character)).collect();
+        let formatted_nodes_va: Vec<String> = data
+            .data
+            .staff
+            .characters
+            .nodes
+            .iter()
+            .map(|character| format_node(character))
+            .collect();
         let result_va: String = formatted_nodes_va.join(",\n");
 
         let mut file = File::open("lang_file/anilist/staff.json").expect("Failed to open file");
@@ -145,27 +192,37 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                 .create_interaction_response(&ctx.http, |response| {
                     response
                         .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| message.embed(
-                            |m| {
+                        .interaction_response_data(|message| {
+                            message.embed(|m| {
                                 m.title(staff_name)
                                     .timestamp(Timestamp::now())
                                     .color(color)
                                     .fields(vec![
                                         (&localised_text.desc_title, format!("{}", desc), false),
-                                        (&"".to_string(), format!("{}{}{}{}{}{}{}{}{}{}",
-                                                                 &localised_text.date_of_birth, birth,
-                                                                 &localised_text.date_of_death, death,
-                                                                 &localised_text.hometown, hometown,
-                                                                 &localised_text.primary_language, lang,
-                                                                 &localised_text.primary_occupation,
-                                                                 occupations_string), false),
+                                        (
+                                            &"".to_string(),
+                                            format!(
+                                                "{}{}{}{}{}{}{}{}{}{}",
+                                                &localised_text.date_of_birth,
+                                                birth,
+                                                &localised_text.date_of_death,
+                                                death,
+                                                &localised_text.hometown,
+                                                hometown,
+                                                &localised_text.primary_language,
+                                                lang,
+                                                &localised_text.primary_occupation,
+                                                occupations_string
+                                            ),
+                                            false,
+                                        ),
                                         (&localised_text.media, format!("{}", result_role), true),
                                         (&localised_text.va, format!("{}", result_va), true),
                                     ])
                                     .url(staff_url)
                                     .image(image)
                             })
-                        )
+                        })
                 })
                 .await
             {
@@ -179,15 +236,16 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("staff").description("Get info of a staff").create_option(
-        |option| {
+    command
+        .name("staff")
+        .description("Get info of a staff")
+        .create_option(|option| {
             option
                 .name("staff_name")
                 .description("Name of the staff you want info about.")
                 .kind(CommandOptionType::String)
                 .required(true)
-        },
-    )
+        })
 }
 
 fn format_edge(edge: &Edge) -> String {
@@ -203,8 +261,16 @@ fn format_edge(edge: &Edge) -> String {
 }
 
 fn format_node(character: &Character) -> String {
-    let name_natif = character.name.native.clone().unwrap_or_else(|| "N/A".to_string());
-    let name_full = character.name.full.clone().unwrap_or_else(|| "N/A".to_string());
+    let name_natif = character
+        .name
+        .native
+        .clone()
+        .unwrap_or_else(|| "N/A".to_string());
+    let name_full = character
+        .name
+        .full
+        .clone()
+        .unwrap_or_else(|| "N/A".to_string());
     let name = format!("{} / {}", name_natif, name_full);
     format!("{}", name)
 }

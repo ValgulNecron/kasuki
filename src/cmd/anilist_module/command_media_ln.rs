@@ -11,9 +11,11 @@ use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
@@ -22,7 +24,12 @@ use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::MediaLocalisedText;
 use crate::cmd::general_module::request::make_request;
 
-pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction, query: &str) -> String {
+pub async fn embed(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    query: &str,
+) -> String {
     let option = options
         .get(0)
         .expect("Expected name option")
@@ -51,13 +58,32 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
             let color = Colour::new(color_code);
             let banner_image_old = data.data.media.banner_image.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
             let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
-            let desc_no_br = data.data.media.description.unwrap_or_else(|| "NA".to_string()).replace("<br>", "");
+            let desc_no_br = data
+                .data
+                .media
+                .description
+                .unwrap_or_else(|| "NA".to_string())
+                .replace("<br>", "");
             let re = Regex::new("<i>(.|\\n)*?</i>").unwrap();
             let desc = re.replace_all(&desc_no_br, "");
-            let en_name = data.data.media.title.english.unwrap_or_else(|| "NA".to_string());
-            let rj_name = data.data.media.title.romaji.unwrap_or_else(|| "NA".to_string());
+            let en_name = data
+                .data
+                .media
+                .title
+                .english
+                .unwrap_or_else(|| "NA".to_string());
+            let rj_name = data
+                .data
+                .media
+                .title
+                .romaji
+                .unwrap_or_else(|| "NA".to_string());
             let thumbnail = data.data.media.cover_image.extra_large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
-            let site_url = data.data.media.site_url.unwrap_or_else(|| "https://example.com".to_string());
+            let site_url = data
+                .data
+                .media
+                .site_url
+                .unwrap_or_else(|| "https://example.com".to_string());
             let name = format!("{} / {}", en_name, rj_name);
             let format = data.data.media.format.unwrap_or_else(|| "N/A".to_string());
             let source = data.data.media.source.unwrap_or_else(|| "N/A".to_string());
@@ -83,15 +109,35 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
             let staffs = data.data.media.staff.edges;
             for s in staffs {
                 let full = s.node.name.full.unwrap_or_else(|| "N/A".to_string());
-                let user = s.node.name.user_preferred.unwrap_or_else(|| "N/A".to_string());
+                let user = s
+                    .node
+                    .name
+                    .user_preferred
+                    .unwrap_or_else(|| "N/A".to_string());
                 let role = s.role.unwrap_or_else(|| "N/A".to_string());
-                staff.push_str(&format!("{}{}{}{}{}{}\n", &localised_text.full_name, full,
-                                        &localised_text.user_pref, user, &localised_text.role, role));
+                staff.push_str(&format!(
+                    "{}{}{}{}{}{}\n",
+                    &localised_text.full_name,
+                    full,
+                    &localised_text.user_pref,
+                    user,
+                    &localised_text.role,
+                    role
+                ));
             }
 
-            let info = format!("{}{}{}{}{}{}{}{} \n {}", &localised_text.format, format,
-                               &localised_text.source, source, &localised_text.start_date, start_date,
-                               &localised_text.end_date, end_date, staff);
+            let info = format!(
+                "{}{}{}{}{}{}{}{} \n {}",
+                &localised_text.format,
+                format,
+                &localised_text.source,
+                source,
+                &localised_text.start_date,
+                start_date,
+                &localised_text.end_date,
+                end_date,
+                staff
+            );
             let mut genre = "".to_string();
             let genre_list = data.data.media.genres;
             for g in genre_list {
@@ -112,8 +158,8 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
                 .create_interaction_response(&ctx.http, |response| {
                     response
                         .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| message.embed(
-                            |m| {
+                        .interaction_response_data(|message| {
+                            message.embed(|m| {
                                 m.title(name)
                                     .url(site_url)
                                     .timestamp(Timestamp::now())
@@ -122,13 +168,10 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
                                     .thumbnail(thumbnail)
                                     .image(banner_image)
                                     .field("Info", info, false)
-                                    .fields(vec![
-                                        ("Genre", genre, true),
-                                        ("Tag", tag, true),
-                                    ])
+                                    .fields(vec![("Genre", genre, true), ("Tag", tag, true)])
                                     .color(color)
                             })
-                        )
+                        })
                 })
                 .await
             {

@@ -1,20 +1,22 @@
-use std::{env, fs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::{env, fs};
 
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::channel::Message;
-use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::command::CommandOptionType::Attachment;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
@@ -24,7 +26,11 @@ use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::ImageLocalisedText;
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     let option = options
         .get(0)
         .expect("Expected username option")
@@ -48,7 +54,10 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let client = reqwest::Client::new();
 
         let mut headers = HeaderMap::new();
-        headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+        );
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
         let data = json!({
@@ -57,7 +66,8 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             "size": "1024x1024"
         });
 
-        let res: Value = client.post(api_url)
+        let res: Value = client
+            .post(api_url)
             .headers(headers)
             .json(&data)
             .send()
@@ -99,15 +109,19 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            real_message.edit(&ctx.http, |m|
-                m.attachment(path)
-                    .embed((|e| {
-                        e.title(&localised_text.title)
-                            .image(format!("attachment://{}", filename))
-                            .timestamp(Timestamp::now())
-                            .color(color)
-                    })
-                    )).await.expect("TODO");
+            real_message
+                .edit(&ctx.http, |m| {
+                    m.attachment(path).embed(
+                        (|e| {
+                            e.title(&localised_text.title)
+                                .image(format!("attachment://{}", filename))
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                        }),
+                    )
+                })
+                .await
+                .expect("TODO");
         } else {
             return "Language not found".to_string();
         }
@@ -118,13 +132,14 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("image").description("generate an image").create_option(
-        |option| {
+    command
+        .name("image")
+        .description("generate an image")
+        .create_option(|option| {
             option
                 .name("description")
                 .description("Description of the image you want to gen.")
                 .kind(CommandOptionType::String)
                 .required(true)
-        },
-    )
+        })
 }
