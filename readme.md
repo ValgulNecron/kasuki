@@ -8,7 +8,7 @@ for those of you who prefer web dev.. \
 ### BOT
 
 - General part:
-    - [ ] Change how the text is display to support localisation. - Almost finish. last to do compare.
+    - [ ] Change how the text is display to support localisation. - Done.
     - [X] Clean the code. - Done.
     - [X] Find a name for the bot. Found one kasuki. if you have any better don't hesitate to recommend.
     - [x] Add a bdd for some stuff prob sqlite but not sure. Added sqlite db.
