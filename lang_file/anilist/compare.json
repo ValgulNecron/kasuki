@@ -1,4 +1,16 @@
 {
   "En": {
+    "more_anime": " as more anime than ",
+    "connector_user_same_anime": " and ",
+    "same_anime": " as the same amount of anime watched.",
+    "time_anime_watch": " as watched anime for longer than ",
+    "connector_user_same_time": " and ",
+    "same_time": " as the same amount of anime watch time.",
+    "more_manga": " as read more manga than ",
+    "connector_user_same_manga": " and ",
+    "same_manga": " as the same amount of manga read.",
+    "more_chapter": " as read more chapter than ",
+    "connector_user_same_chapter": " and ",
+    "same_chapter": " as the same amount of chapter read."
   }
 }
