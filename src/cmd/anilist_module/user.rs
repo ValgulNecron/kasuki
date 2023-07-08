@@ -10,9 +10,11 @@ use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use sqlx::SqlitePool;
@@ -78,7 +80,11 @@ options{
 }
 ";
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     return if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::String(user) = resolved {
@@ -91,39 +97,51 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let database_url = "./data.db";
         let pool = get_pool(database_url).await;
         let user_id = &command.user.id.to_string();
-        let row: (Option<String>, Option<String>) = sqlx::query_as("SELECT anilist_username, user_id FROM registered_user WHERE user_id = ?")
-            .bind(user_id)
-            .fetch_one(&pool)
-            .await.unwrap_or((None, None));
+        let row: (Option<String>, Option<String>) = sqlx::query_as(
+            "SELECT anilist_username, user_id FROM registered_user WHERE user_id = ?",
+        )
+        .bind(user_id)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None));
         let (user, _): (Option<String>, Option<String>) = row;
-        let result = embed(options, ctx, command, &user.unwrap_or("N/A".parse().unwrap())).await;
+        let result = embed(
+            options,
+            ctx,
+            command,
+            &user.unwrap_or("N/A".parse().unwrap()),
+        )
+        .await;
         result
     };
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("user").description("Info of an anilist user").create_option(
-        |option| {
+    command
+        .name("user")
+        .description("Info of an anilist user")
+        .create_option(|option| {
             option
                 .name("username")
                 .description("Username of the anilist user you want to check")
                 .kind(CommandOptionType::String)
                 .required(false)
-        },
-    )
+        })
 }
 
-
-pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction, user: &String) -> String {
+pub async fn embed(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    user: &String,
+) -> String {
     let client = Client::new();
     let json = json!({"query": QUERY, "variables": {"name": user}});
     let resp = make_request(json).await;
 
     // Get json
     let data: UserData = match resp_to_user_data(resp) {
-        Ok(data) => {
-            data
-        }
+        Ok(data) => data,
         Err(error) => {
             return error;
         }
@@ -140,10 +158,19 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        let user_url = format!("https://anilist.co/user/{}", &data.data.user.id.unwrap_or_else(|| 1));
+        let user_url = format!(
+            "https://anilist.co/user/{}",
+            &data.data.user.id.unwrap_or_else(|| 1)
+        );
         let color = get_user_color(data.clone());
 
-        let mut min = data.data.user.statistics.anime.minutes_watched.unwrap_or_else(|| 0);
+        let mut min = data
+            .data
+            .user
+            .statistics
+            .anime
+            .minutes_watched
+            .unwrap_or_else(|| 0);
         let mut hour = 0;
         let mut days = 0;
         let mut week = 0;
@@ -162,14 +189,50 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
             week = days / 7;
             days = days % 7;
         }
-        let chap = data.data.user.statistics.manga.chapters_read.unwrap_or_else(|| 0);
-        let time_watched = format!("{}{}{}{}{}{}{}{}", week, &localised_text.week, days, &localised_text.day, hour, &localised_text.hour, min, &localised_text.minute);
+        let chap = data
+            .data
+            .user
+            .statistics
+            .manga
+            .chapters_read
+            .unwrap_or_else(|| 0);
+        let time_watched = format!(
+            "{}{}{}{}{}{}{}{}",
+            week,
+            &localised_text.week,
+            days,
+            &localised_text.day,
+            hour,
+            &localised_text.hour,
+            min,
+            &localised_text.minute
+        );
         let manga_count = data.data.user.statistics.manga.count.unwrap_or_else(|| 0);
-        let manga_score = data.data.user.statistics.manga.mean_score.unwrap_or_else(|| 0 as f64);
-        let manga_standard_deviation = data.data.user.statistics.manga.standard_deviation.unwrap_or_else(|| 0 as f64);
+        let manga_score = data
+            .data
+            .user
+            .statistics
+            .manga
+            .mean_score
+            .unwrap_or_else(|| 0 as f64);
+        let manga_standard_deviation = data
+            .data
+            .user
+            .statistics
+            .manga
+            .standard_deviation
+            .unwrap_or_else(|| 0 as f64);
         let mut manga_tag_name = String::new();
         for i in 0..3 {
-            if let Some(tags) = data.data.user.statistics.manga.tags.get(i).and_then(|g| g.tag.name.as_ref()) {
+            if let Some(tags) = data
+                .data
+                .user
+                .statistics
+                .manga
+                .tags
+                .get(i)
+                .and_then(|g| g.tag.name.as_ref())
+            {
                 manga_tag_name.push_str(&format!("{} / ", tags));
             } else {
                 manga_tag_name.push_str("N/A / ");
@@ -180,7 +243,15 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
 
         let mut manga_genre = String::new();
         for i in 0..3 {
-            if let Some(genre) = data.data.user.statistics.manga.genres.get(i).and_then(|g| g.genre.as_ref()) {
+            if let Some(genre) = data
+                .data
+                .user
+                .statistics
+                .manga
+                .genres
+                .get(i)
+                .and_then(|g| g.genre.as_ref())
+            {
                 manga_genre.push_str(&format!("{} / ", genre));
             } else {
                 manga_genre.push_str("N/A / ");
@@ -189,14 +260,33 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
         manga_genre.pop();
         manga_genre.pop();
 
-
         let anime_count = data.data.user.statistics.anime.count.unwrap_or_else(|| 0);
-        let anime_score = data.data.user.statistics.anime.mean_score.unwrap_or_else(|| 0 as f64);
-        let anime_standard_deviation = data.data.user.statistics.anime.standard_deviation.unwrap_or_else(|| 0 as f64);
+        let anime_score = data
+            .data
+            .user
+            .statistics
+            .anime
+            .mean_score
+            .unwrap_or_else(|| 0 as f64);
+        let anime_standard_deviation = data
+            .data
+            .user
+            .statistics
+            .anime
+            .standard_deviation
+            .unwrap_or_else(|| 0 as f64);
 
         let mut anime_tag_name = String::new();
         for i in 0..3 {
-            if let Some(tags) = data.data.user.statistics.anime.tags.get(i).and_then(|g| g.tag.name.as_ref()) {
+            if let Some(tags) = data
+                .data
+                .user
+                .statistics
+                .anime
+                .tags
+                .get(i)
+                .and_then(|g| g.tag.name.as_ref())
+            {
                 anime_tag_name.push_str(&format!("{} / ", tags));
             } else {
                 anime_tag_name.push_str("N/A / ");
@@ -207,7 +297,15 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
 
         let mut anime_genre = String::new();
         for i in 0..3 {
-            if let Some(genre) = data.data.user.statistics.anime.genres.get(i).and_then(|g| g.genre.as_ref()) {
+            if let Some(genre) = data
+                .data
+                .user
+                .statistics
+                .anime
+                .genres
+                .get(i)
+                .and_then(|g| g.genre.as_ref())
+            {
                 anime_genre.push_str(&format!("{} / ", genre));
             } else {
                 anime_genre.push_str("N/A / ");
@@ -243,8 +341,8 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.embed(
-                        |m| {
+                    .interaction_response_data(|message| {
+                        message.embed(|m| {
                             m.title(user)
                                 .url(&user_url)
                                 // Add a timestamp for the current time
@@ -253,30 +351,56 @@ pub async fn embed(options: &[CommandDataOption], ctx: &Context, command: &Appli
                                 .thumbnail(profile_picture)
                                 .image(banner)
                                 .fields(vec![
-                                    ("".to_string(), format!("**[{}]({})**{}{}{}{}{}{}{}{:.2}{}{:.2}{}{}{}{}",
-                                                             &localised_text.manga_title, manga_url,
-                                                             &localised_text.manga_count, manga_count,
-                                                             &localised_text.manga_completed, manga_completed,
-                                                             &localised_text.manga_chapter_read, chap,
-                                                             &localised_text.manga_mean_score, manga_score,
-                                                             &localised_text.manga_standard_deviation, manga_standard_deviation,
-                                                             &localised_text.manga_pref_tag, manga_tag_name,
-                                                             &localised_text.manga_pref_genre, manga_genre
-                                    ), false),
-                                    ("".to_string(), format!("**[{}]({})**{}{}{}{}{}{}{}{:.2}{}{:.2}{}{}{}{}",
-                                                             &localised_text.anime_title, anime_url,
-                                                             &localised_text.anime_count, anime_count,
-                                                             &localised_text.anime_completed, anime_completed,
-                                                             &localised_text.anime_time_watch, time_watched,
-                                                             &localised_text.anime_mean_score, anime_score,
-                                                             &localised_text.anime_standard_deviation, anime_standard_deviation,
-                                                             &localised_text.anime_pref_tag ,anime_tag_name,
-                                                             &localised_text.anime_pref_genre, anime_genre
-                                    ), false),
+                                    (
+                                        "".to_string(),
+                                        format!(
+                                            "**[{}]({})**{}{}{}{}{}{}{}{:.2}{}{:.2}{}{}{}{}",
+                                            &localised_text.manga_title,
+                                            manga_url,
+                                            &localised_text.manga_count,
+                                            manga_count,
+                                            &localised_text.manga_completed,
+                                            manga_completed,
+                                            &localised_text.manga_chapter_read,
+                                            chap,
+                                            &localised_text.manga_mean_score,
+                                            manga_score,
+                                            &localised_text.manga_standard_deviation,
+                                            manga_standard_deviation,
+                                            &localised_text.manga_pref_tag,
+                                            manga_tag_name,
+                                            &localised_text.manga_pref_genre,
+                                            manga_genre
+                                        ),
+                                        false,
+                                    ),
+                                    (
+                                        "".to_string(),
+                                        format!(
+                                            "**[{}]({})**{}{}{}{}{}{}{}{:.2}{}{:.2}{}{}{}{}",
+                                            &localised_text.anime_title,
+                                            anime_url,
+                                            &localised_text.anime_count,
+                                            anime_count,
+                                            &localised_text.anime_completed,
+                                            anime_completed,
+                                            &localised_text.anime_time_watch,
+                                            time_watched,
+                                            &localised_text.anime_mean_score,
+                                            anime_score,
+                                            &localised_text.anime_standard_deviation,
+                                            anime_standard_deviation,
+                                            &localised_text.anime_pref_tag,
+                                            anime_tag_name,
+                                            &localised_text.anime_pref_genre,
+                                            anime_genre
+                                        ),
+                                        false,
+                                    ),
                                 ])
                                 .color(color)
                         })
-                    )
+                    })
             })
             .await
         {

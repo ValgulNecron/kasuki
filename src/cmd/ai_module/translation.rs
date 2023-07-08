@@ -1,11 +1,11 @@
-use std::{env, fs};
 use std::fs::File;
 use std::io::{copy, empty, Write};
 use std::path::Path;
 use std::str::Bytes;
+use std::{env, fs};
 
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -13,10 +13,12 @@ use serenity::futures::AsyncWriteExt;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::channel::AttachmentType;
-use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::command::CommandOptionType::Attachment;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
@@ -25,7 +27,11 @@ use crate::cmd::ai_module::translation_embed::translation_embed;
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     let option = options
         .get(0)
         .expect("Expected attachement option")
@@ -51,11 +57,11 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             return "wrong file type".to_string();
         }
 
-        let allowed_extensions = vec![
-            "mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm",
-        ];
+        let allowed_extensions = vec!["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
         let parsed_url = Url::parse(&*content).expect("Failed to parse URL");
-        let path_segments = parsed_url.path_segments().expect("Failed to retrieve path segments");
+        let path_segments = parsed_url
+            .path_segments()
+            .expect("Failed to retrieve path segments");
         let last_segment = path_segments.last().expect("URL has no path segments");
 
         let file_extension = last_segment
@@ -100,12 +106,16 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
         let api_url = format!("{}audio/translations", api_base_url);
         let client = reqwest::Client::new();
         let mut headers = HeaderMap::new();
-        headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
-
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+        );
 
         let file = fs::read(fname).unwrap();
-        let part = multipart::Part::bytes(file).file_name(file_name)
-            .mime_str(&*content_type).unwrap();
+        let part = multipart::Part::bytes(file)
+            .file_name(file_name)
+            .mime_str(&*content_type)
+            .unwrap();
         let form = multipart::Form::new()
             .part("file", part)
             .text("model", "whisper-1");
@@ -148,23 +158,23 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("translation").description("generate a translation").create_option(
-        |option| {
+    command
+        .name("translation")
+        .description("generate a translation")
+        .create_option(|option| {
             option
                 .name("video")
                 .description("File of the video you want the translation of 25mb max.")
                 .kind(Attachment)
                 .required(true)
-        }
-    ).create_option(
-        |option| {
+        })
+        .create_option(|option| {
             option
                 .name("lang")
                 .description("Lang in ISO-639-1 format.")
                 .kind(CommandOptionType::String)
                 .required(false)
-        }
-    )
+        })
 }
 
 pub async fn translation(lang: String, text: String) -> String {
@@ -180,15 +190,19 @@ pub async fn translation(lang: String, text: String) -> String {
     let api_url = format!("{}chat/completions", api_base_url);
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
-    headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+    );
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
     let data = json!({
-                 "model": "gpt-3.5-turbo-16k",
-                 "messages": [{"role": "system", "content": "You are a expert in translating and only do that."},{"role": "user", "content": prompt_gpt}]
-            });
+         "model": "gpt-3.5-turbo-16k",
+         "messages": [{"role": "system", "content": "You are a expert in translating and only do that."},{"role": "user", "content": prompt_gpt}]
+    });
 
-    let res: Value = client.post(api_url)
+    let res: Value = client
+        .post(api_url)
         .headers(headers)
         .json(&data)
         .send()

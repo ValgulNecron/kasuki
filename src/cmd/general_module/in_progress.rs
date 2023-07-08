@@ -11,7 +11,10 @@ use serenity::utils::Colour;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::InProgressLocalisedText;
 
-pub async fn in_progress_embed(ctx: &Context, command: &ApplicationCommandInteraction) -> serenity::Result<Message> {
+pub async fn in_progress_embed(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> serenity::Result<Message> {
     let color = Colour::FABLED_PINK;
     let mut file = File::open("lang_file/general/in_progress.json").expect("Failed to open file");
     let mut json = String::new();
@@ -27,16 +30,18 @@ pub async fn in_progress_embed(ctx: &Context, command: &ApplicationCommandIntera
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         message = command
             .create_followup_message(&ctx.http, |f| {
-                f.embed(|e| e.title(&localised_text.title)
-                    .description(&localised_text.description)
-                    .timestamp(Timestamp::now())
-                    .color(color))
+                f.embed(|e| {
+                    e.title(&localised_text.title)
+                        .description(&localised_text.description)
+                        .timestamp(Timestamp::now())
+                        .color(color)
+                })
             })
             .await;
     } else {
-        message = command.create_followup_message(&ctx.http, |f| {
-            f.embed(|e| e.title("Error"))
-        }).await;
+        message = command
+            .create_followup_message(&ctx.http, |f| f.embed(|e| e.title("Error")))
+            .await;
     }
 
     return message;

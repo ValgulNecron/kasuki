@@ -9,7 +9,9 @@ use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
@@ -74,18 +76,23 @@ const QUERY: &str = "
 }
 ";
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     return embed(options, ctx, command, QUERY).await;
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("ln").description("Info of a light novel").create_option(
-        |option| {
+    command
+        .name("ln")
+        .description("Info of a light novel")
+        .create_option(|option| {
             option
                 .name("ln_name")
                 .description("Name of the light novel you want to check")
                 .kind(CommandOptionType::String)
                 .required(true)
-        },
-    )
+        })
 }

@@ -20,8 +20,8 @@ use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
-use crate::cmd::general_module::*;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
+use crate::cmd::general_module::*;
 
 mod cmd;
 
@@ -39,34 +39,35 @@ impl EventHandler for Handler {
         println!("{} is connected!", ready.user.name);
 
         // Create all the commande found in cmd. (if a command is added it will need to be added here).
-        let guild_command = Command::set_global_application_commands(&ctx.http, |commands|
-            {
-                commands
-                    // General module.
-                    .create_application_command(|command| ping::register(command))
-                    .create_application_command(|command| lang::register(command))
-                    .create_application_command(|command| info::register(command))
+        let guild_command = Command::set_global_application_commands(&ctx.http, |commands| {
+            commands
+                // General module.
+                .create_application_command(|command| ping::register(command))
+                .create_application_command(|command| lang::register(command))
+                .create_application_command(|command| info::register(command))
+                // Anilist module.
+                .create_application_command(|command| anime::register(command))
+                .create_application_command(|command| character::register(command))
+                .create_application_command(|command| compare::register(command))
+                .create_application_command(|command| level::register(command))
+                .create_application_command(|command| ln::register(command))
+                .create_application_command(|command| manga::register(command))
+                .create_application_command(|command| random::register(command))
+                .create_application_command(|command| register::register(command))
+                .create_application_command(|command| search::register(command))
+                .create_application_command(|command| staff::register(command))
+                .create_application_command(|command| user::register(command))
+                // AI module.
+                .create_application_command(|command| image::register(command))
+                .create_application_command(|command| transcript::register(command))
+                .create_application_command(|command| translation::register(command))
+        })
+        .await;
 
-                    // Anilist module.
-                    .create_application_command(|command| anime::register(command))
-                    .create_application_command(|command| character::register(command))
-                    .create_application_command(|command| compare::register(command))
-                    .create_application_command(|command| level::register(command))
-                    .create_application_command(|command| ln::register(command))
-                    .create_application_command(|command| manga::register(command))
-                    .create_application_command(|command| random::register(command))
-                    .create_application_command(|command| register::register(command))
-                    .create_application_command(|command| search::register(command))
-                    .create_application_command(|command| staff::register(command))
-                    .create_application_command(|command| user::register(command))
-
-                    // AI module.
-                    .create_application_command(|command| image::register(command))
-                    .create_application_command(|command| transcript::register(command))
-                    .create_application_command(|command| translation::register(command))
-            }).await;
-
-        println!("I created the following global slash command: {:#?}", guild_command);
+        println!(
+            "I created the following global slash command: {:#?}",
+            guild_command
+        );
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
@@ -74,64 +75,28 @@ impl EventHandler for Handler {
             println!("Received command interaction: {:#?}", command);
 
             let content = match command.data.name.as_str() {
-
                 // General module.
-                "ping" => {
-                    ping::run(&ctx, &command).await
-                }
-                "lang" => {
-                    lang::run(&command.data.options, &ctx, &command).await
-                }
-                "info" => {
-                    info::run(&ctx, &command).await
-                }
-
+                "ping" => ping::run(&ctx, &command).await,
+                "lang" => lang::run(&command.data.options, &ctx, &command).await,
+                "info" => info::run(&ctx, &command).await,
 
                 // Anilist module
-                "anime" => {
-                    anime::run(&command.data.options, &ctx, &command).await
-                }
-                "character" => {
-                    character::run(&command.data.options, &ctx, &command).await
-                }
-                "compare" => {
-                    compare::run(&command.data.options, &ctx, &command).await
-                }
-                "level" => {
-                    level::run(&command.data.options, &ctx, &command).await
-                }
-                "ln" => {
-                    ln::run(&command.data.options, &ctx, &command).await
-                }
-                "manga" => {
-                    manga::run(&command.data.options, &ctx, &command).await
-                }
-                "random" => {
-                    random::run(&command.data.options, &ctx, &command).await
-                }
-                "register" => {
-                    register::run(&command.data.options, &ctx, &command).await
-                }
-                "search" => {
-                    search::run(&command.data.options, &ctx, &command).await
-                }
-                "staff" => {
-                    staff::run(&command.data.options, &ctx, &command).await
-                }
-                "user" => {
-                    user::run(&command.data.options, &ctx, &command).await
-                }
+                "anime" => anime::run(&command.data.options, &ctx, &command).await,
+                "character" => character::run(&command.data.options, &ctx, &command).await,
+                "compare" => compare::run(&command.data.options, &ctx, &command).await,
+                "level" => level::run(&command.data.options, &ctx, &command).await,
+                "ln" => ln::run(&command.data.options, &ctx, &command).await,
+                "manga" => manga::run(&command.data.options, &ctx, &command).await,
+                "random" => random::run(&command.data.options, &ctx, &command).await,
+                "register" => register::run(&command.data.options, &ctx, &command).await,
+                "search" => search::run(&command.data.options, &ctx, &command).await,
+                "staff" => staff::run(&command.data.options, &ctx, &command).await,
+                "user" => user::run(&command.data.options, &ctx, &command).await,
 
                 // AI module
-                "image" => {
-                    image::run(&command.data.options, &ctx, &command).await
-                }
-                "transcript" => {
-                    transcript::run(&command.data.options, &ctx, &command).await
-                }
-                "translation" => {
-                    translation::run(&command.data.options, &ctx, &command).await
-                }
+                "image" => image::run(&command.data.options, &ctx, &command).await,
+                "transcript" => transcript::run(&command.data.options, &ctx, &command).await,
+                "translation" => translation::run(&command.data.options, &ctx, &command).await,
 
                 _ => "not implemented :(".to_string(),
             };

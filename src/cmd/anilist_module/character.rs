@@ -10,9 +10,11 @@ use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::prelude::ChannelId;
 use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::{ApplicationCommandInteraction, CommandDataOption};
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
@@ -48,7 +50,11 @@ query ($name: String) {
 }
 ";
 
-pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     let option = options
         .get(0)
         .expect("Expected username option")
@@ -74,30 +80,45 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
             let data: CharacterData = serde_json::from_str(&resp).unwrap();
             let color = Colour::FABLED_PINK;
 
-            let name = format!("{}/{}", data.data.character.name.user_preferred, data.data.character.name.native);
+            let name = format!(
+                "{}/{}",
+                data.data.character.name.user_preferred, data.data.character.name.native
+            );
             let desc = data.data.character.description;
 
             let image = data.data.character.image.large;
             let url = data.data.character.site_url;
 
             let age = data.data.character.age;
-            let date_of_birth = format!("{}/{}/{}", data.data.character.date_of_birth.month.unwrap_or_else(|| 0),
-                                        data.data.character.date_of_birth.day.unwrap_or_else(|| 0), data.data.character.date_of_birth.year.unwrap_or_else(|| 0));
+            let date_of_birth = format!(
+                "{}/{}/{}",
+                data.data.character.date_of_birth.month.unwrap_or_else(|| 0),
+                data.data.character.date_of_birth.day.unwrap_or_else(|| 0),
+                data.data.character.date_of_birth.year.unwrap_or_else(|| 0)
+            );
             let gender = data.data.character.gender;
             let favourite = data.data.character.favourites;
 
-
-            let full_description = format!("{}{}{}{}{}{}{}{}{}{}.", &localised_text.age, age,
-                                           &localised_text.gender, gender, &localised_text.date_of_birth,
-                                           date_of_birth, &localised_text.favourite, favourite,
-                                           &localised_text.desc, desc);
+            let full_description = format!(
+                "{}{}{}{}{}{}{}{}{}{}.",
+                &localised_text.age,
+                age,
+                &localised_text.gender,
+                gender,
+                &localised_text.date_of_birth,
+                date_of_birth,
+                &localised_text.favourite,
+                favourite,
+                &localised_text.desc,
+                desc
+            );
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
                     response
                         .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| message.embed(
-                            |m| {
+                        .interaction_response_data(|message| {
+                            message.embed(|m| {
                                 m.title(name)
                                     .url(url)
                                     .timestamp(Timestamp::now())
@@ -106,7 +127,7 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
                                     .thumbnail(image)
                                     .color(color)
                             })
-                        )
+                        })
                 })
                 .await
             {
@@ -118,13 +139,14 @@ pub async fn run(options: &[CommandDataOption], ctx: &Context, command: &Applica
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("character").description("Get information ").create_option(
-        |option| {
+    command
+        .name("character")
+        .description("Get information ")
+        .create_option(|option| {
             option
                 .name("name")
                 .description("The name of the character")
                 .kind(CommandOptionType::String)
                 .required(true)
-        }
-    )
+        })
 }

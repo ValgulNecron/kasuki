@@ -11,7 +11,12 @@ use serenity::utils::Colour;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::TranslationLocalisedText;
 
-pub async fn translation_embed(ctx: &Context, command: &ApplicationCommandInteraction, text: String, message: serenity::Result<Message>) {
+pub async fn translation_embed(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    text: String,
+    message: serenity::Result<Message>,
+) {
     let color = Colour::FABLED_PINK;
     let mut real_message = message.unwrap();
     let mut file = File::open("lang_file/ai/translation.json").expect("Failed to open file");
@@ -25,13 +30,18 @@ pub async fn translation_embed(ctx: &Context, command: &ApplicationCommandIntera
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        real_message.edit(&ctx.http, |m|
-            m.embed((|e| {
-                e.title(&localised_text.title)
-                    .description(format!("{}", text))
-                    .timestamp(Timestamp::now())
-                    .color(color)
+        real_message
+            .edit(&ctx.http, |m| {
+                m.embed(
+                    (|e| {
+                        e.title(&localised_text.title)
+                            .description(format!("{}", text))
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    }),
+                )
             })
-            )).await.unwrap()
+            .await
+            .unwrap()
     }
 }
