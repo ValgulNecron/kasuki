@@ -1,5 +1,3 @@
-use sqlx::{Pool, Row, Sqlite, SqlitePool};
-
 use crate::cmd::general_module::pool::get_pool;
 
 pub async fn get_guild_langage(guild_id: String) -> String {
