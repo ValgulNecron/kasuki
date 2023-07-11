@@ -1,29 +1,21 @@
 use std::collections::HashMap;
-use std::env;
 use std::fs::File;
 use std::io::Read;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use std::u32;
 
 use chrono::Utc;
 use rand::prelude::*;
-use rand::rngs::StdRng;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
-use serenity::model::application::component::ButtonStyle;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
-use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
-use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-use sqlx::{Pool, Row, Sqlite, SqlitePool};
+use sqlx::{Pool, Sqlite};
 
 use crate::cmd::anilist_module::struct_random::*;
 use crate::cmd::general_module::differed_response::differed_response;
@@ -71,7 +63,7 @@ pub async fn run(
 
         let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
 
-        let mut page_number = match last_page {
+        let page_number = match last_page {
             Some(page) => page,
             None => 1444, // This is as today date the last page, i will update it sometime.
         };
@@ -82,20 +74,11 @@ pub async fn run(
         if let Some(updated) = last_updated {
             let duration_since_updated = Utc::now().timestamp() - updated;
             if duration_since_updated < 24 * 60 * 60 {
-                embed(
-                    cached_response,
-                    page_number,
-                    random_type.to_string(),
-                    options,
-                    ctx,
-                    command,
-                )
-                .await;
+                embed(page_number, random_type.to_string(), ctx, command).await;
             } else {
                 update_cache(
                     page_number,
                     random_type,
-                    options,
                     ctx,
                     command,
                     previous_page,
@@ -108,7 +91,6 @@ pub async fn run(
             update_cache(
                 page_number,
                 random_type,
-                options,
                 ctx,
                 command,
                 previous_page,
@@ -137,10 +119,8 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 }
 
 pub async fn embed(
-    res: String,
     last_page: i64,
     random_type: String,
-    options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
@@ -372,7 +352,6 @@ pub async fn follow_up_message(
 pub async fn update_cache(
     mut page_number: i64,
     random_type: &String,
-    options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     mut previous_page: i64,
@@ -450,9 +429,6 @@ pub async fn update_cache(
         let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"]
             .as_bool()
             .unwrap_or(true);
-        let last_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["lastPage"]
-            .as_i64()
-            .unwrap_or(page_number);
 
         if !has_next_page {
             break;
@@ -468,15 +444,7 @@ pub async fn update_cache(
             .bind(previous_page)
             .execute(&pool)
             .await.unwrap();
-        embed(
-            cached_response.clone(),
-            previous_page,
-            random_type.to_string(),
-            options,
-            ctx,
-            command,
-        )
-        .await;
+        embed(previous_page, random_type.to_string(), ctx, command).await;
 
         page_number += 1;
     }
@@ -488,13 +456,5 @@ pub async fn update_cache(
         .bind(previous_page)
         .execute(&pool)
         .await.unwrap();
-    embed(
-        cached_response,
-        previous_page,
-        random_type.to_string(),
-        options,
-        ctx,
-        command,
-    )
-    .await;
+    embed(previous_page, random_type.to_string(), ctx, command).await;
 }

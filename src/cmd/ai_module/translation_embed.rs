@@ -32,14 +32,12 @@ pub async fn translation_embed(
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         real_message
             .edit(&ctx.http, |m| {
-                m.embed(
-                    (|e| {
-                        e.title(&localised_text.title)
-                            .description(format!("{}", text))
-                            .timestamp(Timestamp::now())
-                            .color(color)
-                    }),
-                )
+                m.embed(|e| {
+                    e.title(&localised_text.title)
+                        .description(format!("{}", text))
+                        .timestamp(Timestamp::now())
+                        .color(color)
+                })
             })
             .await
             .unwrap()

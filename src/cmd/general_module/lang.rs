@@ -11,7 +11,6 @@ use serenity::model::application::interaction::application_command::{
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
-use sqlx::Row;
 
 use crate::cmd::general_module::lang_struct::LangLocalisedText;
 use crate::cmd::general_module::pool::get_pool;

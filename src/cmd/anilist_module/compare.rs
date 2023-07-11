@@ -1,10 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::u32;
 
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -14,7 +11,6 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
-use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
@@ -96,7 +92,7 @@ pub async fn run(
         .expect("Expected username object");
     if let CommandDataOptionValue::String(username1) = option {
         if let CommandDataOptionValue::String(username2) = option2 {
-            let result = embed(options, ctx, command, username1, username2).await;
+            let result = embed(ctx, command, username1, username2).await;
             return result;
         }
     }
@@ -124,7 +120,6 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 }
 
 pub async fn embed(
-    options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     username1: &String,
@@ -141,11 +136,9 @@ pub async fn embed(
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        let client = Client::new();
         let json = json!({"query": QUERY, "variables": {"name": username1}});
         let resp = make_request(json).await;
 
-        let client2 = Client::new();
         let json2 = json!({"query": QUERY, "variables": {"name": username2}});
         let resp2 = make_request(json2).await;
 

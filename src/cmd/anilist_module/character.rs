@@ -1,10 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::u32;
 
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -14,7 +11,6 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
-use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
@@ -73,7 +69,6 @@ pub async fn run(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let client = Client::new();
             let json = json!({"query": QUERY, "variables": {"name": name}});
             let resp = make_request(json).await;
 
