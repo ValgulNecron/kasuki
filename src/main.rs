@@ -15,8 +15,8 @@ use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
-use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
 use crate::cmd::general_module::*;
+use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
 
 mod cmd;
 
@@ -57,7 +57,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| transcript::register(command))
                 .create_application_command(|command| translation::register(command))
         })
-        .await;
+            .await;
 
         println!(
             "I created the following global slash command: {:#?}",
@@ -98,7 +98,7 @@ impl EventHandler for Handler {
 
             // check if the command was successfully done.
             if content == "good".to_string() {
-                return;
+                 return;
             }
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
