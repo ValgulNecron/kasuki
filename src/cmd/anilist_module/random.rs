@@ -40,9 +40,9 @@ pub async fn run(
             last_page INTEGER NOT NULL
         )",
     )
-    .execute(&pool)
-    .await
-    .unwrap();
+        .execute(&pool)
+        .await
+        .unwrap();
 
     let option = options
         .get(0)
@@ -56,10 +56,10 @@ pub async fn run(
         let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as(
             "SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?",
         )
-        .bind(random_type)
-        .fetch_one(&pool)
-        .await
-        .unwrap_or((None, None, None));
+            .bind(random_type)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((None, None, None));
 
         let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
 
@@ -85,7 +85,7 @@ pub async fn run(
                     cached_response,
                     pool,
                 )
-                .await
+                    .await
             }
         } else {
             update_cache(
@@ -97,7 +97,7 @@ pub async fn run(
                 cached_response,
                 pool,
             )
-            .await
+                .await
         }
     }
     return "good".to_string();
@@ -192,7 +192,7 @@ pub async fn embed(
             cover_image,
             url,
         )
-        .await;
+            .await;
     } else if random_type == "anime" {
         let query = "
                     query($anime_page: Int){
@@ -267,7 +267,7 @@ pub async fn embed(
             cover_image,
             url,
         )
-        .await;
+            .await;
     } else {
         let mut file = File::open("lang_file/anilist/random.json").expect("Failed to open file");
         let mut json = String::new();

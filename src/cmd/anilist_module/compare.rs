@@ -179,9 +179,9 @@ pub async fn embed(
 
         let anime_watch_time;
         if user1.statistics.anime.minutes_watched > user2.statistics.anime.minutes_watched {
-            anime_watch_time = format!("{}{}{}", user_name1, &localised_text.same_time, user_name2)
+            anime_watch_time = format!("{}{}{}", user_name1, &localised_text.time_anime_watch, user_name2)
         } else if user1.statistics.anime.minutes_watched < user2.statistics.anime.minutes_watched {
-            anime_watch_time = format!("{}{}{}", user_name2, &localised_text.same_time, user_name1)
+            anime_watch_time = format!("{}{}{}", user_name2, &localised_text.time_anime_watch, user_name1)
         } else {
             anime_watch_time = format!(
                 "{}{}{}{}",

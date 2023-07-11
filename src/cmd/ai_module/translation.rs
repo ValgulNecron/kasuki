@@ -1,10 +1,10 @@
+use std::{env, fs};
 use std::fs::File;
 use std::io::copy;
 use std::path::Path;
-use std::{env, fs};
 
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
