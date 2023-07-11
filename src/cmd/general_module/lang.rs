@@ -10,9 +10,7 @@ use serenity::model::application::interaction::application_command::{
 };
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::{Permissions, Timestamp};
-use serenity::prelude::Mentionable;
 use serenity::utils::Colour;
-use sqlx::{Pool, Row, Sqlite, SqlitePool};
 
 use crate::cmd::general_module::lang_struct::LangLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
@@ -44,14 +42,6 @@ pub async fn run(
     let color = Colour::FABLED_PINK;
 
     if let CommandDataOptionValue::String(lang) = option {
-        let guild_id = command.guild_id.unwrap().0.to_string();
-        sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
-            .bind(guild_id)
-            .bind(lang)
-            .execute(&pool)
-            .await
-            .unwrap();
-
         let mut file = File::open("lang_file/general/lang.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
@@ -66,6 +56,14 @@ pub async fn run(
             if !(user.contains(Permissions::ADMINISTRATOR)) {
                 return localised_text.error_perm.clone();
             }
+
+            let guild_id = command.guild_id.unwrap().0.to_string();
+            sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
+                .bind(guild_id)
+                .bind(lang)
+                .execute(&pool)
+                .await
+                .unwrap();
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {

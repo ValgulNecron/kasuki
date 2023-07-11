@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Media {
     pub id: i32,
     pub title: Title,
@@ -12,38 +12,38 @@ pub struct Media {
     pub format: String,
     pub status: String,
     #[serde(rename = "coverImage")]
-    pub cover_image: CoverImage, // New field added
+    pub cover_image: CoverImage,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Title {
     pub native: String,
     #[serde(rename = "userPreferred")]
     pub user_preferred: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Tag {
     pub name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Page {
     pub media: Vec<Media>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct PageWrapper {
     #[serde(rename = "Page")]
     pub page: Page,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct PageData {
     pub data: PageWrapper,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct CoverImage {
     #[serde(rename = "extraLarge")]
     pub extra_large: String,

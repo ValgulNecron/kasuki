@@ -1,7 +1,6 @@
 use std::fs::File;
-use std::io::{copy, empty, Write};
+use std::io::copy;
 use std::path::Path;
-use std::str::Bytes;
 use std::{env, fs};
 
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
@@ -9,20 +8,15 @@ use reqwest::{multipart, Url};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
-use serenity::futures::AsyncWriteExt;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
-use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::channel::AttachmentType;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
-use serenity::model::prelude::ChannelId;
-use serenity::model::Timestamp;
-use serenity::utils::Colour;
 use uuid::Uuid;
 
+use crate::cmd::ai_module::get_lang_option::get_lang_option;
 use crate::cmd::ai_module::translation_embed::translation_embed;
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
 use crate::cmd::general_module::in_progress::in_progress_embed;
@@ -38,17 +32,11 @@ pub async fn run(
         .resolved
         .as_ref()
         .expect("Expected attachement object");
-    let mut lang: String;
-    if let Some(option) = options.get(1) {
-        let resolved = option.resolved.as_ref().unwrap();
-        if let CommandDataOptionValue::String(lang_op) = resolved {
-            lang = lang_op.clone();
-        } else {
-            lang = "en".to_string();
-        }
-    } else {
-        lang = "en".to_string();
+    let mut lang: String = "en".to_string();
+    for option in options {
+        lang = get_lang_option(option.clone());
     }
+
     if let CommandDataOptionValue::Attachment(attachement) = option {
         let content_type = attachement.content_type.clone().unwrap();
         let content = attachement.proxy_url.clone();
@@ -79,20 +67,10 @@ pub async fn run(
         let uuid_name = Uuid::new_v4();
         let fname = Path::new("./").join(format!("{}.{}", uuid_name, file_extension));
         let file_name = format!("/{}.{}", uuid_name, file_extension);
-        let mut string_fname = format!("/{}.{}", uuid_name, file_extension);
         let mut file = File::create(fname.clone()).expect("file name");
-        let mut resp_byte = response.bytes().await.unwrap();
+        let resp_byte = response.bytes().await.unwrap();
         copy(&mut resp_byte.as_ref(), &mut file).unwrap();
-        let color = Colour::FABLED_PINK;
         let file_to_delete = fname.clone();
-
-        if let Ok(current_dir) = env::current_dir() {
-            let current_dir_str = current_dir.display().to_string();
-            let current_dir_str = current_dir_str.replace("\\", "/");
-            string_fname = format!("{}{}", current_dir_str, string_fname)
-        } else {
-            println!("Failed to retrieve the current directory.");
-        }
 
         differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 

@@ -9,14 +9,10 @@ use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
-use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::channel::Message;
 use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
-use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
@@ -38,8 +34,6 @@ pub async fn run(
         .as_ref()
         .expect("Expected username object");
     if let CommandDataOptionValue::String(description) = option {
-        let color = Colour::FABLED_PINK;
-
         differed_response(ctx, command).await;
 
         let message = in_progress_embed(ctx, command).await;
@@ -111,14 +105,12 @@ pub async fn run(
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             real_message
                 .edit(&ctx.http, |m| {
-                    m.attachment(path).embed(
-                        (|e| {
-                            e.title(&localised_text.title)
-                                .image(format!("attachment://{}", filename))
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        }),
-                    )
+                    m.attachment(path).embed(|e| {
+                        e.title(&localised_text.title)
+                            .image(format!("attachment://{}", filename))
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    })
                 })
                 .await
                 .expect("TODO");

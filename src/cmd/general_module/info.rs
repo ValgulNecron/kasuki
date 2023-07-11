@@ -6,10 +6,7 @@ use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::component::ButtonStyle;
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::prelude::interaction::application_command::{
-    ApplicationCommandInteraction, CommandDataOption,
-};
-use serenity::model::prelude::ChannelId;
+use serenity::model::prelude::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 

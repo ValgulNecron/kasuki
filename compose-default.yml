@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    user: kasuki
     environment:
       - DISCORD_TOKEN=your_discord_token_here
       - AI_API_TOKEN=your_token_here_for_the_ai_part

@@ -1,21 +1,15 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::u32;
 
 use regex::Regex;
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
 use serde_json::json;
-use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
-use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
@@ -48,15 +42,10 @@ pub async fn embed(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let client = Client::new();
             let json = json!({"query": query, "variables": {"search": name}});
             let resp = make_request(json).await;
             // Get json
             let data: MediaData = serde_json::from_str(&resp).unwrap();
-            let hex_code = "#0D966D";
-            let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
-            let color = Colour::new(color_code);
-            let banner_image_old = data.data.media.banner_image.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
             let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
             let desc_no_br = data
                 .data

@@ -1,40 +1,40 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Name {
     pub full: Option<String>,
     pub native: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Image {
     pub large: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Date {
     pub year: Option<i32>,
     pub month: Option<i32>,
     pub day: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Title {
     pub romaji: Option<String>,
     pub english: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Node {
     pub title: Title,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct StaffMedia {
     pub edges: Vec<Edge>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Edge {
     pub node: Node,
     #[serde(rename = "roleNotes")]
@@ -45,18 +45,18 @@ pub struct Edge {
     pub staff_role: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Character {
     pub name: Name,
     pub image: Image,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Characters {
     pub nodes: Vec<Character>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Staff {
     pub name: Name,
     pub id: i32,
@@ -83,13 +83,13 @@ pub struct Staff {
     pub characters: Characters,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct StaffWrapper {
     #[serde(rename = "Staff")]
     pub staff: Staff,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct StaffData {
     pub data: StaffWrapper,
 }

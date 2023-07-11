@@ -1,29 +1,25 @@
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{copy, empty, Read, Write};
+use std::io::{copy, Read};
 use std::path::Path;
-use std::str::Bytes;
 use std::{env, fs};
 
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
-use serde_json::{json, Value};
+use serde_json::Value;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
-use serenity::futures::AsyncWriteExt;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
-use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::channel::AttachmentType;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
-use serenity::model::prelude::ChannelId;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
+use crate::cmd::ai_module::get_lang_option::get_lang_option;
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
@@ -40,35 +36,18 @@ pub async fn run(
         .resolved
         .as_ref()
         .expect("Expected attachement object");
-    let mut prompt: String;
-    let mut lang: String;
-    if let Some(option) = options.get(1) {
-        let resolved = option.resolved.as_ref().unwrap();
-        if let CommandDataOptionValue::String(prompt_op) = resolved {
-            prompt = prompt_op.clone();
-        } else {
-            return "error".to_string();
+    let mut prompt: String = "Do a transcript by first detecting the langage and then transcribing it in the detected langage".to_string();
+    let mut lang: String = "en".to_string();
+    for option in options {
+        lang = get_lang_option(option.clone());
+        if option.name == "prompt" {
+            let resolved = option.resolved.as_ref().unwrap();
+            if let CommandDataOptionValue::String(prompt_option) = resolved {
+                prompt = prompt_option.clone()
+            } else {
+                prompt = "Do a transcript by first detecting the langage and then transcribing it in the detected langage".to_string();
+            }
         }
-        if !(option.name == "prompt") {
-            lang = prompt.clone();
-            prompt = "Do a transcript by first detecting the langage and then transcribing it in the detected langage".to_string();
-        }
-    } else {
-        prompt = "Do a transcript by first detecting the langage and then transcribing it in the detected langage".to_string();
-    }
-    if let Some(option) = options.get(2) {
-        let resolved = option.resolved.as_ref().unwrap();
-        if let CommandDataOptionValue::String(lang_op) = resolved {
-            lang = lang_op.clone();
-        } else {
-            return "error".to_string();
-        }
-        if !(option.name == "lang") {
-            prompt = lang.clone();
-            lang = "en".to_string();
-        }
-    } else {
-        lang = "en".to_string();
     }
     if let CommandDataOptionValue::Attachment(attachement) = option {
         let content_type = attachement.content_type.clone().unwrap();
@@ -99,20 +78,11 @@ pub async fn run(
         let uuid_name = Uuid::new_v4();
         let fname = Path::new("./").join(format!("{}.{}", uuid_name, file_extension));
         let file_name = format!("/{}.{}", uuid_name, file_extension);
-        let mut string_fname = format!("/{}.{}", uuid_name, file_extension);
         let mut file = File::create(fname.clone()).expect("file name");
-        let mut resp_byte = response.bytes().await.unwrap();
+        let resp_byte = response.bytes().await.unwrap();
         copy(&mut resp_byte.as_ref(), &mut file).unwrap();
         let color = Colour::FABLED_PINK;
         let file_to_delete = fname.clone();
-
-        if let Ok(current_dir) = env::current_dir() {
-            let current_dir_str = current_dir.display().to_string();
-            let current_dir_str = current_dir_str.replace("\\", "/");
-            string_fname = format!("{}{}", current_dir_str, string_fname)
-        } else {
-            println!("Failed to retrieve the current directory.");
-        }
 
         differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
@@ -185,14 +155,12 @@ pub async fn run(
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             real_message
                 .edit(&ctx.http, |m| {
-                    m.embed(
-                        (|e| {
-                            e.title(&localised_text.title)
-                                .description(format!("{}", text))
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        }),
-                    )
+                    m.embed(|e| {
+                        e.title(&localised_text.title)
+                            .description(format!("{}", text))
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    })
                 })
                 .await
                 .expect("TODO");

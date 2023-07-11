@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct MediaData {
@@ -72,25 +72,25 @@ pub struct Tag {
     pub name: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Staff {
     pub edges: Vec<Edge>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Edge {
     pub node: Node,
     pub id: Option<u32>,
     pub role: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Node {
     pub id: Option<u32>,
     pub name: Name,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct Name {
     pub full: Option<String>,
     #[serde(rename = "userPreferred")]
