@@ -123,9 +123,9 @@ pub async fn run(
                 + (manga_completed * 2.0 + manga_reading * 1.0)
                 + chap * 5.0
                 + (min / 10.0);
-            let a = 5.0;
-            let b = 0.000005;
-            let level_float = a * (input).ln() + (b * input);
+            let a = 1.548850519;
+            let b = -7.397717072;
+            let level_float = a * (input).ln() + b;
             let level = level_float.floor();
 
             let progress_percent = (level_float - level) * 100.0;

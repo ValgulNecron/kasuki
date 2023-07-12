@@ -4,6 +4,8 @@ use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
+use chrono::Utc;
+
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
@@ -15,8 +17,9 @@ use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
-use crate::cmd::general_module::*;
+use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
+use crate::cmd::general_module::*;
 
 mod cmd;
 
@@ -57,7 +60,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| transcript::register(command))
                 .create_application_command(|command| translation::register(command))
         })
-            .await;
+        .await;
 
         println!(
             "I created the following global slash command: {:#?}",
@@ -98,7 +101,7 @@ impl EventHandler for Handler {
 
             // check if the command was successfully done.
             if content == "good".to_string() {
-                 return;
+                return;
             }
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
@@ -138,11 +141,34 @@ async fn main() {
             let lock = manager.lock().await;
             let shard_runners = lock.runners.lock().await;
 
+            let database_url = "./data.db";
+            let pool = get_pool(database_url).await;
+
+            sqlx::query(
+                "CREATE TABLE IF NOT EXISTS ping_history (
+                        shard_id TEXT,
+                        timestamp TEXT,
+                        ping TEXT NOT NULL,
+                        PRIMARY KEY (shard_id, timestamp)
+                    )",
+            )
+            .execute(&pool)
+            .await
+            .unwrap();
+
             for (id, runner) in shard_runners.iter() {
-                println!(
-                    "Shard ID {} is {} with a latency of {:?}",
-                    id, runner.stage, runner.latency,
-                );
+                let shard_id = id.0.to_string();
+                let latency = format!("{:?}", runner.latency);
+                let now = Utc::now().timestamp().to_string();
+                sqlx::query(
+                    "INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)",
+                )
+                    .bind(shard_id)
+                    .bind(now)
+                    .bind(latency)
+                    .execute(&pool)
+                    .await
+                    .unwrap();
             }
         }
     });

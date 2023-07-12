@@ -1,4 +1,6 @@
-use serenity::model::prelude::interaction::application_command::{CommandDataOption, CommandDataOptionValue};
+use serenity::model::prelude::interaction::application_command::{
+    CommandDataOption, CommandDataOptionValue,
+};
 
 pub fn get_lang_option(option: CommandDataOption) -> String {
     let mut lang = "en".to_string();
