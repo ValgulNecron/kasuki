@@ -62,7 +62,9 @@ something else just do it and open a pr afterward.
 
 you can add my instance of the bot with [this link](https://discord.com/oauth2/authorize?client_id=923286536445894697&permissions=517543913536&scope=bot)
 
-### 2. Docker.
+### 2. Self host your instance.
+
+##### Docker.
 
 - Install docker and docker compose.
 - Clone this repo.
@@ -85,7 +87,7 @@ Please remember that after a pull you will need to rebuild
 docker compose up -d --build 
 ```
 
-### 3. Rust.
+##### or Rust.
 
 - Install rust.
 - Clone this repo.
