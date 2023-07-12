@@ -1,10 +1,5 @@
 # TODO
 
-### Website
-
-for those of you who prefer web dev.. \
-[https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
-
 ### BOT
 
 - General part:
@@ -35,6 +30,11 @@ for those of you who prefer web dev.. \
     - [X] Video transcription. - Done
     - [X] Video translation. - Done
     - [ ] Ask a question and reply the response. - Not a priority
+ 
+### Website
+
+for those of you who prefer web dev.. \
+[https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
 
 # Vision
 
