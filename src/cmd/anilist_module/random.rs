@@ -4,8 +4,7 @@ use std::io::Read;
 
 use chrono::Utc;
 use rand::prelude::*;
-use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -18,6 +17,8 @@ use serenity::utils::Colour;
 use sqlx::{Pool, Sqlite};
 
 use crate::cmd::anilist_module::struct_random::*;
+use crate::cmd::anilist_module::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
+use crate::cmd::anilist_module::struct_site_statistic_manga::SiteStatisticsMangaWrapper;
 use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::RandomLocalisedText;
@@ -125,7 +126,6 @@ pub async fn embed(
     command: &ApplicationCommandInteraction,
 ) {
     let color = Colour::FABLED_PINK;
-    let client = Client::new();
     let number = thread_rng().gen_range(1..=last_page);
     if random_type == "manga" {
         let query = "
@@ -219,18 +219,9 @@ pub async fn embed(
                 }";
 
         let json = json!({"query": query, "variables": {"anime_page": number}});
-        let res = client
-            .post("https://graphql.anilist.co")
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .body(json.to_string())
-            .send()
-            .await
-            .unwrap()
-            .text()
-            .await;
+        let res = make_request(json).await;
 
-        let api_response: PageData = serde_json::from_str(&res.unwrap()).unwrap();
+        let api_response: PageData = serde_json::from_str(&res).unwrap();
 
         let media = &api_response.data.page.media[0];
         let title_user = &media.title.user_preferred;
@@ -360,93 +351,79 @@ pub async fn update_cache(
 ) {
     let now = Utc::now().timestamp();
 
+    let query;
+    if random_type.as_str() == "manga" {
+        query = "
+                    query($page: Int){
+                        SiteStatistics{
+                            manga(perPage: 1, page: $page){
+                                pageInfo{
+                                    currentPage
+                                    lastPage
+                                    total
+                                    hasNextPage
+                                }
+                                nodes{
+                                    date
+                                    count
+                                    change
+                                }
+                            }
+                        }
+                    }
+                "
+    } else if random_type.as_str() == "anime" {
+        query = "
+                    query($page: Int){
+                        SiteStatistics{
+                            anime(perPage: 1, page: $page){
+                                pageInfo{
+                                    currentPage
+                                    lastPage
+                                    total
+                                    hasNextPage
+                                }
+                                nodes{
+                                    date
+                                    count
+                                    change
+                                }
+                            }
+                        }
+                    }
+                "
+    } else {
+        return;
+    }
+
     loop {
-        let client = Client::new();
-        let query;
+        let json = json!({"query": query, "variables": {"page": page_number}});
+        let res = make_request(json).await;
+
         if random_type.as_str() == "manga" {
-            query = json!({
-                "query": r#"
-                    query($manga_page: Int = 1444){
-                        SiteStatistics{
-                            manga(perPage: 1, page: $manga_page){
-                                pageInfo{
-                                    currentPage
-                                    lastPage
-                                    total
-                                    hasNextPage
-                                }
-                                nodes{
-                                    date
-                                    count
-                                    change
-                                }
-                            }
-                        }
-                    }
-                "#,
-                "variables": {
-                    "manga_page": page_number
-                }
-            });
+            let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res).unwrap();
+            let has_next_page = api_response.data.site_statistics.manga.page_info.has_next_page;
+
+            if !has_next_page {
+                break;
+            }
+            cached_response = res.to_string();
+            previous_page = page_number;
+
+            page_number += 1;
         } else if random_type.as_str() == "anime" {
-            query = json!({
-                "query": r#"
-                    query($anime_page: Int = 1444){
-                        SiteStatistics{
-                            anime(perPage: 1, page: $anime_page){
-                                pageInfo{
-                                    currentPage
-                                    lastPage
-                                    total
-                                    hasNextPage
-                                }
-                                nodes{
-                                    date
-                                    count
-                                    change
-                                }
-                            }
-                        }
-                    }
-                "#,
-                "variables": {
-                    "anime_page": page_number
-                }
-            });
-        } else {
-            return;
-        }
-        let res = client
-            .post("https://graphql.anilist.co")
-            .json(&query)
-            .send()
-            .await
-            .unwrap()
-            .json::<Value>()
-            .await
-            .unwrap();
+            let api_response: SiteStatisticsAnimeWrapper = serde_json::from_str(&res).unwrap();
+            let has_next_page = api_response.data.site_statistics.anime.page_info.has_next_page;
 
-        let has_next_page = res["data"]["SiteStatistics"]["manga"]["pageInfo"]["hasNextPage"]
-            .as_bool()
-            .unwrap_or(true);
+            if !has_next_page {
+                break;
+            }
+            cached_response = res.to_string();
+            previous_page = page_number;
 
-        if !has_next_page {
-            break;
+            page_number += 1;
         }
 
-        cached_response = res.to_string();
-        previous_page = page_number;
-
-        sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
-            .bind(random_type)
-            .bind(&cached_response)
-            .bind(now)
-            .bind(previous_page)
-            .execute(&pool)
-            .await.unwrap();
-        embed(previous_page, random_type.to_string(), ctx, command).await;
-
-        page_number += 1;
     }
 
     sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
@@ -458,3 +435,6 @@ pub async fn update_cache(
         .await.unwrap();
     embed(previous_page, random_type.to_string(), ctx, command).await;
 }
+
+
+

@@ -12,6 +12,8 @@ pub mod staff;
 pub mod struct_character;
 pub mod struct_media;
 pub mod struct_random;
+pub mod struct_site_statistic_anime;
+pub mod struct_site_statistic_manga;
 pub mod struct_staff;
 pub mod struct_user;
 pub mod user;
