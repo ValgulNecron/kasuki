@@ -1,40 +1,40 @@
 # TODO
 
-### Website
-
-for those of you who prefer web dev.. \
-[https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
-
 ### BOT
 
 - General part:
-    - [ ] Change how the text is display to support localisation. - Done.
+    - [X] Change how the text is display to support localisation. - Done.
     - [X] Clean the code. - Done.
     - [X] Find a name for the bot. Found one kasuki. if you have any better don't hesitate to recommend.
     - [x] Add a bdd for some stuff prob sqlite but not sure. Added sqlite db.
 
 - Anime submodule:
-    - [X] Finish comparison function. - V1 done.
+    - [X] Finish comparison function. - V1 done. Will need to be better but it work. Idea of improvement add a score on how close 2 people are (affinity score). and have better formating for the text.
     - [X] Add character search function. Added character research with name.
     - [X] Add staff search function. Added staff research with name.
     - [X] Add search feature with type. Work for all.
-    - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
-      with seiyuu and va role. - This is possible, I'm not competent enough.
     - [X] Bind anilist account to discord for /user and /search user. Added register command and edited user command.
-    - [ ] Send anime release to a channel. - Will need some digging but should be possible.
+    - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
+    - [ ] Add caching to all request. - In Progress, Added caching for random. New top priority. (also thinking to add with the ai module to add an auto-translate for description and tag)
+    - [ ] Send anime release to a channel. - Since anilist does not have subscribable event it will take longer so i will work on it later. 
     - [ ] Try to do the same for manga
       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
-      this one only selected manga not all seasonal). - Not sure if possible.
-    - [ ] Activity command (auto send activity of a user to a channel). - This should be possible.
-    - [ ] Add a "delay" option to delay notification. (like 1h for a translation). - Need anime notification first.
-    - [ ] Add caching to all request. - In Progress, Added caching for random.
-    - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
+      this one only selected manga not all seasonal). - Did some digging seem possible i will do anime first trought.
+    - [ ] Activity command (auto send activity of a user to a channel). - Same as anime, but this one will be hard since a user can do update every secon like every year.
+    - [ ] Add a "delay" option to delay notification. (like 1h for a translation). - Need anime notification first. will be easy once anime is done.
+    - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
+      with seiyuu and va role. - This is possible, I'm not competent enough.
 
 - AI submodule:
     - [X] Image generation with AI. - Done
     - [X] Video transcription. - Done
     - [X] Video translation. - Done
     - [ ] Ask a question and reply the response. - Not a priority
+ 
+### Website
+
+for those of you who prefer web dev.. \
+[https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
 
 # Vision
 
@@ -46,20 +46,25 @@ from it. there is also secondary module that will be added when I have idea or w
 ### I know how to code in rust.
 
 them please check the todo and follow CONTRIBUTING.md to add feature, if the todo is complete or you want to do
-something
-else just do it.
+something else just do it and open a pr afterward.
 
 ### I don't know how to code in rust but still want to contribute.
 
-1. You can add new langage by adding a translation in the file located in lang_file and add in lang.rs found in  
-   src/cmd/general_modules/ the option with .add_string_choice("ISO-639-1", "ISO-639-1")
+1. You can add new langage by adding a translation in the file located in lang_file and add in lang.rs (found in  
+   src/cmd/general_modules/) the option with .add_string_choice("ISO-639-1", "ISO-639-1")
    please google for what is ISO-639-1
 2. Contribute to this guide by making it clearer on how to use/ how it works.
 3. Or by opening an issue with enhancement or new feature you want to see.
 
 # How to use
 
-### 1. Docker.
+### 1. Add the bot to your server.
+
+you can add my instance of the bot with [this link](https://discord.com/oauth2/authorize?client_id=923286536445894697&permissions=517543913536&scope=bot)
+
+### 2. Self host your instance.
+
+##### Docker.
 
 - Install docker and docker compose.
 - Clone this repo.
@@ -82,7 +87,7 @@ Please remember that after a pull you will need to rebuild
 docker compose up -d --build 
 ```
 
-### 2. Rust.
+##### or Rust.
 
 - Install rust.
 - Clone this repo.
