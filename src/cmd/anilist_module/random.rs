@@ -41,9 +41,9 @@ pub async fn run(
             last_page INTEGER NOT NULL
         )",
     )
-        .execute(&pool)
-        .await
-        .unwrap();
+    .execute(&pool)
+    .await
+    .unwrap();
 
     let option = options
         .get(0)
@@ -57,10 +57,10 @@ pub async fn run(
         let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as(
             "SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?",
         )
-            .bind(random_type)
-            .fetch_one(&pool)
-            .await
-            .unwrap_or((None, None, None));
+        .bind(random_type)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None, None));
 
         let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
 
@@ -86,7 +86,7 @@ pub async fn run(
                     cached_response,
                     pool,
                 )
-                    .await
+                .await
             }
         } else {
             update_cache(
@@ -98,7 +98,7 @@ pub async fn run(
                 cached_response,
                 pool,
             )
-                .await
+            .await
         }
     }
     return "good".to_string();
@@ -192,7 +192,7 @@ pub async fn embed(
             cover_image,
             url,
         )
-            .await;
+        .await;
     } else if random_type == "anime" {
         let query = "
                     query($anime_page: Int){
@@ -258,7 +258,7 @@ pub async fn embed(
             cover_image,
             url,
         )
-            .await;
+        .await;
     } else {
         let mut file = File::open("lang_file/anilist/random.json").expect("Failed to open file");
         let mut json = String::new();
@@ -402,7 +402,12 @@ pub async fn update_cache(
 
         if random_type.as_str() == "manga" {
             let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res).unwrap();
-            let has_next_page = api_response.data.site_statistics.manga.page_info.has_next_page;
+            let has_next_page = api_response
+                .data
+                .site_statistics
+                .manga
+                .page_info
+                .has_next_page;
 
             if !has_next_page {
                 break;
@@ -413,7 +418,12 @@ pub async fn update_cache(
             page_number += 1;
         } else if random_type.as_str() == "anime" {
             let api_response: SiteStatisticsAnimeWrapper = serde_json::from_str(&res).unwrap();
-            let has_next_page = api_response.data.site_statistics.anime.page_info.has_next_page;
+            let has_next_page = api_response
+                .data
+                .site_statistics
+                .anime
+                .page_info
+                .has_next_page;
 
             if !has_next_page {
                 break;
@@ -423,7 +433,6 @@ pub async fn update_cache(
 
             page_number += 1;
         }
-
     }
 
     sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
@@ -435,6 +444,3 @@ pub async fn update_cache(
         .await.unwrap();
     embed(previous_page, random_type.to_string(), ctx, command).await;
 }
-
-
-

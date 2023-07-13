@@ -9,19 +9,23 @@
     - [x] Add a bdd for some stuff prob sqlite but not sure. Added sqlite db.
 
 - Anime submodule:
-    - [X] Finish comparison function. - V1 done. Will need to be better but it work. Idea of improvement add a score on how close 2 people are (affinity score). and have better formating for the text.
+    - [X] Finish comparison function. - V1 done. Will need to be better but it work. Idea of improvement add a score on
+      how close 2 people are (affinity score). and have better formating for the text.
     - [X] Add character search function. Added character research with name.
     - [X] Add staff search function. Added staff research with name.
     - [X] Add search feature with type. Work for all.
-    - [X] Bind anilist account to discord for /user and /search user. Added register command and edited user command.
+    - [X] Bind anilist account to discord for /user. Added register command and edited user command.
     - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
-    - [ ] Add caching to all request. - In Progress, Added caching for random. New top priority. (also thinking to add with the ai module to add an auto-translate for description and tag)
+    - [ ] Rework the xp in struct_level to something easier.
+    - [ ] Add caching to all request. - In Progress, Added caching for random. New top priority. 
     - [ ] Send anime release to a channel. - Since anilist does not have subscribable event it will take longer so i will work on it later. 
     - [ ] Try to do the same for manga
       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
       this one only selected manga not all seasonal). - Did some digging seem possible i will do anime first trought.
-    - [ ] Activity command (auto send activity of a user to a channel). - Same as anime, but this one will be hard since a user can do update every secon like every year.
-    - [ ] Add a "delay" option to delay notification. (like 1h for a translation). - Need anime notification first. will be easy once anime is done.
+    - [ ] Activity command (auto send activity of a user to a channel). - Same as anime, but this one will be hard since
+      a user can do update every secon like every year.
+    - [ ] Add a "delay" option to delay notification. (like 1h for a translation). - Need anime notification first. will
+      be easy once anime is done.
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
       with seiyuu and va role. - This is possible, I'm not competent enough.
 

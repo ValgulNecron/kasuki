@@ -5,7 +5,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Utc;
-
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
@@ -158,7 +157,8 @@ async fn main() {
 
             for (id, runner) in shard_runners.iter() {
                 let shard_id = id.0.to_string();
-                let latency = format!("{:?}", runner.latency);
+                let latency_content = runner.latency.unwrap_or(Duration::from_secs(0));
+                let latency = format!("{:?}", latency_content);
                 let now = Utc::now().timestamp().to_string();
                 sqlx::query(
                     "INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)",

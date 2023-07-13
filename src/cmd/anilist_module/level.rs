@@ -13,6 +13,7 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 
+use crate::cmd::anilist_module::struct_level::LevelSystem;
 use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::color::get_user_color;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
@@ -119,16 +120,22 @@ pub async fn run(
 
             let chap = manga.chapters_read.unwrap_or_else(|| 0) as f64;
             let min = anime.minutes_watched.unwrap_or_else(|| 0) as f64;
-            let input = (anime_completed * 2.0 + anime_watching * 1.0)
-                + (manga_completed * 2.0 + manga_reading * 1.0)
+            let input = (anime_completed * 2.5 + anime_watching * 1.0)
+                + (manga_completed * 2.5 + manga_reading * 1.0)
                 + chap * 5.0
-                + (min / 10.0);
-            let a = 1.548850519;
-            let b = -7.397717072;
-            let level_float = a * (input).ln() + b;
-            let level = level_float.floor();
+                + (min / 5.0);
 
-            let progress_percent = (level_float - level) * 100.0;
+            let user_level;
+            let user_progression;
+            if let Some((level, level_progress, level_progress_total)) =
+                LevelSystem::get_level(input)
+            {
+                user_level = level;
+                user_progression = format!("{:.3}/{:.3}", level_progress, level_progress_total)
+            } else {
+                user_level = 0;
+                user_progression = "0/0".to_string();
+            }
 
             let color = get_user_color(data.clone());
 
@@ -146,11 +153,11 @@ pub async fn run(
                                         format!(
                                             "{}{}{}{}{}{}{}",
                                             &localised_text.level,
-                                            level,
+                                            user_level,
                                             &localised_text.xp,
                                             input,
                                             &localised_text.progression_1,
-                                            progress_percent.floor(),
+                                            user_progression,
                                             &localised_text.progression_2
                                         ),
                                         false,

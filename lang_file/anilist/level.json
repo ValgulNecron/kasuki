@@ -3,24 +3,26 @@
     "level": "Your level is: ",
     "xp": ".\nYou have a total of: ",
     "progression_1": " XP.\nYou are at ",
-    "progression_2": "% to the next level."
+    "progression_2": " for the next level."
   },
   "Fr": {
     "level": "Votre niveau est : ",
     "xp": ".\nVous avez un total de : ",
     "progression_1": " XP.\nVous êtes à ",
-    "progression_2": "% du prochain niveau."
+    "progression_2": " pour le prochain niveau."
   },
   "Jp": {
-    "level": "あなたのレベルは: ",
-    "xp": "。\n合計XPは: ",
-    "progression_1": " XPです。\n次のレベルまで ",
-    "progression_2": "% 進んでいます。"
+    "level": "あなたのレベルは：",
+    "xp": "です。\n合計：",
+    "progression_1": " XPです。\n次のレベルまで",
+    "progression_2": " 進んでいます。"
   },
   "De": {
     "level": "Dein Level ist: ",
     "xp": ".\nDu hast insgesamt: ",
-    "progression_1": " XP.\nDu bist zu ",
-    "progression_2": "% zum nächsten Level."
+    "progression_1": " XP.\nDu bist auf Level ",
+    "progression_2": " für das nächste Level."
   }
+}
+
 }
