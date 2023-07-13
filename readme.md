@@ -17,8 +17,9 @@
     - [X] Bind anilist account to discord for /user. Added register command and edited user command.
     - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
     - [ ] Rework the xp in struct_level to something easier.
-    - [ ] Add caching to all request. - In Progress, Added caching for random. New top priority. 
-    - [ ] Send anime release to a channel. - Since anilist does not have subscribable event it will take longer so i will work on it later. 
+    - [ ] Add caching to all request. - In Progress, Added caching for random. New top priority.
+    - [ ] Send anime release to a channel. - Since anilist does not have subscribable event it will take longer so i
+      will work on it later.
     - [ ] Try to do the same for manga
       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
       this one only selected manga not all seasonal). - Did some digging seem possible i will do anime first trought.
@@ -34,7 +35,7 @@
     - [X] Video transcription. - Done
     - [X] Video translation. - Done
     - [ ] Ask a question and reply the response. - Not a priority
- 
+
 ### Website
 
 for those of you who prefer web dev.. \
@@ -64,7 +65,8 @@ something else just do it and open a pr afterward.
 
 ### 1. Add the bot to your server.
 
-you can add my instance of the bot with [this link](https://discord.com/oauth2/authorize?client_id=923286536445894697&permissions=517543913536&scope=bot)
+you can add my instance of the bot
+with [this link](https://discord.com/oauth2/authorize?client_id=923286536445894697&permissions=517543913536&scope=bot)
 
 ### 2. Self host your instance.
 

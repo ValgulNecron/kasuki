@@ -1,15 +1,16 @@
+use std::{env, fs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{copy, Read};
 use std::path::Path;
-use std::{env, fs};
 
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use serde_json::Value;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
+use serenity::model::channel::Message;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{
@@ -86,7 +87,19 @@ pub async fn run(
 
         differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
-        let message = in_progress_embed(ctx, command).await;
+        let message: Message;
+        match in_progress_embed(&ctx, &command).await {
+            Ok(Some(message_option)) => {
+                message = message_option;
+            }
+            Ok(None) => {
+                return "there was an error".to_string();
+            }
+            Err(error) => {
+                println!("Error: {}", error);
+                return error;
+            }
+        }
 
         let my_path = "./.env";
         let path = Path::new(my_path);
@@ -141,7 +154,7 @@ pub async fn run(
         let _ = fs::remove_file(&file_to_delete);
 
         let text = res["text"].as_str().unwrap_or("");
-        let mut real_message = message.unwrap();
+        let mut real_message = message.clone();
         let mut file = File::open("lang_file/ai/transcript.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
