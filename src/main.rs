@@ -12,9 +12,9 @@ use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::Interaction;
+use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::gateway::Activity;
 use serenity::model::gateway::Ready;
-use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::prelude::*;
 use serenity::utils::Colour;
@@ -77,7 +77,9 @@ impl EventHandler for Handler {
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(command) = interaction {
-            println!("Received command interaction: {:#?}", command);
+            if cfg!(debug_assertions){
+                println!("Received command interaction: {:#?}", command);
+            }
 
             let content = match command.data.name.as_str() {
                 // General module.
@@ -124,44 +126,35 @@ impl EventHandler for Handler {
 
             if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
                 if let Err(why) = command
-                        .create_interaction_response(&ctx.http, |response| {
-                            response
-                                .kind(InteractionResponseType::ChannelMessageWithSource)
-                                .interaction_response_data(|message| {
-                                    message.embed(|m| {
-                                        m.title(&localised_text.error_title)
-                                            .description(&content)
-                                            .timestamp(Timestamp::now())
-                                            .color(color)
-                                    })
+                    .create_interaction_response(&ctx.http, |response| {
+                        response
+                            .kind(InteractionResponseType::ChannelMessageWithSource)
+                            .interaction_response_data(|message| {
+                                message.embed(|m| {
+                                    m.title(&localised_text.error_title)
+                                        .description(&content)
+                                        .timestamp(Timestamp::now())
+                                        .color(color)
                                 })
-                        }).await
+                            })
+                    }).await
                 {
-                    if let Err(why) = command
-                    .create_followup_message(&ctx.http, |f| {
-                        f.embed(|e| {
-                            e.title(&localised_text.error_title)
-                                .description(&content)
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        })
-                    })
-                    .await
-                    {
-                        println!("Cannot respond to slash command: {}", why);
-                    }
+                    println!("Cannot respond to slash command: {}", why);
                 }
             } else {
                 if let Err(why) = command
-                    .create_followup_message(&ctx.http, |f| {
-                        f.embed(|e| {
-                            e.title("Error")
-                                .description("Language not found")
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        })
-                    })
-                    .await
+                    .create_interaction_response(&ctx.http, |response| {
+                        response
+                            .kind(InteractionResponseType::ChannelMessageWithSource)
+                            .interaction_response_data(|message| {
+                                message.embed(|m| {
+                                    m.title("Error")
+                                        .description(&content)
+                                        .timestamp(Timestamp::now())
+                                        .color(color)
+                                })
+                            })
+                    }).await
                 {
                     println!("Cannot respond to slash command: {}", why);
                 }
@@ -172,6 +165,11 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
+    if cfg!(debug_assertions)   {
+        println!("Running in debug mode");
+    } else if !cfg!(debug_assertions) {
+        println!("Running in release mode");
+    }
     // Configure the client with your Discord bot token in the environment.
     let my_path = "./.env";
     println!("{}", my_path.to_string());
