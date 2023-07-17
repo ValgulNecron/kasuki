@@ -117,7 +117,7 @@ pub async fn run(
             let path = Path::new(filename_str);
 
             let color = Colour::FABLED_PINK;
-            real_message
+            if let Err(why) = real_message
                 .edit(&ctx.http, |m| {
                     m.attachment(path).embed(|e| {
                         e.title(&localised_text.title)
@@ -127,8 +127,11 @@ pub async fn run(
                     })
                 })
                 .await
-                .expect("TODO");
-            let _ = fs::remove_file(filename_str);
+            {
+                let _ = fs::remove_file(filename_str);
+                println!("Cannot respond to slash command: {}", why);
+                return format!("{}: {}", &localised_text.error_slash_command, why);
+            }
         } else {
             let _ = fs::remove_file(filename_str);
             return "Language not found".to_string();
