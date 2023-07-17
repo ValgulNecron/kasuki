@@ -158,9 +158,11 @@ pub async fn run(
         let _ = fs::remove_file(&file_to_delete);
         if lang != "en" {
             let text = translation(lang, text.to_string()).await;
-            translation_embed(ctx, command, text, message).await;
+            let result = translation_embed(ctx, command, text, message).await;
+            return result;
         } else {
-            translation_embed(ctx, command, text.to_string(), message).await;
+            let result = translation_embed(ctx, command, text.to_string(), message).await;
+            return result;
         }
     }
     return "good".to_string();

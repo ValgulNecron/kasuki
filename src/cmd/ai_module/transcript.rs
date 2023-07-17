@@ -181,7 +181,7 @@ pub async fn run(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            real_message
+            if let Err(why) = real_message
                 .edit(&ctx.http, |m| {
                     m.embed(|e| {
                         e.title(&localised_text.title)
@@ -191,10 +191,14 @@ pub async fn run(
                     })
                 })
                 .await
-                .expect("TODO");
+            {
+                println!("Cannot respond to slash command: {}", why);
+            }
         } else {
+            let _ = fs::remove_file(&file_to_delete);
             return "Language not found".to_string();
         }
+        let _ = fs::remove_file(&file_to_delete);
     }
     return "good".to_string();
 }
