@@ -5,14 +5,14 @@
   },
   "Fr": {
     "title": "En cours",
-    "description": "La tâche est en cours de traitement... Veuillez patienter, cela peut prendre un certain temps !"
-  },
-  "Jp": {
-    "title": "進行中",
-    "description": "タスクが処理中です... しばらくお待ちください！時間がかかる場合があります！"
+    "description": "La tâche est en cours de traitement... Veuillez patienter, car cela peut prendre du temps !"
   },
   "De": {
     "title": "In Bearbeitung",
-    "description": "Die Aufgabe wird verarbeitet... Bitte haben Sie Geduld, da dies einige Zeit in Anspruch nehmen kann!"
+    "description": "Die Aufgabe wird verarbeitet... Bitte haben Sie Geduld, da dies einige Zeit dauern kann!"
+  },
+  "Jp": {
+    "title": "処理中",
+    "description": "タスクは処理中です... しばらくお待ちください。"
   }
 }

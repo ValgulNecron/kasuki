@@ -185,6 +185,7 @@ async fn main() {
 
     let manager = client.shard_manager.clone();
 
+
     tokio::spawn(async move {
         loop {
             sleep(Duration::from_secs(600)).await;
@@ -223,10 +224,6 @@ async fn main() {
                     .unwrap();
             }
         }
-    });
-
-    let manager = client.shard_manager.clone();
-    tokio::spawn(async move {
     });
 
     {

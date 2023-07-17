@@ -40,6 +40,6 @@ pub async fn in_progress_embed(
             .await;
         Ok(Some(message.unwrap()))
     } else {
-        Err("can't create slash command".to_string())
+        Err("Language not found".to_string())
     }
 }

@@ -29,6 +29,8 @@ pub struct PingLocalisedText {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ImageLocalisedText {
     pub title: String,
+    pub error_slash_command: String,
+    pub unknown_error: String
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -40,11 +42,15 @@ pub struct InProgressLocalisedText {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TranscriptLocalisedText {
     pub title: String,
+    pub error_slash_command: String,
+    pub unknown_error: String
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TranslationLocalisedText {
     pub title: String,
+    pub error_slash_command: String,
+    pub unknown_error: String
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
