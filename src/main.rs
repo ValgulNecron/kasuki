@@ -225,6 +225,10 @@ async fn main() {
         }
     });
 
+    let manager = client.shard_manager.clone();
+    tokio::spawn(async move {
+    });
+
     {
         let mut data = client.data.write().await;
 

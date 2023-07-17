@@ -96,6 +96,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command
         .name("lang")
         .description("Change the lang of the bot response")
+        .default_member_permissions(Permissions::ADMINISTRATOR)
         .create_option(|option| {
             option
                 .name("lang")
