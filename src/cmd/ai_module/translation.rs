@@ -1,14 +1,15 @@
+use std::{env, fs};
 use std::fs::File;
 use std::io::copy;
 use std::path::Path;
-use std::{env, fs};
 
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
+use serenity::model::channel::Message;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{
@@ -74,7 +75,19 @@ pub async fn run(
 
         differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
-        let message = in_progress_embed(ctx, command).await;
+        let message: Message;
+        match in_progress_embed(&ctx, &command).await {
+            Ok(Some(message_option)) => {
+                message = message_option;
+            }
+            Ok(None) => {
+                return "there was an error".to_string();
+            }
+            Err(error) => {
+                println!("Error: {}", error);
+                return error;
+            }
+        }
 
         let my_path = "./.env";
         let path = Path::new(my_path);

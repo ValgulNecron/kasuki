@@ -191,3 +191,8 @@ pub struct CompareLocalisedText {
     pub pref_genre_manga: String,
     pub pref_tag_manga: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ErrorLocalisedText {
+    pub error_title: String,
+}

@@ -14,7 +14,7 @@ use crate::cmd::general_module::lang_struct::InProgressLocalisedText;
 pub async fn in_progress_embed(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> serenity::Result<Message> {
+) -> Result<Option<Message>, String> {
     let color = Colour::FABLED_PINK;
     let mut file = File::open("lang_file/general/in_progress.json").expect("Failed to open file");
     let mut json = String::new();
@@ -38,11 +38,8 @@ pub async fn in_progress_embed(
                 })
             })
             .await;
+        Ok(Some(message.unwrap()))
     } else {
-        message = command
-            .create_followup_message(&ctx.http, |f| f.embed(|e| e.title("Error")))
-            .await;
+        Err("can't create slash command".to_string())
     }
-
-    return message;
 }

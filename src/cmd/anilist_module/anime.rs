@@ -107,7 +107,14 @@ pub async fn run(
             let json = json!({"query": QUERY, "variables": {"search": name}});
             let resp = make_request(json).await;
             // Get json
-            let data: MediaData = serde_json::from_str(&resp).unwrap();
+            let data: MediaData = match serde_json::from_str(&resp) {
+                Ok(data) => data,
+                Err(error) => {
+                    println!("Error: {}", error);
+                    return "Unable to find thi anime.".to_string();
+                }
+            };
+
             let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
             let desc_no_br = data
                 .data

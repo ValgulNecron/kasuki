@@ -1,14 +1,15 @@
+use std::{env, fs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use std::{env, fs};
 
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
+use serenity::model::channel::Message;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
@@ -36,7 +37,20 @@ pub async fn run(
     if let CommandDataOptionValue::String(description) = option {
         differed_response(ctx, command).await;
 
-        let message = in_progress_embed(ctx, command).await;
+        let message: Message;
+        match in_progress_embed(&ctx, &command).await {
+            Ok(Some(message_option)) => {
+                message = message_option;
+            }
+            Ok(None) => {
+                return "there was an error".to_string();
+            }
+            Err(error) => {
+                println!("Error: {}", error);
+                return error;
+            }
+        }
+
 
         let my_path = "./.env";
         let path = Path::new(my_path);
@@ -80,7 +94,7 @@ pub async fn run(
             }
         }
 
-        let mut real_message = message.unwrap();
+        let mut real_message = message.clone();
         let response = reqwest::get(url_string).await.unwrap();
         let bytes = response.bytes().await.unwrap();
         let uuid_name = Uuid::new_v4();

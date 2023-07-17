@@ -1,6 +1,9 @@
 extern crate core;
 
+use std::collections::HashMap;
 use std::env;
+use std::fs::File;
+use std::io::Read;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -8,17 +11,22 @@ use chrono::Utc;
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
-use serenity::model::application::interaction::{Interaction, InteractionResponseType};
+use serenity::model::application::interaction::Interaction;
+use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::gateway::Activity;
 use serenity::model::gateway::Ready;
+use serenity::model::Timestamp;
 use serenity::prelude::*;
+use serenity::utils::Colour;
 use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
+use crate::cmd::general_module::*;
+use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
-use crate::cmd::general_module::*;
 
 mod cmd;
 
@@ -59,7 +67,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| transcript::register(command))
                 .create_application_command(|command| translation::register(command))
         })
-        .await;
+            .await;
 
         println!(
             "I created the following global slash command: {:#?}",
@@ -69,7 +77,9 @@ impl EventHandler for Handler {
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(command) = interaction {
-            println!("Received command interaction: {:#?}", command);
+            if cfg!(debug_assertions){
+                println!("Received command interaction: {:#?}", command);
+            }
 
             let content = match command.data.name.as_str() {
                 // General module.
@@ -102,15 +112,52 @@ impl EventHandler for Handler {
             if content == "good".to_string() {
                 return;
             }
-            if let Err(why) = command
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| message.content(content))
-                })
-                .await
-            {
-                println!("Cannot respond to slash command: {}", why);
+
+            let color = Colour::FABLED_PINK;
+            let mut file = File::open("lang_file/error.json").expect("Failed to open file");
+            let mut json = String::new();
+            file.read_to_string(&mut json).expect("Failed to read file");
+
+            let json_data: HashMap<String, ErrorLocalisedText> =
+                serde_json::from_str(&json).expect("Failed to parse JSON");
+
+            let guild_id = command.guild_id.unwrap().0.to_string().clone();
+            let lang_choice = get_guild_langage(guild_id).await;
+
+            if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+                if let Err(why) = command
+                    .create_interaction_response(&ctx.http, |response| {
+                        response
+                            .kind(InteractionResponseType::ChannelMessageWithSource)
+                            .interaction_response_data(|message| {
+                                message.embed(|m| {
+                                    m.title(&localised_text.error_title)
+                                        .description(&content)
+                                        .timestamp(Timestamp::now())
+                                        .color(color)
+                                })
+                            })
+                    }).await
+                {
+                    println!("Cannot respond to slash command: {}", why);
+                }
+            } else {
+                if let Err(why) = command
+                    .create_interaction_response(&ctx.http, |response| {
+                        response
+                            .kind(InteractionResponseType::ChannelMessageWithSource)
+                            .interaction_response_data(|message| {
+                                message.embed(|m| {
+                                    m.title("Error")
+                                        .description(&content)
+                                        .timestamp(Timestamp::now())
+                                        .color(color)
+                                })
+                            })
+                    }).await
+                {
+                    println!("Cannot respond to slash command: {}", why);
+                }
             }
         }
     }
@@ -118,6 +165,11 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
+    if cfg!(debug_assertions)   {
+        println!("Running in debug mode");
+    } else if !cfg!(debug_assertions) {
+        println!("Running in release mode");
+    }
     // Configure the client with your Discord bot token in the environment.
     let my_path = "./.env";
     println!("{}", my_path.to_string());
@@ -151,9 +203,9 @@ async fn main() {
                         PRIMARY KEY (shard_id, timestamp)
                     )",
             )
-            .execute(&pool)
-            .await
-            .unwrap();
+                .execute(&pool)
+                .await
+                .unwrap();
 
             for (id, runner) in shard_runners.iter() {
                 let shard_id = id.0.to_string();
@@ -171,6 +223,10 @@ async fn main() {
                     .unwrap();
             }
         }
+    });
+
+    let manager = client.shard_manager.clone();
+    tokio::spawn(async move {
     });
 
     {

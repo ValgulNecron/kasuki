@@ -1,4 +1,5 @@
 pub mod anime;
+pub mod anime_activity;
 pub mod character;
 pub mod command_media_ln;
 pub mod compare;

@@ -15,10 +15,10 @@ pub async fn translation_embed(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     text: String,
-    message: serenity::Result<Message>,
+    message: Message,
 ) {
     let color = Colour::FABLED_PINK;
-    let mut real_message = message.unwrap();
+    let mut real_message = message.clone();
     let mut file = File::open("lang_file/ai/translation.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
