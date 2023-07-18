@@ -96,7 +96,11 @@ pub async fn run(
             let color = Colour::FABLED_PINK;
             let file_to_delete = fname.clone();
 
-            differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
+            let result_diff = differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
+
+            if result_diff != "good".as_ref() {
+                return result_diff;
+            }
 
             let message: Message;
 

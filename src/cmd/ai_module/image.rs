@@ -35,7 +35,11 @@ pub async fn run(
         .as_ref()
         .expect("Expected username object");
     if let CommandDataOptionValue::String(description) = option {
-        differed_response(ctx, command).await;
+        let result_diff = differed_response(ctx, command).await;
+
+        if result_diff != "good".as_ref() {
+            return result_diff;
+        }
 
         let uuid_name = Uuid::new_v4();
         let filename = format!("{}.png", uuid_name);

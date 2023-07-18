@@ -74,7 +74,7 @@ pub async fn run(
                 .to_lowercase();
 
             if !allowed_extensions.contains(&&**&file_extension) {
-                return localised_text.error_file_extension.clone()
+                return localised_text.error_file_extension.clone();
             }
 
             let response = reqwest::get(content).await.expect("download");
@@ -87,7 +87,11 @@ pub async fn run(
             copy(&mut resp_byte.as_ref(), &mut file).unwrap();
             let file_to_delete = fname.clone();
 
-            differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
+            let result_diff = differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
+
+            if result_diff != "good".as_ref() {
+                return result_diff;
+            }
 
             let message: Message;
 
