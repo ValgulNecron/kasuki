@@ -220,4 +220,5 @@ pub struct BannerLocalisedText {
     pub title: String,
     pub description: String,
     pub no_banner_title: String,
+    pub error_no_user: String,
 }
