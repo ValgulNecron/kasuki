@@ -8,12 +8,12 @@
     - [X] Find a name for the bot. Found one kasuki. if you have any better don't hesitate to recommend.
     - [x] Add a bdd for some stuff prob sqlite but not sure. Added sqlite db.
     - [ ] Add support to turn on and off module.
-    - [X] Banner. Show your or a specified user banner. - Done
-    - [ ] Profil. Show a user profile and some info. - In progress
+    - [X] Banner. Show your or a specified user banner. - Done.
+    - [X] Profil. Show a user profile and some info. - Done.
 
 - Anime submodule:
-    - [X] Finish comparison function. - V1 done. Will need to be better but it work. Idea of improvement add a score on
-      how close 2 people are (affinity score). and have better formating for the text.
+    - [X] Finish comparison function. - V1 done. Will need to be better but it works. Idea of improvement add a score on
+      how close 2 people are (affinity score). and have better formatting for the text.
     - [X] Add character search function. Added character research with name.
     - [X] Add staff search function. Added staff research with name.
     - [X] Add search feature with type. Work for all.
@@ -21,23 +21,23 @@
     - [X] Random /random {anime, manga}. Added random for both anime and manga. Manga random can give ln.
     - [ ] Rework the xp in struct_level to something easier.
     - [ ] Add caching to all request. - In Progress, Added caching for random. New top priority.
-    - [ ] Send anime release to a channel. - Since anilist does not have subscribable event it will take longer so i
+    - [ ] Send anime release to a channel. - Since anilist does not have subscribable event it will take longer, so I
       will work on it later.
-    - [ ] Try to do the same for manga
+    - [ ] Try to do the same for manga.
       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
-      this one only selected manga not all seasonal). - Did some digging seem possible i will do anime first trought.
+      this one only selected manga not all seasonal). - Did some digging seem possible I will do anime first trough.
     - [ ] Activity command (auto send activity of a user to a channel). - Same as anime, but this one will be hard since
-      a user can do update every secon like every year.
+      a user can do update every second like every year.
     - [ ] Add a "delay" option to delay notification. (like 1h for a translation). - Need anime notification first. will
       be easy once anime is done.
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
       with seiyuu and va role. - This is possible, I'm not competent enough.
 
 - AI submodule:
-    - [X] Image generation with AI. - Done
-    - [X] Video transcription. - Done
-    - [X] Video translation. - Done
-    - [ ] Ask a question and reply the response. - Not a priority
+    - [X] Image generation with AI. - Done.
+    - [X] Video transcription. - Done.
+    - [X] Video translation. - Done.
+    - [ ] Ask a question and reply the response. - Not a priority.
 
 ### Website
 
@@ -53,7 +53,7 @@ from it. there is also secondary module that will be added when I have idea or w
 
 ### I know how to code in rust.
 
-them please check the todo and follow CONTRIBUTING.md to add feature, if the todo is complete or you want to do
+Then please check the todo and follow CONTRIBUTING.md to add feature, if the todo is complete, or you want to do
 something else just do it and open a pr afterward.
 
 ### I don't know how to code in rust but still want to contribute.
@@ -71,7 +71,7 @@ something else just do it and open a pr afterward.
 you can add my instance of the bot
 with [this link](https://discord.com/oauth2/authorize?client_id=923286536445894697&permissions=517543913536&scope=bot)
 
-### 2. Self host your instance.
+### 2. Self-host your instance.
 
 ##### Docker.
 
