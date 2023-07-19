@@ -4,9 +4,39 @@
     "title": "Here's the profile of ",
     "error_no_user": "Error getting user",
     "user_id": "This user id is: ",
-    "is_bot": "Is this user a bot ? ",
-    "public_flag": "Here the public flags: ",
-    "joined_at": "Here the join date: ",
-    "created_at": "Here the account creation date: "
+    "is_bot": "Is this user a bot? ",
+    "public_flag": "Here are the public flags: ",
+    "joined_at": "Here's the join date: ",
+    "created_at": "Here's the account creation date: "
+  },
+  "Fr": {
+    "error_slash_command": "Impossible de créer la commande slash",
+    "title": "Voici le profil de ",
+    "error_no_user": "Erreur lors de la récupération de l'utilisateur",
+    "user_id": "Cet identifiant d'utilisateur est : ",
+    "is_bot": "Cet utilisateur est-il un bot ? ",
+    "public_flag": "Voici les indicateurs publics : ",
+    "joined_at": "Voici la date d'adhésion : ",
+    "created_at": "Voici la date de création du compte : "
+  },
+  "De": {
+    "error_slash_command": "Slash-Befehl kann nicht erstellt werden",
+    "title": "Hier ist das Profil von ",
+    "error_no_user": "Fehler beim Abrufen des Benutzers",
+    "user_id": "Diese Benutzer-ID lautet: ",
+    "is_bot": "Ist dieser Benutzer ein Bot? ",
+    "public_flag": "Hier sind die öffentlichen Flags: ",
+    "joined_at": "Hier ist das Beitrittsdatum: ",
+    "created_at": "Hier ist das Kontoerstellungsdatum: "
+  },
+  "Jp": {
+    "error_slash_command": "スラッシュコマンドを作成できません",
+    "title": "以下はプロフィールです：",
+    "error_no_user": "ユーザーの取得中にエラーが発生しました",
+    "user_id": "このユーザーのIDは：",
+    "is_bot": "このユーザーはボットですか？",
+    "public_flag": "ここに公開フラグがあります：",
+    "joined_at": "ここに参加日があります：",
+    "created_at": "ここにアカウント作成日があります："
   }
 }
