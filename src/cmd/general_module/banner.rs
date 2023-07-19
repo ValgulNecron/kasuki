@@ -22,14 +22,14 @@ pub async fn run(options: &[CommandDataOption],
     return if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
-            let result = banner_with_user(options, ctx, command, &user).await;
+            let result = banner_with_user(ctx, command, &user).await;
             result
         } else {
-            let result = banner_without_user(options, ctx, command).await;
+            let result = banner_without_user(ctx, command).await;
             result
         }
     } else {
-        let result = banner_without_user(options, ctx, command).await;
+        let result = banner_without_user(ctx, command).await;
         result
     };
 }
@@ -87,8 +87,8 @@ pub async fn no_banner(
     return "good".to_string();
 }
 
-pub async fn banner_without_user(options: &[CommandDataOption],
-                                 ctx: &Context,
+pub async fn banner_without_user(
+    ctx: &Context,
                                  command: &ApplicationCommandInteraction) -> String {
     let user = command.user.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
@@ -143,8 +143,8 @@ pub async fn banner_without_user(options: &[CommandDataOption],
     return "good".to_string();
 }
 
-pub async fn banner_with_user(options: &[CommandDataOption],
-                              ctx: &Context,
+pub async fn banner_with_user(
+    ctx: &Context,
                               command: &ApplicationCommandInteraction,
                               user_data: &User) -> String {
     let user = user_data.id.0;
