@@ -1,11 +1,11 @@
-use std::{env, fs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{copy, Read};
 use std::path::Path;
+use std::{env, fs};
 
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
-use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use serde_json::Value;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -96,7 +96,8 @@ pub async fn run(
             let color = Colour::FABLED_PINK;
             let file_to_delete = fname.clone();
 
-            let result_diff = differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
+            let result_diff =
+                differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
             if result_diff != "good".as_ref() {
                 return result_diff;

@@ -1,11 +1,11 @@
-use std::{env, fs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{copy, Read};
 use std::path::Path;
+use std::{env, fs};
 
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -87,14 +87,14 @@ pub async fn run(
             copy(&mut resp_byte.as_ref(), &mut file).unwrap();
             let file_to_delete = fname.clone();
 
-            let result_diff = differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
+            let result_diff =
+                differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
             if result_diff != "good".as_ref() {
                 return result_diff;
             }
 
             let message: Message;
-
 
             match in_progress_embed(&ctx, &command).await {
                 Ok(Some(message_option)) => {
@@ -108,7 +108,6 @@ pub async fn run(
                     return localised_text.error_slash_command.clone();
                 }
             }
-
 
             let my_path = "./.env";
             let path = Path::new(my_path);

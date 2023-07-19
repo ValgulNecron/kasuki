@@ -1,10 +1,10 @@
-use std::{env, fs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::{env, fs};
 
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -70,7 +70,6 @@ pub async fn run(
                 }
             }
 
-
             let my_path = "./.env";
             let path = Path::new(my_path);
             let _ = dotenv::from_path(path);
@@ -88,10 +87,10 @@ pub async fn run(
             headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
             let data = json!({
-            "prompt": prompt,
-            "n": 1,
-            "size": "1024x1024"
-        });
+                "prompt": prompt,
+                "n": 1,
+                "size": "1024x1024"
+            });
 
             let res: Value = client
                 .post(api_url)

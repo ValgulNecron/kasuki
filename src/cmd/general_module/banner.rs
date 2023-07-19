@@ -9,16 +9,18 @@ use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
-use serenity::model::Timestamp;
 use serenity::model::user::User;
+use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::BannerLocalisedText;
 
-pub async fn run(options: &[CommandDataOption],
-                 ctx: &Context,
-                 command: &ApplicationCommandInteraction) -> String {
+pub async fn run(
+    options: &[CommandDataOption],
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> String {
     return if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
@@ -35,7 +37,9 @@ pub async fn run(options: &[CommandDataOption],
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("banner").description("Get the banner")
+    command
+        .name("banner")
+        .description("Get the banner")
         .create_option(|option| {
             option
                 .name("user")
@@ -45,9 +49,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         })
 }
 
-pub async fn no_banner(
-    ctx: &Context,
-    command: &ApplicationCommandInteraction) -> String {
+pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let color = Colour::FABLED_PINK;
 
     let mut file = File::open("lang_file/general/banner.json").expect("Failed to open file");
@@ -87,9 +89,7 @@ pub async fn no_banner(
     return "good".to_string();
 }
 
-pub async fn banner_without_user(
-    ctx: &Context,
-                                 command: &ApplicationCommandInteraction) -> String {
+pub async fn banner_without_user(ctx: &Context, command: &ApplicationCommandInteraction) -> String {
     let user = command.user.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
     let result = if let Ok(user) = real_user {
@@ -145,8 +145,9 @@ pub async fn banner_without_user(
 
 pub async fn banner_with_user(
     ctx: &Context,
-                              command: &ApplicationCommandInteraction,
-                              user_data: &User) -> String {
+    command: &ApplicationCommandInteraction,
+    user_data: &User,
+) -> String {
     let user = user_data.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
     let result = if let Ok(user) = real_user {
