@@ -1,3 +1,4 @@
+pub mod banner;
 pub mod color;
 pub mod differed_response;
 pub mod get_guild_langage;

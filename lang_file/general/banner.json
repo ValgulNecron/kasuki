@@ -1,0 +1,26 @@
+{
+  "En": {
+    "error_slash_command": "Can't create slash command",
+    "title": "Here's the banner of ",
+    "description": "This user does not have a banner",
+    "no_banner_title": "No banner"
+  },
+  "Fr": {
+    "error_slash_command": "Impossible de créer la commande slash",
+    "title": "Voici la bannière de ",
+    "description": "Cet utilisateur n'a pas de bannière",
+    "no_banner_title": "Pas de bannière"
+  },
+  "De": {
+    "error_slash_command": "Slash-Befehl kann nicht erstellt werden",
+    "title": "Hier ist das Banner von ",
+    "description": "Dieser Benutzer hat kein Banner",
+    "no_banner_title": "Kein Banner"
+  },
+  "Jp": {
+    "error_slash_command": "スラッシュコマンドを作成できません",
+    "title": "こちらが ",
+    "description": "このユーザーはバナーを持っていません",
+    "no_banner_title": "バナーなし"
+  }
+}
