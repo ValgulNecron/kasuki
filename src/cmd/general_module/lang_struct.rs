@@ -213,3 +213,24 @@ pub struct ErrorLocalisedText {
 pub struct DifferedResponseLocalisedText {
     pub error_slash_command: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct BannerLocalisedText {
+    pub error_slash_command: String,
+    pub title: String,
+    pub description: String,
+    pub no_banner_title: String,
+    pub error_no_user: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ProfileLocalisedText {
+    pub error_slash_command: String,
+    pub title: String,
+    pub error_no_user: String,
+    pub user_id: String,
+    pub is_bot: String,
+    pub public_flag: String,
+    pub joined_at: String,
+    pub created_at: String,
+}

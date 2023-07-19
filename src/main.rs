@@ -22,11 +22,11 @@ use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
-use crate::cmd::general_module::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
+use crate::cmd::general_module::*;
 
 mod cmd;
 
@@ -50,6 +50,8 @@ impl EventHandler for Handler {
                 .create_application_command(|command| ping::register(command))
                 .create_application_command(|command| lang::register(command))
                 .create_application_command(|command| info::register(command))
+                .create_application_command(|command| banner::register(command))
+                .create_application_command(|command| profile::register(command))
                 // Anilist module.
                 .create_application_command(|command| anime::register(command))
                 .create_application_command(|command| character::register(command))
@@ -67,7 +69,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| transcript::register(command))
                 .create_application_command(|command| translation::register(command))
         })
-            .await;
+        .await;
 
         println!(
             "I created the following global slash command: {:#?}",
@@ -86,6 +88,8 @@ impl EventHandler for Handler {
                 "ping" => ping::run(&ctx, &command).await,
                 "lang" => lang::run(&command.data.options, &ctx, &command).await,
                 "info" => info::run(&ctx, &command).await,
+                "banner" => banner::run(&command.data.options, &ctx, &command).await,
+                "profile" => profile::run(&command.data.options, &ctx, &command).await,
 
                 // Anilist module
                 "anime" => anime::run(&command.data.options, &ctx, &command).await,
@@ -137,7 +141,8 @@ impl EventHandler for Handler {
                                         .color(color)
                                 })
                             })
-                    }).await
+                    })
+                    .await
                 {
                     println!("Cannot respond to slash command: {}", why);
                 }
@@ -154,7 +159,8 @@ impl EventHandler for Handler {
                                         .color(color)
                                 })
                             })
-                    }).await
+                    })
+                    .await
                 {
                     println!("Cannot respond to slash command: {}", why);
                 }
@@ -185,7 +191,6 @@ async fn main() {
 
     let manager = client.shard_manager.clone();
 
-
     tokio::spawn(async move {
         loop {
             sleep(Duration::from_secs(600)).await;
@@ -204,9 +209,9 @@ async fn main() {
                         PRIMARY KEY (shard_id, timestamp)
                     )",
             )
-                .execute(&pool)
-                .await
-                .unwrap();
+            .execute(&pool)
+            .await
+            .unwrap();
 
             for (id, runner) in shard_runners.iter() {
                 let shard_id = id.0.to_string();
