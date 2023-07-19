@@ -77,7 +77,7 @@ impl EventHandler for Handler {
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(command) = interaction {
-            if cfg!(debug_assertions){
+            if cfg!(debug_assertions) {
                 println!("Received command interaction: {:#?}", command);
             }
 
@@ -165,7 +165,7 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-    if cfg!(debug_assertions)   {
+    if cfg!(debug_assertions) {
         println!("Running in debug mode");
     } else if !cfg!(debug_assertions) {
         println!("Running in release mode");
@@ -184,6 +184,7 @@ async fn main() {
         .expect("Error creating client");
 
     let manager = client.shard_manager.clone();
+
 
     tokio::spawn(async move {
         loop {
@@ -223,10 +224,6 @@ async fn main() {
                     .unwrap();
             }
         }
-    });
-
-    let manager = client.shard_manager.clone();
-    tokio::spawn(async move {
     });
 
     {

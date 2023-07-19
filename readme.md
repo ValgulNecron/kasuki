@@ -141,3 +141,7 @@ cargo run --release
   anymore.)
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
   idea.
+
+# Stat
+
+![kasuki](https://counter.valgul.moe/get/@kasuki?theme=gelbooru)

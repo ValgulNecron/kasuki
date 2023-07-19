@@ -29,6 +29,8 @@ pub struct PingLocalisedText {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ImageLocalisedText {
     pub title: String,
+    pub error_slash_command: String,
+    pub unknown_error: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -40,11 +42,21 @@ pub struct InProgressLocalisedText {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TranscriptLocalisedText {
     pub title: String,
+    pub error_slash_command: String,
+    pub unknown_error: String,
+    pub error_request: String,
+    pub error_file_type: String,
+    pub error_file_extension: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TranslationLocalisedText {
     pub title: String,
+    pub error_slash_command: String,
+    pub unknown_error: String,
+    pub error_request: String,
+    pub error_file_type: String,
+    pub error_file_extension: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -195,4 +207,9 @@ pub struct CompareLocalisedText {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ErrorLocalisedText {
     pub error_title: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct DifferedResponseLocalisedText {
+    pub error_slash_command: String,
 }

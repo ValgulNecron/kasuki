@@ -50,13 +50,6 @@ pub async fn run(
             serde_json::from_str(&json).expect("Failed to parse JSON");
 
         if let Some(localised_text) = json_data.get(lang) {
-            let member = command.member.clone().unwrap();
-            let user = member.permissions.unwrap();
-
-            if !(user.contains(Permissions::ADMINISTRATOR)) {
-                return localised_text.error_perm.clone();
-            }
-
             let guild_id = command.guild_id.unwrap().0.to_string();
             sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
                 .bind(guild_id)

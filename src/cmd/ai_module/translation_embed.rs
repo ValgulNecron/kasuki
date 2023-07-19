@@ -16,7 +16,7 @@ pub async fn translation_embed(
     command: &ApplicationCommandInteraction,
     text: String,
     message: Message,
-) {
+) -> String {
     let color = Colour::FABLED_PINK;
     let mut real_message = message.clone();
     let mut file = File::open("lang_file/ai/translation.json").expect("Failed to open file");
@@ -30,7 +30,7 @@ pub async fn translation_embed(
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        real_message
+        if let Err(why) = real_message
             .edit(&ctx.http, |m| {
                 m.embed(|e| {
                     e.title(&localised_text.title)
@@ -40,6 +40,11 @@ pub async fn translation_embed(
                 })
             })
             .await
-            .unwrap()
+        {
+            println!("{}: {}", &localised_text.error_slash_command, why);
+        }
+    } else {
+        return "Language not found".to_string();
     }
+    return "good".to_string();
 }

@@ -35,76 +35,15 @@ pub async fn run(
         .as_ref()
         .expect("Expected username object");
     if let CommandDataOptionValue::String(description) = option {
-        differed_response(ctx, command).await;
+        let result_diff = differed_response(ctx, command).await;
 
-        let message: Message;
-        match in_progress_embed(&ctx, &command).await {
-            Ok(Some(message_option)) => {
-                message = message_option;
-            }
-            Ok(None) => {
-                return "there was an error".to_string();
-            }
-            Err(error) => {
-                println!("Error: {}", error);
-                return error;
-            }
+        if result_diff != "good".as_ref() {
+            return result_diff;
         }
 
-
-        let my_path = "./.env";
-        let path = Path::new(my_path);
-        let _ = dotenv::from_path(path);
-        let prompt = description;
-        let api_key = env::var("AI_API_TOKEN").expect("token");
-        let api_base_url = env::var("AI_API_BASE_URL").expect("token");
-        let api_url = format!("{}images/generations", api_base_url);
-        let client = reqwest::Client::new();
-
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
-        );
-        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-
-        let data = json!({
-            "prompt": prompt,
-            "n": 1,
-            "size": "1024x1024"
-        });
-
-        let res: Value = client
-            .post(api_url)
-            .headers(headers)
-            .json(&data)
-            .send()
-            .await
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
-
-        let mut url_string = "";
-        if let Some(data) = res.get("data") {
-            if let Some(object) = data.get(0) {
-                if let Some(url) = object.get("url") {
-                    url_string = url.as_str().unwrap();
-                }
-            }
-        }
-
-        let mut real_message = message.clone();
-        let response = reqwest::get(url_string).await.unwrap();
-        let bytes = response.bytes().await.unwrap();
         let uuid_name = Uuid::new_v4();
         let filename = format!("{}.png", uuid_name);
         let filename_str = filename.as_str();
-        fs::write(filename.clone(), &bytes).unwrap();
-
-        let path = Path::new(filename_str);
-
-        let color = Colour::FABLED_PINK;
 
         let mut file = File::open("lang_file/ai/image.json").expect("Failed to open file");
         let mut json = String::new();
@@ -117,7 +56,72 @@ pub async fn run(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            real_message
+            let message: Message;
+            match in_progress_embed(&ctx, &command).await {
+                Ok(Some(message_option)) => {
+                    message = message_option;
+                }
+                Ok(None) => {
+                    return localised_text.unknown_error.clone();
+                }
+                Err(error) => {
+                    println!("Error: {}", error);
+                    return localised_text.error_slash_command.clone();
+                }
+            }
+
+
+            let my_path = "./.env";
+            let path = Path::new(my_path);
+            let _ = dotenv::from_path(path);
+            let prompt = description;
+            let api_key = env::var("AI_API_TOKEN").expect("token");
+            let api_base_url = env::var("AI_API_BASE_URL").expect("token");
+            let api_url = format!("{}images/generations", api_base_url);
+            let client = reqwest::Client::new();
+
+            let mut headers = HeaderMap::new();
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+            );
+            headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
+            let data = json!({
+            "prompt": prompt,
+            "n": 1,
+            "size": "1024x1024"
+        });
+
+            let res: Value = client
+                .post(api_url)
+                .headers(headers)
+                .json(&data)
+                .send()
+                .await
+                .unwrap()
+                .json()
+                .await
+                .unwrap();
+
+            let mut url_string = "";
+            if let Some(data) = res.get("data") {
+                if let Some(object) = data.get(0) {
+                    if let Some(url) = object.get("url") {
+                        url_string = url.as_str().unwrap();
+                    }
+                }
+            }
+
+            let mut real_message = message.clone();
+            let response = reqwest::get(url_string).await.unwrap();
+            let bytes = response.bytes().await.unwrap();
+            fs::write(filename.clone(), &bytes).unwrap();
+
+            let path = Path::new(filename_str);
+
+            let color = Colour::FABLED_PINK;
+            if let Err(why) = real_message
                 .edit(&ctx.http, |m| {
                     m.attachment(path).embed(|e| {
                         e.title(&localised_text.title)
@@ -127,11 +131,15 @@ pub async fn run(
                     })
                 })
                 .await
-                .expect("TODO");
+            {
+                let _ = fs::remove_file(filename_str);
+                println!("Cannot respond to slash command: {}", why);
+                return format!("{}: {}", &localised_text.error_slash_command, why);
+            }
         } else {
+            let _ = fs::remove_file(filename_str);
             return "Language not found".to_string();
         }
-
         let _ = fs::remove_file(filename_str);
     }
     return "good".to_string();
@@ -144,7 +152,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         .create_option(|option| {
             option
                 .name("description")
-                .description("Description of the image you want to gen.")
+                .description("Description of the image you want to generate.")
                 .kind(CommandOptionType::String)
                 .required(true)
         })

@@ -1,14 +1,34 @@
 {
   "En": {
-    "title": "Here's your transcript"
+    "title": "Here's your transcript",
+    "error_slash_command": "Can't create slash command",
+    "unknown_error": "An unknown error has appeared",
+    "error_request": "Error sending the request",
+    "error_file_type": "Wrong file type",
+    "error_file_extension": "Wrong file extension"
   },
   "Fr": {
-    "title": "Voici votre transcription"
-  },
-  "Jp": {
-    "title": "こちらがトランスクリプトです"
+    "title": "Voici votre transcription",
+    "error_slash_command": "Impossible de créer la commande slash",
+    "unknown_error": "Une erreur inconnue est survenue",
+    "error_request": "Erreur lors de l'envoi de la requête",
+    "error_file_type": "Type de fichier incorrect",
+    "error_file_extension": "Extension de fichier incorrecte"
   },
   "De": {
-    "title": "Hier ist Ihr Transkript"
+    "title": "Hier ist Ihr Transkript",
+    "error_slash_command": "Slash-Befehl kann nicht erstellt werden",
+    "unknown_error": "Ein unbekannter Fehler ist aufgetreten",
+    "error_request": "Fehler beim Senden der Anfrage",
+    "error_file_type": "Falscher Dateityp",
+    "error_file_extension": "Falsche Dateierweiterung"
+  },
+  "Jp": {
+    "title": "トランスクリプトをご覧ください",
+    "error_slash_command": "スラッシュコマンドを作成できません",
+    "unknown_error": "不明なエラーが発生しました",
+    "error_request": "リクエストの送信中にエラーが発生しました",
+    "error_file_type": "間違ったファイルタイプです",
+    "error_file_extension": "間違ったファイル拡張子です"
   }
 }
