@@ -101,22 +101,21 @@ pub async fn banner_without_user(ctx: &Context, command: &ApplicationCommandInte
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-    let user = command.user.id.0;
-    let real_user = Http::get_user(&ctx.http, user).await;
-    let result = if let Ok(user) = real_user {
-        user
-    } else {
-        return localised_text.error_no_user.clone();
-    };
-    let banner_url = &result.banner_url();
-    let banner = if let Some(string) = banner_url {
-        string
-    } else {
-        return no_banner(ctx, command).await;
-    };
+        let user = command.user.id.0;
+        let real_user = Http::get_user(&ctx.http, user).await;
+        let result = if let Ok(user) = real_user {
+            user
+        } else {
+            return localised_text.error_no_user.clone();
+        };
+        let banner_url = &result.banner_url();
+        let banner = if let Some(string) = banner_url {
+            string
+        } else {
+            return no_banner(ctx, command).await;
+        };
 
-    let color = Colour::FABLED_PINK;
-
+        let color = Colour::FABLED_PINK;
 
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
@@ -149,22 +148,6 @@ pub async fn banner_with_user(
     command: &ApplicationCommandInteraction,
     user_data: &User,
 ) -> String {
-    let user = user_data.id.0;
-    let real_user = Http::get_user(&ctx.http, user).await;
-    let result = if let Ok(user) = real_user {
-        user
-    } else {
-        return localised_text.error_no_user.clone();
-    };
-    let banner_url = &result.banner_url();
-    let banner = if let Some(string) = banner_url {
-        string
-    } else {
-        return no_banner(ctx, command).await;
-    };
-
-    let color = Colour::FABLED_PINK;
-
     let mut file = File::open("lang_file/general/banner.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
@@ -176,6 +159,22 @@ pub async fn banner_with_user(
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+        let user = user_data.id.0;
+        let real_user = Http::get_user(&ctx.http, user).await;
+        let result = if let Ok(user) = real_user {
+            user
+        } else {
+            return localised_text.error_no_user.clone();
+        };
+        let banner_url = &result.banner_url();
+        let banner = if let Some(string) = banner_url {
+            string
+        } else {
+            return no_banner(ctx, command).await;
+        };
+
+        let color = Colour::FABLED_PINK;
+
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response

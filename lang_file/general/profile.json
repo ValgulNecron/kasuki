@@ -1,0 +1,12 @@
+{
+  "En": {
+    "error_slash_command": "Can't create slash command",
+    "title": "Here's the profile of ",
+    "error_no_user": "Error getting user",
+    "user_id": "This user id is: ",
+    "is_bot": "Is this user a bot ? ",
+    "public_flag": "Here the public flags: ",
+    "joined_at": "Here the join date: ",
+    "created_at": "Here the account creation date: "
+  }
+}

@@ -51,6 +51,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| lang::register(command))
                 .create_application_command(|command| info::register(command))
                 .create_application_command(|command| banner::register(command))
+                .create_application_command(|command| profile::register(command))
                 // Anilist module.
                 .create_application_command(|command| anime::register(command))
                 .create_application_command(|command| character::register(command))
@@ -88,6 +89,7 @@ impl EventHandler for Handler {
                 "lang" => lang::run(&command.data.options, &ctx, &command).await,
                 "info" => info::run(&ctx, &command).await,
                 "banner" => banner::run(&command.data.options, &ctx, &command).await,
+                "profile" => profile::run(&command.data.options, &ctx, &command).await,
 
                 // Anilist module
                 "anime" => anime::run(&command.data.options, &ctx, &command).await,
