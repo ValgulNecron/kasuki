@@ -22,11 +22,11 @@ use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
+use crate::cmd::general_module::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
-use crate::cmd::general_module::*;
 
 mod cmd;
 
@@ -69,7 +69,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| transcript::register(command))
                 .create_application_command(|command| translation::register(command))
         })
-        .await;
+            .await;
 
         println!(
             "I created the following global slash command: {:#?}",
@@ -165,6 +165,11 @@ impl EventHandler for Handler {
                     println!("Cannot respond to slash command: {}", why);
                 }
             }
+        } else if let Interaction::Autocomplete(command) = interaction {
+            match command.data.name.as_str() {
+                "anime" => anime::autocomplete(ctx, command).await,
+                _ => println!("No autocomplete"),
+            }
         }
     }
 }
@@ -209,9 +214,9 @@ async fn main() {
                         PRIMARY KEY (shard_id, timestamp)
                     )",
             )
-            .execute(&pool)
-            .await
-            .unwrap();
+                .execute(&pool)
+                .await
+                .unwrap();
 
             for (id, runner) in shard_runners.iter() {
                 let shard_id = id.0.to_string();

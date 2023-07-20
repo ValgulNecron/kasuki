@@ -3,11 +3,13 @@ use std::fs::File;
 use std::io::Read;
 
 use regex::Regex;
+use serde::Serialize;
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
+use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
@@ -15,6 +17,7 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
+use crate::cmd::anilist_module::struct_anime_autocomplete::Root;
 use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::AnimeLocalisedText;
@@ -111,7 +114,7 @@ pub async fn run(
                 Ok(data) => data,
                 Err(error) => {
                     println!("Error: {}", error);
-                    return "Unable to find thi anime.".to_string();
+                    return "Unable to find this anime.".to_string();
                 }
             };
 
@@ -253,5 +256,71 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Name of the anime you want to check")
                 .kind(CommandOptionType::String)
                 .required(true)
+                .set_autocomplete(true)
         })
+}
+
+
+pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
+    let search = &command.data.options.first().unwrap().value;
+    if let Some(search) = search {
+        let query_str = "query($search: String, $type: MediaType, $count: Int) {
+          Page(perPage: $count) {
+		    media(search: $search, type: $type) {
+		      id
+		      title {
+		        romaji
+		        english
+		      }
+			}
+		  }
+		}";
+        let json = json!({"query": query_str, "variables": {
+            "search": search,
+            "type": "ANIME",
+            "count": 8,
+        }});
+
+        let res = make_request(json).await;
+        let data: Root = serde_json::from_str(&res).unwrap();
+
+        if let Some(media) = data.data.page.media {
+            let suggestions: Vec<AutocompleteOption> = media
+                .iter()
+                .filter_map(|item| {
+                    if let Some(item) = item {
+                        Some(AutocompleteOption {
+                            name: match &item.title {
+                                Some(title) => {
+                                    let english = title.english.clone();
+                                    let romaji = title.romaji.clone();
+                                    String::from(english.unwrap_or(
+                                        romaji),
+                                    )
+                                }
+                                None => String::default(),
+                            },
+                            value: item.id.to_string(),
+                        })
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            let choices = json!(suggestions);
+
+            // doesn't matter if it errors
+            _ = command
+                .create_autocomplete_response(ctx.http, |response| {
+                    response.set_choices(choices)
+                })
+                .await;
+        }
+    }
+}
+
+#[derive(Serialize, Debug)]
+struct AutocompleteOption {
+    name: String,
+    value: String,
 }

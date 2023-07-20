@@ -115,6 +115,7 @@ cargo run --release
 # Commands
 
 ## /!\ Not updated /!\
+
 - General:
     - /info - Show info about bot.
     - /ping - Check if the bot respond to command.
@@ -144,6 +145,8 @@ cargo run --release
   anymore.)
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
   idea.
+- [https://github.com/Skittyblock/AniBot](https://github.com/Skittyblock/AniBot) For auto-complete on command, did not
+  even know it existed before.
 
 # Stat
 

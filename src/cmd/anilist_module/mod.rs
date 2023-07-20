@@ -10,6 +10,7 @@ pub mod random;
 pub mod register;
 pub mod search;
 pub mod staff;
+pub mod struct_anime_autocomplete;
 pub mod struct_character;
 pub mod struct_level;
 pub mod struct_media;
