@@ -3,7 +3,6 @@ use std::fs::File;
 use std::io::Read;
 
 use regex::Regex;
-use serde::Serialize;
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -17,7 +16,8 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::anilist_module::struct_anime_autocomplete::Root;
+use crate::cmd::anilist_module::struct_anime_autocomplete::AnimePageWrapper;
+use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::AnimeLocalisedText;
@@ -282,7 +282,7 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
         }});
 
         let res = make_request(json).await;
-        let data: Root = serde_json::from_str(&res).unwrap();
+        let data: AnimePageWrapper = serde_json::from_str(&res).unwrap();
 
         if let Some(media) = data.data.page.media {
             let suggestions: Vec<AutocompleteOption> = media
@@ -319,8 +319,3 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
     }
 }
 
-#[derive(Serialize, Debug)]
-struct AutocompleteOption {
-    name: String,
-    value: String,
-}

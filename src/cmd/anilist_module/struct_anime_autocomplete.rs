@@ -1,29 +1,18 @@
 use serde::Deserialize;
+use crate::cmd::anilist_module::struct_autocomplete_media::AutocompleteMedia;
 
 #[derive(Debug, Deserialize)]
-pub struct Title {
-    pub romaji: String,
-    pub english: Option<String>,
+pub struct AnimePage {
+    pub media: Option<Vec<Option<AutocompleteMedia>>>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Media {
-    pub id: u32,
-    pub title: Option<Title>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Page {
-    pub media: Option<Vec<Option<Media>>>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Data {
+pub struct AnimePageData {
     #[serde(rename = "Page")]
-    pub page: Page,
+    pub page: AnimePage,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Root {
-    pub data: Data,
+pub struct AnimePageWrapper {
+    pub data: AnimePageData,
 }
