@@ -49,7 +49,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         })
 }
 
-pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction, username: String) -> String {
     let color = Colour::FABLED_PINK;
 
     let mut file = File::open("lang_file/general/banner.json").expect("Failed to open file");
@@ -69,7 +69,7 @@ pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction) -
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| {
                         message.embed(|m| {
-                            m.title(&localised_text.title)
+                            m.title(format!("{} {}", &localised_text.title, username))
                                 // Add a timestamp for the current time
                                 // This also accepts a rfc3339 Timestamp
                                 .timestamp(Timestamp::now())
@@ -112,7 +112,7 @@ pub async fn banner_without_user(ctx: &Context, command: &ApplicationCommandInte
         let banner = if let Some(string) = banner_url {
             string
         } else {
-            return no_banner(ctx, command).await;
+            return no_banner(ctx, command, user_data.name.clone()).await;
         };
 
         let color = Colour::FABLED_PINK;
@@ -170,7 +170,7 @@ pub async fn banner_with_user(
         let banner = if let Some(string) = banner_url {
             string
         } else {
-            return no_banner(ctx, command).await;
+            return no_banner(ctx, command, user_data.name.clone()).await;
         };
 
         let color = Colour::FABLED_PINK;
