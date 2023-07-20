@@ -9,8 +9,8 @@ use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
-use serenity::model::Timestamp;
 use serenity::model::user::User;
+use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
@@ -49,7 +49,11 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         })
 }
 
-pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction, username: String) -> String {
+pub async fn no_banner(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    username: String,
+) -> String {
     let color = Colour::FABLED_PINK;
 
     let mut file = File::open("lang_file/general/banner.json").expect("Failed to open file");
@@ -112,7 +116,7 @@ pub async fn banner_without_user(ctx: &Context, command: &ApplicationCommandInte
         let banner = if let Some(string) = banner_url {
             string
         } else {
-            return no_banner(ctx, command,  command.user.name.clone()).await;
+            return no_banner(ctx, command, command.user.name.clone()).await;
         };
 
         let color = Colour::FABLED_PINK;

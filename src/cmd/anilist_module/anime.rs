@@ -260,7 +260,6 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         })
 }
 
-
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
     let search = &command.data.options.first().unwrap().value;
     if let Some(search) = search {
@@ -294,9 +293,7 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
                                 Some(title) => {
                                     let english = title.english.clone();
                                     let romaji = title.romaji.clone();
-                                    String::from(english.unwrap_or(
-                                        romaji),
-                                    )
+                                    String::from(english.unwrap_or(romaji))
                                 }
                                 None => String::default(),
                             },
@@ -311,11 +308,8 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
 
             // doesn't matter if it errors
             _ = command
-                .create_autocomplete_response(ctx.http, |response| {
-                    response.set_choices(choices)
-                })
+                .create_autocomplete_response(ctx.http, |response| response.set_choices(choices))
                 .await;
         }
     }
 }
-

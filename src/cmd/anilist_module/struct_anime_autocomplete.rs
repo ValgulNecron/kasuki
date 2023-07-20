@@ -1,4 +1,5 @@
 use serde::Deserialize;
+
 use crate::cmd::anilist_module::struct_autocomplete_media::AutocompleteMedia;
 
 #[derive(Debug, Deserialize)]
