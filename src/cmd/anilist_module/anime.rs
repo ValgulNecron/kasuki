@@ -25,8 +25,8 @@ use crate::cmd::general_module::request::make_request;
 
 // Query made to the anilist api.
 const QUERY: &str = "
-    query ($search: String, $limit: Int = 5) {
-		Media (search: $search, type: ANIME){
+    query ($search: Int, $limit: Int = 5) {
+		Media (id: $search, type: ANIME){
     id
       description
     title{
