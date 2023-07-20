@@ -112,7 +112,7 @@ pub async fn banner_without_user(ctx: &Context, command: &ApplicationCommandInte
         let banner = if let Some(string) = banner_url {
             string
         } else {
-            return no_banner(ctx, command, user_data.name.clone()).await;
+            return no_banner(ctx, command,  command.user.name.clone()).await;
         };
 
         let color = Colour::FABLED_PINK;
