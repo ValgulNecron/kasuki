@@ -22,7 +22,8 @@ pub async fn embed(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-    query: &str,
+    query_id: &str,
+    query_string: &str,
 ) -> String {
     let option = options
         .get(0)
@@ -30,7 +31,17 @@ pub async fn embed(
         .resolved
         .as_ref()
         .expect("Expected name object");
-    if let CommandDataOptionValue::String(name) = option {
+    if let CommandDataOptionValue::String(value) = option {
+        let query;
+        if match value.parse::<i32>() {
+        Ok(_) => true,
+        Err(_) => false,
+    } {
+            query = query_id
+        } else {
+            query = query_string
+        }
+
         let mut file = File::open("lang_file/anilist/media.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
@@ -42,7 +53,7 @@ pub async fn embed(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let json = json!({"query": query, "variables": {"search": name}});
+            let json = json!({"query": query, "variables": {"search": value}});
             let resp = make_request(json).await;
             // Get json
             let data: MediaData = serde_json::from_str(&resp).unwrap();

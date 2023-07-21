@@ -168,6 +168,8 @@ impl EventHandler for Handler {
         } else if let Interaction::Autocomplete(command) = interaction {
             match command.data.name.as_str() {
                 "anime" => anime::autocomplete(ctx, command).await,
+                "manga" => manga::autocomplete(ctx, command).await,
+                "ln" => ln::autocomplete(ctx, command).await,
                 _ => println!("No autocomplete"),
             }
         }

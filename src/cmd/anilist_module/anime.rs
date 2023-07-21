@@ -16,17 +16,75 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::anilist_module::struct_anime_autocomplete::AnimePageWrapper;
 use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
+use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
 use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::AnimeLocalisedText;
 use crate::cmd::general_module::request::make_request;
 
 // Query made to the anilist api.
-const QUERY: &str = "
+const QUERY_ID: &str = "
     query ($search: Int, $limit: Int = 5) {
 		Media (id: $search, type: ANIME){
+    id
+      description
+    title{
+      romaji
+      english
+    }
+    type
+    format
+    source
+    isAdult
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    chapters
+    volumes
+    status
+    season
+    isLicensed
+    coverImage {
+      extraLarge
+    }
+    bannerImage
+    genres
+    tags {
+      name
+    }
+    averageScore
+    meanScore
+    popularity
+    favourites
+    siteUrl
+    staff(perPage: $limit) {
+      edges {
+        node {
+          id
+          name {
+            full
+            userPreferred
+          }
+        }
+        id
+        role
+      }
+    }
+  }
+}
+";
+
+const QUERY_STRING: &str = "
+    query ($search: String, $limit: Int = 5) {
+		Media (search: $search, type: ANIME){
     id
       description
     title{
@@ -95,7 +153,17 @@ pub async fn run(
         .as_ref()
         .expect("Expected name object");
     // Check if the option variable contain the correct value.
-    if let CommandDataOptionValue::String(name) = option {
+    if let CommandDataOptionValue::String(value) = option {
+        let query;
+        if match value.parse::<i32>() {
+        Ok(_) => true,
+        Err(_) => false,
+    } {
+            query = QUERY_ID
+        } else {
+            query = QUERY_STRING
+        }
+
         let mut file = File::open("lang_file/anilist/anime.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
@@ -107,7 +175,7 @@ pub async fn run(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let json = json!({"query": QUERY, "variables": {"search": name}});
+            let json = json!({"query": query, "variables": {"search": value}});
             let resp = make_request(json).await;
             // Get json
             let data: MediaData = match serde_json::from_str(&resp) {
@@ -281,7 +349,7 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
         }});
 
         let res = make_request(json).await;
-        let data: AnimePageWrapper = serde_json::from_str(&res).unwrap();
+        let data: MediaPageWrapper = serde_json::from_str(&res).unwrap();
 
         if let Some(media) = data.data.page.media {
             let suggestions: Vec<AutocompleteOption> = media
