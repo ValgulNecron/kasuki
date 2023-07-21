@@ -170,6 +170,7 @@ impl EventHandler for Handler {
                 "anime" => anime::autocomplete(ctx, command).await,
                 "manga" => manga::autocomplete(ctx, command).await,
                 "ln" => ln::autocomplete(ctx, command).await,
+                "character" => character::autocomplete(ctx, command).await,
                 _ => println!("No autocomplete"),
             }
         }

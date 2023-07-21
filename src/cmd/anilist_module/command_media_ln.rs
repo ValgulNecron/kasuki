@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use regex::Regex;
 use serde_json::json;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -15,6 +14,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::MediaLocalisedText;
 use crate::cmd::general_module::request::make_request;
 
@@ -34,9 +34,9 @@ pub async fn embed(
     if let CommandDataOptionValue::String(value) = option {
         let query;
         if match value.parse::<i32>() {
-        Ok(_) => true,
-        Err(_) => false,
-    } {
+            Ok(_) => true,
+            Err(_) => false,
+        } {
             query = query_id
         } else {
             query = query_string
@@ -58,14 +58,11 @@ pub async fn embed(
             // Get json
             let data: MediaData = serde_json::from_str(&resp).unwrap();
             let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
-            let desc_no_br = data
+            let mut desc = data
                 .data
                 .media
                 .description
-                .unwrap_or_else(|| "NA".to_string())
-                .replace("<br>", "");
-            let re = Regex::new("<i>(.|\\n)*?</i>").unwrap();
-            let desc = re.replace_all(&desc_no_br, "");
+                .unwrap_or_else(|| "NA".to_string());
             let en_name = data
                 .data
                 .media
@@ -153,6 +150,8 @@ pub async fn embed(
             }
 
             let color = Colour::FABLED_PINK;
+
+            desc = convert_to_markdown(desc);
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {

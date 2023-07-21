@@ -8,7 +8,7 @@ use serenity::model::prelude::interaction::application_command::{
 };
 
 use crate::cmd::anilist_module::command_media_ln::embed;
-use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
+use crate::cmd::anilist_module::struct_autocomplete::AutocompleteAnimeOption;
 use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
 use crate::cmd::general_module::request::make_request;
 
@@ -153,7 +153,8 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
     let search = &command.data.options.first().unwrap().value;
     if let Some(search) = search {
-        let query_str = "query($search: String, $type: MediaType, $count: Int, $format: MediaFormat) {
+        let query_str =
+            "query($search: String, $type: MediaType, $count: Int, $format: MediaFormat) {
           Page(perPage: $count) {
 		    media(search: $search, type: $type, format: $format) {
 		      id
@@ -175,11 +176,11 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
         let data: MediaPageWrapper = serde_json::from_str(&res).unwrap();
 
         if let Some(media) = data.data.page.media {
-            let suggestions: Vec<AutocompleteOption> = media
+            let suggestions: Vec<AutocompleteAnimeOption> = media
                 .iter()
                 .filter_map(|item| {
                     if let Some(item) = item {
-                        Some(AutocompleteOption {
+                        Some(AutocompleteAnimeOption {
                             name: match &item.title {
                                 Some(title) => {
                                     let english = title.english.clone();

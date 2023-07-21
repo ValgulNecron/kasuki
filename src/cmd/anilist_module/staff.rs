@@ -16,6 +16,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_staff::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::StaffLocalisedText;
 use crate::cmd::general_module::request::make_request;
 
@@ -117,7 +118,9 @@ pub async fn run(
                 .unwrap_or_else(|| "N/A".to_string())
         );
 
-        let desc = &data.data.staff.description;
+        let mut desc = data.data.staff.description.clone();
+
+        desc = convert_to_markdown(desc);
 
         let birth = format!(
             "{}/{}/{}",

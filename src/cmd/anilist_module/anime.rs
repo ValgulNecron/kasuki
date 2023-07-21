@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use regex::Regex;
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -16,10 +15,11 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
+use crate::cmd::anilist_module::struct_autocomplete::AutocompleteAnimeOption;
 use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
 use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::AnimeLocalisedText;
 use crate::cmd::general_module::request::make_request;
 
@@ -156,9 +156,9 @@ pub async fn run(
     if let CommandDataOptionValue::String(value) = option {
         let query;
         if match value.parse::<i32>() {
-        Ok(_) => true,
-        Err(_) => false,
-    } {
+            Ok(_) => true,
+            Err(_) => false,
+        } {
             query = QUERY_ID
         } else {
             query = QUERY_STRING
@@ -187,14 +187,11 @@ pub async fn run(
             };
 
             let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
-            let desc_no_br = data
+            let mut desc = data
                 .data
                 .media
                 .description
-                .unwrap_or_else(|| "NA".to_string())
-                .replace("<br>", "");
-            let re = Regex::new("<i>(.|\\n)*?</i>").unwrap();
-            let desc = re.replace_all(&desc_no_br, "");
+                .unwrap_or_else(|| "NA".to_string());
             let en_name = data
                 .data
                 .media
@@ -282,6 +279,8 @@ pub async fn run(
             }
             let color = Colour::FABLED_PINK;
 
+            desc = convert_to_markdown(desc);
+
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
                     response
@@ -331,17 +330,17 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
     let search = &command.data.options.first().unwrap().value;
     if let Some(search) = search {
-        let query_str = "query($search: String, $type: MediaType, $count: Int) {
-          Page(perPage: $count) {
-		    media(search: $search, type: $type) {
-		      id
-		      title {
-		        romaji
-		        english
-		      }
-			}
-		  }
-		}";
+        let query_str = "query ($search: String, $type: MediaType, $count: Int) {
+  Page(perPage: $count) {
+    media(search: $search, type: $type) {
+      id
+      title {
+        romaji
+        english
+      }
+    }
+  }
+}";
         let json = json!({"query": query_str, "variables": {
             "search": search,
             "type": "ANIME",
@@ -352,11 +351,11 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
         let data: MediaPageWrapper = serde_json::from_str(&res).unwrap();
 
         if let Some(media) = data.data.page.media {
-            let suggestions: Vec<AutocompleteOption> = media
+            let suggestions: Vec<AutocompleteAnimeOption> = media
                 .iter()
                 .filter_map(|item| {
                     if let Some(item) = item {
-                        Some(AutocompleteOption {
+                        Some(AutocompleteAnimeOption {
                             name: match &item.title {
                                 Some(title) => {
                                     let english = title.english.clone();
