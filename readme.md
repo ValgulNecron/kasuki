@@ -7,9 +7,10 @@
     - [X] Clean the code. - Done.
     - [X] Find a name for the bot. Found one kasuki. if you have any better don't hesitate to recommend.
     - [x] Add a bdd for some stuff prob sqlite but not sure. Added sqlite db.
-    - [ ] Add support to turn on and off module.
     - [X] Banner. Show your or a specified user banner. - Done.
     - [X] Profil. Show a user profile and some info. - Done.
+    - [ ] Add support to turn on and off module.
+
 
 - Anime submodule:
     - [X] Finish comparison function. - V1 done. Will need to be better but it works. Idea of improvement add a score on

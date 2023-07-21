@@ -8,6 +8,8 @@ COPY src/main.compile.rs src/main.rs
 
 RUN cargo build --release
 
+RUN rm src/main.rs
+
 COPY . .
 
 RUN cargo build --release
