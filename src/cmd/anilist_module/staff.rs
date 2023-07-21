@@ -14,7 +14,7 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-use crate::cmd::anilist_module::struct_autocomplete::AutocompleteAnimeOption;
+use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_autocomplete_staff::StaffPageWrapper;
 
 use crate::cmd::anilist_module::struct_staff::*;
@@ -366,11 +366,11 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
         let data: StaffPageWrapper = serde_json::from_str(&res).unwrap();
 
         if let Some(staff) = data.data.page.staff {
-            let suggestions: Vec<AutocompleteAnimeOption> = staff
+            let suggestions: Vec<AutocompleteOption> = staff
                 .iter()
                 .filter_map(|item| {
                     if let Some(item) = item {
-                        Some(AutocompleteAnimeOption {
+                        Some(AutocompleteOption {
                             name: match &item.name {
                                 Some(name) => {
                                     let english = name.user_preferred.clone();

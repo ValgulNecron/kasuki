@@ -56,9 +56,9 @@ pub struct Anime {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Manga {
     pub count: Option<i32>,
-    #[serde(rename = "mean_score")]
+    #[serde(rename = "meanScore")]
     pub mean_score: Option<f64>,
-    #[serde(rename = "standard_deviation")]
+    #[serde(rename = "standardDeviation")]
     pub standard_deviation: Option<f64>,
     #[serde(rename = "chaptersRead")]
     pub chapters_read: Option<i32>,

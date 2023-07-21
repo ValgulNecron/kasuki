@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 #[derive(Serialize, Debug)]
-pub struct AutocompleteAnimeOption {
+pub struct AutocompleteOption {
     pub name: String,
     pub value: String,
 }

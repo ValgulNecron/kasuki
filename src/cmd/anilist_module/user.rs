@@ -7,11 +7,14 @@ use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
+use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
+use crate::cmd::anilist_module::struct_autocomplete_user::UserPageWrapper;
 
 use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::color::get_user_color;
@@ -20,7 +23,61 @@ use crate::cmd::general_module::lang_struct::UserLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::request::make_request;
 
-const QUERY: &str = "
+const QUERY_ID: &str = "
+query ($name: Int, $limit: Int = 5) {
+  User(id: $name) {
+    id
+    name
+    avatar {
+      large
+    }
+    statistics {
+      anime {
+        count
+        meanScore
+        standardDeviation
+        minutesWatched
+        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
+          tag {
+            name
+          }
+        }
+        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
+          genre
+        }
+        statuses(sort: COUNT_DESC){
+          count
+          status
+        }
+      }
+      manga {
+        count
+        meanScore
+        standardDeviation
+        chaptersRead
+        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
+          tag {
+            name
+          }
+        }
+        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
+          genre
+        }
+        statuses(sort: COUNT_DESC){
+          count
+          status
+        }
+      }
+    }
+options{
+      profileColor
+    }
+    bannerImage
+  }
+}
+";
+
+const QUERY_STRING: &str = "
 query ($name: String, $limit: Int = 5) {
   User(name: $name) {
     id
@@ -120,6 +177,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Username of the anilist user you want to check")
                 .kind(CommandOptionType::String)
                 .required(false)
+                .set_autocomplete(true)
         })
 }
 
@@ -127,9 +185,19 @@ pub async fn embed(
     _options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-    user: &String,
+    value: &String,
 ) -> String {
-    let json = json!({"query": QUERY, "variables": {"name": user}});
+    let query;
+            if match value.parse::<i32>() {
+                Ok(_) => true,
+                Err(_) => false,
+            } {
+                query = QUERY_ID
+            } else {
+                query = QUERY_STRING
+            }
+
+    let json = json!({"query": query, "variables": {"name": value}});
     let resp = make_request(json).await;
 
     // Get json
@@ -402,4 +470,48 @@ pub async fn embed(
         return "Language not found".to_string();
     }
     return "good".to_string();
+}
+
+pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
+    let search = &command.data.options.first().unwrap().value;
+    if let Some(search) = search {
+        let query_str =
+            "query ($search: String, $count: Int) {
+  Page(perPage: $count) {
+    users(search: $search) {
+      id
+      name
+    }
+  }
+}";
+        let json = json!({"query": query_str, "variables": {
+            "search": search,
+            "count": 8,
+        }});
+
+        let res = make_request(json).await;
+        let data: UserPageWrapper = serde_json::from_str(&res).unwrap();
+
+        if let Some(users) = data.data.page.users {
+            let suggestions: Vec<AutocompleteOption> = users
+                .iter()
+                .filter_map(|item| {
+                    if let Some(item) = item {
+                        Some(AutocompleteOption {
+                            name: item.name.clone(),
+                            value: item.id.to_string(),
+                        })
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            let choices = json!(suggestions);
+
+            // doesn't matter if it errors
+            _ = command
+                .create_autocomplete_response(ctx.http, |response| response.set_choices(choices))
+                .await;
+        }
+    }
 }
