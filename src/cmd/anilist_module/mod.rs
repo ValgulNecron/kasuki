@@ -13,6 +13,7 @@ pub mod staff;
 pub mod struct_autocomplete;
 pub mod struct_autocomplete_character;
 pub mod struct_autocomplete_media;
+pub mod struct_autocomplete_staff;
 pub mod struct_character;
 pub mod struct_level;
 pub mod struct_media;

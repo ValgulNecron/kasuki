@@ -66,7 +66,7 @@ pub struct Staff {
     pub description: String,
     #[serde(rename = "primaryOccupations")]
     pub primary_occupations: Vec<String>,
-    pub gender: String,
+    pub gender: Option<String>,
     #[serde(rename = "dateOfBirth")]
     pub date_of_birth: Date,
     #[serde(rename = "dateOfDeath")]

@@ -236,9 +236,9 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
                     if let Some(item) = item {
                         Some(AutocompleteAnimeOption {
                             name: match &item.name {
-                                Some(title) => {
-                                    let english = title.user_preferred.clone();
-                                    let romaji = title.full.clone();
+                                Some(name) => {
+                                    let english = name.user_preferred.clone();
+                                    let romaji = name.full.clone();
                                     String::from(english.unwrap_or(romaji))
                                 }
                                 None => String::default(),
