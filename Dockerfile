@@ -4,11 +4,11 @@ WORKDIR /app
 
 COPY Cargo.toml Cargo.toml
 
-COPY src/main.compile.rs src/main.rs
+COPY src/main.compile.rs /app/src/main.rs
 
 RUN cargo build --release
 
-RUN rm src/main.rs
+RUN rm /app/src/main.rs
 
 COPY . .
 
