@@ -10,6 +10,8 @@ RUN cargo build --release
 
 RUN rm /app/src/main.rs
 
+RUN rm /app/target/release/kasuki
+
 COPY . . --exclude src/main.compile.rs/
 
 RUN cargo build --release
