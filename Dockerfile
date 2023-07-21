@@ -10,7 +10,7 @@ RUN cargo build --release
 
 RUN rm /app/src/main.rs
 
-COPY . .
+COPY . . --exclude src/main.compile.rs/
 
 RUN cargo build --release
 
