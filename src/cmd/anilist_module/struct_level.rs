@@ -54,8 +54,6 @@ impl LevelSystem {
         (50, 6637516160.0, 9757516160.0),
     ];
 
-    ];
-
     pub fn get_level(xp: f64) -> Option<(u32, f64, f64)> {
         for &(level, required_xp, next_level_required_xp) in Self::LEVELS.iter().rev() {
             if xp >= required_xp {
