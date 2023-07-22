@@ -13,9 +13,9 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+
 use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_autocomplete_user::UserPageWrapper;
-
 use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::color::get_user_color;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
@@ -151,10 +151,10 @@ pub async fn run(
         let row: (Option<String>, Option<String>) = sqlx::query_as(
             "SELECT anilist_username, user_id FROM registered_user WHERE user_id = ?",
         )
-        .bind(user_id)
-        .fetch_one(&pool)
-        .await
-        .unwrap_or((None, None));
+            .bind(user_id)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((None, None));
         let (user, _): (Option<String>, Option<String>) = row;
         let result = embed(
             _options,
@@ -162,7 +162,7 @@ pub async fn run(
             command,
             &user.unwrap_or("N/A".parse().unwrap()),
         )
-        .await;
+            .await;
         result
     };
 }
@@ -188,14 +188,14 @@ pub async fn embed(
     value: &String,
 ) -> String {
     let query;
-            if match value.parse::<i32>() {
-                Ok(_) => true,
-                Err(_) => false,
-            } {
-                query = QUERY_ID
-            } else {
-                query = QUERY_STRING
-            }
+    if match value.parse::<i32>() {
+        Ok(_) => true,
+        Err(_) => false,
+    } {
+        query = QUERY_ID
+    } else {
+        query = QUERY_STRING
+    }
 
     let json = json!({"query": query, "variables": {"name": value}});
     let resp = make_request(json).await;

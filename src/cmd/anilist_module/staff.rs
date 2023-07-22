@@ -14,9 +14,9 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+
 use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_autocomplete_staff::StaffPageWrapper;
-
 use crate::cmd::anilist_module::struct_staff::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::html_parser::convert_to_markdown;
@@ -148,14 +148,14 @@ pub async fn run(
         .expect("Expected name object");
     if let CommandDataOptionValue::String(value) = option {
         let query;
-            if match value.parse::<i32>() {
-                Ok(_) => true,
-                Err(_) => false,
-            } {
-                query = QUERY_ID
-            } else {
-                query = QUERY_STRING
-            }
+        if match value.parse::<i32>() {
+            Ok(_) => true,
+            Err(_) => false,
+        } {
+            query = QUERY_ID
+        } else {
+            query = QUERY_STRING
+        }
         let json = json!({"query": query, "variables": {"name": value}});
         let resp = make_request(json).await;
 
@@ -190,16 +190,16 @@ pub async fn run(
 
         desc = convert_to_markdown(desc);
         let lenght_diff = 4096 - desc.len() as i32;
-            if lenght_diff <= 0 {
-                let count = desc.matches("||").count();
-                if count % 2 == 0 {
-                    let trim_length = desc.len() - ((lenght_diff * -1) as usize + 3);
-                    desc = format!("{}...", &desc[..trim_length]);
-                } else {
-                    let trim_length = desc.len() - ((lenght_diff * -1) as usize + 5);
-                    desc = format!("{}||...", &desc[..trim_length]);
-                }
+        if lenght_diff <= 0 {
+            let count = desc.matches("||").count();
+            if count % 2 == 0 {
+                let trim_length = desc.len() - ((lenght_diff * -1) as usize + 3);
+                desc = format!("{}...", &desc[..trim_length]);
+            } else {
+                let trim_length = desc.len() - ((lenght_diff * -1) as usize + 5);
+                desc = format!("{}||...", &desc[..trim_length]);
             }
+        }
 
         let birth = format!(
             "{}/{}/{}",

@@ -14,8 +14,8 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 
+use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_autocomplete_character::CharacterPageWrapper;
 use crate::cmd::anilist_module::struct_character::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
