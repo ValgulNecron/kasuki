@@ -189,6 +189,17 @@ pub async fn run(
         let mut desc = data.data.staff.description.clone();
 
         desc = convert_to_markdown(desc);
+        let lenght_diff = 4096 - desc.len() as i32;
+            if lenght_diff <= 0 {
+                let count = desc.matches("||").count();
+                if count % 2 == 0 {
+                    let trim_length = desc.len() - ((lenght_diff * -1) as usize + 3);
+                    desc = format!("{}...", &desc[..trim_length]);
+                } else {
+                    let trim_length = desc.len() - ((lenght_diff * -1) as usize + 5);
+                    desc = format!("{}||...", &desc[..trim_length]);
+                }
+            }
 
         let birth = format!(
             "{}/{}/{}",

@@ -242,7 +242,7 @@ pub async fn run(
                     .unwrap_or_else(|| "N/A".to_string());
                 let role = s.role.unwrap_or_else(|| "N/A".to_string());
                 staff.push_str(&format!(
-                    "{}{}{}{}{}{}\n",
+                    "{}{}{}{}{}{} | \n",
                     &localised_text.desc_part_5,
                     full,
                     localised_text.desc_part_6,
@@ -280,6 +280,17 @@ pub async fn run(
             let color = Colour::FABLED_PINK;
 
             desc = convert_to_markdown(desc);
+            let lenght_diff = 4096 - desc.len() as i32;
+            if lenght_diff <= 0 {
+                let count = desc.matches("||").count();
+                if count % 2 == 0 {
+                    let trim_length = desc.len() - ((lenght_diff * -1) as usize + 3);
+                    desc = format!("{}...", &desc[..trim_length]);
+                } else {
+                    let trim_length = desc.len() - ((lenght_diff * -1) as usize + 5);
+                    desc = format!("{}||...", &desc[..trim_length]);
+                }
+            }
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {

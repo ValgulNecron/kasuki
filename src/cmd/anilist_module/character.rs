@@ -152,8 +152,17 @@ pub async fn run(
 
             let lenght_diff = 4096 - full_description.len() as i32;
             if lenght_diff <= 0 {
-                let trim_length = desc.len() - ((lenght_diff * -1) as usize + 3);
-                let desc_trim = format!("{}...", &desc[..trim_length]);
+                let count = desc.matches("||").count();
+                let desc_trim;
+                if count % 2 == 0 {
+                    let trim_length = desc.len() - ((lenght_diff * -1) as usize + 3);
+                    desc_trim = format!("{}...", &desc[..trim_length]);
+                } else {
+                    let trim_length = desc.len() - ((lenght_diff * -1) as usize + 5);
+                    desc_trim = format!("{}||...", &desc[..trim_length]);
+                }
+
+
                 full_description = format!(
                     "{}{}{}{}{}{}{}{}{}{}.",
                     &localised_text.age,

@@ -8,6 +8,7 @@ pub fn convert_to_markdown(value: String) -> String {
     result = add_anti_slash(result);
     result = convert_br_to_line_break(result);
     result = convert_b_to_markdown(result);
+    result = convert_spoiler(result);
 
     return result;
 }
@@ -40,5 +41,10 @@ fn convert_br_to_line_break(value: String) -> String {
 
 fn convert_b_to_markdown(value: String) -> String {
     let result = value.replace("<b>", "**").replace("</b>", "**");
+    result
+}
+
+fn convert_spoiler(value: String) -> String {
+    let result = value.replace("~!", "||").replace("!~", "||");
     result
 }
