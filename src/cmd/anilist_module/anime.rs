@@ -14,6 +14,7 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+use crate::cmd::anilist_module::get_nsfw_channel::get_nsfw;
 
 use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
@@ -178,13 +179,18 @@ pub async fn run(
             let json = json!({"query": query, "variables": {"search": value}});
             let resp = make_request(json).await;
             // Get json
-            let data: MediaData = match serde_json::from_str(&resp) {
+            let data: MediaWrapper = match serde_json::from_str(&resp) {
                 Ok(data) => data,
                 Err(error) => {
                     println!("Error: {}", error);
                     return "Unable to find this anime.".to_string();
                 }
             };
+
+            let is_nsfw = get_nsfw(command, ctx).await;
+            if data.data.media.is_adult && !is_nsfw {
+                return "not an NSFW channel".to_string();
+            }
 
             let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
             let mut desc = data

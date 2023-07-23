@@ -1,12 +1,12 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub struct MediaData {
-    pub data: MediaWrapper,
+pub struct MediaWrapper {
+    pub data: MediaData,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct MediaWrapper {
+pub struct MediaData {
     #[serde(rename = "Media")]
     pub media: Media,
 }

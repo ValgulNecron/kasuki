@@ -1,12 +1,12 @@
 use serde::Deserialize;
 
 #[derive(Deserialize)]
-pub struct CharacterData {
-    pub data: CharacterWrapper,
+pub struct CharacterWrapper {
+    pub data: CharacterData,
 }
 
 #[derive(Deserialize)]
-pub struct CharacterWrapper {
+pub struct CharacterData {
     #[serde(rename = "Character")]
     pub character: Character,
 }

@@ -11,6 +11,7 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+use crate::cmd::anilist_module::get_nsfw_channel::get_nsfw;
 
 use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
@@ -56,7 +57,13 @@ pub async fn embed(
             let json = json!({"query": query, "variables": {"search": value}});
             let resp = make_request(json).await;
             // Get json
-            let data: MediaData = serde_json::from_str(&resp).unwrap();
+            let data: MediaWrapper = serde_json::from_str(&resp).unwrap();
+
+            let is_nsfw = get_nsfw(command, ctx).await;
+            if data.data.media.is_adult && !is_nsfw {
+                return "not an NSFW channel".to_string();
+            }
+
             let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
             let mut desc = data
                 .data

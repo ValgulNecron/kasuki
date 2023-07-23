@@ -1,12 +1,12 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct UserData {
-    pub data: UserWrapper,
+pub struct UserWrapper {
+    pub data: UserData,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct UserWrapper {
+pub struct UserData {
     #[serde(rename = "User")]
     pub user: User,
 }

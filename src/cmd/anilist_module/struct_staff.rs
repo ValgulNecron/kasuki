@@ -84,12 +84,12 @@ pub struct Staff {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct StaffWrapper {
+pub struct StaffData {
     #[serde(rename = "Staff")]
     pub staff: Staff,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct StaffData {
-    pub data: StaffWrapper,
+pub struct StaffWrapper {
+    pub data: StaffData,
 }

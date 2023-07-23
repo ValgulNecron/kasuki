@@ -3,6 +3,7 @@ pub mod anime_activity;
 pub mod character;
 pub mod command_media_ln;
 pub mod compare;
+pub mod get_nsfw_channel;
 pub mod level;
 pub mod ln;
 pub mod manga;
