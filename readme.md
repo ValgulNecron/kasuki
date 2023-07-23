@@ -11,6 +11,8 @@
     - [X] Profil. Show a user profile and some info. - Done.
     - [ ] Add support to turn on and off module.
     - [ ] Create a parser because some desc uses html and not markdown.
+    - [ ] Poll feature with custom choice and a graph afterward for comparison. 
+  
 - Anime submodule:
     - [X] Finish comparison function. - V1 done. Will need to be better but it works. Idea of improvement add a score on
       how close 2 people are (affinity score). and have better formatting for the text.
