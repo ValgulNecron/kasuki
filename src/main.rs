@@ -202,16 +202,10 @@ async fn main() {
     let manager = client.shard_manager.clone();
 
     tokio::spawn(async move {
-        loop {
-            sleep(Duration::from_secs(600)).await;
-
-            let lock = manager.lock().await;
-            let shard_runners = lock.runners.lock().await;
-
-            let database_url = "./data.db";
+        let database_url = "./data.db";
             let pool = get_pool(database_url).await;
 
-            sqlx::query(
+        sqlx::query(
                 "CREATE TABLE IF NOT EXISTS ping_history (
                         shard_id TEXT,
                         timestamp TEXT,
@@ -222,6 +216,12 @@ async fn main() {
                 .execute(&pool)
                 .await
                 .unwrap();
+        loop {
+            sleep(Duration::from_secs(600)).await;
+
+            let lock = manager.lock().await;
+            let shard_runners = lock.runners.lock().await;
+
 
             for (id, runner) in shard_runners.iter() {
                 let shard_id = id.0.to_string();
