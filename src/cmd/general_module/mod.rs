@@ -13,3 +13,4 @@ pub mod pool;
 pub mod profile;
 pub mod request;
 pub mod struct_shard_manager;
+pub mod trim;

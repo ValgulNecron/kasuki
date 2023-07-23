@@ -23,6 +23,7 @@ use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::AnimeLocalisedText;
 use crate::cmd::general_module::request::make_request;
+use crate::cmd::general_module::trim::trim;
 
 // Query made to the anilist api.
 const QUERY_ID: &str = "
@@ -288,14 +289,7 @@ pub async fn run(
             desc = convert_to_markdown(desc);
             let lenght_diff = 4096 - desc.len() as i32;
             if lenght_diff <= 0 {
-                let count = desc.matches("||").count();
-                if count % 2 == 0 {
-                    let trim_length = desc.len() - ((lenght_diff * -1) as usize + 3);
-                    desc = format!("{}...", &desc[..trim_length]);
-                } else {
-                    let trim_length = desc.len() - ((lenght_diff * -1) as usize + 5);
-                    desc = format!("{}||...", &desc[..trim_length]);
-                }
+                desc = trim(desc, lenght_diff)
             }
 
             if let Err(why) = command
