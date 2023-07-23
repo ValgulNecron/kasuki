@@ -100,7 +100,7 @@ pub async fn run(
             let json = json!({"query": QUERY, "variables": {"name": user}});
             let resp = make_request(json).await;
             // Get json
-            let data: UserData = match resp_to_user_data(resp) {
+            let data: UserWrapper = match resp_to_user_data(resp) {
                 Ok(data) => data,
                 Err(error) => {
                     return error;
@@ -120,10 +120,10 @@ pub async fn run(
 
             let chap = manga.chapters_read.unwrap_or_else(|| 0) as f64;
             let min = anime.minutes_watched.unwrap_or_else(|| 0) as f64;
-            let input = (anime_completed * 2.5 + anime_watching * 1.0)
-                + (manga_completed * 2.5 + manga_reading * 1.0)
-                + chap * 5.0
-                + (min / 5.0);
+                let input = (anime_completed * 2.5 + anime_watching * 1.0)
+                    + (manga_completed * 2.5 + manga_reading * 1.0)
+                    + chap * 5.0
+                    + (min / 5.0);
 
             let user_level;
             let user_progression;

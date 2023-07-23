@@ -88,7 +88,7 @@ pub struct Genre {
     pub genre: Option<String>,
 }
 
-pub fn resp_to_user_data(resp: String) -> Result<UserData, String> {
+pub fn resp_to_user_data(resp: String) -> Result<UserWrapper, String> {
     match serde_json::from_str(&resp) {
         Ok(result) => Ok(result),
         Err(e) => {

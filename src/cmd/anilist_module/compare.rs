@@ -142,14 +142,14 @@ pub async fn embed(
         let json2 = json!({"query": QUERY, "variables": {"name": username2}});
         let resp2 = make_request(json2).await;
 
-        let data: UserData = match resp_to_user_data(resp) {
+        let data: UserWrapper = match resp_to_user_data(resp) {
             Ok(data) => data,
             Err(error) => {
                 return error;
             }
         };
 
-        let data2: UserData = match resp_to_user_data(resp2) {
+        let data2: UserWrapper = match resp_to_user_data(resp2) {
             Ok(data) => data,
             Err(error) => {
                 return error;

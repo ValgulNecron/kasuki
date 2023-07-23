@@ -160,7 +160,7 @@ pub async fn run(
         let resp = make_request(json).await;
 
         // Get json
-        let data: StaffData = match serde_json::from_str(&resp) {
+        let data: StaffWrapper = match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse json: {}", e);

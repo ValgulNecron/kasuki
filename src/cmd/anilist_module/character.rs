@@ -112,7 +112,7 @@ pub async fn run(
             let json = json!({"query": query, "variables": {"name": value}});
             let resp = make_request(json).await;
 
-            let data: CharacterData = serde_json::from_str(&resp).unwrap();
+            let data: CharacterWrapper = serde_json::from_str(&resp).unwrap();
             let color = Colour::FABLED_PINK;
 
             let name = format!(

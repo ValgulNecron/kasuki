@@ -201,7 +201,7 @@ pub async fn embed(
     let resp = make_request(json).await;
 
     // Get json
-    let data: UserData = match resp_to_user_data(resp) {
+    let data: UserWrapper = match resp_to_user_data(resp) {
         Ok(data) => data,
         Err(error) => {
             return error;
