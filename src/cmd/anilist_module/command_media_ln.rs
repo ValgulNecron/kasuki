@@ -11,8 +11,8 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-use crate::cmd::anilist_module::get_nsfw_channel::get_nsfw;
 
+use crate::cmd::anilist_module::get_nsfw_channel::get_nsfw;
 use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::html_parser::convert_to_markdown;

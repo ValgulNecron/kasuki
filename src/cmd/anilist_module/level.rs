@@ -120,10 +120,10 @@ pub async fn run(
 
             let chap = manga.chapters_read.unwrap_or_else(|| 0) as f64;
             let min = anime.minutes_watched.unwrap_or_else(|| 0) as f64;
-                let input = (anime_completed * 2.5 + anime_watching * 1.0)
-                    + (manga_completed * 2.5 + manga_reading * 1.0)
-                    + chap * 5.0
-                    + (min / 5.0);
+            let input = (anime_completed * 2.5 + anime_watching * 1.0)
+                + (manga_completed * 2.5 + manga_reading * 1.0)
+                + chap * 5.0
+                + (min / 5.0);
 
             let user_level;
             let user_progression;

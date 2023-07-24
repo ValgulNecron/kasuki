@@ -350,8 +350,7 @@ fn format_node(character: &Character) -> String {
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
     let search = &command.data.options.first().unwrap().value;
     if let Some(search) = search {
-        let query_str =
-            "query ($search: String, $count: Int) {
+        let query_str = "query ($search: String, $count: Int) {
   Page(perPage: $count) {
     staff(search: $search) {
       id
