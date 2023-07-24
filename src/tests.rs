@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
     use std::any::{Any, TypeId};
+    use serde_json::json;
 
     use sqlx::{Pool, Sqlite};
-
     use crate::cmd::general_module::get_guild_langage::get_guild_langage;
     use crate::cmd::general_module::html_parser::{
         add_anti_slash, convert_a_href_to_markdown, convert_b_to_markdown,
@@ -11,6 +11,7 @@ mod tests {
         convert_to_markdown,
     };
     use crate::cmd::general_module::pool::get_pool;
+    use crate::cmd::general_module::request::make_request;
     use crate::cmd::general_module::trim::trim;
 
     #[test]
@@ -109,5 +110,19 @@ mod tests {
     async fn test_get_pool() {
         let pool = get_pool("./cache.db").await;
         assert_eq!(TypeId::of::<Pool<Sqlite>>(), pool.type_id());
+    }
+
+    #[tokio::test]
+    async fn test_make_request() {
+        let query: &str ="query ($search: Int = 5399974) {
+            User(id: $search){
+                    id
+                }
+            }";
+        let json = json!({"query": query,});
+        let resp = make_request(json).await;
+        let good_resp = r#"{"data":{"User":{"id":5399974}}}"#;
+        assert_eq!(resp, good_resp)
+
     }
 }
