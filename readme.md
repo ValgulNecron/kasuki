@@ -43,6 +43,8 @@
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
       with seiyuu and va role.
       — This is possible, I'm not competent enough.
+    - [ ] Get all the register users of the server.
+    - [ ] Add studio search.
 
 - AI submodule:
     - [X] Image generation with AI. — Done.
