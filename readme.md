@@ -45,7 +45,7 @@
       — This is possible, I'm not competent enough.
     - [ ] Get all the register users of the server.
     - [ ] Add studio search.
-    - [ ] Add a command that give the best waifu.
+    - [X] Add a command that give the best waifu. — Done.
 
 - AI submodule:
     - [X] Image generation with AI. — Done.
