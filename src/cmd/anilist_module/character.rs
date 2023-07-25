@@ -24,7 +24,7 @@ use crate::cmd::general_module::lang_struct::CharacterLocalisedText;
 use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
 
-const QUERY_ID: &str = "
+pub const QUERY_ID: &str = "
 query ($name: Int) {
 	Character(id: $name) {
     id
