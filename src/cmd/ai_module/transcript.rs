@@ -20,7 +20,6 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
-use crate::cmd::ai_module::get_lang_option::get_lang_option;
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
@@ -31,16 +30,40 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> String {
-    let option = options
-        .get(0)
-        .expect("Expected attachement option")
-        .resolved
-        .as_ref()
-        .expect("Expected attachement object");
+    let attachement_option;
+    if options.get(0).expect("Expected attachement option").name == "video" {
+        attachement_option = options
+            .get(0)
+            .expect("Expected attachement option")
+            .resolved
+            .as_ref()
+            .expect("Expected attachement object");
+    } else if options.get(1).expect("Expected attachement option").name == "video" {
+        attachement_option = options
+            .get(1)
+            .expect("Expected attachement option")
+            .resolved
+            .as_ref()
+            .expect("Expected attachement object");
+    } else {
+        attachement_option = options
+            .get(2)
+            .expect("Expected attachement option")
+            .resolved
+            .as_ref()
+            .expect("Expected attachement object");
+    }
     let mut prompt: String = "Do a transcript by first detecting the langage and then transcribing it in the detected langage".to_string();
     let mut lang: String = "en".to_string();
     for option in options {
-        lang = get_lang_option(option.clone());
+        if option.name == "lang" {
+            let resolved = option.resolved.as_ref().unwrap();
+            if let CommandDataOptionValue::String(lang_option) = resolved {
+                lang = lang_option.clone()
+            } else {
+                lang = "En".to_string();
+            }
+        }
         if option.name == "prompt" {
             let resolved = option.resolved.as_ref().unwrap();
             if let CommandDataOptionValue::String(prompt_option) = resolved {
@@ -50,7 +73,7 @@ pub async fn run(
             }
         }
     }
-    if let CommandDataOptionValue::Attachment(attachement) = option {
+    if let CommandDataOptionValue::Attachment(attachement) = attachement_option {
         let mut file = File::open("lang_file/ai/transcript.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");

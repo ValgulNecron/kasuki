@@ -19,7 +19,6 @@ use serenity::model::Timestamp;
 use serenity::prelude::*;
 use serenity::utils::Colour;
 use tokio::time::sleep;
-
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
 use crate::cmd::general_module::*;
@@ -53,6 +52,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| info::register(command))
                 .create_application_command(|command| banner::register(command))
                 .create_application_command(|command| profile::register(command))
+                .create_application_command(|command| module_activation::register(command))
                 // Anilist module.
                 .create_application_command(|command| anime::register(command))
                 .create_application_command(|command| character::register(command))
@@ -91,6 +91,7 @@ impl EventHandler for Handler {
                 "info" => info::run(&ctx, &command).await,
                 "banner" => banner::run(&command.data.options, &ctx, &command).await,
                 "profile" => profile::run(&command.data.options, &ctx, &command).await,
+                "module" => module_activation::run(&command.data.options, &ctx, &command).await,
 
                 // Anilist module
                 "anime" => anime::run(&command.data.options, &ctx, &command).await,
