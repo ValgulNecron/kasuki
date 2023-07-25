@@ -22,7 +22,7 @@ use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::AnimeLocalisedText;
-use crate::cmd::general_module::request::make_request;
+use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
 
 // Query made to the anilist api.
@@ -178,7 +178,7 @@ pub async fn run(
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             let json = json!({"query": query, "variables": {"search": value}});
-            let resp = make_request(json).await;
+            let resp = make_request_anilist(json, false).await;
             // Get json
             let data: MediaWrapper = match serde_json::from_str(&resp) {
                 Ok(data) => data,
@@ -358,7 +358,7 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
             "count": 8,
         }});
 
-        let res = make_request(json).await;
+        let res = make_request_anilist(json, true).await;
         let data: MediaPageWrapper = serde_json::from_str(&res).unwrap();
 
         if let Some(media) = data.data.page.media {

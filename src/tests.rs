@@ -11,7 +11,7 @@ mod tests {
         convert_to_markdown,
     };
     use crate::cmd::general_module::pool::get_pool;
-    use crate::cmd::general_module::request::make_request;
+    use crate::cmd::general_module::request::make_request_anilist;
     use crate::cmd::general_module::trim::trim;
 
     #[test]
@@ -120,9 +120,8 @@ mod tests {
                 }
             }";
         let json = json!({"query": query,});
-        let resp = make_request(json).await;
+        let resp = make_request_anilist(json, true).await;
         let good_resp = r#"{"data":{"User":{"id":5399974}}}"#;
         assert_eq!(resp, good_resp)
-
     }
 }

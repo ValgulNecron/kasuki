@@ -21,7 +21,7 @@ use crate::cmd::anilist_module::struct_character::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::CharacterLocalisedText;
-use crate::cmd::general_module::request::make_request;
+use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
 
 const QUERY_ID: &str = "
@@ -111,7 +111,7 @@ pub async fn run(
                 query = QUERY_STRING
             }
             let json = json!({"query": query, "variables": {"name": value}});
-            let resp = make_request(json).await;
+            let resp = make_request_anilist(json, false).await;
 
             let data: CharacterWrapper = serde_json::from_str(&resp).unwrap();
             let color = Colour::FABLED_PINK;
@@ -227,7 +227,7 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
             "search": search,
             "count": 8,
         }});
-        let res = make_request(json).await;
+        let res = make_request_anilist(json, true).await;
         let data: CharacterPageWrapper = serde_json::from_str(&res).unwrap();
 
         if let Some(character) = data.data.page.characters {

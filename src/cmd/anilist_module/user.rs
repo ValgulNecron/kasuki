@@ -21,7 +21,7 @@ use crate::cmd::general_module::color::get_user_color;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::UserLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
-use crate::cmd::general_module::request::make_request;
+use crate::cmd::general_module::request::make_request_anilist;
 
 const QUERY_ID: &str = "
 query ($name: Int, $limit: Int = 5) {
@@ -198,7 +198,7 @@ pub async fn embed(
     }
 
     let json = json!({"query": query, "variables": {"name": value}});
-    let resp = make_request(json).await;
+    let resp = make_request_anilist(json, true).await;
 
     // Get json
     let data: UserWrapper = match resp_to_user_data(resp) {
@@ -488,7 +488,7 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
             "count": 8,
         }});
 
-        let res = make_request(json).await;
+        let res = make_request_anilist(json, true).await;
         let data: UserPageWrapper = serde_json::from_str(&res).unwrap();
 
         if let Some(users) = data.data.page.users {

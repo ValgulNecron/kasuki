@@ -21,7 +21,7 @@ use crate::cmd::anilist_module::struct_staff::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::StaffLocalisedText;
-use crate::cmd::general_module::request::make_request;
+use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
 
 const QUERY_ID: &str = "
@@ -158,7 +158,7 @@ pub async fn run(
             query = QUERY_STRING
         }
         let json = json!({"query": query, "variables": {"name": value}});
-        let resp = make_request(json).await;
+        let resp = make_request_anilist(json, false).await;
 
         // Get json
         let data: StaffWrapper = match serde_json::from_str(&resp) {
@@ -366,7 +366,7 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
             "count": 8,
         }});
 
-        let res = make_request(json).await;
+        let res = make_request_anilist(json, true).await;
         let data: StaffPageWrapper = serde_json::from_str(&res).unwrap();
 
         if let Some(staff) = data.data.page.staff {

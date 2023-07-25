@@ -10,7 +10,7 @@ use serenity::model::prelude::interaction::application_command::{
 use crate::cmd::anilist_module::command_media_ln::embed;
 use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
-use crate::cmd::general_module::request::make_request;
+use crate::cmd::general_module::request::make_request_anilist;
 
 const QUERY_ID: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
@@ -172,7 +172,7 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
             "format": "NOVEL"
         }});
 
-        let res = make_request(json).await;
+        let res = make_request_anilist(json, true).await;
         let data: MediaPageWrapper = serde_json::from_str(&res).unwrap();
 
         if let Some(media) = data.data.page.media {

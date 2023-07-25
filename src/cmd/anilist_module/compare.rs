@@ -17,7 +17,7 @@ use serenity::utils::Colour;
 use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::CompareLocalisedText;
-use crate::cmd::general_module::request::make_request;
+use crate::cmd::general_module::request::make_request_anilist;
 
 const QUERY: &str = "
 query ($name: String, $limit: Int = 5) {
@@ -137,10 +137,10 @@ pub async fn embed(
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         let json = json!({"query": QUERY, "variables": {"name": username1}});
-        let resp = make_request(json).await;
+        let resp = make_request_anilist(json, true).await;
 
         let json2 = json!({"query": QUERY, "variables": {"name": username2}});
-        let resp2 = make_request(json2).await;
+        let resp2 = make_request_anilist(json2, true).await;
 
         let data: UserWrapper = match resp_to_user_data(resp) {
             Ok(data) => data,

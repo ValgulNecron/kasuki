@@ -201,9 +201,9 @@ pub async fn check_activation_status(module: String, guild_id: String) -> bool {
             .await
             .unwrap_or((None, None, None));
     let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
-    match module.as_str() {
-        "ANILIST" => return anilist_module.unwrap(),
-        "AI" => return ai_module.unwrap(),
-        _ => return false,
+    return match module.as_str() {
+        "ANILIST" => anilist_module.unwrap(),
+        "AI" => ai_module.unwrap(),
+        _ => false,
     }
 }

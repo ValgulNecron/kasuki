@@ -23,7 +23,7 @@ use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::RandomLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
-use crate::cmd::general_module::request::make_request;
+use crate::cmd::general_module::request::make_request_anilist;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -158,7 +158,7 @@ pub async fn embed(
                 }";
 
         let json = json!({"query": query, "variables": {"manga_page": number}});
-        let res = make_request(json).await;
+        let res = make_request_anilist(json, false).await;
 
         let api_response: PageData = serde_json::from_str(&res).unwrap();
 
@@ -224,7 +224,7 @@ pub async fn embed(
                 }";
 
         let json = json!({"query": query, "variables": {"anime_page": number}});
-        let res = make_request(json).await;
+        let res = make_request_anilist(json, false).await;
 
         let api_response: PageData = serde_json::from_str(&res).unwrap();
 
@@ -403,7 +403,7 @@ pub async fn update_cache(
 
     loop {
         let json = json!({"query": query, "variables": {"page": page_number}});
-        let res = make_request(json).await;
+        let res = make_request_anilist(json, false).await;
 
         if random_type.as_str() == "manga" {
             let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res).unwrap();
