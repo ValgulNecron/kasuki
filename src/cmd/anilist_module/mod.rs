@@ -24,4 +24,6 @@ pub mod struct_site_statistic_anime;
 pub mod struct_site_statistic_manga;
 pub mod struct_staff;
 pub mod struct_user;
+pub mod studio;
 pub mod user;
+pub mod waifu;

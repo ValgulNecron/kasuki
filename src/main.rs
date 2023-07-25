@@ -65,6 +65,8 @@ impl EventHandler for Handler {
                 .create_application_command(|command| search::register(command))
                 .create_application_command(|command| staff::register(command))
                 .create_application_command(|command| user::register(command))
+                .create_application_command(|command| waifu::register(command))
+
                 // AI module.
                 .create_application_command(|command| image::register(command))
                 .create_application_command(|command| transcript::register(command))
@@ -105,6 +107,7 @@ impl EventHandler for Handler {
                 "search" => search::run(&command.data.options, &ctx, &command).await,
                 "staff" => staff::run(&command.data.options, &ctx, &command).await,
                 "user" => user::run(&command.data.options, &ctx, &command).await,
+                "waifu" => waifu::run(&ctx, &command).await,
 
                 // AI module
                 "image" => image::run(&command.data.options, &ctx, &command).await,
