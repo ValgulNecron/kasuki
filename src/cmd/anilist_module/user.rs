@@ -186,26 +186,21 @@ pub async fn embed(
     command: &ApplicationCommandInteraction,
     value: &String,
 ) -> String {
-    let query;
+    let data;
     if match value.parse::<i32>() {
         Ok(_) => true,
         Err(_) => false,
     } {
-        query = QUERY_ID
-    } else {
-        query = QUERY_STRING
-    }
-
-    let json = json!({"query": query, "variables": {"name": value}});
-    let resp = make_request_anilist(json, true).await;
-
-    // Get json
-    let data: UserWrapper = match resp_to_user_data(resp) {
-        Ok(data) => data,
-        Err(error) => {
-            return error;
+        data = match  UserWrapper::new_by_id(value.parse().unwrap(), QUERY_ID).await {
+            Ok(user_wrapper) => { user_wrapper }
+            Err(error) => return error,
         }
-    };
+    } else {
+        data = match  UserWrapper::new_by_search(value, QUERY_STRING).await {
+            Ok(user_wrapper) => { user_wrapper }
+            Err(error) => return error,
+        }
+    }
 
     let mut file = File::open("lang_file/anilist/user.json").expect("Failed to open file");
     let mut json = String::new();

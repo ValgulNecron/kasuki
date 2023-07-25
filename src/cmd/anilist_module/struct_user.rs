@@ -1,7 +1,9 @@
 use serde::Deserialize;
+use serde_json::json;
 use serenity::utils::Colour;
 
 use crate::cmd::general_module::lang_struct::UserLocalisedText;
+use crate::cmd::general_module::request::make_request_anilist;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct UserWrapper {
@@ -354,5 +356,30 @@ impl UserWrapper {
 
     pub fn get_user_manga_url(&self) -> String {
         format!("{}/mangalist", self.get_user_url())
+    }
+
+
+    pub async fn new_by_id(id: i32, query: &str) -> Result<UserWrapper, String> {
+        let json = json!({"query": query, "variables": {"name": id}});
+        let resp = make_request_anilist(json, true).await;
+        let data: UserWrapper = match resp_to_user_data(resp) {
+            Ok(data) => data,
+            Err(error) => {
+                return Err(error)
+            }
+        };
+        return Ok(data)
+    }
+
+    pub async fn new_by_search(search: &String, query: &str) -> Result<UserWrapper, String> {
+        let json = json!({"query": query, "variables": {"name": search}});
+        let resp = make_request_anilist(json, true).await;
+        let data: UserWrapper = match resp_to_user_data(resp) {
+            Ok(data) => data,
+            Err(error) => {
+                return Err(error)
+            }
+        };
+        return Ok(data)
     }
 }
