@@ -195,15 +195,15 @@ pub async fn check_activation_status(module: String, guild_id: String) -> bool {
     let pool = get_pool(database_url).await;
 
     let row: (Option<String>, Option<bool>, Option<bool>) =
-        sqlx::query_as("SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = ?")
+        sqlx::query_as("SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild_id = ?")
             .bind(&guild_id)
             .fetch_one(&pool)
             .await
             .unwrap_or((None, None, None));
     let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
     match module.as_str() {
-        "ANILIST" => return ai_module.unwrap(),
-        "AI" => return anilist_module.unwrap(),
+        "ANILIST" => return anilist_module.unwrap(),
+        "AI" => return ai_module.unwrap(),
         _ => return false,
     }
 }
