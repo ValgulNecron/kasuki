@@ -9,8 +9,8 @@
     - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db.
     - [X] Banner. Show your or a specified user banner. — Done.
     - [X] Profil. Show a user profile and some info. — Done.
-    - [ ] Add support to turn on and off module.
-    - [ ] Create a parser because some desc uses html and not markdown.
+    - [X] Add support to turn on and off module. — Done.
+    - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is done.
     - [ ] Poll feature with custom choice and a graph afterward for comparison.
 
 - Anime submodule:
@@ -32,7 +32,7 @@
     - [ ] Try to do the same for manga.
       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
       this one only selected manga not all seasonal).
-      — Did some digging seem possible I will do anime-first trough?
+      — Did some digging seem possible I will do anime first trough.
     - [ ] Activity command (auto sends activity of a user to a channel).
       — Same as anime, but this one will be hard since
       a user can do update every second like every year.
@@ -45,6 +45,7 @@
       — This is possible, I'm not competent enough.
     - [ ] Get all the register users of the server.
     - [ ] Add studio search.
+    - [ ] Add a command that give the best waifu.
 
 - AI submodule:
     - [X] Image generation with AI. — Done.
