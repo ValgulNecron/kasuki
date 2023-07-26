@@ -74,10 +74,11 @@ impl EventHandler for Handler {
         })
             .await;
 
-        println!(
-            "I created the following global slash command: {:#?}",
-            guild_command
-        );
+
+        if cfg!(debug_assertions) {
+        println!("I created the following global slash command: {:#?}",
+            guild_command);
+        }
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
@@ -148,6 +149,7 @@ impl EventHandler for Handler {
                             })
                     })
                     .await
+
                 {
                     println!("Cannot respond to slash command: {}", why);
                 }

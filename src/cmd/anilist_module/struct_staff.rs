@@ -93,3 +93,7 @@ pub struct StaffData {
 pub struct StaffWrapper {
     pub data: StaffData,
 }
+
+impl StaffWrapper {
+
+}
