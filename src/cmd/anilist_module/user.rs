@@ -319,42 +319,11 @@ pub async fn embed(
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
     let search = &command.data.options.first().unwrap().value;
     if let Some(search) = search {
-        let query_str = "query ($search: String, $count: Int) {
-  Page(perPage: $count) {
-    users(search: $search) {
-      id
-      name
-    }
-  }
-}";
-        let json = json!({"query": query_str, "variables": {
-            "search": search,
-            "count": 8,
-        }});
-
-        let res = make_request_anilist(json, true).await;
-        let data: UserPageWrapper = serde_json::from_str(&res).unwrap();
-
-        if let Some(users) = data.data.page.users {
-            let suggestions: Vec<AutocompleteOption> = users
-                .iter()
-                .filter_map(|item| {
-                    if let Some(item) = item {
-                        Some(AutocompleteOption {
-                            name: item.name.clone(),
-                            value: item.id.to_string(),
-                        })
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            let choices = json!(suggestions);
-
+        let data = UserPageWrapper::new_autocomplete_user(search, 8).await;
+        let choices = data.get_choice();
             // doesn't matter if it errors
-            _ = command
-                .create_autocomplete_response(ctx.http, |response| response.set_choices(choices))
-                .await;
-        }
+        _ = command
+            .create_autocomplete_response(ctx.http, |response| response.set_choices(choices))
+            .await;
     }
 }
