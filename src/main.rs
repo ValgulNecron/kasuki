@@ -181,6 +181,7 @@ impl EventHandler for Handler {
                 "staff" => staff::autocomplete(ctx, command).await,
                 "user" => user::autocomplete(ctx, command).await,
                 "compare" => compare::autocomplete(ctx, command).await,
+                "level" => level::autocomplete(ctx, command).await,
                 _ => print!(""),
             }
         }
