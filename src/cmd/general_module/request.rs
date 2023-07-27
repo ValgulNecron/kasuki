@@ -23,17 +23,16 @@ async fn get_cache(json: Value) -> String {
             last_updated INTEGER NOT NULL
         )",
     )
-        .execute(&pool)
-        .await
-        .unwrap();
+    .execute(&pool)
+    .await
+    .unwrap();
 
-    let row: (Option<String>, Option<String>, Option<i64>) = sqlx::query_as(
-        "SELECT json, response, last_updated FROM request_cache WHERE json = ?",
-    )
-        .bind(json.clone())
-        .fetch_one(&pool)
-        .await
-        .unwrap_or((None, None, None));
+    let row: (Option<String>, Option<String>, Option<i64>) =
+        sqlx::query_as("SELECT json, response, last_updated FROM request_cache WHERE json = ?")
+            .bind(json.clone())
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((None, None, None));
     let (json_resp, response, last_updated): (Option<String>, Option<String>, Option<i64>) = row;
 
     return if json_resp.is_none() || response.is_none() || last_updated.is_none() {
@@ -53,12 +52,15 @@ async fn add_cache(json: Value, resp: String) -> bool {
     let database_url = "./cache.db";
     let pool = get_pool(database_url).await;
     let now = Utc::now().timestamp();
-    sqlx::query("INSERT OR REPLACE INTO request_cache (json, response, last_updated) VALUES (?, ?, ?)")
-        .bind(json.clone())
-        .bind(resp.clone())
-        .bind(now)
-        .execute(&pool)
-        .await.unwrap();
+    sqlx::query(
+        "INSERT OR REPLACE INTO request_cache (json, response, last_updated) VALUES (?, ?, ?)",
+    )
+    .bind(json.clone())
+    .bind(resp.clone())
+    .bind(now)
+    .execute(&pool)
+    .await
+    .unwrap();
 
     return true;
 }

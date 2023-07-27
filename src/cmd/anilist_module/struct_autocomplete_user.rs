@@ -47,9 +47,9 @@ impl UserPageWrapper {
         data
     }
 
-    pub fn get_choice(&self) -> Value {
+    pub fn get_choice(&self) -> Vec<AutocompleteOption> {
         if let Some(users) = &self.data.page.users {
-            let suggestions: Vec<AutocompleteOption> = users
+            users
                 .iter()
                 .filter_map(|item| {
                     if let Some(item) = item {
@@ -61,12 +61,9 @@ impl UserPageWrapper {
                         None
                     }
                 })
-                .collect();
-            let choices = json!(suggestions);
-            choices
+                .collect::<Vec<AutocompleteOption>>()
         } else {
-            let choices = json!("Error");
-            choices
+            vec![]
         }
     }
 }

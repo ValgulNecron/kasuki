@@ -1,75 +1,25 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
+use serde_json::json;
+
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
+use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+use crate::cmd::anilist_module::struct_autocomplete_user::UserPageWrapper;
 
 use crate::cmd::anilist_module::struct_level::LevelSystem;
 use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::color::get_user_color;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::LevelLocalisedText;
-
-const QUERY: &str = "
-query ($name: String, $limit: Int = 5) {
-  User(name: $name) {
-    id
-    name
-    avatar {
-      large
-    }
-    statistics {
-      anime {
-        count
-        meanScore
-        standardDeviation
-        minutesWatched
-        tags(limit: $limit, sort: COUNT_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: COUNT_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-      manga {
-        count
-        meanScore
-        standardDeviation
-        chaptersRead
-        tags(limit: $limit) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-    }
-options{
-      profileColor
-    }
-    bannerImage
-  }
-}
-";
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -95,20 +45,20 @@ pub async fn run(
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             let data;
-        if match value.parse::<i32>() {
-        Ok(_) => true,
-        Err(_) => false,
-        } {
-            data = match UserWrapper::new_anime_by_id(value.parse().unwrap()).await {
-                Ok(user_wrapper) => { user_wrapper }
-                Err(error) => return error,
+            if match value.parse::<i32>() {
+                Ok(_) => true,
+                Err(_) => false,
+            } {
+                data = match UserWrapper::new_anime_by_id(value.parse().unwrap()).await {
+                    Ok(user_wrapper) => user_wrapper,
+                    Err(error) => return error,
+                }
+            } else {
+                data = match UserWrapper::new_anime_by_search(value).await {
+                    Ok(user_wrapper) => user_wrapper,
+                    Err(error) => return error,
+                }
             }
-        } else {
-            data = match UserWrapper::new_anime_by_search(value).await {
-                Ok(user_wrapper) => { user_wrapper }
-                Err(error) => return error,
-            }
-        }
             let profile_picture = data.data.user.avatar.large.clone().unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
             let user = data
                 .data
@@ -190,6 +140,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Username of the anilist user you want to know the level of")
                 .kind(CommandOptionType::String)
                 .required(true)
+                .set_autocomplete(true)
         })
 }
 
@@ -205,4 +156,19 @@ pub fn get_total(media: Vec<Statuses>) -> (f64, f64) {
     }
     let tuple = (watching, completed);
     return tuple;
+}
+
+pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
+    let search = &command.data.options.first().unwrap().value;
+    if let Some(search) = search {
+        let data = UserPageWrapper::new_autocomplete_user(search, 8).await;
+        let choices = data.get_choice();
+        // doesn't matter if it errors
+        let choices_json = json!(choices);
+        _ = command
+            .create_autocomplete_response(ctx.http.clone(), |response| {
+                response.set_choices(choices_json)
+            })
+            .await;
+    }
 }

@@ -94,10 +94,8 @@ pub struct Genre {
 }
 
 impl UserWrapper {
-    pub fn get_anime_genre(&self) -> String {
-        let mut anime_genre = String::new();
-        for i in 0..3 {
-            if let Some(genre) = self
+    pub fn get_one_anime_genre(&self, i: usize) -> String {
+        if let Some(genre) = self
                 .data
                 .user
                 .statistics
@@ -106,20 +104,25 @@ impl UserWrapper {
                 .get(i)
                 .and_then(|g| g.genre.as_ref())
             {
-                anime_genre.push_str(&format!("{} / ", genre));
+                return genre.clone()
             } else {
-                anime_genre.push_str("N/A / ");
+                "N/A".to_string()
             }
+    }
+
+    pub fn get_anime_genre(&self) -> String {
+        let mut anime_genre = String::new();
+        for i in 0..3 {
+            let genre= self.get_one_anime_genre(i);
+                anime_genre.push_str(&format!("{} / ", genre));
         }
         anime_genre.pop();
         anime_genre.pop();
         anime_genre
     }
 
-    pub fn get_anime_tag(&self) -> String {
-        let mut anime_tag_name = String::new();
-        for i in 0..3 {
-            if let Some(tags) = self
+    pub fn get_one_anime_tag(&self, i: usize) -> String {
+        if let Some(tag) = self
                 .data
                 .user
                 .statistics
@@ -128,24 +131,35 @@ impl UserWrapper {
                 .get(i)
                 .and_then(|g| g.tag.name.as_ref())
             {
-                anime_tag_name.push_str(&format!("{} / ", tags));
+                return tag.clone()
             } else {
-                anime_tag_name.push_str("N/A / ");
+                "N/A".to_string()
             }
+    }
+
+    pub fn get_anime_tag(&self) -> String {
+        let mut anime_tag_name = String::new();
+        for i in 0..3 {
+            let tags = self
+                .get_one_anime_tag(i);
+                anime_tag_name.push_str(&format!("{} / ", tags));
         }
         anime_tag_name.pop();
         anime_tag_name.pop();
         anime_tag_name
     }
 
-    pub fn time_anime_watched(&self, localised_text: UserLocalisedText) -> String {
-        let mut min = self
-            .data
+    pub fn get_anime_minute(&self) -> i32 {
+            self.data
             .user
             .statistics
             .anime
             .minutes_watched
-            .unwrap_or_else(|| 0);
+            .unwrap_or_else(|| 0)    }
+
+    pub fn time_anime_watched(&self, localised_text: UserLocalisedText) -> String {
+        let mut min = self.get_anime_minute();
+
         let mut hour = 0;
         let mut days = 0;
         let mut week = 0;
@@ -183,11 +197,21 @@ impl UserWrapper {
     }
 
     pub fn get_anime_score(&self) -> f64 {
-        self.data.user.statistics.anime.mean_score.unwrap_or_else(|| 0f64)
+        self.data
+            .user
+            .statistics
+            .anime
+            .mean_score
+            .unwrap_or_else(|| 0f64)
     }
 
     pub fn get_anime_standard_deviation(&self) -> f64 {
-        self.data.user.statistics.anime.standard_deviation.unwrap_or_else(|| 0f64)
+        self.data
+            .user
+            .statistics
+            .anime
+            .standard_deviation
+            .unwrap_or_else(|| 0f64)
     }
 
     pub fn get_anime_completed(&self) -> i32 {
@@ -200,7 +224,6 @@ impl UserWrapper {
         }
         anime_completed
     }
-
 
     pub fn get_color(&self) -> Colour {
         let mut _color = Colour::FABLED_PINK;
@@ -232,7 +255,11 @@ impl UserWrapper {
     }
 
     pub fn get_username(&self) -> String {
-        self.data.user.name.clone().unwrap_or_else(|| "N/A".to_string())
+        self.data
+            .user
+            .name
+            .clone()
+            .unwrap_or_else(|| "N/A".to_string())
     }
 
     pub fn get_pfp(&self) -> String {
@@ -245,11 +272,8 @@ impl UserWrapper {
         format!("https://img.anili.st/user/{}", self.data.user.id.unwrap())
     }
 
-
-    pub fn get_manga_genre(&self) -> String {
-        let mut manga_genre = String::new();
-        for i in 0..3 {
-            if let Some(genre) = self
+    pub fn get_one_manga_genre(&self, i: usize) -> String {
+        if let Some(genre) = self
                 .data
                 .user
                 .statistics
@@ -258,20 +282,26 @@ impl UserWrapper {
                 .get(i)
                 .and_then(|g| g.genre.as_ref())
             {
-                manga_genre.push_str(&format!("{} / ", genre));
+                return genre.clone()
             } else {
-                manga_genre.push_str("N/A / ");
+                "N/A".to_string()
             }
+    }
+
+    pub fn get_manga_genre(&self) -> String {
+        let mut manga_genre = String::new();
+        for i in 0..3 {
+            let genre = self
+                .get_one_manga_genre(i);
+                manga_genre.push_str(&format!("{} / ", genre));
         }
         manga_genre.pop();
         manga_genre.pop();
         manga_genre
     }
 
-    pub fn get_manga_tag(&self) -> String {
-        let mut manga_tag_name = String::new();
-        for i in 0..3 {
-            if let Some(tags) = self
+    pub fn get_one_manga_tag(&self, i: usize) -> String {
+        if let Some(tag) = self
                 .data
                 .user
                 .statistics
@@ -280,11 +310,19 @@ impl UserWrapper {
                 .get(i)
                 .and_then(|g| g.tag.name.as_ref())
             {
-                manga_tag_name.push_str(&format!("{} / ", tags));
+                return tag.clone()
             } else {
-                manga_tag_name.push_str("N/A / ");
+                "N/A".to_string()
             }
-        }
+    }
+
+    pub fn get_manga_tag(&self) -> String {
+        let mut manga_tag_name = String::new();
+        for i in 0..3 {
+            let tags = self
+                .get_one_manga_tag(i);
+                manga_tag_name.push_str(&format!("{} / ", tags));
+            }
         manga_tag_name.pop();
         manga_tag_name.pop();
         manga_tag_name
@@ -322,7 +360,6 @@ impl UserWrapper {
     }
 
     pub fn get_manga_completed(&self) -> i32 {
-
         let manga_statuses = &self.data.user.statistics.manga.statuses;
         let mut manga_completed = 0;
         for i in manga_statuses {
@@ -332,7 +369,6 @@ impl UserWrapper {
         }
         manga_completed
     }
-
 
     pub fn get_user_url(&self) -> String {
         format!(
@@ -349,9 +385,8 @@ impl UserWrapper {
         format!("{}/mangalist", self.get_user_url())
     }
 
-
     pub async fn new_anime_by_id(id: i32) -> Result<UserWrapper, String> {
-            let query_id: &str = "
+        let query_id: &str = "
 query ($name: Int, $limit: Int = 5) {
   User(id: $name) {
     id
@@ -407,10 +442,10 @@ options{
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
         let data: UserWrapper = match serde_json::from_str(&resp) {
-        Ok(result) => result,
-        Err(e) => {
-            println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"))
+            Ok(result) => result,
+            Err(e) => {
+                println!("Failed to parse JSON: {}", e);
+                return Err(String::from("Error: Failed to retrieve user data"));
             }
         };
         return Ok(data);
@@ -473,10 +508,10 @@ options{
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         let data: UserWrapper = match serde_json::from_str(&resp) {
-        Ok(result) => result,
-        Err(e) => {
-            println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"))
+            Ok(result) => result,
+            Err(e) => {
+                println!("Failed to parse JSON: {}", e);
+                return Err(String::from("Error: Failed to retrieve user data"));
             }
         };
         return Ok(data);

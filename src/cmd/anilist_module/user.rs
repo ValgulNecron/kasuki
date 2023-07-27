@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
+use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -18,8 +19,6 @@ use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::UserLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
-
-
 
 pub async fn run(
     _options: &[CommandDataOption],
@@ -41,10 +40,10 @@ pub async fn run(
         let row: (Option<String>, Option<String>) = sqlx::query_as(
             "SELECT anilist_username, user_id FROM registered_user WHERE user_id = ?",
         )
-            .bind(user_id)
-            .fetch_one(&pool)
-            .await
-            .unwrap_or((None, None));
+        .bind(user_id)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None));
         let (user, _): (Option<String>, Option<String>) = row;
         let result = embed(
             _options,
@@ -52,7 +51,7 @@ pub async fn run(
             command,
             &user.unwrap_or("N/A".parse().unwrap()),
         )
-            .await;
+        .await;
         result
     };
 }
@@ -83,12 +82,12 @@ pub async fn embed(
         Err(_) => false,
     } {
         data = match UserWrapper::new_anime_by_id(value.parse().unwrap()).await {
-            Ok(user_wrapper) => { user_wrapper }
+            Ok(user_wrapper) => user_wrapper,
             Err(error) => return error,
         }
     } else {
         data = match UserWrapper::new_anime_by_search(value).await {
-            Ok(user_wrapper) => { user_wrapper }
+            Ok(user_wrapper) => user_wrapper,
             Err(error) => return error,
         }
     }
@@ -213,8 +212,11 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
         let data = UserPageWrapper::new_autocomplete_user(search, 8).await;
         let choices = data.get_choice();
         // doesn't matter if it errors
+        let choices_json = json!(choices);
         _ = command
-            .create_autocomplete_response(ctx.http, |response| response.set_choices(choices))
+            .create_autocomplete_response(ctx.http.clone(), |response| {
+                response.set_choices(choices_json)
+            })
             .await;
     }
 }

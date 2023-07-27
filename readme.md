@@ -10,7 +10,8 @@
     - [X] Banner. Show your or a specified user banner. — Done.
     - [X] Profil. Show a user profile and some info. — Done.
     - [X] Add support to turn on and off module. — Done.
-    - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is done.
+    - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is
+      done.
     - [ ] Poll feature with custom choice and a graph afterward for comparison.
 
 - Anime submodule:

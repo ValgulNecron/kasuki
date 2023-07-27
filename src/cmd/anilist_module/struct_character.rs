@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use serde_json::json;
+
 use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::CharacterLocalisedText;
 use crate::cmd::general_module::request::make_request_anilist;
@@ -84,14 +85,13 @@ impl CharacterWrapper {
         let json = json!({"query": query_id, "variables": {"name": value}});
         let resp = make_request_anilist(json, false).await;
         let data: CharacterWrapper = match serde_json::from_str(&resp) {
-        Ok(result) => result,
-        Err(e) => {
-            println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"))
+            Ok(result) => result,
+            Err(e) => {
+                println!("Failed to parse JSON: {}", e);
+                return Err(String::from("Error: Failed to retrieve user data"));
             }
         };
         return Ok(data);
-
     }
 
     pub async fn new_character_by_search(value: &String) -> Result<CharacterWrapper, String> {
@@ -124,21 +124,20 @@ query ($name: String) {
         let json = json!({"query": query_string, "variables": {"name": value}});
         let resp = make_request_anilist(json, false).await;
         let data: CharacterWrapper = match serde_json::from_str(&resp) {
-        Ok(result) => result,
-        Err(e) => {
-            println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"))
+            Ok(result) => result,
+            Err(e) => {
+                println!("Failed to parse JSON: {}", e);
+                return Err(String::from("Error: Failed to retrieve user data"));
             }
         };
         return Ok(data);
-
     }
 
-    pub fn get_name(&self) -> String{
+    pub fn get_name(&self) -> String {
         format!(
-                "{}/{}",
-                self.data.character.name.user_preferred, self.data.character.name.native
-            )
+            "{}/{}",
+            self.data.character.name.user_preferred, self.data.character.name.native
+        )
     }
 
     pub fn get_desc(&self, localised_text: CharacterLocalisedText) -> String {
@@ -149,6 +148,23 @@ query ($name: String) {
         let favourite = &self.get_fav();
         let date_of_birth = &self.get_date_of_birth();
         let mut full_description = format!(
+            "{}{}{}{}{}{}{}{}{}{}.",
+            &localised_text.age,
+            age,
+            &localised_text.gender,
+            gender,
+            &localised_text.date_of_birth,
+            date_of_birth,
+            &localised_text.favourite,
+            favourite,
+            &localised_text.desc,
+            desc
+        );
+        let lenght_diff = 4096 - full_description.len() as i32;
+        if lenght_diff <= 0 {
+            desc = trim(desc, lenght_diff);
+
+            full_description = format!(
                 "{}{}{}{}{}{}{}{}{}{}.",
                 &localised_text.age,
                 age,
@@ -161,24 +177,7 @@ query ($name: String) {
                 &localised_text.desc,
                 desc
             );
-        let lenght_diff = 4096 - full_description.len() as i32;
-            if lenght_diff <= 0 {
-                desc = trim(desc, lenght_diff);
-
-                full_description = format!(
-                    "{}{}{}{}{}{}{}{}{}{}.",
-                    &localised_text.age,
-                    age,
-                    &localised_text.gender,
-                    gender,
-                    &localised_text.date_of_birth,
-                    date_of_birth,
-                    &localised_text.favourite,
-                    favourite,
-                    &localised_text.desc,
-                    desc
-                );
-            }
+        }
 
         full_description
     }
@@ -197,18 +196,33 @@ query ($name: String) {
 
     pub fn get_date_of_birth(&self) -> String {
         format!(
-                "{}/{}/{}",
-                self.data.character.date_of_birth.month.clone().unwrap_or_else(|| 0),
-                self.data.character.date_of_birth.day.clone().unwrap_or_else(|| 0),
-                self.data.character.date_of_birth.year.clone().unwrap_or_else(|| 0)
-            )
+            "{}/{}/{}",
+            self.data
+                .character
+                .date_of_birth
+                .month
+                .clone()
+                .unwrap_or_else(|| 0),
+            self.data
+                .character
+                .date_of_birth
+                .day
+                .clone()
+                .unwrap_or_else(|| 0),
+            self.data
+                .character
+                .date_of_birth
+                .year
+                .clone()
+                .unwrap_or_else(|| 0)
+        )
     }
 
-    pub fn get_image(&self) -> String{
+    pub fn get_image(&self) -> String {
         self.data.character.image.large.clone()
     }
 
-    pub fn get_url(&self) -> String{
+    pub fn get_url(&self) -> String {
         self.data.character.site_url.clone()
     }
 }

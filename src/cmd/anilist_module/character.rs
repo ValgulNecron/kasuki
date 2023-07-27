@@ -48,12 +48,12 @@ pub async fn run(
                 Err(_) => false,
             } {
                 data = match CharacterWrapper::new_character_by_id(value.parse().unwrap()).await {
-                    Ok(character_wrapper) => { character_wrapper }
+                    Ok(character_wrapper) => character_wrapper,
                     Err(error) => return error,
                 }
             } else {
                 data = match CharacterWrapper::new_character_by_search(value).await {
-                    Ok(character_wrapper) => { character_wrapper }
+                    Ok(character_wrapper) => character_wrapper,
                     Err(error) => return error,
                 }
             }
@@ -65,7 +65,6 @@ pub async fn run(
 
             let image = data.get_image();
             let url = data.get_url();
-
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
