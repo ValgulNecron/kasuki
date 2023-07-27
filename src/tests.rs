@@ -1,9 +1,10 @@
 #[cfg(test)]
 mod tests {
     use std::any::{Any, TypeId};
-    use serde_json::json;
 
+    use serde_json::json;
     use sqlx::{Pool, Sqlite};
+
     use crate::cmd::general_module::get_guild_langage::get_guild_langage;
     use crate::cmd::general_module::html_parser::{
         add_anti_slash, convert_a_href_to_markdown, convert_b_to_markdown,
@@ -114,7 +115,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_make_request() {
-        let query: &str ="query ($search: Int = 5399974) {
+        let query: &str = "query ($search: Int = 5399974) {
             User(id: $search){
                     id
                 }

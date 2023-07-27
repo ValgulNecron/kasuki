@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use serde_json::json;
 use serenity::json::Value;
+
 use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::general_module::request::make_request_anilist;
 
@@ -26,7 +27,7 @@ pub struct UserPageWrapper {
     pub data: UserPageData,
 }
 
-impl UserPageWrapper{
+impl UserPageWrapper {
     pub async fn new_autocomplete_user(search: &Value, count: i32) -> UserPageWrapper {
         let query_str = "query ($search: String, $count: Int) {
           Page(perPage: $count) {
@@ -38,7 +39,7 @@ impl UserPageWrapper{
         }";
         let json = json!({"query": query_str, "variables": {
             "search": search,
-            "count": 8,
+            "count": count,
         }});
 
         let res = make_request_anilist(json, true).await;
@@ -47,25 +48,25 @@ impl UserPageWrapper{
     }
 
     pub fn get_choice(&self) -> Value {
-         if let Some(users) = &self.data.page.users {
-             let suggestions: Vec<AutocompleteOption> = users
-                 .iter()
-                 .filter_map(|item| {
-                     if let Some(item) = item {
-                         Some(AutocompleteOption {
-                             name: item.name.clone(),
-                             value: item.id.to_string(),
-                         })
-                     } else {
-                         None
-                     }
-                 })
-                 .collect();
-             let choices = json!(suggestions);
-             choices
-         } else {
-             let choices = json!("Error");
-             choices
-         }
+        if let Some(users) = &self.data.page.users {
+            let suggestions: Vec<AutocompleteOption> = users
+                .iter()
+                .filter_map(|item| {
+                    if let Some(item) = item {
+                        Some(AutocompleteOption {
+                            name: item.name.clone(),
+                            value: item.id.to_string(),
+                        })
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            let choices = json!(suggestions);
+            choices
+        } else {
+            let choices = json!("Error");
+            choices
+        }
     }
 }

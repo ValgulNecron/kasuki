@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -14,121 +13,13 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 
-use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_autocomplete_user::UserPageWrapper;
 use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::UserLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
-use crate::cmd::general_module::request::make_request_anilist;
 
-const QUERY_ID: &str = "
-query ($name: Int, $limit: Int = 5) {
-  User(id: $name) {
-    id
-    name
-    avatar {
-      large
-    }
-    statistics {
-      anime {
-        count
-        meanScore
-        standardDeviation
-        minutesWatched
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-      manga {
-        count
-        meanScore
-        standardDeviation
-        chaptersRead
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-    }
-options{
-      profileColor
-    }
-    bannerImage
-  }
-}
-";
 
-const QUERY_STRING: &str = "
-query ($name: String, $limit: Int = 5) {
-  User(name: $name) {
-    id
-    name
-    avatar {
-      large
-    }
-    statistics {
-      anime {
-        count
-        meanScore
-        standardDeviation
-        minutesWatched
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-      manga {
-        count
-        meanScore
-        standardDeviation
-        chaptersRead
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-    }
-options{
-      profileColor
-    }
-    bannerImage
-  }
-}
-";
 
 pub async fn run(
     _options: &[CommandDataOption],
@@ -191,12 +82,12 @@ pub async fn embed(
         Ok(_) => true,
         Err(_) => false,
     } {
-        data = match  UserWrapper::new_by_id(value.parse().unwrap(), QUERY_ID).await {
+        data = match UserWrapper::new_anime_by_id(value.parse().unwrap()).await {
             Ok(user_wrapper) => { user_wrapper }
             Err(error) => return error,
         }
     } else {
-        data = match  UserWrapper::new_by_search(value, QUERY_STRING).await {
+        data = match UserWrapper::new_anime_by_search(value).await {
             Ok(user_wrapper) => { user_wrapper }
             Err(error) => return error,
         }
@@ -321,7 +212,7 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
     if let Some(search) = search {
         let data = UserPageWrapper::new_autocomplete_user(search, 8).await;
         let choices = data.get_choice();
-            // doesn't matter if it errors
+        // doesn't matter if it errors
         _ = command
             .create_autocomplete_response(ctx.http, |response| response.set_choices(choices))
             .await;

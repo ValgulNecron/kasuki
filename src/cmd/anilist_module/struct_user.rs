@@ -93,16 +93,6 @@ pub struct Genre {
     pub genre: Option<String>,
 }
 
-pub fn resp_to_user_data(resp: String) -> Result<UserWrapper, String> {
-    match serde_json::from_str(&resp) {
-        Ok(result) => Ok(result),
-        Err(e) => {
-            println!("Failed to parse JSON: {}", e);
-            Err(String::from("Error: Failed to retrieve user data"))
-        }
-    }
-}
-
 impl UserWrapper {
     pub fn get_anime_genre(&self) -> String {
         let mut anime_genre = String::new();
@@ -126,7 +116,7 @@ impl UserWrapper {
         anime_genre
     }
 
-    pub fn get_anime_tag(&self) -> String{
+    pub fn get_anime_tag(&self) -> String {
         let mut anime_tag_name = String::new();
         for i in 0..3 {
             if let Some(tags) = self
@@ -332,6 +322,7 @@ impl UserWrapper {
     }
 
     pub fn get_manga_completed(&self) -> i32 {
+
         let manga_statuses = &self.data.user.statistics.manga.statuses;
         let mut manga_completed = 0;
         for i in manga_statuses {
@@ -359,27 +350,135 @@ impl UserWrapper {
     }
 
 
-    pub async fn new_by_id(id: i32, query: &str) -> Result<UserWrapper, String> {
-        let json = json!({"query": query, "variables": {"name": id}});
+    pub async fn new_anime_by_id(id: i32) -> Result<UserWrapper, String> {
+            let query_id: &str = "
+query ($name: Int, $limit: Int = 5) {
+  User(id: $name) {
+    id
+    name
+    avatar {
+      large
+    }
+    statistics {
+      anime {
+        count
+        meanScore
+        standardDeviation
+        minutesWatched
+        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
+          tag {
+            name
+          }
+        }
+        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
+          genre
+        }
+        statuses(sort: COUNT_DESC){
+          count
+          status
+        }
+      }
+      manga {
+        count
+        meanScore
+        standardDeviation
+        chaptersRead
+        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
+          tag {
+            name
+          }
+        }
+        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
+          genre
+        }
+        statuses(sort: COUNT_DESC){
+          count
+          status
+        }
+      }
+    }
+options{
+      profileColor
+    }
+    bannerImage
+  }
+}
+";
+        let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
-        let data: UserWrapper = match resp_to_user_data(resp) {
-            Ok(data) => data,
-            Err(error) => {
-                return Err(error)
+        let data: UserWrapper = match serde_json::from_str(&resp) {
+        Ok(result) => result,
+        Err(e) => {
+            println!("Failed to parse JSON: {}", e);
+                return Err(String::from("Error: Failed to retrieve user data"))
             }
         };
-        return Ok(data)
+        return Ok(data);
     }
 
-    pub async fn new_by_search(search: &String, query: &str) -> Result<UserWrapper, String> {
-        let json = json!({"query": query, "variables": {"name": search}});
+    pub async fn new_anime_by_search(search: &String) -> Result<UserWrapper, String> {
+        let query_string: &str = "
+query ($name: String, $limit: Int = 5) {
+  User(name: $name) {
+    id
+    name
+    avatar {
+      large
+    }
+    statistics {
+      anime {
+        count
+        meanScore
+        standardDeviation
+        minutesWatched
+        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
+          tag {
+            name
+          }
+        }
+        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
+          genre
+        }
+        statuses(sort: COUNT_DESC){
+          count
+          status
+        }
+      }
+      manga {
+        count
+        meanScore
+        standardDeviation
+        chaptersRead
+        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
+          tag {
+            name
+          }
+        }
+        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
+          genre
+        }
+        statuses(sort: COUNT_DESC){
+          count
+          status
+        }
+      }
+    }
+options{
+      profileColor
+    }
+    bannerImage
+  }
+}
+";
+        let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
-        let data: UserWrapper = match resp_to_user_data(resp) {
-            Ok(data) => data,
-            Err(error) => {
-                return Err(error)
+        let data: UserWrapper = match serde_json::from_str(&resp) {
+        Ok(result) => result,
+        Err(e) => {
+            println!("Failed to parse JSON: {}", e);
+                return Err(String::from("Error: Failed to retrieve user data"))
             }
         };
-        return Ok(data)
+        return Ok(data);
     }
 }

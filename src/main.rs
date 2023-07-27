@@ -19,6 +19,7 @@ use serenity::model::Timestamp;
 use serenity::prelude::*;
 use serenity::utils::Colour;
 use tokio::time::sleep;
+
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
 use crate::cmd::general_module::*;
@@ -76,8 +77,8 @@ impl EventHandler for Handler {
 
 
         if cfg!(debug_assertions) {
-        println!("I created the following global slash command: {:#?}",
-            guild_command);
+            println!("I created the following global slash command: {:#?}",
+                     guild_command);
         }
     }
 

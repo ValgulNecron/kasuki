@@ -205,5 +205,5 @@ pub async fn check_activation_status(module: String, guild_id: String) -> bool {
         "ANILIST" => anilist_module.unwrap(),
         "AI" => ai_module.unwrap(),
         _ => false,
-    }
+    };
 }

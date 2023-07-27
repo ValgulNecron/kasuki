@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -15,68 +14,10 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_autocomplete_character::CharacterPageWrapper;
 use crate::cmd::anilist_module::struct_character::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::CharacterLocalisedText;
-use crate::cmd::general_module::request::make_request_anilist;
-use crate::cmd::general_module::trim::trim;
-
-pub const QUERY_ID: &str = "
-query ($name: Int) {
-	Character(id: $name) {
-    id
-    name {
-      full
-      native
-      userPreferred
-    }
-    siteUrl
-    description
-    gender
-    age
-    dateOfBirth {
-      year
-      month
-      day
-    }
-    image {
-      large
-    }
-    favourites
-    modNotes
-  }
-}
-";
-
-const QUERY_STRING: &str = "
-query ($name: String) {
-	Character(search: $name) {
-    id
-    name {
-      full
-      native
-      userPreferred
-    }
-    siteUrl
-    description
-    gender
-    age
-    dateOfBirth {
-      year
-      month
-      day
-    }
-    image {
-      large
-    }
-    favourites
-    modNotes
-  }
-}
-";
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -101,74 +42,30 @@ pub async fn run(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let query;
+            let data: CharacterWrapper;
             if match value.parse::<i32>() {
                 Ok(_) => true,
                 Err(_) => false,
             } {
-                query = QUERY_ID
+                data = match CharacterWrapper::new_character_by_id(value.parse().unwrap()).await {
+                    Ok(character_wrapper) => { character_wrapper }
+                    Err(error) => return error,
+                }
             } else {
-                query = QUERY_STRING
+                data = match CharacterWrapper::new_character_by_search(value).await {
+                    Ok(character_wrapper) => { character_wrapper }
+                    Err(error) => return error,
+                }
             }
-            let json = json!({"query": query, "variables": {"name": value}});
-            let resp = make_request_anilist(json, false).await;
 
-            let data: CharacterWrapper = serde_json::from_str(&resp).unwrap();
             let color = Colour::FABLED_PINK;
 
-            let name = format!(
-                "{}/{}",
-                data.data.character.name.user_preferred, data.data.character.name.native
-            );
-            let mut desc = data.data.character.description;
+            let name = data.get_name();
+            let desc = data.get_desc(localised_text.clone());
 
-            let image = data.data.character.image.large;
-            let url = data.data.character.site_url;
+            let image = data.get_image();
+            let url = data.get_url();
 
-            let age = data.data.character.age;
-            let date_of_birth = format!(
-                "{}/{}/{}",
-                data.data.character.date_of_birth.month.unwrap_or_else(|| 0),
-                data.data.character.date_of_birth.day.unwrap_or_else(|| 0),
-                data.data.character.date_of_birth.year.unwrap_or_else(|| 0)
-            );
-            let gender = data.data.character.gender;
-            let favourite = data.data.character.favourites;
-
-            desc = convert_to_markdown(desc);
-
-            let mut full_description = format!(
-                "{}{}{}{}{}{}{}{}{}{}.",
-                &localised_text.age,
-                age,
-                &localised_text.gender,
-                gender,
-                &localised_text.date_of_birth,
-                date_of_birth,
-                &localised_text.favourite,
-                favourite,
-                &localised_text.desc,
-                desc
-            );
-
-            let lenght_diff = 4096 - full_description.len() as i32;
-            if lenght_diff <= 0 {
-                desc = trim(desc, lenght_diff);
-
-                full_description = format!(
-                    "{}{}{}{}{}{}{}{}{}{}.",
-                    &localised_text.age,
-                    age,
-                    &localised_text.gender,
-                    gender,
-                    &localised_text.date_of_birth,
-                    date_of_birth,
-                    &localised_text.favourite,
-                    favourite,
-                    &localised_text.desc,
-                    desc
-                );
-            }
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
@@ -180,7 +77,7 @@ pub async fn run(
                                     .url(url)
                                     .timestamp(Timestamp::now())
                                     .color(color)
-                                    .description(full_description)
+                                    .description(desc)
                                     .thumbnail(image)
                                     .color(color)
                             })
@@ -212,53 +109,13 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
     let search = &command.data.options.first().unwrap().value;
     if let Some(search) = search {
-        let query_str = "query ($search: String, $count: Int) {
-  Page(perPage: $count) {
-    characters(search: $search) {
-      id
-      name {
-      	full
-      }
-    }
-  }
-}
-";
-        let json = json!({"query": query_str, "variables": {
-            "search": search,
-            "count": 8,
-        }});
-        let res = make_request_anilist(json, true).await;
-        let data: CharacterPageWrapper = serde_json::from_str(&res).unwrap();
-
-        if let Some(character) = data.data.page.characters {
-            let suggestions: Vec<AutocompleteOption> = character
-                .iter()
-                .filter_map(|item| {
-                    if let Some(item) = item {
-                        Some(AutocompleteOption {
-                            name: match &item.name {
-                                Some(name) => {
-                                    let english = name.user_preferred.clone();
-                                    let romaji = name.full.clone();
-                                    String::from(english.unwrap_or(romaji))
-                                }
-                                None => String::default(),
-                            },
-                            value: item.id.to_string(),
-                        })
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            let choices = json!(suggestions);
-
-            // doesn't matter if it errors
-            _ = command
-                .create_autocomplete_response(ctx.http, |response| {
-                    response.set_choices(choices.clone())
-                })
-                .await;
-        }
+        let data = CharacterPageWrapper::new_autocomplete_character(search, 8).await;
+        let choices = data.get_choices();
+        // doesn't matter if it errors
+        _ = command
+            .create_autocomplete_response(ctx.http, |response| {
+                response.set_choices(choices.clone())
+            })
+            .await;
     }
 }
