@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-
-use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -18,7 +16,6 @@ use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::color::get_user_color;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::LevelLocalisedText;
-use crate::cmd::general_module::request::make_request_anilist;
 
 const QUERY: &str = "
 query ($name: String, $limit: Int = 5) {
@@ -85,7 +82,7 @@ pub async fn run(
         .resolved
         .as_ref()
         .expect("Expected username object");
-    if let CommandDataOptionValue::String(user) = option {
+    if let CommandDataOptionValue::String(value) = option {
         let mut file = File::open("lang_file/anilist/level.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
@@ -97,15 +94,21 @@ pub async fn run(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let json = json!({"query": QUERY, "variables": {"name": user}});
-            let resp = make_request_anilist(json, true).await;
-            // Get json
-            let data: UserWrapper = match resp_to_user_data(resp) {
-                Ok(data) => data,
-                Err(error) => {
-                    return error;
-                }
-            };
+            let data;
+        if match value.parse::<i32>() {
+        Ok(_) => true,
+        Err(_) => false,
+        } {
+            data = match UserWrapper::new_anime_by_id(value.parse().unwrap()).await {
+                Ok(user_wrapper) => { user_wrapper }
+                Err(error) => return error,
+            }
+        } else {
+            data = match UserWrapper::new_anime_by_search(value).await {
+                Ok(user_wrapper) => { user_wrapper }
+                Err(error) => return error,
+            }
+        }
             let profile_picture = data.data.user.avatar.large.clone().unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
             let user = data
                 .data

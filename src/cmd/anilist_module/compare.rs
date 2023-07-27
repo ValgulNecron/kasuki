@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-
-use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -17,61 +15,6 @@ use serenity::utils::Colour;
 use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::CompareLocalisedText;
-use crate::cmd::general_module::request::make_request_anilist;
-
-const QUERY: &str = "
-query ($name: String, $limit: Int = 5) {
-  User(name: $name) {
-    id
-    name
-    avatar {
-      large
-    }
-    statistics {
-      anime {
-        count
-        meanScore
-        standardDeviation
-        minutesWatched
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-      manga {
-        count
-        meanScore
-        standardDeviation
-        chaptersRead
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-    }
-options{
-      profileColor
-    }
-    bannerImage
-  }
-}
-";
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -122,8 +65,8 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 pub async fn embed(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-    username1: &String,
-    username2: &String,
+    value: &String,
+    value2: &String,
 ) -> String {
     let mut file = File::open("lang_file/anilist/compare.json").expect("Failed to open file");
     let mut json = String::new();
@@ -136,25 +79,37 @@ pub async fn embed(
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        let json = json!({"query": QUERY, "variables": {"name": username1}});
-        let resp = make_request_anilist(json, true).await;
-
-        let json2 = json!({"query": QUERY, "variables": {"name": username2}});
-        let resp2 = make_request_anilist(json2, true).await;
-
-        let data: UserWrapper = match resp_to_user_data(resp) {
-            Ok(data) => data,
-            Err(error) => {
-                return error;
+let data;
+        if match value.parse::<i32>() {
+        Ok(_) => true,
+        Err(_) => false,
+        } {
+            data = match UserWrapper::new_anime_by_id(value.parse().unwrap()).await {
+                Ok(user_wrapper) => { user_wrapper }
+                Err(error) => return error,
             }
-        };
-
-        let data2: UserWrapper = match resp_to_user_data(resp2) {
-            Ok(data) => data,
-            Err(error) => {
-                return error;
+        } else {
+            data = match UserWrapper::new_anime_by_search(value).await {
+                Ok(user_wrapper) => { user_wrapper }
+                Err(error) => return error,
             }
-        };
+        }
+
+        let data2;
+        if match value2.parse::<i32>() {
+        Ok(_) => true,
+        Err(_) => false,
+    } {
+        data2 = match UserWrapper::new_anime_by_id(value.parse().unwrap()).await {
+            Ok(user_wrapper) => { user_wrapper }
+            Err(error) => return error,
+        }
+    } else {
+        data2 = match UserWrapper::new_anime_by_search(value).await {
+            Ok(user_wrapper) => { user_wrapper }
+            Err(error) => return error,
+        }
+    }
 
         let user1 = data.data.user;
         let user2 = data2.data.user;

@@ -48,7 +48,7 @@ impl CharacterPageWrapper {
         ";
         let json = json!({"query": query_str, "variables": {
             "search": search,
-            "count": 8,
+            "count": count,
         }});
         let res = make_request_anilist(json, true).await;
         let data: CharacterPageWrapper = serde_json::from_str(&res).unwrap();
