@@ -96,3 +96,7 @@ pub struct Name {
     #[serde(rename = "userPreferred")]
     pub user_preferred: Option<String>,
 }
+
+impl MediaWrapper {
+
+}

@@ -40,3 +40,7 @@ pub struct SiteStatisticsAnimeNode {
     pub count: i32,
     pub change: i32,
 }
+
+impl SiteStatisticsAnimeWrapper {
+
+}

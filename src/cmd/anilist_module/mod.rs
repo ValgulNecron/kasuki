@@ -9,6 +9,7 @@ pub mod ln;
 pub mod manga;
 pub mod random;
 pub mod register;
+pub mod register_waifu;
 pub mod search;
 pub mod staff;
 pub mod struct_autocomplete;

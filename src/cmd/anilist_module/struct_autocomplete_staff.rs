@@ -28,3 +28,7 @@ pub struct StaffPageData {
 pub struct StaffPageWrapper {
     pub data: StaffPageData,
 }
+
+impl StaffPageWrapper {
+
+}
