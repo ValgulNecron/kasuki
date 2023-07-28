@@ -71,14 +71,14 @@ pub async fn run(
             };
 
             sqlx::query(
-                    "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module) VALUES (?, ?, ?)",
-                )
-                    .bind(&guild_id)
-                    .bind(state)
-                    .bind(ai_value)
-                    .execute(&pool)
-                    .await
-                    .unwrap();
+                "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module) VALUES (?, ?, ?)",
+            )
+                .bind(&guild_id)
+                .bind(state)
+                .bind(ai_value)
+                .execute(&pool)
+                .await
+                .unwrap();
 
             let text;
             if state {

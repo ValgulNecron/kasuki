@@ -96,25 +96,25 @@ pub struct Genre {
 impl UserWrapper {
     pub fn get_one_anime_genre(&self, i: usize) -> String {
         if let Some(genre) = self
-                .data
-                .user
-                .statistics
-                .anime
-                .genres
-                .get(i)
-                .and_then(|g| g.genre.as_ref())
-            {
-                return genre.clone()
-            } else {
-                "N/A".to_string()
-            }
+            .data
+            .user
+            .statistics
+            .anime
+            .genres
+            .get(i)
+            .and_then(|g| g.genre.as_ref())
+        {
+            return genre.clone();
+        } else {
+            "N/A".to_string()
+        }
     }
 
     pub fn get_anime_genre(&self) -> String {
         let mut anime_genre = String::new();
         for i in 0..3 {
-            let genre= self.get_one_anime_genre(i);
-                anime_genre.push_str(&format!("{} / ", genre));
+            let genre = self.get_one_anime_genre(i);
+            anime_genre.push_str(&format!("{} / ", genre));
         }
         anime_genre.pop();
         anime_genre.pop();
@@ -123,26 +123,25 @@ impl UserWrapper {
 
     pub fn get_one_anime_tag(&self, i: usize) -> String {
         if let Some(tag) = self
-                .data
-                .user
-                .statistics
-                .anime
-                .tags
-                .get(i)
-                .and_then(|g| g.tag.name.as_ref())
-            {
-                return tag.clone()
-            } else {
-                "N/A".to_string()
-            }
+            .data
+            .user
+            .statistics
+            .anime
+            .tags
+            .get(i)
+            .and_then(|g| g.tag.name.as_ref())
+        {
+            return tag.clone();
+        } else {
+            "N/A".to_string()
+        }
     }
 
     pub fn get_anime_tag(&self) -> String {
         let mut anime_tag_name = String::new();
         for i in 0..3 {
-            let tags = self
-                .get_one_anime_tag(i);
-                anime_tag_name.push_str(&format!("{} / ", tags));
+            let tags = self.get_one_anime_tag(i);
+            anime_tag_name.push_str(&format!("{} / ", tags));
         }
         anime_tag_name.pop();
         anime_tag_name.pop();
@@ -150,12 +149,13 @@ impl UserWrapper {
     }
 
     pub fn get_anime_minute(&self) -> i32 {
-            self.data
+        self.data
             .user
             .statistics
             .anime
             .minutes_watched
-            .unwrap_or_else(|| 0)    }
+            .unwrap_or_else(|| 0)
+    }
 
     pub fn time_anime_watched(&self, localised_text: UserLocalisedText) -> String {
         let mut min = self.get_anime_minute();
@@ -274,26 +274,25 @@ impl UserWrapper {
 
     pub fn get_one_manga_genre(&self, i: usize) -> String {
         if let Some(genre) = self
-                .data
-                .user
-                .statistics
-                .manga
-                .genres
-                .get(i)
-                .and_then(|g| g.genre.as_ref())
-            {
-                return genre.clone()
-            } else {
-                "N/A".to_string()
-            }
+            .data
+            .user
+            .statistics
+            .manga
+            .genres
+            .get(i)
+            .and_then(|g| g.genre.as_ref())
+        {
+            return genre.clone();
+        } else {
+            "N/A".to_string()
+        }
     }
 
     pub fn get_manga_genre(&self) -> String {
         let mut manga_genre = String::new();
         for i in 0..3 {
-            let genre = self
-                .get_one_manga_genre(i);
-                manga_genre.push_str(&format!("{} / ", genre));
+            let genre = self.get_one_manga_genre(i);
+            manga_genre.push_str(&format!("{} / ", genre));
         }
         manga_genre.pop();
         manga_genre.pop();
@@ -302,27 +301,26 @@ impl UserWrapper {
 
     pub fn get_one_manga_tag(&self, i: usize) -> String {
         if let Some(tag) = self
-                .data
-                .user
-                .statistics
-                .manga
-                .tags
-                .get(i)
-                .and_then(|g| g.tag.name.as_ref())
-            {
-                return tag.clone()
-            } else {
-                "N/A".to_string()
-            }
+            .data
+            .user
+            .statistics
+            .manga
+            .tags
+            .get(i)
+            .and_then(|g| g.tag.name.as_ref())
+        {
+            return tag.clone();
+        } else {
+            "N/A".to_string()
+        }
     }
 
     pub fn get_manga_tag(&self) -> String {
         let mut manga_tag_name = String::new();
         for i in 0..3 {
-            let tags = self
-                .get_one_manga_tag(i);
-                manga_tag_name.push_str(&format!("{} / ", tags));
-            }
+            let tags = self.get_one_manga_tag(i);
+            manga_tag_name.push_str(&format!("{} / ", tags));
+        }
         manga_tag_name.pop();
         manga_tag_name.pop();
         manga_tag_name

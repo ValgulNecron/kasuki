@@ -49,6 +49,4 @@ pub struct CoverImage {
     pub extra_large: String,
 }
 
-impl PageWrapper {
-
-}
+impl PageWrapper {}

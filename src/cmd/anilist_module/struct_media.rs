@@ -97,6 +97,4 @@ pub struct Name {
     pub user_preferred: Option<String>,
 }
 
-impl MediaWrapper {
-
-}
+impl MediaWrapper {}

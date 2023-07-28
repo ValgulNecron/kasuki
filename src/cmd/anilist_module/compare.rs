@@ -119,9 +119,19 @@ pub async fn embed(
 
         let anime_count_text;
         if data.get_anime_count() > data2.get_anime_count() {
-            anime_count_text = format!("{}{}{}", data.get_username(), &localised_text.more_anime, data.get_username())
+            anime_count_text = format!(
+                "{}{}{}",
+                data.get_username(),
+                &localised_text.more_anime,
+                data.get_username()
+            )
         } else if data.get_anime_count() < data2.get_anime_count() {
-            anime_count_text = format!("{}{}{}", data2.get_username(), &localised_text.more_anime, data.get_username())
+            anime_count_text = format!(
+                "{}{}{}",
+                data2.get_username(),
+                &localised_text.more_anime,
+                data.get_username()
+            )
         } else {
             anime_count_text = format!(
                 "{}{}{}{}",
@@ -136,12 +146,16 @@ pub async fn embed(
         if data.get_anime_minute() > data2.get_anime_minute() {
             anime_watch_time = format!(
                 "{}{}{}",
-                data.get_username(), &localised_text.time_anime_watch, data2.get_username()
+                data.get_username(),
+                &localised_text.time_anime_watch,
+                data2.get_username()
             )
         } else if data.get_anime_minute() < data2.get_anime_minute() {
             anime_watch_time = format!(
                 "{}{}{}",
-                data2.get_username(), &localised_text.time_anime_watch, data.get_username()
+                data2.get_username(),
+                &localised_text.time_anime_watch,
+                data.get_username()
             )
         } else {
             anime_watch_time = format!(
@@ -155,9 +169,19 @@ pub async fn embed(
 
         let manga_count_text;
         if data.get_manga_count() > data2.get_manga_count() {
-            manga_count_text = format!("{}{}{}", data.get_username(), &localised_text.more_manga, data2.get_username())
+            manga_count_text = format!(
+                "{}{}{}",
+                data.get_username(),
+                &localised_text.more_manga,
+                data2.get_username()
+            )
         } else if data.get_manga_count() < data2.get_manga_count() {
-            manga_count_text = format!("{}{}{}", data2.get_username(), &localised_text.more_manga, data.get_username())
+            manga_count_text = format!(
+                "{}{}{}",
+                data2.get_username(),
+                &localised_text.more_manga,
+                data.get_username()
+            )
         } else {
             manga_count_text = format!(
                 "{}{}{}{}",
@@ -172,12 +196,16 @@ pub async fn embed(
         if data.get_manga_completed() > data2.get_manga_completed() {
             manga_chapter_count = format!(
                 "{}{}{}",
-                data.get_username(), &localised_text.more_chapter, data2.get_username()
+                data.get_username(),
+                &localised_text.more_chapter,
+                data2.get_username()
             )
         } else if data.get_manga_completed() < data2.get_manga_completed() {
             manga_chapter_count = format!(
                 "{}{}{}",
-                data2.get_username(), &localised_text.more_chapter, data.get_username()
+                data2.get_username(),
+                &localised_text.more_chapter,
+                data.get_username()
             )
         } else {
             manga_chapter_count = format!(

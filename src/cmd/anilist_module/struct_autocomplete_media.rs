@@ -28,6 +28,4 @@ pub struct MediaPageWrapper {
     pub data: MediaPageData,
 }
 
-impl MediaPageWrapper {
-
-}
+impl MediaPageWrapper {}

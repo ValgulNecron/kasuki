@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use serde_json::json;
 
+use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -13,8 +13,8 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use crate::cmd::anilist_module::struct_autocomplete_user::UserPageWrapper;
 
+use crate::cmd::anilist_module::struct_autocomplete_user::UserPageWrapper;
 use crate::cmd::anilist_module::struct_level::LevelSystem;
 use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::color::get_user_color;

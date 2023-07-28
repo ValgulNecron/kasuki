@@ -41,6 +41,4 @@ pub struct SiteStatisticsMangaNode {
     pub change: i32,
 }
 
-impl SiteStatisticsMangaWrapper {
-
-}
+impl SiteStatisticsMangaWrapper {}

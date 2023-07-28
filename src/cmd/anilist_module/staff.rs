@@ -15,126 +15,10 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_autocomplete_staff::StaffPageWrapper;
 use crate::cmd::anilist_module::struct_staff::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::StaffLocalisedText;
-use crate::cmd::general_module::request::make_request_anilist;
-use crate::cmd::general_module::trim::trim;
-
-const QUERY_ID: &str = "
-query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
-	Staff(id: $name){
-    name {
-      full
-      native
-    }
-    id
-    languageV2
-    image {
-      large
-    }
-    description
-    primaryOccupations
-    gender
-    dateOfBirth {
-      year
-      month
-      day
-    }
-    dateOfDeath {
-      year
-      month
-      day
-    }
-    age
-    yearsActive
-    homeTown
-    siteUrl
-    staffMedia(perPage: $limit1){
-      edges{
-        node {
-          title {
-            romaji
-            english
-          }
-        }
-        roleNotes
-        relationType
-        staffRole
-      }
-    }
-    characters(perPage: $limit2) {
-      nodes {
-        name {
-          full
-        }
-        image {
-          large
-        }
-      }
-    }
-  }
-}
-";
-
-const QUERY_STRING: &str = "
-query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
-	Staff(search: $name){
-    name {
-      full
-      native
-    }
-    id
-    languageV2
-    image {
-      large
-    }
-    description
-    primaryOccupations
-    gender
-    dateOfBirth {
-      year
-      month
-      day
-    }
-    dateOfDeath {
-      year
-      month
-      day
-    }
-    age
-    yearsActive
-    homeTown
-    siteUrl
-    staffMedia(perPage: $limit1){
-      edges{
-        node {
-          title {
-            romaji
-            english
-          }
-        }
-        roleNotes
-        relationType
-        staffRole
-      }
-    }
-    characters(perPage: $limit2) {
-      nodes {
-        name {
-          full
-        }
-        image {
-          large
-        }
-      }
-    }
-  }
-}
-";
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -148,105 +32,42 @@ pub async fn run(
         .as_ref()
         .expect("Expected name object");
     if let CommandDataOptionValue::String(value) = option {
-        let query;
+        let data;
         if match value.parse::<i32>() {
             Ok(_) => true,
             Err(_) => false,
         } {
-            query = QUERY_ID
-        } else {
-            query = QUERY_STRING
-        }
-        let json = json!({"query": query, "variables": {"name": value}});
-        let resp = make_request_anilist(json, false).await;
-
-        // Get json
-        let data: StaffWrapper = match serde_json::from_str(&resp) {
-            Ok(result) => result,
-            Err(e) => {
-                println!("Failed to parse json: {}", e);
-                return "Error: Failed to retrieve user data".to_string();
+            data = match StaffWrapper::new_anime_by_id(value.parse().unwrap()).await {
+                Ok(user_wrapper) => user_wrapper,
+                Err(error) => return error,
             }
-        };
-        let staff_url = format!("https://anilist.co/staff/{}", &data.data.staff.id);
+        } else {
+            data = match StaffWrapper::new_anime_by_search(value).await {
+                Ok(user_wrapper) => user_wrapper,
+                Err(error) => return error,
+            }
+        }
+
+        let staff_url = data.get_url();
         let color = Colour::FABLED_PINK;
 
-        let staff_name = format!(
-            "{}/{}",
-            &data
-                .data
-                .staff
-                .name
-                .native
-                .unwrap_or_else(|| "N/A".to_string()),
-            &data
-                .data
-                .staff
-                .name
-                .full
-                .unwrap_or_else(|| "N/A".to_string())
-        );
+        let staff_name = data.get_name();
 
-        let mut desc = data.data.staff.description.clone();
+        let desc = data.get_desc();
 
-        desc = convert_to_markdown(desc);
-        let lenght_diff = 4096 - desc.len() as i32;
-        if lenght_diff <= 0 {
-            desc = trim(desc, lenght_diff)
-        }
+        let birth = data.get_birth();
+        let death = data.get_death();
 
-        let birth = format!(
-            "{}/{}/{}",
-            &data.data.staff.date_of_birth.month.unwrap_or_else(|| 0),
-            &data.data.staff.date_of_birth.day.unwrap_or_else(|| 0),
-            &data.data.staff.date_of_birth.year.unwrap_or_else(|| 0)
-        );
-        let death = format!(
-            "{}/{}/{}",
-            &data.data.staff.date_of_death.month.unwrap_or_else(|| 0),
-            &data.data.staff.date_of_death.day.unwrap_or_else(|| 0),
-            &data.data.staff.date_of_death.year.unwrap_or_else(|| 0)
-        );
+        let image = data.get_image();
+        let lang = data.get_lang();
 
-        let image = &data.data.staff.image.large;
-        let lang = &data.data.staff.language_v2;
+        let hometown = data.get_hometown();
 
-        let hometown = &data
-            .data
-            .staff
-            .home_town
-            .unwrap_or_else(|| "N/A".to_string());
+        let occupations_string = data.get_occupation();
 
-        let max_limit = 5;
-        let limited_occupations: Vec<String> = data
-            .data
-            .staff
-            .primary_occupations
-            .iter()
-            .take(max_limit)
-            .cloned()
-            .collect();
-        let occupations_string = limited_occupations.join(", ");
+        let result_role: String = data.format_role();
 
-        let formatted_edges_role: Vec<String> = data
-            .data
-            .staff
-            .staff_media
-            .edges
-            .iter()
-            .map(|edge| format_edge(edge))
-            .collect();
-        let result_role: String = formatted_edges_role.join("\n");
-
-        let formatted_nodes_va: Vec<String> = data
-            .data
-            .staff
-            .characters
-            .nodes
-            .iter()
-            .map(|character| format_node(character))
-            .collect();
-        let result_va: String = formatted_nodes_va.join(",\n");
+        let result_va: String = data.format_va();
 
         let mut file = File::open("lang_file/anilist/staff.json").expect("Failed to open file");
         let mut json = String::new();
@@ -320,82 +141,18 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         })
 }
 
-fn format_edge(edge: &Edge) -> String {
-    let title = match &edge.node.title.romaji {
-        Some(romaji) => romaji.clone(),
-        None => match &edge.node.title.english {
-            Some(english) => english.clone(),
-            None => "".to_string(),
-        },
-    };
-    let staff_role = &edge.staff_role;
-    format!("{} ({})", title, staff_role)
-}
-
-fn format_node(character: &Character) -> String {
-    let name_natif = character
-        .name
-        .native
-        .clone()
-        .unwrap_or_else(|| "N/A".to_string());
-    let name_full = character
-        .name
-        .full
-        .clone()
-        .unwrap_or_else(|| "N/A".to_string());
-    let name = format!("{} / {}", name_natif, name_full);
-    format!("{}", name)
-}
-
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
     let search = &command.data.options.first().unwrap().value;
     if let Some(search) = search {
-        let query_str = "query ($search: String, $count: Int) {
-  Page(perPage: $count) {
-    staff(search: $search) {
-      id
-      name {
-      	full
-        userPreferred
-      }
-    }
-  }
-}";
-        let json = json!({"query": query_str, "variables": {
-            "search": search,
-            "count": 8,
-        }});
+        let data = StaffPageWrapper::new_autocomplete_staff(search, 8).await;
 
-        let res = make_request_anilist(json, true).await;
-        let data: StaffPageWrapper = serde_json::from_str(&res).unwrap();
-
-        if let Some(staff) = data.data.page.staff {
-            let suggestions: Vec<AutocompleteOption> = staff
-                .iter()
-                .filter_map(|item| {
-                    if let Some(item) = item {
-                        Some(AutocompleteOption {
-                            name: match &item.name {
-                                Some(name) => {
-                                    let english = name.user_preferred.clone();
-                                    let romaji = name.full.clone();
-                                    String::from(english.unwrap_or(romaji))
-                                }
-                                None => String::default(),
-                            },
-                            value: item.id.to_string(),
-                        })
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            let choices = json!(suggestions);
-
-            // doesn't matter if it errors
-            _ = command
-                .create_autocomplete_response(ctx.http, |response| response.set_choices(choices))
-                .await;
-        }
+        let choices = data.get_choice();
+        // doesn't matter if it errors
+        let choices_json = json!(choices);
+        _ = command
+            .create_autocomplete_response(ctx.http.clone(), |response| {
+                response.set_choices(choices_json)
+            })
+            .await;
     }
 }
