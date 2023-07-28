@@ -1,7 +1,8 @@
 use serde::Deserialize;
 use serde_json::json;
-use crate::cmd::general_module::html_parser::convert_to_markdown;
 
+use crate::cmd::general_module::html_parser::convert_to_markdown;
+use crate::cmd::general_module::lang_struct::StaffLocalisedText;
 use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
 
@@ -291,31 +292,64 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
     pub fn get_name(&self) -> String {
         format!(
             "{}/{}",
-            self
-                .data
+            self.data
                 .staff
                 .name
-                .native.clone()
+                .native
+                .clone()
                 .unwrap_or_else(|| "N/A".to_string()),
-            self
-                .data
+            self.data
                 .staff
                 .name
-                .full.clone()
+                .full
+                .clone()
                 .unwrap_or_else(|| "N/A".to_string())
         )
     }
 
-    pub fn get_desc(&self) -> String {
-        let mut desc = self.data.staff.description.clone();
+    pub fn get_desc(&self, localised_text: &StaffLocalisedText) -> String {
+        let lang = self.get_lang();
+        let hometown = self.get_hometown();
+        let occupations_string = self.get_occupation();
+        let birth = self.get_birth();
+        let death = self.get_death();
 
+        let mut desc = self.data.staff.description.clone();
         desc = convert_to_markdown(desc);
-        let lenght_diff = 4096 - desc.len() as i32;
+        let mut full_description = format!(
+            "{}{}{}{}{}{}{}{}{}{}",
+            &localised_text.date_of_birth,
+            birth,
+            &localised_text.date_of_death,
+            death,
+            &localised_text.hometown,
+            hometown,
+            &localised_text.primary_language,
+            lang,
+            &localised_text.primary_occupation,
+            occupations_string
+        );
+        let lenght_diff = 4096 - full_description.len() as i32;
         if lenght_diff <= 0 {
-            desc = trim(desc, lenght_diff)
+            desc = trim(desc, lenght_diff);
+
+            full_description = format!(
+                "{}{}{}{}{}{}{}{}{}{}\n\n{}",
+                &localised_text.date_of_birth,
+                birth,
+                &localised_text.date_of_death,
+                death,
+                &localised_text.hometown,
+                hometown,
+                &localised_text.primary_language,
+                lang,
+                &localised_text.primary_occupation,
+                occupations_string,
+                desc
+            );
         }
 
-        desc
+        full_description
     }
 
     pub fn get_birth(&self) -> String {
@@ -347,7 +381,8 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
     pub fn get_hometown(&self) -> String {
         self.data
             .staff
-            .home_town.clone()
+            .home_town
+            .clone()
             .unwrap_or_else(|| "N/A".to_string())
     }
 

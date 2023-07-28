@@ -53,17 +53,7 @@ pub async fn run(
 
         let staff_name = data.get_name();
 
-        let desc = data.get_desc();
-
-        let birth = data.get_birth();
-        let death = data.get_death();
-
         let image = data.get_image();
-        let lang = data.get_lang();
-
-        let hometown = data.get_hometown();
-
-        let occupations_string = data.get_occupation();
 
         let result_role: String = data.format_role();
 
@@ -80,6 +70,8 @@ pub async fn run(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+            let desc = data.get_desc(localised_text);
+
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
                     response
@@ -90,24 +82,7 @@ pub async fn run(
                                     .timestamp(Timestamp::now())
                                     .color(color)
                                     .fields(vec![
-                                        (&localised_text.desc_title, format!("{}", desc), false),
-                                        (
-                                            &"".to_string(),
-                                            format!(
-                                                "{}{}{}{}{}{}{}{}{}{}",
-                                                &localised_text.date_of_birth,
-                                                birth,
-                                                &localised_text.date_of_death,
-                                                death,
-                                                &localised_text.hometown,
-                                                hometown,
-                                                &localised_text.primary_language,
-                                                lang,
-                                                &localised_text.primary_occupation,
-                                                occupations_string
-                                            ),
-                                            false,
-                                        ),
+                                        (&localised_text.desc_title, desc, false),
                                         (&localised_text.media, format!("{}", result_role), true),
                                         (&localised_text.va, format!("{}", result_va), true),
                                     ])
