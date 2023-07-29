@@ -9,7 +9,8 @@
     "end_date": "\nEnd date: ",
     "fields_name_1": "Genre",
     "fields_name_2": "Tag",
-    "desc_title": "Info"
+    "desc_title": "Info",
+    "error_slash_command": "Can't create slash command"
   },
   "Fr": {
     "full_name": "Nom complet : ",
@@ -21,7 +22,8 @@
     "end_date": "\nDate de fin : ",
     "fields_name_1": "Genre",
     "fields_name_2": "Tag",
-    "desc_title": "Info"
+    "desc_title": "Info",
+    "error_slash_command": "Impossible de créer la commande slash"
   },
   "Jp": {
     "full_name": "フルネーム：",
@@ -33,7 +35,8 @@
     "end_date": "\n終了日：",
     "fields_name_1": "ジャンル",
     "fields_name_2": "タグ",
-    "desc_title": "情報"
+    "desc_title": "情報",
+    "error_slash_command": "スラッシュコマンドを作成できません"
   },
   "De": {
     "full_name": "Voller Name: ",
@@ -45,6 +48,7 @@
     "end_date": "\nEnddatum: ",
     "fields_name_1": "Genre",
     "fields_name_2": "Tag",
-    "desc_title": "Info"
+    "desc_title": "Info",
+    "error_slash_command": "Slash-Befehl kann nicht erstellt werden"
   }
 }

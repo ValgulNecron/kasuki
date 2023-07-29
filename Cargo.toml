@@ -17,3 +17,4 @@ rand = "0.8.5"
 chrono = "0.4.26"
 uuid = { version = "1.4.0", features = ["v4"] }
 dotenv = "0.15.0"
+tide = "0.16.0"

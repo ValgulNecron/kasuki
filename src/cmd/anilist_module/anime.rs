@@ -184,13 +184,13 @@ pub async fn run(
                 Ok(data) => data,
                 Err(error) => {
                     println!("Error: {}", error);
-                    return "Unable to find this anime.".to_string();
+                    return localised_text.error_anime_not_found.clone();
                 }
             };
 
             let is_nsfw = get_nsfw(command, ctx).await;
             if data.data.media.is_adult && !is_nsfw {
-                return "not an NSFW channel".to_string();
+                return localised_text.error_not_nsfw.clone();
             }
 
             let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
@@ -315,7 +315,7 @@ pub async fn run(
                 })
                 .await
             {
-                println!("Cannot respond to slash command: {}", why);
+                println!("{}: {}", &localised_text.error_slash_command, why);
             }
         } else {
             return "Language not found".to_string();

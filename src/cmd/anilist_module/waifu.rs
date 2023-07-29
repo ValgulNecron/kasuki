@@ -55,7 +55,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
             })
             .await
         {
-            println!("Cannot respond to slash command: {}", why);
+            println!("{}: {}", localised_text.error_slash_command, why);
         }
     }
     return "good".to_string();

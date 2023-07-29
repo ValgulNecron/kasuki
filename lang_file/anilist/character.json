@@ -4,27 +4,31 @@
     "gender": ".\nGender: ",
     "date_of_birth": ".\nDate of Birth: ",
     "favourite": ".\nNumber of Favorites: ",
-    "desc": ".\nDescription: \n"
+    "desc": ".\nDescription: \n",
+    "error_slash_command": "Can't create slash command"
   },
   "Fr": {
     "age": "Âge : ",
     "gender": ".\nGenre : ",
     "date_of_birth": ".\nDate de naissance : ",
     "favourite": ".\nNombre de favoris : ",
-    "desc": ".\nDescription :\n "
+    "desc": ".\nDescription :\n ",
+    "error_slash_command": "Impossible de créer la commande slash"
   },
   "Jp": {
     "age": "年齢：",
     "gender": "。\n性別：",
     "date_of_birth": "。\n生年月日：",
     "favourite": "。\nお気に入りの数：",
-    "desc": "。\n説明：\n"
+    "desc": "。\n説明：\n",
+    "error_slash_command": "スラッシュコマンドを作成できません"
   },
   "De": {
     "age": "Alter: ",
     "gender": ".\nGeschlecht: ",
     "date_of_birth": ".\nGeburtsdatum: ",
     "favourite": ".\nAnzahl der Favoriten: ",
-    "desc": ".\nBeschreibung: \n"
+    "desc": ".\nBeschreibung: \n",
+    "error_slash_command": "Slash-Befehl kann nicht erstellt werden"
   }
 }

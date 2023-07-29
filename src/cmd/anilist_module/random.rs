@@ -340,7 +340,7 @@ pub async fn follow_up_message(
             })
             .await
         {
-            println!("Cannot respond to slash command: {}", why);
+            println!("{}: {}", localised_text.error_slash_command, why);
         }
     }
 }

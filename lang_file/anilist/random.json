@@ -5,7 +5,8 @@
     "genre": "Genre: ",
     "tag": ".\nTags: ",
     "format": ".\nFormat: ",
-    "desc": ".\n\n\nDescription: "
+    "desc": ".\n\n\nDescription: ",
+    "error_slash_command": "Can't create slash command"
   },
   "Fr": {
     "error_title": "Quelque chose s'est mal passé.",
@@ -13,7 +14,8 @@
     "genre": "Genre : ",
     "tag": ".\nTags : ",
     "format": ".\nFormat : ",
-    "desc": ".\n\n\nDescription : "
+    "desc": ".\n\n\nDescription : ",
+    "error_slash_command": "Impossible de créer la commande slash"
   },
   "Jp": {
     "error_title": "何かがうまくいかなかったようです。",
@@ -21,7 +23,8 @@
     "genre": "ジャンル：",
     "tag": "。\nタグ：",
     "format": "。\nフォーマット：",
-    "desc": "。\n\n\n説明："
+    "desc": "。\n\n\n説明：",
+    "error_slash_command": "スラッシュコマンドを作成できません"
   },
   "De": {
     "error_title": "Etwas ist schiefgelaufen.",
@@ -29,6 +32,7 @@
     "genre": "Genre: ",
     "tag": ".\nTags: ",
     "format": ".\nFormat: ",
-    "desc": ".\n\n\nBeschreibung: "
+    "desc": ".\n\n\nBeschreibung: ",
+    "error_slash_command": "Slash-Befehl kann nicht erstellt werden"
   }
 }

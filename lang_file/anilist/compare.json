@@ -42,7 +42,8 @@
     "sub_title_manga": ". \n \n Manga: ",
     "chapter_read": ". \n \n Chapter read: ",
     "pref_genre_manga": "\n \n Preferred genre for manga: ",
-    "pref_tag_manga": ". \n \n Preferred tag for manga: "
+    "pref_tag_manga": ". \n \n Preferred tag for manga: ",
+    "error_slash_command": "Can't create slash command"
   },
   "Fr": {
     "more_anime": " a regardé plus d'animes que ",
@@ -87,7 +88,8 @@
     "sub_title_manga": ". \n \n Manga : ",
     "chapter_read": ". \n \n Chapitres lus : ",
     "pref_genre_manga": " \n \n Genre préféré pour les mangas : ",
-    "pref_tag_manga": ". \n \n Tag préféré pour les mangas : "
+    "pref_tag_manga": ". \n \n Tag préféré pour les mangas : ",
+    "error_slash_command": "Impossible de créer la commande slash"
   },
   "Jp": {
     "more_anime": " は ",
@@ -133,7 +135,8 @@
     "sub_title_manga": " \n \n マンガ：",
     "chapter_read": " \n \n 読んだチャプター：",
     "pref_genre_manga": " \n \n マンガの好きなジャンル：",
-    "pref_tag_manga": " \n \n マンガの好きなタグ："
+    "pref_tag_manga": " \n \n マンガの好きなタグ：",
+    "error_slash_command": "スラッシュコマンドを作成できません"
   },
   "De": {
     "more_anime": " hat mehr Anime als ",
@@ -179,6 +182,7 @@
     "sub_title_manga": ". \n \n Manga: ",
     "chapter_read": ". \n \n Gelesene Kapitel: ",
     "pref_genre_manga": " \n \n Bevorzugtes Genre für Manga: ",
-    "pref_tag_manga": ". \n \n Bevorzugter Tag für Manga: "
+    "pref_tag_manga": ". \n \n Bevorzugter Tag für Manga: ",
+    "error_slash_command": "Slash-Befehl kann nicht erstellt werden"
   }
 }

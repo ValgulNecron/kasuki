@@ -71,6 +71,9 @@ pub struct AnimeLocalisedText {
     pub desc_part_7: String,
     pub fields_name_1: String,
     pub fields_name_2: String,
+    pub error_slash_command: String,
+    pub error_not_nsfw: String,
+    pub error_anime_not_found: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -80,6 +83,7 @@ pub struct CharacterLocalisedText {
     pub date_of_birth: String,
     pub favourite: String,
     pub desc: String,
+    pub error_slash_command: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -94,6 +98,7 @@ pub struct MediaLocalisedText {
     pub fields_name_1: String,
     pub fields_name_2: String,
     pub desc_title: String,
+    pub error_slash_command: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -102,6 +107,7 @@ pub struct LevelLocalisedText {
     pub xp: String,
     pub progression_1: String,
     pub progression_2: String,
+    pub error_slash_command: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -112,6 +118,7 @@ pub struct RandomLocalisedText {
     pub tag: String,
     pub format: String,
     pub desc: String,
+    pub error_slash_command: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -119,6 +126,7 @@ pub struct RegisterLocalisedText {
     pub part_1: String,
     pub part_2: String,
     pub part_3: String,
+    pub error_slash_command: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -131,6 +139,7 @@ pub struct StaffLocalisedText {
     pub primary_occupation: String,
     pub media: String,
     pub va: String,
+    pub error_slash_command: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -155,6 +164,7 @@ pub struct UserLocalisedText {
     pub day: String,
     pub hour: String,
     pub minute: String,
+    pub error_slash_command: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -202,6 +212,7 @@ pub struct CompareLocalisedText {
     pub chapter_read: String,
     pub pref_genre_manga: String,
     pub pref_tag_manga: String,
+    pub error_slash_command: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

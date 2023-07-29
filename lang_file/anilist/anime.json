@@ -9,7 +9,10 @@
     "desc_part_6": " / User Preferred: ",
     "desc_part_7": " / Role: ",
     "fields_name_1": "Genre",
-    "fields_name_2": "Tag"
+    "fields_name_2": "Tag",
+    "error_slash_command": "Can't create slash command",
+    "error_not_nsfw": "This channel is not an NSFW channel",
+    "error_anime_not_found": "Unable to find this anime"
   },
   "Fr": {
     "desc_title": "Infos",
@@ -21,7 +24,10 @@
     "desc_part_6": " / Préférence utilisateur : ",
     "desc_part_7": " / Rôle : ",
     "fields_name_1": "Genre",
-    "fields_name_2": "Tag"
+    "fields_name_2": "Tag",
+    "error_slash_command": "Impossible de créer la commande slash",
+    "error_not_nsfw": "Ce salon n'est pas un salon NSFW",
+    "error_anime_not_found": "Impossible de trouver cet anime"
   },
   "Jp": {
     "desc_title": "情報",
@@ -33,7 +39,10 @@
     "desc_part_6": " / ユーザーの優先設定：",
     "desc_part_7": " / 役割：",
     "fields_name_1": "ジャンル",
-    "fields_name_2": "タグ"
+    "fields_name_2": "タグ",
+    "error_slash_command": "スラッシュコマンドを作成できません",
+    "error_not_nsfw": "このチャンネルはNSFWチャンネルではありません",
+    "error_anime_not_found": "このアニメが見つかりません"
   },
   "De": {
     "desc_title": "Informationen",
@@ -45,6 +54,9 @@
     "desc_part_6": " / Benutzer bevorzugt: ",
     "desc_part_7": " / Rolle: ",
     "fields_name_1": "Genre",
-    "fields_name_2": "Tag"
+    "fields_name_2": "Tag",
+    "error_slash_command": "Slash-Befehl kann nicht erstellt werden",
+    "error_not_nsfw": "Dieser Kanal ist kein NSFW-Kanal",
+    "error_anime_not_found": "Dieses Anime konnte nicht gefunden werden"
   }
 }

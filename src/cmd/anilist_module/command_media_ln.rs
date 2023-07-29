@@ -186,7 +186,7 @@ pub async fn embed(
                 })
                 .await
             {
-                println!("Cannot respond to slash command: {}", why);
+                println!("{}: {}", localised_text.error_slash_command, why);
             }
         } else {
             return "Language not found".to_string();
