@@ -30,5 +30,14 @@
     "error_request": "リクエストの送信中にエラーが発生しました",
     "error_file_type": "ファイルの種類が間違っています",
     "error_file_extension": "ファイルの拡張子が間違っています"
+  },
+  "zh": {
+    "title": "这是您的翻译 |Zhè shì nín de fānyì",
+    "error_slash_command": "无法创建斜杠命令 |Wúfǎ chuàngjiàn xiégāng mìnglìng",
+    "unknown_error": "发生了未知错误 |Fāshēngle wèizhī cuòwù",
+    "error_request": "发送请求时出错 |Fāsòng qǐngqiú shí cuòwù",
+    "error_file_type": "文件类型不正确 |Wénjiàn lèixíng bù zhèngquè",
+    "error_file_extension": "文件扩展名不正确 |Wénjiàn kuòzhǎnmíng bù zhèngquè",
+    "error_no_ice_cream": "Cuòwù méiyǒu bīngqílín"
   }
 }
