@@ -22,6 +22,8 @@ use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
+// use crate::cmd::api::main::create_server;
+use crate::cmd::general_module::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
@@ -33,7 +35,7 @@ mod tests;
 
 struct Handler;
 
-const ACTIVITY_NAME: &str = "Do /help to get the list of command";
+const ACTIVITY_NAME: &str = "Let you get info from anilist.";
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -109,7 +111,6 @@ impl EventHandler for Handler {
                 "search" => search::run(&command.data.options, &ctx, &command).await,
                 "staff" => staff::run(&command.data.options, &ctx, &command).await,
                 "user" => user::run(&command.data.options, &ctx, &command).await,
-                "waifu" => waifu::run(&ctx, &command).await,
 
                 // AI module
                 "image" => image::run(&command.data.options, &ctx, &command).await,
@@ -207,6 +208,10 @@ async fn main() {
         .event_handler(Handler)
         .await
         .expect("Error creating client");
+
+    tokio::spawn(async move {
+        // create_server().await.expect("Web server running");
+    });
 
     let manager = client.shard_manager.clone();
 
