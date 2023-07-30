@@ -1,4 +1,3 @@
-use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::prelude::autocomplete::AutocompleteInteraction;
@@ -8,9 +7,7 @@ use serenity::model::prelude::interaction::application_command::{
 };
 
 use crate::cmd::anilist_module::command_media_ln::embed;
-use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
-use crate::cmd::general_module::request::make_request_anilist;
 
 const QUERY_ID: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
@@ -151,57 +148,15 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 }
 
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
-    let search = &command.data.options.first().unwrap().value;
-    if let Some(search) = search {
-        let query_str =
-            "query($search: String, $type: MediaType, $count: Int, $format: MediaFormat) {
-          Page(perPage: $count) {
-		    media(search: $search, type: $type, format_not: $format) {
-		      id
-		      title {
-		        romaji
-		        english
-		      }
-			}
-		  }
-		}";
-        let json = json!({"query": query_str, "variables": {
-            "search": search,
-            "type": "MANGA",
-            "count": 8,
-            "format": "NOVEL"
-        }});
-
-        let res = make_request_anilist(json, true).await;
-        let data: MediaPageWrapper = serde_json::from_str(&res).unwrap();
-
-        if let Some(media) = data.data.page.media {
-            let suggestions: Vec<AutocompleteOption> = media
-                .iter()
-                .filter_map(|item| {
-                    if let Some(item) = item {
-                        Some(AutocompleteOption {
-                            name: match &item.title {
-                                Some(title) => {
-                                    let english = title.english.clone();
-                                    let romaji = title.romaji.clone();
-                                    String::from(english.unwrap_or(romaji))
-                                }
-                                None => String::default(),
-                            },
-                            value: item.id.to_string(),
-                        })
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            let choices = json!(suggestions);
-
+        let search = &command.data.options.first().unwrap().value;
+        if let Some(search) = search {
+            let data = MediaPageWrapper::new_autocomplete_manga(search, 8, "MANGA", "NOVEL").await;
+            let choices = data.get_choices();
             // doesn't matter if it errors
             _ = command
-                .create_autocomplete_response(ctx.http, |response| response.set_choices(choices))
+                .create_autocomplete_response(ctx.http, |response| {
+                    response.set_choices(choices.clone())
+                })
                 .await;
         }
     }
-}

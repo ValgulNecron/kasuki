@@ -28,7 +28,6 @@ use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
-use crate::cmd::general_module::*;
 
 mod cmd;
 mod tests;
@@ -111,6 +110,7 @@ impl EventHandler for Handler {
                 "search" => search::run(&command.data.options, &ctx, &command).await,
                 "staff" => staff::run(&command.data.options, &ctx, &command).await,
                 "user" => user::run(&command.data.options, &ctx, &command).await,
+                "waifu" => waifu::run(&ctx, &command).await,
 
                 // AI module
                 "image" => image::run(&command.data.options, &ctx, &command).await,
