@@ -679,6 +679,31 @@ impl MediaWrapper {
         staff
     }
 
+    pub fn get_media_staff(&self, localised_text: MediaLocalisedText) -> String {
+        let mut staff = "".to_string();
+            let staffs = &self.data.media.staff.edges;
+            for s in staffs {
+                let full = s.node.name.full.clone().unwrap_or_else(|| "N/A".to_string());
+                let user = s
+                    .node
+                    .name
+                    .user_preferred
+                    .clone()
+                    .unwrap_or_else(|| "N/A".to_string());
+                let role = s.role.clone().unwrap_or_else(|| "N/A".to_string());
+                staff.push_str(&format!(
+                    "{}{}{}{}{}{}\n",
+                    &localised_text.full_name,
+                    full,
+                    &localised_text.user_pref,
+                    user,
+                    &localised_text.role,
+                    role
+                ));
+            }
+        staff
+    }
+
     pub fn get_anime_info(&self, localised_text: AnimeLocalisedText) -> String {
         let format = self.get_format();
         let source = self.get_source();
@@ -698,6 +723,26 @@ impl MediaWrapper {
             end_date,
             staff
         )
+    }
+
+    pub fn get_media_info(&self, localised_text: MediaLocalisedText) -> String {
+        let format = self.get_format();
+            let source = self.get_source();
+            let start_date = self.get_start_date();
+            let end_date = self.get_end_date();
+            let staff = self.get_media_staff(localised_text.clone());
+        format!(
+                "{}{}{}{}{}{}{}{} \n {}",
+                &localised_text.format,
+                format,
+                &localised_text.source,
+                source,
+                &localised_text.start_date,
+                start_date,
+                &localised_text.end_date,
+                end_date,
+                staff
+            )
     }
 
     pub fn get_genres(&self) -> String {
