@@ -9,128 +9,12 @@ use serenity::model::prelude::interaction::application_command::{
 use crate::cmd::anilist_module::command_media_ln::embed;
 use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
 
-const QUERY_ID: &str = "
-    query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
-		Media (id: $search, type: MANGA, format_not: $format){
-    id
-      description
-    title{
-      romaji
-      english
-    }
-    type
-    format
-    source
-    isAdult
-    startDate {
-      year
-      month
-      day
-    }
-    endDate {
-      year
-      month
-      day
-    }
-    chapters
-    volumes
-    status
-    season
-    isLicensed
-    coverImage {
-      extraLarge
-    }
-    bannerImage
-    genres
-    tags {
-      name
-    }
-    averageScore
-    meanScore
-    popularity
-    favourites
-    siteUrl
-    staff(perPage: $limit) {
-      edges {
-        node {
-          id
-          name {
-            full
-            userPreferred
-          }
-        }
-        id
-        role
-      }
-    }
-  }
-}
-";
-
-const QUERY_STRING: &str = "
-    query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
-		Media (search: $search, type: MANGA, format_not: $format){
-    id
-      description
-    title{
-      romaji
-      english
-    }
-    type
-    format
-    source
-    isAdult
-    startDate {
-      year
-      month
-      day
-    }
-    endDate {
-      year
-      month
-      day
-    }
-    chapters
-    volumes
-    status
-    season
-    isLicensed
-    coverImage {
-      extraLarge
-    }
-    bannerImage
-    genres
-    tags {
-      name
-    }
-    averageScore
-    meanScore
-    popularity
-    favourites
-    siteUrl
-    staff(perPage: $limit) {
-      edges {
-        node {
-          id
-          name {
-            full
-            userPreferred
-          }
-        }
-        id
-        role
-      }
-    }
-  }
-}
-";
-
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> String {
-    return embed(options, ctx, command, QUERY_ID, QUERY_STRING).await;
+    return embed(options, ctx, command, "MANGA").await;
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -148,15 +32,15 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 }
 
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
-        let search = &command.data.options.first().unwrap().value;
-        if let Some(search) = search {
-            let data = MediaPageWrapper::new_autocomplete_manga(search, 8, "MANGA", "NOVEL").await;
-            let choices = data.get_choices();
-            // doesn't matter if it errors
-            _ = command
-                .create_autocomplete_response(ctx.http, |response| {
-                    response.set_choices(choices.clone())
-                })
-                .await;
-        }
+    let search = &command.data.options.first().unwrap().value;
+    if let Some(search) = search {
+        let data = MediaPageWrapper::new_autocomplete_manga(search, 8, "MANGA", "NOVEL").await;
+        let choices = data.get_choices();
+        // doesn't matter if it errors
+        _ = command
+            .create_autocomplete_response(ctx.http, |response| {
+                response.set_choices(choices.clone())
+            })
+            .await;
     }
+}

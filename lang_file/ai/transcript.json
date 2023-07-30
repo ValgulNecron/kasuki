@@ -35,7 +35,7 @@
     "title": "这是您的转录 ",
     "error_slash_command": "无法创建斜杠命令 ",
     "unknown_error": "出现了未知错误 ",
-     "error_request": "发送请求时出错",
+    "error_request": "发送请求时出错",
     "error_file_type": "文件类型不正确",
     "error_file_extension": "文件扩展名不正确"
   },

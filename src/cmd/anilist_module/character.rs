@@ -47,15 +47,23 @@ pub async fn run(
                 Ok(_) => true,
                 Err(_) => false,
             } {
-                data = match CharacterWrapper::new_character_by_id(value.parse().unwrap()).await {
+                data = match CharacterWrapper::new_character_by_id(
+                    value.parse().unwrap(),
+                    localised_text.clone(),
+                )
+                .await
+                {
                     Ok(character_wrapper) => character_wrapper,
                     Err(error) => return error,
                 }
             } else {
-                data = match CharacterWrapper::new_character_by_search(value).await {
-                    Ok(character_wrapper) => character_wrapper,
-                    Err(error) => return error,
-                }
+                data =
+                    match CharacterWrapper::new_character_by_search(value, localised_text.clone())
+                        .await
+                    {
+                        Ok(character_wrapper) => character_wrapper,
+                        Err(error) => return error,
+                    }
             }
 
             let color = Colour::FABLED_PINK;
@@ -65,6 +73,8 @@ pub async fn run(
 
             let image = data.get_image();
             let url = data.get_url();
+
+            let info = data.get_info(localised_text.clone());
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
@@ -78,13 +88,14 @@ pub async fn run(
                                     .color(color)
                                     .description(desc)
                                     .thumbnail(image)
+                                    .field(&localised_text.info, info, true)
                                     .color(color)
                             })
                         })
                 })
                 .await
             {
-                println!("{}: {}", localised_text.error_slash_command ,why);
+                println!("{}: {}", localised_text.error_slash_command, why);
             }
         }
     }

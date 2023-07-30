@@ -26,7 +26,8 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        let data = match CharacterWrapper::new_character_by_id(156323).await {
+        let data = match CharacterWrapper::new_character_by_id(156323, localised_text.clone()).await
+        {
             Ok(character_wrapper) => character_wrapper,
             Err(error) => return error,
         };

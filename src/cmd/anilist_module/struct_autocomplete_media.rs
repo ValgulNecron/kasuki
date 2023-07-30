@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use serde_json::{json, Value};
+
 use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::general_module::request::make_request_anilist;
 
@@ -32,7 +33,11 @@ pub struct MediaPageWrapper {
 }
 
 impl MediaPageWrapper {
-    pub async fn new_autocomplete_anime(search: &Value, count: u32, search_type: &str) -> MediaPageWrapper {
+    pub async fn new_autocomplete_anime(
+        search: &Value,
+        count: u32,
+        search_type: &str,
+    ) -> MediaPageWrapper {
         let query_str = "query ($search: String, $type: MediaType, $count: Int) {
   Page(perPage: $count) {
     media(search: $search, type: $type) {
@@ -55,7 +60,12 @@ impl MediaPageWrapper {
         data
     }
 
-    pub async fn new_autocomplete_manga(search: &Value, count: u32, search_type: &str, format: &str) -> MediaPageWrapper {
+    pub async fn new_autocomplete_manga(
+        search: &Value,
+        count: u32,
+        search_type: &str,
+        format: &str,
+    ) -> MediaPageWrapper {
         let query_str =
             "query($search: String, $type: MediaType, $count: Int, $format: MediaFormat) {
           Page(perPage: $count) {
@@ -80,7 +90,12 @@ impl MediaPageWrapper {
         data
     }
 
-    pub async fn new_autocomplete_ln(search: &Value, count: u32, search_type: &str, format: &str) -> MediaPageWrapper {
+    pub async fn new_autocomplete_ln(
+        search: &Value,
+        count: u32,
+        search_type: &str,
+        format: &str,
+    ) -> MediaPageWrapper {
         let query_str =
             "query($search: String, $type: MediaType, $count: Int, $format: MediaFormat) {
           Page(perPage: $count) {

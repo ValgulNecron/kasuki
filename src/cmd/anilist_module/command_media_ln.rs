@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use serde_json::json;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
@@ -17,15 +16,13 @@ use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::html_parser::convert_to_markdown;
 use crate::cmd::general_module::lang_struct::MediaLocalisedText;
-use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
 
 pub async fn embed(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-    query_id: &str,
-    query_string: &str,
+    search_type: &str,
 ) -> String {
     let option = options
         .get(0)
@@ -34,16 +31,6 @@ pub async fn embed(
         .as_ref()
         .expect("Expected name object");
     if let CommandDataOptionValue::String(value) = option {
-        let query;
-        if match value.parse::<i32>() {
-            Ok(_) => true,
-            Err(_) => false,
-        } {
-            query = query_id
-        } else {
-            query = query_string
-        }
-
         let mut file = File::open("lang_file/anilist/media.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
@@ -55,10 +42,55 @@ pub async fn embed(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let json = json!({"query": query, "variables": {"search": value}});
-            let resp = make_request_anilist(json, false).await;
-            // Get json
-            let data: MediaWrapper = serde_json::from_str(&resp).unwrap();
+            let data: MediaWrapper;
+            if match value.parse::<i32>() {
+                Ok(_) => true,
+                Err(_) => false,
+            } {
+                if search_type == "NOVEL" {
+                    data = match MediaWrapper::new_ln_by_id(
+                        value.parse().unwrap(),
+                        localised_text.clone(),
+                    )
+                    .await
+                    {
+                        Ok(character_wrapper) => character_wrapper,
+                        Err(error) => return error,
+                    }
+                } else {
+                    data = match MediaWrapper::new_manga_by_id(
+                        value.parse().unwrap(),
+                        localised_text.clone(),
+                    )
+                    .await
+                    {
+                        Ok(character_wrapper) => character_wrapper,
+                        Err(error) => return error,
+                    }
+                }
+            } else {
+                if search_type == "NOVEL" {
+                    data = match MediaWrapper::new_ln_by_search(
+                        value.parse().unwrap(),
+                        localised_text.clone(),
+                    )
+                    .await
+                    {
+                        Ok(character_wrapper) => character_wrapper,
+                        Err(error) => return error,
+                    }
+                } else {
+                    data = match MediaWrapper::new_manga_by_search(
+                        value.parse().unwrap(),
+                        localised_text.clone(),
+                    )
+                    .await
+                    {
+                        Ok(character_wrapper) => character_wrapper,
+                        Err(error) => return error,
+                    }
+                }
+            }
 
             let is_nsfw = get_nsfw(command, ctx).await;
             if data.data.media.is_adult && !is_nsfw {

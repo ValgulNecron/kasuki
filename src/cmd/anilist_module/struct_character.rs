@@ -55,7 +55,10 @@ pub struct Image {
 }
 
 impl CharacterWrapper {
-    pub async fn new_character_by_id(value: i32) -> Result<CharacterWrapper, String> {
+    pub async fn new_character_by_id(
+        value: i32,
+        localised_text: CharacterLocalisedText,
+    ) -> Result<CharacterWrapper, String> {
         let query_id: &str = "
         query ($name: Int) {
             Character(id: $name) {
@@ -88,13 +91,16 @@ impl CharacterWrapper {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"));
+                return Err(localised_text.error_no_character);
             }
         };
         return Ok(data);
     }
 
-    pub async fn new_character_by_search(value: &String) -> Result<CharacterWrapper, String> {
+    pub async fn new_character_by_search(
+        value: &String,
+        localised_text: CharacterLocalisedText,
+    ) -> Result<CharacterWrapper, String> {
         let query_string: &str = "
 query ($name: String) {
 	Character(search: $name) {
@@ -127,7 +133,7 @@ query ($name: String) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"));
+                return Err(localised_text.error_no_character);
             }
         };
         return Ok(data);
@@ -142,13 +148,23 @@ query ($name: String) {
 
     pub fn get_desc(&self, localised_text: CharacterLocalisedText) -> String {
         let mut desc = self.data.character.description.clone();
+        desc = format!("{} {}", localised_text.desc.clone(), desc);
         desc = convert_to_markdown(desc);
+        let lenght_diff = 4096 - desc.len() as i32;
+        if lenght_diff <= 0 {
+            desc = trim(desc, lenght_diff);
+        }
+
+        desc
+    }
+
+    pub fn get_info(&self, localised_text: CharacterLocalisedText) -> String {
         let age = &self.get_age();
         let gender = &self.get_gender();
         let favourite = &self.get_fav();
         let date_of_birth = &self.get_date_of_birth();
-        let mut full_description = format!(
-            "{}{}{}{}{}{}{}{}{}{}.",
+        let full_description = format!(
+            "{}{}{}{}{}{}{}{}.",
             &localised_text.age,
             age,
             &localised_text.gender,
@@ -157,28 +173,7 @@ query ($name: String) {
             date_of_birth,
             &localised_text.favourite,
             favourite,
-            &localised_text.desc,
-            desc
         );
-        let lenght_diff = 4096 - full_description.len() as i32;
-        if lenght_diff <= 0 {
-            desc = trim(desc, lenght_diff);
-
-            full_description = format!(
-                "{}{}{}{}{}{}{}{}{}{}.",
-                &localised_text.age,
-                age,
-                &localised_text.gender,
-                gender,
-                &localised_text.date_of_birth,
-                date_of_birth,
-                &localised_text.favourite,
-                favourite,
-                &localised_text.desc,
-                desc
-            );
-        }
-
         full_description
     }
 

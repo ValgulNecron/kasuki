@@ -84,6 +84,8 @@ pub struct CharacterLocalisedText {
     pub favourite: String,
     pub desc: String,
     pub error_slash_command: String,
+    pub error_no_character: String,
+    pub info: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -99,6 +101,7 @@ pub struct MediaLocalisedText {
     pub fields_name_2: String,
     pub desc_title: String,
     pub error_slash_command: String,
+    pub error_no_media: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
