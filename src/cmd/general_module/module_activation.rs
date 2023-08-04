@@ -20,8 +20,8 @@ pub async fn run(
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
             guild_id TEXT PRIMARY KEY,
-            ai_module BOOL,
-            anilist_module BOOL
+            ai_module INTEGER,
+            anilist_module INTEGER
         )",
     )
     .execute(&pool)

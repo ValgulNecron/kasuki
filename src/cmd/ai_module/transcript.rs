@@ -31,10 +31,12 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> String {
+    /*
     let guild_id = command.guild_id.unwrap().0.to_string().clone();
     if !check_activation_status("AI".parse().unwrap(), guild_id).await {
         return "Module deactivated".to_string();
     }
+    */
 
     let attachement_option;
     if options.get(0).expect("Expected attachement option").name == "video" {
