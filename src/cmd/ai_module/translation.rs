@@ -30,12 +30,10 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> String {
-    /*
     let guild_id = command.guild_id.unwrap().0.to_string().clone();
     if !check_activation_status("AI".parse().unwrap(), guild_id).await {
         return "Module deactivated".to_string();
     }
-    */
 
     let mut lang: String = "en".to_string();
     let attachement_option;

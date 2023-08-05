@@ -27,7 +27,7 @@ pub async fn run(
         "CREATE TABLE IF NOT EXISTS guild_lang (
             guild TEXT PRIMARY KEY,
             lang TEXT NOT NULL
-        )",
+        )"
     )
     .execute(&pool)
     .await

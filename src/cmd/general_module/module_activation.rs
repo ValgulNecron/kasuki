@@ -201,10 +201,11 @@ pub async fn check_activation_status(module: String, guild_id: String) -> bool {
     .fetch_one(&pool)
     .await
     .unwrap_or((None, None, None));
+
     let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
     return match module.as_str() {
-        "ANILIST" => anilist_module.unwrap(),
-        "AI" => ai_module.unwrap(),
+        "ANILIST" => anilist_module.unwrap_or(false),
+        "AI" => ai_module.unwrap_or(false),
         _ => false,
     };
 }
