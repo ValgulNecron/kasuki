@@ -27,6 +27,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          target: ${{ matrix.target.rust_target }}
           override: true
           components: rustfmt, clippy
 
