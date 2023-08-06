@@ -1,7 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use std::any::{Any, TypeId};
-
     use serde_json::json;
     use sqlx::{Pool, Sqlite};
 

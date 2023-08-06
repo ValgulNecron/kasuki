@@ -1,14 +1,18 @@
 {
   "En": {
-    "error_title": "Error"
+    "error_title": "Error",
+    "module_off": "Module deactivated"
   },
   "Fr": {
-    "error_title": "Erreur"
-  },
-  "Jp": {
-    "error_title": "エラー"
+    "error_title": "Erreur",
+    "module_off": "Module désactivé"
   },
   "De": {
-    "error_title": "Fehler"
+    "error_title": "Fehler",
+    "module_off": "Modul deaktiviert"
+  },
+  "Jp": {
+    "error_title": "エラー",
+    "module_off": "モジュールが無効になっています"
   }
 }

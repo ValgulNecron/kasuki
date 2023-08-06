@@ -9,8 +9,8 @@ use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
-use serenity::model::user::User;
 use serenity::model::Timestamp;
+use serenity::model::user::User;
 use serenity::utils::Colour;
 
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;

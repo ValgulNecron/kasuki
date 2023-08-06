@@ -1,10 +1,10 @@
+use std::{env, fs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use std::{env, fs};
 
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -22,18 +22,12 @@ use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::ImageLocalisedText;
-use crate::cmd::general_module::module_activation::check_activation_status;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> String {
-    let guild_id = command.guild_id.unwrap().0.to_string().clone();
-    if !check_activation_status("AI".parse().unwrap(), guild_id).await {
-        return "Module deactivated".to_string();
-    }
-
     let option = options
         .get(0)
         .expect("Expected username option")

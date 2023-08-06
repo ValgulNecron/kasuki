@@ -40,10 +40,10 @@ pub async fn run(
         let row: (Option<String>, Option<String>) = sqlx::query_as(
             "SELECT anilist_username, user_id FROM registered_user WHERE user_id = ?",
         )
-        .bind(user_id)
-        .fetch_one(&pool)
-        .await
-        .unwrap_or((None, None));
+            .bind(user_id)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((None, None));
         let (user, _): (Option<String>, Option<String>) = row;
         let result = embed(
             _options,
@@ -51,7 +51,7 @@ pub async fn run(
             command,
             &user.unwrap_or("N/A".parse().unwrap()),
         )
-        .await;
+            .await;
         result
     };
 }

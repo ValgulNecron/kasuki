@@ -1,5 +1,3 @@
-extern crate core;
-
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
@@ -23,14 +21,13 @@ use tokio::time::sleep;
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
 use crate::cmd::general_module::*;
-// use crate::cmd::api::main::create_server;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
+use crate::cmd::general_module::module_activation::check_activation_status;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
 
 mod cmd;
-mod tests;
 
 struct Handler;
 
@@ -73,7 +70,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| transcript::register(command))
                 .create_application_command(|command| translation::register(command))
         })
-        .await;
+            .await;
 
         if cfg!(debug_assertions) {
             println!(
@@ -88,43 +85,6 @@ impl EventHandler for Handler {
             if cfg!(debug_assertions) {
                 println!("Received command interaction: {:#?}", command);
             }
-
-            let content = match command.data.name.as_str() {
-                // General module.
-                "ping" => ping::run(&ctx, &command).await,
-                "lang" => lang::run(&command.data.options, &ctx, &command).await,
-                "info" => info::run(&ctx, &command).await,
-                "banner" => banner::run(&command.data.options, &ctx, &command).await,
-                "profile" => profile::run(&command.data.options, &ctx, &command).await,
-                "module" => module_activation::run(&command.data.options, &ctx, &command).await,
-
-                // Anilist module
-                "anime" => anime::run(&command.data.options, &ctx, &command).await,
-                "character" => character::run(&command.data.options, &ctx, &command).await,
-                "compare" => compare::run(&command.data.options, &ctx, &command).await,
-                "level" => level::run(&command.data.options, &ctx, &command).await,
-                "ln" => ln::run(&command.data.options, &ctx, &command).await,
-                "manga" => manga::run(&command.data.options, &ctx, &command).await,
-                "random" => random::run(&command.data.options, &ctx, &command).await,
-                "register" => register::run(&command.data.options, &ctx, &command).await,
-                "search" => search::run(&command.data.options, &ctx, &command).await,
-                "staff" => staff::run(&command.data.options, &ctx, &command).await,
-                "user" => user::run(&command.data.options, &ctx, &command).await,
-                "waifu" => waifu::run(&ctx, &command).await,
-
-                // AI module
-                "image" => image::run(&command.data.options, &ctx, &command).await,
-                "transcript" => transcript::run(&command.data.options, &ctx, &command).await,
-                "translation" => translation::run(&command.data.options, &ctx, &command).await,
-
-                _ => "not implemented :(".to_string(),
-            };
-
-            // check if the command was successfully done.
-            if content == "good".to_string() {
-                return;
-            }
-
             let color = Colour::FABLED_PINK;
             let mut file = File::open("lang_file/error.json").expect("Failed to open file");
             let mut json = String::new();
@@ -134,9 +94,110 @@ impl EventHandler for Handler {
                 serde_json::from_str(&json).expect("Failed to parse JSON");
 
             let guild_id = command.guild_id.unwrap().0.to_string().clone();
-            let lang_choice = get_guild_langage(guild_id).await;
-
+            let lang_choice = get_guild_langage(guild_id.clone()).await;
+            let mut content: String = "All good".parse().unwrap();
             if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+                content = match command.data.name.as_str() {
+                    // General module.
+                    "ping" => ping::run(&ctx, &command).await,
+                    "lang" => lang::run(&command.data.options, &ctx, &command).await,
+                    "info" => info::run(&ctx, &command).await,
+                    "banner" => banner::run(&command.data.options, &ctx, &command).await,
+                    "profile" => profile::run(&command.data.options, &ctx, &command).await,
+                    "module" => module_activation::run(&command.data.options, &ctx, &command).await,
+
+                    // Anilist module
+                    "anime" => anime::run(&command.data.options, &ctx, &command).await,
+                    "character" => character::run(&command.data.options, &ctx, &command).await,
+                    "compare" => compare::run(&command.data.options, &ctx, &command).await,
+                    "level" => level::run(&command.data.options, &ctx, &command).await,
+                    "ln" => ln::run(&command.data.options, &ctx, &command).await,
+                    "manga" => manga::run(&command.data.options, &ctx, &command).await,
+                    "random" => random::run(&command.data.options, &ctx, &command).await,
+                    "register" => register::run(&command.data.options, &ctx, &command).await,
+                    "search" => search::run(&command.data.options, &ctx, &command).await,
+                    "staff" => staff::run(&command.data.options, &ctx, &command).await,
+                    "user" => user::run(&command.data.options, &ctx, &command).await,
+                    "waifu" => waifu::run(&ctx, &command).await,
+
+                    // AI module
+                    "image" => {
+                        if !check_activation_status("AI".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        image::run(&command.data.options, &ctx, &command).await
+                    }
+                    "transcript" => {
+                        if !check_activation_status("AI".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        transcript::run(&command.data.options, &ctx, &command).await
+                    }
+                    "translation" => {
+                        if !check_activation_status("AI".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        translation::run(&command.data.options, &ctx, &command).await
+                    }
+
+                    _ => "not implemented :(".to_string(),
+                };
+
+                // check if the command was successfully done.
+                if content == "good".to_string() {
+                    return;
+                }
                 if let Err(why) = command
                     .create_interaction_response(&ctx.http, |response| {
                         response
@@ -227,9 +288,9 @@ async fn main() {
                         PRIMARY KEY (shard_id, timestamp)
                     )",
         )
-        .execute(&pool)
-        .await
-        .unwrap();
+            .execute(&pool)
+            .await
+            .unwrap();
         loop {
             sleep(Duration::from_secs(600)).await;
             let pool = get_pool(database_url).await;

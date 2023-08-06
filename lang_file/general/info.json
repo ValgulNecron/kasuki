@@ -1,38 +1,50 @@
 {
   "En": {
     "title": "Info",
-    "description": "This bot use the anilist api to give information on a show or a user.",
-    "footer": "creator valgul.",
-    "button_see_on_github": "See on GitHub.",
-    "button_official_website": "Official website.",
-    "button_official_discord": "Official Discord.",
-    "button_add_the_bot": "Add the bot."
+    "description": "This bot uses the AniList API to provide information on a show or a user.",
+    "server_specific_info": "Here's some information about this server's configuration:",
+    "footer": "Creator: valgul.",
+    "button_see_on_github": "See on GitHub",
+    "button_official_website": "Official website",
+    "button_official_discord": "Official Discord",
+    "button_add_the_bot": "Add the bot",
+    "on": "on",
+    "off": "off"
   },
   "Fr": {
-    "title": "Infos",
-    "description": "Ce bot utilise l'API Anilist pour fournir des informations sur une série ou un utilisateur.",
-    "footer": "créateur valgul.",
-    "button_see_on_github": "Voir sur GitHub.",
-    "button_official_website": "Site officiel.",
-    "button_official_discord": "Discord officiel.",
-    "button_add_the_bot": "Ajouter le bot."
-  },
-  "Jp": {
-    "title": "情報",
-    "description": "このボットはAnilist APIを使用して、番組やユーザーに関する情報を提供します。",
-    "footer": "作成者：valgul",
-    "button_see_on_github": "GitHubで見る",
-    "button_official_website": "公式ウェブサイト",
-    "button_official_discord": "公式Discord",
-    "button_add_the_bot": "ボットを追加する"
+    "title": "Informations",
+    "description": "Ce bot utilise l'API AniList pour fournir des informations sur un spectacle ou un utilisateur.",
+    "server_specific_info": "Voici quelques informations sur la configuration de ce serveur :",
+    "footer": "Créateur : valgul.",
+    "button_see_on_github": "Voir sur GitHub",
+    "button_official_website": "Site Web officiel",
+    "button_official_discord": "Discord officiel",
+    "button_add_the_bot": "Ajouter le bot",
+    "on": "activé",
+    "off": "désactivé"
   },
   "De": {
     "title": "Info",
-    "description": "Dieser Bot verwendet die Anilist-API, um Informationen zu einer Show oder einem Benutzer bereitzustellen.",
-    "footer": "Ersteller: valgul",
-    "button_see_on_github": "Auf GitHub anzeigen",
+    "description": "Dieser Bot verwendet die AniList API, um Informationen zu einer Show oder einem Benutzer bereitzustellen.",
+    "server_specific_info": "Hier sind einige Informationen zur Konfiguration dieses Servers:",
+    "footer": "Ersteller: valgul.",
+    "button_see_on_github": "Auf GitHub ansehen",
     "button_official_website": "Offizielle Website",
     "button_official_discord": "Offizieller Discord",
-    "button_add_the_bot": "Bot hinzufügen"
+    "button_add_the_bot": "Bot hinzufügen",
+    "on": "aktiviert",
+    "off": "deaktiviert"
+  },
+  "Jp": {
+    "title": "情報",
+    "description": "このボットはAniList APIを使用して番組やユーザーの情報を提供します。",
+    "server_specific_info": "こちらはこのサーバーの設定に関する情報です：",
+    "footer": "作成者：valgul.",
+    "button_see_on_github": "GitHubで見る",
+    "button_official_website": "公式ウェブサイト",
+    "button_official_discord": "公式Discord",
+    "button_add_the_bot": "ボットを追加",
+    "on": "オン",
+    "off": "オフ"
   }
 }

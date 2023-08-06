@@ -9,6 +9,9 @@ pub struct InfoLocalisedText {
     pub button_official_website: String,
     pub button_official_discord: String,
     pub button_add_the_bot: String,
+    pub server_specific_info: String,
+    pub on: String,
+    pub off: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -221,6 +224,7 @@ pub struct CompareLocalisedText {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ErrorLocalisedText {
     pub error_title: String,
+    pub module_off: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
