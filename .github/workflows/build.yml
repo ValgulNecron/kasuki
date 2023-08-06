@@ -12,19 +12,19 @@ jobs:
     strategy:
       matrix:
         config:
-          - os: ubuntu-latest-x86_64
+          - os: ubuntu-latest
             rust_target: 'x86_64-unknown-linux-gnu'
             arch: 'x86_64'
-          - os: windows-latest-x86_64
+          - os: windows-latest
             rust_target: 'x86_64-pc-windows-gnu'
             arch: 'x86_64'
-          - os: macOS-latest-x86-64
+          - os: macOS-latest
             rust_target: 'x86_64-apple-darwin'
             arch: 'x86_64'
-          - os: ubuntu-latest-arm
+          - os: ubuntu-latest
             rust_target: 'aarch64-unknown-linux-gnu'
             arch: 'ARM'
-          - os: macOS-latest-arm
+          - os: macOS-latest
             rust_target: 'aarch64-apple-darwin'
             arch: 'ARM'
     steps:
