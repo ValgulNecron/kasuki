@@ -12,17 +12,20 @@ jobs:
     strategy:
       matrix:
         config:
-          - os: ubuntu-latest
+          - os: ubuntu-latest-x86_64
             rust_target: 'x86_64-unknown-linux-gnu'
             arch: 'x86_64'
-          - os: windows-latest
+          - os: windows-latest-x86_64
             rust_target: 'x86_64-pc-windows-gnu'
             arch: 'x86_64'
-          - os: macOS-latest
+          - os: macOS-latest-x86-64
             rust_target: 'x86_64-apple-darwin'
             arch: 'x86_64'
-          - os: ubuntu-latest
+          - os: ubuntu-latest-arm
             rust_target: 'aarch64-unknown-linux-gnu'
+            arch: 'ARM'
+          - os: macOS-latest-arm
+            rust_target: 'aarch64-apple-darwin'
             arch: 'ARM'
     steps:
       - name: Checkout code
@@ -33,7 +36,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          target: ${{ matrix.target.rust_target }}
+          target: ${{ matrix.config.rust_target }}
           override: true
           components: rustfmt, clippy
 
@@ -46,12 +49,12 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --target ${{ matrix.target.rust_target }}
+          args: --release --target ${{ matrix.config.rust_target }}
         env:
           CARGO_BUILD_RUSTFLAGS: -C target-feature=+crt-static
 
       - name: Install cross-compilation tools
-        if: matrix.target.arch == 'ARM'
+        if: matrix.config.arch == 'ARM'
         run: sudo apt-get install gcc-aarch64-linux-gnu
 
       - name: Create Release
@@ -73,6 +76,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/${{ matrix.target.rust_target }}/release/your_project_name
-          asset_name: your_project_name-${{ matrix.target.rust_target }}
+          asset_path: target/${{ matrix.config.rust_target }}/release/your_project_name
+          asset_name: your_project_name-${{ matrix.config.rust_target }}
           asset_content_type: application/octet-stream
