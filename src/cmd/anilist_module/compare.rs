@@ -90,12 +90,12 @@ pub async fn embed(
             Ok(_) => true,
             Err(_) => false,
         } {
-            data = match UserWrapper::new_anime_by_id(value.parse().unwrap()).await {
+            data = match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => return error,
             }
         } else {
-            data = match UserWrapper::new_anime_by_search(value).await {
+            data = match UserWrapper::new_user_by_search(value).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => return error,
             }
@@ -106,12 +106,12 @@ pub async fn embed(
             Ok(_) => true,
             Err(_) => false,
         } {
-            data2 = match UserWrapper::new_anime_by_id(value2.parse().unwrap()).await {
+            data2 = match UserWrapper::new_user_by_id(value2.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => return error,
             }
         } else {
-            data2 = match UserWrapper::new_anime_by_search(value2).await {
+            data2 = match UserWrapper::new_user_by_search(value2).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => return error,
             }

@@ -101,7 +101,7 @@ pub struct StaffWrapper {
 }
 
 impl StaffWrapper {
-    pub async fn new_anime_by_id(id: i32) -> Result<StaffWrapper, String> {
+    pub async fn new_staff_by_id(id: i32) -> Result<StaffWrapper, String> {
         let query_id: &str = "
 query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
 	Staff(id: $name){
@@ -169,7 +169,7 @@ query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
         return Ok(data);
     }
 
-    pub async fn new_anime_by_search(search: &String) -> Result<StaffWrapper, String> {
+    pub async fn new_staff_by_search(search: &String) -> Result<StaffWrapper, String> {
         let query_string: &str = "
 query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
 	Staff(search: $name){

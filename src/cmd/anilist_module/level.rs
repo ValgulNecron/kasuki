@@ -49,12 +49,12 @@ pub async fn run(
                 Ok(_) => true,
                 Err(_) => false,
             } {
-                data = match UserWrapper::new_anime_by_id(value.parse().unwrap()).await {
+                data = match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
                     Ok(user_wrapper) => user_wrapper,
                     Err(error) => return error,
                 }
             } else {
-                data = match UserWrapper::new_anime_by_search(value).await {
+                data = match UserWrapper::new_user_by_search(value).await {
                     Ok(user_wrapper) => user_wrapper,
                     Err(error) => return error,
                 }

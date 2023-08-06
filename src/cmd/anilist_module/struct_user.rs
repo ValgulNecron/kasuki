@@ -383,7 +383,7 @@ impl UserWrapper {
         format!("{}/mangalist", self.get_user_url())
     }
 
-    pub async fn new_anime_by_id(id: i32) -> Result<UserWrapper, String> {
+    pub async fn new_user_by_id(id: i32) -> Result<UserWrapper, String> {
         let query_id: &str = "
 query ($name: Int, $limit: Int = 5) {
   User(id: $name) {
@@ -449,7 +449,7 @@ options{
         return Ok(data);
     }
 
-    pub async fn new_anime_by_search(search: &String) -> Result<UserWrapper, String> {
+    pub async fn new_user_by_search(search: &String) -> Result<UserWrapper, String> {
         let query_string: &str = "
 query ($name: String, $limit: Int = 5) {
   User(name: $name) {
