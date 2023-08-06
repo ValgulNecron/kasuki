@@ -48,3 +48,5 @@ pub struct CoverImage {
     #[serde(rename = "extraLarge")]
     pub extra_large: String,
 }
+
+impl PageWrapper {}

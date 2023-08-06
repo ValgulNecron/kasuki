@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
+use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
@@ -14,37 +14,10 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
+use crate::cmd::anilist_module::struct_autocomplete_character::CharacterPageWrapper;
 use crate::cmd::anilist_module::struct_character::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::CharacterLocalisedText;
-use crate::cmd::general_module::request::make_request;
-
-const QUERY: &str = "
-query ($name: String) {
-	Character(search: $name) {
-    id
-    name {
-      full
-      native
-      userPreferred
-    }
-    siteUrl
-    description
-    gender
-    age
-    dateOfBirth {
-      year
-      month
-      day
-    }
-    image {
-      large
-    }
-    favourites
-    modNotes
-  }
-}
-";
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -57,7 +30,7 @@ pub async fn run(
         .resolved
         .as_ref()
         .expect("Expected username object");
-    if let CommandDataOptionValue::String(name) = option {
+    if let CommandDataOptionValue::String(value) = option {
         let mut file = File::open("lang_file/anilist/character.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
@@ -69,44 +42,39 @@ pub async fn run(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let json = json!({"query": QUERY, "variables": {"name": name}});
-            let resp = make_request(json).await;
+            let data: CharacterWrapper;
+            if match value.parse::<i32>() {
+                Ok(_) => true,
+                Err(_) => false,
+            } {
+                data = match CharacterWrapper::new_character_by_id(
+                    value.parse().unwrap(),
+                    localised_text.clone(),
+                )
+                    .await
+                {
+                    Ok(character_wrapper) => character_wrapper,
+                    Err(error) => return error,
+                }
+            } else {
+                data =
+                    match CharacterWrapper::new_character_by_search(value, localised_text.clone())
+                        .await
+                    {
+                        Ok(character_wrapper) => character_wrapper,
+                        Err(error) => return error,
+                    }
+            }
 
-            let data: CharacterData = serde_json::from_str(&resp).unwrap();
             let color = Colour::FABLED_PINK;
 
-            let name = format!(
-                "{}/{}",
-                data.data.character.name.user_preferred, data.data.character.name.native
-            );
-            let desc = data.data.character.description;
+            let name = data.get_name();
+            let desc = data.get_desc(localised_text.clone());
 
-            let image = data.data.character.image.large;
-            let url = data.data.character.site_url;
+            let image = data.get_image();
+            let url = data.get_url();
 
-            let age = data.data.character.age;
-            let date_of_birth = format!(
-                "{}/{}/{}",
-                data.data.character.date_of_birth.month.unwrap_or_else(|| 0),
-                data.data.character.date_of_birth.day.unwrap_or_else(|| 0),
-                data.data.character.date_of_birth.year.unwrap_or_else(|| 0)
-            );
-            let gender = data.data.character.gender;
-            let favourite = data.data.character.favourites;
-
-            let full_description = format!(
-                "{}{}{}{}{}{}{}{}{}{}.",
-                &localised_text.age,
-                age,
-                &localised_text.gender,
-                gender,
-                &localised_text.date_of_birth,
-                date_of_birth,
-                &localised_text.favourite,
-                favourite,
-                &localised_text.desc,
-                desc
-            );
+            let info = data.get_info(localised_text.clone());
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
@@ -118,15 +86,16 @@ pub async fn run(
                                     .url(url)
                                     .timestamp(Timestamp::now())
                                     .color(color)
-                                    .description(full_description)
+                                    .description(desc)
                                     .thumbnail(image)
+                                    .field(&localised_text.info, info, true)
                                     .color(color)
                             })
                         })
                 })
                 .await
             {
-                println!("Cannot respond to slash command: {}", why);
+                println!("{}: {}", localised_text.error_slash_command, why);
             }
         }
     }
@@ -143,5 +112,20 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("The name of the character")
                 .kind(CommandOptionType::String)
                 .required(true)
+                .set_autocomplete(true)
         })
+}
+
+pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
+    let search = &command.data.options.first().unwrap().value;
+    if let Some(search) = search {
+        let data = CharacterPageWrapper::new_autocomplete_character(search, 8).await;
+        let choices = data.get_choices();
+        // doesn't matter if it errors
+        _ = command
+            .create_autocomplete_response(ctx.http, |response| {
+                response.set_choices(choices.clone())
+            })
+            .await;
+    }
 }

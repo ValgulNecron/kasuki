@@ -2,12 +2,11 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use regex::Regex;
-use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
+use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
@@ -15,69 +14,13 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
+use crate::cmd::anilist_module::get_nsfw_channel::get_nsfw;
+use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
 use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::AnimeLocalisedText;
-use crate::cmd::general_module::request::make_request;
 
 // Query made to the anilist api.
-const QUERY: &str = "
-    query ($search: String, $limit: Int = 5) {
-		Media (search: $search, type: ANIME){
-    id
-      description
-    title{
-      romaji
-      english
-    }
-    type
-    format
-    source
-    isAdult
-    startDate {
-      year
-      month
-      day
-    }
-    endDate {
-      year
-      month
-      day
-    }
-    chapters
-    volumes
-    status
-    season
-    isLicensed
-    coverImage {
-      extraLarge
-    }
-    bannerImage
-    genres
-    tags {
-      name
-    }
-    averageScore
-    meanScore
-    popularity
-    favourites
-    siteUrl
-    staff(perPage: $limit) {
-      edges {
-        node {
-          id
-          name {
-            full
-            userPreferred
-          }
-        }
-        id
-        role
-      }
-    }
-  }
-}
-";
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -92,7 +35,7 @@ pub async fn run(
         .as_ref()
         .expect("Expected name object");
     // Check if the option variable contain the correct value.
-    if let CommandDataOptionValue::String(name) = option {
+    if let CommandDataOptionValue::String(value) = option {
         let mut file = File::open("lang_file/anilist/anime.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
@@ -104,111 +47,41 @@ pub async fn run(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let json = json!({"query": QUERY, "variables": {"search": name}});
-            let resp = make_request(json).await;
-            // Get json
-            let data: MediaData = match serde_json::from_str(&resp) {
-                Ok(data) => data,
-                Err(error) => {
-                    println!("Error: {}", error);
-                    return "Unable to find thi anime.".to_string();
+            let data: MediaWrapper;
+            if match value.parse::<i32>() {
+                Ok(_) => true,
+                Err(_) => false,
+            } {
+                data = match MediaWrapper::new_anime_by_id(
+                    value.parse().unwrap(),
+                    localised_text.clone(),
+                )
+                    .await
+                {
+                    Ok(character_wrapper) => character_wrapper,
+                    Err(error) => return error,
                 }
-            };
-
-            let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
-            let desc_no_br = data
-                .data
-                .media
-                .description
-                .unwrap_or_else(|| "NA".to_string())
-                .replace("<br>", "");
-            let re = Regex::new("<i>(.|\\n)*?</i>").unwrap();
-            let desc = re.replace_all(&desc_no_br, "");
-            let en_name = data
-                .data
-                .media
-                .title
-                .english
-                .unwrap_or_else(|| "NA".to_string());
-            let rj_name = data
-                .data
-                .media
-                .title
-                .romaji
-                .unwrap_or_else(|| "NA".to_string());
-            let thumbnail = data.data.media.cover_image.extra_large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
-            let site_url = data
-                .data
-                .media
-                .site_url
-                .unwrap_or_else(|| "https://example.com".to_string());
-            let name = format!("{} / {}", en_name, rj_name);
-            let format = data.data.media.format.unwrap_or_else(|| "N/A".to_string());
-            let source = data.data.media.source.unwrap_or_else(|| "N/A".to_string());
-
-            let start_y = data.data.media.start_date.year.unwrap_or_else(|| 0);
-            let start_d = data.data.media.start_date.day.unwrap_or_else(|| 0);
-            let start_m = data.data.media.start_date.month.unwrap_or_else(|| 0);
-            let start_date = if start_y == 0 && start_d == 0 && start_m == 0 {
-                "N/A".to_string()
             } else {
-                format!("{}/{}/{}", start_d, start_m, start_y)
-            };
-            let end_y = data.data.media.end_date.year.unwrap_or_else(|| 0);
-            let end_d = data.data.media.end_date.day.unwrap_or_else(|| 0);
-            let end_m = data.data.media.end_date.month.unwrap_or_else(|| 0);
-            let end_date = if end_y == 0 && end_d == 0 && end_m == 0 {
-                "N/A".to_string()
-            } else {
-                format!("{}/{}/{}", start_d, start_m, start_y)
-            };
-
-            let mut staff = "".to_string();
-            let staffs = data.data.media.staff.edges;
-            for s in staffs {
-                let full = s.node.name.full.unwrap_or_else(|| "N/A".to_string());
-                let user = s
-                    .node
-                    .name
-                    .user_preferred
-                    .unwrap_or_else(|| "N/A".to_string());
-                let role = s.role.unwrap_or_else(|| "N/A".to_string());
-                staff.push_str(&format!(
-                    "{}{}{}{}{}{}\n",
-                    &localised_text.desc_part_5,
-                    full,
-                    localised_text.desc_part_6,
-                    user,
-                    localised_text.desc_part_7,
-                    role
-                ));
+                data = match MediaWrapper::new_anime_by_search(value, localised_text.clone()).await
+                {
+                    Ok(character_wrapper) => character_wrapper,
+                    Err(error) => return error,
+                }
             }
 
-            let info = format!(
-                "{}{}{}{}{}{}{}{} \n {}",
-                &localised_text.desc_part_1,
-                format,
-                &localised_text.desc_part_2,
-                source,
-                &localised_text.desc_part_3,
-                start_date,
-                &localised_text.desc_part_4,
-                end_date,
-                staff
-            );
-            let mut genre = "".to_string();
-            let genre_list = data.data.media.genres;
-            for g in genre_list {
-                genre += &g.unwrap_or_else(|| "N/A".to_string());
-                genre += "\n"
+            if data.get_nsfw() && !get_nsfw(command, ctx).await {
+                return localised_text.error_not_nsfw.clone();
             }
-            let mut tag = "".to_string();
-            let tag_list = data.data.media.tags;
-            for t in tag_list.iter().take(5) {
-                let tag_name: String = t.name.as_ref().map_or("N/A".to_string(), |s| s.to_string());
-                tag += &tag_name;
-                tag += "\n";
-            }
+
+            let banner_image = data.get_banner();
+            let desc = data.get_desc();
+            let thumbnail = data.get_thumbnail();
+            let site_url = data.get_url();
+            let name = data.get_name();
+
+            let info = data.get_anime_info(localised_text.clone());
+            let genre = data.get_genres();
+            let tag = data.get_tags();
             let color = Colour::FABLED_PINK;
 
             if let Err(why) = command
@@ -234,7 +107,7 @@ pub async fn run(
                 })
                 .await
             {
-                println!("Cannot respond to slash command: {}", why);
+                println!("{}: {}", &localised_text.error_slash_command, why);
             }
         } else {
             return "Language not found".to_string();
@@ -253,5 +126,20 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Name of the anime you want to check")
                 .kind(CommandOptionType::String)
                 .required(true)
+                .set_autocomplete(true)
         })
+}
+
+pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
+    let search = &command.data.options.first().unwrap().value;
+    if let Some(search) = search {
+        let data = MediaPageWrapper::new_autocomplete_anime(search, 8, "ANIME").await;
+        let choices = data.get_choices();
+        // doesn't matter if it errors
+        _ = command
+            .create_autocomplete_response(ctx.http, |response| {
+                response.set_choices(choices.clone())
+            })
+            .await;
+    }
 }

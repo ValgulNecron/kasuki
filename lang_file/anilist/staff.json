@@ -7,7 +7,8 @@
     "primary_language": ". Primary Language: ",
     "primary_occupation": ".\nOccupation: ",
     "media": "MEDIA",
-    "va": "VA"
+    "va": "VA",
+    "error_slash_command": "Can't create slash command"
   },
   "Fr": {
     "desc_title": "Infos",
@@ -17,7 +18,8 @@
     "primary_language": ". Langue principale : ",
     "primary_occupation": ".\nProfession : ",
     "media": "MÉDIA",
-    "va": "Doubleur"
+    "va": "Doubleur",
+    "error_slash_command": "Impossible de créer la commande slash"
   },
   "Jp": {
     "desc_title": "情報",
@@ -27,7 +29,8 @@
     "primary_language": "。主要言語：",
     "primary_occupation": "。\n職業：",
     "media": "メディア",
-    "va": "声優"
+    "va": "声優",
+    "error_slash_command": "スラッシュコマンドを作成できません"
   },
   "De": {
     "desc_title": "Info",
@@ -37,6 +40,7 @@
     "primary_language": ". Hauptsprache: ",
     "primary_occupation": ".\nBeruf: ",
     "media": "MEDIEN",
-    "va": "Synchronsprecher"
+    "va": "Synchronsprecher",
+    "error_slash_command": "Slash-Befehl kann nicht erstellt werden"
   }
 }

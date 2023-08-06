@@ -36,8 +36,6 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
                             m.title(&localised_text.title)
                                 .description(&localised_text.description)
                                 .footer(|f| f.text(&localised_text.footer))
-                                // Add a timestamp for the current time
-                                // This also accepts a rfc3339 Timestamp
                                 .timestamp(Timestamp::now())
                                 .color(color)
                         })

@@ -1,11 +1,11 @@
+use std::{env, fs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{copy, Read};
 use std::path::Path;
-use std::{env, fs};
 
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -18,7 +18,6 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use uuid::Uuid;
 
-use crate::cmd::ai_module::get_lang_option::get_lang_option;
 use crate::cmd::ai_module::translation_embed::translation_embed;
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
@@ -30,18 +29,36 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> String {
-    let option = options
-        .get(0)
-        .expect("Expected attachement option")
-        .resolved
-        .as_ref()
-        .expect("Expected attachement object");
     let mut lang: String = "en".to_string();
-    for option in options {
-        lang = get_lang_option(option.clone());
+    let attachement_option;
+    if options.get(0).expect("Expected attachement option").name == "video" {
+        attachement_option = options
+            .get(0)
+            .expect("Expected attachement option")
+            .resolved
+            .as_ref()
+            .expect("Expected attachement object");
+    } else {
+        attachement_option = options
+            .get(1)
+            .expect("Expected attachement option")
+            .resolved
+            .as_ref()
+            .expect("Expected attachement object");
     }
 
-    if let CommandDataOptionValue::Attachment(attachement) = option {
+    for option in options {
+        if option.name == "lang" {
+            let resolved = option.resolved.as_ref().unwrap();
+            if let CommandDataOptionValue::String(lang_option) = resolved {
+                lang = lang_option.clone()
+            } else {
+                lang = "En".to_string();
+            }
+        }
+    }
+
+    if let CommandDataOptionValue::Attachment(attachement) = attachement_option {
         let mut file = File::open("lang_file/ai/transcript.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");

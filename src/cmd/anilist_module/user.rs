@@ -7,72 +7,18 @@ use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
+use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
 
+use crate::cmd::anilist_module::struct_autocomplete_user::UserPageWrapper;
 use crate::cmd::anilist_module::struct_user::*;
-use crate::cmd::general_module::color::get_user_color;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::UserLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
-use crate::cmd::general_module::request::make_request;
-
-const QUERY: &str = "
-query ($name: String, $limit: Int = 5) {
-  User(name: $name) {
-    id
-    name
-    avatar {
-      large
-    }
-    statistics {
-      anime {
-        count
-        meanScore
-        standardDeviation
-        minutesWatched
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-      manga {
-        count
-        meanScore
-        standardDeviation
-        chaptersRead
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-    }
-options{
-      profileColor
-    }
-    bannerImage
-  }
-}
-";
 
 pub async fn run(
     _options: &[CommandDataOption],
@@ -94,10 +40,10 @@ pub async fn run(
         let row: (Option<String>, Option<String>) = sqlx::query_as(
             "SELECT anilist_username, user_id FROM registered_user WHERE user_id = ?",
         )
-        .bind(user_id)
-        .fetch_one(&pool)
-        .await
-        .unwrap_or((None, None));
+            .bind(user_id)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((None, None));
         let (user, _): (Option<String>, Option<String>) = row;
         let result = embed(
             _options,
@@ -105,7 +51,7 @@ pub async fn run(
             command,
             &user.unwrap_or("N/A".parse().unwrap()),
         )
-        .await;
+            .await;
         result
     };
 }
@@ -120,6 +66,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Username of the anilist user you want to check")
                 .kind(CommandOptionType::String)
                 .required(false)
+                .set_autocomplete(true)
         })
 }
 
@@ -127,18 +74,23 @@ pub async fn embed(
     _options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-    user: &String,
+    value: &String,
 ) -> String {
-    let json = json!({"query": QUERY, "variables": {"name": user}});
-    let resp = make_request(json).await;
-
-    // Get json
-    let data: UserData = match resp_to_user_data(resp) {
-        Ok(data) => data,
-        Err(error) => {
-            return error;
+    let data;
+    if match value.parse::<i32>() {
+        Ok(_) => true,
+        Err(_) => false,
+    } {
+        data = match UserWrapper::new_anime_by_id(value.parse().unwrap()).await {
+            Ok(user_wrapper) => user_wrapper,
+            Err(error) => return error,
         }
-    };
+    } else {
+        data = match UserWrapper::new_anime_by_search(value).await {
+            Ok(user_wrapper) => user_wrapper,
+            Err(error) => return error,
+        }
+    }
 
     let mut file = File::open("lang_file/anilist/user.json").expect("Failed to open file");
     let mut json = String::new();
@@ -151,183 +103,33 @@ pub async fn embed(
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        let user_url = format!(
-            "https://anilist.co/user/{}",
-            &data.data.user.id.unwrap_or_else(|| 1)
-        );
-        let color = get_user_color(data.clone());
+        let user_url = data.get_user_url();
 
-        let mut min = data
-            .data
-            .user
-            .statistics
-            .anime
-            .minutes_watched
-            .unwrap_or_else(|| 0);
-        let mut hour = 0;
-        let mut days = 0;
-        let mut week = 0;
+        let color = data.get_color();
 
-        if min >= 60 {
-            hour = min / 60;
-            min = min % 60;
-        }
+        let chap = data.get_manga_chapter();
+        let manga_genre = data.get_manga_genre();
+        let manga_count = data.get_manga_count();
+        let manga_score = data.get_manga_score();
+        let manga_standard_deviation = data.get_manga_standard_deviation();
+        let manga_tag_name = data.get_manga_tag();
+        let manga_completed = data.get_manga_completed();
 
-        if hour >= 24 {
-            days = hour / 24;
-            hour = hour % 24;
-        }
+        let time_watched = data.time_anime_watched(localised_text.clone());
 
-        if days >= 7 {
-            week = days / 7;
-            days = days % 7;
-        }
-        let chap = data
-            .data
-            .user
-            .statistics
-            .manga
-            .chapters_read
-            .unwrap_or_else(|| 0);
-        let time_watched = format!(
-            "{}{}{}{}{}{}{}{}",
-            week,
-            &localised_text.week,
-            days,
-            &localised_text.day,
-            hour,
-            &localised_text.hour,
-            min,
-            &localised_text.minute
-        );
-        let manga_count = data.data.user.statistics.manga.count.unwrap_or_else(|| 0);
-        let manga_score = data
-            .data
-            .user
-            .statistics
-            .manga
-            .mean_score
-            .unwrap_or_else(|| 0f64);
-        let manga_standard_deviation = data
-            .data
-            .user
-            .statistics
-            .manga
-            .standard_deviation
-            .unwrap_or_else(|| 0f64);
-        let mut manga_tag_name = String::new();
-        for i in 0..3 {
-            if let Some(tags) = data
-                .data
-                .user
-                .statistics
-                .manga
-                .tags
-                .get(i)
-                .and_then(|g| g.tag.name.as_ref())
-            {
-                manga_tag_name.push_str(&format!("{} / ", tags));
-            } else {
-                manga_tag_name.push_str("N/A / ");
-            }
-        }
-        manga_tag_name.pop();
-        manga_tag_name.pop();
+        let anime_count = data.get_anime_count();
+        let anime_score = data.get_anime_score();
+        let anime_standard_deviation = data.get_anime_standard_deviation();
+        let anime_tag_name = data.get_anime_tag();
+        let anime_genre = data.get_anime_genre();
+        let anime_completed = data.get_anime_completed();
 
-        let mut manga_genre = String::new();
-        for i in 0..3 {
-            if let Some(genre) = data
-                .data
-                .user
-                .statistics
-                .manga
-                .genres
-                .get(i)
-                .and_then(|g| g.genre.as_ref())
-            {
-                manga_genre.push_str(&format!("{} / ", genre));
-            } else {
-                manga_genre.push_str("N/A / ");
-            }
-        }
-        manga_genre.pop();
-        manga_genre.pop();
+        let manga_url = data.get_user_manga_url();
+        let anime_url = data.get_user_anime_url();
 
-        let anime_count = data.data.user.statistics.anime.count.unwrap_or_else(|| 0);
-        let anime_score = data
-            .data
-            .user
-            .statistics
-            .anime
-            .mean_score
-            .unwrap_or_else(|| 0f64);
-        let anime_standard_deviation = data
-            .data
-            .user
-            .statistics
-            .anime
-            .standard_deviation
-            .unwrap_or_else(|| 0f64);
-
-        let mut anime_tag_name = String::new();
-        for i in 0..3 {
-            if let Some(tags) = data
-                .data
-                .user
-                .statistics
-                .anime
-                .tags
-                .get(i)
-                .and_then(|g| g.tag.name.as_ref())
-            {
-                anime_tag_name.push_str(&format!("{} / ", tags));
-            } else {
-                anime_tag_name.push_str("N/A / ");
-            }
-        }
-        anime_tag_name.pop();
-        anime_tag_name.pop();
-
-        let mut anime_genre = String::new();
-        for i in 0..3 {
-            if let Some(genre) = data
-                .data
-                .user
-                .statistics
-                .anime
-                .genres
-                .get(i)
-                .and_then(|g| g.genre.as_ref())
-            {
-                anime_genre.push_str(&format!("{} / ", genre));
-            } else {
-                anime_genre.push_str("N/A / ");
-            }
-        }
-        anime_genre.pop();
-        anime_genre.pop();
-
-        let manga_url = format!("{}/mangalist", &user_url);
-        let anime_url = format!("{}/animelist", &user_url);
-
-        let anime_statuses = data.data.user.statistics.anime.statuses;
-        let mut anime_completed = 0;
-        for i in anime_statuses {
-            if i.status == "COMPLETED".to_string() {
-                anime_completed = i.count;
-            }
-        }
-
-        let manga_statuses = data.data.user.statistics.manga.statuses;
-        let mut manga_completed = 0;
-        for i in manga_statuses {
-            if i.status == "COMPLETED".to_string() {
-                manga_completed = i.count;
-            }
-        }
-        let user = data.data.user.name.unwrap_or_else(|| "N/A".to_string());
-        let profile_picture = data.data.user.avatar.large.unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
-        let banner = format!("https://img.anili.st/user/{}", data.data.user.id.unwrap());
+        let user = data.get_username();
+        let profile_picture = data.get_pfp();
+        let banner = data.get_banner();
 
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
@@ -396,10 +198,25 @@ pub async fn embed(
             })
             .await
         {
-            println!("Cannot respond to slash command: {}", why);
+            println!("{}: {}", localised_text.error_slash_command, why);
         }
     } else {
         return "Language not found".to_string();
     }
     return "good".to_string();
+}
+
+pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
+    let search = &command.data.options.first().unwrap().value;
+    if let Some(search) = search {
+        let data = UserPageWrapper::new_autocomplete_user(search, 8).await;
+        let choices = data.get_choice();
+        // doesn't matter if it errors
+        let choices_json = json!(choices);
+        _ = command
+            .create_autocomplete_response(ctx.http.clone(), |response| {
+                response.set_choices(choices_json)
+            })
+            .await;
+    }
 }

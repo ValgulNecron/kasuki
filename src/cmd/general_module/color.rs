@@ -2,8 +2,8 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_user::*;
 
-pub fn get_user_color(data: UserData) -> Colour {
-    let mut _color = Colour::FABLED_PINK;
+pub fn get_user_color(data: UserWrapper) -> Colour {
+    let mut _color: Colour = Colour::FABLED_PINK;
     match data
         .data
         .user

@@ -31,9 +31,9 @@ pub async fn run(
             anilist_username TEXT NOT NULL
         )",
     )
-    .execute(&pool)
-    .await
-    .unwrap();
+        .execute(&pool)
+        .await
+        .unwrap();
     let option = options
         .get(0)
         .expect("Expected username option")
@@ -67,11 +67,11 @@ pub async fn run(
         sqlx::query(
             "INSERT OR REPLACE INTO registered_user (user_id, anilist_username) VALUES (?, ?)",
         )
-        .bind(user_id)
-        .bind(username)
-        .execute(&pool)
-        .await
-        .unwrap();
+            .bind(user_id)
+            .bind(username)
+            .execute(&pool)
+            .await
+            .unwrap();
 
         let mut file = File::open("lang_file/anilist/register.json").expect("Failed to open file");
         let mut json = String::new();
@@ -109,7 +109,7 @@ pub async fn run(
                 })
                 .await
             {
-                println!("Cannot respond to slash command: {}", why);
+                println!("{}: {}", localised_text.error_slash_command, why);
             }
         } else {
             return "Language not found".to_string();

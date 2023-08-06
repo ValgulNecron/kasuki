@@ -30,5 +30,21 @@
     "error_request": "リクエストの送信中にエラーが発生しました",
     "error_file_type": "ファイルの種類が間違っています",
     "error_file_extension": "ファイルの拡張子が間違っています"
+  },
+  "cmn": {
+    "title": "这是您的翻译",
+    "error_slash_command": "无法创建斜杠命令",
+    "unknown_error": "发生了未知错误 ",
+    "error_request": "发送请求时出错 ",
+    "error_file_type": "文件类型不正确",
+    "error_file_extension": "文件扩展名不正确"
+  },
+  "cmnp": {
+    "title": "Zhè shì nín de fānyì",
+    "error_slash_command": "Wúfǎ chuàngjiàn xiégāng mìnglìng",
+    "unknown_error": "Fāshēngle wèizhī cuòwù",
+    "error_request": "Fāsòng qǐngqiú shí cuòwù",
+    "error_file_type": "Wénjiàn lèixíng bù zhèngquè",
+    "error_file_extension": "Wénjiàn kuòzhǎnmíng bù zhèngquè"
   }
 }
