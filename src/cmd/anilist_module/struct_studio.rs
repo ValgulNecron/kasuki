@@ -14,6 +14,8 @@ pub struct Title {
 pub struct MediaNode {
     id: u32,
     title: Title,
+    #[serde(rename = "siteUrl")]
+    site_url: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -61,6 +63,7 @@ impl StudioWrapper {
                   romaji
                   userPreferred
                 }
+                siteUrl
               }
             }
           }
@@ -94,6 +97,7 @@ impl StudioWrapper {
                   romaji
                   userPreferred
                 }
+                siteUrl
               }
             }
           }
@@ -134,13 +138,13 @@ impl StudioWrapper {
 
         return content
     }
-    pub fn get_one_anime_manga(&self, m: MediaNode) -> String {
-        let anime_manga = format!("{} / {} \n", m.title.romaji, m.title.user_preferred);
+        pub fn get_one_anime_manga(&self, m: MediaNode) -> String {
+        let anime_manga = format!("[{} / {}]({}) \n \n", m.title.romaji, m.title.user_preferred, m.site_url);
         return anime_manga
     }
 
     pub fn get_desc(&self, localised_text: StudioLocalisedText) -> String {
-        let desc = format!("{}{} \n {}", localised_text.favorite ,self.get_favourite(),
+        let desc = format!("{}{} \n \n \n \n {}", localised_text.favorite ,self.get_favourite(),
                            self.get_anime_manga_list(localised_text.clone()));
 
         return desc
