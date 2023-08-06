@@ -65,6 +65,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| staff::register(command))
                 .create_application_command(|command| user::register(command))
                 .create_application_command(|command| waifu::register(command))
+                .create_application_command(|command| studio::register(command))
                 // AI module.
                 .create_application_command(|command| image::register(command))
                 .create_application_command(|command| transcript::register(command))
@@ -99,26 +100,325 @@ impl EventHandler for Handler {
             if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
                 content = match command.data.name.as_str() {
                     // General module.
-                    "ping" => ping::run(&ctx, &command).await,
-                    "lang" => lang::run(&command.data.options, &ctx, &command).await,
-                    "info" => info::run(&ctx, &command).await,
-                    "banner" => banner::run(&command.data.options, &ctx, &command).await,
-                    "profile" => profile::run(&command.data.options, &ctx, &command).await,
-                    "module" => module_activation::run(&command.data.options, &ctx, &command).await,
+                    "ping" => {
+                        ping::run(&ctx, &command).await
+                    },
+                    "lang" => {
+                        lang::run(&command.data.options, &ctx, &command).await
+                    },
+                    "info" => {
+                        info::run(&ctx, &command).await
+                    },
+                    "banner" => {
+                        banner::run(&command.data.options, &ctx, &command).await
+                    },
+                    "profile" => {
+                        profile::run(&command.data.options, &ctx, &command).await
+                    },
+                    "module" => {
+                        module_activation::run(&command.data.options, &ctx, &command).await
+                    },
 
                     // Anilist module
-                    "anime" => anime::run(&command.data.options, &ctx, &command).await,
-                    "character" => character::run(&command.data.options, &ctx, &command).await,
-                    "compare" => compare::run(&command.data.options, &ctx, &command).await,
-                    "level" => level::run(&command.data.options, &ctx, &command).await,
-                    "ln" => ln::run(&command.data.options, &ctx, &command).await,
-                    "manga" => manga::run(&command.data.options, &ctx, &command).await,
-                    "random" => random::run(&command.data.options, &ctx, &command).await,
-                    "register" => register::run(&command.data.options, &ctx, &command).await,
-                    "search" => search::run(&command.data.options, &ctx, &command).await,
-                    "staff" => staff::run(&command.data.options, &ctx, &command).await,
-                    "user" => user::run(&command.data.options, &ctx, &command).await,
-                    "waifu" => waifu::run(&ctx, &command).await,
+                    "anime" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        anime::run(&command.data.options, &ctx, &command).await
+                    },
+                    "character" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        character::run(&command.data.options, &ctx, &command).await
+                    },
+                    "compare" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        compare::run(&command.data.options, &ctx, &command).await
+                    },
+                    "level" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        level::run(&command.data.options, &ctx, &command).await
+                    },
+                    "ln" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        ln::run(&command.data.options, &ctx, &command).await
+                    },
+                    "manga" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        manga::run(&command.data.options, &ctx, &command).await
+                    },
+                    "random" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        random::run(&command.data.options, &ctx, &command).await
+                    },
+                    "register" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        register::run(&command.data.options, &ctx, &command).await
+                    },
+                    "search" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        search::run(&command.data.options, &ctx, &command).await
+                    },
+                    "staff" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        staff::run(&command.data.options, &ctx, &command).await
+                    },
+                    "user" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        user::run(&command.data.options, &ctx, &command).await
+                    },
+                    "waifu" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        waifu::run(&ctx, &command).await
+                    },
+                    "studio" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        studio::run(&command.data.options, &ctx, &command).await
+                    }
 
                     // AI module
                     "image" => {
@@ -244,6 +544,7 @@ impl EventHandler for Handler {
                 "user" => user::autocomplete(ctx, command).await,
                 "compare" => compare::autocomplete(ctx, command).await,
                 "level" => level::autocomplete(ctx, command).await,
+                "studio" => studio::autocomplete(ctx, command).await,
                 _ => print!(""),
             }
         }

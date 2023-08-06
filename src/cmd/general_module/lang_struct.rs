@@ -252,3 +252,10 @@ pub struct ProfileLocalisedText {
     pub joined_at: String,
     pub created_at: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct StudioLocalisedText {
+    pub anime_or_manga: String,
+    pub error_slash_command: String,
+    pub favorite: String,
+}
