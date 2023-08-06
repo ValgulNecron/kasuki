@@ -58,6 +58,8 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
         {
             println!("{}: {}", localised_text.error_slash_command, why);
         }
+    } else {
+        return "Language not found".to_string();
     }
     return "good".to_string();
 }
