@@ -3,8 +3,7 @@ name: Rust project CI & Release
 on:
   push:
     branches:
-      - main
-      - 'feature-**'
+      - master
 
 jobs:
   build:
