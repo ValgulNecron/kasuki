@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::cmd::general_module::html_parser::convert_to_markdown;
+use crate::cmd::general_module::html_parser::convert_to_discord_markdown;
 use crate::cmd::general_module::lang_struct::{AnimeLocalisedText, MediaLocalisedText};
 use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
@@ -567,7 +567,7 @@ impl MediaWrapper {
             .description
             .clone()
             .unwrap_or_else(|| "NA".to_string());
-        desc = convert_to_markdown(desc);
+        desc = convert_to_discord_markdown(desc);
         let lenght_diff = 4096 - desc.len() as i32;
         if lenght_diff <= 0 {
             desc = trim(desc, lenght_diff)
