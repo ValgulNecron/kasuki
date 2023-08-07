@@ -144,7 +144,7 @@ impl StudioWrapper {
     }
 
     pub fn get_desc(&self, localised_text: StudioLocalisedText) -> String {
-        let desc = format!("{}{} \n \n \n \n {}", localised_text.favorite ,self.get_favourite(),
+        let desc = format!("{}{} \n {} \n \n \n ", localised_text.favorite ,self.get_favourite(),
                            self.get_anime_manga_list(localised_text.clone()));
 
         return desc
