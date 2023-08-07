@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use serde_json::json;
+
 use crate::cmd::general_module::lang_struct::StudioLocalisedText;
 use crate::cmd::general_module::request::make_request_anilist;
 
@@ -116,37 +117,42 @@ impl StudioWrapper {
     }
 
     pub fn get_studio_name(&self) -> String {
-        return self.data.studio.name.clone()
+        return self.data.studio.name.clone();
     }
 
     pub fn get_site_url(&self) -> String {
-        return self.data.studio.site_url.clone()
+        return self.data.studio.site_url.clone();
     }
 
     pub fn get_favourite(&self) -> String {
-        return self.data.studio.favourites.to_string()
+        return self.data.studio.favourites.to_string();
     }
 
     pub fn get_anime_manga_list(&self, localised_text: StudioLocalisedText) -> String {
         let list = self.data.studio.media.nodes.clone();
         let mut content = format!("{} \n", localised_text.anime_or_manga);
         for m in list {
-            content.push_str(
-                self.get_one_anime_manga(m).as_str()
-            )
+            content.push_str(self.get_one_anime_manga(m).as_str())
         }
 
-        return content
+        return content;
     }
-        pub fn get_one_anime_manga(&self, m: MediaNode) -> String {
-        let anime_manga = format!("[{} / {}]({}) \n \n", m.title.romaji, m.title.user_preferred, m.site_url);
-        return anime_manga
+    pub fn get_one_anime_manga(&self, m: MediaNode) -> String {
+        let anime_manga = format!(
+            "[{} / {}]({}) \n \n",
+            m.title.romaji, m.title.user_preferred, m.site_url
+        );
+        return anime_manga;
     }
 
     pub fn get_desc(&self, localised_text: StudioLocalisedText) -> String {
-        let desc = format!("{}{} \n {} \n \n \n ", localised_text.favorite ,self.get_favourite(),
-                           self.get_anime_manga_list(localised_text.clone()));
+        let desc = format!(
+            "{}{} \n {} \n \n \n ",
+            localised_text.favorite,
+            self.get_favourite(),
+            self.get_anime_manga_list(localised_text.clone())
+        );
 
-        return desc
+        return desc;
     }
 }

@@ -26,7 +26,8 @@
     - [X] Bind anilist account to discord for /user. — Added register command and edited user command.
     - [X] Random /random {anime, manga}. — Added random for both anime and manga. Manga random can give ln.
     - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance
-    - [X] Add caching to all requests. — Done now will need to rework random.rs cause it double cache.
+    - [X] Add caching to all requests. — Done now will need to rework random.rs cause it double cache. 3days cache except
+      for "high" priority request like user data.
     - [ ] Send anime release to a channel.
       — Since anilist does not have a subscribable event, it will take longer, so I
       will work on it later.
@@ -45,7 +46,7 @@
       with seiyuu and va role.
       — This is possible, I'm not competent enough.
     - [ ] Get all the register users of the server.
-    - [ ] Add studio search.
+    - [X] Add studio search.
     - [X] Add a command that give the best waifu. — Done.
 
 - AI submodule:

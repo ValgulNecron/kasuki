@@ -51,7 +51,7 @@ pub async fn run(
                     value.parse().unwrap(),
                     localised_text.clone(),
                 )
-                    .await
+                .await
                 {
                     Ok(character_wrapper) => character_wrapper,
                     Err(error) => return error,

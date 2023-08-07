@@ -23,9 +23,9 @@ async fn get_cache(json: Value) -> String {
             last_updated INTEGER NOT NULL
         )",
     )
-        .execute(&pool)
-        .await
-        .unwrap();
+    .execute(&pool)
+    .await
+    .unwrap();
 
     let row: (Option<String>, Option<String>, Option<i64>) =
         sqlx::query_as("SELECT json, response, last_updated FROM request_cache WHERE json = ?")
@@ -55,12 +55,12 @@ async fn add_cache(json: Value, resp: String) -> bool {
     sqlx::query(
         "INSERT OR REPLACE INTO request_cache (json, response, last_updated) VALUES (?, ?, ?)",
     )
-        .bind(json.clone())
-        .bind(resp.clone())
-        .bind(now)
-        .execute(&pool)
-        .await
-        .unwrap();
+    .bind(json.clone())
+    .bind(resp.clone())
+    .bind(now)
+    .execute(&pool)
+    .await
+    .unwrap();
 
     return true;
 }

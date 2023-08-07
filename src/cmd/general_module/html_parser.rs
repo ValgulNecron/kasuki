@@ -14,8 +14,11 @@ pub fn convert_to_discord_markdown(value: String) -> String {
 }
 
 pub fn convert_italic(value: String) -> String {
-    let result = value.replace("<i>", "_").replace("</i>", "_")
-    .replace("<em>", "_").replace("</em>", "_");
+    let result = value
+        .replace("<i>", "_")
+        .replace("</i>", "_")
+        .replace("<em>", "_")
+        .replace("</em>", "_");
     result
 }
 
@@ -46,13 +49,21 @@ pub fn convert_spoiler(value: String) -> String {
 }
 
 pub fn convert_bold(value: String) -> String {
-    let result = value.replace("__", "**").replace("<strong>", "**")
-        .replace("</strong>", "**").replace("<b>", "**").replace("</b>", "**");
+    let result = value
+        .replace("__", "**")
+        .replace("<strong>", "**")
+        .replace("</strong>", "**")
+        .replace("<b>", "**")
+        .replace("</b>", "**");
     result
 }
 
-pub fn convert_strikethrough (value: String) -> String {
-    let result = value.replace("~~", "__").replace("<del>", "__")
-        .replace("</del>", "__").replace("<strike>", "__").replace("</strike>", "__");
+pub fn convert_strikethrough(value: String) -> String {
+    let result = value
+        .replace("~~", "__")
+        .replace("<del>", "__")
+        .replace("</del>", "__")
+        .replace("<strike>", "__")
+        .replace("</strike>", "__");
     result
 }
