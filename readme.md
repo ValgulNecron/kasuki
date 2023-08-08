@@ -89,6 +89,11 @@ with [this link](https://discord.com/oauth2/authorize?client_id=9232865364458946
 
 ### 2. Self-host your instance.
 
+##### tested on: 
+linux: ubuntu arm and x86-64
+
+windows: windows 10 and 11
+
 ##### Docker.
 
 - Install docker and docker compose.
