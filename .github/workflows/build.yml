@@ -40,16 +40,16 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Install cross-compilation tools
-        if: matrix.config.arch == 'ARM'
-        run: sudo apt-get install -y gcc-aarch64-linux-gnu
+      - name: Install cross-compilation tools for Linux ARM
+        if: matrix.config.arch == 'ARM' && matrix.config.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
 
-      - name: Set cross-compilation environment variables
-        if: matrix.config.arch == 'ARM'
+      - name: Set cross-compilation environment variables for Linux ARM
+        if: matrix.config.arch == 'ARM' && matrix.config.os == 'ubuntu-latest'
         run: |
-          export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
-          export AR_aarch64_unknown_linux_gnu=aarch64-linux-gnu-ar
-          export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "AR_aarch64_unknown_linux_gnu=aarch64-linux-gnu-ar" >> $GITHUB_ENV
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
 
       - name: Run Tests
         uses: actions-rs/cargo@v1
