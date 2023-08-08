@@ -30,10 +30,10 @@ jobs:
             arch: 'ARM'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@v2
         with:
           profile: minimal
           toolchain: stable
@@ -43,7 +43,7 @@ jobs:
 
       - name: Install cross-compilation tools for Linux ARM
         if: matrix.config.arch == 'ARM' && matrix.config.os == 'ubuntu-latest'
-        run: sudo dpkg --add-architecture arm64 && sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu libssl-dev:arm64
+        run: sudo dpkg --add-architecture arm64 && sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu libssl-dev
 
       - name: Set cross-compilation environment variables for Linux ARM
         if: matrix.config.arch == 'ARM' && matrix.config.os == 'ubuntu-latest'
