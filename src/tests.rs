@@ -1,14 +1,11 @@
 #[cfg(test)]
 mod tests {
+    use std::any::{Any, TypeId};
     use serde_json::json;
     use sqlx::{Pool, Sqlite};
 
     use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-    use crate::cmd::general_module::html_parser::{
-        add_anti_slash, convert_a_href_to_markdown, convert_b_to_markdown,
-        convert_br_to_line_break, convert_i_to_markdown, convert_mdash_to_dash, convert_spoiler,
-        convert_to_markdown,
-    };
+    use crate::cmd::general_module::html_parser::{add_anti_slash, convert_bold, convert_html_entity_to_real_char, convert_html_line_break_to_line_break, convert_italic, convert_link_to_discord_markdown, convert_spoiler, convert_to_discord_markdown};
     use crate::cmd::general_module::pool::get_pool;
     use crate::cmd::general_module::request::make_request_anilist;
     use crate::cmd::general_module::trim::trim;
@@ -16,20 +13,20 @@ mod tests {
     #[test]
     fn test_parser_mdash() {
         assert_eq!(
-            convert_mdash_to_dash("&mdash; test &mdash;".to_string()),
+            convert_html_entity_to_real_char("&mdash; test &mdash;".to_string()),
             "— test —"
         );
     }
 
     #[test]
     fn test_parser_italic() {
-        assert_eq!(convert_i_to_markdown("<i>test</i>".to_string()), "_test_");
+        assert_eq!(convert_italic("<i>test</i>".to_string()), "_test_");
     }
 
     #[test]
     fn test_parser_href() {
         assert_eq!(
-            convert_a_href_to_markdown(
+            convert_link_to_discord_markdown(
                 "<a href=\"https://anilist.co/character/138101/Loid-Forger\">Loid Forger</a>"
                     .to_string()
             ),
@@ -44,12 +41,12 @@ mod tests {
 
     #[test]
     fn test_parser_line_break() {
-        assert_eq!(convert_br_to_line_break("<br> test".to_string()), "\n test");
+        assert_eq!(convert_html_line_break_to_line_break("<br> test".to_string()), "\n test");
     }
 
     #[test]
     fn test_parser_bold() {
-        assert_eq!(convert_b_to_markdown("<b>test</b>".to_string()), "**test**");
+        assert_eq!(convert_bold("<b>test</b>".to_string()), "**test**");
     }
 
     #[test]
@@ -67,7 +64,7 @@ mod tests {
 
     #[test]
     fn test_parser_complete() {
-        assert_eq!(convert_to_markdown("~!test!~\n ~!test!~ ~!test!~ <b>test</b> <br> test Brother`s <a href=\"https://anilist.co/character/138101/Loid-Forger\">Loid Forger</a> <i>test</i> &mdash; test &mdash;"
+        assert_eq!(convert_to_discord_markdown("~!test!~\n ~!test!~ ~!test!~ <b>test</b> <br> test Brother`s <a href=\"https://anilist.co/character/138101/Loid-Forger\">Loid Forger</a> <i>test</i> &mdash; test &mdash;"
             .to_string()), "||test||\n ||test|| ||test|| **test** \n test Brother\\`s [Loid Forger](https://anilist.co/character/138101/Loid-Forger) _test_ — test —");
     }
 

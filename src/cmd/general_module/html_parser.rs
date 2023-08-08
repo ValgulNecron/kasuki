@@ -29,7 +29,7 @@ pub fn convert_html_entity_to_real_char(value: String) -> String {
 
 pub fn convert_link_to_discord_markdown(value: String) -> String {
     let re = Regex::new(r#"<a\s+href="([^"]+)">([^<]+)</a>"#).unwrap();
-    let markdown = re.replace_all(&*value, "[$  2]($1)");
+    let markdown = re.replace_all(&*value, "[$2]($1)");
     markdown.to_string()
 }
 

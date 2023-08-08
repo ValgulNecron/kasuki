@@ -28,6 +28,7 @@ use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
 use crate::cmd::general_module::*;
 
 mod cmd;
+mod tests;
 
 struct Handler;
 
