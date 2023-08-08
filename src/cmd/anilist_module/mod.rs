@@ -12,6 +12,7 @@ pub mod register;
 pub mod register_waifu;
 pub mod search;
 pub mod staff;
+pub mod struct_anime_song;
 pub mod struct_autocomplete;
 pub mod struct_autocomplete_character;
 pub mod struct_autocomplete_media;
