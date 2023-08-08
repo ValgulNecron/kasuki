@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::cmd::general_module::html_parser::convert_to_markdown;
+use crate::cmd::general_module::html_parser::convert_to_discord_markdown;
 use crate::cmd::general_module::lang_struct::CharacterLocalisedText;
 use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
@@ -149,7 +149,7 @@ query ($name: String) {
     pub fn get_desc(&self, localised_text: CharacterLocalisedText) -> String {
         let mut desc = self.data.character.description.clone();
         desc = format!("{} {}", localised_text.desc.clone(), desc);
-        desc = convert_to_markdown(desc);
+        desc = convert_to_discord_markdown(desc);
         let lenght_diff = 4096 - desc.len() as i32;
         if lenght_diff <= 0 {
             desc = trim(desc, lenght_diff);

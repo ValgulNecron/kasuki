@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use serde_json::{json, Value};
+
 use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::general_module::request::make_request_anilist;
 
@@ -24,8 +25,6 @@ pub struct StudioPageData {
 pub struct StudioPageWrapper {
     pub data: StudioPageData,
 }
-
-
 
 impl StudioPageWrapper {
     pub async fn new_autocomplete_staff(search: &Value, count: i32) -> StudioPageWrapper {
@@ -53,9 +52,9 @@ impl StudioPageWrapper {
                 .iter()
                 .filter_map(|item| {
                     Some(AutocompleteOption {
-                            name: item.name.clone(),
-                            value: item.id.to_string(),
-                        })
+                        name: item.name.clone(),
+                        value: item.id.to_string(),
+                    })
                 })
                 .collect::<Vec<AutocompleteOption>>()
         } else {

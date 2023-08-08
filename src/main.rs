@@ -20,14 +20,15 @@ use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
-use crate::cmd::general_module::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::module_activation::check_activation_status;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
+use crate::cmd::general_module::*;
 
 mod cmd;
+mod tests;
 
 struct Handler;
 
@@ -71,7 +72,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| transcript::register(command))
                 .create_application_command(|command| translation::register(command))
         })
-            .await;
+        .await;
 
         if cfg!(debug_assertions) {
             println!(
@@ -100,28 +101,18 @@ impl EventHandler for Handler {
             if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
                 content = match command.data.name.as_str() {
                     // General module.
-                    "ping" => {
-                        ping::run(&ctx, &command).await
-                    },
-                    "lang" => {
-                        lang::run(&command.data.options, &ctx, &command).await
-                    },
-                    "info" => {
-                        info::run(&ctx, &command).await
-                    },
-                    "banner" => {
-                        banner::run(&command.data.options, &ctx, &command).await
-                    },
-                    "profile" => {
-                        profile::run(&command.data.options, &ctx, &command).await
-                    },
-                    "module" => {
-                        module_activation::run(&command.data.options, &ctx, &command).await
-                    },
+                    "ping" => ping::run(&ctx, &command).await,
+                    "lang" => lang::run(&command.data.options, &ctx, &command).await,
+                    "info" => info::run(&ctx, &command).await,
+                    "banner" => banner::run(&command.data.options, &ctx, &command).await,
+                    "profile" => profile::run(&command.data.options, &ctx, &command).await,
+                    "module" => module_activation::run(&command.data.options, &ctx, &command).await,
 
                     // Anilist module
                     "anime" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -142,9 +133,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         anime::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "character" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -165,9 +158,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         character::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "compare" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -188,9 +183,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         compare::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "level" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -211,9 +208,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         level::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "ln" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -234,9 +233,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         ln::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "manga" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -257,9 +258,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         manga::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "random" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -280,9 +283,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         random::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "register" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -303,9 +308,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         register::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "search" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -326,9 +333,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         search::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "staff" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -349,9 +358,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         staff::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "user" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -372,9 +383,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         user::run(&command.data.options, &ctx, &command).await
-                    },
+                    }
                     "waifu" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -395,9 +408,11 @@ impl EventHandler for Handler {
                             return;
                         }
                         waifu::run(&ctx, &command).await
-                    },
+                    }
                     "studio" => {
-                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
                             if let Err(why) = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
@@ -589,9 +604,9 @@ async fn main() {
                         PRIMARY KEY (shard_id, timestamp)
                     )",
         )
-            .execute(&pool)
-            .await
-            .unwrap();
+        .execute(&pool)
+        .await
+        .unwrap();
         loop {
             sleep(Duration::from_secs(600)).await;
             let pool = get_pool(database_url).await;
