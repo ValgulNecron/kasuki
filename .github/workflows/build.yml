@@ -22,9 +22,6 @@ jobs:
           - os: macOS-latest
             rust_target: 'x86_64-apple-darwin'
             arch: 'x86_64'
-          - os: ubuntu-latest
-            rust_target: 'aarch64-unknown-linux-gnu'
-            arch: 'ARM'
           - os: macOS-latest
             rust_target: 'aarch64-apple-darwin'
             arch: 'ARM'
@@ -40,17 +37,6 @@ jobs:
           target: ${{ matrix.config.rust_target }}
           override: true
           components: rustfmt, clippy
-
-      - name: Install cross-compilation tools for Linux ARM
-        if: matrix.config.arch == 'ARM' && matrix.config.os == 'ubuntu-latest'
-        run: sudo dpkg --add-architecture arm64 && sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu libssl-dev
-
-      - name: Set cross-compilation environment variables for Linux ARM
-        if: matrix.config.arch == 'ARM' && matrix.config.os == 'ubuntu-latest'
-        run: |
-          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "AR_aarch64_unknown_linux_gnu=aarch64-linux-gnu-ar" >> $GITHUB_ENV
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
 
       - name: Run Tests
         uses: actions-rs/cargo@v1
