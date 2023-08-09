@@ -259,3 +259,8 @@ pub struct StudioLocalisedText {
     pub error_slash_command: String,
     pub favorite: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct AddActivityLocalisedText{
+
+}
