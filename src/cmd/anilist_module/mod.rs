@@ -1,5 +1,5 @@
 pub mod anime;
-pub mod anime_activity;
+// pub mod anime_activity;
 pub mod character;
 pub mod command_media_ln;
 pub mod compare;
@@ -9,7 +9,7 @@ pub mod ln;
 pub mod manga;
 pub mod random;
 pub mod register;
-pub mod register_waifu;
+// pub mod register_waifu;
 pub mod search;
 pub mod staff;
 pub mod struct_anime_song;
