@@ -17,6 +17,7 @@ use serenity::utils::Colour;
 use sqlx::{Pool, Sqlite};
 
 use crate::cmd::anilist_module::struct_random::*;
+use crate::cmd::anilist_module::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::cmd::anilist_module::struct_site_statistic_manga::SiteStatisticsMangaWrapper;
 use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
@@ -370,7 +371,7 @@ pub async fn update_cache(
         }
     } else if random_type.as_str() == "anime" {
         loop {
-            let (data, res) = SiteStatisticsMangaWrapper::new_manga(page_number).await;
+            let (data, res) = SiteStatisticsAnimeWrapper::new_anime(page_number).await;
             let has_next_page = data.has_next_page();
 
             if !has_next_page {
