@@ -1,4 +1,6 @@
+use crate::cmd::general_module::request::make_request_anilist;
 use serde::Deserialize;
+use serde_json::json;
 
 #[derive(Debug, Deserialize)]
 pub struct SiteStatisticsMangaWrapper {
@@ -41,4 +43,33 @@ pub struct SiteStatisticsMangaNode {
     pub change: i32,
 }
 
-impl SiteStatisticsMangaWrapper {}
+impl SiteStatisticsMangaWrapper {
+    pub async fn new_manga() -> (SiteStatisticsMangaWrapper, String) {
+        let query = "
+                    query($page: Int){
+                        SiteStatistics{
+                            manga(perPage: 1, page: $page){
+                                pageInfo{
+                                    currentPage
+                                    lastPage
+                                    total
+                                    hasNextPage
+                                }
+                                nodes{
+                                    date
+                                    count
+                                    change
+                                }
+                            }
+                        }
+                    }
+                ";
+        let json = json!({"query": query, "variables": {"page": page_number}});
+        let res = make_request_anilist(json, false).await;
+        let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res).unwrap();
+        (api_response, res)
+    }
+    pub fn has_next_page(&self) -> bool {
+        self.data.site_statistics.manga.page_info.has_next_page
+    }
+}

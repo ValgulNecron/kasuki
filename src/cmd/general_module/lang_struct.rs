@@ -261,6 +261,4 @@ pub struct StudioLocalisedText {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct AddActivityLocalisedText{
-
-}
+pub struct AddActivityLocalisedText {}

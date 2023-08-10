@@ -356,63 +356,10 @@ pub async fn update_cache(
 ) {
     let now = Utc::now().timestamp();
 
-    let query;
     if random_type.as_str() == "manga" {
-        query = "
-                    query($page: Int){
-                        SiteStatistics{
-                            manga(perPage: 1, page: $page){
-                                pageInfo{
-                                    currentPage
-                                    lastPage
-                                    total
-                                    hasNextPage
-                                }
-                                nodes{
-                                    date
-                                    count
-                                    change
-                                }
-                            }
-                        }
-                    }
-                "
-    } else if random_type.as_str() == "anime" {
-        query = "
-                    query($page: Int){
-                        SiteStatistics{
-                            anime(perPage: 1, page: $page){
-                                pageInfo{
-                                    currentPage
-                                    lastPage
-                                    total
-                                    hasNextPage
-                                }
-                                nodes{
-                                    date
-                                    count
-                                    change
-                                }
-                            }
-                        }
-                    }
-                "
-    } else {
-        return;
-    }
-
-    loop {
-        let json = json!({"query": query, "variables": {"page": page_number}});
-        let res = make_request_anilist(json, false).await;
-
-        if random_type.as_str() == "manga" {
-            let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res).unwrap();
-            let has_next_page = api_response
-                .data
-                .site_statistics
-                .manga
-                .page_info
-                .has_next_page;
+        loop {
+            let (data, res) = SiteStatisticsMangaWrapper::new_manga().await;
+            let has_next_page = data.has_next_page();
 
             if !has_next_page {
                 break;
@@ -421,14 +368,11 @@ pub async fn update_cache(
             previous_page = page_number;
 
             page_number += 1;
-        } else if random_type.as_str() == "anime" {
-            let api_response: SiteStatisticsAnimeWrapper = serde_json::from_str(&res).unwrap();
-            let has_next_page = api_response
-                .data
-                .site_statistics
-                .anime
-                .page_info
-                .has_next_page;
+        }
+    } else if random_type.as_str() == "anime" {
+        loop {
+            let (data, res) = SiteStatisticsMangaWrapper::new_manga().await;
+            let has_next_page = data.has_next_page();
 
             if !has_next_page {
                 break;

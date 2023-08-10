@@ -1,11 +1,15 @@
 #[cfg(test)]
 mod tests {
-    use std::any::{Any, TypeId};
     use serde_json::json;
     use sqlx::{Pool, Sqlite};
+    use std::any::{Any, TypeId};
 
     use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-    use crate::cmd::general_module::html_parser::{add_anti_slash, convert_bold, convert_html_entity_to_real_char, convert_html_line_break_to_line_break, convert_italic, convert_link_to_discord_markdown, convert_spoiler, convert_to_discord_markdown};
+    use crate::cmd::general_module::html_parser::{
+        add_anti_slash, convert_bold, convert_html_entity_to_real_char,
+        convert_html_line_break_to_line_break, convert_italic, convert_link_to_discord_markdown,
+        convert_spoiler, convert_to_discord_markdown,
+    };
     use crate::cmd::general_module::pool::get_pool;
     use crate::cmd::general_module::request::make_request_anilist;
     use crate::cmd::general_module::trim::trim;
@@ -41,7 +45,10 @@ mod tests {
 
     #[test]
     fn test_parser_line_break() {
-        assert_eq!(convert_html_line_break_to_line_break("<br> test".to_string()), "\n test");
+        assert_eq!(
+            convert_html_line_break_to_line_break("<br> test".to_string()),
+            "\n test"
+        );
     }
 
     #[test]
