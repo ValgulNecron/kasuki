@@ -44,7 +44,7 @@ pub struct SiteStatisticsAnimeNode {
 }
 
 impl SiteStatisticsAnimeWrapper {
-    pub async fn new_manga() -> (SiteStatisticsAnimeWrapper, String) {
+    pub async fn new_manga(page_number: i64) -> (SiteStatisticsAnimeWrapper, String) {
         let query = "query($page: Int){
                         SiteStatistics{
                             anime(perPage: 1, page: $page){
@@ -69,6 +69,6 @@ impl SiteStatisticsAnimeWrapper {
         (api_response, res)
     }
     pub fn has_next_page(&self) -> bool {
-        self.data.site_statistics.manga.page_info.has_next_page
+        self.data.site_statistics.anime.page_info.has_next_page
     }
 }

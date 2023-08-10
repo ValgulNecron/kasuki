@@ -44,7 +44,7 @@ pub struct SiteStatisticsMangaNode {
 }
 
 impl SiteStatisticsMangaWrapper {
-    pub async fn new_manga() -> (SiteStatisticsMangaWrapper, String) {
+    pub async fn new_manga(page_number: i64) -> (SiteStatisticsMangaWrapper, String) {
         let query = "
                     query($page: Int){
                         SiteStatistics{
