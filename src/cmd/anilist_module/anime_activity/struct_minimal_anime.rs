@@ -56,7 +56,7 @@ impl MinimalAnimeWrapper {
               }
             }
         ";
-        let json = json!({"query": query_string, "variables": {"search": search}});
+        let json = json!({"query": query, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
         let data: MediaWrapper = match serde_json::from_str(&resp) {
@@ -86,7 +86,7 @@ impl MinimalAnimeWrapper {
               }
             }
         ";
-        let json = json!({"query": query_string, "variables": {"search": search}});
+        let json = json!({"query": query, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
         let data: MediaWrapper = match serde_json::from_str(&resp) {

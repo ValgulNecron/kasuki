@@ -4,6 +4,32 @@ use serde_json::Value;
 
 use crate::cmd::general_module::pool::get_pool;
 
+///
+///
+/// # Arguments
+///
+/// * `json`: The json for the request on the anilist api need to be a valid json as per the anilist api doc (https://anilist.gitbook.io/anilist-apiv2-docs/overview/resources-and-recommended-reading)
+/// * `always_update`: Does it always check with the api or use the cache. True always use api. False use the cache.
+///
+/// returns: The json in form of string that the api responded.
+///
+/// # Examples
+///
+/// ```
+/// let query_str = "query ($search: String, $count: Int) {
+///     Page(perPage: $count) {
+///         studios(search: $search) {
+///             id
+///             name
+///         }
+///     }
+/// }";
+/// let json = json!({"query": query_str, "variables": {
+///     "search": search,
+///     "count": count,
+/// }});
+/// let res = make_request_anilist(json, true).await;
+/// ```
 pub async fn make_request_anilist(json: Value, always_update: bool) -> String {
     if always_update {
         do_request(json, always_update).await
