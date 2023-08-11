@@ -770,4 +770,8 @@ impl MediaWrapper {
         }
         tag
     }
+
+    pub fn get_id(&self) -> i64 {
+        self.data.media.id
+    }
 }

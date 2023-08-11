@@ -155,4 +155,8 @@ impl StudioWrapper {
 
         return desc;
     }
+
+    pub fn get_id(&self) -> u32 {
+        self.data.studio.id
+    }
 }

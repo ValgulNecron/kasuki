@@ -261,4 +261,11 @@ pub struct StudioLocalisedText {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct AddActivityLocalisedText {}
+pub struct AddActivityLocalisedText {
+    pub error_no_media: String,
+    pub title1: String,
+    pub title2: String,
+    pub already_added: String,
+    pub adding: String,
+    pub error_slash_command: String
+}
