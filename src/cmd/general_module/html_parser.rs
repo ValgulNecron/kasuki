@@ -1,4 +1,3 @@
-use std::ptr::replace;
 use regex::Regex;
 
 pub fn convert_to_discord_markdown(value: String) -> String {
