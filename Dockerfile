@@ -20,7 +20,7 @@ WORKDIR /kasuki/
 RUN apt-get update && \
     apt-get install -y libssl1.1
 
-COPY lang_file /kasuki/
+COPY lang_file /kasuki/lang_file
 
 COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
 
