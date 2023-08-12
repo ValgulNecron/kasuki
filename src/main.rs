@@ -1,3 +1,5 @@
+extern crate core;
+
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;

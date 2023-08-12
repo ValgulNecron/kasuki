@@ -1,7 +1,8 @@
 use std::env;
+use std::ops::Sub;
 use std::thread::sleep;
 use std::time::Duration;
-use chrono::Utc;
+use chrono::{TimeZone, Utc};
 use serenity::http::Http;
 use serenity::model::channel::Embed;
 use serenity::model::prelude::Webhook;
@@ -25,11 +26,18 @@ pub async fn send_activity() {
             "SELECT anime_id, timestamp, server_id, webhook FROM activity_data"
         ).fetch_all(&pool).await.unwrap();
         for row in rows {
-            let row_timestamp = row.timestamp.unwrap();
+            let tmp = row.timestamp.unwrap().clone();
+            let row_timestamp: i64 = tmp.parse().unwrap();
             let now = Utc::now();
-            let lower_bound = now - Duration::from_secs(30*60);
-            let upper_bound = now + Duration::from_secs(30*60-1);
-            if row_timestamp >= lower_bound && row_timestamp <= upper_bound {
+            let lower_bound = now.sub(  chrono::Duration::from_std(
+                Duration::from_secs(30*60)
+            ).unwrap());
+
+            let upper_bound_naive = now.naive_utc() - chrono::Duration::from_std(
+                Duration::from_secs(30 * 60 -1 )
+            ).unwrap();
+            let upper_bound = Utc.from_utc_datetime(&upper_bound_naive);
+            if row_timestamp >= lower_bound.timestamp() && row_timestamp <= upper_bound.timestamp() {
                 let my_path = "./.env";
                 let path = std::path::Path::new(my_path);
                 let _ = dotenv::from_path(path);
