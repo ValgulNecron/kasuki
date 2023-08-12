@@ -15,6 +15,8 @@ RUN cargo build --release
 
 FROM rust:latest
 
-COPY --from=builder /kasuki/target/release/kasuki .
+WORKDIR /kasuki/
+
+COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
 
 CMD ["./kasuki"]
