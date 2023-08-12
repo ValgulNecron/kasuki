@@ -13,6 +13,7 @@ use serenity::utils::Colour;
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
 
 use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
+use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::AddActivityLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
@@ -23,6 +24,11 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> String {
+    let result_diff = differed_response(ctx, command).await;
+
+        if result_diff != "good".as_ref() {
+            return result_diff;
+        }
     let database_url = "./data.db";
     let pool = get_pool(database_url).await;
 
@@ -81,11 +87,8 @@ pub async fn run(
             let color = Colour::FABLED_PINK;
             if check_if_activity_exist(anime_id, guild_id.clone()).await {
                 if let Err(why) = command
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| {
-                            message.embed(|m| {
+                .create_followup_message(&ctx.http, |f| {
+                    f.embed(|m| {
                                 m.title(&localised_text.title1)
                                     .url(format!("https://anilist.co/anime/{}", data.get_id()))
                                     .timestamp(Timestamp::now())
@@ -94,7 +97,6 @@ pub async fn run(
                                     .color(color)
                             })
                         })
-                })
                 .await
             {
                 println!("{}: {}", localised_text.error_slash_command, why);
@@ -124,11 +126,8 @@ pub async fn run(
                 .await
                 .unwrap();
                 if let Err(why) = command
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| {
-                            message.embed(|m| {
+                .create_followup_message(&ctx.http, |f| {
+                    f.embed(|m| {
                                 m.title(&localised_text.title2)
                                     .url(format!("https://anilist.co/anime/{}", data.get_id()))
                                     .timestamp(Timestamp::now())
@@ -137,7 +136,6 @@ pub async fn run(
                                     .color(color)
                             })
                         })
-                })
                 .await
             {
                 println!("{}: {}", localised_text.error_slash_command, why);
