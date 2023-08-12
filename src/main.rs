@@ -660,7 +660,7 @@ async fn main() {
     });
 
     tokio::spawn(async move {
-        send_activity()
+        send_activity().await
     });
 
     {
