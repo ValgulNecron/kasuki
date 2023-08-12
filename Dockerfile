@@ -17,6 +17,7 @@ FROM rust:latest
 
 WORKDIR /kasuki/
 
-COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
+COPY lang_file /kasuki/
+COPY --from=builder /kasuki/target/release/kasuki/* /kasuki/.
 
 CMD ["./kasuki"]
