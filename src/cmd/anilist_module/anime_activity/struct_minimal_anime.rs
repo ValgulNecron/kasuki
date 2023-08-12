@@ -24,6 +24,8 @@ pub struct MinimalAnime {
     pub title: Title,
     #[serde(rename = "nextAiringEpisode")]
     pub next_airing_episode: Option<NextAiringEpisode>,
+    #[serde(rename = "coverImage")]
+    pub cover_image: CoverImage,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -37,12 +39,21 @@ pub struct MinimalAnimeData {
     pub media: MinimalAnime,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct CoverImage {
+    #[serde(rename = "extraLarge")]
+    pub extra_large: Option<String>,
+}
+
 impl MinimalAnimeWrapper {
     pub async fn new_minimal_anime_by_id(localised_text: AddActivityLocalisedText, search: String) -> Result<MinimalAnimeWrapper, String> {
         let query = "
             query ($name: Int) {
               Media(type: ANIME, id: $name) {
                 id
+               coverImage {
+                  extraLarge
+                }
                 title {
                   romaji
                   english
@@ -71,8 +82,11 @@ impl MinimalAnimeWrapper {
     pub async fn new_minimal_anime_by_id_no_error(search: String) -> MinimalAnimeWrapper {
         let query = "
             query ($name: Int) {
-              Media(type: ANIME, id: $name) {
+              Media(type: ANIME, search: $name) {
                 id
+                coverImage {
+                  extraLarge
+                }
                 title {
                   romaji
                   english
@@ -83,7 +97,6 @@ impl MinimalAnimeWrapper {
                   episode
                 }
               }
-            }
         ";
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
@@ -96,6 +109,9 @@ impl MinimalAnimeWrapper {
             query ($name: String) {
               Media(type: ANIME, search: $name) {
                 id
+                coverImage {
+                  extraLarge
+                }
                 title {
                   romaji
                   english
@@ -110,7 +126,6 @@ impl MinimalAnimeWrapper {
         ";
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
-        println!("{}", resp);
         // Get json
         let data: MinimalAnimeWrapper = match serde_json::from_str(&resp) {
             Ok(data) => data,
@@ -154,5 +169,9 @@ impl MinimalAnimeWrapper {
 
     pub fn get_episode(&self) -> i32 {
         self.data.media.next_airing_episode.clone().unwrap().episode
+    }
+
+    pub fn get_image(&self) -> String {
+        self.data.media.cover_image.extra_large.clone().unwrap()
     }
 }

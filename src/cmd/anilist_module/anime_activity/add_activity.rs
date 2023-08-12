@@ -1,13 +1,16 @@
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Cursor, Read};
+use base64::{Engine as _, engine::general_purpose};
+use image::{GenericImageView, guess_format, ImageFormat};
+use image::imageops::FilterType;
+use reqwest::get;
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::prelude::application_command::{ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue};
 use serenity::model::prelude::autocomplete::AutocompleteInteraction;
-use serenity::model::prelude::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
@@ -106,8 +109,24 @@ pub async fn run(
                 if anime_name.len() >= 50 {
                     anime_name = trim_100_webhook(anime_name.clone(),  50 - anime_name.len() as i32)
                 }
-                let map = json!({"name": anime_name});
+                let bytes = get(data.get_image()).await.unwrap().bytes().await.unwrap();
+                let mut img = image::load(Cursor::new(&bytes),
+                                      guess_format(&bytes).unwrap()).unwrap();
+                let (width, height) = img.dimensions();
+                let square_size = width.min(height);
+                let crop_x = (width - square_size) / 2;
+                let crop_y = (height - square_size) / 2;
 
+                let img = img.crop(crop_x, crop_y, square_size, square_size)
+                    .resize_exact(128, 128, FilterType::Nearest);
+                let mut buf = Cursor::new(Vec::new());
+                img.write_to(&mut buf, ImageFormat::Jpeg).expect("Failed to encode image");
+                let base64 = general_purpose::STANDARD.encode(&buf.into_inner());
+                let image = format!("data:image/jpeg;base64,{}", base64);
+                let map = json!({
+                    "avatar": image,
+                    "name": anime_name
+                });
                 let webhook = ctx.http.create_webhook(channel_id
                                                   , &map
                                                   , None).await.unwrap().url().unwrap();
