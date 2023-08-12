@@ -3,7 +3,6 @@ use chrono::Utc;
 use serenity::http::Http;
 use serenity::model::channel::Embed;
 use serenity::model::prelude::Webhook;
-use serenity::model::webhook;
 use sqlx::FromRow;
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::cmd::general_module::pool::get_pool;
@@ -31,9 +30,9 @@ pub async fn send_activity() {
                 let path = std::path::Path::new(my_path);
                 let _ = dotenv::from_path(path);
                 let token = env::var("DISCORD_TOKEN").expect("discord token");
-                let data = MinimalAnimeWrapper::new_minimal_anime_by_id_no_error(row.anime_id.unwrap()).await;
+                let data = MinimalAnimeWrapper::new_minimal_anime_by_id_no_error(row.anime_id.clone().unwrap()).await;
                 let http = Http::new(token.as_str());
-                let webhook = Webhook::from_url(&http, row.webhook.unwrap().as_ref()).await.unwrap();
+                let webhook = Webhook::from_url(&http, row.webhook.clone().unwrap().as_ref()).await.unwrap();
                 let embed = Embed::fake(|e| {
                 e.title("New episode")
                     .url(format!("https://anilist.co/anime/{}", data.get_id()))
@@ -42,6 +41,16 @@ pub async fn send_activity() {
                 webhook.execute(&http, false, |w| {
                     w.embeds(vec![embed])
                 }).await.unwrap();
+                sqlx::query(
+                "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook) VALUES (?, ?, ?, ?)",
+                )
+                .bind(row.anime_id)
+                .bind(data.get_timestamp())
+                .bind(row.server_id)
+                .bind(row.webhook)
+                .execute(&pool)
+                .await
+                .unwrap();
             }
         }
     }
