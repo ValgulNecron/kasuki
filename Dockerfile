@@ -13,7 +13,7 @@ COPY ./src ./src
 RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
-FROM debian:buster-slim
+FROM rust:latest
 
 COPY --from=builder /kasuki/target/release/kasuki .
 
