@@ -11,7 +11,7 @@ use serenity::client::Context;
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::prelude::application_command::{ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue};
 use serenity::model::prelude::autocomplete::AutocompleteInteraction;
-use serenity::model::Timestamp;
+use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
 
@@ -174,6 +174,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .required(true)
                 .set_autocomplete(true)
         })
+        .default_member_permissions(Permissions::ADMINISTRATOR)
 }
 
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
