@@ -18,6 +18,6 @@ FROM ubuntu:20.04
 WORKDIR /kasuki/
 
 COPY lang_file /kasuki/
-COPY --from=builder /kasuki/target/release/kasuki/* /kasuki/.
+COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
 
 CMD ["./kasuki"]
