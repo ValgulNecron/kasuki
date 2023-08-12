@@ -15,6 +15,9 @@ RUN cargo build --release
 
 FROM debian:buster-slim
 
+RUN apt-get update && \
+    apt-get install -y libssl1.1
+
 WORKDIR /kasuki/
 
 COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
