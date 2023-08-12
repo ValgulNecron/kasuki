@@ -13,7 +13,6 @@ pub struct Title {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct MediaNode {
-    id: u32,
     title: Title,
     #[serde(rename = "siteUrl")]
     site_url: String,
@@ -59,7 +58,6 @@ impl StudioWrapper {
             favourites
             media(perPage: $limit, sort: START_DATE_DESC) {
               nodes {
-                id
                 title{
                   romaji
                   userPreferred
@@ -93,7 +91,6 @@ impl StudioWrapper {
             favourites
             media(perPage: $limit, sort: START_DATE_DESC) {
               nodes {
-                id
                 title{
                   romaji
                   userPreferred
