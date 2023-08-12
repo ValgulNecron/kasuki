@@ -28,9 +28,8 @@
     - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance
     - [X] Add caching to all requests. — Done now will need to rework random.rs cause it double cache. 3days cache except
       for "high" priority request like user data.
-    - [ ] Send anime release to a channel.
-      — Since anilist does not have a subscribable event, it will take longer, so I
-      will work on it later.
+    - [X] Send anime release to a channel.
+      — Done
     - [ ] Try to do the same for manga.
       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
       this one only selected manga not all seasonal).
