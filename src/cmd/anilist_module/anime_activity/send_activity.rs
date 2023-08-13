@@ -1,4 +1,4 @@
-use std::{env, thread};
+use std::env;
 use std::thread::sleep;
 use std::time::Duration;
 use chrono::Utc;
@@ -19,11 +19,9 @@ struct ActivityData {
 
 pub async fn manage_activity() {
     loop {
-         thread::spawn(move || {
-            async move {
-                send_activity().await;
-            }
-        });
+         tokio::spawn(async move {
+             send_activity().await;
+         });
         sleep(Duration::from_secs(1));
     }
 }
