@@ -19,7 +19,7 @@ WORKDIR /kasuki/
 
 COPY lang_file /kasuki/lang_file
 
-RUN apt-get update && apt-get install \
+RUN apt-get update && apt-get install -y \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev
 
