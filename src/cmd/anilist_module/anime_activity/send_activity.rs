@@ -26,18 +26,9 @@ pub async fn send_activity() {
             "SELECT anime_id, timestamp, server_id, webhook FROM activity_data"
         ).fetch_all(&pool).await.unwrap();
         for row in rows {
-            let tmp = row.timestamp.unwrap().clone();
-            let row_timestamp: i64 = tmp.parse().unwrap();
+            let timestamp = row.timestamp.unwrap().clone();
             let now = Utc::now();
-            let lower_bound = now.sub(  chrono::Duration::from_std(
-                Duration::from_secs(30*60)
-            ).unwrap());
-
-            let upper_bound_naive = now.naive_utc() - chrono::Duration::from_std(
-                Duration::from_secs(30 * 60 -1 )
-            ).unwrap();
-            let upper_bound = Utc.from_utc_datetime(&upper_bound_naive);
-            if row_timestamp >= lower_bound.timestamp() && row_timestamp <= upper_bound.timestamp() {
+            if timestamp == now.timestamp().to_string() {
                 let my_path = "./.env";
                 let path = std::path::Path::new(my_path);
                 let _ = dotenv::from_path(path);
@@ -65,6 +56,6 @@ pub async fn send_activity() {
                 .unwrap();
             }
         }
-        sleep(Duration::from_secs(30*60));
+        sleep(Duration::from_secs(1));
     }
 }
