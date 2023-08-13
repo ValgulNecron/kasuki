@@ -22,7 +22,7 @@ use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
-use crate::cmd::anilist_module::anime_activity::send_activity::send_activity;
+use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::module_activation::check_activation_status;
@@ -662,7 +662,7 @@ async fn main() {
     });
 
     tokio::spawn(async move {
-        send_activity().await
+        manage_activity().await
     });
 
     {
