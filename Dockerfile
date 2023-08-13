@@ -19,6 +19,11 @@ WORKDIR /kasuki/
 
 COPY lang_file /kasuki/lang_file
 
+RUN apt-get update && apt-get install \
+    libssl-dev libsqlite3-dev \
+    libpng-dev libjpeg-dev \
+
+
 COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
 
 CMD ["./kasuki"]
