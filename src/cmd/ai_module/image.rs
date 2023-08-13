@@ -16,6 +16,7 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+use tide::new;
 use uuid::Uuid;
 
 use crate::cmd::general_module::differed_response::differed_response;
@@ -75,7 +76,30 @@ pub async fn run(
             let _ = dotenv::from_path(path);
             let prompt = description;
             let api_key = env::var("AI_API_TOKEN").expect("token");
-            let api_base_url = env::var("AI_API_BASE_URL").expect("token");
+            let api_base_url = env::var("AI_API_BASE_URL").expect("base url");
+            let data;
+            if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
+                if image_generation_mode as bool {
+                   data = json!({
+                        "prompt": prompt,
+                        "n": 1,
+                        "size": "1024x1024"
+                        "model": env::var("IMAGE_GENERATION_MODELS").expect("model name");
+                    })
+                } else {
+                    data = json!({
+                        "prompt": prompt,
+                        "n": 1,
+                        "size": "1024x1024"
+                    })
+                }
+            } else {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024"
+                })
+            }
             let api_url = format!("{}images/generations", api_base_url);
             let client = reqwest::Client::new();
 
@@ -86,11 +110,8 @@ pub async fn run(
             );
             headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
-            let data = json!({
-                "prompt": prompt,
-                "n": 1,
-                "size": "1024x1024"
-            });
+
+
 
             let res: Value = client
                 .post(api_url)
