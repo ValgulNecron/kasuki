@@ -22,13 +22,11 @@ pub async fn send_activity() {
     let database_url = "./data.db";
     let pool =get_pool(database_url).await;
     loop {
+        let now = Utc::now().timestamp().to_string();
         let rows: Vec<ActivityData> = sqlx::query_as(
-            "SELECT anime_id, timestamp, server_id, webhook FROM activity_data"
-        ).fetch_all(&pool).await.unwrap();
+            "SELECT anime_id, timestamp, server_id, webhook FROM activity_data WHERE timestamp = ?"
+        ).bind(now).fetch_all(&pool).await.unwrap();
         for row in rows {
-            let timestamp = row.timestamp.unwrap().clone();
-            let now = Utc::now();
-            if timestamp == now.timestamp().to_string() {
                 let my_path = "./.env";
                 let path = std::path::Path::new(my_path);
                 let _ = dotenv::from_path(path);
@@ -54,7 +52,6 @@ pub async fn send_activity() {
                 .execute(&pool)
                 .await
                 .unwrap();
-            }
         }
         sleep(Duration::from_secs(1));
     }
