@@ -145,7 +145,7 @@ pub async fn run(
             let path = Path::new(my_path);
             let _ = dotenv::from_path(path);
             let api_key = env::var("AI_API_TOKEN").expect("token");
-            let api_base_url = env::var("AI_API_BASE_URL").expect("token");
+            let api_base_url = env::var("AI_API_BASE_URL").expect("base url");
             let api_url = format!("{}audio/transcriptions", api_base_url);
             let client = reqwest::Client::new();
             let mut headers = HeaderMap::new();
