@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use serde_json::json;
 use crate::cmd::general_module::lang_struct::AddActivityLocalisedText;
 use crate::cmd::general_module::request::make_request_anilist;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NextAiringEpisode {
@@ -46,7 +46,10 @@ pub struct CoverImage {
 }
 
 impl MinimalAnimeWrapper {
-    pub async fn new_minimal_anime_by_id(localised_text: AddActivityLocalisedText, search: String) -> Result<MinimalAnimeWrapper, String> {
+    pub async fn new_minimal_anime_by_id(
+        localised_text: AddActivityLocalisedText,
+        search: String,
+    ) -> Result<MinimalAnimeWrapper, String> {
         let query = "
             query ($name: Int) {
               Media(type: ANIME, id: $name) {
@@ -104,7 +107,10 @@ impl MinimalAnimeWrapper {
         data
     }
 
-    pub async fn new_minimal_anime_by_search(localised_text: AddActivityLocalisedText, search: String) -> Result<MinimalAnimeWrapper, String> {
+    pub async fn new_minimal_anime_by_search(
+        localised_text: AddActivityLocalisedText,
+        search: String,
+    ) -> Result<MinimalAnimeWrapper, String> {
         let query = "
             query ($name: String) {
               Media(type: ANIME, search: $name) {
@@ -160,11 +166,7 @@ impl MinimalAnimeWrapper {
     }
 
     pub fn get_rj_title(&self) -> String {
-        self.data
-            .media
-            .title
-            .romaji
-            .clone()
+        self.data.media.title.romaji.clone()
     }
 
     pub fn get_episode(&self) -> i32 {

@@ -1,8 +1,8 @@
-use serde::Deserialize;
-use serde_json::json;
 use crate::cmd::general_module::html_parser::convert_to_discord_markdown;
 use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
+use serde::Deserialize;
+use serde_json::json;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Media {
@@ -135,7 +135,8 @@ impl PageWrapper {
     }
 
     pub fn get_tags(&self) -> String {
-        self.get_media().tags
+        self.get_media()
+            .tags
             .into_iter()
             .map(|tag| tag.name.clone())
             .collect::<Vec<String>>()
@@ -152,7 +153,7 @@ impl PageWrapper {
         let lenght_diff = 4096 - desc.len() as i32;
         if lenght_diff <= 0 {
             trim(desc, lenght_diff)
-        } else{
+        } else {
             desc
         }
     }

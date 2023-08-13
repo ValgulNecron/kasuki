@@ -1,19 +1,21 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::{Cursor, Read};
-use base64::{Engine as _, engine::general_purpose};
-use image::{GenericImageView, guess_format, ImageFormat};
+use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
+use base64::{engine::general_purpose, Engine as _};
 use image::imageops::FilterType;
+use image::{guess_format, GenericImageView, ImageFormat};
 use reqwest::get;
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::command::CommandOptionType;
-use serenity::model::prelude::application_command::{ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue};
+use serenity::model::prelude::application_command::{
+    ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
+};
 use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
-use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::{Cursor, Read};
 
 use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
 use crate::cmd::general_module::differed_response::differed_response;
@@ -29,9 +31,9 @@ pub async fn run(
 ) -> String {
     let result_diff = differed_response(ctx, command).await;
 
-        if result_diff != "good".as_ref() {
-            return result_diff;
-        }
+    if result_diff != "good".as_ref() {
+        return result_diff;
+    }
     let database_url = "./data.db";
     let pool = get_pool(database_url).await;
 
@@ -44,9 +46,9 @@ pub async fn run(
         PRIMARY KEY (anime_id, server_id)
     )",
     )
-        .execute(&pool)
-        .await
-        .unwrap();
+    .execute(&pool)
+    .await
+    .unwrap();
 
     let option = options
         .get(0)
@@ -55,7 +57,8 @@ pub async fn run(
         .as_ref()
         .expect("Expected name object");
     if let CommandDataOptionValue::String(value) = option {
-        let mut file = File::open("lang_file/anilist/add_activity.json").expect("Failed to open file");
+        let mut file =
+            File::open("lang_file/anilist/add_activity.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 
@@ -71,13 +74,21 @@ pub async fn run(
                 Ok(_) => true,
                 Err(_) => false,
             } {
-                data = match MinimalAnimeWrapper::new_minimal_anime_by_id(localised_text.clone() ,value.parse().unwrap()).await
+                data = match MinimalAnimeWrapper::new_minimal_anime_by_id(
+                    localised_text.clone(),
+                    value.parse().unwrap(),
+                )
+                .await
                 {
                     Ok(minimal_anime) => minimal_anime,
                     Err(error) => return error,
                 }
             } else {
-                data = match MinimalAnimeWrapper::new_minimal_anime_by_search(localised_text.clone(), value.to_string()).await
+                data = match MinimalAnimeWrapper::new_minimal_anime_by_search(
+                    localised_text.clone(),
+                    value.to_string(),
+                )
+                .await
                 {
                     Ok(minimal_anime) => minimal_anime,
                     Err(error) => return error,
@@ -90,46 +101,56 @@ pub async fn run(
             let color = Colour::FABLED_PINK;
             if check_if_activity_exist(anime_id, guild_id.clone()).await {
                 if let Err(why) = command
-                .create_followup_message(&ctx.http, |f| {
-                    f.embed(|m| {
-                                m.title(&localised_text.title1)
-                                    .url(format!("https://anilist.co/anime/{}", data.get_id()))
-                                    .timestamp(Timestamp::now())
-                                    .color(color)
-                                    .description(format!("{} {}", &localised_text.already_added , data.get_name()))
-                                    .color(color)
-                            })
+                    .create_followup_message(&ctx.http, |f| {
+                        f.embed(|m| {
+                            m.title(&localised_text.title1)
+                                .url(format!("https://anilist.co/anime/{}", data.get_id()))
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                                .description(format!(
+                                    "{} {}",
+                                    &localised_text.already_added,
+                                    data.get_name()
+                                ))
+                                .color(color)
                         })
-                .await
-            {
-                println!("{}: {}", localised_text.error_slash_command, why);
-            }
-                return "good".to_string()
+                    })
+                    .await
+                {
+                    println!("{}: {}", localised_text.error_slash_command, why);
+                }
+                return "good".to_string();
             } else {
                 if anime_name.len() >= 50 {
-                    anime_name = trim_100_webhook(anime_name.clone(),  50 - anime_name.len() as i32)
+                    anime_name = trim_100_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
                 }
                 let bytes = get(data.get_image()).await.unwrap().bytes().await.unwrap();
-                let mut img = image::load(Cursor::new(&bytes),
-                                      guess_format(&bytes).unwrap()).unwrap();
+                let mut img =
+                    image::load(Cursor::new(&bytes), guess_format(&bytes).unwrap()).unwrap();
                 let (width, height) = img.dimensions();
                 let square_size = width.min(height);
                 let crop_x = (width - square_size) / 2;
                 let crop_y = (height - square_size) / 2;
 
-                let img = img.crop(crop_x, crop_y, square_size, square_size)
+                let img = img
+                    .crop(crop_x, crop_y, square_size, square_size)
                     .resize_exact(128, 128, FilterType::Nearest);
                 let mut buf = Cursor::new(Vec::new());
-                img.write_to(&mut buf, ImageFormat::Jpeg).expect("Failed to encode image");
+                img.write_to(&mut buf, ImageFormat::Jpeg)
+                    .expect("Failed to encode image");
                 let base64 = general_purpose::STANDARD.encode(&buf.into_inner());
                 let image = format!("data:image/jpeg;base64,{}", base64);
                 let map = json!({
                     "avatar": image,
                     "name": anime_name
                 });
-                let webhook = ctx.http.create_webhook(channel_id
-                                                  , &map
-                                                  , None).await.unwrap().url().unwrap();
+                let webhook = ctx
+                    .http
+                    .create_webhook(channel_id, &map, None)
+                    .await
+                    .unwrap()
+                    .url()
+                    .unwrap();
                 sqlx::query(
                 "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook) VALUES (?, ?, ?, ?)",
             )
@@ -141,21 +162,25 @@ pub async fn run(
                 .await
                 .unwrap();
                 if let Err(why) = command
-                .create_followup_message(&ctx.http, |f| {
-                    f.embed(|m| {
-                                m.title(&localised_text.title2)
-                                    .url(format!("https://anilist.co/anime/{}", data.get_id()))
-                                    .timestamp(Timestamp::now())
-                                    .color(color)
-                                    .description(format!("{} {}", &localised_text.adding , data.get_name()))
-                                    .color(color)
-                            })
+                    .create_followup_message(&ctx.http, |f| {
+                        f.embed(|m| {
+                            m.title(&localised_text.title2)
+                                .url(format!("https://anilist.co/anime/{}", data.get_id()))
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                                .description(format!(
+                                    "{} {}",
+                                    &localised_text.adding,
+                                    data.get_name()
+                                ))
+                                .color(color)
                         })
-                .await
-            {
-                println!("{}: {}", localised_text.error_slash_command, why);
-            }
-                return "good".to_string()
+                    })
+                    .await
+                {
+                    println!("{}: {}", localised_text.error_slash_command, why);
+                }
+                return "good".to_string();
             }
         }
     }
@@ -193,8 +218,8 @@ pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
 
 pub async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
     let database_url = "./data.db";
-        let pool = get_pool(database_url).await;
-        let row: (Option<String>, Option<String>, Option<String>, Option<String>) = sqlx::query_as(
+    let pool = get_pool(database_url).await;
+    let row: (Option<String>, Option<String>, Option<String>, Option<String>) = sqlx::query_as(
             "SELECT anime_id, timestamp, server_id, webhook FROM activity_data WHERE anime_id = ? AND server_id = ?",
         )
         .bind(anime_id)

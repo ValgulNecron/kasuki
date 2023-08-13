@@ -81,7 +81,7 @@ pub async fn run(
                 let is_ok = image_generation_mode.to_lowercase() == "true";
                 if is_ok {
                     let model = env::var("IMAGE_GENERATION_MODELS").expect("model name");
-                   data = json!({
+                    data = json!({
                         "prompt": prompt,
                         "n": 1,
                         "size": "1024x1024",
@@ -113,7 +113,6 @@ pub async fn run(
                 HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
             );
             headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-
 
             let res: Value = client
                 .post(api_url)

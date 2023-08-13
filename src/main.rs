@@ -21,8 +21,8 @@ use serenity::utils::Colour;
 use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
-use crate::cmd::anilist_module::*;
 use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
+use crate::cmd::anilist_module::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::module_activation::check_activation_status;
@@ -70,7 +70,9 @@ impl EventHandler for Handler {
                 .create_application_command(|command| user::register(command))
                 .create_application_command(|command| waifu::register(command))
                 .create_application_command(|command| studio::register(command))
-                .create_application_command(|command| anime_activity::add_activity::register(command))
+                .create_application_command(|command| {
+                    anime_activity::add_activity::register(command)
+                })
                 // AI module.
                 .create_application_command(|command| image::register(command))
                 .create_application_command(|command| transcript::register(command))
@@ -439,7 +441,7 @@ impl EventHandler for Handler {
                         studio::run(&command.data.options, &ctx, &command).await
                     }
                     "add_activity" => {
-                         if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
                             .await
                         {
                             if let Err(why) = command
@@ -461,7 +463,8 @@ impl EventHandler for Handler {
                             }
                             return;
                         }
-                        anime_activity::add_activity::run(&command.data.options, &ctx, &command).await
+                        anime_activity::add_activity::run(&command.data.options, &ctx, &command)
+                            .await
                     }
 
                     // AI module
@@ -661,9 +664,7 @@ async fn main() {
         }
     });
 
-    tokio::spawn(async move {
-        manage_activity().await
-    });
+    tokio::spawn(async move { manage_activity().await });
 
     {
         let mut data = client.data.write().await;
