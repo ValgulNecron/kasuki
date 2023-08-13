@@ -13,7 +13,7 @@ COPY ./src ./src
 RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
-FROM rust:latest
+FROM ubuntu:20-04
 
 WORKDIR /kasuki/
 
