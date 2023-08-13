@@ -146,7 +146,8 @@ pub async fn run(
                 .unwrap();
             let form = multipart::Form::new()
                 .part("file", part)
-                .text("model", "whisper-1");
+                .text("model", "whisper-1")
+                .text("response_format", "json");
 
             let response_result = client
                 .post(api_url)
@@ -162,6 +163,7 @@ pub async fn run(
                     return format!("{}: {}", localised_text.error_request, err);
                 }
             };
+            println!("{:?}", response);
             let res_result: Result<Value, reqwest::Error> = response.json().await;
 
             let res = match res_result {

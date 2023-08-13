@@ -16,7 +16,6 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-use tide::new;
 use uuid::Uuid;
 
 use crate::cmd::general_module::differed_response::differed_response;
@@ -79,25 +78,30 @@ pub async fn run(
             let api_base_url = env::var("AI_API_BASE_URL").expect("base url");
             let data;
             if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
-                if image_generation_mode as bool {
+                let is_ok = image_generation_mode.to_lowercase() == "true";
+                if is_ok {
+                    let model = env::var("IMAGE_GENERATION_MODELS").expect("model name");
                    data = json!({
                         "prompt": prompt,
                         "n": 1,
-                        "size": "1024x1024"
-                        "model": env::var("IMAGE_GENERATION_MODELS").expect("model name");
+                        "size": "1024x1024",
+                        "model": model,
+                       "response_format": "url"
                     })
                 } else {
                     data = json!({
                         "prompt": prompt,
                         "n": 1,
-                        "size": "1024x1024"
+                        "size": "1024x1024",
+                        "response_format": "url"
                     })
                 }
             } else {
                 data = json!({
                     "prompt": prompt,
                     "n": 1,
-                    "size": "1024x1024"
+                    "size": "1024x1024",
+                    "response_format": "url"
                 })
             }
             let api_url = format!("{}images/generations", api_base_url);
@@ -109,8 +113,6 @@ pub async fn run(
                 HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
             );
             headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-
-
 
 
             let res: Value = client

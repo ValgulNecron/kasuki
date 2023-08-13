@@ -164,7 +164,8 @@ pub async fn run(
                 .part("file", part)
                 .text("model", "whisper-1")
                 .text("prompt", prompt)
-                .text("language", lang);
+                .text("language", lang)
+                .text("response_format", "json");
 
             let response_result = client
                 .post(api_url)
