@@ -32,8 +32,11 @@ pub async fn send_activity() {
     let now = Utc::now().timestamp().to_string();
     let rows: Vec<ActivityData> = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id, webhook FROM activity_data WHERE timestamp = ?"
-    ).bind(now).fetch_all(&pool).await.unwrap();
+    ).bind(now.clone()).fetch_all(&pool).await.unwrap();
     for row in rows {
+        if row.timestamp.unwrap() != now {
+            break;
+        }
         let my_path = "./.env";
         let path = std::path::Path::new(my_path);
         let _ = dotenv::from_path(path);

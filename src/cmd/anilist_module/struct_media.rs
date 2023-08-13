@@ -737,7 +737,8 @@ impl MediaWrapper {
         let end_date = self.get_end_date();
         let staff = self.get_media_staff(localised_text.clone());
         format!(
-            "{}{}{}{}{}{}{}{} \n {}",
+            "id: {}\n{}{}{}{}{}{}{}{} \n {}",
+            self.get_id(),
             &localised_text.format,
             format,
             &localised_text.source,
