@@ -1,18 +1,20 @@
-use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::SendActivityLocalisedText;
-use crate::cmd::general_module::pool::get_pool;
-use chrono::Utc;
-use serenity::http::Http;
-use serenity::model::channel::Embed;
-use serenity::model::prelude::Webhook;
-use sqlx::FromRow;
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::Read;
 use std::thread::sleep;
 use std::time::Duration;
+
+use chrono::Utc;
+use serenity::http::Http;
+use serenity::model::channel::Embed;
+use serenity::model::prelude::Webhook;
+use sqlx::FromRow;
+
+use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
+use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::lang_struct::SendActivityLocalisedText;
+use crate::cmd::general_module::pool::get_pool;
 
 #[derive(Debug, FromRow)]
 struct ActivityData {
@@ -88,15 +90,15 @@ pub async fn send_activity() {
                 .await
                 .unwrap();
             sqlx::query(
-                    "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook) VALUES (?, ?, ?, ?)",
-                )
-                    .bind(row.anime_id)
-                    .bind(data.get_timestamp())
-                    .bind(row.server_id)
-                    .bind(row.webhook)
-                    .execute(&pool)
-                    .await
-                    .unwrap();
+                "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook) VALUES (?, ?, ?, ?)",
+            )
+                .bind(row.anime_id)
+                .bind(data.get_timestamp())
+                .bind(row.server_id)
+                .bind(row.webhook)
+                .execute(&pool)
+                .await
+                .unwrap();
         }
     }
 }

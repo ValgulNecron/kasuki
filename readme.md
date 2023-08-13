@@ -26,7 +26,8 @@
     - [X] Bind anilist account to discord for /user. — Added register command and edited user command.
     - [X] Random /random {anime, manga}. — Added random for both anime and manga. Manga random can give ln.
     - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance
-    - [X] Add caching to all requests. — Done now will need to rework random.rs cause it double cache. 3days cache except
+    - [X] Add caching to all requests. — Done now will need to rework random.rs cause it double cache. 3days cache
+      except
       for "high" priority request like user data.
     - [X] Send anime release to a channel.
       — Done
@@ -88,7 +89,8 @@ with [this link](https://discord.com/oauth2/authorize?client_id=9232865364458946
 
 ### 2. Self-host your instance.
 
-##### tested on: 
+##### tested on:
+
 linux: ubuntu arm and x86-64
 
 windows: windows 10 and 11

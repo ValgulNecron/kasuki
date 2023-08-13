@@ -1,7 +1,8 @@
-use crate::cmd::general_module::lang_struct::AddActivityLocalisedText;
-use crate::cmd::general_module::request::make_request_anilist;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+
+use crate::cmd::general_module::lang_struct::AddActivityLocalisedText;
+use crate::cmd::general_module::request::make_request_anilist;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NextAiringEpisode {

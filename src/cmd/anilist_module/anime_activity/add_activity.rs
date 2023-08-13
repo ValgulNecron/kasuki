@@ -1,4 +1,7 @@
-use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::{Cursor, Read};
+
 use base64::{engine::general_purpose, Engine as _};
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
@@ -13,10 +16,8 @@ use serenity::model::prelude::application_command::{
 use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::{Cursor, Read};
 
+use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
 use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
@@ -152,15 +153,15 @@ pub async fn run(
                     .url()
                     .unwrap();
                 sqlx::query(
-                "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook) VALUES (?, ?, ?, ?)",
-            )
-                .bind(anime_id)
-                .bind(data.get_timestamp())
-                .bind(guild_id)
-                .bind(webhook)
-                .execute(&pool)
-                .await
-                .unwrap();
+                    "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook) VALUES (?, ?, ?, ?)",
+                )
+                    .bind(anime_id)
+                    .bind(data.get_timestamp())
+                    .bind(guild_id)
+                    .bind(webhook)
+                    .execute(&pool)
+                    .await
+                    .unwrap();
                 if let Err(why) = command
                     .create_followup_message(&ctx.http, |f| {
                         f.embed(|m| {
@@ -220,10 +221,10 @@ pub async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
     let database_url = "./data.db";
     let pool = get_pool(database_url).await;
     let row: (Option<String>, Option<String>, Option<String>, Option<String>) = sqlx::query_as(
-            "SELECT anime_id, timestamp, server_id, webhook FROM activity_data WHERE anime_id = ? AND server_id = ?",
-        )
+        "SELECT anime_id, timestamp, server_id, webhook FROM activity_data WHERE anime_id = ? AND server_id = ?",
+    )
         .bind(anime_id)
-            .bind(server_id)
+        .bind(server_id)
         .fetch_one(&pool)
         .await
         .unwrap_or((None, None, None, None));
