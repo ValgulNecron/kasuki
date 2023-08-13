@@ -1,0 +1,26 @@
+{
+  "En": {
+    "title": "New Episode",
+    "ep": "Episode ",
+    "of": "of ",
+    "end": "just released the next episode "
+  },
+  "Fr": {
+    "title": "Nouvel épisode",
+    "ep": "Épisode ",
+    "of": "de ",
+    "end": "vient de sortir le prochain épisode "
+  },
+  "De": {
+    "title": "Neue Folge",
+    "ep": "Episode ",
+    "of": "von ",
+    "end": "hat gerade die nächste Folge veröffentlicht "
+  },
+  "Jp": {
+    "title": "新しいエピソード",
+    "ep": "エピソード ",
+    "of": "（全 ",
+    "end": "）が次のエピソードをリリースしました"
+  }
+}
