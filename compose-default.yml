@@ -9,6 +9,8 @@ services:
       - DISCORD_TOKEN=your_discord_token_here
       - AI_API_TOKEN=your_token_here_for_the_ai_part
       - AI_API_BASE_URL=the_url_for_the_request_open_ai_or_any_openai_proxy_one_do_not_forget_to_end_with_a_/_the_url
+      - IMAGE_GENERATION_MODELS_ON=True # true if you use have a proxy server on which you added another model
+        IMAGE_GENERATION_MODELS="stable-diffusion-2.1" # the name of the model you want only used if IMAGE_GENERATION_MODELS_ON is True
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db
