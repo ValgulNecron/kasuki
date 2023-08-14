@@ -125,6 +125,8 @@ pub async fn run(
                 .await
                 .unwrap();
 
+            println!("{}", res);
+
             let mut url_string = "";
             if let Some(data) = res.get("data") {
                 if let Some(object) = data.get(0) {

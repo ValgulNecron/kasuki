@@ -44,6 +44,8 @@ pub async fn run(
         timestamp TEXT,
         server_id TEXT,
         webhook TEXT,
+        episode TEXT,
+        name TEXT,
         PRIMARY KEY (anime_id, server_id)
     )",
     )
@@ -153,12 +155,14 @@ pub async fn run(
                     .url()
                     .unwrap();
                 sqlx::query(
-                    "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook) VALUES (?, ?, ?, ?)",
+                    "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name) VALUES (?, ?, ?, ?, ?, ?)",
                 )
                     .bind(anime_id)
                     .bind(data.get_timestamp())
                     .bind(guild_id)
                     .bind(webhook)
+                    .bind(data.get_episode())
+                    .bind(data.get_name())
                     .execute(&pool)
                     .await
                     .unwrap();

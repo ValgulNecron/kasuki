@@ -16,15 +16,33 @@ use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::SendActivityLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 
-#[derive(Debug, FromRow)]
-struct ActivityData {
+#[derive(Debug, FromRow, Clone)]
+pub struct ActivityData {
     anime_id: Option<String>,
     timestamp: Option<String>,
     server_id: Option<String>,
     webhook: Option<String>,
+    episode: Option<String>,
+    name: Option<String>,
 }
 
 pub async fn manage_activity() {
+    let database_url = "./data.db";
+    let pool = get_pool(database_url).await;
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS activity_data (
+        anime_id TEXT,
+        timestamp TEXT,
+        server_id TEXT,
+        webhook TEXT,
+        episode TEXT,
+        name TEXT,
+        PRIMARY KEY (anime_id, server_id)
+    )",
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
     loop {
         tokio::spawn(async move {
             send_activity().await;
@@ -38,13 +56,14 @@ pub async fn send_activity() {
     let pool = get_pool(database_url).await;
     let now = Utc::now().timestamp().to_string();
     let rows: Vec<ActivityData> = sqlx::query_as(
-        "SELECT anime_id, timestamp, server_id, webhook FROM activity_data WHERE timestamp = ?",
+        "SELECT anime_id, timestamp, server_id, webhook, episode, name FROM activity_data WHERE timestamp = ?",
     )
     .bind(now.clone())
     .fetch_all(&pool)
     .await
     .unwrap();
     for row in rows {
+        let row2 = row.clone();
         let mut file =
             File::open("lang_file/anilist/send_activity.json").expect("Failed to open file");
         let mut json = String::new();
@@ -64,33 +83,42 @@ pub async fn send_activity() {
             let path = std::path::Path::new(my_path);
             let _ = dotenv::from_path(path);
             let token = env::var("DISCORD_TOKEN").expect("discord token");
-            let data = MinimalAnimeWrapper::new_minimal_anime_by_id_no_error(
-                row.anime_id.clone().unwrap(),
-            )
-            .await;
             let http = Http::new(token.as_str());
             let webhook = Webhook::from_url(&http, row.webhook.clone().unwrap().as_ref())
                 .await
                 .unwrap();
             let embed = Embed::fake(|e| {
                 e.title(&localised_text.title)
-                    .url(format!("https://anilist.co/anime/{}", data.get_id()))
+                    .url(format!("https://anilist.co/anime/{}", row.anime_id.unwrap()))
                     .description(format!(
-                        "{}{} {}{} {}<t:{}:F>",
+                        "{}{} {}{} {}",
                         &localised_text.ep,
-                        data.get_episode(),
+                        row.episode.unwrap(),
                         &localised_text.of,
-                        data.get_name(),
+                        row.name.unwrap(),
                         localised_text.end,
-                        data.get_timestamp()
                     ))
             });
             webhook
                 .execute(&http, false, |w| w.embeds(vec![embed]))
                 .await
                 .unwrap();
+            tokio::spawn(async move {
+                update_info(row2, guild_id)
+            });
+        }
+    }
+}
 
-            sqlx::query(
+pub async fn update_info(row: ActivityData, guild_id: String){
+    let database_url = "./data.db";
+    let pool = get_pool(database_url).await;
+    sleep(Duration::from_secs(30*60));
+    let data = MinimalAnimeWrapper::new_minimal_anime_by_id_no_error(
+                row.anime_id.clone().unwrap(),
+            )
+            .await;
+    sqlx::query(
                 "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook) VALUES (?, ?, ?, ?)",
             )
                 .bind(row.anime_id)
@@ -100,6 +128,4 @@ pub async fn send_activity() {
                 .execute(&pool)
                 .await
                 .unwrap();
-        }
-    }
 }
