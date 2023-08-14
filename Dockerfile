@@ -2,7 +2,7 @@ FROM rust:latest AS builder
 
 RUN USER=root cargo new --bin kasuki
 
-RUN apt-get update && apt-get upgrade
+RUN apt-get update && apt-get upgrade -y
 
 WORKDIR /kasuki
 
