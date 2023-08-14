@@ -7,26 +7,26 @@ use crate::cmd::general_module::request::make_request_anilist;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NextAiringEpisode {
     #[serde(rename = "airingAt")]
-    pub airing_at: i64,
+    pub airing_at: Option<i64>,
     #[serde(rename = "timeUntilAiring")]
-    pub time_until_airing: i64,
-    pub episode: i32,
+    pub time_until_airing: Option<i64>,
+    pub episode: Option<i32>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Title {
-    pub romaji: String,
+    pub romaji: Option<String>,
     pub english: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MinimalAnime {
     pub id: i32,
-    pub title: Title,
+    pub title: Option<Title>,
     #[serde(rename = "nextAiringEpisode")]
     pub next_airing_episode: Option<NextAiringEpisode>,
     #[serde(rename = "coverImage")]
-    pub cover_image: CoverImage,
+    pub cover_image: Option<CoverImage>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -52,23 +52,23 @@ impl MinimalAnimeWrapper {
         search: String,
     ) -> Result<MinimalAnimeWrapper, String> {
         let query = "
-            query ($name: Int) {
-              Media(type: ANIME, id: $name) {
-                id
-               coverImage {
-                  extraLarge
+                query ($name: Int) {
+                  Media(type: ANIME, id: $name) {
+                    id
+                   coverImage {
+                      extraLarge
+                    }
+                    title {
+                      romaji
+                      english
+                    }
+                    nextAiringEpisode {
+                      airingAt
+                      timeUntilAiring
+                      episode
+                    }
+                  }
                 }
-                title {
-                  romaji
-                  english
-                }
-                nextAiringEpisode {
-                  airingAt
-                  timeUntilAiring
-                  episode
-                }
-              }
-            }
         ";
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
@@ -150,7 +150,7 @@ impl MinimalAnimeWrapper {
 
     pub fn get_timestamp(&self) -> i64 {
         let media = self.data.media.next_airing_episode.clone().unwrap();
-        media.airing_at.clone()
+        media.airing_at.clone().unwrap()
     }
 
     pub fn get_name(&self) -> String {
@@ -161,20 +161,29 @@ impl MinimalAnimeWrapper {
         self.data
             .media
             .title
+            .clone()
+            .unwrap()
             .english
             .clone()
             .unwrap_or_else(|| "NA".to_string())
     }
 
     pub fn get_rj_title(&self) -> String {
-        self.data.media.title.romaji.clone()
+        self.data
+            .media
+            .title
+            .clone()
+            .unwrap()
+            .romaji
+            .clone()
+            .unwrap_or_else(|| "NA".to_string())
     }
 
     pub fn get_episode(&self) -> i32 {
-        self.data.media.next_airing_episode.clone().unwrap().episode
+        self.data.media.next_airing_episode.clone().unwrap().episode.unwrap()
     }
 
     pub fn get_image(&self) -> String {
-        self.data.media.cover_image.extra_large.clone().unwrap()
+        self.data.media.cover_image.clone().unwrap().extra_large.clone().unwrap()
     }
 }
