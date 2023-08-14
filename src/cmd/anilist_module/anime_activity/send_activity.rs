@@ -89,12 +89,13 @@ pub async fn send_activity() {
                 .execute(&http, false, |w| w.embeds(vec![embed]))
                 .await
                 .unwrap();
+
             sqlx::query(
                 "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook) VALUES (?, ?, ?, ?)",
             )
                 .bind(row.anime_id)
                 .bind(data.get_timestamp())
-                .bind(row.server_id)
+                .bind(guild_id.clone())
                 .bind(row.webhook)
                 .execute(&pool)
                 .await

@@ -13,6 +13,8 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
     }
     let database_url = "./data.db";
     let pool = get_pool(database_url).await;
+
+    "good".to_string()
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
