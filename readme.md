@@ -47,11 +47,11 @@
       — Need anime notification first.
       it will be easy once anime is done. On wait but will be done
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
-      with seiyuu and va role.
+      with a seiyuu and va role.
       — This is possible, I'm not competent enough.
     - [ ] Get all the register users of the server. Working on it after finishing anime activity. 
     - [X] Add studio search.
-    - [X] Add a command that give the best waifu. — Done.
+    - [X] Add commands that give the best waifu. — Done.
 
 - AI submodule:
     - [X] Image generation with AI. — Done.
