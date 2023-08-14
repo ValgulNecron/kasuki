@@ -46,7 +46,7 @@ pub async fn send_activity() {
     .unwrap();
     for row in rows {
         let mut file =
-            File::open("lang_file/anilist/add_activity.json").expect("Failed to open file");
+            File::open("lang_file/anilist/send_activity.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 
