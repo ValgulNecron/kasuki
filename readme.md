@@ -13,12 +13,14 @@
     - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is
       done.
     - [ ] Poll feature with custom choice and a graph afterward for comparison.
+    - [ ] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce size
+    - [ ] Better error handling.
 
 - Anime submodule:
     - [X] Finish comparison function.
       — V1 done. — Will need to be better, but it works.
       Ideas of improvement add a score on
-      how close 2 people are (affinity score).
+      how close two people are (affinity score).
       — And have better formatting for the text.
     - [X] Add character search function. — Added character research with name.
     - [X] Add staff search function. — Added staff research with name.
@@ -31,21 +33,23 @@
       for "high" priority request like user data.
     - [X] Send anime release to a channel.
       — Done
+        - [ ] List all activity
+        - [ ] Delete an activity.
     - [ ] Try to do the same for manga.
       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
       this one only selected manga not all seasonal).
       — Did some digging seem possible I will do anime first trough.
     - [ ] Activity command (auto sends activity of a user to a channel).
       — Same as anime, but this one will be hard since
-      a user can do update every second like every year.
+      a user can do update every second like every year. Will either have delay or be resource intensive.
     - [ ] Add a "delay" option to delay notification.
       — (like 1h for a translation).
       — Need anime notification first.
-      it will be easy once anime is done.
+      it will be easy once anime is done. On wait but will be done
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
       with seiyuu and va role.
       — This is possible, I'm not competent enough.
-    - [ ] Get all the register users of the server.
+    - [ ] Get all the register users of the server. Working on it after finishing anime activity. 
     - [X] Add studio search.
     - [X] Add a command that give the best waifu. — Done.
 
@@ -91,7 +95,7 @@ with [this link](https://discord.com/oauth2/authorize?client_id=9232865364458946
 
 ##### tested on:
 
-linux: ubuntu arm and x86-64
+linux: ubuntu x86-64
 
 windows: windows 10 and 11
 
