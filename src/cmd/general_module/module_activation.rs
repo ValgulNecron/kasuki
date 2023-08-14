@@ -204,8 +204,8 @@ pub async fn check_activation_status(module: String, guild_id: String) -> bool {
 
     let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
     return match module.as_str() {
-        "ANILIST" => anilist_module.unwrap_or(false),
-        "AI" => ai_module.unwrap_or(false),
+        "ANILIST" => anilist_module.unwrap_or(true),
+        "AI" => ai_module.unwrap_or(true),
         _ => false,
     };
 }

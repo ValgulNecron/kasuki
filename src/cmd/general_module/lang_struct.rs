@@ -259,3 +259,21 @@ pub struct StudioLocalisedText {
     pub error_slash_command: String,
     pub favorite: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct AddActivityLocalisedText {
+    pub error_no_media: String,
+    pub title1: String,
+    pub title2: String,
+    pub already_added: String,
+    pub adding: String,
+    pub error_slash_command: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct SendActivityLocalisedText {
+    pub title: String,
+    pub ep: String,
+    pub of: String,
+    pub end: String,
+}

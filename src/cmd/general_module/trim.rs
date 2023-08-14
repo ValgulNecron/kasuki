@@ -1,3 +1,21 @@
+///
+///
+/// # Arguments
+///
+/// * `desc`: The description that will be set on the discord embed that is 4096 or longer in size
+/// * `lenght_diff`: The lenght difference between the max of 4096 and the description
+///
+/// returns: The trimmed description to have a 4096 lenght.
+///
+/// # Examples
+///
+/// ```
+/// let lenght_diff = 4096 - desc.len() as i32;
+/// if lenght_diff <= 0 {
+///     desc = trim(desc, lenght_diff)
+/// }
+/// desc
+/// ```
 pub fn trim(desc: String, lenght_diff: i32) -> String {
     if lenght_diff <= 0 {
         let mut desc_trim;
@@ -9,6 +27,18 @@ pub fn trim(desc: String, lenght_diff: i32) -> String {
             let trim_length = desc.len() - ((lenght_diff * -1) as usize + 5);
             desc_trim = format!("{}||..", &desc[..trim_length]);
         }
+        let trim = desc_trim.clone();
+        return trim;
+    } else {
+        return desc;
+    }
+}
+
+pub fn trim_100_webhook(desc: String, lenght_diff: i32) -> String {
+    if lenght_diff <= 0 {
+        let desc_trim;
+        let trim_length = desc.len() - (lenght_diff * -1) as usize;
+        desc_trim = format!("{}", &desc[..trim_length]);
         let trim = desc_trim.clone();
         return trim;
     } else {

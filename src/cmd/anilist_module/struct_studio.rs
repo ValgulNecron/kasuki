@@ -13,7 +13,6 @@ pub struct Title {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct MediaNode {
-    id: u32,
     title: Title,
     #[serde(rename = "siteUrl")]
     site_url: String,
@@ -59,7 +58,6 @@ impl StudioWrapper {
             favourites
             media(perPage: $limit, sort: START_DATE_DESC) {
               nodes {
-                id
                 title{
                   romaji
                   userPreferred
@@ -93,7 +91,6 @@ impl StudioWrapper {
             favourites
             media(perPage: $limit, sort: START_DATE_DESC) {
               nodes {
-                id
                 title{
                   romaji
                   userPreferred
@@ -147,12 +144,17 @@ impl StudioWrapper {
 
     pub fn get_desc(&self, localised_text: StudioLocalisedText) -> String {
         let desc = format!(
-            "{}{} \n {} \n \n \n ",
+            "id: {} \n {}{} \n {} \n \n \n ",
+            self.get_id(),
             localised_text.favorite,
             self.get_favourite(),
             self.get_anime_manga_list(localised_text.clone())
         );
 
         return desc;
+    }
+
+    pub fn get_id(&self) -> u32 {
+        self.data.studio.id
     }
 }

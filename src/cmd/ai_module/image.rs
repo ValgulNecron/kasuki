@@ -75,7 +75,35 @@ pub async fn run(
             let _ = dotenv::from_path(path);
             let prompt = description;
             let api_key = env::var("AI_API_TOKEN").expect("token");
-            let api_base_url = env::var("AI_API_BASE_URL").expect("token");
+            let api_base_url = env::var("AI_API_BASE_URL").expect("base url");
+            let data;
+            if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
+                let is_ok = image_generation_mode.to_lowercase() == "true";
+                if is_ok {
+                    let model = env::var("IMAGE_GENERATION_MODELS").expect("model name");
+                    data = json!({
+                        "prompt": prompt,
+                        "n": 1,
+                        "size": "1024x1024",
+                        "model": model,
+                       "response_format": "url"
+                    })
+                } else {
+                    data = json!({
+                        "prompt": prompt,
+                        "n": 1,
+                        "size": "1024x1024",
+                        "response_format": "url"
+                    })
+                }
+            } else {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "response_format": "url"
+                })
+            }
             let api_url = format!("{}images/generations", api_base_url);
             let client = reqwest::Client::new();
 
@@ -85,12 +113,6 @@ pub async fn run(
                 HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
             );
             headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-
-            let data = json!({
-                "prompt": prompt,
-                "n": 1,
-                "size": "1024x1024"
-            });
 
             let res: Value = client
                 .post(api_url)
@@ -102,6 +124,8 @@ pub async fn run(
                 .json()
                 .await
                 .unwrap();
+
+            println!("{}", res);
 
             let mut url_string = "";
             if let Some(data) = res.get("data") {

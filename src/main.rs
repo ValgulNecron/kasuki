@@ -1,3 +1,5 @@
+extern crate core;
+
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
@@ -19,6 +21,7 @@ use serenity::utils::Colour;
 use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
+use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
 use crate::cmd::anilist_module::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
@@ -67,6 +70,9 @@ impl EventHandler for Handler {
                 .create_application_command(|command| user::register(command))
                 .create_application_command(|command| waifu::register(command))
                 .create_application_command(|command| studio::register(command))
+                .create_application_command(|command| {
+                    anime_activity::add_activity::register(command)
+                })
                 // AI module.
                 .create_application_command(|command| image::register(command))
                 .create_application_command(|command| transcript::register(command))
@@ -434,6 +440,32 @@ impl EventHandler for Handler {
                         }
                         studio::run(&command.data.options, &ctx, &command).await
                     }
+                    "add_activity" => {
+                        if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
+                            .await
+                        {
+                            if let Err(why) = command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|m| {
+                                                m.title(&localised_text.error_title)
+                                                    .description(&localised_text.module_off)
+                                                    .timestamp(Timestamp::now())
+                                                    .color(color)
+                                            })
+                                        })
+                                })
+                                .await
+                            {
+                                println!("Cannot respond to slash command: {}", why);
+                            }
+                            return;
+                        }
+                        anime_activity::add_activity::run(&command.data.options, &ctx, &command)
+                            .await
+                    }
 
                     // AI module
                     "image" => {
@@ -560,6 +592,7 @@ impl EventHandler for Handler {
                 "compare" => compare::autocomplete(ctx, command).await,
                 "level" => level::autocomplete(ctx, command).await,
                 "studio" => studio::autocomplete(ctx, command).await,
+                "add_activity" => anime_activity::add_activity::autocomplete(ctx, command).await,
                 _ => print!(""),
             }
         }
@@ -575,7 +608,6 @@ async fn main() {
     }
     // Configure the client with your Discord bot token in the environment.
     let my_path = "./.env";
-    println!("{}", my_path.to_string());
     let path = std::path::Path::new(my_path);
     let _ = dotenv::from_path(path);
     let token = env::var("DISCORD_TOKEN").expect("discord token");
@@ -631,6 +663,8 @@ async fn main() {
             }
         }
     });
+
+    tokio::spawn(async move { manage_activity().await });
 
     {
         let mut data = client.data.write().await;

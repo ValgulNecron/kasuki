@@ -4,7 +4,6 @@ use std::io::Read;
 
 use chrono::Utc;
 use rand::prelude::*;
-use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -23,7 +22,6 @@ use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::RandomLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
-use crate::cmd::general_module::request::make_request_anilist;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -133,64 +131,28 @@ pub async fn embed(
     let color = Colour::FABLED_PINK;
     let number = thread_rng().gen_range(1..=last_page);
     if random_type == "manga" {
-        let query = "
-                    query($manga_page: Int){
-                        Page(page: $manga_page, perPage: 1){
-                            media(type: MANGA){
-                            id
-                            title {
-                                native
-                                userPreferred
-                            }
-                            meanScore
-                            description
-                            tags {
-                                name
-                            }
-                            genres
-                            format
-                            status
-                            coverImage {
-                                extraLarge
-                            }
-                        }
-                    }
-                }";
+        let data = PageWrapper::new_manga_page(number).await;
 
-        let json = json!({"query": query, "variables": {"manga_page": number}});
-        let res = make_request_anilist(json, false).await;
+        let title_user = data.get_user_pref_title();
+        let title = data.get_native_title();
 
-        let api_response: PageData = serde_json::from_str(&res).unwrap();
+        let tag = data.get_tags();
+        let genre = data.get_genre();
 
-        let media = &api_response.data.page.media[0];
-        let title_user = &media.title.user_preferred;
-        let title = &media.title.native;
+        let cover_image = data.get_cover_image();
 
-        let tag = &media.tags;
-        let genre = &media.genres;
+        let description = data.get_description();
 
-        let genres_str = genre.join("/");
-        let tags_str = tag
-            .into_iter()
-            .map(|tag| tag.name.clone())
-            .collect::<Vec<String>>()
-            .join("/");
+        let format = data.get_format();
 
-        let cover_image = &media.cover_image.extra_large;
-
-        let description = &media.description;
-        let desc_no_br = description.replace("<br>", "");
-
-        let format = &media.format;
-
-        let url = format!("https://anilist.co/manga/{}", &media.id);
+        let url = data.get_manga_url();
         follow_up_message(
             ctx,
             command,
-            genres_str,
-            tags_str,
+            genre,
+            tag,
             format,
-            desc_no_br,
+            description,
             title_user,
             title,
             color,
@@ -199,64 +161,28 @@ pub async fn embed(
         )
         .await;
     } else if random_type == "anime" {
-        let query = "
-                    query($anime_page: Int){
-                        Page(page: $anime_page, perPage: 1){
-                            media(type: ANIME){
-                            id
-                            title {
-                                native
-                                userPreferred
-                            }
-                            meanScore
-                            description
-                            tags {
-                                name
-                            }
-                            genres
-                            format
-                            status
-                            coverImage {
-                                extraLarge
-                            }
-                        }
-                    }
-                }";
+        let data = PageWrapper::new_anime_page(number).await;
 
-        let json = json!({"query": query, "variables": {"anime_page": number}});
-        let res = make_request_anilist(json, false).await;
+        let title_user = data.get_user_pref_title();
+        let title = data.get_native_title();
 
-        let api_response: PageData = serde_json::from_str(&res).unwrap();
+        let tag = data.get_tags();
+        let genre = data.get_genre();
 
-        let media = &api_response.data.page.media[0];
-        let title_user = &media.title.user_preferred;
-        let title = &media.title.native;
+        let cover_image = data.get_cover_image();
 
-        let tag = &media.tags;
-        let genre = &media.genres;
+        let description = data.get_description();
 
-        let genres_str = genre.join("/");
-        let tags_str = tag
-            .into_iter()
-            .map(|tag| tag.name.clone())
-            .collect::<Vec<String>>()
-            .join("/");
+        let format = data.get_format();
 
-        let cover_image = &media.cover_image.extra_large;
-
-        let description = &media.description;
-        let desc_no_br = description.replace("<br>", "");
-
-        let format = &media.format;
-
-        let url = format!("https://anilist.co/anime/{}", &media.id);
+        let url = data.get_anime_url();
         follow_up_message(
             ctx,
             command,
-            genres_str,
-            tags_str,
+            genre,
+            tag,
             format,
-            desc_no_br,
+            description,
             title_user,
             title,
             color,
@@ -296,14 +222,14 @@ pub async fn embed(
 pub async fn follow_up_message(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-    genres_str: String,
-    tags_str: String,
-    format: &String,
-    desc_no_br: String,
-    title_user: &String,
-    title: &String,
+    genre: String,
+    tag: String,
+    format: String,
+    description: String,
+    title_user: String,
+    title: String,
     color: Colour,
-    cover_image: &String,
+    cover_image: String,
     url: String,
 ) {
     let mut file = File::open("lang_file/anilist/random.json").expect("Failed to open file");
@@ -324,13 +250,13 @@ pub async fn follow_up_message(
                         .description(format!(
                             "{}{}{}{}{}{}{}{}",
                             &localised_text.genre,
-                            genres_str,
+                            genre,
                             &localised_text.tag,
-                            tags_str,
+                            tag,
                             &localised_text.format,
                             format,
                             &localised_text.desc,
-                            desc_no_br
+                            description
                         ))
                         .timestamp(Timestamp::now())
                         .color(color)
@@ -356,63 +282,10 @@ pub async fn update_cache(
 ) {
     let now = Utc::now().timestamp();
 
-    let query;
     if random_type.as_str() == "manga" {
-        query = "
-                    query($page: Int){
-                        SiteStatistics{
-                            manga(perPage: 1, page: $page){
-                                pageInfo{
-                                    currentPage
-                                    lastPage
-                                    total
-                                    hasNextPage
-                                }
-                                nodes{
-                                    date
-                                    count
-                                    change
-                                }
-                            }
-                        }
-                    }
-                "
-    } else if random_type.as_str() == "anime" {
-        query = "
-                    query($page: Int){
-                        SiteStatistics{
-                            anime(perPage: 1, page: $page){
-                                pageInfo{
-                                    currentPage
-                                    lastPage
-                                    total
-                                    hasNextPage
-                                }
-                                nodes{
-                                    date
-                                    count
-                                    change
-                                }
-                            }
-                        }
-                    }
-                "
-    } else {
-        return;
-    }
-
-    loop {
-        let json = json!({"query": query, "variables": {"page": page_number}});
-        let res = make_request_anilist(json, false).await;
-
-        if random_type.as_str() == "manga" {
-            let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res).unwrap();
-            let has_next_page = api_response
-                .data
-                .site_statistics
-                .manga
-                .page_info
-                .has_next_page;
+        loop {
+            let (data, res) = SiteStatisticsMangaWrapper::new_manga(page_number).await;
+            let has_next_page = data.has_next_page();
 
             if !has_next_page {
                 break;
@@ -421,14 +294,11 @@ pub async fn update_cache(
             previous_page = page_number;
 
             page_number += 1;
-        } else if random_type.as_str() == "anime" {
-            let api_response: SiteStatisticsAnimeWrapper = serde_json::from_str(&res).unwrap();
-            let has_next_page = api_response
-                .data
-                .site_statistics
-                .anime
-                .page_info
-                .has_next_page;
+        }
+    } else if random_type.as_str() == "anime" {
+        loop {
+            let (data, res) = SiteStatisticsAnimeWrapper::new_anime(page_number).await;
+            let has_next_page = data.has_next_page();
 
             if !has_next_page {
                 break;

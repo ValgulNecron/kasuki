@@ -130,7 +130,7 @@ pub async fn run(
             let path = Path::new(my_path);
             let _ = dotenv::from_path(path);
             let api_key = env::var("AI_API_TOKEN").expect("token");
-            let api_base_url = env::var("AI_API_BASE_URL").expect("token");
+            let api_base_url = env::var("AI_API_BASE_URL").expect("base url");
             let api_url = format!("{}audio/translations", api_base_url);
             let client = reqwest::Client::new();
             let mut headers = HeaderMap::new();
@@ -146,7 +146,8 @@ pub async fn run(
                 .unwrap();
             let form = multipart::Form::new()
                 .part("file", part)
-                .text("model", "whisper-1");
+                .text("model", "whisper-1")
+                .text("response_format", "json");
 
             let response_result = client
                 .post(api_url)
@@ -162,6 +163,7 @@ pub async fn run(
                     return format!("{}: {}", localised_text.error_request, err);
                 }
             };
+            println!("{:?}", response);
             let res_result: Result<Value, reqwest::Error> = response.json().await;
 
             let res = match res_result {

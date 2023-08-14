@@ -9,8 +9,9 @@ pub fn convert_to_discord_markdown(value: String) -> String {
     result = convert_html_line_break_to_line_break(result);
     result = convert_bold(result);
     result = convert_spoiler(result);
+    result = convert_strikethrough(result);
 
-    return result;
+    result
 }
 
 pub fn convert_italic(value: String) -> String {

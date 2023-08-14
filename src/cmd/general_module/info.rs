@@ -60,7 +60,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
                                     })
                                         .create_button(|button| {
                                             button.label(&localised_text.button_add_the_bot)
-                                                .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=532576315456&scope=bot")
+                                                .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot")
                                                 .style(ButtonStyle::Link)
                                         })
                                 })

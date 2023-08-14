@@ -1,4 +1,7 @@
 use serde::Deserialize;
+use serde_json::json;
+
+use crate::cmd::general_module::request::make_request_anilist;
 
 #[derive(Debug, Deserialize)]
 pub struct SiteStatisticsAnimeWrapper {
@@ -41,4 +44,32 @@ pub struct SiteStatisticsAnimeNode {
     pub change: i32,
 }
 
-impl SiteStatisticsAnimeWrapper {}
+impl SiteStatisticsAnimeWrapper {
+    pub async fn new_anime(page_number: i64) -> (SiteStatisticsAnimeWrapper, String) {
+        let query = "query($page: Int){
+                        SiteStatistics{
+                            anime(perPage: 1, page: $page){
+                                pageInfo{
+                                    currentPage
+                                    lastPage
+                                    total
+                                    hasNextPage
+                                }
+                                nodes{
+                                    date
+                                    count
+                                    change
+                                }
+                            }
+                        }
+                    }
+                ";
+        let json = json!({"query": query, "variables": {"page": page_number}});
+        let res = make_request_anilist(json, false).await;
+        let api_response: SiteStatisticsAnimeWrapper = serde_json::from_str(&res).unwrap();
+        (api_response, res)
+    }
+    pub fn has_next_page(&self) -> bool {
+        self.data.site_statistics.anime.page_info.has_next_page
+    }
+}
