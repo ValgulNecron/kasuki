@@ -57,7 +57,7 @@ pub async fn run(
     let mut value = "".to_string();
     let mut delays = 0;
     for option in options {
-        if option.name == "add_activity" {
+        if option.name == "anime_name" {
             let resolved = option.resolved.as_ref().unwrap();
             if let CommandDataOptionValue::String(value_option) = resolved {
                 value = value_option.clone()
