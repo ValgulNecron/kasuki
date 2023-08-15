@@ -15,6 +15,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ProfileLocalisedText;
+use crate::cmd::general_module::lang_struct_register::RegisterLocalisedProfile;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -37,16 +38,31 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    type RegisterLocalisedProfileList = HashMap<String, RegisterLocalisedProfile>;
+    let mut file = File::open("lang_file/command_register/general/profile.json").expect("Failed to open file");
+    let mut json = String::new();
+    file.read_to_string(&mut json).expect("Failed to read file");
+    let profiles: RegisterLocalisedProfileList = serde_json::from_str(&json).unwrap();
+    let command = command
         .name("profile")
         .description("Show the profile of a user")
         .create_option(|option| {
-            option
+            let option = option
                 .name("user")
                 .description("The user you wan the profile of")
                 .kind(CommandOptionType::User)
-                .required(false)
-        })
+                .required(false);
+            for (_key, profile) in &profiles{
+                option.name_localized(&profile.code, &profile.option1)
+                    .description_localized(&profile.code, &profile.option1_desc);
+            }
+            option
+        });
+    for (_key, profile) in &profiles{
+        command.name_localized(&profile.code, &profile.profile)
+            .description_localized(&profile.code, &profile.desc);
+    }
+    command
 }
 
 pub async fn profile_without_user(
