@@ -90,7 +90,6 @@ pub async fn run(
             Ok(_) => true,
             Err(_) => false,
         } {
-            println!("{}", value);
             data = match MinimalAnimeWrapper::new_minimal_anime_by_id(
                 localised_text.clone(),
                 value.parse().unwrap(),
@@ -101,7 +100,6 @@ pub async fn run(
                 Err(error) => return error,
             }
         } else {
-            println!("{}", value);
             data = match MinimalAnimeWrapper::new_minimal_anime_by_search(
                 localised_text.clone(),
                 value.to_string(),
