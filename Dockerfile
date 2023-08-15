@@ -2,8 +2,6 @@ FROM rust:latest AS builder
 
 RUN USER=root cargo new --bin kasuki
 
-RUN apt-get update && apt-get upgrade -y
-
 WORKDIR /kasuki
 
 COPY ./Cargo.toml ./Cargo.toml
@@ -16,11 +14,12 @@ COPY ./src ./src
 RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
-FROM ubuntu:23.04
+FROM debian:bullseye-buster
 
 RUN apt-get update && apt-get install -y \
     libssl-dev libsqlite3-dev \
-    libpng-dev libjpeg-dev
+    libpng-dev libjpeg-dev \
+    extra-runtime-dependencies && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /kasuki/
 
