@@ -14,7 +14,7 @@ COPY ./src ./src
 RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
-FROM debian:bullseye-buster
+FROM debian:buster-slim
 
 RUN apt-get update && apt-get install -y \
     libssl-dev libsqlite3-dev \
