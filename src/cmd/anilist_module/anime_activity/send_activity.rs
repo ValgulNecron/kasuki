@@ -24,6 +24,7 @@ pub struct ActivityData {
     webhook: Option<String>,
     episode: Option<String>,
     name: Option<String>,
+    delays: Option<i32>,
 }
 
 pub async fn manage_activity() {
@@ -37,6 +38,7 @@ pub async fn manage_activity() {
         webhook TEXT,
         episode TEXT,
         name TEXT,
+        delays INTEGER DEFAULT 0,
         PRIMARY KEY (anime_id, server_id)
     )",
     )
@@ -56,76 +58,101 @@ pub async fn send_activity() {
     let pool = get_pool(database_url).await;
     let now = Utc::now().timestamp().to_string();
     let rows: Vec<ActivityData> = sqlx::query_as(
-        "SELECT anime_id, timestamp, server_id, webhook, episode, name FROM activity_data WHERE timestamp = ?",
+        "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays FROM activity_data WHERE timestamp = ?",
     )
-    .bind(now.clone())
-    .fetch_all(&pool)
-    .await
-    .unwrap();
+        .bind(now.clone())
+        .fetch_all(&pool)
+        .await
+        .unwrap();
     for row in rows {
         let row2 = row.clone();
         let mut file =
-            File::open("lang_file/anilist/send_activity.json").expect("Failed to open file");
+            File::open("lang_file/embed/anilist/send_activity.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 
         let json_data: HashMap<String, SendActivityLocalisedText> =
             serde_json::from_str(&json).expect("Failed to parse JSON");
 
-        let guild_id = row.server_id.unwrap();
+        let guild_id = row.server_id.clone().unwrap();
         let lang_choice = get_guild_langage(guild_id.clone()).await;
 
-        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            if row.timestamp.unwrap() != now {
-                break;
-            }
-            let my_path = "./.env";
-            let path = std::path::Path::new(my_path);
-            let _ = dotenv::from_path(path);
-            let token = env::var("DISCORD_TOKEN").expect("discord token");
-            let http = Http::new(token.as_str());
-            let webhook = Webhook::from_url(&http, row.webhook.clone().unwrap().as_ref())
-                .await
-                .unwrap();
-            let embed = Embed::fake(|e| {
-                e.title(&localised_text.title)
-                    .url(format!("https://anilist.co/anime/{}", row.anime_id.unwrap()))
-                    .description(format!(
-                        "{}{} {}{} {}",
-                        &localised_text.ep,
-                        row.episode.unwrap(),
-                        &localised_text.of,
-                        row.name.unwrap(),
-                        localised_text.end,
-                    ))
-            });
-            webhook
-                .execute(&http, false, |w| w.embeds(vec![embed]))
-                .await
-                .unwrap();
+        if row.delays.unwrap() != 0 {
             tokio::spawn(async move {
-                update_info(row2, guild_id)
+                if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+                    sleep(Duration::from_secs(
+                        (row2.delays.clone().unwrap() * 60) as u64,
+                    ));
+                    let now = Utc::now().timestamp().to_string();
+                    send_specific_activity(row, localised_text.clone(), guild_id, row2, now.clone())
+                        .await
+                }
             });
+        } else {
+            if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+                let now = Utc::now().timestamp().to_string();
+                send_specific_activity(row, localised_text.clone(), guild_id, row2, now.clone())
+                    .await
+            }
         }
     }
 }
 
-pub async fn update_info(row: ActivityData, guild_id: String){
+pub async fn update_info(row: ActivityData, guild_id: String) {
     let database_url = "./data.db";
     let pool = get_pool(database_url).await;
-    sleep(Duration::from_secs(30*60));
-    let data = MinimalAnimeWrapper::new_minimal_anime_by_id_no_error(
-                row.anime_id.clone().unwrap(),
-            )
-            .await;
+    sleep(Duration::from_secs(30 * 60));
+    let data =
+        MinimalAnimeWrapper::new_minimal_anime_by_id_no_error(row.anime_id.clone().unwrap()).await;
     sqlx::query(
-                "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook) VALUES (?, ?, ?, ?)",
-            )
-                .bind(row.anime_id)
-                .bind(data.get_timestamp())
-                .bind(guild_id.clone())
-                .bind(row.webhook)
-                .execute(&pool)
-                .await
-                .unwrap();
+        "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, delays) VALUES (?, ?, ?, ?, ?)",
+    )
+        .bind(row.anime_id.unwrap())
+        .bind(data.get_timestamp())
+        .bind(guild_id.clone())
+        .bind(row.webhook.unwrap())
+        .bind(row.delays.unwrap())
+        .execute(&pool)
+        .await
+        .unwrap();
+}
+
+pub async fn send_specific_activity(
+    row: ActivityData,
+    localised_text: SendActivityLocalisedText,
+    guild_id: String,
+    row2: ActivityData,
+    now: String,
+) {
+    if row.timestamp.unwrap() != now {
+        return;
+    }
+    let my_path = "./.env";
+    let path = std::path::Path::new(my_path);
+    let _ = dotenv::from_path(path);
+    let token = env::var("DISCORD_TOKEN").expect("discord token");
+    let http = Http::new(token.as_str());
+    let webhook = Webhook::from_url(&http, row.webhook.clone().unwrap().as_ref())
+        .await
+        .unwrap();
+    let embed = Embed::fake(|e| {
+        e.title(&localised_text.title)
+            .url(format!(
+                "https://anilist.co/anime/{}",
+                row.anime_id.unwrap()
+            ))
+            .description(format!(
+                "{}{} {}{} {}",
+                &localised_text.ep,
+                row.episode.unwrap(),
+                &localised_text.of,
+                row.name.unwrap(),
+                localised_text.end,
+            ))
+    });
+    webhook
+        .execute(&http, false, |w| w.embeds(vec![embed]))
+        .await
+        .unwrap();
+    tokio::spawn(async move { update_info(row2, guild_id) });
 }

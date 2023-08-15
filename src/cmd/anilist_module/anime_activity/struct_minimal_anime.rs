@@ -180,10 +180,23 @@ impl MinimalAnimeWrapper {
     }
 
     pub fn get_episode(&self) -> i32 {
-        self.data.media.next_airing_episode.clone().unwrap().episode.unwrap()
+        self.data
+            .media
+            .next_airing_episode
+            .clone()
+            .unwrap()
+            .episode
+            .unwrap()
     }
 
     pub fn get_image(&self) -> String {
-        self.data.media.cover_image.clone().unwrap().extra_large.clone().unwrap()
+        self.data
+            .media
+            .cover_image
+            .clone()
+            .unwrap()
+            .extra_large
+            .clone()
+            .unwrap()
     }
 }

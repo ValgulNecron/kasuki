@@ -12,7 +12,7 @@ use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::DifferedResponseLocalisedText;
 
 pub async fn differed_response(ctx: &Context, command: &ApplicationCommandInteraction) -> String {
-    let mut file = File::open("lang_file/ai/transcript.json").expect("Failed to open file");
+    let mut file = File::open("lang_file/embed/ai/transcript.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 

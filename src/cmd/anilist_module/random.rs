@@ -232,7 +232,7 @@ pub async fn follow_up_message(
     cover_image: String,
     url: String,
 ) {
-    let mut file = File::open("lang_file/anilist/random.json").expect("Failed to open file");
+    let mut file = File::open("lang_file/embed/anilist/random.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 

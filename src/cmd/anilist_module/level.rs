@@ -33,7 +33,7 @@ pub async fn run(
         .as_ref()
         .expect("Expected username object");
     if let CommandDataOptionValue::String(value) = option {
-        let mut file = File::open("lang_file/anilist/level.json").expect("Failed to open file");
+        let mut file = File::open("lang_file/embed/anilist/level.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 

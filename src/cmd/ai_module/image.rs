@@ -45,7 +45,7 @@ pub async fn run(
         let filename = format!("{}.png", uuid_name);
         let filename_str = filename.as_str();
 
-        let mut file = File::open("lang_file/ai/image.json").expect("Failed to open file");
+        let mut file = File::open("lang_file/embed/ai/image.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 

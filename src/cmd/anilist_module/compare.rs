@@ -74,7 +74,7 @@ pub async fn embed(
     value: &String,
     value2: &String,
 ) -> String {
-    let mut file = File::open("lang_file/anilist/compare.json").expect("Failed to open file");
+    let mut file = File::open("lang_file/embed/anilist/compare.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 

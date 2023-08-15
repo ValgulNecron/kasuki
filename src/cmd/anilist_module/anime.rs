@@ -36,7 +36,7 @@ pub async fn run(
         .expect("Expected name object");
     // Check if the option variable contain the correct value.
     if let CommandDataOptionValue::String(value) = option {
-        let mut file = File::open("lang_file/anilist/anime.json").expect("Failed to open file");
+        let mut file = File::open("lang_file/embed/anilist/anime.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 

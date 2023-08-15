@@ -13,8 +13,9 @@
     - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is
       done.
     - [ ] Poll feature with custom choice and a graph afterward for comparison.
-    - [ ] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce size
-    - [ ] Better error handling.
+    - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
+      size — Done.
+    - [ ] Better error handling. Different error message, type and replies everytime not in certain condition.
 
 - Anime submodule:
     - [X] Finish comparison function.
@@ -49,7 +50,7 @@
     - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
       with a seiyuu and va role.
       — This is possible, I'm not competent enough.
-    - [ ] Get all the register users of the server. Working on it after finishing anime activity. 
+    - [ ] Get all the register users of the server. Working on it after finishing anime activity.
     - [X] Add studio search.
     - [X] Add commands that give the best waifu. — Done.
 
@@ -87,7 +88,7 @@ something else just do it and open a pr afterward.
 # How to use
 
 ### 1. Add the bot to your server.
-
+    
 you can add my instance of the bot
 with [this link](https://discord.com/oauth2/authorize?client_id=923286536445894697&permissions=517543913536&scope=bot)
 
@@ -96,6 +97,8 @@ with [this link](https://discord.com/oauth2/authorize?client_id=9232865364458946
 ##### tested on:
 
 linux: ubuntu x86-64
+
+Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates
 
 windows: windows 10 and 11
 

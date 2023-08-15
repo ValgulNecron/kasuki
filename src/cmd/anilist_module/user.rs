@@ -92,7 +92,7 @@ pub async fn embed(
         }
     }
 
-    let mut file = File::open("lang_file/anilist/user.json").expect("Failed to open file");
+    let mut file = File::open("lang_file/embed/anilist/user.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 

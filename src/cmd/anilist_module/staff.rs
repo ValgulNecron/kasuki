@@ -59,7 +59,7 @@ pub async fn run(
 
         let result_va: String = data.format_va();
 
-        let mut file = File::open("lang_file/anilist/staff.json").expect("Failed to open file");
+        let mut file = File::open("lang_file/embed/anilist/staff.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 

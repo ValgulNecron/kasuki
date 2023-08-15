@@ -53,7 +53,7 @@ pub async fn profile_without_user(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> String {
-    let mut file = File::open("lang_file/general/profile.json").expect("Failed to open file");
+    let mut file = File::open("lang_file/embed/general/profile.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 

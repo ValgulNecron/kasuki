@@ -33,7 +33,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
 
     let color = Colour::FABLED_PINK;
 
-    let mut file = File::open("lang_file/general/ping.json").expect("Failed to open file");
+    let mut file = File::open("lang_file/embed/general/ping.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 
