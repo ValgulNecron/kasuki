@@ -19,7 +19,7 @@ FROM debian:bullseye-slim
 RUN apt-get update && apt-get install -y \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
-    extra-runtime-dependencies && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /kasuki/
 
