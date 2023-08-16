@@ -20,7 +20,10 @@ pub async fn error_message(
 ) {
     let mut file = match File::open("lang_file/embed/error.json") {
         Ok(mut file) => file,
-        Err(_) => {error_file_not_found(color, ctx, command).await; return;}
+        Err(_) => {
+            error_file_not_found(color, ctx, command).await;
+            return;
+        }
     };
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
@@ -195,8 +198,8 @@ pub async fn error_parsing_json(
 pub async fn error_no_guild_id(
     color: Colour,
     ctx: &Context,
-    command: &ApplicationCommandInteraction,)
-{
+    command: &ApplicationCommandInteraction,
+) {
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
             response
@@ -219,8 +222,8 @@ pub async fn error_no_guild_id(
 pub async fn error_no_avatar(
     color: Colour,
     ctx: &Context,
-    command: &ApplicationCommandInteraction,)
-{
+    command: &ApplicationCommandInteraction,
+) {
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
             response

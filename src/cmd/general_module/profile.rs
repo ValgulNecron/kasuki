@@ -13,7 +13,10 @@ use serenity::model::user::User;
 use serenity::model::Timestamp;
 use serenity::utils::{Colour, Member};
 
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_message_with_why, error_no_avatar, error_no_guild_id, error_parsing_json, no_langage_error};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_message, error_message_with_why,
+    error_no_avatar, error_no_guild_id, error_parsing_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ProfileLocalisedText;
 use crate::cmd::general_module::lang_struct_register::RegisterLocalisedProfile;
@@ -70,19 +73,39 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 }
 
 pub async fn profile_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let mut file = File::open("lang_file/embed/general/profile.json").expect("Failed to open file");
+    let color = Colour::FABLED_PINK;
+
+    let mut file = match File::open("lang_file/embed/general/profile.json") {
+        Ok(mut file) => file,
+        Err(_) => {
+            error_file_not_found(color, ctx, command).await;
+            return;
+        }
+    };
     let mut json = String::new();
-    file.read_to_string(&mut json).expect("Failed to read file");
+    match file.read_to_string(&mut json) {
+        Ok(_) => {}
+        Err(_) => error_cant_read_file(color, ctx, command).await,
+    }
 
-    let json_data: HashMap<String, ProfileLocalisedText> =
-        serde_json::from_str(&json).expect("Failed to parse JSON");
+    let json_data: HashMap<String, ProfileLocalisedText> = match serde_json::from_str(&json) {
+        Ok(data) => data,
+        Err(_) => {
+            error_parsing_json(color, ctx, command).await;
+            return;
+        }
+    };
 
-    let guild_id = command.guild_id.unwrap().0.to_string().clone();
+    let guild_id = match command.guild_id {
+        Some(id) => id.0.to_string(),
+        None => {
+            error_no_guild_id(color, ctx, command).await;
+            return;
+        }
+    };
     let lang_choice = get_guild_langage(guild_id).await;
 
     return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        let color = Colour::FABLED_PINK;
-
         let user = command.user.id.0;
         let real_user = Http::get_user(&ctx.http, user).await;
         let result = if let Ok(user) = real_user {
@@ -93,7 +116,7 @@ pub async fn profile_without_user(ctx: &Context, command: &ApplicationCommandInt
         };
         let avatar_url = result.avatar_url().unwrap();
 
-        let desc = description(result.clone(), command, ).await;
+        let desc = description(result.clone(), command, localised_text.clone()).await;
 
         send_embed(
             avatar_url,
@@ -126,11 +149,8 @@ pub async fn profile_with_user(
     };
     let mut json = String::new();
     match file.read_to_string(&mut json) {
-        Ok(_) => {
-        }
-        Err(_) => {
-            error_cant_read_file(color, ctx, command).await
-        }
+        Ok(_) => {}
+        Err(_) => error_cant_read_file(color, ctx, command).await,
     }
 
     let json_data: HashMap<String, ProfileLocalisedText> = match serde_json::from_str(&json) {
@@ -168,7 +188,7 @@ pub async fn profile_with_user(
             }
         };
 
-        let desc = description(result.clone(), command, localised_text).await;
+        let desc = description(result.clone(), command, localised_text.clone()).await;
 
         send_embed(
             avatar_url,
@@ -185,7 +205,11 @@ pub async fn profile_with_user(
     }
 }
 
-pub async fn description(user: User, command: &ApplicationCommandInteraction, localised_text: &ProfileLocalisedText) -> String {
+pub async fn description(
+    user: User,
+    command: &ApplicationCommandInteraction,
+    localised_text: ProfileLocalisedText,
+) -> String {
     let is_bot = &user.bot;
     let public_flag = &user.public_flags.unwrap();
     let user_id = &user.id;
