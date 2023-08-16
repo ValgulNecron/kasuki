@@ -106,7 +106,7 @@ pub async fn profile_with_user(
     command: &ApplicationCommandInteraction,
     user_data: &User,
 ) {
-    let mut file = File::open("lang_file/general/profile.json").expect("Failed to open file");
+    let mut file = File::open("lang_file/embed/general/profile.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 
@@ -140,7 +140,7 @@ pub async fn profile_with_user(
 
 pub async fn description(user: User, command: &ApplicationCommandInteraction) -> String {
     let mut desc: String = "".to_string();
-    let mut file = File::open("lang_file/general/profile.json").expect("Failed to open file");
+    let mut file = File::open("lang_file/embed/general/profile.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 

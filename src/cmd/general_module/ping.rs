@@ -9,12 +9,13 @@ use serenity::model::application::interaction::application_command::ApplicationC
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+use crate::cmd::general_module::error_handling::no_langage_error;
 
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::PingLocalisedText;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
 
-pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> String {
+pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let latency = {
         let data_read = ctx.data.read().await;
         let shard_manager = data_read.get::<ShardManagerContainer>().unwrap();
@@ -71,9 +72,8 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
             println!("Cannot respond to slash command: {}", why);
         }
     } else {
-        return "Language not found".to_string();
+        no_langage_error(color, ctx, command)
     }
-    return "good".to_string();
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

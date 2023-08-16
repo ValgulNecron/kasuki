@@ -28,7 +28,7 @@ pub async fn error_message(color: Colour, ctx: &Context, command: &ApplicationCo
                     .interaction_response_data(|message| {
                         message.embed(|m| {
                             m.title(&localised_text.error_title)
-                                .description(format!("{}: {}", error_message, why))
+                                .description(format!("{}", error_message))
                                 .timestamp(Timestamp::now())
                                 .color(color)
                         })
