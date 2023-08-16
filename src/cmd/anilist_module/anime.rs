@@ -129,17 +129,3 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .set_autocomplete(true)
         })
 }
-
-pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
-    let search = &command.data.options.first().unwrap().value;
-    if let Some(search) = search {
-        let data = MediaPageWrapper::new_autocomplete_anime(search, 8, "ANIME").await;
-        let choices = data.get_choices();
-        // doesn't matter if it errors
-        _ = command
-            .create_autocomplete_response(ctx.http, |response| {
-                response.set_choices(choices.clone())
-            })
-            .await;
-    }
-}
