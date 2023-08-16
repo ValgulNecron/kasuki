@@ -117,85 +117,85 @@ impl EventHandler for Handler {
 
                     // Anilist module
                     "anime" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         anime::run(&command.data.options, &ctx, &command).await
                     }
                     "character" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         character::run(&command.data.options, &ctx, &command).await
                     }
                     "compare" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         compare::run(&command.data.options, &ctx, &command).await
                     }
                     "level" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         level::run(&command.data.options, &ctx, &command).await
                     }
                     "ln" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         ln::run(&command.data.options, &ctx, &command).await
                     }
                     "manga" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         manga::run(&command.data.options, &ctx, &command).await
                     }
                     "random" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         random::run(&command.data.options, &ctx, &command).await
                     }
                     "register" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         register::run(&command.data.options, &ctx, &command).await
                     }
                     "search" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         search::run(&command.data.options, &ctx, &command).await
                     }
                     "staff" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         staff::run(&command.data.options, &ctx, &command).await
                     }
                     "user" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         user::run(&command.data.options, &ctx, &command).await
                     }
                     "waifu" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         waifu::run(&ctx, &command).await
                     }
                     "studio" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         studio::run(&command.data.options, &ctx, &command).await
                     }
                     "add_activity" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         anime_activity::add_activity::run(&command.data.options, &ctx, &command)
@@ -204,19 +204,19 @@ impl EventHandler for Handler {
 
                     // AI module
                     "image" => {
-                        if !check_if_ai_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_ai_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         image::run(&command.data.options, &ctx, &command).await
                     }
                     "transcript" => {
-                        if !check_if_ai_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_ai_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         transcript::run(&command.data.options, &ctx, &command).await
                     }
                     "translation" => {
-                        if !check_if_ai_is_on(guild_id, &command, color, &ctx, localised_text.clone()) {
+                        if !check_if_ai_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
                             return;
                         }
                         translation::run(&command.data.options, &ctx, &command).await
@@ -366,17 +366,17 @@ pub async fn check_if_anime_is_on(guild_id: String, command: &ApplicationCommand
         .await
     {
         send_deactivated_message(command, color, ctx, localised_text.clone()).await;
-        false
+        return false
     }
-    true
+    return true
 }
 
 pub async fn check_if_ai_is_on(guild_id: String, command: &ApplicationCommandInteraction, color: Colour, ctx: &Context, localised_text: ErrorLocalisedText) -> bool {
     if !check_activation_status("AI".parse().unwrap(), guild_id.clone()).await {
         send_deactivated_message(command, color, ctx, localised_text.clone()).await;
-        false
+        return false
     }
-    true
+    return true
 }
 
 pub async fn send_deactivated_message(command: &ApplicationCommandInteraction, color: Colour, ctx: &Context, localised_text: ErrorLocalisedText) {
