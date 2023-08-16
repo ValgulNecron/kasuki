@@ -38,7 +38,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
 
     let mut file = match File::open("lang_file/embed/general/ping.json") {
-        Ok(mut file) => file,
+        Ok(file) => file,
         Err(_) => {
             error_file_not_found(color, ctx, command).await;
             return;

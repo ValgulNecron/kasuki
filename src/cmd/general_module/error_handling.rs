@@ -19,7 +19,7 @@ pub async fn error_message(
     error_message: &String,
 ) {
     let mut file = match File::open("lang_file/embed/error.json") {
-        Ok(mut file) => file,
+        Ok(file) => file,
         Err(_) => {
             error_file_not_found(color, ctx, command).await;
             return;
@@ -263,7 +263,7 @@ pub async fn error_no_module(
     command: &ApplicationCommandInteraction,
 ) {
     let mut file = match File::open("lang_file/embed/error.json") {
-        Ok(mut file) => file,
+        Ok(file) => file,
         Err(_) => {
             error_file_not_found(color, ctx, command).await;
             return;

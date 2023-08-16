@@ -11,7 +11,7 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
 use serenity::model::user::User;
 use serenity::model::Timestamp;
-use serenity::utils::{Colour, Member};
+use serenity::utils::Colour;
 
 use crate::cmd::general_module::error_handling::{
     error_cant_read_file, error_file_not_found, error_message, error_message_with_why,
@@ -76,7 +76,7 @@ pub async fn profile_without_user(ctx: &Context, command: &ApplicationCommandInt
     let color = Colour::FABLED_PINK;
 
     let mut file = match File::open("lang_file/embed/general/profile.json") {
-        Ok(mut file) => file,
+        Ok(file) => file,
         Err(_) => {
             error_file_not_found(color, ctx, command).await;
             return;
@@ -141,7 +141,7 @@ pub async fn profile_with_user(
 ) {
     let color = Colour::FABLED_PINK;
     let mut file = match File::open("lang_file/embed/general/profile.json") {
-        Ok(mut file) => file,
+        Ok(file) => file,
         Err(_) => {
             error_file_not_found(color, ctx, command).await;
             return;
@@ -215,7 +215,7 @@ pub async fn description(
     let user_id = &user.id;
     let created_at = &user.created_at();
     let member = &command.member.clone().unwrap();
-    let joined_at = member.joined_at.unwrap_or(Timestamp::from(0));
+    let joined_at = member.joined_at.unwrap_or(Timestamp::from("0"));
     let desc = format!(
         "\n {}{} \n {}{} \n {}{:?} \n {}{} \n {}{}",
         &localised_text.user_id,
