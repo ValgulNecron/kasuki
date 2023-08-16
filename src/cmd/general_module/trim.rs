@@ -31,7 +31,7 @@ pub fn trim(desc: String, lenght_diff: i32) -> String {
         trim
     } else {
         desc
-    }
+    };
 }
 
 pub fn trim_webhook(desc: String, lenght_diff: i32) -> String {
@@ -43,5 +43,5 @@ pub fn trim_webhook(desc: String, lenght_diff: i32) -> String {
         trim
     } else {
         desc
-    }
+    };
 }
