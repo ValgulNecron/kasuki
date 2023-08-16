@@ -7,6 +7,7 @@ use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+use crate::cmd::general_module::error_handling::no_langage_error;
 
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::InProgressLocalisedText;
@@ -41,6 +42,7 @@ pub async fn in_progress_embed(
             .await;
         Ok(Some(message.unwrap()))
     } else {
+        no_langage_error(color, ctx, command).await;
         Err("Language not found".to_string())
     }
 }
