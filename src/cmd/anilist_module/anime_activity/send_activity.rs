@@ -65,32 +65,32 @@ pub async fn send_activity() {
         .await
         .unwrap();
     for row in rows {
-        let row2 = row.clone();
-        let mut file =
-            File::open("lang_file/embed/anilist/send_activity.json").expect("Failed to open file");
-        let mut json = String::new();
-        file.read_to_string(&mut json).expect("Failed to read file");
+        if Utc::now().timestamp().to_string() != row.timestamp.unwrap() {} else {
+            let row2 = row.clone();
+            let mut file =
+                File::open("lang_file/embed/anilist/send_activity.json").expect("Failed to open file");
+            let mut json = String::new();
+            file.read_to_string(&mut json).expect("Failed to read file");
 
-        let json_data: HashMap<String, SendActivityLocalisedText> =
-            serde_json::from_str(&json).expect("Failed to parse JSON");
+            let json_data: HashMap<String, SendActivityLocalisedText> =
+                serde_json::from_str(&json).expect("Failed to parse JSON");
 
-        let guild_id = row.server_id.clone().unwrap();
-        let lang_choice = get_guild_langage(guild_id.clone()).await;
+            let guild_id = row.server_id.clone().unwrap();
+            let lang_choice = get_guild_langage(guild_id.clone()).await;
 
-        if row.delays.unwrap() != 0 {
-            tokio::spawn(async move {
+            if row.delays.unwrap() != 0 {
+                tokio::spawn(async move {
+                    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+                        sleep(Duration::from_secs((row2.delays.clone().unwrap()) as u64));
+                        send_specific_activity(row, localised_text.clone(), guild_id, row2)
+                            .await
+                    }
+                });
+            } else {
                 if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-                    sleep(Duration::from_secs((row2.delays.clone().unwrap()) as u64));
-                    let now = Utc::now().timestamp().to_string();
-                    send_specific_activity(row, localised_text.clone(), guild_id, row2, now.clone())
+                    send_specific_activity(row, localised_text.clone(), guild_id, row2)
                         .await
                 }
-            });
-        } else {
-            if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-                let now = Utc::now().timestamp().to_string();
-                send_specific_activity(row, localised_text.clone(), guild_id, row2, now.clone())
-                    .await
             }
         }
     }
@@ -120,11 +120,7 @@ pub async fn send_specific_activity(
     localised_text: SendActivityLocalisedText,
     guild_id: String,
     row2: ActivityData,
-    now: String,
 ) {
-    if row.timestamp.unwrap() != now {
-        return;
-    }
     let my_path = "./.env";
     let path = std::path::Path::new(my_path);
     let _ = dotenv::from_path(path);
