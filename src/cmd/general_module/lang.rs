@@ -4,15 +4,15 @@ use std::io::Read;
 
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
+use serenity::model::{Permissions, Timestamp};
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 
-use crate::cmd::general_module::error_handling::no_langage_error;
+use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_no_guild_id, error_parsing_json, no_langage_error};
 use crate::cmd::general_module::lang_struct::LangLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 
@@ -20,7 +20,7 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> String {
+) {
     let database_url = "./data.db";
     let pool = get_pool(database_url).await;
 
@@ -30,9 +30,9 @@ pub async fn run(
             lang TEXT NOT NULL
         )",
     )
-    .execute(&pool)
-    .await
-    .unwrap();
+        .execute(&pool)
+        .await
+        .unwrap();
 
     let option = options
         .get(0)
@@ -43,16 +43,36 @@ pub async fn run(
     let color = Colour::FABLED_PINK;
 
     if let CommandDataOptionValue::String(lang) = option {
-        let mut file =
-            File::open("lang_file/embed/general/lang.json").expect("Failed to open file");
+        let mut file = match File::open("lang_file/embed/general/lang.json") {
+            Ok(file) => file,
+            Err(_) => {
+                error_file_not_found(color, ctx, command).await;
+                return;
+            }
+        };
         let mut json = String::new();
-        file.read_to_string(&mut json).expect("Failed to read file");
+        match file.read_to_string(&mut json) {
+            Ok(_) => {}
+            Err(_) => error_cant_read_file(color, ctx, command).await,
+        }
 
-        let json_data: HashMap<String, LangLocalisedText> =
-            serde_json::from_str(&json).expect("Failed to parse JSON");
+        let json_data: HashMap<String, LangLocalisedText> = match serde_json::from_str(&json) {
+            Ok(data) => data,
+            Err(_) => {
+                error_parsing_json(color, ctx, command).await;
+                return;
+            }
+        };
+
+        let guild_id = match command.guild_id {
+            Some(id) => id.0.to_string(),
+            None => {
+                error_no_guild_id(color, ctx, command).await;
+                return;
+            }
+        };
 
         if let Some(localised_text) = json_data.get(lang) {
-            let guild_id = command.guild_id.unwrap().0.to_string();
             sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
                 .bind(guild_id)
                 .bind(lang)
@@ -83,11 +103,15 @@ pub async fn run(
             no_langage_error(color, ctx, command).await
         }
     }
-
-    return "good".to_string();
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
+    type RegisterLocalisedProfileList = HashMap<String, AvailableLang>;
+    let mut file =
+        File::open("lang_file/command_register/general/").expect("Failed to open file");
+    let mut json = String::new();
+    file.read_to_string(&mut json).expect("Failed to read file");
+    let langages: RegisterLocalisedProfileList = serde_json::from_str(&json).unwrap();
     command
         .name("lang")
         .description("Change the lang of the bot response")
@@ -97,10 +121,22 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .name("lang")
                 .description("The lang you want to set the response to.")
                 .kind(CommandOptionType::String)
-                .add_string_choice("En", "En")
-                .add_string_choice("Fr", "Fr")
-                .add_string_choice("De", "De")
-                .add_string_choice("Jp", "Jp")
-                .required(true)
+                .required(true);
+            for (_key, lang) in langages{
+                option.add_string_choice(&lang.lang, &lang.lang);
+            }
+            option
         })
+}
+
+pub struct AvailableLang {
+    pub lang: String,
+}
+
+pub struct LangRegister {
+    pub code: String,
+    pub name: String,
+    pub description: String,
+    pub option1: String,
+    pub option1_desc: String,
 }
