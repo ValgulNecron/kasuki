@@ -22,15 +22,15 @@ use serenity::utils::Colour;
 use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
-use crate::cmd::anilist_module::*;
 use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
-use crate::cmd::general_module::*;
+use crate::cmd::anilist_module::*;
 use crate::cmd::general_module::error_handling::no_langage_error;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::module_activation::check_activation_status;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
+use crate::cmd::general_module::*;
 
 mod cmd;
 mod tests;
@@ -80,7 +80,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| transcript::register(command))
                 .create_application_command(|command| translation::register(command))
         })
-            .await;
+        .await;
 
         if cfg!(debug_assertions) {
             println!(
@@ -117,85 +117,197 @@ impl EventHandler for Handler {
 
                     // Anilist module
                     "anime" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         anime::run(&command.data.options, &ctx, &command).await
                     }
                     "character" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         character::run(&command.data.options, &ctx, &command).await
                     }
                     "compare" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         compare::run(&command.data.options, &ctx, &command).await
                     }
                     "level" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         level::run(&command.data.options, &ctx, &command).await
                     }
                     "ln" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         ln::run(&command.data.options, &ctx, &command).await
                     }
                     "manga" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         manga::run(&command.data.options, &ctx, &command).await
                     }
                     "random" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         random::run(&command.data.options, &ctx, &command).await
                     }
                     "register" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         register::run(&command.data.options, &ctx, &command).await
                     }
                     "search" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         search::run(&command.data.options, &ctx, &command).await
                     }
                     "staff" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         staff::run(&command.data.options, &ctx, &command).await
                     }
                     "user" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         user::run(&command.data.options, &ctx, &command).await
                     }
                     "waifu" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         waifu::run(&ctx, &command).await
                     }
                     "studio" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         studio::run(&command.data.options, &ctx, &command).await
                     }
                     "add_activity" => {
-                        if !check_if_anime_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_anime_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         anime_activity::add_activity::run(&command.data.options, &ctx, &command)
@@ -204,30 +316,54 @@ impl EventHandler for Handler {
 
                     // AI module
                     "image" => {
-                        if !check_if_ai_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_ai_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         image::run(&command.data.options, &ctx, &command).await
                     }
                     "transcript" => {
-                        if !check_if_ai_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_ai_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         transcript::run(&command.data.options, &ctx, &command).await
                     }
                     "translation" => {
-                        if !check_if_ai_is_on(guild_id, &command, color, &ctx, localised_text.clone()).await {
+                        if !check_if_ai_is_on(
+                            guild_id,
+                            &command,
+                            color,
+                            &ctx,
+                            localised_text.clone(),
+                        )
+                        .await
+                        {
                             return;
                         }
                         translation::run(&command.data.options, &ctx, &command).await
                     }
 
-                    _ => "not implemented :(".to_string(),
+                    _ => return,
                 };
 
                 // check if the command was successfully done.
             } else {
-                no_langage_error(color, &ctx, &command)
+                no_langage_error(color, &ctx, &command).await
             }
         } else if let Interaction::Autocomplete(command) = interaction {
             match command.data.name.as_str() {
@@ -284,9 +420,9 @@ async fn main() {
                         PRIMARY KEY (shard_id, timestamp)
                     )",
         )
-            .execute(&pool)
-            .await
-            .unwrap();
+        .execute(&pool)
+        .await
+        .unwrap();
         loop {
             sleep(Duration::from_secs(600)).await;
             let pool = get_pool(database_url).await;
@@ -325,41 +461,56 @@ async fn main() {
     }
 }
 
-pub async fn check_if_anime_is_on(guild_id: String, command: &ApplicationCommandInteraction, color: Colour, ctx: &Context, localised_text: ErrorLocalisedText) -> bool {
-    if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
-        .await
-    {
+pub async fn check_if_anime_is_on(
+    guild_id: String,
+    command: &ApplicationCommandInteraction,
+    color: Colour,
+    ctx: &Context,
+    localised_text: ErrorLocalisedText,
+) -> bool {
+    if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
         send_deactivated_message(command, color, ctx, localised_text.clone()).await;
-        return false
+        return false;
     }
-    return true
+    return true;
 }
 
-pub async fn check_if_ai_is_on(guild_id: String, command: &ApplicationCommandInteraction, color: Colour, ctx: &Context, localised_text: ErrorLocalisedText) -> bool {
+pub async fn check_if_ai_is_on(
+    guild_id: String,
+    command: &ApplicationCommandInteraction,
+    color: Colour,
+    ctx: &Context,
+    localised_text: ErrorLocalisedText,
+) -> bool {
     return if !check_activation_status("AI".parse().unwrap(), guild_id.clone()).await {
         send_deactivated_message(command, color, ctx, localised_text.clone()).await;
         false
     } else {
         true
-    }
+    };
 }
 
-pub async fn send_deactivated_message(command: &ApplicationCommandInteraction, color: Colour, ctx: &Context, localised_text: ErrorLocalisedText) {
+pub async fn send_deactivated_message(
+    command: &ApplicationCommandInteraction,
+    color: Colour,
+    ctx: &Context,
+    localised_text: ErrorLocalisedText,
+) {
     if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        message.embed(|m| {
-                            m.title(&localised_text.error_title)
-                                .description(&localised_text.module_off)
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        })
+        .create_interaction_response(&ctx.http, |response| {
+            response
+                .kind(InteractionResponseType::ChannelMessageWithSource)
+                .interaction_response_data(|message| {
+                    message.embed(|m| {
+                        m.title(&localised_text.error_title)
+                            .description(&localised_text.module_off)
+                            .timestamp(Timestamp::now())
+                            .color(color)
                     })
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
-        }
+                })
+        })
+        .await
+    {
+        println!("Cannot respond to slash command: {}", why);
+    }
 }

@@ -1,17 +1,27 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
+
 use serenity::client::Context;
-use serenity::Error;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::model::prelude::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+use serenity::Error;
+
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 
-pub async fn error_message(color: Colour, ctx: &Context, command: &ApplicationCommandInteraction, error_message: &String) {
-    let mut file = File::open("lang_file/embed/error.json").expect("Failed to open file");
+pub async fn error_message(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    error_message: &String,
+) {
+    let mut file = match File::open("lang_file/embed/error.json") {
+        Ok(mut file) => file,
+        Err(_) => {error_file_not_found(color, ctx, command).await; return;}
+    };
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 
@@ -39,19 +49,19 @@ pub async fn error_message(color: Colour, ctx: &Context, command: &ApplicationCo
             println!("Cannot respond to slash command: {}", why);
         }
     } else {
-        no_langage_error(color, ctx, command)
+        no_langage_error(color, ctx, command).await
     }
 }
 
-pub async fn error_followup_message() {
+pub async fn error_followup_message() {}
 
-}
+pub async fn error_message_with_a_message() {}
 
-pub async fn error_message_with_a_message() {
-
-}
-
-pub async fn no_langage_error(color: Colour, ctx: &Context, command: &ApplicationCommandInteraction) {
+pub async fn no_langage_error(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) {
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
             response
@@ -59,7 +69,7 @@ pub async fn no_langage_error(color: Colour, ctx: &Context, command: &Applicatio
                 .interaction_response_data(|message| {
                     message.embed(|m| {
                         m.title("Error")
-                            .description("Langage does not exist")
+                            .description("Langage does not exist.")
                             .timestamp(Timestamp::now())
                             .color(color)
                     })
@@ -71,7 +81,13 @@ pub async fn no_langage_error(color: Colour, ctx: &Context, command: &Applicatio
     }
 }
 
-pub async fn error_message_with_why(color: Colour, ctx: &Context, command: &ApplicationCommandInteraction, error_message: &String, why: Error) {
+pub async fn error_message_with_why(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    error_message: &String,
+    why: Error,
+) {
     let mut file = File::open("lang_file/embed/error.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
@@ -100,6 +116,126 @@ pub async fn error_message_with_why(color: Colour, ctx: &Context, command: &Appl
             println!("Cannot respond to slash command: {}", why);
         }
     } else {
-        no_langage_error(color, ctx, command)
+        no_langage_error(color, ctx, command).await
+    }
+}
+
+pub async fn error_file_not_found(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) {
+    if let Err(why) = command
+        .create_interaction_response(&ctx.http, |response| {
+            response
+                .kind(InteractionResponseType::ChannelMessageWithSource)
+                .interaction_response_data(|message| {
+                    message.embed(|m| {
+                        m.title("Error")
+                            .description("The langage file was not found.")
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    })
+                })
+        })
+        .await
+    {
+        println!("Cannot respond to slash command: {}", why);
+    }
+}
+
+pub async fn error_cant_read_file(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) {
+    if let Err(why) = command
+        .create_interaction_response(&ctx.http, |response| {
+            response
+                .kind(InteractionResponseType::ChannelMessageWithSource)
+                .interaction_response_data(|message| {
+                    message.embed(|m| {
+                        m.title("Error")
+                            .description("The langage file can't be read.")
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    })
+                })
+        })
+        .await
+    {
+        println!("Cannot respond to slash command: {}", why);
+    }
+}
+
+pub async fn error_parsing_json(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) {
+    if let Err(why) = command
+        .create_interaction_response(&ctx.http, |response| {
+            response
+                .kind(InteractionResponseType::ChannelMessageWithSource)
+                .interaction_response_data(|message| {
+                    message.embed(|m| {
+                        m.title("Error")
+                            .description("Failed to parse the json file.")
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    })
+                })
+        })
+        .await
+    {
+        println!("Cannot respond to slash command: {}", why);
+    }
+}
+
+pub async fn error_no_guild_id(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,)
+{
+    if let Err(why) = command
+        .create_interaction_response(&ctx.http, |response| {
+            response
+                .kind(InteractionResponseType::ChannelMessageWithSource)
+                .interaction_response_data(|message| {
+                    message.embed(|m| {
+                        m.title("Error")
+                            .description("Failed to get the guild id.")
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    })
+                })
+        })
+        .await
+    {
+        println!("Cannot respond to slash command: {}", why);
+    }
+}
+
+pub async fn error_no_avatar(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,)
+{
+    if let Err(why) = command
+        .create_interaction_response(&ctx.http, |response| {
+            response
+                .kind(InteractionResponseType::ChannelMessageWithSource)
+                .interaction_response_data(|message| {
+                    message.embed(|m| {
+                        m.title("Error")
+                            .description("Failed to get avatar url.")
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    })
+                })
+        })
+        .await
+    {
+        println!("Cannot respond to slash command: {}", why);
     }
 }

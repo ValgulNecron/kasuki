@@ -16,7 +16,8 @@ pub async fn in_progress_embed(
     command: &ApplicationCommandInteraction,
 ) -> Result<Option<Message>, String> {
     let color = Colour::FABLED_PINK;
-    let mut file = File::open("lang_file/embed/general/in_progress.json").expect("Failed to open file");
+    let mut file =
+        File::open("lang_file/embed/general/in_progress.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 

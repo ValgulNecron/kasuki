@@ -12,6 +12,7 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 
+use crate::cmd::general_module::error_handling::no_langage_error;
 use crate::cmd::general_module::lang_struct::LangLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 
@@ -42,7 +43,8 @@ pub async fn run(
     let color = Colour::FABLED_PINK;
 
     if let CommandDataOptionValue::String(lang) = option {
-        let mut file = File::open("lang_file/embed/general/lang.json").expect("Failed to open file");
+        let mut file =
+            File::open("lang_file/embed/general/lang.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 
@@ -78,7 +80,7 @@ pub async fn run(
                 println!("Cannot respond to slash command: {}", why);
             }
         } else {
-            return "Language not found".to_string();
+            no_langage_error(color, ctx, command).await
         }
     }
 

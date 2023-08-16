@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
+
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -10,6 +11,7 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+
 use crate::cmd::anilist_module::struct_level::LevelSystem;
 use crate::cmd::anilist_module::struct_user::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
@@ -27,7 +29,8 @@ pub async fn run(
         .as_ref()
         .expect("Expected username object");
     if let CommandDataOptionValue::String(value) = option {
-        let mut file = File::open("lang_file/embed/anilist/level.json").expect("Failed to open file");
+        let mut file =
+            File::open("lang_file/embed/anilist/level.json").expect("Failed to open file");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Failed to read file");
 

@@ -72,7 +72,8 @@ pub async fn run(
             }
         }
     }
-    let mut file = File::open("lang_file/embed/anilist/add_activity.json").expect("Failed to open file");
+    let mut file =
+        File::open("lang_file/embed/anilist/add_activity.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 
@@ -165,18 +166,18 @@ pub async fn run(
                 .url()
                 .unwrap();
             sqlx::query(
-        "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, delays) VALUES (?, ?, ?, ?, ?)",
-                )
-                    .bind(anime_id)
-                    .bind(data.get_timestamp())
-                    .bind(guild_id)
-                    .bind(webhook)
-                    .bind(data.get_episode())
-                    .bind(data.get_name())
-                                .bind(delays)
-                    .execute(&pool)
-                    .await
-                    .unwrap();
+                "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, delays) VALUES (?, ?, ?, ?, ?)",
+            )
+                .bind(anime_id)
+                .bind(data.get_timestamp())
+                .bind(guild_id)
+                .bind(webhook)
+                .bind(data.get_episode())
+                .bind(data.get_name())
+                .bind(delays)
+                .execute(&pool)
+                .await
+                .unwrap();
             if let Err(why) = command
                 .create_followup_message(&ctx.http, |f| {
                     f.embed(|m| {

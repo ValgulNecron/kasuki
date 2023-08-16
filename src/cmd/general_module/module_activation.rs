@@ -6,6 +6,7 @@ use serenity::model::prelude::interaction::application_command::ApplicationComma
 use serenity::model::prelude::InteractionResponseType;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
+use sqlx::{Pool, Sqlite};
 
 use crate::cmd::general_module::pool::get_pool;
 
@@ -55,13 +56,7 @@ pub async fn run(
 
     match module.as_str() {
         "ANIME" => {
-            let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
-                "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = ?",
-            )
-            .bind(&guild_id)
-            .fetch_one(&pool)
-            .await
-            .unwrap_or((None, None, None));
+            let row = make_sql_request(guild_id.clone(), &pool).await;
             let (_, ai_module, _): (Option<String>, Option<bool>, Option<bool>) = row;
 
             let ai_value = match ai_module {
@@ -108,13 +103,7 @@ pub async fn run(
             }
         }
         "AI" => {
-            let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
-                "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = ?",
-            )
-            .bind(&guild_id)
-            .fetch_one(&pool)
-            .await
-            .unwrap_or((None, None, None));
+            let row = make_sql_request(guild_id.clone(), &pool).await;
             let (_, _, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
 
             let anilist_value = match anilist_module {
@@ -208,4 +197,18 @@ pub async fn check_activation_status(module: String, guild_id: String) -> bool {
         "AI" => ai_module.unwrap_or(true),
         _ => false,
     };
+}
+
+pub async fn make_sql_request(
+    guild_id: String,
+    pool: &Pool<Sqlite>,
+) -> (Option<String>, Option<bool>, Option<bool>) {
+    let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
+        "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = ?",
+    )
+    .bind(&guild_id)
+    .fetch_one(pool)
+    .await
+    .unwrap_or((None, None, None));
+    row
 }

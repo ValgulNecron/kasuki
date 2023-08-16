@@ -22,7 +22,7 @@ pub async fn differed_response(ctx: &Context, command: &ApplicationCommandIntera
     let guild_id = command.guild_id.unwrap().0.to_string().clone();
     let lang_choice = get_guild_langage(guild_id).await;
 
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+    return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response.kind(InteractionResponseType::DeferredChannelMessageWithSource)
@@ -32,10 +32,10 @@ pub async fn differed_response(ctx: &Context, command: &ApplicationCommandIntera
             println!("Cannot respond to slash command: {}", why);
             return format!("{}: {}", localised_text.error_slash_command, why);
         }
-        return "good".to_string();
+        "good".to_string()
     } else {
-        return "Language not found".to_string();
-    }
+        "Language not found".to_string()
+    };
 }
 
 pub async fn differed_response_with_file_deletion(
@@ -53,7 +53,7 @@ pub async fn differed_response_with_file_deletion(
     let guild_id = command.guild_id.unwrap().0.to_string().clone();
     let lang_choice = get_guild_langage(guild_id).await;
 
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+    return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response.kind(InteractionResponseType::DeferredChannelMessageWithSource)
@@ -64,8 +64,8 @@ pub async fn differed_response_with_file_deletion(
             println!("Cannot respond to slash command: {}", why);
             return format!("{}: {}", localised_text.error_slash_command, why);
         }
-        return "good".to_string();
+        "good".to_string()
     } else {
-        return "Language not found".to_string();
-    }
+        "Language not found".to_string()
+    };
 }
