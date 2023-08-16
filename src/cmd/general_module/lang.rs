@@ -4,12 +4,12 @@ use std::io::Read;
 
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
-use serenity::model::{Permissions, Timestamp};
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
 use serenity::model::application::interaction::InteractionResponseType;
+use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 
 use crate::cmd::general_module::error_handling::{
@@ -34,9 +34,9 @@ pub async fn run(
             lang TEXT NOT NULL
         )",
     )
-        .execute(&pool)
-        .await
-        .unwrap();
+    .execute(&pool)
+    .await
+    .unwrap();
 
     let option = options
         .get(0)
@@ -134,13 +134,15 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 option.add_string_choice(&langages.lang, &langages.lang);
             }
             for (_key, lang) in langs {
-                option.name_localized(&lang.code,&lang.option1)
+                option
+                    .name_localized(&lang.code, &lang.option1)
                     .description_localized(&lang.code, &lang.option1_desc);
             }
             option
         });
     for (_key, lang) in langs {
-        command.name_localized(&lang.code, lang.option1)
+        command
+            .name_localized(&lang.code, lang.option1)
             .description_localized(&lang.code, &lang.option1_desc);
     }
     command

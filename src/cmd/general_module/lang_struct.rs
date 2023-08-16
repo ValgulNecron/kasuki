@@ -226,6 +226,8 @@ pub struct ErrorLocalisedText {
     pub error_title: String,
     pub module_off: String,
     pub forgot_module: String,
+    pub no_token: String,
+    pub no_base_url: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

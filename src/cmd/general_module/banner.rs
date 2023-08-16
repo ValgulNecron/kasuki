@@ -9,11 +9,14 @@ use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
-use serenity::model::Timestamp;
 use serenity::model::user::User;
+use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_no_guild_id, error_parsing_json, no_langage_error};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_message, error_no_guild_id,
+    error_parsing_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::BannerLocalisedText;
 
@@ -47,11 +50,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         })
 }
 
-pub async fn no_banner(
-    ctx: &Context,
-    command: &ApplicationCommandInteraction,
-    username: String,
-) {
+pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction, username: String) {
     let color = Colour::FABLED_PINK;
 
     let mut file = match File::open("lang_file/embed/general/banner.json") {
@@ -225,7 +224,14 @@ pub async fn banner_with_user(
     }
 }
 
-pub async fn send_embed(color: Colour, ctx: &Context, command: &ApplicationCommandInteraction, localised_text: BannerLocalisedText, banner: &String, result: User) {
+pub async fn send_embed(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    localised_text: BannerLocalisedText,
+    banner: &String,
+    result: User,
+) {
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
             response

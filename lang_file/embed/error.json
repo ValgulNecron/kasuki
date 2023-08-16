@@ -2,7 +2,9 @@
   "En": {
     "error_title": "Error",
     "module_off": "Module deactivated",
-    "forgot_module": "You need to specify the module"
+    "forgot_module": "You need to specify the module",
+    "no_token": "No token specified",
+    "no_base_url": "Please specify a base url"
   },
   "Fr": {
     "error_title": "Erreur",

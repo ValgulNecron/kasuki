@@ -3,11 +3,11 @@ use std::fs::File;
 use std::io::Read;
 
 use serenity::client::Context;
-use serenity::Error;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::model::prelude::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+use serenity::Error;
 
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
@@ -300,6 +300,116 @@ pub async fn error_no_module(
                         message.embed(|m| {
                             m.title(&localised_text.error_title)
                                 .description(format!("{}", localised_text.forgot_module))
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                        })
+                    })
+            })
+            .await
+        {
+            println!("Cannot respond to slash command: {}", why);
+        }
+    } else {
+        no_langage_error(color, ctx, command).await
+    }
+}
+
+pub async fn error_no_token(color: Colour, ctx: &Context, command: &ApplicationCommandInteraction) {
+    let mut file = match File::open("lang_file/embed/error.json") {
+        Ok(file) => file,
+        Err(_) => {
+            error_file_not_found(color, ctx, command).await;
+            return;
+        }
+    };
+    let mut json = String::new();
+    match file.read_to_string(&mut json) {
+        Ok(_) => {}
+        Err(_) => error_cant_read_file(color, ctx, command).await,
+    }
+
+    let json_data: HashMap<String, ErrorLocalisedText> = match serde_json::from_str(&json) {
+        Ok(data) => data,
+        Err(_) => {
+            error_parsing_json(color, ctx, command).await;
+            return;
+        }
+    };
+
+    let guild_id = match command.guild_id {
+        Some(id) => id.0.to_string(),
+        None => {
+            error_no_guild_id(color, ctx, command).await;
+            return;
+        }
+    };
+    let lang_choice = get_guild_langage(guild_id).await;
+    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message.embed(|m| {
+                            m.title(&localised_text.error_title)
+                                .description(format!("{}", localised_text.no_token))
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                        })
+                    })
+            })
+            .await
+        {
+            println!("Cannot respond to slash command: {}", why);
+        }
+    } else {
+        no_langage_error(color, ctx, command).await
+    }
+}
+
+pub async fn error_no_base_url(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) {
+    let mut file = match File::open("lang_file/embed/error.json") {
+        Ok(file) => file,
+        Err(_) => {
+            error_file_not_found(color, ctx, command).await;
+            return;
+        }
+    };
+    let mut json = String::new();
+    match file.read_to_string(&mut json) {
+        Ok(_) => {}
+        Err(_) => error_cant_read_file(color, ctx, command).await,
+    }
+
+    let json_data: HashMap<String, ErrorLocalisedText> = match serde_json::from_str(&json) {
+        Ok(data) => data,
+        Err(_) => {
+            error_parsing_json(color, ctx, command).await;
+            return;
+        }
+    };
+
+    let guild_id = match command.guild_id {
+        Some(id) => id.0.to_string(),
+        None => {
+            error_no_guild_id(color, ctx, command).await;
+            return;
+        }
+    };
+    let lang_choice = get_guild_langage(guild_id).await;
+    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message.embed(|m| {
+                            m.title(&localised_text.error_title)
+                                .description(format!("{}", localised_text.no_base_url))
                                 .timestamp(Timestamp::now())
                                 .color(color)
                         })
