@@ -365,23 +365,7 @@ pub async fn check_if_anime_is_on(guild_id: String, command: &ApplicationCommand
     if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone())
         .await
     {
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        message.embed(|m| {
-                            m.title(&localised_text.error_title)
-                                .description(&localised_text.module_off)
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        })
-                    })
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
-        }
+        send_deactivated_message(command, color, ctx, localised_text.clone()).await;
         false
     }
     true
@@ -389,7 +373,14 @@ pub async fn check_if_anime_is_on(guild_id: String, command: &ApplicationCommand
 
 pub async fn check_if_ai_is_on(guild_id: String, command: &ApplicationCommandInteraction, color: Colour, ctx: &Context, localised_text: ErrorLocalisedText) -> bool {
     if !check_activation_status("AI".parse().unwrap(), guild_id.clone()).await {
-        if let Err(why) = command
+        send_deactivated_message(command, color, ctx, localised_text.clone()).await;
+        false
+    }
+    true
+}
+
+pub async fn send_deactivated_message(command: &ApplicationCommandInteraction, color: Colour, ctx: &Context, localised_text: ErrorLocalisedText) {
+    if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -406,7 +397,4 @@ pub async fn check_if_ai_is_on(guild_id: String, command: &ApplicationCommandInt
         {
             println!("Cannot respond to slash command: {}", why);
         }
-        false
-    }
-    true
 }

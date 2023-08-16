@@ -1,6 +1,7 @@
 pub mod banner;
 pub mod color;
 pub mod differed_response;
+pub mod error_handling;
 pub mod get_guild_langage;
 pub mod html_parser;
 pub mod in_progress;
