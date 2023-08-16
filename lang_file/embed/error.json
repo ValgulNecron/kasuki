@@ -1,18 +1,22 @@
 {
   "En": {
     "error_title": "Error",
-    "module_off": "Module deactivated"
+    "module_off": "Module deactivated",
+    "forgot_module": "You need to specify the module"
   },
   "Fr": {
     "error_title": "Erreur",
-    "module_off": "Module désactivé"
+    "module_off": "Module désactivé",
+    "forgot_module": "Vous devez spécifier le module"
   },
   "De": {
     "error_title": "Fehler",
-    "module_off": "Modul deaktiviert"
+    "module_off": "Modul deaktiviert",
+    "forgot_module": "Sie müssen das Modul angeben"
   },
   "Jp": {
     "error_title": "エラー",
-    "module_off": "モジュールが無効になっています"
+    "module_off": "モジュールは無効です",
+    "forgot_module": "モジュールを指定する必要があります"
   }
 }

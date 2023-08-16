@@ -26,13 +26,27 @@ pub async fn error_message(
         }
     };
     let mut json = String::new();
-    file.read_to_string(&mut json).expect("Failed to read file");
+    match file.read_to_string(&mut json) {
+        Ok(_) => {}
+        Err(_) => error_cant_read_file(color, ctx, command).await,
+    }
 
-    let json_data: HashMap<String, ErrorLocalisedText> =
-        serde_json::from_str(&json).expect("Failed to parse JSON");
+    let json_data: HashMap<String, ErrorLocalisedText> = match serde_json::from_str(&json) {
+        Ok(data) => data,
+        Err(_) => {
+            error_parsing_json(color, ctx, command).await;
+            return;
+        }
+    };
 
-    let guild_id = command.guild_id.unwrap().0.to_string().clone();
-    let lang_choice = get_guild_langage(guild_id.clone()).await;
+    let guild_id = match command.guild_id {
+        Some(id) => id.0.to_string(),
+        None => {
+            error_no_guild_id(color, ctx, command).await;
+            return;
+        }
+    };
+    let lang_choice = get_guild_langage(guild_id).await;
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
@@ -240,5 +254,62 @@ pub async fn error_no_avatar(
         .await
     {
         println!("Cannot respond to slash command: {}", why);
+    }
+}
+
+pub async fn error_no_module(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) {
+    let mut file = match File::open("lang_file/embed/error.json") {
+        Ok(mut file) => file,
+        Err(_) => {
+            error_file_not_found(color, ctx, command).await;
+            return;
+        }
+    };
+    let mut json = String::new();
+    match file.read_to_string(&mut json) {
+        Ok(_) => {}
+        Err(_) => error_cant_read_file(color, ctx, command).await,
+    }
+
+    let json_data: HashMap<String, ErrorLocalisedText> = match serde_json::from_str(&json) {
+        Ok(data) => data,
+        Err(_) => {
+            error_parsing_json(color, ctx, command).await;
+            return;
+        }
+    };
+
+    let guild_id = match command.guild_id {
+        Some(id) => id.0.to_string(),
+        None => {
+            error_no_guild_id(color, ctx, command).await;
+            return;
+        }
+    };
+    let lang_choice = get_guild_langage(guild_id).await;
+    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message.embed(|m| {
+                            m.title(&localised_text.error_title)
+                                .description(format!("{}", localised_text.forgot_module))
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                        })
+                    })
+            })
+            .await
+        {
+            println!("Cannot respond to slash command: {}", why);
+        }
+    } else {
+        no_langage_error(color, ctx, command).await
     }
 }

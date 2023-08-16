@@ -7,6 +7,7 @@ use serenity::model::prelude::InteractionResponseType;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 use sqlx::{Pool, Sqlite};
+use crate::cmd::general_module::error_handling::error_no_module;
 
 use crate::cmd::general_module::pool::get_pool;
 
@@ -14,7 +15,7 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> String {
+) {
     let database_url = "./data.db";
     let pool = get_pool(database_url).await;
 
@@ -99,7 +100,7 @@ pub async fn run(
                 })
                 .await
             {
-                return format!("{}: {}", "Error creating slash", why);
+                println!("{}: {}", "Error creating slash", why);
             }
         }
         "AI" => {
@@ -146,14 +147,13 @@ pub async fn run(
                 })
                 .await
             {
-                return format!("{}: {}", "Error creating slash", why);
+                println!("{}: {}", "Error creating slash", why);
             }
         }
         _ => {
-            return "No module selected.".to_string();
+            error_no_module(color, ctx, command)
         }
     }
-    return "good".to_string();
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

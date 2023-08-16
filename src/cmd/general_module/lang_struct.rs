@@ -225,6 +225,7 @@ pub struct CompareLocalisedText {
 pub struct ErrorLocalisedText {
     pub error_title: String,
     pub module_off: String,
+    pub forgot_module: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
