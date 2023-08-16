@@ -81,7 +81,7 @@ something else, just do it and open a pr afterward.
 
 ### I don't know how to code in rust but still want to contribute.
 
-1. You can add new langage by adding a translation in the file located in lang_file and add in lang.rs (found in 
+1. You can add new langage by adding a translation in the file located in lang_file and add in lang.rs (found in
    src/cmd/general_modules/) the option with .add_string_choice("ISO-639-1", "ISO-639-1")
    please google for what is ISO-639-1
 2. Contribute to this guide by making it clearer on how to use/ how it works.
@@ -90,7 +90,6 @@ something else, just do it and open a pr afterward.
 Please note that for embed you will need to use ISO-639-1 and if no ISO-639-1 exist or need to be more specific like the
 different "version" of chinese use ISO-639-3 and if still not like with a specific chinese written in pinyin, I used the
 ISO-639-3 code for mandarin chinese (cmn) and added a p for pinyin
-
 
 if working on command_register please use the same structure,
 but the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
@@ -179,7 +178,8 @@ cargo run --release
 
 # Credit
 
-- Thanks Srayeals for the badge I use as the bot pfp. ([https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))
+- Thanks Srayeals for the badge I use as the bot
+  pfp. ([https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))
 - Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
   anymore.)
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
