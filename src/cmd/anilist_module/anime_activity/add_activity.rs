@@ -21,7 +21,7 @@ use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::AddActivityLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
-use crate::cmd::general_module::trim::trim_100_webhook;
+use crate::cmd::general_module::trim::trim_webhook;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -136,7 +136,7 @@ pub async fn run(
             return "good".to_string();
         } else {
             if anime_name.len() >= 50 {
-                anime_name = trim_100_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
+                anime_name = trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
             }
             let bytes = get(data.get_image()).await.unwrap().bytes().await.unwrap();
             let mut img = image::load(Cursor::new(&bytes), guess_format(&bytes).unwrap()).unwrap();
