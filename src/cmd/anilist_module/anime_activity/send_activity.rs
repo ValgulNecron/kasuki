@@ -81,7 +81,7 @@ pub async fn send_activity() {
             tokio::spawn(async move {
                 if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
                     sleep(Duration::from_secs(
-                        (row2.delays.clone().unwrap() * 60) as u64,
+                        (row2.delays.clone().unwrap()) as u64,
                     ));
                     let now = Utc::now().timestamp().to_string();
                     send_specific_activity(row, localised_text.clone(), guild_id, row2, now.clone())
