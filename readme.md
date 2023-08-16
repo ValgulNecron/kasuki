@@ -16,6 +16,7 @@
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
       size — Done.
     - [ ] Better error handling. Different error messages, type and replies everytime not in certain condition.
+    - [ ] Add more tests.
 
 - Anime submodule:
     - [X] Finish comparison function.
