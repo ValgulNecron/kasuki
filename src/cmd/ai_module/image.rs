@@ -19,6 +19,10 @@ use serenity::utils::Colour;
 use uuid::Uuid;
 
 use crate::cmd::general_module::differed_response::differed_response;
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_message, error_no_base_url,
+    error_no_guild_id, error_no_token, error_parsing_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::ImageLocalisedText;
@@ -27,7 +31,9 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> String {
+) {
+    let color = Colour::FABLED_PINK;
+
     let option = options
         .get(0)
         .expect("Expected username option")
@@ -39,16 +45,35 @@ pub async fn run(
         let filename = format!("{}.png", uuid_name);
         let filename_str = filename.as_str();
 
-        let mut file = File::open("lang_file/embed/ai/image.json").expect("Failed to open file");
+        let mut file = match File::open("lang_file/embed/ai/image.json") {
+            Ok(file) => file,
+            Err(_) => {
+                error_file_not_found(color, ctx, command).await;
+                return;
+            }
+        };
         let mut json = String::new();
-        file.read_to_string(&mut json).expect("Failed to read file");
+        match file.read_to_string(&mut json) {
+            Ok(_) => {}
+            Err(_) => error_cant_read_file(color, ctx, command).await,
+        }
 
-        let json_data: HashMap<String, ImageLocalisedText> =
-            serde_json::from_str(&json).expect("Failed to parse JSON");
+        let json_data: HashMap<String, ImageLocalisedText> = match serde_json::from_str(&json) {
+            Ok(data) => data,
+            Err(_) => {
+                error_parsing_json(color, ctx, command).await;
+                return;
+            }
+        };
 
-        let guild_id = command.guild_id.unwrap().0.to_string().clone();
+        let guild_id = match command.guild_id {
+            Some(id) => id.0.to_string(),
+            None => {
+                error_no_guild_id(color, ctx, command).await;
+                return;
+            }
+        };
         let lang_choice = get_guild_langage(guild_id).await;
-
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             differed_response(ctx, command).await;
 
@@ -58,11 +83,11 @@ pub async fn run(
                     message = message_option;
                 }
                 Ok(None) => {
-                    return localised_text.unknown_error.clone();
+                    error_message(color, ctx, command, &localised_text.unknown_error).await;
+                    return;
                 }
                 Err(error) => {
                     println!("Error: {}", error);
-                    return localised_text.error_slash_command.clone();
                 }
             }
 
@@ -70,8 +95,20 @@ pub async fn run(
             let path = Path::new(my_path);
             let _ = dotenv::from_path(path);
             let prompt = description;
-            let api_key = env::var("AI_API_TOKEN").expect("token");
-            let api_base_url = env::var("AI_API_BASE_URL").expect("base url");
+            let api_key = match env::var("AI_API_TOKEN") {
+                Ok(x) => x,
+                Err(x) => {
+                    error_no_token(color, ctx, command).await;
+                    return;
+                }
+            };
+            let api_base_url = match env::var("AI_API_BASE_URL") {
+                Ok(x) => x,
+                Err(x) => {
+                    error_no_base_url(color, ctx, command).await;
+                    return;
+                }
+            };
             let data;
             if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
                 let is_ok = image_generation_mode.to_lowercase() == "true";
@@ -139,7 +176,6 @@ pub async fn run(
 
             let path = Path::new(filename_str);
 
-            let color = Colour::FABLED_PINK;
             if let Err(why) = real_message
                 .edit(&ctx.http, |m| {
                     m.attachment(path).embed(|e| {
@@ -153,15 +189,13 @@ pub async fn run(
             {
                 let _ = fs::remove_file(filename_str);
                 println!("Cannot respond to slash command: {}", why);
-                return format!("{}: {}", &localised_text.error_slash_command, why);
             }
         } else {
             let _ = fs::remove_file(filename_str);
-            return "Language not found".to_string();
+            no_langage_error(color, ctx, command).await;
         }
         let _ = fs::remove_file(filename_str);
     }
-    return "good".to_string();
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
