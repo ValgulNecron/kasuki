@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use serde_json::json;
+use serenity::client::Context;
 use serenity::json::Value;
+use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 
 use crate::cmd::anilist_module::struct_autocomplete::AutocompleteOption;
 use crate::cmd::general_module::request::make_request_anilist;
@@ -65,5 +67,20 @@ impl UserPageWrapper {
         } else {
             vec![]
         }
+    }
+}
+
+pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
+    let search = &command.data.options.first().unwrap().value;
+    if let Some(search) = search {
+        let data = UserPageWrapper::new_autocomplete_user(search, 8).await;
+        let choices = data.get_choice();
+        // doesn't matter if it errors
+        let choices_json = json!(choices);
+        _ = command
+            .create_autocomplete_response(ctx.http.clone(), |response| {
+                response.set_choices(choices_json)
+            })
+            .await;
     }
 }
