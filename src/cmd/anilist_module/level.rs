@@ -1,23 +1,17 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-
-use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-
-use crate::cmd::anilist_module::struct_autocomplete_user::UserPageWrapper;
 use crate::cmd::anilist_module::struct_level::LevelSystem;
 use crate::cmd::anilist_module::struct_user::*;
-use crate::cmd::general_module::color::get_user_color;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::LevelLocalisedText;
 
@@ -90,7 +84,7 @@ pub async fn run(
                 user_progression = "0/0".to_string();
             }
 
-            let color = get_user_color(data.clone());
+            let color = data.get_color();
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
@@ -156,19 +150,4 @@ pub fn get_total(media: Vec<Statuses>) -> (f64, f64) {
     }
     let tuple = (watching, completed);
     return tuple;
-}
-
-pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {
-    let search = &command.data.options.first().unwrap().value;
-    if let Some(search) = search {
-        let data = UserPageWrapper::new_autocomplete_user(search, 8).await;
-        let choices = data.get_choice();
-        // doesn't matter if it errors
-        let choices_json = json!(choices);
-        _ = command
-            .create_autocomplete_response(ctx.http.clone(), |response| {
-                response.set_choices(choices_json)
-            })
-            .await;
-    }
 }
