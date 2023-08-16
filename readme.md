@@ -15,7 +15,7 @@
     - [ ] Poll feature with custom choice and a graph afterward for comparison.
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
       size — Done.
-    - [ ] Better error handling. Different error messages, type and replies everytime not in certain condition.
+    - [ ] Better error handling. Different error messages, type and replies everytime not in certain condition. — working on it 
     - [ ] Add more tests.
 
 - Anime submodule:
