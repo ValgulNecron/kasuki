@@ -151,7 +151,7 @@ pub async fn run(
             }
         }
         _ => {
-            error_no_module(color, ctx, command)
+            error_no_module(color, ctx, command).await
         }
     }
 }
