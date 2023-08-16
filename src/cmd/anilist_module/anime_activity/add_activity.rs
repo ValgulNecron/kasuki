@@ -13,12 +13,10 @@ use serenity::model::application::command::CommandOptionType;
 use serenity::model::prelude::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
-use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
-use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
 use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::AddActivityLocalisedText;
