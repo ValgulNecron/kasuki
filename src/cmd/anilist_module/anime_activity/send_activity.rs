@@ -65,10 +65,11 @@ pub async fn send_activity() {
         .await
         .unwrap();
     for row in rows {
-        if Utc::now().timestamp().to_string() != row.timestamp.unwrap() {} else {
+        if Utc::now().timestamp().to_string() != row.timestamp.unwrap() {
+        } else {
             let row2 = row.clone();
-            let mut file =
-                File::open("lang_file/embed/anilist/send_activity.json").expect("Failed to open file");
+            let mut file = File::open("lang_file/embed/anilist/send_activity.json")
+                .expect("Failed to open file");
             let mut json = String::new();
             file.read_to_string(&mut json).expect("Failed to read file");
 
@@ -82,14 +83,12 @@ pub async fn send_activity() {
                 tokio::spawn(async move {
                     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
                         sleep(Duration::from_secs((row2.delays.clone().unwrap()) as u64));
-                        send_specific_activity(row, localised_text.clone(), guild_id, row2)
-                            .await
+                        send_specific_activity(row, localised_text.clone(), guild_id, row2).await
                     }
                 });
             } else {
                 if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-                    send_specific_activity(row, localised_text.clone(), guild_id, row2)
-                        .await
+                    send_specific_activity(row, localised_text.clone(), guild_id, row2).await
                 }
             }
         }

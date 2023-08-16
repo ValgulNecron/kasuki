@@ -9,8 +9,8 @@ use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
-use serenity::model::user::User;
 use serenity::model::Timestamp;
+use serenity::model::user::User;
 use serenity::utils::Colour;
 
 use crate::cmd::general_module::error_handling::{
@@ -127,7 +127,7 @@ pub async fn profile_without_user(ctx: &Context, command: &ApplicationCommandInt
             localised_text.clone(),
             result,
         )
-        .await
+            .await
     } else {
         let color = Colour::FABLED_PINK;
         no_langage_error(color, ctx, command).await
@@ -199,7 +199,7 @@ pub async fn profile_with_user(
             localised_text.clone(),
             result,
         )
-        .await
+            .await
     } else {
         no_langage_error(color, ctx, command).await
     }
@@ -268,6 +268,6 @@ pub async fn send_embed(
             &localised_text.error_slash_command,
             why,
         )
-        .await
+            .await
     }
 }

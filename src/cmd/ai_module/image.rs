@@ -50,11 +50,7 @@ pub async fn run(
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let result_diff = differed_response(ctx, command).await;
-
-            if result_diff != "good".as_ref() {
-                return result_diff;
-            }
+            differed_response(ctx, command).await;
 
             let message: Message;
             match in_progress_embed(&ctx, &command).await {

@@ -12,8 +12,12 @@ use serenity::model::application::interaction::application_command::{
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::utils::Colour;
 
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_no_guild_id, error_parsing_json, no_langage_error};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_no_guild_id, error_parsing_json,
+    no_langage_error,
+};
 use crate::cmd::general_module::lang_struct::LangLocalisedText;
+use crate::cmd::general_module::lang_struct_register::{AvailableLang, LangRegister};
 use crate::cmd::general_module::pool::get_pool;
 
 pub async fn run(
@@ -106,12 +110,16 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    type RegisterLocalisedProfileList = HashMap<String, AvailableLang>;
-    let mut file =
-        File::open("lang_file/command_register/general/").expect("Failed to open file");
+    type RegisterLocaliseLangagesList = HashMap<String, AvailableLang>;
+    let mut file = File::open("lang_file/command_register/general/").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
-    let langages: RegisterLocalisedProfileList = serde_json::from_str(&json).unwrap();
+    let langages: RegisterLocaliseLangagesList = serde_json::from_str(&json).unwrap();
+    type RegisterLocaliseLangList = HashMap<String, LangRegister>;
+    let mut file = File::open("lang_file/command_register/general/").expect("Failed to open file");
+    let mut json = String::new();
+    file.read_to_string(&mut json).expect("Failed to read file");
+    let langs: RegisterLocaliseLangList = serde_json::from_str(&json).unwrap();
     command
         .name("lang")
         .description("Change the lang of the bot response")
@@ -122,21 +130,18 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("The lang you want to set the response to.")
                 .kind(CommandOptionType::String)
                 .required(true);
-            for (_key, lang) in langages{
-                option.add_string_choice(&lang.lang, &lang.lang);
+            for (_key, langages) in langages {
+                option.add_string_choice(&langages.lang, &langages.lang);
+            }
+            for (_key, lang) in langs {
+                option.name_localized(&lang.code,&lang.option1)
+                    .description_localized(&lang.code, &lang.option1_desc);
             }
             option
-        })
-}
-
-pub struct AvailableLang {
-    pub lang: String,
-}
-
-pub struct LangRegister {
-    pub code: String,
-    pub name: String,
-    pub description: String,
-    pub option1: String,
-    pub option1_desc: String,
+        });
+    for (_key, lang) in langs {
+        command.name_localized(&lang.code, lang.option1)
+            .description_localized(&lang.code, &lang.option1_desc);
+    }
+    command
 }

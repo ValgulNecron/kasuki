@@ -1,14 +1,14 @@
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
+use serenity::model::{Permissions, Timestamp};
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::prelude::InteractionResponseType;
-use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 use sqlx::{Pool, Sqlite};
-use crate::cmd::general_module::error_handling::error_no_module;
 
+use crate::cmd::general_module::error_handling::error_no_module;
 use crate::cmd::general_module::pool::get_pool;
 
 pub async fn run(
@@ -26,9 +26,9 @@ pub async fn run(
             anilist_module INTEGER
         )",
     )
-    .execute(&pool)
-    .await
-    .unwrap();
+        .execute(&pool)
+        .await
+        .unwrap();
 
     let color = Colour::FABLED_PINK;
 
@@ -150,9 +150,7 @@ pub async fn run(
                 println!("{}: {}", "Error creating slash", why);
             }
         }
-        _ => {
-            error_no_module(color, ctx, command).await
-        }
+        _ => error_no_module(color, ctx, command).await,
     }
 }
 
@@ -186,10 +184,10 @@ pub async fn check_activation_status(module: String, guild_id: String) -> bool {
     let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
         "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild_id = ?",
     )
-    .bind(&guild_id)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None, None));
+        .bind(&guild_id)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None, None));
 
     let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
     return match module.as_str() {
@@ -206,9 +204,9 @@ pub async fn make_sql_request(
     let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
         "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = ?",
     )
-    .bind(&guild_id)
-    .fetch_one(pool)
-    .await
-    .unwrap_or((None, None, None));
+        .bind(&guild_id)
+        .fetch_one(pool)
+        .await
+        .unwrap_or((None, None, None));
     row
 }
