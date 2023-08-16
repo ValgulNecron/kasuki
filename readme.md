@@ -15,7 +15,7 @@
     - [ ] Poll feature with custom choice and a graph afterward for comparison.
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
       size — Done.
-    - [ ] Better error handling. Different error message, type and replies everytime not in certain condition.
+    - [ ] Better error handling. Different error messages, type and replies everytime not in certain condition.
 
 - Anime submodule:
     - [X] Finish comparison function.
@@ -25,7 +25,7 @@
       — And have better formatting for the text.
     - [X] Add character search function. — Added character research with name.
     - [X] Add staff search function. — Added staff research with name.
-    - [X] Add search feature with type. — Work for all.
+    - [X] Add search feature with a type. — Work for all.
     - [X] Bind anilist account to discord for /user. — Added register command and edited user command.
     - [X] Random /random {anime, manga}. — Added random for both anime and manga. Manga random can give ln.
     - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance
@@ -39,7 +39,7 @@
     - [ ] Try to do the same for manga.
       with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
       this one only selected manga not all seasonal).
-      — Did some digging seem possible I will do anime first trough.
+      — Did some digging seem possible. I will do anime-first trough.
     - [ ] Activity command (auto sends activity of a user to a channel).
       — Same as anime, but this one will be hard since
       a user can do update every second like every year. Will either have delay or be resource intensive.
@@ -62,33 +62,42 @@
 
 ### Website
 
-for those of you who prefer web dev.. \
+for those of you who prefer web dev.\
 [https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
 
 # Vision
 
-The bot is in the first place a bot that interface the anilist api with discord letting user get different information
-from it. there is also secondary module that will be added when I have idea or want to test thing.
+The bot is in the first place, a bot that interfaces discord and the anilist api letting users get different information
+from it.
+There is also a secondary module that will be added when I have ideas or want to test things.
 
 # Contributing.
 
 ### I know how to code in rust.
 
-Then please check the todo and follow CONTRIBUTING.md to add feature, if the todo is complete, or you want to do
-something else just do it and open a pr afterward.
+Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
+something else, just do it and open a pr afterward.
 
 ### I don't know how to code in rust but still want to contribute.
 
-1. You can add new langage by adding a translation in the file located in lang_file and add in lang.rs (found in  
+1. You can add new langage by adding a translation in the file located in lang_file and add in lang.rs (found in 
    src/cmd/general_modules/) the option with .add_string_choice("ISO-639-1", "ISO-639-1")
    please google for what is ISO-639-1
 2. Contribute to this guide by making it clearer on how to use/ how it works.
 3. Or by opening an issue with enhancement or new feature you want to see.
 
+Please note that for embed you will need to use ISO-639-1 and if no ISO-639-1 exist or need to be more specific like the
+different "version" of chinese use ISO-639-3 and if still not like with a specific chinese written in pinyin, I used the
+ISO-639-3 code for mandarin chinese (cmn) and added a p for pinyin
+
+
+if working on command_register please use the same structure,
+but the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
+
 # How to use
 
 ### 1. Add the bot to your server.
-    
+
 you can add my instance of the bot
 with [this link](https://discord.com/oauth2/authorize?client_id=923286536445894697&permissions=517543913536&scope=bot)
 
@@ -111,7 +120,8 @@ windows: windows 10 and 11
 git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 ```
 
-- edit compose-default.yml file and add your discord bot token. (not sure if it works or need to be renamed to
+- edit compose-default.yml file and add your discord bot token.
+  (not sure if it works or needs to be renamed to
   compose.yml or docker-compose.yml)
 - run docker compose.
 
@@ -147,7 +157,7 @@ cargo run --release
 
 - General:
     - /info - Show info about bot.
-    - /ping - Check if the bot respond to command.
+    - /ping - Check if the bot responds to command.
     - /lang - let you change the langage for your guild. require admin perm.
 - Anime:
     - /anime - Show info about anime.
@@ -158,7 +168,7 @@ cargo run --release
     - /manga - Show info about manga.
     - /random - Give a random anime or manga.
     - /register - Link your anilist and discord account.
-    - /search - Let you search for different type. Like ln, manga, etc...
+    - /search - Let you search for a different type. Like ln, manga, etc...
     - /staff - Give information about a specified staff.
     - /user - Show info about user.
 - AI:
@@ -168,8 +178,7 @@ cargo run --release
 
 # Credit
 
-- Thanks Srayeals for the badge I use as the bot pfp. (
-  [https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))
+- Thanks Srayeals for the badge I use as the bot pfp. ([https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))
 - Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
   anymore.)
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
