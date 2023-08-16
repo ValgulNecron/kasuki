@@ -25,6 +25,7 @@ use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::*;
 use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
 use crate::cmd::general_module::*;
+use crate::cmd::general_module::error_handling::no_langage_error;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::module_activation::check_activation_status;
@@ -104,9 +105,8 @@ impl EventHandler for Handler {
 
             let guild_id = command.guild_id.unwrap().0.to_string().clone();
             let lang_choice = get_guild_langage(guild_id.clone()).await;
-            let mut content: String = "All good".parse().unwrap();
             if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-                content = match command.data.name.as_str() {
+                match command.data.name.as_str() {
                     // General module.
                     "ping" => ping::run(&ctx, &command).await,
                     "lang" => lang::run(&command.data.options, &ctx, &command).await,
@@ -226,44 +226,8 @@ impl EventHandler for Handler {
                 };
 
                 // check if the command was successfully done.
-                if content == "good".to_string() {
-                    return;
-                }
-                if let Err(why) = command
-                    .create_interaction_response(&ctx.http, |response| {
-                        response
-                            .kind(InteractionResponseType::ChannelMessageWithSource)
-                            .interaction_response_data(|message| {
-                                message.embed(|m| {
-                                    m.title(&localised_text.error_title)
-                                        .description(&content)
-                                        .timestamp(Timestamp::now())
-                                        .color(color)
-                                })
-                            })
-                    })
-                    .await
-                {
-                    println!("Cannot respond to slash command: {}", why);
-                }
             } else {
-                if let Err(why) = command
-                    .create_interaction_response(&ctx.http, |response| {
-                        response
-                            .kind(InteractionResponseType::ChannelMessageWithSource)
-                            .interaction_response_data(|message| {
-                                message.embed(|m| {
-                                    m.title("Error")
-                                        .description(&content)
-                                        .timestamp(Timestamp::now())
-                                        .color(color)
-                                })
-                            })
-                    })
-                    .await
-                {
-                    println!("Cannot respond to slash command: {}", why);
-                }
+                no_langage_error(color, &ctx, &command)
             }
         } else if let Interaction::Autocomplete(command) = interaction {
             match command.data.name.as_str() {
@@ -272,9 +236,9 @@ impl EventHandler for Handler {
                 "ln" => ln::autocomplete(ctx, command).await,
                 "character" => character::autocomplete(ctx, command).await,
                 "staff" => staff::autocomplete(ctx, command).await,
-                "user" => user::autocomplete(ctx, command).await,
+                "user" => struct_autocomplete_user::autocomplete(ctx, command).await,
                 "compare" => compare::autocomplete(ctx, command).await,
-                "level" => level::autocomplete(ctx, command).await,
+                "level" => struct_autocomplete_user::autocomplete(ctx, command).await,
                 "studio" => studio::autocomplete(ctx, command).await,
                 "add_activity" => struct_autocomplete_media::autocomplete(ctx, command).await,
                 _ => print!(""),
@@ -372,11 +336,12 @@ pub async fn check_if_anime_is_on(guild_id: String, command: &ApplicationCommand
 }
 
 pub async fn check_if_ai_is_on(guild_id: String, command: &ApplicationCommandInteraction, color: Colour, ctx: &Context, localised_text: ErrorLocalisedText) -> bool {
-    if !check_activation_status("AI".parse().unwrap(), guild_id.clone()).await {
+    return if !check_activation_status("AI".parse().unwrap(), guild_id.clone()).await {
         send_deactivated_message(command, color, ctx, localised_text.clone()).await;
-        return false
+        false
+    } else {
+        true
     }
-    return true
 }
 
 pub async fn send_deactivated_message(command: &ApplicationCommandInteraction, color: Colour, ctx: &Context, localised_text: ErrorLocalisedText) {
