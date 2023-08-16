@@ -17,9 +17,11 @@
     - [ ] Poll feature with custom choice and a graph afterward for comparison.
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
       size — Done.
-    - [ ] Better error handling. Different error messages, type and replies everytime not in certain condition. — working on it 
+    - [ ] Better error handling. Different error messages, type and replies everytime not in certain condition. —
+      working on it
     - [ ] Add more tests.
-    - [ ] Localisation for response — Done except for module activation and some other "minor" stuff
+    - [ ] Localisation for response — Done except for module activation and some other "minor" stuff If you found any
+      stuff not translated please open an issue on github or come to my discord
     - [ ] Localisation for command — Working on it.
 
 - Anime submodule:
@@ -80,14 +82,12 @@ There is also a secondary module that will be added when I have ideas or want to
 
 ### I know how to code in rust.
 
-Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
+Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do 
 something else, just do it and open a pr afterward.
 
 ### I don't know how to code in rust but still want to contribute.
 
-1. You can add new langage by adding a translation in the file located in lang_file and add in lang.rs (found in
-   src/cmd/general_modules/) the option with .add_string_choice("ISO-639-1", "ISO-639-1")
-   please google for what is ISO-639-1
+1. You can add new langage by adding a translation in the file located in lang_file and adding it to lang_file/available_lang.json
 2. Contribute to this guide by making it clearer on how to use/ how it works.
 3. Or by opening an issue with enhancement or new feature you want to see.
 
