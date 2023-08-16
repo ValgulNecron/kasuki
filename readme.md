@@ -19,6 +19,8 @@
       size — Done.
     - [ ] Better error handling. Different error messages, type and replies everytime not in certain condition. — working on it 
     - [ ] Add more tests.
+    - [ ] Localisation for response — Done except for module activation and some other "minor" stuff
+    - [ ] Localisation for command — Working on it.
 
 - Anime submodule:
     - [X] Finish comparison function.
