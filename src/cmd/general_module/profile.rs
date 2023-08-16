@@ -12,6 +12,7 @@ use serenity::model::prelude::application_command::{CommandDataOption, CommandDa
 use serenity::model::user::User;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+use crate::cmd::general_module::error_handling::{error_message, error_message_with_why, no_langage_error};
 
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ProfileLocalisedText;
@@ -21,7 +22,7 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> String {
+) {
     return if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
@@ -68,7 +69,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 pub async fn profile_without_user(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> String {
+) {
     let mut file = File::open("lang_file/embed/general/profile.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
@@ -79,52 +80,32 @@ pub async fn profile_without_user(
     let guild_id = command.guild_id.unwrap().0.to_string().clone();
     let lang_choice = get_guild_langage(guild_id).await;
 
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+    return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+        let color = Colour::FABLED_PINK;
+
         let user = command.user.id.0;
         let real_user = Http::get_user(&ctx.http, user).await;
         let result = if let Ok(user) = real_user {
             user
         } else {
-            return localised_text.error_no_user.clone();
+            error_message(color, ctx, command, &localised_text.error_no_user)
         };
         let avatar_url = result.avatar_url().unwrap();
 
         let desc = description(result.clone(), command).await;
 
-        let color = Colour::FABLED_PINK;
-
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        message.embed(|m| {
-                            m.title(format!("{}{}", &localised_text.title, result.name))
-                                // Add a timestamp for the current time
-                                // This also accepts a rfc3339 Timestamp
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                                .thumbnail(avatar_url)
-                                .description(desc)
-                        })
-                    })
-            })
-            .await
-        {
-            println!("{}: {}", &localised_text.error_slash_command, why);
-            return format!("{}: {}", &localised_text.error_slash_command, why);
-        }
+        send_embed(avatar_url, desc, color, ctx, command, localised_text.clone(), result).await
     } else {
-        return "Language not found".to_string();
+        let color = Colour::FABLED_PINK;
+        no_langage_error(color, ctx, command).await
     }
-    return "good".to_string();
 }
 
 pub async fn profile_with_user(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     user_data: &User,
-) -> String {
+) {
     let mut file = File::open("lang_file/general/profile.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
@@ -136,45 +117,25 @@ pub async fn profile_with_user(
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+        let color = Colour::FABLED_PINK;
+
         let user = user_data.id.0;
         let real_user = Http::get_user(&ctx.http, user).await;
         let result = if let Ok(user) = real_user {
             user
         } else {
-            return localised_text.error_no_user.clone();
+            error_message(color, ctx, command, &localised_text.error_no_user)
         };
 
         let avatar_url = result.avatar_url().unwrap();
 
         let desc = description(result.clone(), command).await;
 
-        let color = Colour::FABLED_PINK;
-
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        message.embed(|m| {
-                            m.title(format!("{}{}", &localised_text.title, result.name))
-                                // Add a timestamp for the current time
-                                // This also accepts a rfc3339 Timestamp
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                                .thumbnail(avatar_url)
-                                .description(desc)
-                        })
-                    })
-            })
-            .await
-        {
-            println!("{}: {}", &localised_text.error_slash_command, why);
-            return format!("{}: {}", &localised_text.error_slash_command, why);
-        }
+        send_embed(avatar_url, desc, color, ctx, command, localised_text.clone(), result).await
     } else {
-        return "Language not found".to_string();
+        let color = Colour::FABLED_PINK;
+        no_langage_error(color, ctx, command)
     }
-    return "good".to_string();
 }
 
 pub async fn description(user: User, command: &ApplicationCommandInteraction) -> String {
@@ -213,4 +174,29 @@ pub async fn description(user: User, command: &ApplicationCommandInteraction) ->
     }
 
     return desc;
+}
+
+
+pub async fn send_embed(avatar_url: String, desc: String, color: Colour, ctx: &Context, command: &ApplicationCommandInteraction, localised_text: ProfileLocalisedText, result: User) {
+     if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message.embed(|m| {
+                            m.title(format!("{}{}", &localised_text.title, result.name))
+                                // Add a timestamp for the current time
+                                // This also accepts a rfc3339 Timestamp
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                                .thumbnail(avatar_url)
+                                .description(desc)
+                        })
+                    })
+            })
+            .await
+        {
+            println!("{}: {}", &localised_text.error_slash_command, why);
+            error_message_with_why(color, ctx, command, &localised_text.error_slash_command, why).await
+        }
 }
