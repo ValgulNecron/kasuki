@@ -17,7 +17,7 @@
 /// desc
 /// ```
 pub fn trim(desc: String, lenght_diff: i32) -> String {
-    if lenght_diff <= 0 {
+    return if lenght_diff <= 0 {
         let mut desc_trim;
         let trim_length = desc.len() - ((lenght_diff * -1) as usize + 3);
         desc_trim = format!("{}...", &desc[..trim_length]);
@@ -28,20 +28,20 @@ pub fn trim(desc: String, lenght_diff: i32) -> String {
             desc_trim = format!("{}||..", &desc[..trim_length]);
         }
         let trim = desc_trim.clone();
-        return trim;
+        trim
     } else {
-        return desc;
+        desc
     }
 }
 
-pub fn trim_100_webhook(desc: String, lenght_diff: i32) -> String {
-    if lenght_diff <= 0 {
+pub fn trim_webhook(desc: String, lenght_diff: i32) -> String {
+    return if lenght_diff <= 0 {
         let desc_trim;
         let trim_length = desc.len() - (lenght_diff * -1) as usize;
         desc_trim = format!("{}", &desc[..trim_length]);
         let trim = desc_trim.clone();
-        return trim;
+        trim
     } else {
-        return desc;
+        desc
     }
 }
