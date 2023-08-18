@@ -19,7 +19,11 @@ use serenity::utils::Colour;
 use uuid::Uuid;
 
 use crate::cmd::general_module::differed_response::differed_response;
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_message_followup, error_no_base_url_edit, error_no_guild_id, error_no_token_edit, error_parsing_json, no_langage_error};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_making_request_edit, error_message,
+    error_message_edit, error_message_followup, error_no_base_url_edit, error_no_guild_id,
+    error_no_token_edit, error_parsing_json, error_parsing_json_edit, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::ImageLocalisedText;
@@ -36,14 +40,20 @@ pub async fn run(
         None => {
             error_message(color, ctx, command, &"Unable to get argument.".to_string()).await;
             return;
-        },
+        }
     };
     let option = match option.resolved.as_ref() {
         Some(data) => data,
         None => {
-            error_message(color, ctx, command, &"Unable to resolve argument value.".to_string()).await;
+            error_message(
+                color,
+                ctx,
+                command,
+                &"Unable to resolve argument value.".to_string(),
+            )
+            .await;
             return;
-        },
+        }
     };
     if let CommandDataOptionValue::String(description) = option {
         let uuid_name = Uuid::new_v4();
@@ -123,7 +133,15 @@ pub async fn run(
                     let model = match env::var("IMAGE_GENERATION_MODELS") {
                         Ok(data) => data,
                         Err(why) => {
-                            error_message(color, ctx, command, &format!("{}: {}", , why)).await;
+                            error_message_edit(
+                                color,
+                                ctx,
+                                command,
+                                &format!("{}: {}", &localised_text.admin_instance_error, why),
+                                message,
+                            )
+                            .await;
+                            return;
                         }
                     };
                     data = json!({
@@ -155,36 +173,82 @@ pub async fn run(
             let mut headers = HeaderMap::new();
             headers.insert(
                 AUTHORIZATION,
-                HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+                match HeaderValue::from_str(&format!("Bearer {}", api_key)) {
+                    Ok(data) => data,
+                    Err(why) => {
+                        error_message_edit(color, ctx, command, &format!("{}", why), message).await;
+                        return;
+                    }
+                },
             );
             headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
-            let res: Value = client
+            let res: Value = match client
                 .post(api_url)
                 .headers(headers)
                 .json(&data)
                 .send()
                 .await
-                .unwrap()
-                .json()
-                .await
-                .unwrap();
-
-            println!("{}", res);
+            {
+                Ok(data) => match data.json().await {
+                    Ok(data) => data,
+                    Err(why) => {
+                        println!("{}", why);
+                        error_parsing_json_edit(color, ctx, message).await;
+                        return;
+                    }
+                },
+                Err(why) => {
+                    println!("{}", why);
+                    error_making_request_edit(color, ctx, command, message).await;
+                    return;
+                }
+            };
 
             let mut url_string = "";
             if let Some(data) = res.get("data") {
                 if let Some(object) = data.get(0) {
                     if let Some(url) = object.get("url") {
-                        url_string = url.as_str().unwrap();
+                        url_string = match url.as_str() {
+                            Some(url) => url,
+                            None => {
+                                error_message_edit(
+                                    color,
+                                    ctx,
+                                    command,
+                                    &localised_text.no_url,
+                                    message,
+                                )
+                                .await;
+                                return;
+                            }
+                        }
                     }
                 }
             }
 
             let mut real_message = message.clone();
-            let response = reqwest::get(url_string).await.unwrap();
-            let bytes = response.bytes().await.unwrap();
-            fs::write(filename.clone(), &bytes).unwrap();
+            let response = match reqwest::get(url_string).await {
+                Ok(data) => data,
+                Err(why) => {
+                    error_message_edit(color, ctx, command, &why.to_string(), message).await;
+                    return;
+                }
+            };
+            let bytes = match response.bytes().await {
+                Ok(data) => data,
+                Err(why) => {
+                    error_message_edit(color, ctx, command, &why.to_string(), message).await;
+                    return;
+                }
+            };
+            match fs::write(filename.clone(), &bytes) {
+                Ok(_) => {}
+                Err(why) => {
+                    error_message_edit(color, ctx, command, &why.to_string(), message).await;
+                    return;
+                }
+            }
 
             let path = Path::new(filename_str);
 
