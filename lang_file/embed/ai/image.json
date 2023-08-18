@@ -2,22 +2,26 @@
   "En": {
     "title": "Here's your generated image",
     "error_slash_command": "Can't create slash command",
-    "unknown_error": "An unknown error have appeared"
+    "unknown_error": "An unknown error has occurred",
+    "admin_instance_error": "The admin of this instance forgot to specify a model for image generation"
   },
   "Fr": {
     "title": "Voici votre image générée",
-    "error_slash_command": "Impossible de créer la commande slash",
-    "unknown_error": "Une erreur inconnue est apparue"
-  },
-  "Jp": {
-    "title": "こちらは生成された画像です",
-    "error_slash_command": "スラッシュコマンドを作成できません",
-    "unknown_error": "不明なエラーが発生しました"
+    "error_slash_command": "Impossible de créer une commande slash",
+    "unknown_error": "Une erreur inconnue s'est produite",
+    "admin_instance_error": "L'administrateur de cette instance a oublié de spécifier un modèle pour la génération d'images"
   },
   "De": {
     "title": "Hier ist Ihr generiertes Bild",
     "error_slash_command": "Slash-Befehl kann nicht erstellt werden",
-    "unknown_error": "Ein unbekannter Fehler ist aufgetreten"
+    "unknown_error": "Ein unbekannter Fehler ist aufgetreten",
+    "admin_instance_error": "Der Administrator dieser Instanz hat vergessen, ein Modell für die Bildgenerierung anzugeben"
+  },
+  "Jp": {
+    "title": "生成された画像はこちらです",
+    "error_slash_command": "スラッシュコマンドを作成できません",
+    "unknown_error": "不明なエラーが発生しました",
+    "admin_instance_error": "このインスタンスの管理者は画像生成のためのモデルを指定するのを忘れました"
   },
   "cmn": {
     "title": "这是您生成的图像",

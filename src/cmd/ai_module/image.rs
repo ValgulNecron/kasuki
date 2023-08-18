@@ -19,10 +19,7 @@ use serenity::utils::Colour;
 use uuid::Uuid;
 
 use crate::cmd::general_module::differed_response::differed_response;
-use crate::cmd::general_module::error_handling::{
-    error_cant_read_file, error_file_not_found, error_message_followup, error_no_base_url_edit,
-    error_no_guild_id, error_no_token_edit, error_parsing_json, no_langage_error,
-};
+use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_message_followup, error_no_base_url_edit, error_no_guild_id, error_no_token_edit, error_parsing_json, no_langage_error};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::ImageLocalisedText;
@@ -34,12 +31,20 @@ pub async fn run(
 ) {
     let color = Colour::FABLED_PINK;
 
-    let option = options
-        .get(0)
-        .expect("Expected username option")
-        .resolved
-        .as_ref()
-        .expect("Expected username object");
+    let option = match options.get(0) {
+        Some(data) => data,
+        None => {
+            error_message(color, ctx, command, &"Unable to get argument.".to_string()).await;
+            return;
+        },
+    };
+    let option = match option.resolved.as_ref() {
+        Some(data) => data,
+        None => {
+            error_message(color, ctx, command, &"Unable to resolve argument value.".to_string()).await;
+            return;
+        },
+    };
     if let CommandDataOptionValue::String(description) = option {
         let uuid_name = Uuid::new_v4();
         let filename = format!("{}.png", uuid_name);
@@ -115,7 +120,12 @@ pub async fn run(
             if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
                 let is_ok = image_generation_mode.to_lowercase() == "true";
                 if is_ok {
-                    let model = env::var("IMAGE_GENERATION_MODELS").expect("model name");
+                    let model = match env::var("IMAGE_GENERATION_MODELS") {
+                        Ok(data) => data,
+                        Err(why) => {
+                            error_message(color, ctx, command, &format!("{}: {}", , why)).await;
+                        }
+                    };
                     data = json!({
                         "prompt": prompt,
                         "n": 1,
