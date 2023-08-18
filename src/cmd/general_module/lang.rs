@@ -111,12 +111,12 @@ pub async fn run(
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     type RegisterLocaliseLangagesList = HashMap<String, AvailableLang>;
-    let mut file = File::open("lang_file/command_register/general/").expect("Failed to open file");
+    let mut file = File::open("lang_file/available_lang.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
     let langages: RegisterLocaliseLangagesList = serde_json::from_str(&json).unwrap();
     type RegisterLocaliseLangList = HashMap<String, LangRegister>;
-    let mut file = File::open("lang_file/command_register/general/").expect("Failed to open file");
+    let mut file = File::open("lang_file/command_register/general/lang.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
     let langs: RegisterLocaliseLangList = serde_json::from_str(&json).unwrap();
@@ -133,16 +133,16 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
             for (_key, langages) in langages {
                 option.add_string_choice(&langages.lang, &langages.lang);
             }
-            for (_key, lang) in langs {
+            for (_key, lang) in &langs {
                 option
                     .name_localized(&lang.code, &lang.option1)
                     .description_localized(&lang.code, &lang.option1_desc);
             }
             option
         });
-    for (_key, lang) in langs {
+    for (_key, lang) in &langs {
         command
-            .name_localized(&lang.code, lang.option1)
+            .name_localized(&lang.code, &lang.option1)
             .description_localized(&lang.code, &lang.option1_desc);
     }
     command

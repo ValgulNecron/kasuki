@@ -11,26 +11,50 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_character::CharacterWrapper;
+use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_no_guild_id, error_parsing_json, no_langage_error};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::CharacterLocalisedText;
 
-pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> String {
-    let mut file =
-        File::open("lang_file/embed/anilist/character.json").expect("Failed to open file");
-    let mut json = String::new();
-    file.read_to_string(&mut json).expect("Failed to read file");
+pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
+    let color = Colour::FABLED_PINK;
+    let mut file = match File::open("lang_file/embed/anilist/character.json") {
+            Ok(file) => file,
+            Err(_) => {
+                error_file_not_found(color, ctx, command).await;
+                return;
+            }
+        };
+        let mut json = String::new();
+        match file.read_to_string(&mut json) {
+            Ok(_) => {}
+            Err(_) => error_cant_read_file(color, ctx, command).await,
+        }
 
-    let json_data: HashMap<String, CharacterLocalisedText> =
-        serde_json::from_str(&json).expect("Failed to parse JSON");
+        let json_data: HashMap<String, CharacterLocalisedText> = match serde_json::from_str(&json) {
+            Ok(data) => data,
+            Err(_) => {
+                error_parsing_json(color, ctx, command).await;
+                return;
+            }
+        };
 
-    let guild_id = command.guild_id.unwrap().0.to_string().clone();
-    let lang_choice = get_guild_langage(guild_id).await;
+        let guild_id = match command.guild_id {
+            Some(id) => id.0.to_string(),
+            None => {
+                error_no_guild_id(color, ctx, command).await;
+                return;
+            }
+        };
+        let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         let data = match CharacterWrapper::new_character_by_id(156323, localised_text.clone()).await
         {
             Ok(character_wrapper) => character_wrapper,
-            Err(error) => return error,
+            Err(error) => {
+                            error_message(color, ctx, command, &error).await;
+                            return
+                        },
         };
         let color = Colour::FABLED_PINK;
 
@@ -60,9 +84,8 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Stri
             println!("{}: {}", localised_text.error_slash_command, why);
         }
     } else {
-        return "Language not found".to_string();
+        no_langage_error(color, ctx, command).await
     }
-    return "good".to_string();
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

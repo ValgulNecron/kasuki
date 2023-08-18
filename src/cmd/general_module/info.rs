@@ -20,9 +20,10 @@ use crate::cmd::general_module::lang_struct::InfoLocalisedText;
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
 
-    let mut file = match File::open("lang_file/embed/general/profile.json") {
+    let mut file = match File::open("lang_file/embed/general/info.json") {
         Ok(file) => file,
-        Err(_) => {
+        Err(why) => {
+            println!("{}", why);
             error_file_not_found(color, ctx, command).await;
             return;
         }
@@ -35,7 +36,8 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
 
     let json_data: HashMap<String, InfoLocalisedText> = match serde_json::from_str(&json) {
         Ok(data) => data,
-        Err(_) => {
+        Err(why) => {
+            println!("{}", why);
             error_parsing_json(color, ctx, command).await;
             return;
         }

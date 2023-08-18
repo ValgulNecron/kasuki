@@ -13,6 +13,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::get_nsfw_channel::get_nsfw;
 use crate::cmd::anilist_module::struct_media::*;
+use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_no_guild_id, error_parsing_json, no_langage_error};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::MediaLocalisedText;
 
@@ -21,7 +22,8 @@ pub async fn embed(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     search_type: &str,
-) -> String {
+) {
+    let color = Colour::FABLED_PINK;
     let option = options
         .get(0)
         .expect("Expected name option")
@@ -29,15 +31,34 @@ pub async fn embed(
         .as_ref()
         .expect("Expected name object");
     if let CommandDataOptionValue::String(value) = option {
-        let mut file =
-            File::open("lang_file/embed/anilist/media.json").expect("Failed to open file");
+        let mut file = match File::open("lang_file/embed/anilist/media.json") {
+            Ok(file) => file,
+            Err(_) => {
+                error_file_not_found(color, ctx, command).await;
+                return;
+            }
+        };
         let mut json = String::new();
-        file.read_to_string(&mut json).expect("Failed to read file");
+        match file.read_to_string(&mut json) {
+            Ok(_) => {}
+            Err(_) => error_cant_read_file(color, ctx, command).await,
+        }
 
-        let json_data: HashMap<String, MediaLocalisedText> =
-            serde_json::from_str(&json).expect("Failed to parse JSON");
+        let json_data: HashMap<String, MediaLocalisedText> = match serde_json::from_str(&json) {
+            Ok(data) => data,
+            Err(_) => {
+                error_parsing_json(color, ctx, command).await;
+                return;
+            }
+        };
 
-        let guild_id = command.guild_id.unwrap().0.to_string().clone();
+        let guild_id = match command.guild_id {
+            Some(id) => id.0.to_string(),
+            None => {
+                error_no_guild_id(color, ctx, command).await;
+                return;
+            }
+        };
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
@@ -54,7 +75,10 @@ pub async fn embed(
                     .await
                     {
                         Ok(character_wrapper) => character_wrapper,
-                        Err(error) => return error,
+                        Err(error) => {
+                            error_message(color, ctx, command, &error).await;
+                            return
+                        },
                     }
                 } else {
                     data = match MediaWrapper::new_manga_by_id(
@@ -64,7 +88,10 @@ pub async fn embed(
                     .await
                     {
                         Ok(character_wrapper) => character_wrapper,
-                        Err(error) => return error,
+                        Err(error) => {
+                            error_message(color, ctx, command, &error).await;
+                            return
+                        },
                     }
                 }
             } else {
@@ -76,7 +103,10 @@ pub async fn embed(
                     .await
                     {
                         Ok(character_wrapper) => character_wrapper,
-                        Err(error) => return error,
+                        Err(error) => {
+                            error_message(color, ctx, command, &error).await;
+                            return
+                        },
                     }
                 } else {
                     data = match MediaWrapper::new_manga_by_search(
@@ -86,14 +116,18 @@ pub async fn embed(
                     .await
                     {
                         Ok(character_wrapper) => character_wrapper,
-                        Err(error) => return error,
+                        Err(error) => {
+                            error_message(color, ctx, command, &error).await;
+                            return
+                        },
                     }
                 }
             }
 
             let is_nsfw = get_nsfw(command, ctx).await;
             if data.data.media.is_adult && !is_nsfw {
-                return "not an NSFW channel".to_string();
+                error_message(color, ctx, command, &localised_text.error_not_nsfw).await;
+                return;
             }
 
             let banner_image = format!("https://img.anili.st/media/{}", data.data.media.id);
@@ -105,9 +139,6 @@ pub async fn embed(
             let info = data.get_media_info(localised_text.clone());
             let genre = data.get_genres();
             let tag = data.get_tags();
-
-            let color = Colour::FABLED_PINK;
-
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
                     response
@@ -123,7 +154,6 @@ pub async fn embed(
                                     .image(banner_image)
                                     .field("Info", info, false)
                                     .fields(vec![("Genre", genre, true), ("Tag", tag, true)])
-                                    .color(color)
                             })
                         })
                 })
@@ -132,8 +162,7 @@ pub async fn embed(
                 println!("{}: {}", localised_text.error_slash_command, why);
             }
         } else {
-            return "Language not found".to_string();
+            no_langage_error(color, ctx, command).await
         }
     }
-    return "good".to_string();
 }

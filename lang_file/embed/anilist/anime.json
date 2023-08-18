@@ -11,7 +11,7 @@
     "fields_name_1": "Genre",
     "fields_name_2": "Tag",
     "error_slash_command": "Can't create slash command",
-    "error_not_nsfw": "This channel is not an NSFW channel",
+      "error_not_nsfw": "This channel is not an NSFW channel",
     "error_anime_not_found": "Unable to find this anime"
   },
   "Fr": {

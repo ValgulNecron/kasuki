@@ -1,6 +1,14 @@
 {
-  "En": "En",
-  "Fr": "Fr",
-  "Jp": "Jp",
-  "De": "De"
+  "En": {
+    "lang": "En"
+  },
+  "Fr": {
+    "lang": "Fr"
+  },
+  "Jp": {
+    "lang": "Jp"
+  },
+  "De": {
+    "lang": "De"
+  }
 }

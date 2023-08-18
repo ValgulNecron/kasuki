@@ -11,8 +11,10 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_user::*;
+use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_no_guild_id, error_parsing_json, no_langage_error};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::UserLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
@@ -21,14 +23,16 @@ pub async fn run(
     _options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> String {
-    return if let Some(option) = _options.get(0) {
+){
+    let color = Colour::FABLED_PINK;
+    if let Some(option) = _options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::String(user) = resolved {
             let result = embed(_options, ctx, command, &user).await;
             result
         } else {
-            "error".to_string()
+                            error_message(color, ctx, command, &"error".to_string()).await;
+                            return
         }
     } else {
         let database_url = "./data.db";
@@ -72,7 +76,8 @@ pub async fn embed(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     value: &String,
-) -> String {
+) {
+    let color = Colour::FABLED_PINK;
     let data;
     if match value.parse::<i32>() {
         Ok(_) => true,
@@ -80,24 +85,50 @@ pub async fn embed(
     } {
         data = match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
             Ok(user_wrapper) => user_wrapper,
-            Err(error) => return error,
+            Err(error) => {
+                            error_message(color, ctx, command, &error).await;
+                            return
+                        },
         }
     } else {
         data = match UserWrapper::new_user_by_search(value).await {
             Ok(user_wrapper) => user_wrapper,
-            Err(error) => return error,
+            Err(error) => {
+                            error_message(color, ctx, command, &error).await;
+                            return
+                        },
         }
     }
 
-    let mut file = File::open("lang_file/embed/anilist/user.json").expect("Failed to open file");
-    let mut json = String::new();
-    file.read_to_string(&mut json).expect("Failed to read file");
+    let mut file = match File::open("lang_file/embed/anilist/user.json") {
+            Ok(file) => file,
+            Err(_) => {
+                error_file_not_found(color, ctx, command).await;
+                return;
+            }
+        };
+        let mut json = String::new();
+        match file.read_to_string(&mut json) {
+            Ok(_) => {}
+            Err(_) => error_cant_read_file(color, ctx, command).await,
+        }
 
-    let json_data: HashMap<String, UserLocalisedText> =
-        serde_json::from_str(&json).expect("Failed to parse JSON");
+        let json_data: HashMap<String, UserLocalisedText> = match serde_json::from_str(&json) {
+            Ok(data) => data,
+            Err(_) => {
+                error_parsing_json(color, ctx, command).await;
+                return;
+            }
+        };
 
-    let guild_id = command.guild_id.unwrap().0.to_string().clone();
-    let lang_choice = get_guild_langage(guild_id).await;
+        let guild_id = match command.guild_id {
+            Some(id) => id.0.to_string(),
+            None => {
+                error_no_guild_id(color, ctx, command).await;
+                return;
+            }
+        };
+        let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         let user_url = data.get_user_url();
@@ -198,7 +229,6 @@ pub async fn embed(
             println!("{}: {}", localised_text.error_slash_command, why);
         }
     } else {
-        return "Language not found".to_string();
+        no_langage_error(color, ctx, command).await
     }
-    return "good".to_string();
 }

@@ -5,14 +5,16 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
+use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::*;
+use crate::cmd::general_module::error_handling::error_not_implemented;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> String {
+) {
     // Get the content of the first option.
     let option = options
         .get(1)
@@ -23,18 +25,20 @@ pub async fn run(
     // Check if the option variable contain the correct value.
     if let CommandDataOptionValue::String(search_type) = option {
         let search_types = search_type.as_ref();
-        let content = match search_types {
+        match search_types {
             "anime" => anime::run(&command.data.options, &ctx, &command).await,
             "character" => character::run(&command.data.options, &ctx, &command).await,
             "ln" => ln::run(&command.data.options, &ctx, &command).await,
             "manga" => manga::run(&command.data.options, &ctx, &command).await,
             "staff" => staff::run(&command.data.options, &ctx, &command).await,
             "user" => user::run(&command.data.options, &ctx, &command).await,
-            _ => "not implemented :(".to_string(),
+            "studio" => studio::run(&command.data.options, &ctx, &command).await,
+            _ => {
+                let color = Colour::FABLED_PINK;
+                error_not_implemented(color, ctx, command).await
+            },
         };
-        return content;
     }
-    return "good".to_string();
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -59,6 +63,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .add_string_choice("manga", "manga")
                 .add_string_choice("staff", "staff")
                 .add_string_choice("user", "user")
+                .add_string_choice("studio", "studio")
                 .required(true)
         })
 }

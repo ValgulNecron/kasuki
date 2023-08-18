@@ -13,8 +13,8 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> String {
-    return embed(options, ctx, command, "NOVEL").await;
+) {
+    embed(options, ctx, command, "NOVEL").await;
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

@@ -105,6 +105,7 @@ pub struct MediaLocalisedText {
     pub desc_title: String,
     pub error_slash_command: String,
     pub error_no_media: String,
+    pub error_not_nsfw: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -228,6 +229,7 @@ pub struct ErrorLocalisedText {
     pub forgot_module: String,
     pub no_token: String,
     pub no_base_url: String,
+    pub not_implemented: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
