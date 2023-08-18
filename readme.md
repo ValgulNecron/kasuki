@@ -1,5 +1,3 @@
-# /!\ Please use the "master" branch this one does not compile atm /!\
-
 # TODO
 
 ### BOT
@@ -18,10 +16,11 @@
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
       size — Done.
     - [ ] Better error handling. Different error messages, type and replies everytime not in certain condition. —
-      working on it
+      working on it. Almost done
     - [ ] Add more tests.
-    - [ ] Localisation for response — Done except for module activation and some other "minor" stuff If you found any
-      stuff not translated please open an issue on github or come to my discord
+    - [ ] Localisation for response — Done except for module activation and some other "minor" stuff If you find any
+      stuff not translated, please open an issue on GitHub or come to my discord.
+      Should be done will need to check
     - [ ] Localisation for command — Working on it.
 
 - Anime submodule:
