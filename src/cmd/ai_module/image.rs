@@ -20,8 +20,8 @@ use uuid::Uuid;
 
 use crate::cmd::general_module::differed_response::differed_response;
 use crate::cmd::general_module::error_handling::{
-    error_cant_read_file, error_file_not_found, error_message, error_no_base_url,
-    error_no_guild_id, error_no_token, error_parsing_json, no_langage_error,
+    error_cant_read_file, error_file_not_found, error_message_followup, error_no_base_url_edit,
+    error_no_guild_id, error_no_token_edit, error_parsing_json, no_langage_error,
 };
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
@@ -83,11 +83,13 @@ pub async fn run(
                     message = message_option;
                 }
                 Ok(None) => {
-                    error_message(color, ctx, command, &localised_text.unknown_error).await;
+                    error_message_followup(color, ctx, command, &localised_text.unknown_error)
+                        .await;
                     return;
                 }
                 Err(error) => {
                     println!("Error: {}", error);
+                    return;
                 }
             }
 
@@ -97,15 +99,15 @@ pub async fn run(
             let prompt = description;
             let api_key = match env::var("AI_API_TOKEN") {
                 Ok(x) => x,
-                Err(x) => {
-                    error_no_token(color, ctx, command).await;
+                Err(_) => {
+                    error_no_token_edit(color, ctx, command, message).await;
                     return;
                 }
             };
             let api_base_url = match env::var("AI_API_BASE_URL") {
                 Ok(x) => x,
-                Err(x) => {
-                    error_no_base_url(color, ctx, command).await;
+                Err(_) => {
+                    error_no_base_url_edit(color, ctx, command, message).await;
                     return;
                 }
             };

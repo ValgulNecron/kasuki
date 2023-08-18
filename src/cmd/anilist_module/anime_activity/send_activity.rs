@@ -65,7 +65,7 @@ pub async fn send_activity() {
         .await
         .unwrap();
     for row in rows {
-        if Utc::now().timestamp().to_string() != row.timestamp.unwrap() {
+        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap() {
         } else {
             let row2 = row.clone();
             let mut file = File::open("lang_file/embed/anilist/send_activity.json")

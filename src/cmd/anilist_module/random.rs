@@ -51,11 +51,7 @@ pub async fn run(
         .expect("Expected username object");
 
     if let CommandDataOptionValue::String(random_type) = option {
-        let result_diff = differed_response(ctx, command).await;
-
-        if result_diff != "good".as_ref() {
-            return result_diff;
-        }
+        differed_response(ctx, command).await;
 
         let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as(
             "SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?",

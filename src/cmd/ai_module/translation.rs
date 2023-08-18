@@ -16,10 +16,15 @@ use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
+use serenity::utils::Colour;
 use uuid::Uuid;
 
 use crate::cmd::ai_module::translation_embed::translation_embed;
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_message, error_message_edit,
+    error_message_followup, error_no_guild_id, error_parsing_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::TranslationLocalisedText;
@@ -28,7 +33,9 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> String {
+) {
+    let color = Colour::FABLED_PINK;
+
     let mut lang: String = "en".to_string();
     let attachement_option;
     if options.get(0).expect("Expected attachement option").name == "video" {
@@ -59,15 +66,35 @@ pub async fn run(
     }
 
     if let CommandDataOptionValue::Attachment(attachement) = attachement_option {
-        let mut file =
-            File::open("lang_file/embed/ai/transcript.json").expect("Failed to open file");
+        let mut file = match File::open("lang_file/embed/ai/translation.json.json") {
+            Ok(file) => file,
+            Err(_) => {
+                error_file_not_found(color, ctx, command).await;
+                return;
+            }
+        };
         let mut json = String::new();
-        file.read_to_string(&mut json).expect("Failed to read file");
+        match file.read_to_string(&mut json) {
+            Ok(_) => {}
+            Err(_) => error_cant_read_file(color, ctx, command).await,
+        }
 
-        let json_data: HashMap<String, TranslationLocalisedText> =
-            serde_json::from_str(&json).expect("Failed to parse JSON");
+        let json_data: HashMap<String, TranslationLocalisedText> = match serde_json::from_str(&json)
+        {
+            Ok(data) => data,
+            Err(_) => {
+                error_parsing_json(color, ctx, command).await;
+                return;
+            }
+        };
 
-        let guild_id = command.guild_id.unwrap().0.to_string().clone();
+        let guild_id = match command.guild_id {
+            Some(id) => id.0.to_string(),
+            None => {
+                error_no_guild_id(color, ctx, command).await;
+                return;
+            }
+        };
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
@@ -75,7 +102,8 @@ pub async fn run(
             let content = attachement.proxy_url.clone();
 
             if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-                return localised_text.error_file_type.clone();
+                error_message(color, ctx, command, &localised_text.error_file_type).await;
+                return;
             }
 
             let allowed_extensions = vec!["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
@@ -91,8 +119,9 @@ pub async fn run(
                 .expect("No file extension found")
                 .to_lowercase();
 
-            if !allowed_extensions.contains(&&**&file_extension) {
-                return localised_text.error_file_extension.clone();
+            if !allowed_extensions.contains(&&*file_extension) {
+                error_message(color, ctx, command, &localised_text.error_file_extension).await;
+                return;
             }
 
             let response = reqwest::get(content).await.expect("download");
@@ -105,12 +134,7 @@ pub async fn run(
             copy(&mut resp_byte.as_ref(), &mut file).unwrap();
             let file_to_delete = fname.clone();
 
-            let result_diff =
-                differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
-
-            if result_diff != "good".as_ref() {
-                return result_diff;
-            }
+            differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
             let message: Message;
 
@@ -119,11 +143,13 @@ pub async fn run(
                     message = message_option;
                 }
                 Ok(None) => {
-                    return localised_text.unknown_error.clone();
+                    error_message_followup(color, ctx, command, &localised_text.unknown_error)
+                        .await;
+                    return;
                 }
                 Err(error) => {
                     println!("Error: {}", error);
-                    return localised_text.error_slash_command.clone();
+                    return;
                 }
             }
 
@@ -161,7 +187,15 @@ pub async fn run(
                 Err(err) => {
                     let _ = fs::remove_file(&file_to_delete);
                     eprintln!("Error sending the request: {}", err);
-                    return format!("{}: {}", localised_text.error_request, err);
+                    error_message_edit(
+                        color,
+                        ctx,
+                        command,
+                        &format!("{}: {}", &localised_text.error_request, err),
+                        message,
+                    )
+                    .await;
+                    return;
                 }
             };
             println!("{:?}", response);
@@ -172,25 +206,32 @@ pub async fn run(
                 Err(err) => {
                     let _ = fs::remove_file(&file_to_delete);
                     eprintln!("Error parsing response as JSON: {}", err);
-                    return format!("{}: {}", localised_text.error_request, err);
+                    error_message_edit(
+                        color,
+                        ctx,
+                        command,
+                        &format!("{}: {}", localised_text.error_request, err),
+                        message,
+                    )
+                    .await;
+                    return;
                 }
             };
 
             let text = res["text"].as_str().unwrap_or("");
             let _ = fs::remove_file(&file_to_delete);
             if lang != "en" {
-                let text = translation(lang, text.to_string()).await;
-                let result = translation_embed(ctx, command, text, message).await;
-                return result;
+                let text = translation(lang, text.to_string(), api_key, api_base_url).await;
+                translation_embed(ctx, text, message, localised_text.clone()).await;
+                return;
             } else {
-                let result = translation_embed(ctx, command, text.to_string(), message).await;
-                return result;
+                translation_embed(ctx, text.to_string(), message, localised_text.clone()).await;
+                return;
             }
         } else {
-            return "Language not found".to_string();
+            no_langage_error(color, ctx, command).await
         }
     }
-    return "good".to_string();
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -213,7 +254,12 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         })
 }
 
-pub async fn translation(lang: String, text: String) -> String {
+pub async fn translation(
+    lang: String,
+    text: String,
+    api_key: String,
+    api_base_url: String,
+) -> String {
     let prompt_gpt = format!("
             i will give you a text and a ISO-639-1 code and you will translate it in the corresponding langage
             iso code: {}
@@ -221,8 +267,6 @@ pub async fn translation(lang: String, text: String) -> String {
             {}
             ", lang, text);
 
-    let api_key = env::var("AI_API_TOKEN").expect("token");
-    let api_base_url = env::var("AI_API_BASE_URL").expect("token");
     let api_url = format!("{}chat/completions", api_base_url);
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();

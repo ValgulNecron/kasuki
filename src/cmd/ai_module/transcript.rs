@@ -21,6 +21,11 @@ use serenity::utils::Colour;
 use uuid::Uuid;
 
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_message, error_message_edit,
+    error_message_followup, error_no_base_url_edit, error_no_guild_id, error_no_token_edit,
+    error_parsing_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::TranscriptLocalisedText;
@@ -29,7 +34,8 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) -> String {
+) {
+    let color = Colour::FABLED_PINK;
     let attachement_option;
     if options.get(0).expect("Expected attachement option").name == "video" {
         attachement_option = options
@@ -74,15 +80,35 @@ pub async fn run(
         }
     }
     if let CommandDataOptionValue::Attachment(attachement) = attachement_option {
-        let mut file =
-            File::open("lang_file/embed/ai/transcript.json").expect("Failed to open file");
+        let mut file = match File::open("lang_file/embed/ai/transcript.json") {
+            Ok(file) => file,
+            Err(_) => {
+                error_file_not_found(color, ctx, command).await;
+                return;
+            }
+        };
         let mut json = String::new();
-        file.read_to_string(&mut json).expect("Failed to read file");
+        match file.read_to_string(&mut json) {
+            Ok(_) => {}
+            Err(_) => error_cant_read_file(color, ctx, command).await,
+        }
 
-        let json_data: HashMap<String, TranscriptLocalisedText> =
-            serde_json::from_str(&json).expect("Failed to parse JSON");
+        let json_data: HashMap<String, TranscriptLocalisedText> = match serde_json::from_str(&json)
+        {
+            Ok(data) => data,
+            Err(_) => {
+                error_parsing_json(color, ctx, command).await;
+                return;
+            }
+        };
 
-        let guild_id = command.guild_id.unwrap().0.to_string().clone();
+        let guild_id = match command.guild_id {
+            Some(id) => id.0.to_string(),
+            None => {
+                error_no_guild_id(color, ctx, command).await;
+                return;
+            }
+        };
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
@@ -90,7 +116,8 @@ pub async fn run(
             let content = attachement.proxy_url.clone();
 
             if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-                return localised_text.error_file_type.clone();
+                error_message(color, ctx, command, &localised_text.error_file_type).await;
+                return;
             }
 
             let allowed_extensions = vec!["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
@@ -107,7 +134,10 @@ pub async fn run(
                 .to_lowercase();
 
             if !allowed_extensions.contains(&&**&file_extension) {
-                return localised_text.error_file_extension.clone();
+                if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
+                    error_message(color, ctx, command, &localised_text.error_file_extension).await;
+                    return;
+                }
             }
 
             let response = reqwest::get(content).await.expect("download");
@@ -117,15 +147,9 @@ pub async fn run(
             let mut file = File::create(fname.clone()).expect("file name");
             let resp_byte = response.bytes().await.unwrap();
             copy(&mut resp_byte.as_ref(), &mut file).unwrap();
-            let color = Colour::FABLED_PINK;
             let file_to_delete = fname.clone();
 
-            let result_diff =
-                differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
-
-            if result_diff != "good".as_ref() {
-                return result_diff;
-            }
+            differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
             let message: Message;
 
@@ -134,19 +158,33 @@ pub async fn run(
                     message = message_option;
                 }
                 Ok(None) => {
-                    return localised_text.unknown_error.clone();
+                    error_message_followup(color, ctx, command, &localised_text.unknown_error)
+                        .await;
+                    return;
                 }
                 Err(error) => {
                     println!("Error: {}", error);
-                    return localised_text.error_slash_command.clone();
+                    return;
                 }
             }
 
             let my_path = "./.env";
             let path = Path::new(my_path);
             let _ = dotenv::from_path(path);
-            let api_key = env::var("AI_API_TOKEN").expect("token");
-            let api_base_url = env::var("AI_API_BASE_URL").expect("base url");
+            let api_key = match env::var("AI_API_TOKEN") {
+                Ok(x) => x,
+                Err(_) => {
+                    error_no_token_edit(color, ctx, command, message.clone()).await;
+                    return;
+                }
+            };
+            let api_base_url = match env::var("AI_API_BASE_URL") {
+                Ok(x) => x,
+                Err(_) => {
+                    error_no_base_url_edit(color, ctx, command, message.clone()).await;
+                    return;
+                }
+            };
             let api_url = format!("{}audio/transcriptions", api_base_url);
             let client = reqwest::Client::new();
             let mut headers = HeaderMap::new();
@@ -179,7 +217,15 @@ pub async fn run(
                 Err(err) => {
                     eprintln!("Error sending the request: {}", err);
                     let _ = fs::remove_file(&file_to_delete);
-                    return format!("{}: {}", &localised_text.error_request, err);
+                    error_message_edit(
+                        color,
+                        ctx,
+                        command,
+                        &format!("{}: {}", &localised_text.error_request, err),
+                        message.clone(),
+                    )
+                    .await;
+                    return;
                 }
             };
             let res_result: Result<Value, reqwest::Error> = response.json().await;
@@ -189,7 +235,15 @@ pub async fn run(
                 Err(err) => {
                     eprintln!("Error parsing response as JSON: {}", err);
                     let _ = fs::remove_file(&file_to_delete);
-                    return format!("{}: {}", &localised_text.error_request, err);
+                    error_message_edit(
+                        color,
+                        ctx,
+                        command,
+                        &format!("{}: {}", &localised_text.error_request, err),
+                        message.clone(),
+                    )
+                    .await;
+                    return;
                 }
             };
 
@@ -210,14 +264,12 @@ pub async fn run(
                 .await
             {
                 println!("Cannot respond to slash command: {}", why);
-                return format!("{}: {}", &localised_text.error_slash_command, why);
             }
             let _ = fs::remove_file(&file_to_delete);
         } else {
-            return "Language not found".to_string();
+            no_langage_error(color, ctx, command).await;
         }
     }
-    return "good".to_string();
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

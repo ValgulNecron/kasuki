@@ -82,12 +82,13 @@ There is also a secondary module that will be added when I have ideas or want to
 
 ### I know how to code in rust.
 
-Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do 
+Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
 something else, just do it and open a pr afterward.
 
 ### I don't know how to code in rust but still want to contribute.
 
-1. You can add new langage by adding a translation in the file located in lang_file and adding it to lang_file/available_lang.json
+1. You can add new langage by adding a translation in the file located in lang_file and adding it to
+   lang_file/available_lang.json
 2. Contribute to this guide by making it clearer on how to use/ how it works.
 3. Or by opening an issue with enhancement or new feature you want to see.
 

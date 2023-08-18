@@ -28,11 +28,8 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> String {
-    let result_diff = differed_response(ctx, command).await;
+    differed_response(ctx, command).await;
 
-    if result_diff != "good".as_ref() {
-        return result_diff;
-    }
     let database_url = "./data.db";
     let pool = get_pool(database_url).await;
 
