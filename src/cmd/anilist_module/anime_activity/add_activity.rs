@@ -101,7 +101,7 @@ pub async fn run(
                 return;
             }
         };
-        let lang_choice = get_guild_langage(guild_id).await;
+        let lang_choice = get_guild_langage(guild_id.clone()).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         let data;
