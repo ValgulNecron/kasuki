@@ -879,6 +879,6 @@ pub async fn error_making_request_edit(
             println!("Cannot respond to slash command: {}", why);
         }
     } else {
-        no_langage_error_edit(color, ctx, message)
+        no_langage_error_edit(color, ctx, message).await
     }
 }
