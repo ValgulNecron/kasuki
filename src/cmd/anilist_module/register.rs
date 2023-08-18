@@ -12,8 +12,11 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_no_guild_id, error_parsing_json, no_langage_error};
 
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_no_guild_id, error_parsing_json,
+    no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::RegisterLocalisedText;
 use crate::cmd::general_module::pool::get_pool;

@@ -17,7 +17,10 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_autocomplete_user::UserPageWrapper;
 use crate::cmd::anilist_module::struct_user::*;
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_no_guild_id, error_parsing_json, no_langage_error};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_message, error_no_guild_id,
+    error_parsing_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::CompareLocalisedText;
 
@@ -114,17 +117,17 @@ pub async fn embed(
             data = match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                            error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                    error_message(color, ctx, command, &error).await;
+                    return;
+                }
             }
         } else {
             data = match UserWrapper::new_user_by_search(value).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                            error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                    error_message(color, ctx, command, &error).await;
+                    return;
+                }
             }
         }
 
@@ -136,17 +139,17 @@ pub async fn embed(
             data2 = match UserWrapper::new_user_by_id(value2.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                            error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                    error_message(color, ctx, command, &error).await;
+                    return;
+                }
             }
         } else {
             data2 = match UserWrapper::new_user_by_search(value2).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                            error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                    error_message(color, ctx, command, &error).await;
+                    return;
+                }
             }
         }
 

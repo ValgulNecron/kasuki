@@ -17,7 +17,10 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_autocomplete_studio::StudioPageWrapper;
 use crate::cmd::anilist_module::struct_studio::StudioWrapper;
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_no_guild_id, error_parsing_json, no_langage_error};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_message, error_no_guild_id,
+    error_parsing_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::StudioLocalisedText;
 
@@ -42,17 +45,17 @@ pub async fn run(
             data = match StudioWrapper::new_studio_by_id(value.parse().unwrap()).await {
                 Ok(studio_wrapper) => studio_wrapper,
                 Err(error) => {
-                            error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                    error_message(color, ctx, command, &error).await;
+                    return;
+                }
             }
         } else {
             data = match StudioWrapper::new_studio_by_search(value).await {
                 Ok(studio_wrapper) => studio_wrapper,
                 Err(error) => {
-                            error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                    error_message(color, ctx, command, &error).await;
+                    return;
+                }
             }
         }
         let mut file = match File::open("lang_file/embed/anilist/studio.json.json") {

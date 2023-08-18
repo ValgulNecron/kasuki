@@ -71,7 +71,12 @@ pub async fn error_message(
     }
 }
 
-pub async fn error_followup_message(color: Colour, ctx: &Context, command: &ApplicationCommandInteraction, error_message: &String) {
+pub async fn error_followup_message(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    error_message: &String,
+) {
     let mut file = match File::open("lang_file/embed/error.json") {
         Ok(file) => file,
         Err(_) => {
@@ -104,13 +109,13 @@ pub async fn error_followup_message(color: Colour, ctx: &Context, command: &Appl
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         if let Err(why) = command
             .create_followup_message(&ctx.http, |message| {
-                        message.embed(|m| {
-                            m.title(&localised_text.error_title)
-                                .description(format!("{}", error_message))
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        })
-                    })
+                message.embed(|m| {
+                    m.title(&localised_text.error_title)
+                        .description(format!("{}", error_message))
+                        .timestamp(Timestamp::now())
+                        .color(color)
+                })
+            })
             .await
         {
             println!("Cannot respond to slash command: {}", why);
@@ -767,9 +772,11 @@ pub async fn error_file_not_found_edit(color: Colour, ctx: &Context, mut message
     }
 }
 
-pub async fn error_not_implemented(color: Colour,
+pub async fn error_not_implemented(
+    color: Colour,
     ctx: &Context,
-    command: &ApplicationCommandInteraction,) {
+    command: &ApplicationCommandInteraction,
+) {
     let mut file = match File::open("lang_file/embed/error.json") {
         Ok(file) => file,
         Err(_) => {
@@ -819,5 +826,59 @@ pub async fn error_not_implemented(color: Colour,
         }
     } else {
         no_langage_error(color, ctx, command).await
+    }
+}
+
+pub async fn error_making_request_edit(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    mut message: Message,
+) {
+    let mut file = match File::open("lang_file/embed/error.json") {
+        Ok(file) => file,
+        Err(_) => {
+            error_file_not_found(color, ctx, command).await;
+            return;
+        }
+    };
+    let mut json = String::new();
+    match file.read_to_string(&mut json) {
+        Ok(_) => {}
+        Err(_) => error_cant_read_file(color, ctx, command).await,
+    }
+
+    let json_data: HashMap<String, ErrorLocalisedText> = match serde_json::from_str(&json) {
+        Ok(data) => data,
+        Err(_) => {
+            error_parsing_json(color, ctx, command).await;
+            return;
+        }
+    };
+
+    let guild_id = match command.guild_id {
+        Some(id) => id.0.to_string(),
+        None => {
+            error_no_guild_id(color, ctx, command).await;
+            return;
+        }
+    };
+    let lang_choice = get_guild_langage(guild_id).await;
+    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+        if let Err(why) = message
+            .edit(&ctx.http, |message| {
+                message.embed(|m| {
+                    m.title(&localised_text.error_title)
+                        .description(&localised_text.error_request)
+                        .timestamp(Timestamp::now())
+                        .color(color)
+                })
+            })
+            .await
+        {
+            println!("Cannot respond to slash command: {}", why);
+        }
+    } else {
+        no_langage_error_edit(color, ctx, message)
     }
 }

@@ -18,7 +18,10 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::cmd::general_module::differed_response::differed_response;
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_followup_message, error_no_guild_id, error_parsing_json};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_followup_message, error_no_guild_id,
+    error_parsing_json,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::AddActivityLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
@@ -29,7 +32,7 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-        let color = Colour::FABLED_PINK;
+    let color = Colour::FABLED_PINK;
 
     differed_response(ctx, command).await;
 
@@ -60,8 +63,9 @@ pub async fn run(
             if let CommandDataOptionValue::String(value_option) = resolved {
                 value = value_option.clone()
             } else {
-                error_followup_message(color, ctx, command, &"please specify an anime".to_string()).await;
-                return ;
+                error_followup_message(color, ctx, command, &"please specify an anime".to_string())
+                    .await;
+                return;
             }
         }
         if option.name == "delays" {
@@ -74,34 +78,34 @@ pub async fn run(
         }
     }
     let mut file = match File::open("lang_file/embed/anilist/add_activity.json") {
-            Ok(file) => file,
-            Err(_) => {
-                error_file_not_found(color, ctx, command).await;
-                return;
-            }
-        };
-        let mut json = String::new();
-        match file.read_to_string(&mut json) {
-            Ok(_) => {}
-            Err(_) => error_cant_read_file(color, ctx, command).await,
+        Ok(file) => file,
+        Err(_) => {
+            error_file_not_found(color, ctx, command).await;
+            return;
         }
+    };
+    let mut json = String::new();
+    match file.read_to_string(&mut json) {
+        Ok(_) => {}
+        Err(_) => error_cant_read_file(color, ctx, command).await,
+    }
 
-        let json_data: HashMap<String, AddActivityLocalisedText> = match serde_json::from_str(&json) {
-            Ok(data) => data,
-            Err(_) => {
-                error_parsing_json(color, ctx, command).await;
-                return;
-            }
-        };
+    let json_data: HashMap<String, AddActivityLocalisedText> = match serde_json::from_str(&json) {
+        Ok(data) => data,
+        Err(_) => {
+            error_parsing_json(color, ctx, command).await;
+            return;
+        }
+    };
 
-        let guild_id = match command.guild_id {
-            Some(id) => id.0.to_string(),
-            None => {
-                error_no_guild_id(color, ctx, command).await;
-                return;
-            }
-        };
-        let lang_choice = get_guild_langage(guild_id.clone()).await;
+    let guild_id = match command.guild_id {
+        Some(id) => id.0.to_string(),
+        None => {
+            error_no_guild_id(color, ctx, command).await;
+            return;
+        }
+    };
+    let lang_choice = get_guild_langage(guild_id.clone()).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         let data;
@@ -116,10 +120,16 @@ pub async fn run(
             .await
             {
                 Ok(minimal_anime) => minimal_anime,
-                Err(error) =>  {
-                error_followup_message(color, ctx, command, &format!("please specify an anime: {}", error)).await;
-                return ;
-            }
+                Err(error) => {
+                    error_followup_message(
+                        color,
+                        ctx,
+                        command,
+                        &format!("please specify an anime: {}", error),
+                    )
+                    .await;
+                    return;
+                }
             }
         } else {
             data = match MinimalAnimeWrapper::new_minimal_anime_by_search(
@@ -130,9 +140,15 @@ pub async fn run(
             {
                 Ok(minimal_anime) => minimal_anime,
                 Err(error) => {
-                error_followup_message(color, ctx, command, &format!("please specify an anime: {}", error)).await;
-                return ;
-            }
+                    error_followup_message(
+                        color,
+                        ctx,
+                        command,
+                        &format!("please specify an anime: {}", error),
+                    )
+                    .await;
+                    return;
+                }
             }
         }
         let anime_id = data.get_id();

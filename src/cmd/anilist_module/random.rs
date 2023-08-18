@@ -19,7 +19,9 @@ use crate::cmd::anilist_module::struct_random::*;
 use crate::cmd::anilist_module::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::cmd::anilist_module::struct_site_statistic_manga::SiteStatisticsMangaWrapper;
 use crate::cmd::general_module::differed_response::differed_response;
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_no_guild_id, error_parsing_json};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_no_guild_id, error_parsing_json,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::RandomLocalisedText;
 use crate::cmd::general_module::pool::get_pool;

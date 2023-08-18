@@ -5,7 +5,9 @@
     "forgot_module": "You need to specify the module",
     "no_token": "No token specified",
     "no_base_url": "Please specify a base URL",
-    "not_implemented": "This is not implemented yet"
+    "not_implemented": "This is not implemented yet",
+    "error_request": "Failed to make the request to the remote server",
+    "no_url": "There was no url in the response from the api"
   },
   "Fr": {
     "error_title": "Erreur",
@@ -13,7 +15,8 @@
     "forgot_module": "Vous devez spécifier le module",
     "no_token": "Aucun jeton spécifié",
     "no_base_url": "Veuillez spécifier une URL de base",
-    "not_implemented": "Cela n'est pas encore implémenté"
+    "not_implemented": "Cela n'est pas encore implémenté",
+    "error_request": "Échec de la requête vers le serveur distant"
   },
   "De": {
     "error_title": "Fehler",
@@ -21,7 +24,8 @@
     "forgot_module": "Sie müssen das Modul angeben",
     "no_token": "Kein Token angegeben",
     "no_base_url": "Bitte geben Sie eine Basis-URL an",
-    "not_implemented": "Dies ist noch nicht implementiert"
+    "not_implemented": "Dies ist noch nicht implementiert",
+    "error_request": "Anfrage an den Remote-Server fehlgeschlagen"
   },
   "Jp": {
     "error_title": "エラー",
@@ -29,6 +33,7 @@
     "forgot_module": "モジュールを指定する必要があります",
     "no_token": "トークンが指定されていません",
     "no_base_url": "ベースURLを指定してください",
-    "not_implemented": "これはまだ実装されていません"
+    "not_implemented": "これはまだ実装されていません",
+    "error_request": "リモートサーバーへのリクエストに失敗しました"
   }
 }

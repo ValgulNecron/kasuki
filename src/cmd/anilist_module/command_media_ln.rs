@@ -13,7 +13,10 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::get_nsfw_channel::get_nsfw;
 use crate::cmd::anilist_module::struct_media::*;
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_no_guild_id, error_parsing_json, no_langage_error};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_message, error_no_guild_id,
+    error_parsing_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::MediaLocalisedText;
 
@@ -77,8 +80,8 @@ pub async fn embed(
                         Ok(character_wrapper) => character_wrapper,
                         Err(error) => {
                             error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                            return;
+                        }
                     }
                 } else {
                     data = match MediaWrapper::new_manga_by_id(
@@ -90,8 +93,8 @@ pub async fn embed(
                         Ok(character_wrapper) => character_wrapper,
                         Err(error) => {
                             error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                            return;
+                        }
                     }
                 }
             } else {
@@ -105,8 +108,8 @@ pub async fn embed(
                         Ok(character_wrapper) => character_wrapper,
                         Err(error) => {
                             error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                            return;
+                        }
                     }
                 } else {
                     data = match MediaWrapper::new_manga_by_search(
@@ -118,8 +121,8 @@ pub async fn embed(
                         Ok(character_wrapper) => character_wrapper,
                         Err(error) => {
                             error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                            return;
+                        }
                     }
                 }
             }

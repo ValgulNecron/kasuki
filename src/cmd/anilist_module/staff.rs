@@ -17,7 +17,10 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_autocomplete_staff::StaffPageWrapper;
 use crate::cmd::anilist_module::struct_staff::*;
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_no_guild_id, error_parsing_json, no_langage_error};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_message, error_no_guild_id,
+    error_parsing_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::StaffLocalisedText;
 
@@ -26,7 +29,7 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-        let color = Colour::FABLED_PINK;
+    let color = Colour::FABLED_PINK;
 
     let option = options
         .get(0)
@@ -43,17 +46,17 @@ pub async fn run(
             data = match StaffWrapper::new_staff_by_id(value.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                            error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                    error_message(color, ctx, command, &error).await;
+                    return;
+                }
             }
         } else {
             data = match StaffWrapper::new_staff_by_search(value).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                            error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                    error_message(color, ctx, command, &error).await;
+                    return;
+                }
             }
         }
 
@@ -127,7 +130,7 @@ pub async fn run(
             no_langage_error(color, ctx, command).await;
         }
     }
-    }
+}
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     command

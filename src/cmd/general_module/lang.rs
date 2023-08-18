@@ -116,7 +116,8 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     file.read_to_string(&mut json).expect("Failed to read file");
     let langages: RegisterLocaliseLangagesList = serde_json::from_str(&json).unwrap();
     type RegisterLocaliseLangList = HashMap<String, LangRegister>;
-    let mut file = File::open("lang_file/command_register/general/lang.json").expect("Failed to open file");
+    let mut file =
+        File::open("lang_file/command_register/general/lang.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
     let langs: RegisterLocaliseLangList = serde_json::from_str(&json).unwrap();

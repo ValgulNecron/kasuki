@@ -15,7 +15,10 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_level::LevelSystem;
 use crate::cmd::anilist_module::struct_user::*;
-use crate::cmd::general_module::error_handling::{error_cant_read_file, error_file_not_found, error_message, error_no_guild_id, error_parsing_json, no_langage_error};
+use crate::cmd::general_module::error_handling::{
+    error_cant_read_file, error_file_not_found, error_message, error_no_guild_id,
+    error_parsing_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::LevelLocalisedText;
 
@@ -71,17 +74,17 @@ pub async fn run(
                 data = match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
                     Ok(user_wrapper) => user_wrapper,
                     Err(error) => {
-                            error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                        error_message(color, ctx, command, &error).await;
+                        return;
+                    }
                 }
             } else {
                 data = match UserWrapper::new_user_by_search(value).await {
                     Ok(user_wrapper) => user_wrapper,
                     Err(error) => {
-                            error_message(color, ctx, command, &error).await;
-                            return
-                        },
+                        error_message(color, ctx, command, &error).await;
+                        return;
+                    }
                 }
             }
             let profile_picture = data.data.user.avatar.large.clone().unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());

@@ -36,7 +36,7 @@ pub async fn run(
             _ => {
                 let color = Colour::FABLED_PINK;
                 error_not_implemented(color, ctx, command).await
-            },
+            }
         };
     }
 }

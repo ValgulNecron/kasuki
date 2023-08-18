@@ -12,7 +12,7 @@
     "desc_title": "Info",
     "error_slash_command": "Can't create slash command",
     "error_no_media": "Unable to find this media",
-        "error_not_nsfw": "This channel is not an NSFW channel"
+    "error_not_nsfw": "This channel is not an NSFW channel"
   },
   "Fr": {
     "full_name": "Nom complet : ",
@@ -27,7 +27,7 @@
     "desc_title": "Info",
     "error_slash_command": "Impossible de créer la commande slash",
     "error_no_media": "Impossible de trouver ce média",
-        "error_not_nsfw": "Ce salon n'est pas un salon NSFW"
+    "error_not_nsfw": "Ce salon n'est pas un salon NSFW"
   },
   "Jp": {
     "full_name": "フルネーム：",
@@ -42,7 +42,7 @@
     "desc_title": "情報",
     "error_slash_command": "スラッシュコマンドを作成できません",
     "error_no_media": "このメディアが見つかりません",
-        "error_not_nsfw": "このチャンネルはNSFWチャンネルではありません"
+    "error_not_nsfw": "このチャンネルはNSFWチャンネルではありません"
   },
   "De": {
     "full_name": "Voller Name: ",
@@ -57,6 +57,6 @@
     "desc_title": "Info",
     "error_slash_command": "Slash-Befehl kann nicht erstellt werden",
     "error_no_media": "Dieses Medium konnte nicht gefunden werden",
-        "error_not_nsfw": "Dieser Kanal ist kein NSFW-Kanal"
+    "error_not_nsfw": "Dieser Kanal ist kein NSFW-Kanal"
   }
 }

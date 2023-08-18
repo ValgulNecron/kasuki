@@ -35,6 +35,7 @@ pub struct ImageLocalisedText {
     pub error_slash_command: String,
     pub unknown_error: String,
     pub admin_instance_error: String,
+    pub no_url: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -231,6 +232,7 @@ pub struct ErrorLocalisedText {
     pub no_token: String,
     pub no_base_url: String,
     pub not_implemented: String,
+    pub error_request: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
