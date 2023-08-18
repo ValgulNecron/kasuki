@@ -13,7 +13,7 @@ mod tests {
     };
     use crate::cmd::general_module::pool::get_pool;
     use crate::cmd::general_module::request::make_request_anilist;
-    use crate::cmd::general_module::trim::trim;
+    use crate::cmd::general_module::trim::{trim, trim_webhook};
 
     #[test]
     fn test_parser_mdash() {
@@ -127,5 +127,31 @@ mod tests {
         let resp = make_request_anilist(json, true).await;
         let good_resp = r#"{"data":{"User":{"id":5399974}}}"#;
         assert_eq!(resp, good_resp)
+    }
+
+    #[test]
+    fn trim_webhook_more() {
+        let desc = "In the serene forest, the rustling leaves and chirping birds created a peaceful melody. The sun gently kissed the earth, painting the sky with hues of orange and pink, as nature embraced its tranquil symphony.".to_string();
+        let lenght_diff = 50 - desc.len() as i32;
+        let result_len;
+        if lenght_diff <= 0 {
+            result_len = trim_webhook(desc, lenght_diff).len()
+        } else {
+            result_len = 0;
+        }
+        assert!(result_len <= 50)
+    }
+
+    #[test]
+    fn trim_webhook_less() {
+        let mut desc = "ifjevfndkcjfuvjdwkcjixf".to_string();
+        let lenght_diff = 50 - desc.len() as i32;
+        let result_len;
+        if lenght_diff <= 0 {
+            result_len = trim_webhook(desc, lenght_diff).len()
+        } else {
+            result_len = 0;
+        }
+        assert!(result_len < 50)
     }
 }
