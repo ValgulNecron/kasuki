@@ -7,9 +7,9 @@
     "no_base_url": "Please specify a base URL",
     "not_implemented": "This is not implemented yet",
     "error_request": "Failed to make the request to the remote server",
-    "no_url": "There was no url in the response from the api",
-    "error_no_avatar": "This user avatar was not found.",
-    "error_parsing_json":"Error while parsing a json file."
+    "no_url": "There was no URL in the response from the API",
+    "error_no_avatar": "This user's avatar was not found.",
+    "error_parsing_json": "Error while parsing a JSON file."
   },
   "Fr": {
     "error_title": "Erreur",
@@ -18,7 +18,10 @@
     "no_token": "Aucun jeton spécifié",
     "no_base_url": "Veuillez spécifier une URL de base",
     "not_implemented": "Cela n'est pas encore implémenté",
-    "error_request": "Échec de la requête vers le serveur distant"
+    "error_request": "Échec de la requête vers le serveur distant",
+    "no_url": "Aucune URL dans la réponse de l'API",
+    "error_no_avatar": "L'avatar de cet utilisateur n'a pas été trouvé.",
+    "error_parsing_json": "Erreur lors de l'analyse d'un fichier JSON."
   },
   "De": {
     "error_title": "Fehler",
@@ -27,7 +30,10 @@
     "no_token": "Kein Token angegeben",
     "no_base_url": "Bitte geben Sie eine Basis-URL an",
     "not_implemented": "Dies ist noch nicht implementiert",
-    "error_request": "Anfrage an den Remote-Server fehlgeschlagen"
+    "error_request": "Anfrage an den Remote-Server fehlgeschlagen",
+    "no_url": "In der Antwort von der API war keine URL vorhanden",
+    "error_no_avatar": "Der Avatar dieses Benutzers wurde nicht gefunden.",
+    "error_parsing_json": "Fehler beim Analysieren einer JSON-Datei."
   },
   "Jp": {
     "error_title": "エラー",
@@ -36,6 +42,9 @@
     "no_token": "トークンが指定されていません",
     "no_base_url": "ベースURLを指定してください",
     "not_implemented": "これはまだ実装されていません",
-    "error_request": "リモートサーバーへのリクエストに失敗しました"
+    "error_request": "リモートサーバーへのリクエストに失敗しました",
+    "no_url": "APIからの応答にURLがありませんでした",
+    "error_no_avatar": "このユーザーのアバターが見つかりませんでした。",
+    "error_parsing_json": "JSONファイルの解析中にエラーが発生しました。"
   }
 }
