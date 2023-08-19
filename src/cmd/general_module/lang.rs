@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::command::CommandOptionType;
@@ -11,11 +7,12 @@ use serenity::model::application::interaction::application_command::{
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
-use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json, no_langage_error};
+use crate::cmd::error::no_lang_error::error_no_langage_guild_id;
 
-use crate::cmd::general_module::lang_struct::LangLocalisedText;
-use crate::cmd::general_module::lang_struct_register::{AvailableLang, LangRegister};
 use crate::cmd::general_module::pool::get_pool;
+use crate::cmd::lang_struct::available_lang::AvailableLang;
+use crate::cmd::lang_struct::embed::struct_lang_lang::LangLocalisedText;
+use crate::cmd::lang_struct::register::struct_lang_register::LangRegister;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -44,36 +41,17 @@ pub async fn run(
     let color = Colour::FABLED_PINK;
 
     if let CommandDataOptionValue::String(lang) = option {
-        let mut file = match File::open("lang_file/embed/general/lang.json") {
-            Ok(file) => file,
-            Err(_) => {
-                error_langage_file_not_found(color, ctx, command).await;
-                return;
-            }
-        };
-        let mut json = String::new();
-        match file.read_to_string(&mut json) {
-            Ok(_) => {}
-            Err(_) => error_cant_read_langage_file(color, ctx, command).await,
-        }
-
-        let json_data: HashMap<String, LangLocalisedText> = match serde_json::from_str(&json) {
-            Ok(data) => data,
-            Err(_) => {
-                error_parsing_langage_json(color, ctx, command).await;
-                return;
-            }
-        };
-
         let guild_id = match command.guild_id {
-            Some(id) => id.0.to_string(),
-            None => {
-                error_no_langage_guild_id(color, ctx, command).await;
-                return;
+        Some(id) => id.0.to_string(),
+        None => {
+            error_no_langage_guild_id(color, ctx, command).await;
+            return
             }
         };
-
-        if let Some(localised_text) = json_data.get(lang) {
+        let localised_text = match LangLocalisedText::get_ping_localised(color,ctx,command).await {
+            Ok(data) => data,
+            Err(_) => return
+        };
             sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
                 .bind(guild_id)
                 .bind(lang)
@@ -100,24 +78,12 @@ pub async fn run(
             {
                 println!("Cannot respond to slash command: {}", why);
             }
-        } else {
-            no_langage_error(color, ctx, command).await
-        }
     }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    type RegisterLocaliseLangagesList = HashMap<String, AvailableLang>;
-    let mut file = File::open("lang_file/available_lang.json").expect("Failed to open file");
-    let mut json = String::new();
-    file.read_to_string(&mut json).expect("Failed to read file");
-    let langages: RegisterLocaliseLangagesList = serde_json::from_str(&json).unwrap();
-    type RegisterLocaliseLangList = HashMap<String, LangRegister>;
-    let mut file =
-        File::open("lang_file/command_register/general/lang.json").expect("Failed to open file");
-    let mut json = String::new();
-    file.read_to_string(&mut json).expect("Failed to read file");
-    let langs: RegisterLocaliseLangList = serde_json::from_str(&json).unwrap();
+    let langages = AvailableLang::get_available_lang().unwrap();
+    let langs = LangRegister::get_profile_register_localised().unwrap();
     command
         .name("lang")
         .description("Change the lang of the bot response")

@@ -1,0 +1,22 @@
+{
+  "En": {
+    "code": "en-US",
+    "ping": "ping",
+    "desc": "A ping command"
+  },
+  "Fr": {
+    "code": "fr",
+    "ping": "ping",
+    "desc": "Une commande de ping"
+  },
+  "De": {
+    "code": "de",
+    "ping": "ping",
+    "desc": "Ein Ping-Befehl"
+  },
+  "Jp": {
+    "code": "ja",
+    "ping": "ping",
+    "desc": "Pingコマンド"
+  }
+}

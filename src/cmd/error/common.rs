@@ -9,7 +9,7 @@ use serenity::model::prelude::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_langage_file_not_found_edit, error_no_langage_guild_id, error_no_langage_guild_id_edit, error_parsing_langage_json, error_parsing_langage_json_edit, no_langage_error, no_langage_error_edit};
+use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_cant_read_langage_file_edit, error_langage_file_not_found, error_langage_file_not_found_edit, error_no_langage_guild_id, error_no_langage_guild_id_edit, error_parsing_langage_json, error_parsing_langage_json_edit, no_langage_error, no_langage_error_edit};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 
@@ -128,7 +128,7 @@ pub async fn get_localised_langage_edit(color: Colour, ctx: &Context, message: M
     let mut file = match File::open("lang_file/embed/error.json") {
         Ok(file) => file,
         Err(_) => {
-            no_langage_error_edit(color, ctx, message.clone()).await;
+            error_langage_file_not_found_edit(color, ctx, message.clone()).await;
             return Err("not found");
         }
     };
@@ -136,7 +136,7 @@ pub async fn get_localised_langage_edit(color: Colour, ctx: &Context, message: M
     match file.read_to_string(&mut json) {
         Ok(_) => {}
         Err(_) => {
-            error_langage_file_not_found_edit(color, ctx, message.clone()).await;
+            error_cant_read_langage_file_edit(color, ctx, message.clone()).await;
             return Err("not found");
         },
     }

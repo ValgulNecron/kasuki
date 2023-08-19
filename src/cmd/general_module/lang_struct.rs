@@ -15,21 +15,6 @@ pub struct InfoLocalisedText {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct LangLocalisedText {
-    pub title: String,
-    pub description: String,
-    pub error_perm: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct PingLocalisedText {
-    pub title: String,
-    pub description_part_1: String,
-    pub description_part_2: String,
-    pub description_part_3: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ImageLocalisedText {
     pub title: String,
     pub error_slash_command: String,

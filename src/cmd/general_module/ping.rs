@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
 
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::bridge::gateway::ShardId;
@@ -9,11 +6,10 @@ use serenity::model::application::interaction::application_command::ApplicationC
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json, no_langage_error};
 
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::PingLocalisedText;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
+use crate::cmd::lang_struct::embed::struct_lang_ping::PingLocalisedText;
+use crate::cmd::lang_struct::register::struct_ping_register::RegisterLocalisedPing;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let latency = {
@@ -34,37 +30,11 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
 
     let color = Colour::FABLED_PINK;
 
-    let mut file = match File::open("lang_file/embed/general/ping.json") {
-        Ok(file) => file,
-        Err(_) => {
-            error_langage_file_not_found(color, ctx, command).await;
-            return;
-        }
-    };
-    let mut json = String::new();
-    match file.read_to_string(&mut json) {
-        Ok(_) => {}
-        Err(_) => error_cant_read_langage_file(color, ctx, command).await,
-    }
-
-    let json_data: HashMap<String, PingLocalisedText> = match serde_json::from_str(&json) {
+    let localised_text = match PingLocalisedText::get_ping_localised(color, ctx, command).await
+    {
         Ok(data) => data,
-        Err(_) => {
-            error_parsing_langage_json(color, ctx, command).await;
-            return;
-        }
+        Err(_) => return,
     };
-
-    let guild_id = match command.guild_id {
-        Some(id) => id.0.to_string(),
-        None => {
-            error_no_langage_guild_id(color, ctx, command).await;
-            return;
-        }
-    };
-    let lang_choice = get_guild_langage(guild_id).await;
-
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response
@@ -91,11 +61,15 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
         {
             println!("Cannot respond to slash command: {}", why);
         }
-    } else {
-        no_langage_error(color, ctx, command).await
-    }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("ping").description("A ping command")
+    let pings = RegisterLocalisedPing::get_ping_register_localised().unwrap();
+    let command = command.name("ping").description("A ping command");
+    for (_key, ping) in &pings {
+        command
+            .name_localized(&ping.code, &ping.ping)
+            .description_localized(&ping.code, &ping.desc);
+    }
+    command
 }
