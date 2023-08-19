@@ -15,8 +15,10 @@
     - [ ] Poll feature with custom choice and a graph afterward for comparison.
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
       size — Done.
-    - [ ] Better error handling. Different error messages, type and replies everytime not in certain condition. —
-      working on it. Almost done
+    - [X] Better error handling.
+      Different error messages, type and replies everytime not in certain condition.
+      — working on it.
+      Should be olay believe there is still some risk of panic will need to see in the long term.
     - [ ] Add more tests.
     - [ ] Localisation for response — Done except for module activation and some other "minor" stuff If you find any
       stuff not translated, please open an issue on GitHub or come to my discord.
