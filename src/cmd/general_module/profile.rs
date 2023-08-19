@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::http::client::Http;
@@ -12,14 +8,10 @@ use serenity::model::prelude::application_command::{CommandDataOption, CommandDa
 use serenity::model::user::User;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-
-use crate::cmd::general_module::error_handling::{
-    error_cant_read_file, error_file_not_found, error_message, error_message_with_why,
-    error_no_avatar, error_no_guild_id, error_parsing_json, no_langage_error,
-};
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::ProfileLocalisedText;
-use crate::cmd::general_module::lang_struct_register::RegisterLocalisedProfile;
+use crate::cmd::error::common::custom_error;
+use crate::cmd::error::error_avatar::error_no_avatar;
+use crate::cmd::lang_struct::embed::struct_lang_profile::ProfileLocalisedText;
+use crate::cmd::lang_struct::register::struct_profile_register::RegisterLocalisedProfile;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -42,12 +34,7 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    type RegisterLocalisedProfileList = HashMap<String, RegisterLocalisedProfile>;
-    let mut file =
-        File::open("lang_file/command_register/general/profile.json").expect("Failed to open file");
-    let mut json = String::new();
-    file.read_to_string(&mut json).expect("Failed to read file");
-    let profiles: RegisterLocalisedProfileList = serde_json::from_str(&json).unwrap();
+    let profiles = RegisterLocalisedProfile::get_profile_register_localised().unwrap();
     let command = command
         .name("profile")
         .description("Show the profile of a user")
@@ -75,63 +62,32 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 pub async fn profile_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
 
-    let mut file = match File::open("lang_file/embed/general/profile.json") {
-        Ok(file) => file,
-        Err(_) => {
-            error_file_not_found(color, ctx, command).await;
-            return;
-        }
-    };
-    let mut json = String::new();
-    match file.read_to_string(&mut json) {
-        Ok(_) => {}
-        Err(_) => error_cant_read_file(color, ctx, command).await,
-    }
-
-    let json_data: HashMap<String, ProfileLocalisedText> = match serde_json::from_str(&json) {
+    let localised_text = match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
         Ok(data) => data,
-        Err(_) => {
-            error_parsing_json(color, ctx, command).await;
-            return;
-        }
+        Err(_) => return,
     };
-
-    let guild_id = match command.guild_id {
-        Some(id) => id.0.to_string(),
-        None => {
-            error_no_guild_id(color, ctx, command).await;
-            return;
-        }
-    };
-    let lang_choice = get_guild_langage(guild_id).await;
-
-    return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        let user = command.user.id.0;
-        let real_user = Http::get_user(&ctx.http, user).await;
-        let result = if let Ok(user) = real_user {
-            user
-        } else {
-            error_message(color, ctx, command, &localised_text.error_no_user).await;
-            return;
-        };
-        let avatar_url = result.avatar_url().unwrap();
-
-        let desc = description(result.clone(), command, localised_text.clone()).await;
-
-        send_embed(
-            avatar_url,
-            desc,
-            color,
-            ctx,
-            command,
-            localised_text.clone(),
-            result,
-        )
-        .await
+    let user = command.user.id.0;
+    let real_user = Http::get_user(&ctx.http, user).await;
+    let result = if let Ok(user) = real_user {
+        user
     } else {
-        let color = Colour::FABLED_PINK;
-        no_langage_error(color, ctx, command).await
+        custom_error(color, ctx, command, &localised_text.error_no_user).await;
+        return;
     };
+    let avatar_url = result.avatar_url().unwrap();
+
+    let desc = description(result.clone(), command, localised_text.clone()).await;
+
+    send_embed(
+        avatar_url,
+        desc,
+        color,
+        ctx,
+        command,
+        localised_text.clone(),
+        result,
+    )
+    .await
 }
 
 pub async fn profile_with_user(
@@ -140,43 +96,16 @@ pub async fn profile_with_user(
     user_data: &User,
 ) {
     let color = Colour::FABLED_PINK;
-    let mut file = match File::open("lang_file/embed/general/profile.json") {
-        Ok(file) => file,
-        Err(_) => {
-            error_file_not_found(color, ctx, command).await;
-            return;
-        }
-    };
-    let mut json = String::new();
-    match file.read_to_string(&mut json) {
-        Ok(_) => {}
-        Err(_) => error_cant_read_file(color, ctx, command).await,
-    }
-
-    let json_data: HashMap<String, ProfileLocalisedText> = match serde_json::from_str(&json) {
+     let localised_text = match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
         Ok(data) => data,
-        Err(_) => {
-            error_parsing_json(color, ctx, command).await;
-            return;
-        }
+        Err(_) => return,
     };
-
-    let guild_id = match command.guild_id {
-        Some(id) => id.0.to_string(),
-        None => {
-            error_no_guild_id(color, ctx, command).await;
-            return;
-        }
-    };
-    let lang_choice = get_guild_langage(guild_id).await;
-
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         let user = user_data.id.0;
         let real_user = Http::get_user(&ctx.http, user).await;
         let result = if let Ok(user) = real_user {
             user
         } else {
-            error_message(color, ctx, command, &localised_text.error_no_user).await;
+            custom_error(color, ctx, command, &localised_text.error_no_user).await;
             return;
         };
 
@@ -200,9 +129,6 @@ pub async fn profile_with_user(
             result,
         )
         .await
-    } else {
-        no_langage_error(color, ctx, command).await
-    }
 }
 
 pub async fn description(
@@ -260,14 +186,6 @@ pub async fn send_embed(
         })
         .await
     {
-        println!("{}: {}", &localised_text.error_slash_command, why);
-        error_message_with_why(
-            color,
-            ctx,
-            command,
-            &localised_text.error_slash_command,
-            why,
-        )
-        .await
+        println!("{}: {}", "Error creating slash command", why);
     }
 }

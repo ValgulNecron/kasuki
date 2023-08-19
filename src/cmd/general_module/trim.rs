@@ -34,6 +34,22 @@ pub fn trim(desc: String, lenght_diff: i32) -> String {
     };
 }
 
+///
+///
+/// # Arguments
+///
+/// * `desc`: the description that need to be trimmed
+/// * `lenght_diff`: the difference between what you need and what you have
+///
+/// returns: The trimmed description to the number of character you need.
+///
+/// # Examples
+///
+/// ```
+/// if anime_name.len() >= 50 {
+///     anime_name = trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
+/// }
+/// ```
 pub fn trim_webhook(desc: String, lenght_diff: i32) -> String {
     return if lenght_diff <= 0 {
         let desc_trim;

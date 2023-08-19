@@ -8,7 +8,7 @@ use serenity::model::prelude::application_command::ApplicationCommandInteraction
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::general_module::error_handling::no_langage_error;
+use crate::cmd::error::no_lang_error::no_langage_error;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::InProgressLocalisedText;
 

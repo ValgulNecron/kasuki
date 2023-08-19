@@ -7,7 +7,9 @@
     "no_base_url": "Please specify a base URL",
     "not_implemented": "This is not implemented yet",
     "error_request": "Failed to make the request to the remote server",
-    "no_url": "There was no url in the response from the api"
+    "no_url": "There was no url in the response from the api",
+    "error_no_avatar": "This user avatar was not found.",
+    "error_parsing_json":"Error while parsing a json file."
   },
   "Fr": {
     "error_title": "Erreur",

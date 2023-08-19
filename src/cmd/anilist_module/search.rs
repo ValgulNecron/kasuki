@@ -8,7 +8,7 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::*;
-use crate::cmd::general_module::error_handling::error_not_implemented;
+use crate::cmd::error::error_not_implemented::error_not_implemented;
 
 pub async fn run(
     options: &[CommandDataOption],

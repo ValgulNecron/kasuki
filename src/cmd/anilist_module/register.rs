@@ -13,10 +13,8 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::general_module::error_handling::{
-    error_cant_read_file, error_file_not_found, error_no_guild_id, error_parsing_json,
-    no_langage_error,
-};
+use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json, no_langage_error};
+
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::RegisterLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
@@ -80,20 +78,20 @@ pub async fn run(
         let mut file = match File::open("lang_file/embed/anilist/register.json") {
             Ok(file) => file,
             Err(_) => {
-                error_file_not_found(color, ctx, command).await;
+                error_langage_file_not_found(color, ctx, command).await;
                 return;
             }
         };
         let mut json = String::new();
         match file.read_to_string(&mut json) {
             Ok(_) => {}
-            Err(_) => error_cant_read_file(color, ctx, command).await,
+            Err(_) => error_cant_read_langage_file(color, ctx, command).await,
         }
 
         let json_data: HashMap<String, RegisterLocalisedText> = match serde_json::from_str(&json) {
             Ok(data) => data,
             Err(_) => {
-                error_parsing_json(color, ctx, command).await;
+                error_parsing_langage_json(color, ctx, command).await;
                 return;
             }
         };
@@ -101,7 +99,7 @@ pub async fn run(
         let guild_id = match command.guild_id {
             Some(id) => id.0.to_string(),
             None => {
-                error_no_guild_id(color, ctx, command).await;
+                error_no_langage_guild_id(color, ctx, command).await;
                 return;
             }
         };

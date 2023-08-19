@@ -82,18 +82,6 @@ pub struct AnimeLocalisedText {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct CharacterLocalisedText {
-    pub age: String,
-    pub gender: String,
-    pub date_of_birth: String,
-    pub favourite: String,
-    pub desc: String,
-    pub error_slash_command: String,
-    pub error_no_character: String,
-    pub info: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MediaLocalisedText {
     pub full_name: String,
     pub user_pref: String,
@@ -233,6 +221,8 @@ pub struct ErrorLocalisedText {
     pub no_base_url: String,
     pub not_implemented: String,
     pub error_request: String,
+    pub error_no_avatar: String,
+    pub error_parsing_json: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -247,18 +237,6 @@ pub struct BannerLocalisedText {
     pub description: String,
     pub no_banner_title: String,
     pub error_no_user: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ProfileLocalisedText {
-    pub error_slash_command: String,
-    pub title: String,
-    pub error_no_user: String,
-    pub user_id: String,
-    pub is_bot: String,
-    pub public_flag: String,
-    pub joined_at: String,
-    pub created_at: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

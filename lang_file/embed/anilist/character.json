@@ -5,7 +5,6 @@
     "date_of_birth": ".\nDate of Birth: ",
     "favourite": ".\nNumber of Favorites: ",
     "desc": ".\n\nDescription: \n\n",
-    "error_slash_command": "Can't create slash command",
     "error_no_character": "Error: Failed to retrieve character data",
     "info": "Info"
   },
@@ -15,7 +14,6 @@
     "date_of_birth": ".\nDate de naissance : ",
     "favourite": ".\nNombre de favoris : ",
     "desc": ".\nDescription :\n ",
-    "error_slash_command": "Impossible de créer la commande slash",
     "error_no_character": "Erreur : Impossible de récupérer les données du personnage",
     "info": "Informations"
   },
@@ -25,7 +23,6 @@
     "date_of_birth": "。\n生年月日：",
     "favourite": "。\nお気に入りの数：",
     "desc": "。\n説明：\n",
-    "error_slash_command": "スラッシュコマンドを作成できません",
     "error_no_character": "エラー：キャラクターデータの取得に失敗しました",
     "info": "情報"
   },
@@ -35,7 +32,6 @@
     "date_of_birth": ".\nGeburtsdatum: ",
     "favourite": ".\nAnzahl der Favoriten: ",
     "desc": ".\nBeschreibung: \n",
-    "error_slash_command": "Slash-Befehl kann nicht erstellt werden",
     "error_no_character": "Fehler: Charakterdaten konnten nicht abgerufen werden",
     "info": "Info"
   }

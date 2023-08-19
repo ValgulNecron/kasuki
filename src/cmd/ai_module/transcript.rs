@@ -19,13 +19,13 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
+use crate::cmd::error::common::{custom_error, custom_error_edit, custom_followup_error};
+use crate::cmd::error::error_base_url::error_no_base_url_edit;
+use crate::cmd::error::error_token::error_no_token_edit;
 
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
-use crate::cmd::general_module::error_handling::{
-    error_cant_read_file, error_file_not_found, error_message, error_message_edit,
-    error_message_followup, error_no_base_url_edit, error_no_guild_id, error_no_token_edit,
-    error_parsing_json, no_langage_error,
-};
+use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json, no_langage_error};
+
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::TranscriptLocalisedText;
@@ -83,21 +83,21 @@ pub async fn run(
         let mut file = match File::open("lang_file/embed/ai/transcript.json") {
             Ok(file) => file,
             Err(_) => {
-                error_file_not_found(color, ctx, command).await;
+                error_langage_file_not_found(color, ctx, command).await;
                 return;
             }
         };
         let mut json = String::new();
         match file.read_to_string(&mut json) {
             Ok(_) => {}
-            Err(_) => error_cant_read_file(color, ctx, command).await,
+            Err(_) => error_cant_read_langage_file(color, ctx, command).await,
         }
 
         let json_data: HashMap<String, TranscriptLocalisedText> = match serde_json::from_str(&json)
         {
             Ok(data) => data,
             Err(_) => {
-                error_parsing_json(color, ctx, command).await;
+                error_parsing_langage_json(color, ctx, command).await;
                 return;
             }
         };
@@ -105,7 +105,7 @@ pub async fn run(
         let guild_id = match command.guild_id {
             Some(id) => id.0.to_string(),
             None => {
-                error_no_guild_id(color, ctx, command).await;
+                error_no_langage_guild_id(color, ctx, command).await;
                 return;
             }
         };
@@ -116,7 +116,7 @@ pub async fn run(
             let content = attachement.proxy_url.clone();
 
             if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-                error_message(color, ctx, command, &localised_text.error_file_type).await;
+                custom_error(color, ctx, command, &localised_text.error_file_type).await;
                 return;
             }
 
@@ -135,7 +135,7 @@ pub async fn run(
 
             if !allowed_extensions.contains(&&**&file_extension) {
                 if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-                    error_message(color, ctx, command, &localised_text.error_file_extension).await;
+                    custom_error(color, ctx, command, &localised_text.error_file_extension).await;
                     return;
                 }
             }
@@ -158,7 +158,7 @@ pub async fn run(
                     message = message_option;
                 }
                 Ok(None) => {
-                    error_message_followup(color, ctx, command, &localised_text.unknown_error)
+                    custom_followup_error(color, ctx, command, &localised_text.unknown_error)
                         .await;
                     return;
                 }
@@ -217,7 +217,7 @@ pub async fn run(
                 Err(err) => {
                     eprintln!("Error sending the request: {}", err);
                     let _ = fs::remove_file(&file_to_delete);
-                    error_message_edit(
+                    custom_error_edit(
                         color,
                         ctx,
                         command,
@@ -235,7 +235,7 @@ pub async fn run(
                 Err(err) => {
                     eprintln!("Error parsing response as JSON: {}", err);
                     let _ = fs::remove_file(&file_to_delete);
-                    error_message_edit(
+                    custom_error_edit(
                         color,
                         ctx,
                         command,

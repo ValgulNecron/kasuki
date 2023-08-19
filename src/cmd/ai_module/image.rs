@@ -17,13 +17,15 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
+use crate::cmd::error::common::{custom_error, custom_error_edit, custom_followup_error};
+use crate::cmd::error::error_base_url::error_no_base_url_edit;
+use crate::cmd::error::error_parsing_json::error_parsing_json_edit;
+use crate::cmd::error::error_request::error_making_request_edit;
+use crate::cmd::error::error_token::error_no_token_edit;
 
 use crate::cmd::general_module::differed_response::differed_response;
-use crate::cmd::general_module::error_handling::{
-    error_cant_read_file, error_file_not_found, error_making_request_edit, error_message,
-    error_message_edit, error_message_followup, error_no_base_url_edit, error_no_guild_id,
-    error_no_token_edit, error_parsing_json, error_parsing_json_edit, no_langage_error,
-};
+use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json, no_langage_error};
+
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::ImageLocalisedText;
@@ -38,14 +40,14 @@ pub async fn run(
     let option = match options.get(0) {
         Some(data) => data,
         None => {
-            error_message(color, ctx, command, &"Unable to get argument.".to_string()).await;
+            custom_error(color, ctx, command, &"Unable to get argument.".to_string()).await;
             return;
         }
     };
     let option = match option.resolved.as_ref() {
         Some(data) => data,
         None => {
-            error_message(
+            custom_error(
                 color,
                 ctx,
                 command,
@@ -63,20 +65,20 @@ pub async fn run(
         let mut file = match File::open("lang_file/embed/ai/image.json") {
             Ok(file) => file,
             Err(_) => {
-                error_file_not_found(color, ctx, command).await;
+                error_langage_file_not_found(color, ctx, command).await;
                 return;
             }
         };
         let mut json = String::new();
         match file.read_to_string(&mut json) {
             Ok(_) => {}
-            Err(_) => error_cant_read_file(color, ctx, command).await,
+            Err(_) => error_cant_read_langage_file(color, ctx, command).await,
         }
 
         let json_data: HashMap<String, ImageLocalisedText> = match serde_json::from_str(&json) {
             Ok(data) => data,
             Err(_) => {
-                error_parsing_json(color, ctx, command).await;
+                error_parsing_langage_json(color, ctx, command).await;
                 return;
             }
         };
@@ -84,7 +86,7 @@ pub async fn run(
         let guild_id = match command.guild_id {
             Some(id) => id.0.to_string(),
             None => {
-                error_no_guild_id(color, ctx, command).await;
+                error_no_langage_guild_id(color, ctx, command).await;
                 return;
             }
         };
@@ -98,7 +100,7 @@ pub async fn run(
                     message = message_option;
                 }
                 Ok(None) => {
-                    error_message_followup(color, ctx, command, &localised_text.unknown_error)
+                    custom_followup_error(color, ctx, command, &localised_text.unknown_error)
                         .await;
                     return;
                 }
@@ -133,7 +135,7 @@ pub async fn run(
                     let model = match env::var("IMAGE_GENERATION_MODELS") {
                         Ok(data) => data,
                         Err(why) => {
-                            error_message_edit(
+                            custom_error_edit(
                                 color,
                                 ctx,
                                 command,
@@ -176,7 +178,7 @@ pub async fn run(
                 match HeaderValue::from_str(&format!("Bearer {}", api_key)) {
                     Ok(data) => data,
                     Err(why) => {
-                        error_message_edit(color, ctx, command, &format!("{}", why), message).await;
+                        custom_error_edit(color, ctx, command, &format!("{}", why), message).await;
                         return;
                     }
                 },
@@ -194,7 +196,7 @@ pub async fn run(
                     Ok(data) => data,
                     Err(why) => {
                         println!("{}", why);
-                        error_parsing_json_edit(color, ctx, message).await;
+                        error_parsing_json_edit(color, ctx, message, command).await;
                         return;
                     }
                 },
@@ -212,7 +214,7 @@ pub async fn run(
                         url_string = match url.as_str() {
                             Some(url) => url,
                             None => {
-                                error_message_edit(
+                                custom_error_edit(
                                     color,
                                     ctx,
                                     command,
@@ -231,21 +233,21 @@ pub async fn run(
             let response = match reqwest::get(url_string).await {
                 Ok(data) => data,
                 Err(why) => {
-                    error_message_edit(color, ctx, command, &why.to_string(), message).await;
+                    custom_error_edit(color, ctx, command, &why.to_string(), message).await;
                     return;
                 }
             };
             let bytes = match response.bytes().await {
                 Ok(data) => data,
                 Err(why) => {
-                    error_message_edit(color, ctx, command, &why.to_string(), message).await;
+                    custom_error_edit(color, ctx, command, &why.to_string(), message).await;
                     return;
                 }
             };
             match fs::write(filename.clone(), &bytes) {
                 Ok(_) => {}
                 Err(why) => {
-                    error_message_edit(color, ctx, command, &why.to_string(), message).await;
+                    custom_error_edit(color, ctx, command, &why.to_string(), message).await;
                     return;
                 }
             }

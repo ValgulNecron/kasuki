@@ -1,6 +1,5 @@
 {
   "En": {
-    "error_slash_command": "Can't create slash command",
     "title": "Here's the profile of ",
     "error_no_user": "Error getting user",
     "user_id": "This user id is: ",
@@ -10,7 +9,6 @@
     "created_at": "Here's the account creation date: "
   },
   "Fr": {
-    "error_slash_command": "Impossible de créer la commande slash",
     "title": "Voici le profil de ",
     "error_no_user": "Erreur lors de la récupération de l'utilisateur",
     "user_id": "Cet identifiant d'utilisateur est : ",
@@ -20,7 +18,6 @@
     "created_at": "Voici la date de création du compte : "
   },
   "De": {
-    "error_slash_command": "Slash-Befehl kann nicht erstellt werden",
     "title": "Hier ist das Profil von ",
     "error_no_user": "Fehler beim Abrufen des Benutzers",
     "user_id": "Diese Benutzer-ID lautet: ",
@@ -30,7 +27,6 @@
     "created_at": "Hier ist das Kontoerstellungsdatum: "
   },
   "Jp": {
-    "error_slash_command": "スラッシュコマンドを作成できません",
     "title": "以下はプロフィールです：",
     "error_no_user": "ユーザーの取得中にエラーが発生しました",
     "user_id": "このユーザーのIDは：",

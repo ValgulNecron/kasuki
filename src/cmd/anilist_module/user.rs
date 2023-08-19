@@ -14,10 +14,9 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_user::*;
-use crate::cmd::general_module::error_handling::{
-    error_cant_read_file, error_file_not_found, error_message, error_no_guild_id,
-    error_parsing_json, no_langage_error,
-};
+use crate::cmd::error::common::custom_error;
+use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json, no_langage_error};
+
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::UserLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
@@ -34,7 +33,7 @@ pub async fn run(
             let result = embed(_options, ctx, command, &user).await;
             result
         } else {
-            error_message(color, ctx, command, &"error".to_string()).await;
+            custom_error(color, ctx, command, &"error".to_string()).await;
             return;
         }
     } else {
@@ -89,7 +88,7 @@ pub async fn embed(
         data = match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
             Ok(user_wrapper) => user_wrapper,
             Err(error) => {
-                error_message(color, ctx, command, &error).await;
+                custom_error(color, ctx, command, &error).await;
                 return;
             }
         }
@@ -97,7 +96,7 @@ pub async fn embed(
         data = match UserWrapper::new_user_by_search(value).await {
             Ok(user_wrapper) => user_wrapper,
             Err(error) => {
-                error_message(color, ctx, command, &error).await;
+                custom_error(color, ctx, command, &error).await;
                 return;
             }
         }
@@ -106,20 +105,20 @@ pub async fn embed(
     let mut file = match File::open("lang_file/embed/anilist/user.json") {
         Ok(file) => file,
         Err(_) => {
-            error_file_not_found(color, ctx, command).await;
+            error_langage_file_not_found(color, ctx, command).await;
             return;
         }
     };
     let mut json = String::new();
     match file.read_to_string(&mut json) {
         Ok(_) => {}
-        Err(_) => error_cant_read_file(color, ctx, command).await,
+        Err(_) => error_cant_read_langage_file(color, ctx, command).await,
     }
 
     let json_data: HashMap<String, UserLocalisedText> = match serde_json::from_str(&json) {
         Ok(data) => data,
         Err(_) => {
-            error_parsing_json(color, ctx, command).await;
+            error_parsing_langage_json(color, ctx, command).await;
             return;
         }
     };
@@ -127,7 +126,7 @@ pub async fn embed(
     let guild_id = match command.guild_id {
         Some(id) => id.0.to_string(),
         None => {
-            error_no_guild_id(color, ctx, command).await;
+            error_no_langage_guild_id(color, ctx, command).await;
             return;
         }
     };

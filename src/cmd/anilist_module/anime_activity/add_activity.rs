@@ -17,11 +17,10 @@ use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
+use crate::cmd::error::common::custom_followup_error;
 use crate::cmd::general_module::differed_response::differed_response;
-use crate::cmd::general_module::error_handling::{
-    error_cant_read_file, error_file_not_found, error_followup_message, error_no_guild_id,
-    error_parsing_json,
-};
+use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json};
+
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::AddActivityLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
@@ -63,7 +62,7 @@ pub async fn run(
             if let CommandDataOptionValue::String(value_option) = resolved {
                 value = value_option.clone()
             } else {
-                error_followup_message(color, ctx, command, &"please specify an anime".to_string())
+                custom_followup_error(color, ctx, command, &"please specify an anime".to_string())
                     .await;
                 return;
             }
@@ -80,20 +79,20 @@ pub async fn run(
     let mut file = match File::open("lang_file/embed/anilist/add_activity.json") {
         Ok(file) => file,
         Err(_) => {
-            error_file_not_found(color, ctx, command).await;
+            error_langage_file_not_found(color, ctx, command).await;
             return;
         }
     };
     let mut json = String::new();
     match file.read_to_string(&mut json) {
         Ok(_) => {}
-        Err(_) => error_cant_read_file(color, ctx, command).await,
+        Err(_) => error_cant_read_langage_file(color, ctx, command).await,
     }
 
     let json_data: HashMap<String, AddActivityLocalisedText> = match serde_json::from_str(&json) {
         Ok(data) => data,
         Err(_) => {
-            error_parsing_json(color, ctx, command).await;
+            error_parsing_langage_json(color, ctx, command).await;
             return;
         }
     };
@@ -101,7 +100,7 @@ pub async fn run(
     let guild_id = match command.guild_id {
         Some(id) => id.0.to_string(),
         None => {
-            error_no_guild_id(color, ctx, command).await;
+            error_no_langage_guild_id(color, ctx, command).await;
             return;
         }
     };
@@ -121,7 +120,7 @@ pub async fn run(
             {
                 Ok(minimal_anime) => minimal_anime,
                 Err(error) => {
-                    error_followup_message(
+                    custom_followup_error(
                         color,
                         ctx,
                         command,
@@ -140,7 +139,7 @@ pub async fn run(
             {
                 Ok(minimal_anime) => minimal_anime,
                 Err(error) => {
-                    error_followup_message(
+                    custom_followup_error(
                         color,
                         ctx,
                         command,
