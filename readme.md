@@ -19,7 +19,6 @@
       Different error messages, type and replies everytime not in certain condition.
       — working on it.
       Should be olay believe there is still some risk of panic will need to see in the long term.
-    - [ ] Add more tests.
     - [ ] Localisation for response — Done except for module activation and some other "minor" stuff If you find any
       stuff not translated, please open an issue on GitHub or come to my discord.
       Should be done will need to check
