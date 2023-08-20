@@ -2,6 +2,12 @@
 name = "kasuki"
 version = "1.0.0"
 edition = "2021"
+authors = "Valgul <contact@valgul.moe>"
+description = "A discord bot written in rust that get info from anilist API"
+readme = "readme.MD"
+repository = "https://github.com/ValgulNecron/kasuki"
+license = "MIT"
+license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
