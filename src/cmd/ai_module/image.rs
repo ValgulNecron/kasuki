@@ -1,5 +1,4 @@
 use std::{env, fs};
-use std::io::Read;
 use std::path::Path;
 
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
@@ -88,14 +87,16 @@ pub async fn run(
         let prompt = description;
         let api_key = match env::var("AI_API_TOKEN") {
             Ok(x) => x,
-            Err(_) => {
+            Err(why) => {
+                println!("{}", why);
                 error_no_token_edit(color, ctx, command, message).await;
                 return;
             }
         };
         let api_base_url = match env::var("AI_API_BASE_URL") {
             Ok(x) => x,
-            Err(_) => {
+            Err(why) => {
+                println!("{}", why);
                 error_no_base_url_edit(color, ctx, command, message).await;
                 return;
             }
@@ -107,6 +108,7 @@ pub async fn run(
                 let model = match env::var("IMAGE_GENERATION_MODELS") {
                     Ok(data) => data,
                     Err(why) => {
+                        println!("{}", why);
                         error_instance_admin_models_edit(color,ctx,command,message)
                             .await;
                         return;
