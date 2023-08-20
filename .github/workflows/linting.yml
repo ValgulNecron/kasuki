@@ -4,9 +4,16 @@ on:
   pull_request:
     branches:
       - master
+permissions:
+  contents: none
+  pull-requests: write
+  issues: write
+  packages: none
 jobs:
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
