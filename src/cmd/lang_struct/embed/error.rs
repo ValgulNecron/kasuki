@@ -15,5 +15,9 @@ pub struct ErrorLocalisedText {
     pub error_resolving_value: String,
     pub admin_instance_error: String,
     pub error_option: String,
+    pub error_creating_header: String,
+    pub error_getting_response_from_url: String,
+    pub error_getting_bytes: String,
+    pub error_writing_file: String,
 }
 

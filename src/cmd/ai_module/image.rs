@@ -15,13 +15,14 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
-use crate::cmd::error::common::custom_error_edit;
 use crate::cmd::error::error_base_url::error_no_base_url_edit;
+use crate::cmd::error::error_creating_header::error_creating_header_edit;
 use crate::cmd::error::error_getting_option::error_no_option;
 use crate::cmd::error::error_instance_admin::error_instance_admin_models_edit;
 use crate::cmd::error::error_parsing_json::error_parsing_json_edit;
 use crate::cmd::error::error_request::error_making_request_edit;
 use crate::cmd::error::error_resolving_value::error_resolving_value;
+use crate::cmd::error::error_response::{error_getting_bytes_response_edit, error_getting_response_from_url_edit, error_writing_file_response_edit};
 use crate::cmd::error::error_token::error_no_token_edit;
 use crate::cmd::error::error_url::error_no_url_edit;
 use crate::cmd::general_module::differed_response::differed_response;
@@ -146,7 +147,7 @@ pub async fn run(
             match HeaderValue::from_str(&format!("Bearer {}", api_key)) {
                 Ok(data) => data,
                 Err(why) => {
-                    custom_error_edit(color, ctx, command, &format!("{}", why), message).await;
+                    error_creating_header_edit(color, ctx, command, message).await;
                     return;
                 }
             },
@@ -195,21 +196,21 @@ pub async fn run(
         let response = match reqwest::get(url_string).await {
             Ok(data) => data,
             Err(why) => {
-                custom_error_edit(color, ctx, command, &why.to_string(), message).await;
+                error_getting_response_from_url_edit(color, ctx, command, message).await;
                 return;
             }
         };
         let bytes = match response.bytes().await {
             Ok(data) => data,
             Err(why) => {
-                custom_error_edit(color, ctx, command, &why.to_string(), message).await;
+                error_getting_bytes_response_edit(color, ctx, command, message).await;
                 return;
             }
         };
         match fs::write(filename.clone(), &bytes) {
             Ok(_) => {}
             Err(why) => {
-                custom_error_edit(color, ctx, command, &why.to_string(), message).await;
+                error_writing_file_response_edit(color, ctx, command, message).await;
                 return;
             }
         }

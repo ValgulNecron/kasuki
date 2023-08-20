@@ -11,3 +11,5 @@ pub mod error_url;
 pub mod error_resolving_value;
 pub mod error_instance_admin;
 pub mod error_getting_option;
+pub mod error_creating_header;
+pub mod error_response;
