@@ -1,3 +1,7 @@
+[![.github/workflows/linting.yml](https://github.com/ValgulNecron/kasuki/actions/workflows/linting.yml/badge.svg)](https://github.com/ValgulNecron/kasuki/actions/workflows/linting.yml)
+[![Security audit](https://github.com/ValgulNecron/kasuki/actions/workflows/security_check.yml/badge.svg)](https://github.com/ValgulNecron/kasuki/actions/workflows/security_check.yml)
+
+
 # TODO
 
 ### BOT
