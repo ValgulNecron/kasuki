@@ -1,4 +1,6 @@
 {
   "En": {
+    "on": "The module was activated on the server.",
+    "off": "The module was deactivated on the server"
   }
 }

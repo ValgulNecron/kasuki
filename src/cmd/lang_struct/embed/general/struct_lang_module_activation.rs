@@ -14,19 +14,18 @@ use crate::cmd::error::no_lang_error::{
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct LangLocalisedText {
-    pub title: String,
-    pub description: String,
-    pub error_perm: String,
+pub struct ModuleLocalisedText {
+    pub on: String,
+    pub off: String,
 }
 
-impl LangLocalisedText {
+impl ModuleLocalisedText {
     pub async fn get_ping_localised(
         color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
-    ) -> Result<LangLocalisedText, &'static str> {
-        let mut file = match File::open("lang_file/embed/general/lang.json") {
+    ) -> Result<ModuleLocalisedText, &'static str> {
+        let mut file = match File::open("lang_file/embed/general/module_activation.json") {
             Ok(file) => file,
             Err(_) => {
                 error_langage_file_not_found(color, ctx, command).await;
@@ -42,7 +41,7 @@ impl LangLocalisedText {
             }
         }
 
-        let json_data: HashMap<String, LangLocalisedText> = match serde_json::from_str(&json) {
+        let json_data: HashMap<String, ModuleLocalisedText> = match serde_json::from_str(&json) {
             Ok(data) => data,
             Err(_) => {
                 error_parsing_langage_json(color, ctx, command).await;

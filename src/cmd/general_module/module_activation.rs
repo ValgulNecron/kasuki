@@ -10,6 +10,7 @@ use sqlx::{Pool, Sqlite};
 
 use crate::cmd::error::error_module::error_no_module;
 use crate::cmd::general_module::pool::get_pool;
+use crate::cmd::lang_struct::embed::general::struct_lang_module_activation::ModuleLocalisedText;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -31,7 +32,10 @@ pub async fn run(
     .unwrap();
 
     let color = Colour::FABLED_PINK;
-
+    let localised_text = match ModuleLocalisedText::get_ping_localised(color,ctx,command).await {
+        Ok(data) => data,
+        Err(_) => return,
+    };
     let mut module = "".to_string();
     let mut state = false;
     for option in options {
@@ -78,9 +82,9 @@ pub async fn run(
 
             let text;
             if state {
-                text = format!("The module was activated on the server");
+                text = &localised_text.on
             } else {
-                text = format!("The module was deactivated on the server");
+                text = &localised_text.off
             }
 
             if let Err(why) = command
@@ -125,9 +129,9 @@ pub async fn run(
 
             let text;
             if state {
-                text = format!("The module was activated on the server");
+                text = &localised_text.on
             } else {
-                text = format!("The module was deactivated on the server");
+                text = &localised_text.off
             }
 
             if let Err(why) = command

@@ -178,11 +178,6 @@ pub struct CompareLocalisedText {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct DifferedResponseLocalisedText {
-    pub error_slash_command: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct StudioLocalisedText {
     pub anime_or_manga: String,
     pub error_slash_command: String,
