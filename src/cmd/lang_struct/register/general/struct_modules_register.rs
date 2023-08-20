@@ -19,7 +19,8 @@ type RegisterLocalisedModuleList = HashMap<String, RegisterLocalisedModule>;
 
 impl RegisterLocalisedModule {
     pub fn get_module_register_localised() -> Result<RegisterLocalisedModuleList, &'static str> {
-        let mut file = match File::open("lang_file/command_register/general/module_activation.json") {
+        let mut file = match File::open("lang_file/command_register/general/module_activation.json")
+        {
             Ok(file) => file,
             Err(_) => return Err("Failed to open file"),
         };

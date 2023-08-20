@@ -20,5 +20,5 @@ pub async fn error_no_module(
         localised_text.error_title.clone(),
         localised_text.forgot_module.clone(),
     )
-        .await
+    .await
 }

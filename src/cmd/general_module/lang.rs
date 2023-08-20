@@ -1,11 +1,11 @@
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
-use serenity::model::{Permissions, Timestamp};
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
 use serenity::model::application::interaction::InteractionResponseType;
+use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 
 use crate::cmd::error::no_lang_error::error_no_langage_guild_id;
@@ -28,9 +28,9 @@ pub async fn run(
             lang TEXT NOT NULL
         )",
     )
-        .execute(&pool)
-        .await
-        .unwrap();
+    .execute(&pool)
+    .await
+    .unwrap();
 
     let option = options
         .get(0)

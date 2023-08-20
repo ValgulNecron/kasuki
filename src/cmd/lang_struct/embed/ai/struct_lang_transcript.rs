@@ -14,18 +14,17 @@ use crate::cmd::error::no_lang_error::{
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ModuleLocalisedText {
-    pub on: String,
-    pub off: String,
+pub struct TranscriptLocalisedText {
+    pub title: String,
 }
 
-impl ModuleLocalisedText {
-    pub async fn get_module_localised(
+impl TranscriptLocalisedText {
+    pub async fn get_image_localised(
         color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
-    ) -> Result<ModuleLocalisedText, &'static str> {
-        let mut file = match File::open("lang_file/embed/general/module_activation.json") {
+    ) -> Result<TranscriptLocalisedText, &'static str> {
+        let mut file = match File::open("lang_file/embed/ai/transcript.json") {
             Ok(file) => file,
             Err(_) => {
                 error_langage_file_not_found(color, ctx, command).await;
@@ -41,7 +40,8 @@ impl ModuleLocalisedText {
             }
         }
 
-        let json_data: HashMap<String, ModuleLocalisedText> = match serde_json::from_str(&json) {
+        let json_data: HashMap<String, TranscriptLocalisedText> = match serde_json::from_str(&json)
+        {
             Ok(data) => data,
             Err(_) => {
                 error_parsing_langage_json(color, ctx, command).await;
@@ -58,11 +58,11 @@ impl ModuleLocalisedText {
         };
         let lang_choice = get_guild_langage(guild_id).await;
 
-        return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             Ok(localised_text.clone())
         } else {
             no_langage_error(color, ctx, command).await;
             Err("not found")
-        };
+        }
     }
 }

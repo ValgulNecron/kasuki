@@ -1,7 +1,7 @@
-use std::{env, fs};
 use std::path::Path;
+use std::{env, fs};
 
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -21,8 +21,11 @@ use crate::cmd::error::error_getting_option::error_no_option;
 use crate::cmd::error::error_instance_admin::error_instance_admin_models_edit;
 use crate::cmd::error::error_parsing_json::error_parsing_json_edit;
 use crate::cmd::error::error_request::error_making_request_edit;
-use crate::cmd::error::error_resolving_value::error_resolving_value;
-use crate::cmd::error::error_response::{error_getting_bytes_response_edit, error_getting_response_from_url_edit, error_writing_file_response_edit};
+use crate::cmd::error::error_resolving_value::error_resolving_value_followup;
+use crate::cmd::error::error_response::{
+    error_getting_bytes_response_edit, error_getting_response_from_url_edit,
+    error_writing_file_response_edit,
+};
 use crate::cmd::error::error_token::error_no_token_edit;
 use crate::cmd::error::error_url::error_no_url_edit;
 use crate::cmd::general_module::differed_response::differed_response;
@@ -47,12 +50,7 @@ pub async fn run(
     let option = match option.resolved.as_ref() {
         Some(data) => data,
         None => {
-            error_no_option(
-                color,
-                ctx,
-                command
-            )
-                .await;
+            error_no_option(color, ctx, command).await;
             return;
         }
     };
@@ -61,10 +59,11 @@ pub async fn run(
         let filename = format!("{}.png", uuid_name);
         let filename_str = filename.as_str();
 
-        let localised_text = match ImageLocalisedText::get_image_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return
-        };
+        let localised_text =
+            match ImageLocalisedText::get_image_localised(color, ctx, command).await {
+                Ok(data) => data,
+                Err(_) => return,
+            };
         differed_response(ctx, command).await;
 
         let message: Message;
@@ -73,7 +72,7 @@ pub async fn run(
                 message = message_option;
             }
             Ok(None) => {
-                error_resolving_value(color, ctx, command).await;
+                error_resolving_value_followup(color, ctx, command).await;
                 return;
             }
             Err(error) => {
@@ -110,33 +109,32 @@ pub async fn run(
                     Ok(data) => data,
                     Err(why) => {
                         println!("{}", why);
-                        error_instance_admin_models_edit(color,ctx,command,message)
-                            .await;
+                        error_instance_admin_models_edit(color, ctx, command, message).await;
                         return;
                     }
                 };
                 data = json!({
-                        "prompt": prompt,
-                        "n": 1,
-                        "size": "1024x1024",
-                        "model": model,
-                       "response_format": "url"
-                    })
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "model": model,
+                   "response_format": "url"
+                })
             } else {
                 data = json!({
-                        "prompt": prompt,
-                        "n": 1,
-                        "size": "1024x1024",
-                        "response_format": "url"
-                    })
-            }
-        } else {
-            data = json!({
                     "prompt": prompt,
                     "n": 1,
                     "size": "1024x1024",
                     "response_format": "url"
                 })
+            }
+        } else {
+            data = json!({
+                "prompt": prompt,
+                "n": 1,
+                "size": "1024x1024",
+                "response_format": "url"
+            })
         }
         let api_url = format!("{}images/generations", api_base_url);
         let client = reqwest::Client::new();
@@ -147,6 +145,7 @@ pub async fn run(
             match HeaderValue::from_str(&format!("Bearer {}", api_key)) {
                 Ok(data) => data,
                 Err(why) => {
+                    println!("{}", why);
                     error_creating_header_edit(color, ctx, command, message).await;
                     return;
                 }
@@ -183,8 +182,7 @@ pub async fn run(
                     url_string = match url.as_str() {
                         Some(url) => url,
                         None => {
-                            error_no_url_edit(color, ctx, command, message)
-                                .await;
+                            error_no_url_edit(color, ctx, command, message).await;
                             return;
                         }
                     }
@@ -196,6 +194,7 @@ pub async fn run(
         let response = match reqwest::get(url_string).await {
             Ok(data) => data,
             Err(why) => {
+                    println!("{}", why);
                 error_getting_response_from_url_edit(color, ctx, command, message).await;
                 return;
             }
@@ -203,6 +202,7 @@ pub async fn run(
         let bytes = match response.bytes().await {
             Ok(data) => data,
             Err(why) => {
+                    println!("{}", why);
                 error_getting_bytes_response_edit(color, ctx, command, message).await;
                 return;
             }
@@ -210,6 +210,7 @@ pub async fn run(
         match fs::write(filename.clone(), &bytes) {
             Ok(_) => {}
             Err(why) => {
+                    println!("{}", why);
                 error_writing_file_response_edit(color, ctx, command, message).await;
                 return;
             }

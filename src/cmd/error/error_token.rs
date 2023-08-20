@@ -19,7 +19,7 @@ pub async fn error_no_token(color: Colour, ctx: &Context, command: &ApplicationC
         localised_text.error_title.clone(),
         localised_text.no_token.clone(),
     )
-        .await
+    .await
 }
 
 pub async fn error_no_token_edit(
@@ -40,5 +40,5 @@ pub async fn error_no_token_edit(
         localised_text.error_title.clone(),
         localised_text.no_token.clone(),
     )
-        .await;
+    .await;
 }

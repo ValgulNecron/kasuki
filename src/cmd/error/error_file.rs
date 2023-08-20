@@ -4,7 +4,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::error::common::{get_localised_langage, send_embed_message};
 
-pub async fn error_not_implemented(
+pub async fn error_file_type(
     color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
@@ -18,7 +18,26 @@ pub async fn error_not_implemented(
         ctx,
         command,
         localised_text.error_title.clone(),
-        localised_text.not_implemented.clone(),
+        localised_text.error_file_type.clone(),
+    )
+    .await
+}
+
+pub async fn error_file_extension(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) {
+    let localised_text = match get_localised_langage(color, ctx, command).await {
+        Ok(data) => data,
+        Err(_) => return,
+    };
+    send_embed_message(
+        color,
+        ctx,
+        command,
+        localised_text.error_title.clone(),
+        localised_text.error_file_extension.clone(),
     )
     .await
 }

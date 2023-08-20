@@ -23,5 +23,5 @@ pub async fn error_no_url_edit(
         localised_text.error_title.clone(),
         localised_text.error_url.clone(),
     )
-        .await;
+    .await;
 }

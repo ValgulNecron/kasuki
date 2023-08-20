@@ -17,7 +17,9 @@
     "error_creating_header": "The was an error while creating the header",
     "error_getting_response_from_url": "Impossible to download the response from the url",
     "error_getting_bytes": "Impossible to get bytes from the downloaded response",
-    "error_writing_file": "Error while writing file to disk"
+    "error_writing_file": "Error while writing file to disk",
+    "error_file_type": "Wrong file type",
+    "error_file_extension": "Wrong file extension"
   },
   "Fr": {
     "error_title": "Erreur",
@@ -37,7 +39,9 @@
     "error_creating_header": "Il y a eu une erreur lors de la création de l'en-tête",
     "error_getting_response_from_url": "Impossible de télécharger la réponse depuis l'URL",
     "error_getting_bytes": "Impossible d'obtenir les octets de la réponse téléchargée",
-    "error_writing_file": "Erreur lors de l'écriture du fichier sur le disque"
+    "error_writing_file": "Erreur lors de l'écriture du fichier sur le disque",
+    "error_file_type": "Type de fichier incorrect",
+    "error_file_extension": "Extension de fichier incorrecte"
   },
   "Jp": {
     "error_title": "エラー",
@@ -57,7 +61,9 @@
     "error_creating_header": "ヘッダーを作成する際にエラーが発生しました",
     "error_getting_response_from_url": "URLからの応答を取得できません",
     "error_getting_bytes": "ダウンロードした応答からバイトを取得できません",
-    "error_writing_file": "ファイルをディスクに書き込む際にエラーが発生しました"
+    "error_writing_file": "ファイルをディスクに書き込む際にエラーが発生しました",
+    "error_file_type": "文件类型不正确",
+    "error_file_extension": "文件扩展名不正确"
   },
   "De": {
     "error_title": "Fehler",
@@ -77,6 +83,8 @@
     "error_creating_header": "Beim Erstellen des Headers ist ein Fehler aufgetreten",
     "error_getting_response_from_url": "Die Antwort von der URL konnte nicht abgerufen werden",
     "error_getting_bytes": "Die Bytes aus der heruntergeladenen Antwort konnten nicht erhalten werden",
-    "error_writing_file": "Beim Schreiben der Datei auf die Festplatte ist ein Fehler aufgetreten"
+    "error_writing_file": "Beim Schreiben der Datei auf die Festplatte ist ein Fehler aufgetreten",
+    "error_file_type": "Falscher Dateityp",
+    "error_file_extension": "Falsche Dateierweiterung"
   }
 }

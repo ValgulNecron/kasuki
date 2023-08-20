@@ -18,7 +18,7 @@ pub async fn no_langage_error(
         "Error".to_string(),
         "Langage does not exist.".to_string(),
     )
-        .await;
+    .await;
 }
 
 pub async fn error_langage_file_not_found(
@@ -34,7 +34,7 @@ pub async fn error_langage_file_not_found(
         "Error".to_string(),
         "The langage file was not found.".to_string(),
     )
-        .await;
+    .await;
 }
 
 pub async fn error_cant_read_langage_file(
@@ -50,7 +50,7 @@ pub async fn error_cant_read_langage_file(
         "Error".to_string(),
         "The langage file can't be read.".to_string(),
     )
-        .await;
+    .await;
 }
 
 pub async fn error_parsing_langage_json(
@@ -66,7 +66,7 @@ pub async fn error_parsing_langage_json(
         "Error".to_string(),
         "Failed to parse the langage json file.".to_string(),
     )
-        .await;
+    .await;
 }
 
 pub async fn error_no_langage_guild_id(
@@ -82,7 +82,7 @@ pub async fn error_no_langage_guild_id(
         "Error".to_string(),
         "Failed to get the guild id.".to_string(),
     )
-        .await;
+    .await;
 }
 
 pub async fn no_langage_error_edit(color: Colour, ctx: &Context, message: Message) {
@@ -93,7 +93,7 @@ pub async fn no_langage_error_edit(color: Colour, ctx: &Context, message: Messag
         "Error".to_string(),
         "Langage does not exist.".to_string(),
     )
-        .await
+    .await
 }
 
 pub async fn error_langage_file_not_found_edit(color: Colour, ctx: &Context, message: Message) {
@@ -104,7 +104,7 @@ pub async fn error_langage_file_not_found_edit(color: Colour, ctx: &Context, mes
         "Error".to_string(),
         "The langage file was not found.".to_string(),
     )
-        .await
+    .await
 }
 
 pub async fn error_cant_read_langage_file_edit(color: Colour, ctx: &Context, message: Message) {
@@ -115,7 +115,7 @@ pub async fn error_cant_read_langage_file_edit(color: Colour, ctx: &Context, mes
         "Error".to_string(),
         "The langage file can't be read.".to_string(),
     )
-        .await
+    .await
 }
 
 pub async fn error_parsing_langage_json_edit(color: Colour, ctx: &Context, message: Message) {
@@ -126,7 +126,7 @@ pub async fn error_parsing_langage_json_edit(color: Colour, ctx: &Context, messa
         "Error".to_string(),
         "Failed to parse the json file.".to_string(),
     )
-        .await
+    .await
 }
 
 pub async fn error_no_langage_guild_id_edit(color: Colour, ctx: &Context, message: Message) {
@@ -137,5 +137,5 @@ pub async fn error_no_langage_guild_id_edit(color: Colour, ctx: &Context, messag
         "Error".to_string(),
         "Failed to get the guild id.".to_string(),
     )
-        .await
+    .await
 }
