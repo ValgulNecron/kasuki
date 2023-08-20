@@ -2,21 +2,21 @@
   "En": {
     "code": "en-US",
     "name": "info",
-    "description": "Get information on the bot"
+    "desc": "Get information on the bot"
   },
   "Fr": {
     "code": "fr",
     "name": "info",
-    "description": "Obtenir des informations sur le bot"
+    "desc": "Obtenir des informations sur le bot"
   },
   "De": {
     "code": "de",
     "name": "info",
-    "description": "Erhalte Informationen über den Bot"
+    "desc": "Erhalte Informationen über den Bot"
   },
   "Jp": {
     "code": "ja",
     "name": "info",
-    "description": "ボットの情報を取得する"
+    "desc": "ボットの情報を取得する"
   }
 }

@@ -1,0 +1,38 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "module",
+    "description": "Activer et désactiver le module.",
+    "option1": "nom_du_module",
+    "option1_desc": "Le nom du module que vous souhaitez activer ou désactiver.",
+    "option2": "état",
+    "option2_desc": "ON (activé) ou OFF (désactivé)"
+  },
+  "Fr": {
+    "code": "fr-FR",
+    "name": "module",
+    "description": "Activer et désactiver le module.",
+    "option1": "nom_du_module",
+    "option1_desc": "Le nom du module que vous souhaitez activer ou désactiver.",
+    "option2": "état",
+    "option2_desc": "ON (activé) ou OFF (désactivé)"
+  },
+  "Jp": {
+    "code": "ja-JP",
+    "name": "モジュール",
+    "description": "モジュールのON/OFFを切り替えます。",
+    "option1": "モジュール名",
+    "option1_desc": "ONまたはOFFにしたいモジュールの名前",
+    "option2": "状態",
+    "option2_desc": "ON または OFF"
+  },
+  "De": {
+    "code": "de-DE",
+    "name": "Modul",
+    "description": "Schalten Sie das Modul ein oder aus.",
+    "option1": "Modulname",
+    "option1_desc": "Der Name des Moduls, das Sie aktivieren oder deaktivieren möchten.",
+    "option2": "Status",
+    "option2_desc": "AN (aktiviert) oder AUS (deaktiviert)"
+  }
+}

@@ -31,7 +31,7 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    let options = BannerRegister::get_banner_register_localised().unwrap();
+    let banners = BannerRegister::get_banner_register_localised().unwrap();
     let command = command
         .name("banner")
         .description("Get the banner")
@@ -41,17 +41,17 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("The user you wan the banner of")
                 .kind(CommandOptionType::User)
                 .required(false);
-            for (_key, lang) in &options {
+            for (_key, banner) in &banners {
                 option
-                    .name_localized(&lang.code, &lang.option1)
-                    .description_localized(&lang.code, &lang.option1_desc);
+                    .name_localized(&banner.code, &banner.option1)
+                    .description_localized(&banner.code, &banner.option1_desc);
             }
             option
         });
-    for (_key, lang) in &options {
+    for (_key, banner) in &banners {
         command
-            .name_localized(&lang.code, &lang.option1)
-            .description_localized(&lang.code, &lang.option1_desc);
+            .name_localized(&banner.code, &banner.option1)
+            .description_localized(&banner.code, &banner.option1_desc);
     }
     command
 }

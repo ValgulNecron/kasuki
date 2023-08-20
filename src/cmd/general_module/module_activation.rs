@@ -11,6 +11,7 @@ use sqlx::{Pool, Sqlite};
 use crate::cmd::error::error_module::error_no_module;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::lang_struct::embed::general::struct_lang_module_activation::ModuleLocalisedText;
+use crate::cmd::lang_struct::register::general::struct_modules_register::RegisterLocalisedModule;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -32,7 +33,7 @@ pub async fn run(
     .unwrap();
 
     let color = Colour::FABLED_PINK;
-    let localised_text = match ModuleLocalisedText::get_ping_localised(color,ctx,command).await {
+    let localised_text = match ModuleLocalisedText::get_module_localised(color,ctx,command).await {
         Ok(data) => data,
         Err(_) => return,
     };
@@ -69,7 +70,6 @@ pub async fn run(
                 Some(false) => 0,
                 None => 1,
             };
-
             sqlx::query(
                 "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module) VALUES (?, ?, ?)",
             )
@@ -159,26 +159,45 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let modules = RegisterLocalisedModule::get_module_register_localised().unwrap();
+    let command = command
         .name("module")
-        .description("Turn on and of module.")
+        .description("Turn on and off module.")
         .default_member_permissions(Permissions::ADMINISTRATOR)
         .create_option(|option| {
-            option
+            let option = option
                 .name("module_name")
                 .description("The name of the module you want to turn on or off")
                 .kind(CommandOptionType::String)
                 .add_string_choice("AI", "AI")
                 .add_string_choice("ANIME", "ANIME")
-                .required(true)
+                .required(true);
+            for (_key, module) in &modules {
+                option
+                    .name_localized(&module.code, &module.option1)
+                    .description_localized(&module.code, &module.option1_desc);
+            }
+            option
         })
         .create_option(|option| {
-            option
+            let option = option
                 .name("state")
                 .description("ON or OFF")
                 .kind(CommandOptionType::Boolean)
-                .required(true)
-        })
+                .required(true);
+            for (_key, module) in &modules {
+                option
+                    .name_localized(&module.code, &module.option1)
+                    .description_localized(&module.code, &module.option1_desc);
+            }
+            option
+        });
+    for (_key, module) in &modules {
+        command
+            .name_localized(&module.code, &module.name)
+            .description_localized(&module.code, &module.desc);
+    }
+    command
 }
 
 pub async fn check_activation_status(module: String, guild_id: String) -> bool {

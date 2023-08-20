@@ -5,17 +5,21 @@ use std::io::Read;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct RegisterLocalisedInfo {
+pub struct RegisterLocalisedModule{
     pub code: String,
     pub name: String,
     pub desc: String,
+    pub option1: String,
+    pub option1_desc: String,
+    pub option2: String,
+    pub option2_desc: String,
 }
 
-type RegisterLocalisedInfoList = HashMap<String, RegisterLocalisedInfo>;
+type RegisterLocalisedModuleList = HashMap<String, RegisterLocalisedModule>;
 
-impl RegisterLocalisedInfo {
-    pub fn get_info_register_localised() -> Result<RegisterLocalisedInfoList, &'static str> {
-        let mut file = match File::open("lang_file/command_register/general/info.json") {
+impl RegisterLocalisedModule {
+    pub fn get_module_register_localised() -> Result<RegisterLocalisedModuleList, &'static str> {
+        let mut file = match File::open("lang_file/command_register/general/module_activation.json") {
             Ok(file) => file,
             Err(_) => return Err("Failed to open file"),
         };

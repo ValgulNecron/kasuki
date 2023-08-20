@@ -144,7 +144,7 @@ pub async fn description(
     let user_id = &user.id;
     let created_at = &user.created_at();
     let member = &command.member.clone().unwrap();
-    let joined_at = member.joined_at.unwrap_or(Timestamp::from("0"));
+    let joined_at = member.joined_at.unwrap_or(Timestamp::from_unix_timestamp(0i64).unwrap());
     let desc = format!(
         "\n {}{} \n {}{} \n {}{:?} \n {}{} \n {}{}",
         &localised_text.user_id,

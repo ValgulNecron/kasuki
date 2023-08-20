@@ -7,10 +7,7 @@ use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error::no_lang_error::{
-    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
-    error_parsing_langage_json,
-};
+use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json, no_langage_error};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -20,7 +17,7 @@ pub struct ModuleLocalisedText {
 }
 
 impl ModuleLocalisedText {
-    pub async fn get_ping_localised(
+    pub async fn get_module_localised(
         color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
@@ -61,6 +58,7 @@ impl ModuleLocalisedText {
         return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             Ok(localised_text.clone())
         } else {
+            no_langage_error(color,ctx,command).await;
             Err("not found")
         };
     }
