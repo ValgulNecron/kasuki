@@ -6,7 +6,6 @@ pub struct ImageLocalisedText {
     pub error_slash_command: String,
     pub unknown_error: String,
     pub admin_instance_error: String,
-    pub no_url: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
