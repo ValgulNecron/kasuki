@@ -22,7 +22,7 @@
   },
   "Jp": {
     "code": "ja",
-    "name": "banner",
+    "name": "バナー",
     "description": "バナーを取得する",
     "option1": "ユーザー",
     "option1_desc": "バナーを取得したいユーザー"

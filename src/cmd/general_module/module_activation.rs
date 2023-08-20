@@ -187,8 +187,8 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .required(true);
             for (_key, module) in &modules {
                 option
-                    .name_localized(&module.code, &module.option1)
-                    .description_localized(&module.code, &module.option1_desc);
+                    .name_localized(&module.code, &module.option2)
+                    .description_localized(&module.code, &module.option2_desc);
             }
             option
         });

@@ -22,7 +22,7 @@
   },
   "Jp": {
     "code": "ja",
-    "name": "言語",
+    "name": "ラング",
     "description": "ボットの応答の言語を変更します",
     "option1": "言語",
     "option1_desc": "応答を設定したい言語"
