@@ -14,11 +14,5 @@
   "Jp": {
     "title": "生成された画像はこちらです",
     "admin_instance_error": "このインスタンスの管理者は画像生成のためのモデルを指定するのを忘れました"
-  },
-  "cmn": {
-    "title": "这是您生成的图像"
-  },
-  "cmnp": {
-    "title": "Zhè shì nín  shēngchéng de túxiàng"
   }
 }
