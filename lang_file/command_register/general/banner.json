@@ -7,21 +7,21 @@
     "option1_desc": "The user you want the banner of"
   },
   "Fr": {
-    "code": "fr-FR",
+    "code": "fr",
     "name": "banner",
     "description": "Obtenir la bannière",
     "option1": "utilisateur",
     "option1_desc": "L'utilisateur dont vous voulez la bannière"
   },
   "De": {
-    "code": "de-DE",
+    "code": "de",
     "name": "banner",
     "description": "Erhalte das Banner",
-    "option1": "Benutzer",
+    "option1": "benutzer",
     "option1_desc": "Der Benutzer, dessen Banner du erhalten möchtest"
   },
   "Jp": {
-    "code": "ja-JP",
+    "code": "ja",
     "name": "banner",
     "description": "バナーを取得する",
     "option1": "ユーザー",

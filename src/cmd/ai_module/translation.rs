@@ -16,10 +16,10 @@ use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
+use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
-use crate::cmd::ai_module::translation_embed::translation_embed;
 use crate::cmd::error::common::{custom_error, custom_error_edit, custom_followup_error};
 use crate::cmd::error::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
@@ -295,4 +295,27 @@ pub async fn translation(
     let no_quote = content.replace("\"", "");
     let line_break = no_quote.replace("\\n", " \\n ");
     return line_break;
+}
+
+pub async fn translation_embed(
+    ctx: &Context,
+    text: String,
+    message: Message,
+    localised_text: TranslationLocalisedText,
+) {
+    let color = Colour::FABLED_PINK;
+    let mut real_message = message.clone();
+    if let Err(why) = real_message
+        .edit(&ctx.http, |m| {
+            m.embed(|e| {
+                e.title(&localised_text.title)
+                    .description(format!("{}", text))
+                    .timestamp(Timestamp::now())
+                    .color(color)
+            })
+        })
+        .await
+    {
+        println!("{}: {}", &localised_text.error_slash_command, why);
+    }
 }

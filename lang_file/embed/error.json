@@ -9,7 +9,8 @@
     "error_request": "Failed to make the request to the remote server",
     "no_url": "There was no URL in the response from the API",
     "error_no_avatar": "This user's avatar was not found.",
-    "error_parsing_json": "Error while parsing a JSON file."
+    "error_parsing_json": "Error while parsing a JSON file.",
+    "error_url": "The response url was not found"
   },
   "Fr": {
     "error_title": "Erreur",

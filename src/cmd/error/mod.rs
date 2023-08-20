@@ -7,3 +7,4 @@ pub mod error_parsing_json;
 pub mod error_request;
 pub mod error_token;
 pub mod no_lang_error;
+pub mod error_url;

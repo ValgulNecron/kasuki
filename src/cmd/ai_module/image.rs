@@ -23,6 +23,7 @@ use crate::cmd::error::error_base_url::error_no_base_url_edit;
 use crate::cmd::error::error_parsing_json::error_parsing_json_edit;
 use crate::cmd::error::error_request::error_making_request_edit;
 use crate::cmd::error::error_token::error_no_token_edit;
+use crate::cmd::error::error_url::error_no_url_edit;
 use crate::cmd::error::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json, no_langage_error,
@@ -215,13 +216,7 @@ pub async fn run(
                         url_string = match url.as_str() {
                             Some(url) => url,
                             None => {
-                                custom_error_edit(
-                                    color,
-                                    ctx,
-                                    command,
-                                    &localised_text.no_url,
-                                    message,
-                                )
+                                error_no_url_edit(color, ctx, command, message)
                                 .await;
                                 return;
                             }
