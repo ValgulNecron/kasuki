@@ -1,0 +1,30 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "banner",
+    "description": "Get the banner",
+    "option1": "user",
+    "option1_desc": "The user you want the banner of"
+  },
+  "Fr": {
+    "code": "fr-FR",
+    "name": "banner",
+    "description": "Obtenir la bannière",
+    "option1": "utilisateur",
+    "option1_desc": "L'utilisateur dont vous voulez la bannière"
+  },
+  "De": {
+    "code": "de-DE",
+    "name": "banner",
+    "description": "Erhalte das Banner",
+    "option1": "Benutzer",
+    "option1_desc": "Der Benutzer, dessen Banner du erhalten möchtest"
+  },
+  "Jp": {
+    "code": "ja-JP",
+    "name": "banner",
+    "description": "バナーを取得する",
+    "option1": "ユーザー",
+    "option1_desc": "バナーを取得したいユーザー"
+  }
+}

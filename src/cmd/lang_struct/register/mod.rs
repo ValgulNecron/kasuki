@@ -1,3 +1,3 @@
-pub mod struct_profile_register;
-pub mod struct_ping_register;
-pub mod struct_lang_register;
+pub mod ai;
+pub mod anilist;
+pub mod general;

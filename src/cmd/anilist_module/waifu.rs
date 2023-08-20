@@ -1,4 +1,3 @@
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::command::CommandOptionType;
@@ -9,16 +8,16 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::struct_character::CharacterWrapper;
 use crate::cmd::error::common::custom_error;
-use crate::cmd::lang_struct::embed::struct_lang_character::*;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_character::CharacterLocalisedText;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
-    let localised_text = match CharacterLocalisedText::get_character_localised(color, ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return
-    };
-    let data = match CharacterWrapper::new_character_by_id(156323, localised_text.clone()).await
-    {
+    let localised_text =
+        match CharacterLocalisedText::get_character_localised(color, ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
+    let data = match CharacterWrapper::new_character_by_id(156323, localised_text.clone()).await {
         Ok(character_wrapper) => character_wrapper,
         Err(error) => {
             custom_error(color, ctx, command, &error).await;

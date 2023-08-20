@@ -1,48 +1,30 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::error::no_lang_error::no_langage_error;
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::InProgressLocalisedText;
+use crate::cmd::lang_struct::embed::general::struct_lang_in_progress::InProgressLocalisedText;
 
 pub async fn in_progress_embed(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> Result<Option<Message>, String> {
     let color = Colour::FABLED_PINK;
-    let mut file =
-        File::open("lang_file/embed/general/in_progress.json").expect("Failed to open file");
-    let mut json = String::new();
-    file.read_to_string(&mut json).expect("Failed to read file");
-
-    let json_data: HashMap<String, InProgressLocalisedText> =
-        serde_json::from_str(&json).expect("Failed to parse JSON");
-
-    let guild_id = command.guild_id.unwrap().0.to_string().clone();
-    let lang_choice = get_guild_langage(guild_id).await;
-
-    let message;
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        message = command
-            .create_followup_message(&ctx.http, |f| {
-                f.embed(|e| {
-                    e.title(&localised_text.title)
-                        .description(&localised_text.description)
-                        .timestamp(Timestamp::now())
-                        .color(color)
-                })
+    let localised_text =
+        match InProgressLocalisedText::get_in_progress_localised(color, ctx, command).await {
+            Ok(data) => data,
+            Err(data) => return Err(data.parse().unwrap()),
+        };
+    let message = command
+        .create_followup_message(&ctx.http, |f| {
+            f.embed(|e| {
+                e.title(&localised_text.title)
+                    .description(&localised_text.description)
+                    .timestamp(Timestamp::now())
+                    .color(color)
             })
-            .await;
-        Ok(Some(message.unwrap()))
-    } else {
-        no_langage_error(color, ctx, command).await;
-        Err("Language not found".to_string())
-    }
+        })
+        .await;
+    Ok(Some(message.unwrap()))
 }

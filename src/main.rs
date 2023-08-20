@@ -26,11 +26,11 @@ use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
 use crate::cmd::anilist_module::*;
 use crate::cmd::error::no_lang_error::no_langage_error;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::ErrorLocalisedText;
 use crate::cmd::general_module::module_activation::check_activation_status;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
 use crate::cmd::general_module::*;
+use crate::cmd::lang_struct::embed::error::ErrorLocalisedText;
 
 mod cmd;
 mod tests;

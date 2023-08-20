@@ -4,7 +4,7 @@ use serde_json::json;
 use crate::cmd::general_module::html_parser::convert_to_discord_markdown;
 use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
-use crate::cmd::lang_struct::embed::struct_lang_character::CharacterLocalisedText;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_character::CharacterLocalisedText;
 
 #[derive(Deserialize)]
 pub struct CharacterWrapper {

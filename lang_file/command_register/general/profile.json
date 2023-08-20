@@ -1,28 +1,28 @@
 {
   "En": {
     "code": "en-US",
-    "profile": "profile",
+    "name": "profile",
     "desc": "Show the profile of a user",
     "option1": "user",
     "option1_desc": "The user you want the profile of"
   },
   "Fr": {
     "code": "fr",
-    "profile": "profil",
+    "name": "profil",
     "desc": "Afficher le profil d'un utilisateur",
     "option1": "utilisateur",
     "option1_desc": "L'utilisateur dont vous souhaitez afficher le profil"
   },
   "De": {
     "code": "de",
-    "profile": "profil",
+    "name": "profil",
     "desc": "Zeige das Profil eines Benutzers",
     "option1": "benutzer",
     "option1_desc": "Der Benutzer, dessen Profil du anzeigen möchtest"
   },
   "Jp": {
     "code": "ja",
-    "profile": "プロフィール",
+    "name": "プロフィール",
     "desc": "ユーザーのプロフィールを表示します",
     "option1": "ユーザー",
     "option1_desc": "プロフィールを表示したいユーザー"

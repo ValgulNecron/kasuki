@@ -1,11 +1,16 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
+
 use serde::{Deserialize, Serialize};
 use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
-use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json};
+
+use crate::cmd::error::no_lang_error::{
+    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
+    error_parsing_langage_json,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -16,12 +21,16 @@ pub struct LangLocalisedText {
 }
 
 impl LangLocalisedText {
-    pub async fn get_ping_localised(color: Colour, ctx: &Context, command: &ApplicationCommandInteraction) -> Result<LangLocalisedText, &'static str> {
+    pub async fn get_ping_localised(
+        color: Colour,
+        ctx: &Context,
+        command: &ApplicationCommandInteraction,
+    ) -> Result<LangLocalisedText, &'static str> {
         let mut file = match File::open("lang_file/embed/general/ping.json") {
             Ok(file) => file,
             Err(_) => {
                 error_langage_file_not_found(color, ctx, command).await;
-                return Err("not found")
+                return Err("not found");
             }
         };
         let mut json = String::new();
@@ -29,15 +38,15 @@ impl LangLocalisedText {
             Ok(_) => {}
             Err(_) => {
                 error_cant_read_langage_file(color, ctx, command).await;
-                return Err("not found")
-            },
+                return Err("not found");
+            }
         }
 
         let json_data: HashMap<String, LangLocalisedText> = match serde_json::from_str(&json) {
             Ok(data) => data,
             Err(_) => {
                 error_parsing_langage_json(color, ctx, command).await;
-                return Err("not found")
+                return Err("not found");
             }
         };
 
@@ -45,7 +54,7 @@ impl LangLocalisedText {
             Some(id) => id.0.to_string(),
             None => {
                 error_no_langage_guild_id(color, ctx, command).await;
-                return Err("not found")
+                return Err("not found");
             }
         };
         let lang_choice = get_guild_langage(guild_id).await;
@@ -54,6 +63,6 @@ impl LangLocalisedText {
             Ok(localised_text.clone())
         } else {
             Err("not found")
-        }
+        };
     }
 }

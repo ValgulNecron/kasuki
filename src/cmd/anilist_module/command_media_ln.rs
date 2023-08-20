@@ -14,8 +14,10 @@ use serenity::utils::Colour;
 use crate::cmd::anilist_module::get_nsfw_channel::get_nsfw;
 use crate::cmd::anilist_module::struct_media::*;
 use crate::cmd::error::common::custom_error;
-use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json, no_langage_error};
-
+use crate::cmd::error::no_lang_error::{
+    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
+    error_parsing_langage_json, no_langage_error,
+};
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::MediaLocalisedText;
 

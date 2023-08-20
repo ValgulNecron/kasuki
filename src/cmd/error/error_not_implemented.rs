@@ -19,5 +19,6 @@ pub async fn error_not_implemented(
         command,
         localised_text.error_title.clone(),
         localised_text.not_implemented.clone(),
-    ).await
+    )
+    .await
 }

@@ -1,4 +1,3 @@
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::bridge::gateway::ShardId;
 use serenity::client::Context;
@@ -8,8 +7,8 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
-use crate::cmd::lang_struct::embed::struct_lang_ping::PingLocalisedText;
-use crate::cmd::lang_struct::register::struct_ping_register::RegisterLocalisedPing;
+use crate::cmd::lang_struct::embed::general::struct_lang_ping::PingLocalisedText;
+use crate::cmd::lang_struct::register::general::struct_ping_register::RegisterLocalisedPing;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let latency = {
@@ -30,37 +29,36 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
 
     let color = Colour::FABLED_PINK;
 
-    let localised_text = match PingLocalisedText::get_ping_localised(color, ctx, command).await
-    {
+    let localised_text = match PingLocalisedText::get_ping_localised(color, ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        message.embed(|m| {
-                            m.title(&localised_text.title)
-                                // Add a timestamp for the current time
-                                // This also accepts a rfc3339 Timestamp
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                                .description(format!(
-                                    "{}{}{}{}{}",
-                                    &localised_text.description_part_1,
-                                    &localised_text.description_part_2,
-                                    ctx.shard_id,
-                                    &localised_text.description_part_3,
-                                    latency
-                                ))
-                        })
+    if let Err(why) = command
+        .create_interaction_response(&ctx.http, |response| {
+            response
+                .kind(InteractionResponseType::ChannelMessageWithSource)
+                .interaction_response_data(|message| {
+                    message.embed(|m| {
+                        m.title(&localised_text.title)
+                            // Add a timestamp for the current time
+                            // This also accepts a rfc3339 Timestamp
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                            .description(format!(
+                                "{}{}{}{}{}",
+                                &localised_text.description_part_1,
+                                &localised_text.description_part_2,
+                                ctx.shard_id,
+                                &localised_text.description_part_3,
+                                latency
+                            ))
                     })
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
-        }
+                })
+        })
+        .await
+    {
+        println!("Cannot respond to slash command: {}", why);
+    }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -68,7 +66,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     let command = command.name("ping").description("A ping command");
     for (_key, ping) in &pings {
         command
-            .name_localized(&ping.code, &ping.ping)
+            .name_localized(&ping.code, &ping.name)
             .description_localized(&ping.code, &ping.desc);
     }
     command

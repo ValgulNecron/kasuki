@@ -7,12 +7,12 @@ use serenity::model::application::interaction::application_command::{
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
-use crate::cmd::error::no_lang_error::error_no_langage_guild_id;
 
+use crate::cmd::error::no_lang_error::error_no_langage_guild_id;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::lang_struct::available_lang::AvailableLang;
-use crate::cmd::lang_struct::embed::struct_lang_lang::LangLocalisedText;
-use crate::cmd::lang_struct::register::struct_lang_register::LangRegister;
+use crate::cmd::lang_struct::embed::general::struct_lang_lang::LangLocalisedText;
+use crate::cmd::lang_struct::register::general::struct_lang_register::LangRegister;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -42,42 +42,43 @@ pub async fn run(
 
     if let CommandDataOptionValue::String(lang) = option {
         let guild_id = match command.guild_id {
-        Some(id) => id.0.to_string(),
-        None => {
-            error_no_langage_guild_id(color, ctx, command).await;
-            return
+            Some(id) => id.0.to_string(),
+            None => {
+                error_no_langage_guild_id(color, ctx, command).await;
+                return;
             }
         };
-        let localised_text = match LangLocalisedText::get_ping_localised(color,ctx,command).await {
+        let localised_text = match LangLocalisedText::get_ping_localised(color, ctx, command).await
+        {
             Ok(data) => data,
-            Err(_) => return
+            Err(_) => return,
         };
-            sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
-                .bind(guild_id)
-                .bind(lang)
-                .execute(&pool)
-                .await
-                .unwrap();
+        sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
+            .bind(guild_id)
+            .bind(lang)
+            .execute(&pool)
+            .await
+            .unwrap();
 
-            if let Err(why) = command
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| {
-                            message.embed(|m| {
-                                m.title(&localised_text.title)
-                                    .description(format!("{}{}", &localised_text.description, lang))
-                                    // Add a timestamp for the current time
-                                    // This also accepts a rfc3339 Timestamp
-                                    .timestamp(Timestamp::now())
-                                    .color(color)
-                            })
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message.embed(|m| {
+                            m.title(&localised_text.title)
+                                .description(format!("{}{}", &localised_text.description, lang))
+                                // Add a timestamp for the current time
+                                // This also accepts a rfc3339 Timestamp
+                                .timestamp(Timestamp::now())
+                                .color(color)
                         })
-                })
-                .await
-            {
-                println!("Cannot respond to slash command: {}", why);
-            }
+                    })
+            })
+            .await
+        {
+            println!("Cannot respond to slash command: {}", why);
+        }
     }
 }
 

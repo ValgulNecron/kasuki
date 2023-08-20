@@ -18,9 +18,11 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::cmd::error::common::custom_followup_error;
+use crate::cmd::error::no_lang_error::{
+    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
+    error_parsing_langage_json,
+};
 use crate::cmd::general_module::differed_response::differed_response;
-use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json};
-
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::AddActivityLocalisedText;
 use crate::cmd::general_module::pool::get_pool;

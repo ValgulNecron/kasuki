@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::component::ButtonStyle;
@@ -9,98 +5,72 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json, no_langage_error};
 
-
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::InfoLocalisedText;
+use crate::cmd::lang_struct::embed::general::struct_lang_info::InfoLocalisedText;
+use crate::cmd::lang_struct::register::general::struct_info_register::RegisterLocalisedInfo;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
-
-    let mut file = match File::open("lang_file/embed/general/info.json") {
-        Ok(file) => file,
-        Err(why) => {
-            println!("{}", why);
-            error_langage_file_not_found(color, ctx, command).await;
-            return;
-        }
-    };
-    let mut json = String::new();
-    match file.read_to_string(&mut json) {
-        Ok(_) => {}
-        Err(_) => error_cant_read_langage_file(color, ctx, command).await,
-    }
-
-    let json_data: HashMap<String, InfoLocalisedText> = match serde_json::from_str(&json) {
+    let localised_text = match InfoLocalisedText::get_info_localised(color, ctx, command).await {
         Ok(data) => data,
-        Err(why) => {
-            println!("{}", why);
-            error_parsing_langage_json(color, ctx, command).await;
-            return;
-        }
+        Err(_) => return,
     };
 
-    let guild_id = match command.guild_id {
-        Some(id) => id.0.to_string(),
-        None => {
-            error_no_langage_guild_id(color, ctx, command).await;
-            return;
-        }
-    };
-    let lang_choice = get_guild_langage(guild_id).await;
-
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.embed(
-                        |m| {
-                            m.title(&localised_text.title)
-                                .description(&localised_text.description)
-                                .footer(|f| f.text(&localised_text.footer))
-                                .timestamp(Timestamp::now())
-                                .color(color)
+    if let Err(why) = command
+        .create_interaction_response(&ctx.http, |response| {
+            response
+                .kind(InteractionResponseType::ChannelMessageWithSource)
+                .interaction_response_data(|message| message.embed(
+                    |m| {
+                        m.title(&localised_text.title)
+                            .description(&localised_text.description)
+                            .footer(|f| f.text(&localised_text.footer))
+                            .timestamp(Timestamp::now())
+                            .color(color)
+                    })
+                    .components(|components| {
+                        components.create_action_row(|row| {
+                            row.create_button(|button| {
+                                button.label(&localised_text.button_see_on_github)
+                                    .url("https://github.com/ValgulNecron/DIscordAnilistBotRS")
+                                    .style(ButtonStyle::Link)
+                            })
+                                .create_button(|button| {
+                                    button.label(&localised_text.button_official_website)
+                                        .url("https://kasuki.valgul.moe/")
+                                        .style(ButtonStyle::Link)
+                                })
                         })
-                        .components(|components| {
-                            components.create_action_row(|row| {
-                                row.create_button(|button| {
-                                    button.label(&localised_text.button_see_on_github)
-                                        .url("https://github.com/ValgulNecron/DIscordAnilistBotRS")
+                            .create_action_row(|button| {
+                                button.create_button(|button| {
+                                    button.label(&localised_text.button_official_discord)
+                                        .url("https://discord.gg/dWGU6mkw7J")
                                         .style(ButtonStyle::Link)
                                 })
                                     .create_button(|button| {
-                                        button.label(&localised_text.button_official_website)
-                                            .url("https://kasuki.valgul.moe/")
+                                        button.label(&localised_text.button_add_the_bot)
+                                            .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot")
                                             .style(ButtonStyle::Link)
                                     })
                             })
-                                .create_action_row(|button| {
-                                    button.create_button(|button| {
-                                        button.label(&localised_text.button_official_discord)
-                                            .url("https://discord.gg/dWGU6mkw7J")
-                                            .style(ButtonStyle::Link)
-                                    })
-                                        .create_button(|button| {
-                                            button.label(&localised_text.button_add_the_bot)
-                                                .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot")
-                                                .style(ButtonStyle::Link)
-                                        })
-                                })
-                        })
-                    )
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
-        }
-    } else {
-        let color = Colour::FABLED_PINK;
-        no_langage_error(color, ctx, command).await
+                    })
+                )
+        })
+        .await
+    {
+        println!("Cannot respond to slash command: {}", why);
     }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command.name("info").description("bot info")
+    let infos = RegisterLocalisedInfo::get_info_register_localised().unwrap();
+    let command = command
+        .name("info")
+        .description("Get information on the bot");
+    for (_key, info) in &infos {
+        command
+            .name_localized(&info.code, &info.name)
+            .description_localized(&info.code, &info.desc);
+    }
+    command
 }

@@ -19,13 +19,15 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
+
 use crate::cmd::error::common::{custom_error, custom_error_edit, custom_followup_error};
 use crate::cmd::error::error_base_url::error_no_base_url_edit;
 use crate::cmd::error::error_token::error_no_token_edit;
-
+use crate::cmd::error::no_lang_error::{
+    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
+    error_parsing_langage_json, no_langage_error,
+};
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
-use crate::cmd::error::no_lang_error::{error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id, error_parsing_langage_json, no_langage_error};
-
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::general_module::lang_struct::TranscriptLocalisedText;
@@ -158,8 +160,7 @@ pub async fn run(
                     message = message_option;
                 }
                 Ok(None) => {
-                    custom_followup_error(color, ctx, command, &localised_text.unknown_error)
-                        .await;
+                    custom_followup_error(color, ctx, command, &localised_text.unknown_error).await;
                     return;
                 }
                 Err(error) => {

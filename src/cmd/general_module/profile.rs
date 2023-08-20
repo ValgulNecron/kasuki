@@ -8,10 +8,11 @@ use serenity::model::prelude::application_command::{CommandDataOption, CommandDa
 use serenity::model::user::User;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+
 use crate::cmd::error::common::custom_error;
 use crate::cmd::error::error_avatar::error_no_avatar;
-use crate::cmd::lang_struct::embed::struct_lang_profile::ProfileLocalisedText;
-use crate::cmd::lang_struct::register::struct_profile_register::RegisterLocalisedProfile;
+use crate::cmd::lang_struct::embed::general::struct_lang_profile::ProfileLocalisedText;
+use crate::cmd::lang_struct::register::general::struct_profile_register::RegisterLocalisedProfile;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -53,7 +54,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         });
     for (_key, profile) in &profiles {
         command
-            .name_localized(&profile.code, &profile.profile)
+            .name_localized(&profile.code, &profile.name)
             .description_localized(&profile.code, &profile.desc);
     }
     command
@@ -62,10 +63,11 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 pub async fn profile_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
 
-    let localised_text = match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+    let localised_text =
+        match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
     let user = command.user.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
     let result = if let Ok(user) = real_user {
@@ -96,39 +98,40 @@ pub async fn profile_with_user(
     user_data: &User,
 ) {
     let color = Colour::FABLED_PINK;
-     let localised_text = match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
+    let localised_text =
+        match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
+    let user = user_data.id.0;
+    let real_user = Http::get_user(&ctx.http, user).await;
+    let result = if let Ok(user) = real_user {
+        user
+    } else {
+        custom_error(color, ctx, command, &localised_text.error_no_user).await;
+        return;
     };
-        let user = user_data.id.0;
-        let real_user = Http::get_user(&ctx.http, user).await;
-        let result = if let Ok(user) = real_user {
-            user
-        } else {
-            custom_error(color, ctx, command, &localised_text.error_no_user).await;
+
+    let avatar_url = match result.avatar_url() {
+        Some(url) => url,
+        None => {
+            error_no_avatar(color, ctx, command).await;
             return;
-        };
+        }
+    };
 
-        let avatar_url = match result.avatar_url() {
-            Some(url) => url,
-            None => {
-                error_no_avatar(color, ctx, command).await;
-                return;
-            }
-        };
+    let desc = description(result.clone(), command, localised_text.clone()).await;
 
-        let desc = description(result.clone(), command, localised_text.clone()).await;
-
-        send_embed(
-            avatar_url,
-            desc,
-            color,
-            ctx,
-            command,
-            localised_text.clone(),
-            result,
-        )
-        .await
+    send_embed(
+        avatar_url,
+        desc,
+        color,
+        ctx,
+        command,
+        localised_text.clone(),
+        result,
+    )
+    .await
 }
 
 pub async fn description(

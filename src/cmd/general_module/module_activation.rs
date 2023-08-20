@@ -7,8 +7,8 @@ use serenity::model::prelude::InteractionResponseType;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 use sqlx::{Pool, Sqlite};
-use crate::cmd::error::error_module::error_no_module;
 
+use crate::cmd::error::error_module::error_no_module;
 use crate::cmd::general_module::pool::get_pool;
 
 pub async fn run(

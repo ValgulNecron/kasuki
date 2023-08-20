@@ -1,32 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct InfoLocalisedText {
-    pub title: String,
-    pub description: String,
-    pub footer: String,
-    pub button_see_on_github: String,
-    pub button_official_website: String,
-    pub button_official_discord: String,
-    pub button_add_the_bot: String,
-    pub server_specific_info: String,
-    pub on: String,
-    pub off: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ImageLocalisedText {
     pub title: String,
     pub error_slash_command: String,
     pub unknown_error: String,
     pub admin_instance_error: String,
     pub no_url: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct InProgressLocalisedText {
-    pub title: String,
-    pub description: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -198,30 +178,8 @@ pub struct CompareLocalisedText {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ErrorLocalisedText {
-    pub error_title: String,
-    pub module_off: String,
-    pub forgot_module: String,
-    pub no_token: String,
-    pub no_base_url: String,
-    pub not_implemented: String,
-    pub error_request: String,
-    pub error_no_avatar: String,
-    pub error_parsing_json: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DifferedResponseLocalisedText {
     pub error_slash_command: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct BannerLocalisedText {
-    pub error_slash_command: String,
-    pub title: String,
-    pub description: String,
-    pub no_banner_title: String,
-    pub error_no_user: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
