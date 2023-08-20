@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-use std::fs::File;
+
 use std::io::Read;
 use std::path::Path;
 use std::{env, fs};
@@ -18,20 +17,16 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
-use crate::cmd::error::common::{custom_error, custom_error_edit, custom_followup_error};
+use crate::cmd::error::common::{custom_error, custom_error_edit};
 use crate::cmd::error::error_base_url::error_no_base_url_edit;
 use crate::cmd::error::error_parsing_json::error_parsing_json_edit;
 use crate::cmd::error::error_request::error_making_request_edit;
+use crate::cmd::error::error_resolving_value::error_resolving_value;
 use crate::cmd::error::error_token::error_no_token_edit;
 use crate::cmd::error::error_url::error_no_url_edit;
-use crate::cmd::error::no_lang_error::{
-    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
-    error_parsing_langage_json, no_langage_error,
-};
 use crate::cmd::general_module::differed_response::differed_response;
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::in_progress::in_progress_embed;
-use crate::cmd::general_module::lang_struct::ImageLocalisedText;
+use crate::cmd::lang_struct::embed::ai::struct_lang_image::ImageLocalisedText;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -65,36 +60,10 @@ pub async fn run(
         let filename = format!("{}.png", uuid_name);
         let filename_str = filename.as_str();
 
-        let mut file = match File::open("lang_file/embed/ai/image.json") {
-            Ok(file) => file,
-            Err(_) => {
-                error_langage_file_not_found(color, ctx, command).await;
-                return;
-            }
-        };
-        let mut json = String::new();
-        match file.read_to_string(&mut json) {
-            Ok(_) => {}
-            Err(_) => error_cant_read_langage_file(color, ctx, command).await,
-        }
-
-        let json_data: HashMap<String, ImageLocalisedText> = match serde_json::from_str(&json) {
+        let localised_text = match ImageLocalisedText::get_image_localised(color, ctx, command).await {
             Ok(data) => data,
-            Err(_) => {
-                error_parsing_langage_json(color, ctx, command).await;
-                return;
-            }
+            Err(_) => return
         };
-
-        let guild_id = match command.guild_id {
-            Some(id) => id.0.to_string(),
-            None => {
-                error_no_langage_guild_id(color, ctx, command).await;
-                return;
-            }
-        };
-        let lang_choice = get_guild_langage(guild_id).await;
-        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             differed_response(ctx, command).await;
 
             let message: Message;
@@ -103,7 +72,7 @@ pub async fn run(
                     message = message_option;
                 }
                 Ok(None) => {
-                    custom_followup_error(color, ctx, command, &localised_text.unknown_error).await;
+                    error_resolving_value(color, ctx, command).await;
                     return;
                 }
                 Err(error) => {
@@ -264,12 +233,8 @@ pub async fn run(
                 let _ = fs::remove_file(filename_str);
                 println!("Cannot respond to slash command: {}", why);
             }
-        } else {
             let _ = fs::remove_file(filename_str);
-            no_langage_error(color, ctx, command).await;
         }
-        let _ = fs::remove_file(filename_str);
-    }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

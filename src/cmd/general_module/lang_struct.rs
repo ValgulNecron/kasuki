@@ -1,14 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ImageLocalisedText {
-    pub title: String,
-    pub error_slash_command: String,
-    pub unknown_error: String,
-    pub admin_instance_error: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TranscriptLocalisedText {
     pub title: String,
     pub error_slash_command: String,

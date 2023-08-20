@@ -10,42 +10,49 @@
     "no_url": "There was no URL in the response from the API",
     "error_no_avatar": "This user's avatar was not found.",
     "error_parsing_json": "Error while parsing a JSON file.",
-    "error_url": "The response url was not found"
+    "error_url": "The response URL was not found",
+    "error_resolving_value": "Unable to resolve the value of this variable"
   },
   "Fr": {
     "error_title": "Erreur",
     "module_off": "Module désactivé",
     "forgot_module": "Vous devez spécifier le module",
-    "no_token": "Aucun jeton spécifié",
+    "no_token": "Aucun token spécifié",
     "no_base_url": "Veuillez spécifier une URL de base",
-    "not_implemented": "Cela n'est pas encore implémenté",
+    "not_implemented": "Ceci n'est pas encore implémenté",
     "error_request": "Échec de la requête vers le serveur distant",
     "no_url": "Aucune URL dans la réponse de l'API",
     "error_no_avatar": "L'avatar de cet utilisateur n'a pas été trouvé.",
-    "error_parsing_json": "Erreur lors de l'analyse d'un fichier JSON."
+    "error_parsing_json": "Erreur lors de l'analyse d'un fichier JSON.",
+    "error_url": "L'URL de réponse n'a pas été trouvée",
+    "error_resolving_value": "Impossible de résoudre la valeur de cette variable"
   },
   "De": {
     "error_title": "Fehler",
     "module_off": "Modul deaktiviert",
-    "forgot_module": "Sie müssen das Modul angeben",
+    "forgot_module": "Du musst das Modul angeben",
     "no_token": "Kein Token angegeben",
-    "no_base_url": "Bitte geben Sie eine Basis-URL an",
+    "no_base_url": "Bitte gib eine Basis-URL an",
     "not_implemented": "Dies ist noch nicht implementiert",
-    "error_request": "Anfrage an den Remote-Server fehlgeschlagen",
-    "no_url": "In der Antwort von der API war keine URL vorhanden",
-    "error_no_avatar": "Der Avatar dieses Benutzers wurde nicht gefunden.",
-    "error_parsing_json": "Fehler beim Analysieren einer JSON-Datei."
+    "error_request": "Anfrage an den entfernten Server fehlgeschlagen",
+    "no_url": "In der API-Antwort wurde keine URL gefunden",
+    "error_no_avatar": "Das Avatar dieses Benutzers wurde nicht gefunden.",
+    "error_parsing_json": "Fehler beim Parsen einer JSON-Datei.",
+    "error_url": "Die URL in der Antwort wurde nicht gefunden",
+    "error_resolving_value": "Der Wert dieser Variable konnte nicht aufgelöst werden"
   },
   "Jp": {
     "error_title": "エラー",
-    "module_off": "モジュールは無効です",
+    "module_off": "モジュールは非アクティブです",
     "forgot_module": "モジュールを指定する必要があります",
     "no_token": "トークンが指定されていません",
     "no_base_url": "ベースURLを指定してください",
     "not_implemented": "これはまだ実装されていません",
     "error_request": "リモートサーバーへのリクエストに失敗しました",
-    "no_url": "APIからの応答にURLがありませんでした",
+    "no_url": "APIの応答にURLがありませんでした",
     "error_no_avatar": "このユーザーのアバターが見つかりませんでした。",
-    "error_parsing_json": "JSONファイルの解析中にエラーが発生しました。"
+    "error_parsing_json": "JSONファイルの解析中にエラーが発生しました。",
+    "error_url": "応答URLが見つかりませんでした",
+    "error_resolving_value": "この変数の値を解決できませんでした"
   }
 }

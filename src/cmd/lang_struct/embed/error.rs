@@ -12,5 +12,6 @@ pub struct ErrorLocalisedText {
     pub error_no_avatar: String,
     pub error_parsing_json: String,
     pub error_url: String,
+    pub error_resolving_value: String,
 }
 
