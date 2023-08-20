@@ -35,9 +35,9 @@ pub async fn run(
             anilist_username TEXT NOT NULL
         )",
     )
-    .execute(&pool)
-    .await
-    .unwrap();
+        .execute(&pool)
+        .await
+        .unwrap();
     let option = options
         .get(0)
         .expect("Expected username option")
@@ -71,11 +71,11 @@ pub async fn run(
         sqlx::query(
             "INSERT OR REPLACE INTO registered_user (user_id, anilist_username) VALUES (?, ?)",
         )
-        .bind(user_id)
-        .bind(username)
-        .execute(&pool)
-        .await
-        .unwrap();
+            .bind(user_id)
+            .bind(username)
+            .execute(&pool)
+            .await
+            .unwrap();
 
         let mut file = match File::open("lang_file/embed/anilist/register.json") {
             Ok(file) => file,

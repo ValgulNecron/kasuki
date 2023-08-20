@@ -71,7 +71,7 @@ pub async fn run(
 
         let result_va: String = data.format_va();
 
-        let mut file = match File::open("lang_file/embed/anilist/staff.json.json") {
+        let mut file = match File::open("lang_file/embed/anilist/staff.json") {
             Ok(file) => file,
             Err(_) => {
                 error_langage_file_not_found(color, ctx, command).await;

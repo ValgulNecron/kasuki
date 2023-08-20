@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct ImageRegister {
     pub code: String,
     pub name: String,
-    pub description: String,
+    pub desc: String,
     pub option1: String,
     pub option1_desc: String,
 }
@@ -16,7 +16,7 @@ pub struct ImageRegister {
 type RegisterLocalisedImageList = HashMap<String, ImageRegister>;
 
 impl ImageRegister {
-    pub fn get_banner_register_localised() -> Result<RegisterLocalisedImageList, &'static str> {
+    pub fn get_image_register_localised() -> Result<RegisterLocalisedImageList, &'static str> {
         let mut file = match File::open("lang_file/command_register/ai/image.json") {
             Ok(file) => file,
             Err(_) => return Err("Failed to open file"),

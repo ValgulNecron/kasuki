@@ -5,8 +5,8 @@ use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
-use serenity::model::user::User;
 use serenity::model::Timestamp;
+use serenity::model::user::User;
 use serenity::utils::Colour;
 
 use crate::cmd::error::common::custom_error;
@@ -89,7 +89,7 @@ pub async fn profile_without_user(ctx: &Context, command: &ApplicationCommandInt
         localised_text.clone(),
         result,
     )
-    .await
+        .await
 }
 
 pub async fn profile_with_user(
@@ -131,7 +131,7 @@ pub async fn profile_with_user(
         localised_text.clone(),
         result,
     )
-    .await
+        .await
 }
 
 pub async fn description(

@@ -5,7 +5,7 @@ use std::io::Read;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct RegisterLocalisedModule{
+pub struct RegisterLocalisedModule {
     pub code: String,
     pub name: String,
     pub desc: String,

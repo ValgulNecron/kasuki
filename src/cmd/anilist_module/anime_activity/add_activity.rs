@@ -2,18 +2,18 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Cursor, Read};
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
+use image::{GenericImageView, guess_format, ImageFormat};
 use image::imageops::FilterType;
-use image::{guess_format, GenericImageView, ImageFormat};
 use reqwest::get;
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
+use serenity::model::{Permissions, Timestamp};
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::prelude::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
-use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
@@ -52,9 +52,9 @@ pub async fn run(
         PRIMARY KEY (anime_id, server_id)
     )",
     )
-    .execute(&pool)
-    .await
-    .unwrap();
+        .execute(&pool)
+        .await
+        .unwrap();
 
     let mut value = "".to_string();
     let mut delays = 0;
@@ -118,7 +118,7 @@ pub async fn run(
                 localised_text.clone(),
                 value.parse().unwrap(),
             )
-            .await
+                .await
             {
                 Ok(minimal_anime) => minimal_anime,
                 Err(error) => {
@@ -128,7 +128,7 @@ pub async fn run(
                         command,
                         &format!("please specify an anime: {}", error),
                     )
-                    .await;
+                        .await;
                     return;
                 }
             }
@@ -137,7 +137,7 @@ pub async fn run(
                 localised_text.clone(),
                 value.to_string(),
             )
-            .await
+                .await
             {
                 Ok(minimal_anime) => minimal_anime,
                 Err(error) => {
@@ -147,7 +147,7 @@ pub async fn run(
                         command,
                         &format!("please specify an anime: {}", error),
                     )
-                    .await;
+                        .await;
                     return;
                 }
             }

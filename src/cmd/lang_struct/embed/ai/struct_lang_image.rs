@@ -16,7 +16,6 @@ use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ImageLocalisedText {
     pub title: String,
-    pub admin_instance_error: String,
 }
 
 impl ImageLocalisedText {

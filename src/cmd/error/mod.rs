@@ -9,3 +9,5 @@ pub mod error_token;
 pub mod no_lang_error;
 pub mod error_url;
 pub mod error_resolving_value;
+pub mod error_instance_admin;
+pub mod error_getting_option;

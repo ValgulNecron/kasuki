@@ -76,7 +76,7 @@ pub async fn embed(
                         value.parse().unwrap(),
                         localised_text.clone(),
                     )
-                    .await
+                        .await
                     {
                         Ok(character_wrapper) => character_wrapper,
                         Err(error) => {
@@ -89,7 +89,7 @@ pub async fn embed(
                         value.parse().unwrap(),
                         localised_text.clone(),
                     )
-                    .await
+                        .await
                     {
                         Ok(character_wrapper) => character_wrapper,
                         Err(error) => {
@@ -104,7 +104,7 @@ pub async fn embed(
                         value.parse().unwrap(),
                         localised_text.clone(),
                     )
-                    .await
+                        .await
                     {
                         Ok(character_wrapper) => character_wrapper,
                         Err(error) => {
@@ -117,7 +117,7 @@ pub async fn embed(
                         value.parse().unwrap(),
                         localised_text.clone(),
                     )
-                    .await
+                        .await
                     {
                         Ok(character_wrapper) => character_wrapper,
                         Err(error) => {

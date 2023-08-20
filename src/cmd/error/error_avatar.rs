@@ -21,5 +21,5 @@ pub async fn error_no_avatar(
         localised_text.error_title.clone(),
         localised_text.error_no_avatar.clone(),
     )
-    .await;
+        .await;
 }

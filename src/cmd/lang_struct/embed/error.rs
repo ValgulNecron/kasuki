@@ -13,5 +13,7 @@ pub struct ErrorLocalisedText {
     pub error_parsing_json: String,
     pub error_url: String,
     pub error_resolving_value: String,
+    pub admin_instance_error: String,
+    pub error_option: String,
 }
 

@@ -19,7 +19,7 @@ pub async fn error_resolving_value(color: Colour, ctx: &Context, command: &Appli
         localised_text.error_title.clone(),
         localised_text.error_resolving_value.clone(),
     )
-    .await
+        .await
 }
 
 pub async fn error_resolving_value_edit(
@@ -40,5 +40,5 @@ pub async fn error_resolving_value_edit(
         localised_text.error_title.clone(),
         localised_text.error_resolving_value.clone(),
     )
-    .await;
+        .await;
 }

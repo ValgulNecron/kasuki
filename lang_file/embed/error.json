@@ -11,7 +11,9 @@
     "error_no_avatar": "This user's avatar was not found.",
     "error_parsing_json": "Error while parsing a JSON file.",
     "error_url": "The response URL was not found",
-    "error_resolving_value": "Unable to resolve the value of this variable"
+    "error_resolving_value": "Unable to resolve the value of this variable",
+    "admin_instance_error": "The admin of this instance forgot to specify a model for image generation",
+    "error_option": "There is an error with the option"
   },
   "Fr": {
     "error_title": "Erreur",
@@ -25,7 +27,8 @@
     "error_no_avatar": "L'avatar de cet utilisateur n'a pas été trouvé.",
     "error_parsing_json": "Erreur lors de l'analyse d'un fichier JSON.",
     "error_url": "L'URL de réponse n'a pas été trouvée",
-    "error_resolving_value": "Impossible de résoudre la valeur de cette variable"
+    "error_resolving_value": "Impossible de résoudre la valeur de cette variable",
+    "admin_instance_error": "L'administrateur de cette instance a oublié de spécifier un modèle pour la génération d'images"
   },
   "De": {
     "error_title": "Fehler",
@@ -39,7 +42,8 @@
     "error_no_avatar": "Das Avatar dieses Benutzers wurde nicht gefunden.",
     "error_parsing_json": "Fehler beim Parsen einer JSON-Datei.",
     "error_url": "Die URL in der Antwort wurde nicht gefunden",
-    "error_resolving_value": "Der Wert dieser Variable konnte nicht aufgelöst werden"
+    "error_resolving_value": "Der Wert dieser Variable konnte nicht aufgelöst werden",
+    "admin_instance_error": "Der Administrator dieser Instanz hat vergessen, ein Modell für die Bildgenerierung anzugeben"
   },
   "Jp": {
     "error_title": "エラー",
@@ -53,6 +57,7 @@
     "error_no_avatar": "このユーザーのアバターが見つかりませんでした。",
     "error_parsing_json": "JSONファイルの解析中にエラーが発生しました。",
     "error_url": "応答URLが見つかりませんでした",
-    "error_resolving_value": "この変数の値を解決できませんでした"
+    "error_resolving_value": "この変数の値を解決できませんでした",
+    "admin_instance_error": "このインスタンスの管理者は画像生成のためのモデルを指定するのを忘れました"
   }
 }

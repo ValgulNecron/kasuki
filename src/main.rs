@@ -22,14 +22,14 @@ use serenity::utils::Colour;
 use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
-use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
 use crate::cmd::anilist_module::*;
+use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
 use crate::cmd::error::no_lang_error::no_langage_error;
+use crate::cmd::general_module::*;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::module_activation::check_activation_status;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
-use crate::cmd::general_module::*;
 use crate::cmd::lang_struct::embed::error::ErrorLocalisedText;
 
 mod cmd;
@@ -80,7 +80,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| transcript::register(command))
                 .create_application_command(|command| translation::register(command))
         })
-        .await;
+            .await;
 
         if cfg!(debug_assertions) {
             println!(
@@ -124,7 +124,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -138,7 +138,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -152,7 +152,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -166,7 +166,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -180,7 +180,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -194,7 +194,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -208,7 +208,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -222,7 +222,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -236,7 +236,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -250,7 +250,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -264,7 +264,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -278,7 +278,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -292,7 +292,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -306,7 +306,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -323,7 +323,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -337,7 +337,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -351,7 +351,7 @@ impl EventHandler for Handler {
                             &ctx,
                             localised_text.clone(),
                         )
-                        .await
+                            .await
                         {
                             return;
                         }
@@ -420,9 +420,9 @@ async fn main() {
                         PRIMARY KEY (shard_id, timestamp)
                     )",
         )
-        .execute(&pool)
-        .await
-        .unwrap();
+            .execute(&pool)
+            .await
+            .unwrap();
         loop {
             sleep(Duration::from_secs(600)).await;
             let pool = get_pool(database_url).await;

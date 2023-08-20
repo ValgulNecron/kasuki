@@ -23,5 +23,5 @@ pub async fn error_parsing_json_edit(
         localised_text.error_title,
         localised_text.error_parsing_json,
     )
-    .await
+        .await
 }

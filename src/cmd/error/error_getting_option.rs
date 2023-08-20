@@ -4,7 +4,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::error::common::{get_localised_langage, send_embed_message};
 
-pub async fn error_not_implemented(
+pub async fn error_no_option(
     color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
@@ -18,7 +18,7 @@ pub async fn error_not_implemented(
         ctx,
         command,
         localised_text.error_title.clone(),
-        localised_text.not_implemented.clone(),
+        localised_text.forgot_module.clone(),
     )
         .await
 }

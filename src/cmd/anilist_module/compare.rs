@@ -79,7 +79,7 @@ pub async fn embed(
     value2: &String,
 ) {
     let color = Colour::FABLED_PINK;
-    let mut file = match File::open("lang_file/embed/anilist/compare.json.json") {
+    let mut file = match File::open("lang_file/embed/anilist/compare.json") {
         Ok(file) => file,
         Err(_) => {
             error_langage_file_not_found(color, ctx, command).await;

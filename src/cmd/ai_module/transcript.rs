@@ -1,11 +1,11 @@
+use std::{env, fs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{copy, Read};
 use std::path::Path;
-use std::{env, fs};
 
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use serde_json::Value;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -225,7 +225,7 @@ pub async fn run(
                         &format!("{}: {}", &localised_text.error_request, err),
                         message.clone(),
                     )
-                    .await;
+                        .await;
                     return;
                 }
             };
@@ -243,7 +243,7 @@ pub async fn run(
                         &format!("{}: {}", &localised_text.error_request, err),
                         message.clone(),
                     )
-                    .await;
+                        .await;
                     return;
                 }
             };

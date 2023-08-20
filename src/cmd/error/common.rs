@@ -196,7 +196,7 @@ pub async fn custom_error(
         localised_text.error_title,
         error.clone(),
     )
-    .await;
+        .await;
 }
 
 pub async fn custom_followup_error(
@@ -216,7 +216,7 @@ pub async fn custom_followup_error(
         localised_text.error_title,
         error.clone(),
     )
-    .await;
+        .await;
 }
 
 pub async fn custom_error_edit(
@@ -237,5 +237,5 @@ pub async fn custom_error_edit(
         localised_text.error_title,
         error.clone(),
     )
-    .await;
+        .await;
 }

@@ -23,7 +23,7 @@ pub async fn error_no_base_url(
         localised_text.error_title.clone(),
         localised_text.no_base_url.clone(),
     )
-    .await
+        .await
 }
 
 pub async fn error_no_base_url_edit(
@@ -44,5 +44,5 @@ pub async fn error_no_base_url_edit(
         localised_text.error_title.clone(),
         localised_text.no_base_url.clone(),
     )
-    .await
+        .await
 }

@@ -23,5 +23,5 @@ pub async fn error_making_request_edit(
         localised_text.error_title.clone(),
         localised_text.error_request.clone(),
     )
-    .await;
+        .await;
 }

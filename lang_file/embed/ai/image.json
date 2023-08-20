@@ -1,18 +1,20 @@
 {
   "En": {
-    "title": "Here's your generated image",
-    "admin_instance_error": "The admin of this instance forgot to specify a model for image generation"
+    "title": "Here's your generated image"
   },
   "Fr": {
-    "title": "Voici votre image générée",
-    "admin_instance_error": "L'administrateur de cette instance a oublié de spécifier un modèle pour la génération d'images"
+    "title": "Voici votre image générée"
   },
   "De": {
-    "title": "Hier ist Ihr generiertes Bild",
-    "admin_instance_error": "Der Administrator dieser Instanz hat vergessen, ein Modell für die Bildgenerierung anzugeben"
+    "title": "Hier ist Ihr generiertes Bild"
   },
   "Jp": {
-    "title": "生成された画像はこちらです",
-    "admin_instance_error": "このインスタンスの管理者は画像生成のためのモデルを指定するのを忘れました"
+    "title": "生成された画像はこちらです"
+  },
+  "cmn": {
+    "title": "这是您生成的图像"
+  },
+  "cmnp": {
+    "title": "Zhè shì nín  shēngchéng de túxiàng"
   }
 }

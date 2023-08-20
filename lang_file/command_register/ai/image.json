@@ -1,0 +1,9 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "image",
+    "desc": "generate an image",
+    "option1": "description",
+    "option1_desc": "Description of the image you want to generate."
+  }
+}
