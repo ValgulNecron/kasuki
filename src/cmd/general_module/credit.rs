@@ -7,6 +7,7 @@ use serenity::utils::Colour;
 use crate::cmd::lang_struct::embed::general::struct_lang_credit::CreditLocalisedText;
 
 use crate::cmd::lang_struct::embed::general::struct_lang_ping::PingLocalisedText;
+use crate::cmd::lang_struct::register::general::struct_credit_register::RegisterLocalisedCredit;
 use crate::cmd::lang_struct::register::general::struct_ping_register::RegisterLocalisedPing;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
@@ -46,12 +47,12 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    // let credits = RegisterLocalisedPing::get_ping_register_localised().unwrap();
+    let credits = RegisterLocalisedCredit::get_credit_register_localised().unwrap();
     let command = command.name("credit").description("List of credit");
-    /*for (_key, credit) in &credits {
+    for (_key, credit) in &credits {
         command
             .name_localized(&credit.code, &credit.name)
             .description_localized(&credit.code, &credit.desc);
-    }*/
+    }
     command
 }
