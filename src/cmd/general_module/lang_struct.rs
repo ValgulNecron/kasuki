@@ -1,16 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct TranslationLocalisedText {
-    pub title: String,
-    pub error_slash_command: String,
-    pub unknown_error: String,
-    pub error_request: String,
-    pub error_file_type: String,
-    pub error_file_extension: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AnimeLocalisedText {
     pub desc_title: String,
     pub desc_part_1: String,

@@ -194,7 +194,7 @@ pub async fn run(
         let response = match reqwest::get(url_string).await {
             Ok(data) => data,
             Err(why) => {
-                    println!("{}", why);
+                println!("{}", why);
                 error_getting_response_from_url_edit(color, ctx, command, message).await;
                 return;
             }
@@ -202,7 +202,7 @@ pub async fn run(
         let bytes = match response.bytes().await {
             Ok(data) => data,
             Err(why) => {
-                    println!("{}", why);
+                println!("{}", why);
                 error_getting_bytes_response_edit(color, ctx, command, message).await;
                 return;
             }
@@ -210,7 +210,7 @@ pub async fn run(
         match fs::write(filename.clone(), &bytes) {
             Ok(_) => {}
             Err(why) => {
-                    println!("{}", why);
+                println!("{}", why);
                 error_writing_file_response_edit(color, ctx, command, message).await;
                 return;
             }

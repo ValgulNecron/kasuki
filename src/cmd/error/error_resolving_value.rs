@@ -3,7 +3,10 @@ use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error::common::{edit_embed_message, get_localised_langage, get_localised_langage_edit, send_followup_embed_message};
+use crate::cmd::error::common::{
+    edit_embed_message, get_localised_langage, get_localised_langage_edit,
+    send_followup_embed_message,
+};
 
 pub async fn error_resolving_value_followup(
     color: Colour,

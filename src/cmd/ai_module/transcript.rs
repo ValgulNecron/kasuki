@@ -18,6 +18,7 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
+
 use crate::cmd::error::error_base_url::error_no_base_url_edit;
 use crate::cmd::error::error_file::{error_file_extension, error_file_type};
 use crate::cmd::error::error_request::error_making_request_edit;
@@ -26,6 +27,7 @@ use crate::cmd::error::error_token::error_no_token_edit;
 use crate::cmd::general_module::differed_response::differed_response_with_file_deletion;
 use crate::cmd::general_module::in_progress::in_progress_embed;
 use crate::cmd::lang_struct::embed::ai::struct_lang_transcript::TranscriptLocalisedText;
+use crate::cmd::lang_struct::register::ai::struct_transcript_register::RegisterLocalisedTranscript;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -78,7 +80,7 @@ pub async fn run(
     }
     if let CommandDataOptionValue::Attachment(attachement) = attachement_option {
         let localised_text =
-            match TranscriptLocalisedText::get_image_localised(color, ctx, command).await {
+            match TranscriptLocalisedText::get_transcript_localised(color, ctx, command).await {
                 Ok(data) => data,
                 Err(_) => return,
             };
@@ -184,13 +186,7 @@ pub async fn run(
             Err(err) => {
                 eprintln!("Error sending the request: {}", err);
                 let _ = fs::remove_file(&file_to_delete);
-                error_making_request_edit(
-                    color,
-                    ctx,
-                    command,
-                    message,
-                )
-                .await;
+                error_making_request_edit(color, ctx, command, message).await;
                 return;
             }
         };
@@ -201,13 +197,7 @@ pub async fn run(
             Err(err) => {
                 eprintln!("Error parsing response as JSON: {}", err);
                 let _ = fs::remove_file(&file_to_delete);
-                error_making_request_edit(
-                    color,
-                    ctx,
-                    command,
-                    message.clone(),
-                )
-                .await;
+                error_making_request_edit(color, ctx, command, message.clone()).await;
                 return;
             }
         };
@@ -235,30 +225,55 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let transcripts = RegisterLocalisedTranscript::get_transcript_register_localised().unwrap();
+    let command = command
         .name("transcript")
         .description("generate a transcript")
         .create_option(|option| {
-            option
+            let option = option
                 .name("video")
                 .description("File of the video you want the transcript of 25mb max.")
                 .kind(Attachment)
-                .required(true)
+                .required(true);
+            for (_key, transcript) in &transcripts {
+                option
+                    .name_localized(&transcript.code, &transcript.option1)
+                    .description_localized(&transcript.code, &transcript.option1_desc);
+            }
+            option
         })
         .create_option(|option| {
-            option
+            let option = option
                 .name("prompt")
                 .description(
                     "Use optional text to guide style or continue audio. Match audio language.",
                 )
                 .kind(CommandOptionType::String)
-                .required(false)
+                .required(false);
+            for (_key, transcript) in &transcripts {
+                option
+                    .name_localized(&transcript.code, &transcript.option2)
+                    .description_localized(&transcript.code, &transcript.option2_desc);
+            }
+            option
         })
         .create_option(|option| {
-            option
+            let option = option
                 .name("lang")
                 .description("Input language in ISO-639-1 format improves accuracy and latency.")
                 .kind(CommandOptionType::String)
-                .required(false)
-        })
+                .required(false);
+            for (_key, transcript) in &transcripts {
+                option
+                    .name_localized(&transcript.code, &transcript.option3)
+                    .description_localized(&transcript.code, &transcript.option3_desc);
+            }
+            option
+        });
+    for (_key, transcript) in &transcripts {
+        command
+            .name_localized(&transcript.code, &transcript.name)
+            .description_localized(&transcript.code, &transcript.desc);
+    }
+    command
 }

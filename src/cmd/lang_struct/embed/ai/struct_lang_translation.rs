@@ -14,17 +14,17 @@ use crate::cmd::error::no_lang_error::{
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct TranscriptLocalisedText {
+pub struct TranslationLocalisedText {
     pub title: String,
 }
 
-impl TranscriptLocalisedText {
-    pub async fn get_transcript_localised(
+impl TranslationLocalisedText {
+    pub async fn get_translation_localised(
         color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
-    ) -> Result<TranscriptLocalisedText, &'static str> {
-        let mut file = match File::open("lang_file/embed/ai/transcript.json") {
+    ) -> Result<TranslationLocalisedText, &'static str> {
+        let mut file = match File::open("lang_file/embed/ai/translation.json") {
             Ok(file) => file,
             Err(_) => {
                 error_langage_file_not_found(color, ctx, command).await;
@@ -40,7 +40,7 @@ impl TranscriptLocalisedText {
             }
         }
 
-        let json_data: HashMap<String, TranscriptLocalisedText> = match serde_json::from_str(&json)
+        let json_data: HashMap<String, TranslationLocalisedText> = match serde_json::from_str(&json)
         {
             Ok(data) => data,
             Err(_) => {

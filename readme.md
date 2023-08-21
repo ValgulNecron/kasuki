@@ -25,7 +25,7 @@
     - [ ] Localisation for command — Working on it.
 
 - Anime submodule:
-    - [X] Finish comparison function.
+    - [X] Finish comparison function.   
       — V1 done. — Will need to be better, but it works.
       Ideas of improvement add a score on
       how close two people are (affinity score).
