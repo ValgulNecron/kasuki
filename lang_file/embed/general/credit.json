@@ -1,0 +1,34 @@
+{
+  "En": {
+    "title": "credit",
+    "list": [
+      {
+        "text": "Valgul: Main dev / original creator / french and english translation"
+      }
+    ]
+  },
+  "Fr": {
+    "title": "crédits",
+    "list": [
+      {
+        "text": "Valgul : Développeur principal / Créateur original / Traduction française et anglaise"
+      }
+    ]
+  },
+  "Jp": {
+    "title": "クレジット",
+    "list": [
+      {
+        "text": "バルガル：メインデベロッパー／オリジナルクリエイター／フランス語と英語の翻訳"
+      }
+    ]
+  },
+  "De": {
+    "title": "Credits",
+    "list": [
+      {
+        "text": "Valgul: Hauptentwickler / Urheber / Französische und englische Übersetzung"
+      }
+    ]
+  }
+}
