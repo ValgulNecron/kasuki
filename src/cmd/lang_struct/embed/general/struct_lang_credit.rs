@@ -31,7 +31,7 @@ impl CreditLocalisedText {
         ctx: &Context,
         command: &ApplicationCommandInteraction,
     ) -> Result<CreditLocalisedText, &'static str> {
-        let mut file = match File::open("lang_file/embed/general/ping.json") {
+        let mut file = match File::open("lang_file/embed/general/credit.json") {
             Ok(file) => file,
             Err(_) => {
                 error_langage_file_not_found(color, ctx, command).await;

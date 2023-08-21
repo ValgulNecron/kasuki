@@ -42,7 +42,9 @@
     "error_getting_bytes": "Impossible d'obtenir les octets de la réponse téléchargée",
     "error_writing_file": "Erreur lors de l'écriture du fichier sur le disque",
     "error_file_type": "Type de fichier incorrect",
-    "error_file_extension": "Extension de fichier incorrecte"
+    "error_file_extension": "Extension de fichier incorrecte",
+        "error_no_anime_specified": "Veuillez spécifier un anime"
+
   },
   "Jp": {
     "error_title": "エラー",
@@ -64,7 +66,9 @@
     "error_getting_bytes": "ダウンロードした応答からバイトを取得できません",
     "error_writing_file": "ファイルをディスクに書き込む際にエラーが発生しました",
     "error_file_type": "文件类型不正确",
-    "error_file_extension": "文件扩展名不正确"
+    "error_file_extension": "文件扩展名不正确",
+        "error_no_anime_specified": "アニメを指定してください"
+
   },
   "De": {
     "error_title": "Fehler",
@@ -86,6 +90,8 @@
     "error_getting_bytes": "Die Bytes aus der heruntergeladenen Antwort konnten nicht erhalten werden",
     "error_writing_file": "Beim Schreiben der Datei auf die Festplatte ist ein Fehler aufgetreten",
     "error_file_type": "Falscher Dateityp",
-    "error_file_extension": "Falsche Dateierweiterung"
+    "error_file_extension": "Falsche Dateierweiterung",
+        "error_no_anime_specified": "Bitte einen Anime angeben"
+
   }
 }
