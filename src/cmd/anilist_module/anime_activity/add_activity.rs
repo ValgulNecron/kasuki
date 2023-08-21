@@ -1,32 +1,27 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::{Cursor, Read};
+use std::io::Cursor;
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
+use image::{GenericImageView, guess_format, ImageFormat};
 use image::imageops::FilterType;
-use image::{guess_format, GenericImageView, ImageFormat};
 use reqwest::get;
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
+use serenity::model::{Permissions, Timestamp};
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::prelude::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
-use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
-use crate::cmd::error::common::custom_followup_error;
-use crate::cmd::error::no_lang_error::{
-    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
-    error_parsing_langage_json,
-};
+use crate::cmd::error::error_no::error_no_anime_specified;
+use crate::cmd::error::no_lang_error::error_no_langage_guild_id;
 use crate::cmd::general_module::differed_response::differed_response;
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::AddActivityLocalisedText;
 use crate::cmd::general_module::pool::get_pool;
 use crate::cmd::general_module::trim::trim_webhook;
+use crate::cmd::lang_struct::embed::anilist::anilist_activity::struct_lang_add_activity::AddActivityLocalisedText;
+use crate::cmd::lang_struct::register::anilist::anilist_activity::struct_add_activity_register::RegisterLocalisedAddActivity;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -52,9 +47,9 @@ pub async fn run(
         PRIMARY KEY (anime_id, server_id)
     )",
     )
-    .execute(&pool)
-    .await
-    .unwrap();
+        .execute(&pool)
+        .await
+        .unwrap();
 
     let mut value = "".to_string();
     let mut delays = 0;
@@ -64,7 +59,7 @@ pub async fn run(
             if let CommandDataOptionValue::String(value_option) = resolved {
                 value = value_option.clone()
             } else {
-                custom_followup_error(color, ctx, command, &"please specify an anime".to_string())
+                error_no_anime_specified(color, ctx, command)
                     .await;
                 return;
             }
@@ -78,37 +73,19 @@ pub async fn run(
             }
         }
     }
-    let mut file = match File::open("lang_file/embed/anilist/add_activity.json") {
-        Ok(file) => file,
-        Err(_) => {
-            error_langage_file_not_found(color, ctx, command).await;
-            return;
-        }
-    };
-    let mut json = String::new();
-    match file.read_to_string(&mut json) {
-        Ok(_) => {}
-        Err(_) => error_cant_read_langage_file(color, ctx, command).await,
-    }
-
-    let json_data: HashMap<String, AddActivityLocalisedText> = match serde_json::from_str(&json) {
-        Ok(data) => data,
-        Err(_) => {
-            error_parsing_langage_json(color, ctx, command).await;
-            return;
-        }
-    };
 
     let guild_id = match command.guild_id {
-        Some(id) => id.0.to_string(),
-        None => {
-            error_no_langage_guild_id(color, ctx, command).await;
-            return;
-        }
-    };
-    let lang_choice = get_guild_langage(guild_id.clone()).await;
+            Some(id) => id.0.to_string(),
+            None => {
+                error_no_langage_guild_id(color, ctx, command).await;
+                return
+            }
+        };
 
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+    let localised_text = match AddActivityLocalisedText::get_add_activity_localised(color,ctx,command).await {
+        Ok(data) => data,
+        Err(_) => return,
+    };
         let data;
         if match value.parse::<i32>() {
             Ok(_) => true,
@@ -118,17 +95,16 @@ pub async fn run(
                 localised_text.clone(),
                 value.parse().unwrap(),
             )
-            .await
+                .await
             {
                 Ok(minimal_anime) => minimal_anime,
-                Err(error) => {
-                    custom_followup_error(
+                Err(_) => {
+                    error_no_anime_specified(
                         color,
                         ctx,
                         command,
-                        &format!("please specify an anime: {}", error),
                     )
-                    .await;
+                        .await;
                     return;
                 }
             }
@@ -137,17 +113,16 @@ pub async fn run(
                 localised_text.clone(),
                 value.to_string(),
             )
-            .await
+                .await
             {
                 Ok(minimal_anime) => minimal_anime,
-                Err(error) => {
-                    custom_followup_error(
+                Err(_) => {
+                    error_no_anime_specified(
                         color,
                         ctx,
                         command,
-                        &format!("please specify an anime: {}", error),
                     )
-                    .await;
+                        .await;
                     return;
                 }
             }
@@ -238,29 +213,44 @@ pub async fn run(
                 println!("{}: {}", localised_text.error_slash_command, why);
             }
         }
-    }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let activities = RegisterLocalisedAddActivity::get_add_activity_register_localised().unwrap();
+    let command = command
         .name("add_activity")
         .description("Add an anime activity")
         .create_option(|option| {
-            option
+            let option = option
                 .name("anime_name")
                 .description("Name of the anime you want to add as an activity")
                 .kind(CommandOptionType::String)
                 .required(true)
-                .set_autocomplete(true)
+                .set_autocomplete(true);
+            for (_key, activity) in &activities {
+                option.name_localized(&activity.code, &activity.option1)
+                    .description_localized(&activity.code, &activity.option1_desc);
+            };
+            option
         })
         .create_option(|option| {
-            option
+            let option = option
                 .name("delays")
                 .description("A delays in second")
                 .kind(CommandOptionType::Integer)
-                .required(false)
+                .required(false);
+            for (_key, activity) in &activities {
+                option.name_localized(&activity.code, &activity.option2)
+                    .description_localized(&activity.code, &activity.option2_desc);
+            };
+            option
         })
-        .default_member_permissions(Permissions::ADMINISTRATOR)
+        .default_member_permissions(Permissions::ADMINISTRATOR);
+    for (_key, activity) in &activities {
+        command.name_localized(&activity.code, &activity.name)
+            .description_localized(&activity.code, &activity.desc);
+    }
+    command
 }
 
 pub async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {

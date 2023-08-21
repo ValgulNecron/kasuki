@@ -21,4 +21,5 @@ pub struct ErrorLocalisedText {
     pub error_writing_file: String,
     pub error_file_type: String,
     pub error_file_extension: String,
+    pub error_no_anime_specified: String,
 }

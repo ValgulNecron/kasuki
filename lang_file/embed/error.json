@@ -19,7 +19,8 @@
     "error_getting_bytes": "Impossible to get bytes from the downloaded response",
     "error_writing_file": "Error while writing file to disk",
     "error_file_type": "Wrong file type",
-    "error_file_extension": "Wrong file extension"
+    "error_file_extension": "Wrong file extension",
+    "error_no_anime_specified": "Please specify an anime"
   },
   "Fr": {
     "error_title": "Erreur",

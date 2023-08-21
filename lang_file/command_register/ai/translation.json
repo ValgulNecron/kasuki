@@ -28,7 +28,7 @@
   },
   "De": {
     "code": "de",
-    "name": "Übersetzung",
+    "name": "übersetzung",
     "desc": "Eine Übersetzung generieren",
     "option1": "video",
     "option1_desc": "Wählen Sie eine Video-Datei bis maximal 25 MB.",

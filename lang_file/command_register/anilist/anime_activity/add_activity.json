@@ -1,0 +1,38 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "add_activity",
+    "desc": "Add an anime activity",
+    "option1": "anime_name",
+    "option1_desc": "Name of the anime you want to add as an activity",
+    "option2": "delays",
+    "option2_desc": "A delays in second"
+  },
+    "Fr": {
+    "code": "fr",
+    "name": "ajouter_activité",
+"desc": "Ajouter une activité d'anime",
+"option1": "nom_anime",
+"option1_desc": "Nom de l'anime que vous voulez ajouter comme activité",
+"option2": "retards",
+"option2_desc": "Retard en seconde"
+  },
+  "Jp": {
+    "code": "ja",
+    "name": "アニメ活動を追加する",
+"desc": "アニメ活動を追加する",
+"option1": "アニメ名",
+"option1_desc": "アニメの名前を入力してください",
+"option2": "遅延時間",
+"option2_desc": "遅延時間（秒）を入力してください"
+  },
+  "De": {
+    "code": "de",
+"name": "aktivitat_hinzufugen",
+"desc": "Eine Aktivität hinzufügen",
+"option1": "anime_name",
+"option1_desc": "Name des Animes, den Sie als Aktivität hinzufügen möchten",
+"option2": "verzögerungen",
+"option2_desc": "Verzögerungen in Sekunden"
+  }
+}
