@@ -8,7 +8,6 @@ use crate::cmd::lang_struct::embed::general::struct_lang_credit::CreditLocalised
 
 use crate::cmd::lang_struct::embed::general::struct_lang_ping::PingLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_credit_register::RegisterLocalisedCredit;
-use crate::cmd::lang_struct::register::general::struct_ping_register::RegisterLocalisedPing;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
