@@ -1,8 +1,8 @@
 {
   "En": {
     "code": "en-US",
-    "name": "transcript",
-    "desc": "Generate a transcript",
+    "name": "translation",
+    "desc": "Generate a translation",
     "option1": "video",
     "option1_desc": "Upload video file (max. 25MB)",
     "option2": "lang",
@@ -10,8 +10,8 @@
   },
   "Fr": {
     "code": "fr",
-    "name": "transcription",
-    "desc": "Générer une transcription",
+    "name": "traduction",
+    "desc": "Générer une traduction",
     "option1": "vidéo",
     "option1_desc": "Télécharger fichier vidéo (max. 25Mo)",
     "option2": "langue",
@@ -19,8 +19,8 @@
   },
   "Jp": {
     "code": "ja",
-    "name": "トランスクリプト",
-    "desc": "トランスクリプトを生成する",
+    "name": "翻訳",
+    "desc": "翻訳を生成する",
     "option1": "ビデオ",
     "option1_desc": "最大25MBのビデオファイルを選択してください。",
     "option2": "言語",
@@ -28,8 +28,8 @@
   },
   "De": {
     "code": "de",
-    "name": "transkript",
-    "desc": "Ein Transkript erstellen",
+    "name": "Übersetzung",
+    "desc": "Eine Übersetzung generieren",
     "option1": "video",
     "option1_desc": "Wählen Sie eine Video-Datei bis maximal 25 MB.",
     "option2": "sprache",

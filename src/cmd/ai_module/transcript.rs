@@ -105,7 +105,7 @@ pub async fn run(
             .expect("No file extension found")
             .to_lowercase();
 
-        if !allowed_extensions.contains(&&**&file_extension) {
+        if !allowed_extensions.contains(&&*file_extension) {
             error_file_extension(color, ctx, command).await;
             return;
         }
