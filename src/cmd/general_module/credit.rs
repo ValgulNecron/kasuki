@@ -5,8 +5,6 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use crate::cmd::lang_struct::embed::general::struct_lang_credit::CreditLocalisedText;
-
-use crate::cmd::lang_struct::embed::general::struct_lang_ping::PingLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_credit_register::RegisterLocalisedCredit;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
@@ -20,17 +18,13 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     for x in credit_localised.list {
         desc += x.text.as_str()
     }
-    let localised_text = match PingLocalisedText::get_ping_localised(color, ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
                 .interaction_response_data(|message| {
                     message.embed(|m| {
-                        m.title(&localised_text.title)
+                        m.title(&credit_localised.title)
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
