@@ -104,7 +104,7 @@ but the "code" field should respect discord locale https://discord.com/developer
 ### 1. Add the bot to your server.
 
 you can add my instance of the bot
-with [this link](https://discord.com/oauth2/authorize?client_id=923286536445894697&permissions=517543913536&scope=bot)
+with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot)
 
 ### 2. Self-host your instance.
 
