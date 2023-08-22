@@ -25,6 +25,6 @@ WORKDIR /kasuki/
 
 COPY lang_file /kasuki/lang_file
 
-COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
+COPY --from=builder /kasuki/target/debug/kasuki /kasuki/.
 
 CMD ["./kasuki"]
