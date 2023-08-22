@@ -6,13 +6,13 @@ WORKDIR /kasuki
 
 COPY ./Cargo.toml ./Cargo.toml
 
-RUN cargo build
+RUN cargo build --release
 RUN rm src/*.rs
 
 COPY ./src ./src
 
-RUN rm ./target/debug/deps/kasuki*
-RUN cargo build
+RUN rm ./target/release/deps/kasuki*
+RUN cargo build --release
 
 FROM debian:bullseye-slim
 
@@ -25,6 +25,6 @@ WORKDIR /kasuki/
 
 COPY lang_file /kasuki/lang_file
 
-COPY --from=builder /kasuki/target/debug/kasuki /kasuki/.
+COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
 
 CMD ["./kasuki"]
