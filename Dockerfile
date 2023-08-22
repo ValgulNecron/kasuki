@@ -11,7 +11,7 @@ RUN rm src/*.rs
 
 COPY ./src ./src
 
-RUN rm ./target/release/deps/kasuki*
+RUN rm ./target/debug/deps/kasuki*
 RUN cargo build
 
 FROM debian:bullseye-slim
