@@ -50,8 +50,8 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         });
     for (_key, banner) in &banners {
         command
-            .name_localized(&banner.code, &banner.option1)
-            .description_localized(&banner.code, &banner.option1_desc);
+            .name_localized(&banner.code, &banner.name)
+            .description_localized(&banner.code, &banner.description);
     }
     command
 }
