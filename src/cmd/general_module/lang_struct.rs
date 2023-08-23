@@ -154,13 +154,3 @@ pub struct StudioLocalisedText {
     pub error_slash_command: String,
     pub favorite: String,
 }
-
-
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct SendActivityLocalisedText {
-    pub title: String,
-    pub ep: String,
-    pub of: String,
-    pub end: String,
-}
