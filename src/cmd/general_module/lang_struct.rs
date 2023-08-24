@@ -1,23 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct MediaLocalisedText {
-    pub full_name: String,
-    pub user_pref: String,
-    pub role: String,
-    pub format: String,
-    pub source: String,
-    pub start_date: String,
-    pub end_date: String,
-    pub fields_name_1: String,
-    pub fields_name_2: String,
-    pub desc_title: String,
-    pub error_slash_command: String,
-    pub error_no_media: String,
-    pub error_not_nsfw: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct LevelLocalisedText {
     pub level: String,
     pub xp: String,

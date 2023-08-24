@@ -11,7 +11,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::get_nsfw_channel::get_nsfw;
 use crate::cmd::anilist_module::struct_media::*;
-use crate::cmd::error::common::custom_error;
+use crate::cmd::error::error_not_nsfw::error_not_nsfw;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_anime::AnimeLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_anime_register::RegisterLocalisedAnime;
 
@@ -58,7 +58,7 @@ pub async fn run(
         }
 
         if data.get_nsfw() && !get_nsfw(command, ctx).await {
-            custom_error(color, ctx, command, &localised_text.error_not_nsfw).await;
+            error_not_nsfw(color, ctx, command).await;
             return;
         }
 

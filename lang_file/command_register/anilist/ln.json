@@ -1,0 +1,30 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "ln",
+    "desc": "Info of a light novel",
+    "option1": "ln_name",
+    "option1_desc": "Name of the light novel you want to check"
+  },
+  "Fr": {
+    "code": "fr",
+    "name": "light_novel",
+    "desc": "Informations sur un roman",
+    "option1": "titre",
+    "option1_desc": "Titre du roman que vous souhaitez consulter"
+  },
+  "De": {
+    "code": "de",
+    "name": "light_novel",
+    "desc": "Informationen zu einem Light Novel",
+    "option1": "titel",
+    "option1_desc": "Titel des Light Novels, den Sie überprüfen möchten"
+  },
+  "Jp": {
+    "code": "ja",
+    "name": "ライトノベル",
+    "desc": "ライトノベルの情報を取得する",
+    "option1": "タイトル",
+    "option1_desc": "確認したいライトノベルのタイトル"
+  }
+}

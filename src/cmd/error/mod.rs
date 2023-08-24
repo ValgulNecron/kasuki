@@ -15,3 +15,4 @@ pub mod error_response;
 pub mod error_token;
 pub mod error_url;
 pub mod no_lang_error;
+pub mod error_not_nsfw;

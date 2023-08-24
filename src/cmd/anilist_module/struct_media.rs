@@ -6,10 +6,10 @@ use serenity::model::prelude::application_command::ApplicationCommandInteraction
 use serenity::utils::Colour;
 
 use crate::cmd::general_module::html_parser::convert_to_discord_markdown;
-use crate::cmd::general_module::lang_struct::MediaLocalisedText;
 use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_anime::AnimeLocalisedText;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_media::MediaLocalisedText;
 
 #[derive(Debug, Deserialize)]
 pub struct MediaWrapper {

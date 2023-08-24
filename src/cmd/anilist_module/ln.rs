@@ -8,6 +8,7 @@ use serenity::model::prelude::interaction::application_command::{
 
 use crate::cmd::anilist_module::command_media_ln::embed;
 use crate::cmd::anilist_module::struct_autocomplete_media::MediaPageWrapper;
+use crate::cmd::lang_struct::register::anilist::struct_ln_register::RegisterLocalisedLN;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -18,17 +19,26 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let lns = RegisterLocalisedLN::get_ln_register_localised().unwrap();
+    let command = command
         .name("ln")
         .description("Info of a light novel")
         .create_option(|option| {
-            option
+            let option = option
                 .name("ln_name")
                 .description("Name of the light novel you want to check")
                 .kind(CommandOptionType::String)
                 .required(true)
-                .set_autocomplete(true)
-        })
+                .set_autocomplete(true);
+            for (_key, ln) in &lns {
+                option.name_localized(&ln.code, &ln.option1).description_localized(&ln.code, &ln.option1_desc);
+            }
+            option
+        });
+    for (_key, ln) in &lns {
+        command.name_localized(&ln.code, &ln.name).description_localized(&ln.code, &ln.desc);
+    }
+    command
 }
 
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {

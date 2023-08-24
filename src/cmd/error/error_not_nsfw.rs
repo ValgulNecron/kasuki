@@ -2,11 +2,9 @@ use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error::common::{get_localised_langage,
-                                send_followup_embed_message,
-};
+use crate::cmd::error::common::{get_localised_langage, send_embed_message};
 
-pub async fn error_resolving_value_followup(
+pub async fn error_not_nsfw(
     color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
@@ -15,12 +13,12 @@ pub async fn error_resolving_value_followup(
         Ok(data) => data,
         Err(_) => return,
     };
-    send_followup_embed_message(
+    send_embed_message(
         color,
         ctx,
         command,
         localised_text.error_title.clone(),
-        localised_text.error_resolving_value.clone(),
+        localised_text.forgot_module.clone(),
     )
     .await
 }

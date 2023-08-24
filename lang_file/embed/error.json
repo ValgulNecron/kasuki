@@ -20,7 +20,8 @@
     "error_writing_file": "Error while writing file to disk",
     "error_file_type": "Wrong file type",
     "error_file_extension": "Wrong file extension",
-    "error_no_anime_specified": "Please specify a valid anime"
+    "error_no_anime_specified": "Please specify a valid anime",
+    "error_not_nsfw": "This channel is not an NSFW channel"
   },
   "Fr": {
     "error_title": "Erreur",
@@ -43,7 +44,8 @@
     "error_writing_file": "Erreur lors de l'écriture du fichier sur le disque",
     "error_file_type": "Type de fichier incorrect",
     "error_file_extension": "Extension de fichier incorrecte",
-    "error_no_anime_specified": "Veuillez spécifier un anime"
+    "error_no_anime_specified": "Veuillez spécifier un anime",
+    "error_not_nsfw": "Ce salon n'est pas un salon NSFW"
   },
   "Jp": {
     "error_title": "エラー",
@@ -66,7 +68,8 @@
     "error_writing_file": "ファイルをディスクに書き込む際にエラーが発生しました",
     "error_file_type": "文件类型不正确",
     "error_file_extension": "文件扩展名不正确",
-    "error_no_anime_specified": "アニメを指定してください"
+    "error_no_anime_specified": "アニメを指定してください",
+    "error_not_nsfw": "このチャンネルはNSFWチャンネルではありません"
   },
   "De": {
     "error_title": "Fehler",
@@ -89,6 +92,7 @@
     "error_writing_file": "Beim Schreiben der Datei auf die Festplatte ist ein Fehler aufgetreten",
     "error_file_type": "Falscher Dateityp",
     "error_file_extension": "Falsche Dateierweiterung",
-    "error_no_anime_specified": "Bitte einen Anime angeben"
+    "error_no_anime_specified": "Bitte einen Anime angeben",
+    "error_not_nsfw": "Dieser Kanal ist kein NSFW-Kanal"
   }
 }
