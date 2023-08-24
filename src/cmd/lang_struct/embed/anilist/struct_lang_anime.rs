@@ -1,8 +1,8 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use serde::{Deserialize, Serialize};
 use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
@@ -14,23 +14,28 @@ use crate::cmd::error::no_lang_error::{
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct AddActivityLocalisedText {
-    pub error_no_media: String,
-    pub title1: String,
-    pub title2: String,
-    pub already_added: String,
-    pub adding: String,
-    pub error_slash_command: String,
+pub struct AnimeLocalisedText {
+    pub desc_title: String,
+    pub desc_part_1: String,
+    pub desc_part_2: String,
+    pub desc_part_3: String,
+    pub desc_part_4: String,
+    pub desc_part_5: String,
+    pub desc_part_6: String,
+    pub desc_part_7: String,
+    pub fields_name_1: String,
+    pub fields_name_2: String,
+    pub error_not_nsfw: String,
+    pub error_anime_not_found: String,
 }
 
-impl AddActivityLocalisedText {
-    pub async fn get_add_activity_localised(
+impl AnimeLocalisedText {
+    pub async fn get_anime_localised(
         color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
-    ) -> Result<AddActivityLocalisedText, &'static str> {
-        let mut file = match File::open("lang_file/embed/anilist/anime_activity/add_activity.json")
-        {
+    ) -> Result<AnimeLocalisedText, &'static str> {
+        let mut file = match File::open("lang_file/embed/anilist/anime.json") {
             Ok(file) => file,
             Err(_) => {
                 error_langage_file_not_found(color, ctx, command).await;
@@ -46,8 +51,7 @@ impl AddActivityLocalisedText {
             }
         }
 
-        let json_data: HashMap<String, AddActivityLocalisedText> = match serde_json::from_str(&json)
-        {
+        let json_data: HashMap<String, AnimeLocalisedText> = match serde_json::from_str(&json) {
             Ok(data) => data,
             Err(_) => {
                 error_parsing_langage_json(color, ctx, command).await;

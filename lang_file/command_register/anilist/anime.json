@@ -1,0 +1,30 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "anime",
+    "desc": "Info of an anime",
+    "option1": "anime_name",
+    "option1_desc": "Name of the anime you want to check"
+  },
+  "Fr": {
+    "code": "fr",
+    "name": "anime",
+    "desc": "Informations sur un anime",
+    "option1": "nom",
+    "option1_desc": "Nom de l'animation que vous souhaitez consulter"
+  },
+  "De": {
+    "code": "de",
+    "name": "anime",
+    "desc": "Informationen zu einem Anime",
+    "option1": "anime_name",
+    "option1_desc": "Name des Animes, den Sie überprüfen möchten"
+  },
+  "Jp": {
+    "code": "ja",
+    "name": "アニメ",
+    "desc": "アニメの情報",
+    "option1": "アニメ名",
+    "option1_desc": "確認したいアニメの名前"
+  }
+}

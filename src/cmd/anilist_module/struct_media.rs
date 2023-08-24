@@ -1,10 +1,15 @@
+use crate::cmd::error::error_no::error_no_anime_specified;
 use serde::Deserialize;
 use serde_json::json;
+use serenity::client::Context;
+use serenity::model::prelude::application_command::ApplicationCommandInteraction;
+use serenity::utils::Colour;
 
 use crate::cmd::general_module::html_parser::convert_to_discord_markdown;
-use crate::cmd::general_module::lang_struct::{AnimeLocalisedText, MediaLocalisedText};
+use crate::cmd::general_module::lang_struct::MediaLocalisedText;
 use crate::cmd::general_module::request::make_request_anilist;
 use crate::cmd::general_module::trim::trim;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_anime::AnimeLocalisedText;
 
 #[derive(Debug, Deserialize)]
 pub struct MediaWrapper {
@@ -106,7 +111,9 @@ pub struct Name {
 impl MediaWrapper {
     pub async fn new_anime_by_id(
         search: String,
-        localised_text: AnimeLocalisedText,
+        color: Colour,
+        ctx: &Context,
+        command: &ApplicationCommandInteraction,
     ) -> Result<MediaWrapper, String> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5) {
@@ -173,7 +180,8 @@ impl MediaWrapper {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_anime_not_found.clone());
+                error_no_anime_specified(color, ctx, command).await;
+                return Err("not found".to_string());
             }
         };
         return Ok(data);
@@ -181,7 +189,9 @@ impl MediaWrapper {
 
     pub async fn new_anime_by_search(
         search: &String,
-        localised_text: AnimeLocalisedText,
+        color: Colour,
+        ctx: &Context,
+        command: &ApplicationCommandInteraction,
     ) -> Result<MediaWrapper, String> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5) {
@@ -247,7 +257,8 @@ impl MediaWrapper {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_anime_not_found.clone());
+                error_no_anime_specified(color, ctx, command).await;
+                return Err("not found".to_string());
             }
         };
         return Ok(data);

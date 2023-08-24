@@ -4,16 +4,18 @@ use serenity::model::application::interaction::application_command::ApplicationC
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+
 use crate::cmd::lang_struct::embed::general::struct_lang_credit::CreditLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_credit_register::RegisterLocalisedCredit;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
 
-    let credit_localised = match CreditLocalisedText::get_credit_localised(color, ctx, command).await{
-        Ok(data) => data,
-        Err(_) => return
-    };
+    let credit_localised =
+        match CreditLocalisedText::get_credit_localised(color, ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
     let mut desc: String = "".to_string();
     for x in credit_localised.list {
         desc += x.text.as_str()

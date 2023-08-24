@@ -14,6 +14,7 @@ use crate::cmd::anilist_module::struct_autocomplete_character::CharacterPageWrap
 use crate::cmd::anilist_module::struct_character::*;
 use crate::cmd::error::common::custom_error;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_character::CharacterLocalisedText;
+use crate::cmd::lang_struct::register::anilist::struct_character_register::RegisterLocalisedCharacter;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -95,17 +96,30 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let characters = RegisterLocalisedCharacter::get_character_register_localised().unwrap();
+    let command = command
         .name("character")
-        .description("Get information ")
+        .description("Get information on a character")
         .create_option(|option| {
-            option
+            let option = option
                 .name("name")
                 .description("The name of the character")
                 .kind(CommandOptionType::String)
                 .required(true)
-                .set_autocomplete(true)
-        })
+                .set_autocomplete(true);
+            for (_key, character) in &characters {
+                option
+                    .name_localized(&character.code, &character.name)
+                    .description_localized(&character.code, &character.desc);
+            }
+            option
+        });
+    for (_key, character) in &characters {
+        command
+            .name_localized(&character.code, &character.name)
+            .description_localized(&character.code, &character.desc);
+    }
+    command
 }
 
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {

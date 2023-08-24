@@ -24,7 +24,6 @@ pub struct Credit {
     pub text: String,
 }
 
-
 impl CreditLocalisedText {
     pub async fn get_credit_localised(
         color: Colour,

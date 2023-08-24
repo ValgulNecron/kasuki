@@ -39,9 +39,9 @@ pub async fn manage_activity() {
         PRIMARY KEY (anime_id, server_id)
     )",
     )
-        .execute(&pool)
-        .await
-        .unwrap();
+    .execute(&pool)
+    .await
+    .unwrap();
     loop {
         tokio::spawn(async move {
             send_activity().await;
@@ -62,16 +62,17 @@ pub async fn send_activity() {
         .await
         .unwrap();
     for row in rows {
-        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap() {} else {
+        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap() {
+        } else {
             let row2 = row.clone();
-                let guild_id = row.server_id.clone();
+            let guild_id = row.server_id.clone();
             if row.delays.unwrap() != 0 {
                 tokio::spawn(async move {
-                        sleep(Duration::from_secs((row2.delays.clone().unwrap()) as u64));
-                        send_specific_activity(row, guild_id.unwrap(), row2).await
+                    sleep(Duration::from_secs((row2.delays.clone().unwrap()) as u64));
+                    send_specific_activity(row, guild_id.unwrap(), row2).await
                 });
             } else {
-                    send_specific_activity(row, guild_id.unwrap(), row2).await
+                send_specific_activity(row, guild_id.unwrap(), row2).await
             }
         }
     }
@@ -99,13 +100,11 @@ pub async fn update_info(row: ActivityData, guild_id: String) {
         .unwrap();
 }
 
-pub async fn send_specific_activity(
-    row: ActivityData,
-    guild_id: String,
-    row2: ActivityData
-) {
+pub async fn send_specific_activity(row: ActivityData, guild_id: String, row2: ActivityData) {
     let color = Colour::FABLED_PINK;
-    let localised_text = SendActivityLocalisedText::get_add_activity_localised(guild_id.clone()).await.unwrap();
+    let localised_text = SendActivityLocalisedText::get_send_activity_localised(guild_id.clone())
+        .await
+        .unwrap();
     let my_path = "./.env";
     let path = std::path::Path::new(my_path);
     let _ = dotenv::from_path(path);

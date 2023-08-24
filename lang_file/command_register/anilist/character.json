@@ -1,0 +1,30 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "character",
+    "desc": "Get information on a character",
+    "option1": "name",
+    "option1_desc": "The name of the character"
+  },
+  "Fr": {
+    "code": "fr",
+    "name": "personnage",
+    "desc": "Obtenir des informations sur un personnage",
+    "option1": "nom",
+    "option1_desc": "Le nom du personnage"
+  },
+  "De": {
+    "code": "de",
+    "name": "charakter",
+    "desc": "Informationen zu einem Charakter",
+    "option1": "name",
+    "option1_desc": "Der Name des Charakters"
+  },
+  "Jp": {
+    "code": "ja",
+    "name": "キャラクター",
+    "desc": "キャラクターの情報を取得する",
+    "option1": "名前",
+    "option1_desc": "キャラクターの名前"
+  }
+}

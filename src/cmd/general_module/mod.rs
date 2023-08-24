@@ -1,4 +1,5 @@
 pub mod banner;
+pub mod credit;
 pub mod differed_response;
 pub mod get_guild_langage;
 pub mod html_parser;
@@ -13,4 +14,3 @@ pub mod profile;
 pub mod request;
 pub mod struct_shard_manager;
 pub mod trim;
-pub mod credit;

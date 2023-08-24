@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::Read;
 
 use serde::{Deserialize, Serialize};
+
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -14,8 +15,11 @@ pub struct SendActivityLocalisedText {
 }
 
 impl SendActivityLocalisedText {
-    pub async fn get_add_activity_localised(guild_id: String) -> Result<SendActivityLocalisedText, &'static str> {
-        let mut file = match File::open("lang_file/embed/anilist/anime_activity/send_activity.json") {
+    pub async fn get_send_activity_localised(
+        guild_id: String,
+    ) -> Result<SendActivityLocalisedText, &'static str> {
+        let mut file = match File::open("lang_file/embed/anilist/anime_activity/send_activity.json")
+        {
             Ok(file) => file,
             Err(_) => {
                 return Err("not found");
@@ -29,12 +33,13 @@ impl SendActivityLocalisedText {
             }
         }
 
-        let json_data: HashMap<String, SendActivityLocalisedText> = match serde_json::from_str(&json) {
-            Ok(data) => data,
-            Err(_) => {
-                return Err("not found");
-            }
-        };
+        let json_data: HashMap<String, SendActivityLocalisedText> =
+            match serde_json::from_str(&json) {
+                Ok(data) => data,
+                Err(_) => {
+                    return Err("not found");
+                }
+            };
 
         let lang_choice = get_guild_langage(guild_id).await;
 
