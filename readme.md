@@ -23,6 +23,7 @@
       stuff not translated, please open an issue on GitHub or come to my discord.
       Should be done will need to check
     - [ ] Localisation for command — Working on it.
+    - [ ] Rename function, structure, command name etc... so it makes more sense. 
 
 - Anime submodule:
     - [X] Finish comparison function.   
@@ -50,7 +51,7 @@
     - [ ] Activity command (auto sends activity of a user to a channel).
       — Same as anime, but this one will be hard since
       a user can do update every second like every year. Will either have delay or be resource intensive.
-    - [ ] Add a "delay" option to delay notification.
+    - [X] Add a "delay" option to delay notification.
       — (like 1h for a translation).
       — Need anime notification first.
       it will be easy once anime is done. On wait but will be done
