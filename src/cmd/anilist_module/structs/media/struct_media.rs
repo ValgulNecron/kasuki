@@ -5,9 +5,9 @@ use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::general_module::html_parser::convert_to_discord_markdown;
-use crate::cmd::general_module::request::make_request_anilist;
-use crate::cmd::general_module::trim::trim;
+use crate::cmd::general_module::function::html_parser::convert_to_discord_markdown;
+use crate::cmd::general_module::function::request::make_request_anilist;
+use crate::cmd::general_module::function::trim::trim;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_anime::AnimeLocalisedText;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_media::MediaLocalisedText;
 

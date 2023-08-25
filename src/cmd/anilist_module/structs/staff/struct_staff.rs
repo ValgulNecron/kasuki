@@ -1,10 +1,10 @@
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::cmd::general_module::html_parser::convert_to_discord_markdown;
+use crate::cmd::general_module::function::html_parser::convert_to_discord_markdown;
 use crate::cmd::general_module::lang_struct::StaffLocalisedText;
-use crate::cmd::general_module::request::make_request_anilist;
-use crate::cmd::general_module::trim::trim;
+use crate::cmd::general_module::function::request::make_request_anilist;
+use crate::cmd::general_module::function::trim::trim;
 
 #[derive(Debug, Deserialize)]
 pub struct Name {

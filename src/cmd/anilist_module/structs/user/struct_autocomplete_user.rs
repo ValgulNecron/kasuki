@@ -5,7 +5,7 @@ use serenity::json::Value;
 use serenity::model::prelude::autocomplete::AutocompleteInteraction;
 
 use crate::cmd::anilist_module::structs::struct_autocomplete::AutocompleteOption;
-use crate::cmd::general_module::request::make_request_anilist;
+use crate::cmd::general_module::function::request::make_request_anilist;
 
 #[derive(Debug, Deserialize)]
 pub struct AutocompleteUser {

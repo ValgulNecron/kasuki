@@ -21,7 +21,6 @@ use serenity::prelude::*;
 use serenity::utils::Colour;
 use tokio::time::sleep;
 
-use crate::cmd::ai_module::*;
 use crate::cmd::anilist_module::anime_activity;
 use crate::cmd::anilist_module::anime_activity::add_activity;
 use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
@@ -29,11 +28,12 @@ use crate::cmd::anilist_module::cmd::{anime, character, compare, level, ln, mang
 use crate::cmd::anilist_module::structs::media::struct_autocomplete_media;
 use crate::cmd::anilist_module::structs::user::struct_autocomplete_user;
 use crate::cmd::error_module::no_lang_error::no_langage_error;
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::module_activation::check_activation_status;
-use crate::cmd::general_module::pool::get_pool;
-use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
-use crate::cmd::general_module::*;
+use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::cmd::module_activation::check_activation_status;
+use crate::cmd::general_module::function::pool::get_pool;
+use cmd::general_module::structs::struct_shard_manager::ShardManagerContainer;
+use crate::cmd::ai_module::cmd::{image, transcript, translation};
+use crate::cmd::general_module::cmd::{banner, credit, info, lang, module_activation, ping, profile};
 use crate::cmd::lang_struct::embed::error::ErrorLocalisedText;
 
 mod cmd;

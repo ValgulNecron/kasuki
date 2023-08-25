@@ -9,7 +9,7 @@ use serenity::utils::Colour;
 use sqlx::{Pool, Sqlite};
 
 use crate::cmd::error_module::error_module::error_no_module;
-use crate::cmd::general_module::pool::get_pool;
+use crate::cmd::general_module::function::pool::get_pool;
 use crate::cmd::lang_struct::embed::general::struct_lang_module_activation::ModuleLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_modules_register::RegisterLocalisedModule;
 

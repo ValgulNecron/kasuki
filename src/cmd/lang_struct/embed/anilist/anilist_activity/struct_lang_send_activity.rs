@@ -4,7 +4,7 @@ use std::io::Read;
 
 use serde::{Deserialize, Serialize};
 
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SendActivityLocalisedText {

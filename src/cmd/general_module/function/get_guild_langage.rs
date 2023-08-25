@@ -1,4 +1,4 @@
-use crate::cmd::general_module::pool::get_pool;
+use crate::cmd::general_module::function::pool::get_pool;
 
 pub async fn get_guild_langage(guild_id: String) -> String {
     let database_url = "./data.db";

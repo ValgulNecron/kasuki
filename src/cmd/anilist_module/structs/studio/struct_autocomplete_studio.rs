@@ -2,7 +2,7 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 
 use crate::cmd::anilist_module::structs::struct_autocomplete::AutocompleteOption;
-use crate::cmd::general_module::request::make_request_anilist;
+use crate::cmd::general_module::function::request::make_request_anilist;
 
 #[derive(Debug, Deserialize)]
 pub struct AutocompleteStudio {

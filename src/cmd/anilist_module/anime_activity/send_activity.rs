@@ -10,7 +10,7 @@ use serenity::utils::Colour;
 use sqlx::FromRow;
 
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
-use crate::cmd::general_module::pool::get_pool;
+use crate::cmd::general_module::function::pool::get_pool;
 use crate::cmd::lang_struct::embed::anilist::anilist_activity::struct_lang_send_activity::SendActivityLocalisedText;
 
 #[derive(Debug, FromRow, Clone)]

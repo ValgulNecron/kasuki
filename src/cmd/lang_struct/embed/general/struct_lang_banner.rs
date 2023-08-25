@@ -11,7 +11,7 @@ use crate::cmd::error_module::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json, no_langage_error,
 };
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct BannerLocalisedText {

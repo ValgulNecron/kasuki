@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::cmd::general_module::request::make_request_anilist;
+use crate::cmd::general_module::function::request::make_request_anilist;
 use crate::cmd::lang_struct::embed::anilist::anilist_activity::struct_lang_add_activity::AddActivityLocalisedText;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

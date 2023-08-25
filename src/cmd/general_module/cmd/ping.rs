@@ -6,7 +6,7 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::general_module::struct_shard_manager::ShardManagerContainer;
+use crate::cmd::general_module::structs::struct_shard_manager::ShardManagerContainer;
 use crate::cmd::lang_struct::embed::general::struct_lang_ping::PingLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_ping_register::RegisterLocalisedPing;
 

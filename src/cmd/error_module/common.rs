@@ -15,7 +15,7 @@ use crate::cmd::error_module::no_lang_error::{
     error_parsing_langage_json, error_parsing_langage_json_edit, no_langage_error,
     no_langage_error_edit,
 };
-use crate::cmd::general_module::get_guild_langage::get_guild_langage;
+use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
 use crate::cmd::lang_struct::embed::error::ErrorLocalisedText;
 
 pub async fn send_embed_message(

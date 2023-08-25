@@ -28,8 +28,8 @@ use crate::cmd::error_module::error_response::{
 };
 use crate::cmd::error_module::error_token::error_no_token_edit;
 use crate::cmd::error_module::error_url::error_no_url_edit;
-use crate::cmd::general_module::differed_response::differed_response;
-use crate::cmd::general_module::in_progress::in_progress_embed;
+use crate::cmd::general_module::function::differed_response::differed_response;
+use crate::cmd::general_module::function::in_progress::in_progress_embed;
 use crate::cmd::lang_struct::embed::ai::struct_lang_image::ImageLocalisedText;
 use crate::cmd::lang_struct::register::ai::struct_image_register::ImageRegister;
 
