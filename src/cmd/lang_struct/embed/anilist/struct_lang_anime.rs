@@ -7,7 +7,7 @@ use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error::no_lang_error::{
+use crate::cmd::error_module::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json,
 };
@@ -25,7 +25,6 @@ pub struct AnimeLocalisedText {
     pub desc_part_7: String,
     pub fields_name_1: String,
     pub fields_name_2: String,
-    pub error_not_nsfw: String,
     pub error_anime_not_found: String,
 }
 

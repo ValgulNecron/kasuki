@@ -9,8 +9,8 @@ use serenity::model::user::User;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::error::common::custom_error;
-use crate::cmd::error::error_avatar::error_no_avatar;
+use crate::cmd::error_module::common::custom_error;
+use crate::cmd::error_module::error_avatar::error_no_avatar;
 use crate::cmd::lang_struct::embed::general::struct_lang_profile::ProfileLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_profile_register::RegisterLocalisedProfile;
 

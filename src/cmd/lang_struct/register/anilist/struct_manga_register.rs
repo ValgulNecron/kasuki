@@ -16,8 +16,7 @@ pub struct RegisterLocalisedManga {
 type RegisterLocalisedMangaList = HashMap<String, RegisterLocalisedManga>;
 
 impl RegisterLocalisedManga {
-    pub fn get_manga_register_localised() -> Result<RegisterLocalisedMangaList, &'static str>
-    {
+    pub fn get_manga_register_localised() -> Result<RegisterLocalisedMangaList, &'static str> {
         let mut file = match File::open("lang_file/command_register/anilist/manga.json") {
             Ok(file) => file,
             Err(_) => return Err("Failed to open file"),

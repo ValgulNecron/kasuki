@@ -9,7 +9,7 @@ use serenity::model::user::User;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::error::common::custom_error;
+use crate::cmd::error_module::common::custom_error;
 use crate::cmd::lang_struct::embed::general::struct_lang_banner::BannerLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_banner_register::BannerRegister;
 

@@ -22,9 +22,13 @@ use serenity::utils::Colour;
 use tokio::time::sleep;
 
 use crate::cmd::ai_module::*;
+use crate::cmd::anilist_module::anime_activity;
+use crate::cmd::anilist_module::anime_activity::add_activity;
 use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
-use crate::cmd::anilist_module::*;
-use crate::cmd::error::no_lang_error::no_langage_error;
+use crate::cmd::anilist_module::cmd::{anime, character, compare, level, ln, manga, random, register, search, staff, studio, user, waifu};
+use crate::cmd::anilist_module::structs::media::struct_autocomplete_media;
+use crate::cmd::anilist_module::structs::user::struct_autocomplete_user;
+use crate::cmd::error_module::no_lang_error::no_langage_error;
 use crate::cmd::general_module::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::module_activation::check_activation_status;
 use crate::cmd::general_module::pool::get_pool;
@@ -74,7 +78,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| waifu::register(command))
                 .create_application_command(|command| studio::register(command))
                 .create_application_command(|command| {
-                    anime_activity::add_activity::register(command)
+                    add_activity::register(command)
                 })
                 // AI module.
                 .create_application_command(|command| image::register(command))
