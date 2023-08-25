@@ -14,12 +14,12 @@ COPY ./src ./src
 RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
-FROM debian:bullseye-slim
+FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
-    ca-certificates openssl && rm -rf /var/lib/apt/lists/*
+    ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /kasuki/
 
