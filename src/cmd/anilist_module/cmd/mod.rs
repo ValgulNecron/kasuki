@@ -11,4 +11,5 @@ pub mod staff;
 pub mod studio;
 pub mod user;
 pub mod waifu;
+// pub mod get_register_user;
 // pub mod register_waifu;

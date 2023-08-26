@@ -5,15 +5,15 @@ mod tests {
     use serde_json::json;
     use sqlx::{Pool, Sqlite};
 
-    use crate::cmd::general_module::get_guild_langage::get_guild_langage;
-    use crate::cmd::general_module::html_parser::{
+    use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
+    use crate::cmd::general_module::function::html_parser::{
         add_anti_slash, convert_bold, convert_html_entity_to_real_char,
         convert_html_line_break_to_line_break, convert_italic, convert_link_to_discord_markdown,
         convert_spoiler, convert_to_discord_markdown,
     };
-    use crate::cmd::general_module::pool::get_pool;
-    use crate::cmd::general_module::request::make_request_anilist;
-    use crate::cmd::general_module::trim::{trim, trim_webhook};
+    use crate::cmd::general_module::function::pool::get_pool;
+    use crate::cmd::general_module::function::request::make_request_anilist;
+    use crate::cmd::general_module::function::trim::{trim, trim_webhook};
 
     #[test]
     fn test_parser_mdash() {
@@ -84,7 +84,7 @@ mod tests {
         if lenght_diff <= 0 {
             result_len = trim(desc, lenght_diff).len()
         } else {
-            result_len = 0;
+            result_len = desc.len();
         }
         assert!(result_len < 4096)
     }
@@ -97,7 +97,7 @@ mod tests {
         if lenght_diff <= 0 {
             result_len = trim(desc, lenght_diff).len()
         } else {
-            result_len = 0;
+            result_len = desc.len();
         }
         assert_eq!(result_len, 4096)
     }
@@ -137,20 +137,20 @@ mod tests {
         if lenght_diff <= 0 {
             result_len = trim_webhook(desc, lenght_diff).len()
         } else {
-            result_len = 0;
+            result_len = desc.len();
         }
         assert!(result_len <= 50)
     }
 
     #[test]
     fn trim_webhook_less() {
-        let mut desc = "ifjevfndkcjfuvjdwkcjixf".to_string();
+        let desc = "The cat purred contentedly on my lap.".to_string();
         let lenght_diff = 50 - desc.len() as i32;
         let result_len;
         if lenght_diff <= 0 {
             result_len = trim_webhook(desc, lenght_diff).len()
         } else {
-            result_len = 0;
+            result_len = desc.len();
         }
         assert!(result_len < 50)
     }
