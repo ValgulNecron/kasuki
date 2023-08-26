@@ -2,8 +2,8 @@ use serde::Deserialize;
 use serde_json::json;
 use serenity::utils::Colour;
 
-use crate::cmd::general_module::lang_struct::UserLocalisedText;
 use crate::cmd::general_module::function::request::make_request_anilist;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_user::UserLocalisedText;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct UserWrapper {

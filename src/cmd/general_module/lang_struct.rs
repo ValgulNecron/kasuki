@@ -42,31 +42,6 @@ pub struct StaffLocalisedText {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct UserLocalisedText {
-    pub manga_title: String,
-    pub manga_count: String,
-    pub manga_completed: String,
-    pub manga_chapter_read: String,
-    pub manga_mean_score: String,
-    pub manga_standard_deviation: String,
-    pub manga_pref_tag: String,
-    pub manga_pref_genre: String,
-    pub anime_title: String,
-    pub anime_count: String,
-    pub anime_completed: String,
-    pub anime_time_watch: String,
-    pub anime_mean_score: String,
-    pub anime_standard_deviation: String,
-    pub anime_pref_tag: String,
-    pub anime_pref_genre: String,
-    pub week: String,
-    pub day: String,
-    pub hour: String,
-    pub minute: String,
-    pub error_slash_command: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CompareLocalisedText {
     pub more_anime: String,
     pub connector_user_same_anime: String,
@@ -112,11 +87,4 @@ pub struct CompareLocalisedText {
     pub pref_genre_manga: String,
     pub pref_tag_manga: String,
     pub error_slash_command: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct StudioLocalisedText {
-    pub anime_or_manga: String,
-    pub error_slash_command: String,
-    pub favorite: String,
 }

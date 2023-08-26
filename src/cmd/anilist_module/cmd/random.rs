@@ -24,8 +24,8 @@ use crate::cmd::error_module::no_lang_error::{
 };
 use crate::cmd::general_module::function::differed_response::differed_response;
 use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::RandomLocalisedText;
 use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::general_module::lang_struct::RandomLocalisedText;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -251,8 +251,7 @@ pub async fn follow_up_message(
     cover_image: String,
     url: String,
 ) {
-    let mut file =
-        File::open("lang_file/embed/anilist/random.json").expect("Failed to open file");
+    let mut file = File::open("lang_file/embed/anilist/random.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 

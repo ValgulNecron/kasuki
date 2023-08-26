@@ -1,0 +1,30 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "studio",
+    "desc": "Get info on an studio",
+    "option1": "studio",
+    "option1_desc": "The name of the studio."
+  },
+  "Fr": {
+    "code": "fr",
+    "name": "studio",
+    "desc": "Obtenir des informations sur un studio",
+    "option1": "nom",
+    "option1_desc": "Le nom du studio."
+  },
+  "De": {
+    "code": "de",
+    "name": "studio",
+    "desc": "Informationen zu einem Studio erhalten",
+    "option1": "name",
+    "option1_desc": "Der Name des Studios."
+  },
+  "Jp": {
+    "code": "ja",
+    "name": "スタジオ",
+    "desc": "スタジオの情報を取得する",
+    "option1": "名前",
+    "option1_desc": "スタジオの名前。"
+  }
+}

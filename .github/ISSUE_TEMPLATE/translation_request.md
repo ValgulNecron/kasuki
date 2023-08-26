@@ -8,10 +8,10 @@ assignees: ''
 ---
 
 **Langage you want to see added**
-A clear name of the langage or ISO code 639 norm either 1, 2 or 3. 
-Bad exemple: 
+A clear name of the langage or ISO code 639 norm either 1, 2 or 3.
+Bad exemple:
 Chinese.
-good exemple: 
+good exemple:
 Mandarin chinese.
 CMN ISO 639-3.
 Mandarin chinese CMN ISO 639-3.

@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::cmd::general_module::lang_struct::StudioLocalisedText;
 use crate::cmd::general_module::function::request::make_request_anilist;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_studio::StudioLocalisedText;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Title {

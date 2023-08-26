@@ -14,27 +14,37 @@ use crate::cmd::error_module::no_lang_error::{
 use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct AnimeLocalisedText {
-    pub desc_title: String,
-    pub desc_part_1: String,
-    pub desc_part_2: String,
-    pub desc_part_3: String,
-    pub desc_part_4: String,
-    pub desc_part_5: String,
-    pub desc_part_6: String,
-    pub desc_part_7: String,
-    pub fields_name_1: String,
-    pub fields_name_2: String,
-    pub error_anime_not_found: String,
+pub struct UserLocalisedText {
+    pub manga_title: String,
+    pub manga_count: String,
+    pub manga_completed: String,
+    pub manga_chapter_read: String,
+    pub manga_mean_score: String,
+    pub manga_standard_deviation: String,
+    pub manga_pref_tag: String,
+    pub manga_pref_genre: String,
+    pub anime_title: String,
+    pub anime_count: String,
+    pub anime_completed: String,
+    pub anime_time_watch: String,
+    pub anime_mean_score: String,
+    pub anime_standard_deviation: String,
+    pub anime_pref_tag: String,
+    pub anime_pref_genre: String,
+    pub week: String,
+    pub day: String,
+    pub hour: String,
+    pub minute: String,
+    pub error_slash_command: String,
 }
 
-impl AnimeLocalisedText {
-    pub async fn get_anime_localised(
+impl UserLocalisedText {
+    pub async fn get_user_localised(
         color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
-    ) -> Result<AnimeLocalisedText, &'static str> {
-        let mut file = match File::open("lang_file/embed/anilist/anime.json") {
+    ) -> Result<UserLocalisedText, &'static str> {
+        let mut file = match File::open("lang_file/embed/anilist/user.json") {
             Ok(file) => file,
             Err(_) => {
                 error_langage_file_not_found(color, ctx, command).await;
@@ -50,7 +60,7 @@ impl AnimeLocalisedText {
             }
         }
 
-        let json_data: HashMap<String, AnimeLocalisedText> = match serde_json::from_str(&json) {
+        let json_data: HashMap<String, UserLocalisedText> = match serde_json::from_str(&json) {
             Ok(data) => data,
             Err(_) => {
                 error_parsing_langage_json(color, ctx, command).await;
