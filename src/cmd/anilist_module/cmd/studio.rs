@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -18,12 +14,8 @@ use serenity::utils::Colour;
 use crate::cmd::anilist_module::structs::studio::struct_autocomplete_studio::StudioPageWrapper;
 use crate::cmd::anilist_module::structs::studio::struct_studio::StudioWrapper;
 use crate::cmd::error_module::common::custom_error;
-use crate::cmd::error_module::no_lang_error::{
-    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
-    error_parsing_langage_json, no_langage_error,
-};
-use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::StudioLocalisedText;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_studio::StudioLocalisedText;
+use crate::cmd::lang_struct::register::anilist::struct_studio_register::RegisterLocalisedStudio;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -59,79 +51,63 @@ pub async fn run(
                 }
             }
         }
-        let mut file = match File::open("lang_file/embed/anilist/studio.json") {
-            Ok(file) => file,
-            Err(_) => {
-                error_langage_file_not_found(color, ctx, command).await;
-                return;
-            }
-        };
-        let mut json = String::new();
-        match file.read_to_string(&mut json) {
-            Ok(_) => {}
-            Err(_) => error_cant_read_langage_file(color, ctx, command).await,
-        }
+        let localised_text =
+            match StudioLocalisedText::get_studio_localised(color, ctx, command).await {
+                Ok(data) => data,
+                Err(_) => return,
+            };
+        let name = data.get_studio_name();
+        let url = data.get_site_url();
+        let color = Colour::FABLED_PINK;
+        let desc = data.get_desc(localised_text.clone());
 
-        let json_data: HashMap<String, StudioLocalisedText> = match serde_json::from_str(&json) {
-            Ok(data) => data,
-            Err(_) => {
-                error_parsing_langage_json(color, ctx, command).await;
-                return;
-            }
-        };
-
-        let guild_id = match command.guild_id {
-            Some(id) => id.0.to_string(),
-            None => {
-                error_no_langage_guild_id(color, ctx, command).await;
-                return;
-            }
-        };
-        let lang_choice = get_guild_langage(guild_id).await;
-
-        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let name = data.get_studio_name();
-            let url = data.get_site_url();
-            let color = Colour::FABLED_PINK;
-            let desc = data.get_desc(localised_text.clone());
-
-            if let Err(why) = command
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| {
-                            message.embed(|m| {
-                                m.title(name)
-                                    .url(url)
-                                    .timestamp(Timestamp::now())
-                                    .color(color)
-                                    .description(desc)
-                                    .color(color)
-                            })
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message.embed(|m| {
+                            m.title(name)
+                                .url(url)
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                                .description(desc)
+                                .color(color)
                         })
-                })
-                .await
-            {
-                println!("{}: {}", localised_text.error_slash_command, why);
-            }
-        } else {
-            no_langage_error(color, ctx, command).await
+                    })
+            })
+            .await
+        {
+            println!("{}: {}", localised_text.error_slash_command, why);
         }
     }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let studios = RegisterLocalisedStudio::get_studio_register_localised().unwrap();
+    let command = command
         .name("studio")
         .description("Get info on an studio")
         .create_option(|option| {
-            option
+            let option = option
                 .name("studio")
                 .description("The name of the studio.")
                 .kind(CommandOptionType::String)
                 .required(true)
-                .set_autocomplete(true)
-        })
+                .set_autocomplete(true);
+            for (_key, studio) in &studios {
+                option
+                    .name_localized(&studio.code, &studio.option1)
+                    .description_localized(&studio.code, &studio.option1_desc);
+            }
+            option
+        });
+    for (_key, studio) in &studios {
+        command
+            .name_localized(&studio.code, &studio.name)
+            .description_localized(&studio.code, &studio.desc);
+    }
+    command
 }
 
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {

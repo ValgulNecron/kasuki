@@ -21,7 +21,7 @@
       Should be olay believe there is still some risk of panic will need to see in the long term.
     - [ ] Localisation for response — Done except for some other "minor" stuff.
     - [ ] Localisation for command — Working on it. Compare will be done later.
-    - [ ] Rename function, structure, command name etc... so it makes more sense. 
+    - [ ] Rename function, structure, command name etc... so it makes more sense.
 
 - Anime submodule:
     - [X] Finish comparison function.   

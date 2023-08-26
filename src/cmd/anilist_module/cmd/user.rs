@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -15,13 +11,9 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::structs::user::struct_user::*;
 use crate::cmd::error_module::common::custom_error;
-use crate::cmd::error_module::no_lang_error::{
-    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
-    error_parsing_langage_json, no_langage_error,
-};
-use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::UserLocalisedText;
 use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_user::UserLocalisedText;
+use crate::cmd::lang_struct::register::anilist::struct_user_register::RegisterLocalisedUser;
 
 pub async fn run(
     _options: &[CommandDataOption],
@@ -62,17 +54,30 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let users = RegisterLocalisedUser::get_user_register_localised().unwrap();
+    let command = command
         .name("user")
         .description("Info of an anilist user")
         .create_option(|option| {
-            option
+            let option = option
                 .name("username")
                 .description("Username of the anilist user you want to check")
                 .kind(CommandOptionType::String)
                 .required(false)
-                .set_autocomplete(true)
-        })
+                .set_autocomplete(true);
+            for (_key, user) in &users {
+                option
+                    .name_localized(&user.code, &user.option1)
+                    .description_localized(&user.code, &user.option1_desc);
+            }
+            option
+        });
+    for (_key, user) in &users {
+        command
+            .name_localized(&user.code, &user.name)
+            .description_localized(&user.code, &user.desc);
+    }
+    command
 }
 
 pub async fn embed(
@@ -104,135 +109,105 @@ pub async fn embed(
         }
     }
 
-    let mut file = match File::open("lang_file/embed/anilist/user.json") {
-        Ok(file) => file,
-        Err(_) => {
-            error_langage_file_not_found(color, ctx, command).await;
-            return;
-        }
-    };
-    let mut json = String::new();
-    match file.read_to_string(&mut json) {
-        Ok(_) => {}
-        Err(_) => error_cant_read_langage_file(color, ctx, command).await,
-    }
-
-    let json_data: HashMap<String, UserLocalisedText> = match serde_json::from_str(&json) {
+    let localised_text = match UserLocalisedText::get_user_localised(color, ctx, command).await {
         Ok(data) => data,
-        Err(_) => {
-            error_parsing_langage_json(color, ctx, command).await;
-            return;
-        }
+        Err(_) => return,
     };
+    let user_url = data.get_user_url();
 
-    let guild_id = match command.guild_id {
-        Some(id) => id.0.to_string(),
-        None => {
-            error_no_langage_guild_id(color, ctx, command).await;
-            return;
-        }
-    };
-    let lang_choice = get_guild_langage(guild_id).await;
+    let color = data.get_color();
 
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        let user_url = data.get_user_url();
+    let chap = data.get_manga_chapter();
+    let manga_genre = data.get_manga_genre();
+    let manga_count = data.get_manga_count();
+    let manga_score = data.get_manga_score();
+    let manga_standard_deviation = data.get_manga_standard_deviation();
+    let manga_tag_name = data.get_manga_tag();
+    let manga_completed = data.get_manga_completed();
 
-        let color = data.get_color();
+    let time_watched = data.time_anime_watched(localised_text.clone());
 
-        let chap = data.get_manga_chapter();
-        let manga_genre = data.get_manga_genre();
-        let manga_count = data.get_manga_count();
-        let manga_score = data.get_manga_score();
-        let manga_standard_deviation = data.get_manga_standard_deviation();
-        let manga_tag_name = data.get_manga_tag();
-        let manga_completed = data.get_manga_completed();
+    let anime_count = data.get_anime_count();
+    let anime_score = data.get_anime_score();
+    let anime_standard_deviation = data.get_anime_standard_deviation();
+    let anime_tag_name = data.get_anime_tag();
+    let anime_genre = data.get_anime_genre();
+    let anime_completed = data.get_anime_completed();
 
-        let time_watched = data.time_anime_watched(localised_text.clone());
+    let manga_url = data.get_user_manga_url();
+    let anime_url = data.get_user_anime_url();
 
-        let anime_count = data.get_anime_count();
-        let anime_score = data.get_anime_score();
-        let anime_standard_deviation = data.get_anime_standard_deviation();
-        let anime_tag_name = data.get_anime_tag();
-        let anime_genre = data.get_anime_genre();
-        let anime_completed = data.get_anime_completed();
+    let user = data.get_username();
+    let profile_picture = data.get_pfp();
+    let banner = data.get_banner();
 
-        let manga_url = data.get_user_manga_url();
-        let anime_url = data.get_user_anime_url();
-
-        let user = data.get_username();
-        let profile_picture = data.get_pfp();
-        let banner = data.get_banner();
-
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        message.embed(|m| {
-                            m.title(user)
-                                .url(&user_url)
-                                // Add a timestamp for the current time
-                                // This also accepts a rfc3339 Timestamp
-                                .timestamp(Timestamp::now())
-                                .thumbnail(profile_picture)
-                                .image(banner)
-                                .fields(vec![
-                                    (
-                                        "".to_string(),
-                                        format!(
-                                            "**[{}]({})**{}{}{}{}{}{}{}{:.2}{}{:.2}{}{}{}{}",
-                                            &localised_text.manga_title,
-                                            manga_url,
-                                            &localised_text.manga_count,
-                                            manga_count,
-                                            &localised_text.manga_completed,
-                                            manga_completed,
-                                            &localised_text.manga_chapter_read,
-                                            chap,
-                                            &localised_text.manga_mean_score,
-                                            manga_score,
-                                            &localised_text.manga_standard_deviation,
-                                            manga_standard_deviation,
-                                            &localised_text.manga_pref_tag,
-                                            manga_tag_name,
-                                            &localised_text.manga_pref_genre,
-                                            manga_genre
-                                        ),
-                                        false,
+    if let Err(why) = command
+        .create_interaction_response(&ctx.http, |response| {
+            response
+                .kind(InteractionResponseType::ChannelMessageWithSource)
+                .interaction_response_data(|message| {
+                    message.embed(|m| {
+                        m.title(user)
+                            .url(&user_url)
+                            // Add a timestamp for the current time
+                            // This also accepts a rfc3339 Timestamp
+                            .timestamp(Timestamp::now())
+                            .thumbnail(profile_picture)
+                            .image(banner)
+                            .fields(vec![
+                                (
+                                    "".to_string(),
+                                    format!(
+                                        "**[{}]({})**{}{}{}{}{}{}{}{:.2}{}{:.2}{}{}{}{}",
+                                        &localised_text.manga_title,
+                                        manga_url,
+                                        &localised_text.manga_count,
+                                        manga_count,
+                                        &localised_text.manga_completed,
+                                        manga_completed,
+                                        &localised_text.manga_chapter_read,
+                                        chap,
+                                        &localised_text.manga_mean_score,
+                                        manga_score,
+                                        &localised_text.manga_standard_deviation,
+                                        manga_standard_deviation,
+                                        &localised_text.manga_pref_tag,
+                                        manga_tag_name,
+                                        &localised_text.manga_pref_genre,
+                                        manga_genre
                                     ),
-                                    (
-                                        "".to_string(),
-                                        format!(
-                                            "**[{}]({})**{}{}{}{}{}{}{}{:.2}{}{:.2}{}{}{}{}",
-                                            &localised_text.anime_title,
-                                            anime_url,
-                                            &localised_text.anime_count,
-                                            anime_count,
-                                            &localised_text.anime_completed,
-                                            anime_completed,
-                                            &localised_text.anime_time_watch,
-                                            time_watched,
-                                            &localised_text.anime_mean_score,
-                                            anime_score,
-                                            &localised_text.anime_standard_deviation,
-                                            anime_standard_deviation,
-                                            &localised_text.anime_pref_tag,
-                                            anime_tag_name,
-                                            &localised_text.anime_pref_genre,
-                                            anime_genre
-                                        ),
-                                        false,
+                                    false,
+                                ),
+                                (
+                                    "".to_string(),
+                                    format!(
+                                        "**[{}]({})**{}{}{}{}{}{}{}{:.2}{}{:.2}{}{}{}{}",
+                                        &localised_text.anime_title,
+                                        anime_url,
+                                        &localised_text.anime_count,
+                                        anime_count,
+                                        &localised_text.anime_completed,
+                                        anime_completed,
+                                        &localised_text.anime_time_watch,
+                                        time_watched,
+                                        &localised_text.anime_mean_score,
+                                        anime_score,
+                                        &localised_text.anime_standard_deviation,
+                                        anime_standard_deviation,
+                                        &localised_text.anime_pref_tag,
+                                        anime_tag_name,
+                                        &localised_text.anime_pref_genre,
+                                        anime_genre
                                     ),
-                                ])
-                                .color(color)
-                        })
+                                    false,
+                                ),
+                            ])
+                            .color(color)
                     })
-            })
-            .await
-        {
-            println!("{}: {}", localised_text.error_slash_command, why);
-        }
-    } else {
-        no_langage_error(color, ctx, command).await
+                })
+        })
+        .await
+    {
+        println!("{}: {}", localised_text.error_slash_command, why);
     }
 }

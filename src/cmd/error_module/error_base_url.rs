@@ -4,6 +4,7 @@ use serenity::model::prelude::application_command::ApplicationCommandInteraction
 use serenity::utils::Colour;
 
 use crate::cmd::error_module::common::{edit_embed_message, get_localised_langage_edit};
+
 pub async fn error_no_base_url_edit(
     color: Colour,
     ctx: &Context,
