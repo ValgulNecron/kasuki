@@ -1,8 +1,4 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-
-use serenity::builder::CreateApplicationCommand;
+    use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
@@ -16,12 +12,7 @@ use serenity::utils::Colour;
 use crate::cmd::anilist_module::structs::level::struct_level::LevelSystem;
 use crate::cmd::anilist_module::structs::user::struct_user::*;
 use crate::cmd::error_module::common::custom_error;
-use crate::cmd::error_module::no_lang_error::{
-    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
-    error_parsing_langage_json, no_langage_error,
-};
-use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::LevelLocalisedText;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_level::LevelLocalisedText;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -37,36 +28,10 @@ pub async fn run(
         .as_ref()
         .expect("Expected username object");
     if let CommandDataOptionValue::String(value) = option {
-        let mut file = match File::open("lang_file/embed/anilist/level.json") {
-            Ok(file) => file,
-            Err(_) => {
-                error_langage_file_not_found(color, ctx, command).await;
-                return;
-            }
-        };
-        let mut json = String::new();
-        match file.read_to_string(&mut json) {
-            Ok(_) => {}
-            Err(_) => error_cant_read_langage_file(color, ctx, command).await,
-        }
-
-        let json_data: HashMap<String, LevelLocalisedText> = match serde_json::from_str(&json) {
+        let localised_text = match LevelLocalisedText::get_level_localised(color,ctx,command).await {
             Ok(data) => data,
-            Err(_) => {
-                error_parsing_langage_json(color, ctx, command).await;
-                return;
-            }
+            Err(_) => return,
         };
-
-        let guild_id = match command.guild_id {
-            Some(id) => id.0.to_string(),
-            None => {
-                error_no_langage_guild_id(color, ctx, command).await;
-                return;
-            }
-        };
-        let lang_choice = get_guild_langage(guild_id).await;
-        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             let data;
             if match value.parse::<i32>() {
                 Ok(_) => true,
@@ -150,11 +115,8 @@ pub async fn run(
                 })
                 .await
             {
-                println!("{}: {}", localised_text.error_slash_command, why);
+                println!("Error creating slash command: {}", why);
             }
-        } else {
-            no_langage_error(color, ctx, command).await;
-        }
     }
 }
 

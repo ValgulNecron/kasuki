@@ -1,15 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct LevelLocalisedText {
-    pub level: String,
-    pub xp: String,
-    pub progression_1: String,
-    pub progression_2: String,
-    pub error_slash_command: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct RandomLocalisedText {
     pub error_title: String,
     pub error_message: String,

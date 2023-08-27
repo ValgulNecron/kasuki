@@ -3,28 +3,24 @@
     "level": "Your level is: ",
     "xp": ".\nYou have a total of: ",
     "progression_1": " XP.\nYou are at ",
-    "progression_2": " for the next level.",
-    "error_slash_command": "Can't create slash command"
+    "progression_2": " for the next level."
   },
   "Fr": {
     "level": "Votre niveau est : ",
     "xp": ".\nVous avez un total de : ",
     "progression_1": " XP.\nVous êtes à ",
-    "progression_2": " pour le prochain niveau.",
-    "error_slash_command": "Impossible de créer la commande slash"
+    "progression_2": " pour le prochain niveau."
   },
   "Jp": {
     "level": "あなたのレベルは：",
     "xp": "です。\n合計：",
     "progression_1": " XPです。\n次のレベルまで",
-    "progression_2": " 進んでいます。",
-    "error_slash_command": "スラッシュコマンドを作成できません"
+    "progression_2": " 進んでいます。"
   },
   "De": {
     "level": "Dein Level ist: ",
     "xp": ".\nDu hast insgesamt: ",
     "progression_1": " XP.\nDu bist auf Level ",
-    "progression_2": " für das nächste Level.",
-    "error_slash_command": "Slash-Befehl kann nicht erstellt werden"
+    "progression_2": " für das nächste Level."
   }
 }
