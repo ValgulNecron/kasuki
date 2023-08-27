@@ -16,7 +16,7 @@ pub struct RegisterLocalisedLevel {
 type RegisterLocalisedLevelList = HashMap<String, RegisterLocalisedLevel>;
 
 impl RegisterLocalisedLevel {
-    pub fn get_character_register_localised() -> Result<RegisterLocalisedLevelList, &'static str>
+    pub fn get_level_register_localised() -> Result<RegisterLocalisedLevelList, &'static str>
     {
         let mut file = match File::open("lang_file/command_register/anilist/level.json") {
             Ok(file) => file,

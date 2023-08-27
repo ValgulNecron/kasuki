@@ -13,8 +13,9 @@ use crate::cmd::anilist_module::structs::level::struct_level::LevelSystem;
 use crate::cmd::anilist_module::structs::user::struct_user::*;
 use crate::cmd::error_module::common::custom_error;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_level::LevelLocalisedText;
+    use crate::cmd::lang_struct::register::anilist::struct_level_register::RegisterLocalisedLevel;
 
-pub async fn run(
+    pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
@@ -121,17 +122,28 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let levels = RegisterLocalisedLevel::get_level_register_localised().unwrap();
+    let command = command
         .name("level")
         .description("Weeb level of a user")
         .create_option(|option| {
-            option
+            let option = option
                 .name("username")
                 .description("Username of the anilist user you want to know the level of")
                 .kind(CommandOptionType::String)
                 .required(true)
-                .set_autocomplete(true)
-        })
+                .set_autocomplete(true);
+            for (_key, level) in &levels {
+                option.name_localized(&level.code, &level.option1)
+                    .description_localized(&level.code, &level.option1_desc)
+            }
+            option
+        });
+    for (_key, level) in &levels {
+                command.name_localized(&level.code, &level.name)
+                    .description_localized(&level.code, &level.desc)
+            }
+    command
 }
 
 pub fn get_total(media: Vec<Statuses>) -> (f64, f64) {
