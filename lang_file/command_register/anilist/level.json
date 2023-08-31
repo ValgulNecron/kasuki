@@ -10,7 +10,7 @@
     "code": "fr",
     "name": "niveau",
     "desc": "Niveau de weeb d'un utilisateur",
-    "option1": "nom d'utilisateur",
+    "option1": "nom_d_utilisateur",
     "option1_desc": "Nom d'utilisateur de l'utilisateur Anilist dont vous voulez connaître le niveau."
   },
   "De": {
