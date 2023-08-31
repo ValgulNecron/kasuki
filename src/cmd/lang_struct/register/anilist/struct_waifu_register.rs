@@ -5,7 +5,7 @@ use std::io::Read;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct RegisterLocalisedLevel {
+pub struct RegisterLocalisedWaifu {
     pub code: String,
     pub name: String,
     pub desc: String,
@@ -13,11 +13,11 @@ pub struct RegisterLocalisedLevel {
     pub option1_desc: String,
 }
 
-type RegisterLocalisedLevelList = HashMap<String, RegisterLocalisedLevel>;
+type RegisterLocalisedWaifuList = HashMap<String, RegisterLocalisedWaifu>;
 
-impl RegisterLocalisedLevel {
-    pub fn get_level_register_localised() -> Result<RegisterLocalisedLevelList, &'static str> {
-        let mut file = match File::open("lang_file/command_register/anilist/level.json") {
+impl RegisterLocalisedWaifu {
+    pub fn get_waifu_register_localised() -> Result<RegisterLocalisedWaifuList, &'static str> {
+        let mut file = match File::open("lang_file/command_register/anilist/waifu.json") {
             Ok(file) => file,
             Err(_) => return Err("Failed to open file"),
         };

@@ -1,0 +1,30 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "waifu",
+    "desc": "Give you the best waifu.",
+    "option1": "username",
+    "option1_desc": "Username of the discord user you want the waifu of."
+  },
+  "Fr": {
+    "code": "fr",
+    "name": "femme canon",
+    "description": "Donner la meilleure femme canon.",
+    "option1": "nom d'utilisateur",
+    "option1_desc": "Nom d'utilisateur du utilisateur Discord que vous voulez la femme canon de."
+  },
+  "De": {
+    "code": "de",
+    "name": "waifu",
+    "description": "Die beste Waifu für dich.",
+    "option1": "benutzername",
+    "option1_desc": "Benutzername des Discord-Benutzers, von dem du die Waifu haben möchtest."
+  },
+  "Jp": {
+    "code": "ja",
+    "name": "ワイフ",
+    "description": "最高のワイフを提供します。",
+    "option1": "ユーザー名",
+    "option1_desc": "ディスコードユーザーのユーザー名を指定して、そのワイフを知りたいと思います。"
+  }
+}

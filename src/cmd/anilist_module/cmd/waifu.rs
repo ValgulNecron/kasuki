@@ -9,6 +9,7 @@ use serenity::utils::Colour;
 use crate::cmd::anilist_module::structs::character::struct_character::CharacterWrapper;
 use crate::cmd::error_module::common::custom_error;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_character::CharacterLocalisedText;
+use crate::cmd::lang_struct::register::anilist::struct_waifu_register::RegisterLocalisedWaifu;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
@@ -54,7 +55,8 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let waifus = RegisterLocalisedWaifu::get_waifu_register_localised().unwrap();
+    let command = command
         .name("waifu")
         .description("Give you the best waifu.")
         .create_option(|option| {
@@ -62,6 +64,18 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .name("username")
                 .description("Username of the discord user you want the waifu of")
                 .kind(CommandOptionType::User)
-                .required(false)
-        })
+                .required(false);
+            for (_key, waifu) in &waifus {
+                option
+                    .name_localized(&waifu.code, &waifu.name)
+                    .description_localized(&waifu.code, &waifu.desc);
+            }
+            option
+        });
+    for (_key, waifu) in &waifus {
+        command
+            .name_localized(&waifu.code, &waifu.name)
+            .description_localized(&waifu.code, &waifu.desc);
+    }
+    command
 }
