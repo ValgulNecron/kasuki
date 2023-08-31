@@ -8,10 +8,10 @@
   },
   "Fr": {
     "code": "fr",
-    "name": "femme canon",
-    "desc": "Donner la meilleure femme canon.",
-    "option1": "nom d'utilisateur",
-    "option1_desc": "Nom d'utilisateur du utilisateur Discord que vous voulez la femme canon de."
+    "name": "waifu",
+    "desc": "Donner la meilleure waifu.",
+    "option1": "nom_d_utilisateur",
+    "option1_desc": "Nom d'utilisateur Discord que vous voulez la waifu de."
   },
   "De": {
     "code": "de",
