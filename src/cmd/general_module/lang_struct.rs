@@ -20,19 +20,6 @@ pub struct RegisterLocalisedText {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct StaffLocalisedText {
-    pub desc_title: String,
-    pub date_of_birth: String,
-    pub date_of_death: String,
-    pub hometown: String,
-    pub primary_language: String,
-    pub primary_occupation: String,
-    pub media: String,
-    pub va: String,
-    pub error_slash_command: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CompareLocalisedText {
     pub more_anime: String,
     pub connector_user_same_anime: String,

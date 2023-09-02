@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -18,12 +14,8 @@ use serenity::utils::Colour;
 use crate::cmd::anilist_module::structs::staff::struct_autocomplete_staff::StaffPageWrapper;
 use crate::cmd::anilist_module::structs::staff::struct_staff::*;
 use crate::cmd::error_module::common::custom_error;
-use crate::cmd::error_module::no_lang_error::{
-    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
-    error_parsing_langage_json, no_langage_error,
-};
-use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::lang_struct::StaffLocalisedText;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_staff::StaffLocalisedText;
+use crate::cmd::lang_struct::register::anilist::struct_staff_register::RegisterLocalisedStaff;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -71,80 +63,63 @@ pub async fn run(
 
         let result_va: String = data.format_va();
 
-        let mut file = match File::open("lang_file/embed/anilist/staff.json") {
-            Ok(file) => file,
-            Err(_) => {
-                error_langage_file_not_found(color, ctx, command).await;
-                return;
-            }
-        };
-        let mut json = String::new();
-        match file.read_to_string(&mut json) {
-            Ok(_) => {}
-            Err(_) => error_cant_read_langage_file(color, ctx, command).await,
-        }
-
-        let json_data: HashMap<String, StaffLocalisedText> = match serde_json::from_str(&json) {
+        let localised_text = match StaffLocalisedText::get_staff_localised(color, ctx, command).await {
             Ok(data) => data,
-            Err(_) => {
-                error_parsing_langage_json(color, ctx, command).await;
-                return;
-            }
+            Err(_) => return,
         };
+        let desc = data.get_desc(&localised_text);
 
-        let guild_id = match command.guild_id {
-            Some(id) => id.0.to_string(),
-            None => {
-                error_no_langage_guild_id(color, ctx, command).await;
-                return;
-            }
-        };
-        let lang_choice = get_guild_langage(guild_id).await;
-
-        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            let desc = data.get_desc(localised_text);
-
-            if let Err(why) = command
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| {
-                            message.embed(|m| {
-                                m.title(staff_name)
-                                    .timestamp(Timestamp::now())
-                                    .color(color)
-                                    .fields(vec![
-                                        (&localised_text.desc_title, desc, false),
-                                        (&localised_text.media, format!("{}", result_role), true),
-                                        (&localised_text.va, format!("{}", result_va), true),
-                                    ])
-                                    .url(staff_url)
-                                    .image(image)
-                            })
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message.embed(|m| {
+                            m.title(staff_name)
+                                .timestamp(Timestamp::now())
+                                .color(color)
+                                .fields(vec![
+                                    (&localised_text.desc_title, desc, false),
+                                    (&localised_text.media, format!("{}", result_role), true),
+                                    (&localised_text.va, format!("{}", result_va), true),
+                                ])
+                                .url(staff_url)
+                                .image(image)
                         })
-                })
-                .await
-            {
-                println!("{}: {}", localised_text.error_slash_command, why);
-            }
-        } else {
-            no_langage_error(color, ctx, command).await;
+                    })
+            })
+            .await
+        {
+            println!("{}: {}", localised_text.error_slash_command, why);
         }
     }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let staffs = RegisterLocalisedStaff::get_staff_register_localised().unwrap();
+    let command = command
         .name("staff")
         .description("Get info of a staff")
         .create_option(|option| {
-            option
+            let option = option
                 .name("staff_name")
                 .description("Name of the staff you want info about.")
                 .kind(CommandOptionType::String)
                 .required(true)
-                .set_autocomplete(true)
-        })
+                .set_autocomplete(true);
+            for (_key, staff) in &staffs {
+                option
+                    .name_localized(&staff.code, &staff.option1)
+                    .description_localized(&staff.code, &staff.option1_desc);
+            }
+            option
+        });
+    for (_key, staff) in &staffs {
+        command
+            .name_localized(&staff.code, &staff.name)
+            .description_localized(&staff.code, &staff.desc);
+    }
+    command
 }
 
 pub async fn autocomplete(ctx: Context, command: AutocompleteInteraction) {

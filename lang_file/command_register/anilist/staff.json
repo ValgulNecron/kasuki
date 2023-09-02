@@ -1,0 +1,30 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "staff",
+    "desc": "Get info of a staff",
+    "option1": "staff_name",
+    "option1_desc": "Name of the staff you want info about."
+  },
+  "Fr": {
+    "code": "fr",
+    "name": "staff",
+    "desc": "Obtenir des informations sur un membre du staff",
+    "option1": "nom_du_staff",
+    "option1_desc": "Nom du staff que vous souhaitez obtenir des informations sur."
+  },
+  "De": {
+    "code": "de",
+    "name": "mitarbeiter",
+    "desc": "Informationen über einen Mitarbeiter erhalten",
+    "option1": "mitarbeiter_name",
+    "option1_desc": "Name des Mitarbeiters, über den Sie Informationen erhalten möchten."
+  },
+  "Jp": {
+    "code": "ja",
+    "name": "スタッフ",
+    "desc": "スタッフの情報を入手する",
+    "option1": "スタッフ名",
+    "option1_desc": "情報を求めるスタッフの名前です。"
+  }
+}
