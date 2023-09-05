@@ -1,6 +1,8 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/987dc84319a24235a346a662ca9045c1)](https://app.codacy.com/gh/ValgulNecron/kasuki/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
+
 # TODO
+
 
 ### BOT
 
@@ -70,21 +72,28 @@
 
 ### Website
 
+
 for those of you who prefer web dev.\
 [https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
 
+
 # Vision
+
 
 The bot is in the first place, a bot that interfaces discord and the anilist api letting users get different information
 from it.
 There is also a secondary module that will be added when I have ideas or want to test things.
 
+
 # Contributing.
+
 
 ### I know how to code in rust.
 
+
 Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
 something else, just do it and open a pr afterward.
+
 
 ### I don't know how to code in rust but still want to contribute.
 
@@ -100,22 +109,29 @@ ISO-639-3 code for mandarin chinese (cmn) and added a p for pinyin
 if working on command_register please use the same structure,
 but the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
 
+
 # How to use
 
+
 ### 1. Add the bot to your server.
+
 
 you can add my instance of the bot
 with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot)
 
+
 ### 2. Self-host your instance.
 
+
 ##### tested on:
+
 
 linux: ubuntu x86-64
 
 Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates
 
 windows: windows 10 and 11
+
 
 ##### Docker.
 
@@ -159,6 +175,7 @@ cargo run --release
 
 # Commands
 
+
 ## /!\ Not updated /!\
 
 - General:
@@ -194,5 +211,6 @@ cargo run --release
   even know it existed before.
 
 # Stat
+
 
 ![kasuki](https://counter.valgul.moe/get/@kasuki?theme=gelbooru)
