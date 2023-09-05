@@ -195,9 +195,10 @@ cargo run --release
   - /staff - Give information about a specified staff.
   - /user - Show info about user.
 - AI:
-- /image - Generate an image from a description.
-- /transcript - Transcript a video or an audio file with a size limit of 25mb.
-- /translation - Create a translated transcript of video or an audio file with a size limit of 25mb.
+  - /image - Generate an image from a description.
+  - /transcript - Transcript a video or an audio file with a size limit of 25mb.
+  - /translation 
+  — Create a translated transcript of video or an audio file with a size limit of 25mb.
 
 # Credit
 
