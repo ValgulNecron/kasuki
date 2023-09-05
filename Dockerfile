@@ -1,4 +1,4 @@
-FROM rust:latest AS builder
+FROM rust:1.72-buster AS builder
 
 RUN USER=root cargo new --bin kasuki
 
@@ -14,9 +14,9 @@ COPY ./src ./src
 RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
-FROM debian:bookworm AS bot
+FROM debian:buster-slim AS bot
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
     ca-certificates && rm -rf /var/lib/apt/lists/*
