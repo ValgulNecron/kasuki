@@ -5,68 +5,68 @@
 ### BOT
 
 - General part:
-    - [X] Change how the text is displayed to support localization. — Done.
-    - [X] Clean the code. — Done.
-    - [X] Find a name for the bot. — Found one kasuki. if you have any better, don't hesitate to recommend.
-    - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db.
-    - [X] Banner. Show your or a specified user banner. — Done.
-    - [X] Profil. Show a user profile and some info. — Done.
-    - [X] Add support to turn on and off module. — Done.
-    - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is
-      done.
-    - [ ] Poll feature with custom choice and a graph afterward for comparison.
-    - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
-      size — Done.
-    - [X] Better error handling.
-      Different error messages, type and replies everytime not in certain condition.
-      — working on it.
-      Should be olay believe there is still some risk of panic will need to see in the long term.
-    - [ ] Localisation for response — Done except for some other "minor" stuff.
-    - [ ] Localisation for command — Working on it. Compare will be done later.
-    - [ ] Rename function, structure, command name etc... so it makes more sense.
+  - [X] Change how the text is displayed to support localization. — Done.
+  - [X] Clean the code. — Done.
+  - [X] Find a name for the bot. — Found one kasuki. if you have any better, don't hesitate to recommend.
+  - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db.
+  - [X] Banner. Show your or a specified user banner. — Done.
+  - [X] Profil. Show a user profile and some info. — Done.
+  - [X] Add support to turn on and off module. — Done.
+  - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is
+    done.
+  - [ ] Poll feature with custom choice and a graph afterward for comparison.
+  - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
+    size — Done.
+  - [X] Better error handling.
+    Different error messages, type and replies everytime not in certain condition.
+    — working on it.
+    Should be olay believe there is still some risk of panic will need to see in the long term.
+  - [ ] Localisation for response — Done except for some other "minor" stuff.
+  - [ ] Localisation for command — Working on it. Compare will be done later.
+  - [ ] Rename function, structure, command name etc... so it makes more sense.
 
 - Anime submodule:
-    - [X] Finish comparison function.   
-      — V1 done. — Will need to be better, but it works.
-      Ideas of improvement add a score on
-      how close two people are (affinity score).
-      — And have better formatting for the text.
-    - [X] Add character search function. — Added character research with name.
-    - [X] Add staff search function. — Added staff research with name.
-    - [X] Add search feature with a type. — Work for all.
-    - [X] Bind anilist account to discord for /user. — Added register command and edited user command.
-    - [X] Random /random {anime, manga}. — Added random for both anime and manga. Manga random can give ln.
-    - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance
-    - [X] Add caching to all requests. — Done now will need to rework random.rs cause it double cache. 3days cache
-      except
-      for "high" priority request like user data.
-    - [X] Send anime release to a channel.
-      — Done
-        - [ ] List all activity
-        - [ ] Delete an activity.
-    - [ ] Try to do the same for manga.
-      with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
-      this one only selected manga not all seasonal).
-      — Did some digging seem possible. I will do anime-first trough.
-    - [ ] Activity command (auto sends activity of a user to a channel).
-      — Same as anime, but this one will be hard since
-      a user can do update every second like every year. Will either have delay or be resource intensive.
-    - [X] Add a "delay" option to delay notification.
-      — (like 1h for a translation).
-      — Need anime notification first.
-      it will be easy once anime is done. On wait but will be done
-    - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
-      with a seiyuu and va role.
-      — This is possible, I'm not competent enough.
-    - [ ] Get all the register users of the server. Working on it after finishing anime activity.
-    - [X] Add studio search.
-    - [X] Add commands that give the best waifu. — Done.
+  - [X] Finish comparison function.   
+    — V1 done. — Will need to be better, but it works.
+    Ideas of improvement add a score on
+    how close two people are (affinity score).
+    — And have better formatting for the text.
+  - [X] Add character search function. — Added character research with name.
+  - [X] Add staff search function. — Added staff research with name.
+  - [X] Add search feature with a type. — Work for all.
+  - [X] Bind anilist account to discord for /user. — Added register command and edited user command.
+  - [X] Random /random {anime, manga}. — Added random for both anime and manga. Manga random can give ln.
+  - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance
+  - [X] Add caching to all requests. — Done now will need to rework random.rs cause it double cache. 3days cache
+    except
+    for "high" priority request like user data.
+  - [X] Send anime release to a channel.
+    — Done
+    - [ ] List all activity
+    - [ ] Delete an activity.
+  - [ ] Try to do the same for manga.
+    with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
+    this one only selected manga not all seasonal).
+    — Did some digging seem possible. I will do anime-first trough.
+  - [ ] Activity command (auto sends activity of a user to a channel).
+    — Same as anime, but this one will be hard since
+    a user can do update every second like every year. Will either have delay or be resource intensive.
+  - [X] Add a "delay" option to delay notification.
+    — (like 1h for a translation).
+    — Need anime notification first.
+    it will be easy once anime is done. On wait but will be done
+  - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
+    with a seiyuu and va role.
+    — This is possible, I'm not competent enough.
+  - [ ] Get all the register users of the server. Working on it after finishing anime activity.
+  - [X] Add studio search.
+  - [X] Add commands that give the best waifu. — Done.
 
 - AI submodule:
-    - [X] Image generation with AI. — Done.
-    - [X] Video transcription. — Done.
-    - [X] Video translation. — Done.
-    - [ ] Ask a question and reply the response. — Not a priority.
+  - [X] Image generation with AI. — Done.
+  - [X] Video transcription. — Done.
+  - [X] Video translation. — Done.
+  - [ ] Ask a question and reply the response. — Not a priority.
 
 ### Website
 
@@ -162,25 +162,25 @@ cargo run --release
 ## /!\ Not updated /!\
 
 - General:
-    - /info - Show info about bot.
-    - /ping - Check if the bot responds to command.
-    - /lang - let you change the langage for your guild. require admin perm.
+  - /info - Show info about bot.
+  - /ping - Check if the bot responds to command.
+  - /lang - let you change the langage for your guild. require admin perm.
 - Anime:
-    - /anime - Show info about anime.
-    - /character - Show info on a character.
-    - /compare - Compare 2 different user.
-    - /level - Show your level based on what you read and watched.
-    - /ln - Show info about light novel.
-    - /manga - Show info about manga.
-    - /random - Give a random anime or manga.
-    - /register - Link your anilist and discord account.
-    - /search - Let you search for a different type. Like ln, manga, etc...
-    - /staff - Give information about a specified staff.
-    - /user - Show info about user.
+  - /anime - Show info about anime.
+  - /character - Show info on a character.
+  - /compare - Compare 2 different user.
+  - /level - Show your level based on what you read and watched.
+  - /ln - Show info about light novel.
+  - /manga - Show info about manga.
+  - /random - Give a random anime or manga.
+  - /register - Link your anilist and discord account.
+  - /search - Let you search for a different type. Like ln, manga, etc...
+  - /staff - Give information about a specified staff.
+  - /user - Show info about user.
 - AI:
-    - /image - Generate an image from a description.
-    - /transcript - Transcript a video or an audio file with a size limit of 25mb.
-    - /translation - Create a translated transcript of video or an audio file with a size limit of 25mb.
+- /image - Generate an image from a description.
+- /transcript - Transcript a video or an audio file with a size limit of 25mb.
+- /translation - Create a translated transcript of video or an audio file with a size limit of 25mb.
 
 # Credit
 

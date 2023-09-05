@@ -7,7 +7,7 @@ always add comment on why you did this or that (I know I'm the first not doing i
 
 ### Naming convention
 
-please respect https://github.com/rust-lang/rfcs/blob/master/text/0430-finalizing-naming-conventions.md. \
+please respect <https://github.com/rust-lang/rfcs/blob/master/text/0430-finalizing-naming-conventions.md> \
 
 ### When adding new functionality to the bot
 
