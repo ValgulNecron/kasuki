@@ -47,8 +47,8 @@
     for "high" priority request like user data.
   - [X] Send anime release to a channel.
     — Done
-    - [ ] List all activity
-    - [ ] Delete an activity.
+  - [ ] List all activity
+  - [ ] Delete an activity.
   - [ ] Try to do the same for manga.
     with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) (for
     this one only selected manga not all seasonal).
