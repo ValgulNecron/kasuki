@@ -1,4 +1,7 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/987dc84319a24235a346a662ca9045c1)](https://app.codacy.com/gh/ValgulNecron/kasuki/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+![Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/master?style=plastic)
+
+
 
 
 # TODO
