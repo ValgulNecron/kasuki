@@ -11,9 +11,10 @@ please respect <https://github.com/rust-lang/rfcs/blob/master/text/0430-finalizi
 
 ### When adding new functionality to the bot
 
-first focus on a working version and after do it more properly and clean (except if you want to do it from the start)
+first, focus on a working version and after do it more properly and clean (except if you want to do it from the start)
 since all new functionality will not be accepted or added having a "prototype" is best.
 
 ### When editing an already existing functionality
 
-please tell what have changed and the impact better performance, more readable, using new api.
+please tell what has changed and the impact better performance, 
+more readable, using a new api version.
