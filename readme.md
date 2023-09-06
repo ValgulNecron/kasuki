@@ -1,6 +1,6 @@
-## TODO
+# TODO
 
-### BOT
+## BOT
 
 - General part:
   - [X] Change how the text is displayed to support localization. — Done.
@@ -70,14 +70,14 @@
   - [X] Video translation. — Done.
   - [ ] Ask a question and reply the response. — Not a priority.
 
-### Website
+## Website
 
 
 for those of you who prefer web dev.\
 [https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
 
 
-## Vision
+# Vision
 
 
 The bot is in the first place,
@@ -87,17 +87,17 @@ There are also multiple secondary modules that will be added
 when I have ideas or want to test things.
 
 
-## Contributing
+# Contributing
 
 
-### I know how to code in rust
+## I know how to code in rust
 
 
 Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
 something else, just do it and open a pr afterward.
 
 
-### I don't know how to code in rust but still want to contribute
+## I don't know how to code in rust but still want to contribute
 
 1. You can add new langage by adding a translation in the file located in lang_file and adding it to
    lang_file/available_lang.json
@@ -112,20 +112,20 @@ if working on command_register please use the same structure,
 but the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
 
 
-## How to use
+# How to use
 
 
-### 1. Add the bot to your server
+## 1. Add the bot to your server
 
 
 you can add my instance of the bot
 with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot)
 
 
-### 2. Self-host your instance
+## 2. Self-host your instance
 
 
-##### tested on:
+### tested on:
 
 
 linux: ubuntu x86-64
@@ -135,7 +135,7 @@ Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates
 windows: windows 10 and 11
 
 
-##### Docker
+### Docker
 
 - Install docker and docker compose.
 - Clone this repo.
@@ -159,7 +159,7 @@ Please remember that after a pull you will need to rebuild
 docker compose up -d --build 
 ```
 
-##### or Rust
+### or Rust
 
 - Install rust.
 - Clone this repo.
@@ -175,7 +175,7 @@ git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 cargo run --release
 ```
 
-## Commands
+# Commands
 
 
 ## /!\ Not updated /!\
@@ -202,7 +202,7 @@ cargo run --release
   - /translation 
   — Create a translated transcript of video or an audio file with a size limit of 25mb.
 
-## Credit
+# Credit
 
 - Thanks Srayeals for the badge I use as the bot
   pfp. ([https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))
@@ -213,7 +213,7 @@ cargo run --release
 - [https://github.com/Skittyblock/AniBot](https://github.com/Skittyblock/AniBot) For auto-complete on command, did not
   even know it existed before.
 
-## Stat
+# Stat
 
 ![kasuki](https://counter.valgul.moe/get/@kasuki?theme=gelbooru)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/987dc84319a24235a346a662ca9045c1)](https://app.codacy.com/gh/ValgulNecron/kasuki/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
