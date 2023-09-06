@@ -16,5 +16,5 @@ since all new functionality will not be accepted or added having a "prototype" i
 
 ### When editing an already existing functionality
 
-please tell what has changed and the impact better performance, 
+please tell what has changed and the impact better performance,
 more readable, using a new api version.
