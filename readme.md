@@ -128,7 +128,7 @@ with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445
 ### tested on:
 
 
-linux: ubuntu x86-64
+linux: ubuntu 22.04.2 x86-64
 
 Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates
 
