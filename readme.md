@@ -70,6 +70,9 @@
   - [X] Video translation. — Done.
   - [ ] Ask a question and reply the response. — Not a priority.
 
+- Moderation submodule: 
+  - [] General moderation stuff
+
 ## Website
 
 
