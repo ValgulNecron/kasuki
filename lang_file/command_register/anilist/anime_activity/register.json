@@ -1,0 +1,30 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "register",
+    "desc": "Register your Anilist username for ease of use.",
+    "option1": "username",
+    "option1_desc": "Your Anilist username."
+  },
+  "Fr": {
+    "code": "fr",
+    "name": "enregistrer",
+    "desc": "Enregistrez votre nom d'utilisateur Anilist pour plus de facilité.",
+    "option1": "nom_d_utilisateur",
+    "option1_desc": "Votre nom d'utilisateur Anilist."
+  },
+  "De": {
+    "code": "de",
+    "name": "registrieren",
+    "desc": "Registrieren Sie Ihren Anilist-Benutzernamen für eine einfachere Verwendung.",
+    "option1": "benutzername",
+    "option1_desc": "Ihr Anilist-Benutzername."
+  },
+  "Jp": {
+    "code": "ja",
+    "name": "登録",
+    "desc": "Anilistユーザー名を登録して、利便性を向上させます。",
+    "option1": "ユーザー名",
+    "option1_desc": "あなたのAnilistユーザー名。"
+  }
+}

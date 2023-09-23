@@ -8,3 +8,4 @@ pub mod struct_staff_register;
 pub mod struct_studio_register;
 pub mod struct_user_register;
 pub mod struct_waifu_register;
+pub mod struct_register_register;

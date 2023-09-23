@@ -11,13 +11,7 @@ pub struct RandomLocalisedText {
     pub error_slash_command: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct RegisterLocalisedText {
-    pub part_1: String,
-    pub part_2: String,
-    pub part_3: String,
-    pub error_slash_command: String,
-}
+
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CompareLocalisedText {

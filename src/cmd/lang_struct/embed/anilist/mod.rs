@@ -6,3 +6,4 @@ pub mod struct_lang_media;
 pub mod struct_lang_staff;
 pub mod struct_lang_studio;
 pub mod struct_lang_user;
+pub mod struct_lang_register;
