@@ -66,11 +66,8 @@ pub async fn run(
             };
         differed_response(ctx, command).await;
 
-        let message: Message;
-        match in_progress_embed(&ctx, &command).await {
-            Ok(Some(message_option)) => {
-                message = message_option;
-            }
+        let message = match in_progress_embed(ctx, command).await {
+            Ok(Some(message_option)) => message_option,
             Ok(None) => {
                 error_resolving_value_followup(color, ctx, command).await;
                 return;
@@ -79,7 +76,7 @@ pub async fn run(
                 println!("Error: {}", error);
                 return;
             }
-        }
+        };
 
         let my_path = "./.env";
         let path = Path::new(my_path);
@@ -247,14 +244,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Description of the image you want to generate.")
                 .kind(CommandOptionType::String)
                 .required(true);
-            for (_key, image) in &images {
+            for image in images.values() {
                 option
                     .name_localized(&image.code, &image.option1)
                     .description_localized(&image.code, &image.option1_desc);
             }
             option
         });
-    for (_key, image) in &images {
+    for image in images.values() {
         command
             .name_localized(&image.code, &image.name)
             .description_localized(&image.code, &image.desc);
