@@ -9,10 +9,6 @@ on:
 permissions:
       checks: write
 
-concurrency:
-  group: "clippy"
-  cancel-in-progress: false
-
 jobs:
   linter:
 
