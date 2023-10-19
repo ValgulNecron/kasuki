@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-
+use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_register::RegisterLocalisedText;
+use crate::cmd::lang_struct::register::anilist::struct_register_register::RegisterLocalisedRegister;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -12,15 +11,6 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
-
-use crate::cmd::error_module::no_lang_error::{
-    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
-    error_parsing_langage_json, no_langage_error,
-};
-use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::function::pool::get_pool;
-use crate::cmd::lang_struct::embed::anilist::struct_lang_register::RegisterLocalisedText;
-use crate::cmd::lang_struct::register::anilist::struct_register_register::RegisterLocalisedRegister;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -78,11 +68,11 @@ pub async fn run(
         .await
         .unwrap();
 
-        let localised_text = match RegisterLocalisedText::get_register_localised(color,ctx,command).await
-        {
-            Ok(data) => data,
-            Err(_) => return,
-        };
+        let localised_text =
+            match RegisterLocalisedText::get_register_localised(color, ctx, command).await {
+                Ok(data) => data,
+                Err(_) => return,
+            };
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response
@@ -124,14 +114,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Your anilist user name.")
                 .kind(CommandOptionType::String)
                 .required(true);
-            for (_key, register) in registers {
+            for (_key, register) in &registers {
                 option
                     .name_localized(&register.code, &register.option1)
                     .description_localized(&register.code, &register.option1_desc);
             }
             option
         });
-    for (_key, register) in registers {
+    for (_key, register) in &registers {
         command
             .name_localized(&register.code, &register.name)
             .description_localized(&register.code, &register.desc);

@@ -79,8 +79,8 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .set_autocomplete(true);
             for (_key, manga) in &compares {
                 option
-                    .name_localized(&manga.code, &manga.option1)
-                    .description_localized(&manga.code, &manga.option1_desc);
+                    .name_localized(&manga.code, &manga.option2)
+                    .description_localized(&manga.code, &manga.option2_desc);
             }
             option
         });
