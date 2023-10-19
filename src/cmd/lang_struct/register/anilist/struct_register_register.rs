@@ -16,8 +16,7 @@ pub struct RegisterLocalisedRegister {
 type RegisterLocalisedRegisterList = HashMap<String, RegisterLocalisedRegister>;
 
 impl RegisterLocalisedRegister {
-    pub fn get_register_register_localised() -> Result<RegisterLocalisedRegisterList, &'static str>
-    {
+    pub fn get_register_register_localised() -> Result<RegisterLocalisedRegisterList, &'static str> {
         let mut file = match File::open("lang_file/command_register/anilist/register.json") {
             Ok(file) => file,
             Err(_) => return Err("Failed to open file"),

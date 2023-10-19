@@ -19,7 +19,7 @@ use crate::cmd::error_module::no_lang_error::{
 };
 use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::function::pool::get_pool;
-use crate::cmd::general_module::lang_struct::RegisterLocalisedText;
+use crate::cmd::lang_struct::embed::anilist::struct_lang_register::RegisterLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_register_register::RegisterLocalisedRegister;
 
 pub async fn run(
@@ -78,66 +78,37 @@ pub async fn run(
         .await
         .unwrap();
 
-        let mut file = match File::open("lang_file/embed/anilist/register.json") {
-            Ok(file) => file,
-            Err(_) => {
-                error_langage_file_not_found(color, ctx, command).await;
-                return;
-            }
-        };
-        let mut json = String::new();
-        match file.read_to_string(&mut json) {
-            Ok(_) => {}
-            Err(_) => error_cant_read_langage_file(color, ctx, command).await,
-        }
-
-        let json_data: HashMap<String, RegisterLocalisedText> = match serde_json::from_str(&json) {
+        let localised_text = match RegisterLocalisedText::get_register_localised(color,ctx,command).await
+        {
             Ok(data) => data,
-            Err(_) => {
-                error_parsing_langage_json(color, ctx, command).await;
-                return;
-            }
+            Err(_) => return,
         };
-
-        let guild_id = match command.guild_id {
-            Some(id) => id.0.to_string(),
-            None => {
-                error_no_langage_guild_id(color, ctx, command).await;
-                return;
-            }
-        };
-        let lang_choice = get_guild_langage(guild_id).await;
-
-        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            if let Err(why) = command
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| {
-                            message.embed(|m| {
-                                m.title(username)
-                                    // Add a timestamp for the current time
-                                    // This also accepts a rfc3339 Timestamp
-                                    .timestamp(Timestamp::now())
-                                    .thumbnail(profile_picture)
-                                    .color(color)
-                                    .description(format!(
-                                        "{}{}{}{}{}",
-                                        &localised_text.part_1,
-                                        user_id,
-                                        &localised_text.part_2,
-                                        username,
-                                        &localised_text.part_3
-                                    ))
-                            })
+        if let Err(why) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message.embed(|m| {
+                            m.title(username)
+                                // Add a timestamp for the current time
+                                // This also accepts a rfc3339 Timestamp
+                                .timestamp(Timestamp::now())
+                                .thumbnail(profile_picture)
+                                .color(color)
+                                .description(format!(
+                                    "{}{}{}{}{}",
+                                    &localised_text.part_1,
+                                    user_id,
+                                    &localised_text.part_2,
+                                    username,
+                                    &localised_text.part_3
+                                ))
                         })
-                })
-                .await
-            {
-                println!("{}: {}", localised_text.error_slash_command, why);
-            }
-        } else {
-            no_langage_error(color, ctx, command).await;
+                    })
+            })
+            .await
+        {
+            println!("{}: {}", localised_text.error_slash_command, why);
         }
     }
 }
