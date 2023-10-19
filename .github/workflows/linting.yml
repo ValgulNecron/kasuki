@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+      checks: write
+
 jobs:
   linter:
 
