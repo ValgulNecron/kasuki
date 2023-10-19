@@ -4,6 +4,9 @@ use serde_json::Value;
 
 use crate::cmd::general_module::function::pool::get_pool;
 
+/// the number of day before the cache is too old and need to be renewed.
+const DAYS: i64 = 3;
+
 ///
 ///
 /// # Arguments
@@ -11,7 +14,7 @@ use crate::cmd::general_module::function::pool::get_pool;
 /// * `json`: The json for the request on the anilist api need to be a valid json as per the anilist api doc (https://anilist.gitbook.io/anilist-apiv2-docs/overview/resources-and-recommended-reading)
 /// * `always_update`: Does it always check with the api or use the cache. True always use api. False use the cache.
 ///
-/// returns: The json in form of string that the api responded.
+/// returns: String = The json in form of string that the api responded.
 ///
 /// # Examples
 ///
@@ -38,6 +41,19 @@ pub async fn make_request_anilist(json: Value, always_update: bool) -> String {
     }
 }
 
+///
+///
+/// # Arguments
+///
+/// * `json`: The json for the request on the anilist api need to be a valid json as per the anilist api doc (https://anilist.gitbook.io/anilist-apiv2-docs/overview/resources-and-recommended-reading)
+///
+/// returns: String = The cached api result or if it more than the DAYS const since last cache update the new response from the api.
+///
+/// # Examples
+///
+/// ```
+/// get_cache(json.clone()).await
+/// ```
 async fn get_cache(json: Value) -> String {
     let database_url = "./cache.db";
     let pool = get_pool(database_url).await;
@@ -66,7 +82,7 @@ async fn get_cache(json: Value) -> String {
     } else {
         let updated_at = last_updated.unwrap();
         let duration_since_updated = Utc::now().timestamp() - updated_at;
-        if duration_since_updated < 3 * (24 * 60 * 60) {
+        if duration_since_updated < (3 * 24 * 60 * 60) {
             response.unwrap()
         } else {
             do_request(json.clone(), false).await
@@ -91,6 +107,20 @@ async fn add_cache(json: Value, resp: String) -> bool {
     return true;
 }
 
+///
+///
+/// # Arguments
+///
+/// * `json`:
+/// * `always_update`:
+///
+/// returns: String
+///
+/// # Examples
+///
+/// ```
+///
+/// ```
 async fn do_request(json: Value, always_update: bool) -> String {
     let client = Client::new();
     let res = client

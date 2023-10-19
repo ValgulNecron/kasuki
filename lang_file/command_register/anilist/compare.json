@@ -1,0 +1,38 @@
+{
+  "En": {
+    "code": "en-US",
+    "name": "compare",
+    "desc": "compare stats of two users",
+    "option1": "username",
+    "option1_desc": "Username of the 1st AniList user to compare",
+    "option2": "username2",
+    "option2_desc": "Username of the 2nd AniList user to compare"
+  },
+  "Fr": {
+    "code": "fr",
+    "name": "comparer",
+    "desc": "comparer les statistiques de deux utilisateurs",
+    "option1": "nom d'utilisateur",
+    "option1_desc": "Nom d'utilisateur du 1er utilisateur AniList à comparer",
+    "option2": "nom d'utilisateur2",
+    "option2_desc": "Nom d'utilisateur du 2e utilisateur AniList à comparer"
+  },
+  "De": {
+    "code": "de",
+    "name": "vergleichen",
+    "desc": "Statistiken von zwei Benutzern vergleichen",
+    "option1": "benutzername",
+    "option1_desc": "Benutzername des ersten AniList-Benutzers, um zu vergleichen",
+    "option2": "benutzername2",
+    "option2_desc": "Benutzername des zweiten AniList-Benutzers, um zu vergleichen"
+  },
+  "Jp": {
+    "code": "ja",
+    "name": "比較",
+    "desc": "2つのユーザーの統計を比較する",
+    "option1": "ユーザー名",
+    "option1_desc": "比較する1番目のAniListユーザーのユーザー名",
+    "option2": "ユーザー名2",
+    "option2_desc": "比較する2番目のAniListユーザーのユーザー名"
+  }
+}

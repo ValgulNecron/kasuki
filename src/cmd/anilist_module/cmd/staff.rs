@@ -63,10 +63,11 @@ pub async fn run(
 
         let result_va: String = data.format_va();
 
-        let localised_text = match StaffLocalisedText::get_staff_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
+        let localised_text =
+            match StaffLocalisedText::get_staff_localised(color, ctx, command).await {
+                Ok(data) => data,
+                Err(_) => return,
+            };
         let desc = data.get_desc(&localised_text);
 
         if let Err(why) = command

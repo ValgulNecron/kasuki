@@ -115,14 +115,26 @@ pub async fn run(
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     let registers = RegisterLocalisedRegister::get_register_register_localised().unwrap();
-    command
+    let command = command
         .name("register")
         .description("Register your anilist username for ease of use.")
         .create_option(|option| {
-            option
+            let option = option
                 .name("username")
                 .description("Your anilist user name.")
                 .kind(CommandOptionType::String)
-                .required(true)
-        })
+                .required(true);
+            for (_key, register) in registers {
+                option
+                    .name_localized(&register.code, &register.option1)
+                    .description_localized(&register.code, &register.option1_desc);
+            }
+            option
+        });
+    for (_key, register) in registers {
+        command
+            .name_localized(&register.code, &register.name)
+            .description_localized(&register.code, &register.desc);
+    }
+    command
 }

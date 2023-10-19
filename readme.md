@@ -1,29 +1,29 @@
 # TODO
 
+
 ## BOT
 
 - General part:
-    - [X] Change how the text is displayed to support localization. — Done.
-    - [X] Clean the code. — Done.
-    - [X] Find a name for the bot. — Found one kasuki.
-      if you have any better, don't hesitate to recommend.
-    - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db.
-    - [X] Banner. Show your or a specified user banner. — Done.
-    - [X] Profil. Show a user profile and some info. — Done.
-    - [X] Add support to turn on and off module. — Done.
-    - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is
-      done.
-    - [ ] Poll feature with custom choice and a graph afterward for comparison.
-    - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
-      size — Done.
-    - [X] Better error handling.
-      Different error messages,
-      type and replies everytime not in certain condition.
-      — working on it.
-      Should be olay believe there is still some risk of panic will need to see in the long term.
-    - [ ] Localisation for response — Done except for some other "minor" stuff.
-    - [ ] Localisation for command — Working on it. Compare will be done later.
-    - [ ] Rename function, structure, command name etc... so it makes more sense.
+  - [X] Change how the text is displayed to support localization. — Done.
+  - [X] Clean the code. — Done.
+  - [X] Find a name for the bot. — Found one kasuki. if you have any better, don't hesitate to recommend.
+  - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db.
+  - [X] Banner. Show your or a specified user banner. — Done.
+  - [X] Profil. Show a user profile and some info. — Done.
+  - [X] Add support to turn on and off module. — Done.
+  - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is
+    done.
+  - [ ] Poll feature with custom choice and a graph afterward for comparison.
+  - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
+    size — Done.
+  - [X] Better error handling.
+    Different error messages,
+    type and replies everytime not in certain condition.
+    — working on it.
+    Should be okay believe there is still some risk of panic will need to see in the long term.
+  - [ ] Localisation for response — Done except for some other "minor" stuff. Lazy to continue
+  - [ ] Localisation for command — Working on it. Compare will be done later. Lazy to continue
+  - [ ] Rename function, structure, command name etc... so it makes more sense. Started lazy to continue
 
 - Anime submodule:
     - [X] Finish comparison function.   
@@ -119,7 +119,7 @@ with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445
 
 ### tested on:
 
-linux: ubuntu x86-64
+linux: ubuntu 22.04.2 x86-64
 
 Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates
 
@@ -186,10 +186,10 @@ cargo run --release
     - /staff - Give information about a specified staff.
     - /user - Show info about user.
 - AI:
-    - /image - Generate an image from a description.
-    - /transcript - Transcript a video or an audio file with a size limit of 25mb.
-    - /translation
-      — Create a translated transcript of video or an audio file with a size limit of 25mb.
+  - /image - Generate an image from a description.
+  - /transcript - Transcript a video or an audio file with a size limit of 25mb.
+  - /translation
+    — Create a translated transcript of video or an audio file with a size limit of 25mb.
 
 # Credit
 
@@ -203,6 +203,7 @@ cargo run --release
   even know it existed before.
 
 # Stat
+
 
 ![kasuki](https://counter.valgul.moe/get/@kasuki?theme=gelbooru)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/987dc84319a24235a346a662ca9045c1)](https://app.codacy.com/gh/ValgulNecron/kasuki/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)

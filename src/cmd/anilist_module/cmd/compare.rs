@@ -24,6 +24,7 @@ use crate::cmd::error_module::no_lang_error::{
 };
 use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::lang_struct::CompareLocalisedText;
+use crate::cmd::lang_struct::register::anilist::struct_compare_register::RegisterLocalisedCompare;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -51,25 +52,44 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let compares = RegisterLocalisedCompare::get_compare_register_localised().unwrap();
+    let command = command
         .name("compare")
-        .description("compare stats of two uer")
+        .description("compare stats of two user")
         .create_option(|option| {
-            option
+            let option = option
                 .name("username")
                 .description("Username of the 1st anilist user to compare")
                 .kind(CommandOptionType::String)
                 .required(true)
-                .set_autocomplete(true)
+                .set_autocomplete(true);
+            for (_key, manga) in &compares {
+                option
+                    .name_localized(&manga.code, &manga.option1)
+                    .description_localized(&manga.code, &manga.option1_desc);
+            }
+            option
         })
         .create_option(|option| {
-            option
+            let option = option
                 .name("username2")
-                .description("Username of the 1st anilist user to compare")
+                .description("Username of the 2nd anilist user to compare")
                 .kind(CommandOptionType::String)
                 .required(true)
-                .set_autocomplete(true)
-        })
+                .set_autocomplete(true);
+            for (_key, manga) in &compares {
+                option
+                    .name_localized(&manga.code, &manga.option1)
+                    .description_localized(&manga.code, &manga.option1_desc);
+            }
+            option
+        });
+    for (_key, manga) in &compares {
+        command
+            .name_localized(&manga.code, &manga.name)
+            .description_localized(&manga.code, &manga.desc);
+    }
+    command
 }
 
 pub async fn embed(
