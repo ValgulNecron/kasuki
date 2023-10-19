@@ -1,5 +1,6 @@
 # TODO
 
+
 ## BOT
 
 - General part:
@@ -19,10 +20,10 @@
     Different error messages,
     type and replies everytime not in certain condition.
     — working on it.
-    Should be olay believe there is still some risk of panic will need to see in the long term.
-  - [ ] Localisation for response — Done except for some other "minor" stuff.
-  - [ ] Localisation for command — Working on it. Compare will be done later.
-  - [ ] Rename function, structure, command name etc... so it makes more sense.
+    Should be okay believe there is still some risk of panic will need to see in the long term.
+  - [ ] Localisation for response — Done except for some other "minor" stuff. Lazy to continue
+  - [ ] Localisation for command — Working on it. Compare will be done later. Lazy to continue
+  - [ ] Rename function, structure, command name etc... so it makes more sense. Started lazy to continue
 
 - Anime submodule:
   - [X] Finish comparison function.   
@@ -44,7 +45,7 @@
     - [ ] List all activity
     - [ ] Delete an activity.
   - [ ] Try to do the same for manga.
-    with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263) 
+    with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263)
     (for
     this one only selected manga not all seasonal).
     — Did some digging seem possible. I will do anime-first trough.
@@ -55,7 +56,7 @@
     — (like 1h for a translation).
     — Need anime notification first.
     it will be easy once anime is done. On wait but will be done
-  - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) 
+  - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835)
     idea of generating image
     with a seiyuu and va role.
     — This is possible, I'm not competent enough.
@@ -81,7 +82,7 @@ for those of you who prefer web dev.\
 
 
 The bot is in the first place,
-a bot that interfaces discord and the anilist api, 
+a bot that interfaces discord and the anilist api,
 letting users get different information from it.
 There are also multiple secondary modules that will be added
 when I have ideas or want to test things.
@@ -199,8 +200,8 @@ cargo run --release
 - AI:
   - /image - Generate an image from a description.
   - /transcript - Transcript a video or an audio file with a size limit of 25mb.
-  - /translation 
-  — Create a translated transcript of video or an audio file with a size limit of 25mb.
+  - /translation
+    — Create a translated transcript of video or an audio file with a size limit of 25mb.
 
 # Credit
 
@@ -214,6 +215,7 @@ cargo run --release
   even know it existed before.
 
 # Stat
+
 
 ![kasuki](https://counter.valgul.moe/get/@kasuki?theme=gelbooru)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/987dc84319a24235a346a662ca9045c1)](https://app.codacy.com/gh/ValgulNecron/kasuki/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)

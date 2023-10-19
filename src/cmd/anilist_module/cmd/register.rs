@@ -20,6 +20,7 @@ use crate::cmd::error_module::no_lang_error::{
 use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::function::pool::get_pool;
 use crate::cmd::general_module::lang_struct::RegisterLocalisedText;
+use crate::cmd::lang_struct::register::anilist::struct_register_register::RegisterLocalisedRegister;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -142,14 +143,27 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
+    let registers = RegisterLocalisedRegister::get_register_register_localised().unwrap();
+    let command = command
         .name("register")
         .description("Register your anilist username for ease of use.")
         .create_option(|option| {
-            option
+            let option = option
                 .name("username")
                 .description("Your anilist user name.")
                 .kind(CommandOptionType::String)
-                .required(true)
-        })
+                .required(true);
+            for (_key, register) in registers {
+                option
+                    .name_localized(&register.code, &register.option1)
+                    .description_localized(&register.code, &register.option1_desc);
+            }
+            option
+        });
+    for (_key, register) in registers {
+        command
+            .name_localized(&register.code, &register.name)
+            .description_localized(&register.code, &register.desc);
+    }
+    command
 }
