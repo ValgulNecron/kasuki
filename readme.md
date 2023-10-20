@@ -153,6 +153,9 @@ Please remember that after a pull you will need to rebuild
 docker compose up -d --build 
 ```
 
+you can also use the image valgul/kasuki instead of building the bot locally.
+
+
 ### or Rust
 
 - Install rust.
