@@ -133,7 +133,7 @@ impl MediaPageWrapper {
                                 Some(name) => {
                                     let english = name.english.clone();
                                     let romaji = name.romaji.clone();
-                                    String::from(english.unwrap_or(romaji))
+                                    english.unwrap_or(romaji)
                                 }
                                 None => String::default(),
                             },

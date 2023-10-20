@@ -176,15 +176,14 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        let data: MediaWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
                 error_no_anime_specified(color, ctx, command).await;
-                return Err("not found".to_string());
+                Err("not found".to_string())
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_anime_by_search(
@@ -258,7 +257,7 @@ impl MediaWrapper {
             Err(error) => {
                 println!("Error: {}", error);
                 error_no_anime_specified(color, ctx, command).await;
-                return Err("not found".to_string());
+                Err("not found".to_string())
             }
         }
     }
@@ -332,7 +331,7 @@ impl MediaWrapper {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_no_media.clone());
+                Err(localised_text.error_no_media.clone())
             }
         }
     }
@@ -405,7 +404,7 @@ impl MediaWrapper {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_no_media.clone());
+                Err(localised_text.error_no_media.clone())
             }
         }
     }
@@ -479,7 +478,7 @@ impl MediaWrapper {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_no_media.clone());
+                Err(localised_text.error_no_media.clone())
             }
         }
     }

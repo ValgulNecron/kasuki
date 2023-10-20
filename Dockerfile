@@ -1,8 +1,18 @@
-# Step 1: Compute a recipe file
-FROM rust:1-buster AS builder
-WORKDIR app
-COPY . .
-RUN cargo run --release
+FROM rust:1.72-buster AS builder
+
+RUN USER=root cargo new --bin kasuki
+
+WORKDIR /kasuki
+
+COPY ./Cargo.toml ./Cargo.toml
+
+RUN cargo build --release
+RUN rm src/*.rs
+
+COPY ./src ./src
+
+RUN rm ./target/release/deps/kasuki*
+RUN cargo build --release
 
 FROM debian:buster-slim AS bot
 
