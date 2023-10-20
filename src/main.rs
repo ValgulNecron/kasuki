@@ -479,9 +479,10 @@ pub async fn check_if_anime_is_on(
 ) -> bool {
     if !check_activation_status("ANILIST".parse().unwrap(), guild_id.clone()).await {
         send_deactivated_message(command, color, ctx, localised_text.clone()).await;
-        return false;
+        false
+    } else {
+        true
     }
-    return true;
 }
 
 pub async fn check_if_ai_is_on(
@@ -491,12 +492,12 @@ pub async fn check_if_ai_is_on(
     ctx: &Context,
     localised_text: ErrorLocalisedText,
 ) -> bool {
-    return if !check_activation_status("AI".parse().unwrap(), guild_id.clone()).await {
+    if !check_activation_status("AI".parse().unwrap(), guild_id.clone()).await {
         send_deactivated_message(command, color, ctx, localised_text.clone()).await;
         false
     } else {
         true
-    };
+    }
 }
 
 pub async fn send_deactivated_message(
