@@ -1,3 +1,5 @@
+use serde_json::to_string;
+
 /// This function trims a given string based on a length difference parameter.
 ///
 /// # Arguments
@@ -30,21 +32,20 @@
 /// assert_eq!(trimmed, "A demonstration with odd ||||..");
 /// ```
 pub fn trim(desc: String, lenght_diff: i32) -> String {
-    return if lenght_diff <= 0 {
+    if lenght_diff <= 0 {
         let mut desc_trim;
-        let trim_length = desc.len() - ((lenght_diff * -1) as usize + 3);
+        let trim_length = desc.len() - ((-lenght_diff) as usize + 3);
         desc_trim = format!("{}...", &desc[..trim_length]);
 
         let count = desc_trim.matches("||").count();
         if count % 2 != 0 {
-            let trim_length = desc.len() - ((lenght_diff * -1) as usize + 5);
+            let trim_length = desc.len() - ((-lenght_diff) as usize + 5);
             desc_trim = format!("{}||..", &desc[..trim_length]);
         }
-        let trim = desc_trim.clone();
-        trim
+        desc_trim.clone()
     } else {
         desc
-    };
+    }
 }
 
 /// Trims the given `String` to a specific length based on a difference value.
@@ -62,13 +63,10 @@ pub fn trim(desc: String, lenght_diff: i32) -> String {
 /// # Panics
 /// This function may panic if your `length_diff` absolute value is more than length of your string.
 pub fn trim_webhook(desc: String, lenght_diff: i32) -> String {
-    return if lenght_diff <= 0 {
-        let desc_trim;
-        let trim_length = desc.len() - (lenght_diff * -1) as usize;
-        desc_trim = format!("{}", &desc[..trim_length]);
-        let trim = desc_trim.clone();
-        trim
+    if lenght_diff <= 0 {
+        let trim_length = desc.len() - (-lenght_diff) as usize;
+        desc[..trim_length].to_string()
     } else {
         desc
-    };
+    }
 }

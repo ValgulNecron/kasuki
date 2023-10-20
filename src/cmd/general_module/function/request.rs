@@ -105,7 +105,7 @@ async fn get_cache(json: Value) -> String {
             .unwrap_or((None, None, None));
     let (json_resp, response, last_updated): (Option<String>, Option<String>, Option<i64>) = row;
 
-    return if json_resp.is_none() || response.is_none() || last_updated.is_none() {
+    if json_resp.is_none() || response.is_none() || last_updated.is_none() {
         do_request(json.clone(), false).await
     } else {
         let updated_at = last_updated.unwrap();
@@ -115,7 +115,7 @@ async fn get_cache(json: Value) -> String {
         } else {
             do_request(json.clone(), false).await
         }
-    };
+    }
 }
 
 /// Asynchronous function to add a JSON request and its corresponding response to a cache database.
@@ -165,7 +165,7 @@ async fn add_cache(json: Value, resp: String) -> bool {
     .await
     .unwrap();
 
-    return true;
+    true
 }
 
 /// This function executes a POST request to a specific URL (https://graphql.anilist.co/).
