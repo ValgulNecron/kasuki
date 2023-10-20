@@ -81,12 +81,11 @@ pub async fn run(
                 .await
                 .unwrap();
 
-            let text;
-            if state {
-                text = &localised_text.on
+            let text = if state {
+                &localised_text.on
             } else {
-                text = &localised_text.off
-            }
+                &localised_text.off
+            };
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
@@ -105,7 +104,7 @@ pub async fn run(
                 })
                 .await
             {
-                println!("{}: {}", "Error creating slash", why);
+                println!("Error creating slash: {}", why);
             }
         }
         "AI" => {
