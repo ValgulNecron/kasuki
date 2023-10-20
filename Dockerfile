@@ -19,7 +19,7 @@ COPY . .
 # Copy over the cached dependencies from above
 COPY --from=cacher /app/target target
 COPY --from=cacher /usr/local/cargo /usr/local/cargo
-RUN cargo build --release --bin app
+RUN cargo build --release
 
 
 FROM debian:buster-slim AS bot
