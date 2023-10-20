@@ -128,12 +128,11 @@ pub async fn run(
                 .await
                 .unwrap();
 
-            let text;
-            if state {
-                text = &localised_text.on
+            let text = if state {
+                &localised_text.on
             } else {
-                text = &localised_text.off
-            }
+                &localised_text.off
+            };
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
@@ -152,7 +151,7 @@ pub async fn run(
                 })
                 .await
             {
-                println!("{}: {}", "Error creating slash", why);
+                println!("Error creating slash: {}", why);
             }
         }
         _ => error_no_module(color, ctx, command).await,
@@ -173,7 +172,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .add_string_choice("AI", "AI")
                 .add_string_choice("ANIME", "ANIME")
                 .required(true);
-            for (_key, module) in &modules {
+            for module in modules.values() {
                 option
                     .name_localized(&module.code, &module.option1)
                     .description_localized(&module.code, &module.option1_desc);
@@ -186,14 +185,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("ON or OFF")
                 .kind(CommandOptionType::Boolean)
                 .required(true);
-            for (_key, module) in &modules {
+            for module in modules.values() {
                 option
                     .name_localized(&module.code, &module.option2)
                     .description_localized(&module.code, &module.option2_desc);
             }
             option
         });
-    for (_key, module) in &modules {
+    for module in modules.values() {
         command
             .name_localized(&module.code, &module.name)
             .description_localized(&module.code, &module.desc);
