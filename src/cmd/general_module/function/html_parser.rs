@@ -100,7 +100,7 @@ pub fn convert_html_entity_to_real_char(value: String) -> String {
 /// ```
 pub fn convert_link_to_discord_markdown(value: String) -> String {
     let re = Regex::new(r#"<a\s+href="([^"]+)">([^<]+)</a>"#).unwrap();
-    re.replace_all(&*value, "[$2]($1)").to_string()
+    re.replace_all(value.as_str(), "[$2]($1)").to_string()
 }
 
 /// This function replaces a single backquote (`) within a given string with a backslash (\) followed by a backquote (`).
@@ -123,7 +123,7 @@ pub fn convert_link_to_discord_markdown(value: String) -> String {
 ///
 ///
 pub fn add_anti_slash(value: String) -> String {
-    value.replace("`", "\\`")
+    value.replace('`', "\\`")
 }
 
 /// # Convert HTML line breaks to regular line breaks
