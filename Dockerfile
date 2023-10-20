@@ -1,26 +1,8 @@
 # Step 1: Compute a recipe file
-FROM rust:1-buster AS planner
-WORKDIR app
-COPY . .
-RUN cargo install cargo-chef
-RUN cargo chef prepare --recipe-path recipe.json
-
-# Step 2: Cache project dependencies
-FROM rust:1-buster AS cacher
-WORKDIR app
-RUN cargo install cargo-chef
-COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
-
-# Step 3: Build the binary
 FROM rust:1-buster AS builder
 WORKDIR app
 COPY . .
-# Copy over the cached dependencies from above
-COPY --from=cacher /app/target target
-COPY --from=cacher /usr/local/cargo /usr/local/cargo
-RUN cargo build --release
-
+RUN cargo run --release
 
 FROM debian:buster-slim AS bot
 
