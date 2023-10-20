@@ -21,7 +21,7 @@ pub async fn run(
     return if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
-            banner_with_user(ctx, command, &user).await;
+            banner_with_user(ctx, command, user).await;
         } else {
             banner_without_user(ctx, command).await;
         }
@@ -41,14 +41,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("The user you wan the banner of")
                 .kind(CommandOptionType::User)
                 .required(false);
-            for (_key, banner) in &banners {
+            for banner in banners.values() {
                 option
                     .name_localized(&banner.code, &banner.option1)
                     .description_localized(&banner.code, &banner.option1_desc);
             }
             option
         });
-    for (_key, banner) in &banners {
+    for banner in banners.values() {
         command
             .name_localized(&banner.code, &banner.name)
             .description_localized(&banner.code, &banner.description);

@@ -83,8 +83,8 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    let langages = AvailableLang::get_available_lang().unwrap();
-    let langs = LangRegister::get_profile_register_localised().unwrap();
+    let available_langages = AvailableLang::get_available_lang().unwrap();
+    let langages = LangRegister::get_profile_register_localised().unwrap();
     command
         .name("lang")
         .description("Change the lang of the bot response")
@@ -95,17 +95,17 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("The lang you want to set the response to.")
                 .kind(CommandOptionType::String)
                 .required(true);
-            for (_key, langages) in langages {
+            for langages in available_langages.values() {
                 option.add_string_choice(&langages.lang, &langages.lang);
             }
-            for (_key, lang) in &langs {
+            for lang in langages.values() {
                 option
                     .name_localized(&lang.code, &lang.option1)
                     .description_localized(&lang.code, &lang.option1_desc);
             }
             option
         });
-    for (_key, lang) in &langs {
+    for lang in langages.values() {
         command
             .name_localized(&lang.code, &lang.option1)
             .description_localized(&lang.code, &lang.option1_desc);

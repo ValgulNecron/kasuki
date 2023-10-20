@@ -67,7 +67,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     let command = command
         .name("info")
         .description("Get information on the bot");
-    for (_key, info) in &infos {
+    for info in infos.values() {
         command
             .name_localized(&info.code, &info.name)
             .description_localized(&info.code, &info.desc);

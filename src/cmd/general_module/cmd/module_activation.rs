@@ -52,7 +52,7 @@ pub async fn run(
         if option.name == "state" {
             let resolved = option.resolved.as_ref().unwrap();
             if let CommandDataOptionValue::Boolean(state_option) = resolved {
-                state = state_option.clone()
+                state = *state_option
             } else {
                 state = false
             }
