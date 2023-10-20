@@ -44,5 +44,5 @@ pub async fn get_guild_langage(guild_id: String) -> String {
             .unwrap_or((None, None));
     let (lang, _): (Option<String>, Option<String>) = row;
 
-    return lang.unwrap_or("En".to_string());
+    lang.unwrap_or("En".to_string())
 }
