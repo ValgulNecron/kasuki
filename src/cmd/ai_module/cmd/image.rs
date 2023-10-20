@@ -6,7 +6,6 @@ use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
-use serenity::model::channel::Message;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
