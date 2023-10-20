@@ -26,9 +26,9 @@ impl RegisterLocalisedBanner {
             Ok(_) => {}
             Err(_) => return Err("Failed to read file"),
         };
-        return match serde_json::from_str(&json) {
+        match serde_json::from_str(&json) {
             Ok(data) => Ok(data),
             Err(_) => Err("Failed to parse json."),
-        };
+        }
     }
 }
