@@ -4,17 +4,17 @@ use serde_json::{json, Value};
 use crate::cmd::anilist_module::structs::struct_autocomplete::AutocompleteOption;
 use crate::cmd::general_module::function::request::make_request_anilist;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct AutocompleteName {
     pub full: String,
     #[serde(rename = "userPreferred")]
     pub user_preferred: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct AutocompleteStaff {
     pub id: u32,
-    pub name: Option<AutocompleteName>,
+    pub name: AutocompleteName,
 }
 
 #[derive(Debug, Deserialize)]
@@ -61,14 +61,15 @@ impl StaffPageWrapper {
             users
                 .iter()
                 .filter_map(|item| {
-                    if let Some(item) = item {
-                        Some(AutocompleteOption {
-                            name: item.name.as_ref().unwrap().full.clone(),
-                            value: item.id.to_string(),
-                        })
-                    } else {
-                        None
-                    }
+                    item.as_ref().map(|item| AutocompleteOption {
+                        name: item
+                            .name
+                            .user_preferred
+                            .as_ref()
+                            .unwrap_or(&item.name.full)
+                            .to_string(),
+                        value: item.id.to_string(),
+                    })
                 })
                 .collect::<Vec<AutocompleteOption>>()
         } else {

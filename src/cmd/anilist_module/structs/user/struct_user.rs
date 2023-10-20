@@ -104,7 +104,7 @@ impl UserWrapper {
             .get(i)
             .and_then(|g| g.genre.as_ref())
         {
-            return genre.clone();
+            genre.clone()
         } else {
             "N/A".to_string()
         }
@@ -131,7 +131,7 @@ impl UserWrapper {
             .get(i)
             .and_then(|g| g.tag.name.as_ref())
         {
-            return tag.clone();
+            tag.clone()
         } else {
             "N/A".to_string()
         }
@@ -149,12 +149,7 @@ impl UserWrapper {
     }
 
     pub fn get_anime_minute(&self) -> i32 {
-        self.data
-            .user
-            .statistics
-            .anime
-            .minutes_watched
-            .unwrap_or_else(|| 0)
+        self.data.user.statistics.anime.minutes_watched.unwrap_or(0)
     }
 
     pub fn time_anime_watched(&self, localised_text: UserLocalisedText) -> String {

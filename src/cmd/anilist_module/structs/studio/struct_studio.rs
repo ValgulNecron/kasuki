@@ -70,14 +70,13 @@ impl StudioWrapper {
         ";
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, false).await;
-        let data: StudioWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"));
+                Err(String::from("Error: Failed to retrieve user data"))
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_studio_by_search(search: &String) -> Result<StudioWrapper, String> {
@@ -103,26 +102,25 @@ impl StudioWrapper {
         ";
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, false).await;
-        let data: StudioWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"));
+                Err(String::from("Error: Failed to retrieve user data"))
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub fn get_studio_name(&self) -> String {
-        return self.data.studio.name.clone();
+        self.data.studio.name.clone()
     }
 
     pub fn get_site_url(&self) -> String {
-        return self.data.studio.site_url.clone();
+        self.data.studio.site_url.clone()
     }
 
     pub fn get_favourite(&self) -> String {
-        return self.data.studio.favourites.to_string();
+        self.data.studio.favourites.to_string()
     }
 
     pub fn get_anime_manga_list(&self, localised_text: StudioLocalisedText) -> String {
@@ -132,26 +130,23 @@ impl StudioWrapper {
             content.push_str(self.get_one_anime_manga(m).as_str())
         }
 
-        return content;
+        content
     }
     pub fn get_one_anime_manga(&self, m: MediaNode) -> String {
-        let anime_manga = format!(
+        format!(
             "[{} / {}]({}) \n \n",
             m.title.romaji, m.title.user_preferred, m.site_url
-        );
-        return anime_manga;
+        )
     }
 
     pub fn get_desc(&self, localised_text: StudioLocalisedText) -> String {
-        let desc = format!(
+        format!(
             "id: {} \n {}{} \n {} \n \n \n ",
             self.get_id(),
             localised_text.favorite,
             self.get_favourite(),
             self.get_anime_manga_list(localised_text.clone())
-        );
-
-        return desc;
+        )
     }
 
     pub fn get_id(&self) -> u32 {

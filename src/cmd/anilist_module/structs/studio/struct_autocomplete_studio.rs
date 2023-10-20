@@ -12,7 +12,7 @@ pub struct AutocompleteStudio {
 
 #[derive(Debug, Deserialize)]
 pub struct StudioPage {
-    pub studios: Option<Vec<AutocompleteStudio>>,
+    pub studios: Option<Vec<Option<AutocompleteStudio>>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -42,8 +42,7 @@ impl StudioPageWrapper {
         }});
 
         let res = make_request_anilist(json, true).await;
-        let data: StudioPageWrapper = serde_json::from_str(&res).unwrap();
-        data
+        serde_json::from_str(&res).unwrap()
     }
 
     pub fn get_choice(&self) -> Vec<AutocompleteOption> {
@@ -51,7 +50,7 @@ impl StudioPageWrapper {
             studios
                 .iter()
                 .filter_map(|item| {
-                    Some(AutocompleteOption {
+                    item.as_ref().map(|item| AutocompleteOption {
                         name: item.name.clone(),
                         value: item.id.to_string(),
                     })
