@@ -171,19 +171,19 @@ pub async fn get_localised_langage_edit(
         }
     };
     let lang_choice = get_guild_langage(guild_id).await;
-    return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         Ok(localised_text.clone())
     } else {
         no_langage_error_edit(color, ctx, message.clone()).await;
         Err("not found")
-    };
+    }
 }
 
 pub async fn custom_error(
     color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-    error: &String,
+    error: &str,
 ) {
     let localised_text = match get_localised_langage(color, ctx, command).await {
         Ok(data) => data,
@@ -194,7 +194,7 @@ pub async fn custom_error(
         ctx,
         command,
         localised_text.error_title,
-        error.clone(),
+        error.to_owned(),
     )
     .await;
 }
