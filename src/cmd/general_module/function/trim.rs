@@ -1,5 +1,3 @@
-use serde_json::to_string;
-
 /// This function trims a given string based on a length difference parameter.
 ///
 /// # Arguments
