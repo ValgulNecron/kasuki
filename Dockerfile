@@ -1,8 +1,8 @@
 # Step 1: Compute a recipe file
 FROM rust:1-buster AS planner
 WORKDIR app
-RUN cargo install cargo-chef
 COPY . .
+RUN cargo install cargo-chef
 RUN cargo chef prepare --recipe-path recipe.json
 
 # Step 2: Cache project dependencies
