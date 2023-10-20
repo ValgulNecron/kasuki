@@ -11,7 +11,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::error_module::common::custom_error;
 use crate::cmd::lang_struct::embed::general::struct_lang_banner::BannerLocalisedText;
-use crate::cmd::lang_struct::register::general::struct_banner_register::BannerRegister;
+use crate::cmd::lang_struct::register::general::struct_banner_register::RegisterLocalisedBanner;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -31,7 +31,7 @@ pub async fn run(
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    let banners = BannerRegister::get_banner_register_localised().unwrap();
+    let banners = RegisterLocalisedBanner::get_banner_register_localised().unwrap();
     let command = command
         .name("banner")
         .description("Get the banner")
