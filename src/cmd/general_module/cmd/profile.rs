@@ -19,7 +19,7 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    return if let Some(option) = options.get(0) {
+    if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
             let result = profile_with_user(ctx, command, &user).await;
@@ -31,7 +31,7 @@ pub async fn run(
     } else {
         let result = profile_without_user(ctx, command).await;
         result
-    };
+    }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -45,14 +45,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("The user you wan the profile of")
                 .kind(CommandOptionType::User)
                 .required(false);
-            for (_key, profile) in &profiles {
+            for profile in profiles.values() {
                 option
                     .name_localized(&profile.code, &profile.option1)
                     .description_localized(&profile.code, &profile.option1_desc);
             }
             option
         });
-    for (_key, profile) in &profiles {
+    for profile in profiles.values() {
         command
             .name_localized(&profile.code, &profile.name)
             .description_localized(&profile.code, &profile.desc);
@@ -161,7 +161,7 @@ pub async fn description(
         joined_at
     );
 
-    return desc;
+    desc
 }
 
 pub async fn send_embed(
@@ -191,6 +191,6 @@ pub async fn send_embed(
         })
         .await
     {
-        println!("{}: {}", "Error creating slash command", why);
+        println!("Error creating slash command: {}", why);
     }
 }
