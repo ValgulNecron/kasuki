@@ -18,7 +18,7 @@ use sqlx::{Pool, Sqlite};
 use crate::cmd::anilist_module::structs::random::struct_random::*;
 use crate::cmd::anilist_module::structs::random::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::cmd::anilist_module::structs::random::struct_site_statistic_manga::SiteStatisticsMangaWrapper;
-use crate::cmd::error_module::no_lang_error::{
+use crate::cmd::error_modules::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json,
 };

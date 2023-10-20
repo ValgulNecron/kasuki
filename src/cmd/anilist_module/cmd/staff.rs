@@ -13,7 +13,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::structs::staff::struct_autocomplete_staff::StaffPageWrapper;
 use crate::cmd::anilist_module::structs::staff::struct_staff::*;
-use crate::cmd::error_module::common::custom_error;
+use crate::cmd::error_modules::common::custom_error;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_staff::StaffLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_staff_register::RegisterLocalisedStaff;
 

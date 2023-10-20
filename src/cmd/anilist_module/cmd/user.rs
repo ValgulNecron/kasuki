@@ -10,7 +10,7 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::structs::user::struct_user::*;
-use crate::cmd::error_module::common::custom_error;
+use crate::cmd::error_modules::common::custom_error;
 use crate::cmd::general_module::function::pool::get_pool;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_user::UserLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_user_register::RegisterLocalisedUser;
@@ -27,7 +27,7 @@ pub async fn run(
             let result = embed(_options, ctx, command, &user).await;
             result
         } else {
-            custom_error(color, ctx, command, &"error_module".to_string()).await;
+            custom_error(color, ctx, command, &"error_modules".to_string()).await;
             return;
         }
     } else {

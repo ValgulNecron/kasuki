@@ -18,11 +18,11 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
-use crate::cmd::error_module::error_base_url::error_no_base_url_edit;
-use crate::cmd::error_module::error_file::{error_file_extension, error_file_type};
-use crate::cmd::error_module::error_request::error_making_request_edit;
-use crate::cmd::error_module::error_resolving_value::error_resolving_value_followup;
-use crate::cmd::error_module::error_token::error_no_token_edit;
+use crate::cmd::error_modules::error_base_url::error_no_base_url_edit;
+use crate::cmd::error_modules::error_file::{error_file_extension, error_file_type};
+use crate::cmd::error_modules::error_request::error_making_request_edit;
+use crate::cmd::error_modules::error_resolving_value::error_resolving_value_followup;
+use crate::cmd::error_modules::error_token::error_no_token_edit;
 use crate::cmd::general_module::function::differed_response::differed_response_with_file_deletion;
 use crate::cmd::general_module::function::in_progress::in_progress_embed;
 use crate::cmd::lang_struct::embed::ai::struct_lang_transcript::TranscriptLocalisedText;

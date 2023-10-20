@@ -12,7 +12,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::structs::character::struct_autocomplete_character::CharacterPageWrapper;
 use crate::cmd::anilist_module::structs::character::struct_character::*;
-use crate::cmd::error_module::common::custom_error;
+use crate::cmd::error_modules::common::custom_error;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_character::CharacterLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_character_register::RegisterLocalisedCharacter;
 

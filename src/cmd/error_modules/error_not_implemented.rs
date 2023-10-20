@@ -2,9 +2,13 @@ use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error_module::common::{get_localised_langage, send_embed_message};
+use crate::cmd::error_modules::common::{get_localised_langage, send_embed_message};
 
-pub async fn error_not_nsfw(color: Colour, ctx: &Context, command: &ApplicationCommandInteraction) {
+pub async fn error_not_implemented(
+    color: Colour,
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) {
     let localised_text = match get_localised_langage(color, ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
@@ -14,7 +18,7 @@ pub async fn error_not_nsfw(color: Colour, ctx: &Context, command: &ApplicationC
         ctx,
         command,
         localised_text.error_title.clone(),
-        localised_text.forgot_module.clone(),
+        localised_text.not_implemented.clone(),
     )
     .await
 }

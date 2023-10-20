@@ -9,8 +9,8 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::function::get_nsfw_channel::get_nsfw;
 use crate::cmd::anilist_module::structs::media::struct_media::*;
-use crate::cmd::error_module::common::custom_error;
-use crate::cmd::error_module::error_not_nsfw::error_not_nsfw;
+use crate::cmd::error_modules::common::custom_error;
+use crate::cmd::error_modules::error_not_nsfw::error_not_nsfw;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_media::MediaLocalisedText;
 
 pub async fn embed(

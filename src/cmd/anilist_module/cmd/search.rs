@@ -8,7 +8,7 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::cmd::{anime, character, ln, manga, staff, studio, user};
-use crate::cmd::error_module::error_not_implemented::error_not_implemented;
+use crate::cmd::error_modules::error_not_implemented::error_not_implemented;
 
 pub async fn run(
     options: &[CommandDataOption],

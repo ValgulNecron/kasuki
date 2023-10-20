@@ -7,7 +7,7 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::structs::character::struct_character::CharacterWrapper;
-use crate::cmd::error_module::common::custom_error;
+use crate::cmd::error_modules::common::custom_error;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_character::CharacterLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_waifu_register::RegisterLocalisedWaifu;
 

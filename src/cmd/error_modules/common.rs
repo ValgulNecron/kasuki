@@ -9,7 +9,7 @@ use serenity::model::prelude::InteractionResponseType;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::error_module::no_lang_error::{
+use crate::cmd::error_modules::no_lang_error::{
     error_cant_read_langage_file, error_cant_read_langage_file_edit, error_langage_file_not_found,
     error_langage_file_not_found_edit, error_no_langage_guild_id, error_no_langage_guild_id_edit,
     error_parsing_langage_json, error_parsing_langage_json_edit, no_langage_error,

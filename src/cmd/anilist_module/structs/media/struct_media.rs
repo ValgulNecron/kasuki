@@ -4,7 +4,7 @@ use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error_module::error_no::error_no_anime_specified;
+use crate::cmd::error_modules::error_no::error_no_anime_specified;
 use crate::cmd::general_module::function::html_parser::convert_to_discord_markdown;
 use crate::cmd::general_module::function::request::make_request_anilist;
 use crate::cmd::general_module::function::trim::trim;

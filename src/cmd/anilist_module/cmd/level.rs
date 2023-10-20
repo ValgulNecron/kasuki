@@ -11,7 +11,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::structs::level::struct_level::LevelSystem;
 use crate::cmd::anilist_module::structs::user::struct_user::*;
-use crate::cmd::error_module::common::custom_error;
+use crate::cmd::error_modules::common::custom_error;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_level::LevelLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_level_register::RegisterLocalisedLevel;
 

@@ -33,7 +33,7 @@ use crate::cmd::anilist_module::cmd::{
 };
 use crate::cmd::anilist_module::structs::media::struct_autocomplete_media;
 use crate::cmd::anilist_module::structs::user::struct_autocomplete_user;
-use crate::cmd::error_module::no_lang_error::no_langage_error;
+use crate::cmd::error_modules::no_lang_error::no_langage_error;
 use crate::cmd::general_module::cmd::module_activation::check_activation_status;
 use crate::cmd::general_module::cmd::{
     banner, credit, info, lang, module_activation, ping, profile,

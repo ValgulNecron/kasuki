@@ -19,10 +19,10 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
-use crate::cmd::error_module::error_file::{error_file_extension, error_file_type};
-use crate::cmd::error_module::error_parsing_json::error_parsing_json_edit;
-use crate::cmd::error_module::error_request::error_making_request_edit;
-use crate::cmd::error_module::error_resolving_value::error_resolving_value_followup;
+use crate::cmd::error_modules::error_file::{error_file_extension, error_file_type};
+use crate::cmd::error_modules::error_parsing_json::error_parsing_json_edit;
+use crate::cmd::error_modules::error_request::error_making_request_edit;
+use crate::cmd::error_modules::error_resolving_value::error_resolving_value_followup;
 use crate::cmd::general_module::function::differed_response::differed_response_with_file_deletion;
 use crate::cmd::general_module::function::in_progress::in_progress_embed;
 use crate::cmd::lang_struct::embed::ai::struct_lang_translation::TranslationLocalisedText;

@@ -13,7 +13,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::structs::studio::struct_autocomplete_studio::StudioPageWrapper;
 use crate::cmd::anilist_module::structs::studio::struct_studio::StudioWrapper;
-use crate::cmd::error_module::common::custom_error;
+use crate::cmd::error_modules::common::custom_error;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_studio::StudioLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_studio_register::RegisterLocalisedStudio;
 
