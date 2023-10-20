@@ -5,25 +5,29 @@
 
 - General part:
   - [X] Change how the text is displayed to support localization. — Done.
-  - [X] Clean the code. — Done.
+  - [ ] Clean the code. — It will never be done.
   - [X] Find a name for the bot. — Found one kasuki. if you have any better, don't hesitate to recommend.
-  - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db.
+  - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db. (change to PostgreSQL)
   - [X] Banner. Show your or a specified user banner. — Done.
   - [X] Profil. Show a user profile and some info. — Done.
+  - [ ] Avatar. show you the profile picture of a user. — In progress
   - [X] Add support to turn on and off module. — Done.
   - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is
     done.
   - [ ] Poll feature with custom choice and a graph afterward for comparison.
-  - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use an ubuntu base image to reduce
+  - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
     size — Done.
-  - [X] Better error handling.
+  - [ ] Better error handling.
     Different error messages,
     type and replies everytime not in certain condition.
     — working on it.
     Should be okay believe there is still some risk of panic will need to see in the long term.
-  - [ ] Localisation for response — Done except for some other "minor" stuff. Lazy to continue
-  - [ ] Localisation for command — Working on it. Compare will be done later. Lazy to continue
+  - [ ] Localisation for response — Done except for some other "minor" stuff. Lazy to continue will need some help to
+    proofread the json file and continue to complete the not finished one.
+  - [ ] Localisation for command — Working on it. Compare will be done later. Lazy to continue will need some help to
+    proofread the json file and continue to complete the not finished one.
   - [ ] Rename function, structure, command name etc... so it makes more sense. Started lazy to continue
+  - [ ] Add docs to every public function. (Run, Register and Autocomplete do not need this.)
 
 - Anime submodule:
     - [X] Finish comparison function.   
