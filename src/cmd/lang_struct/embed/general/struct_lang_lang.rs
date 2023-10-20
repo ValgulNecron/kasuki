@@ -59,10 +59,10 @@ impl LangLocalisedText {
         };
         let lang_choice = get_guild_langage(guild_id).await;
 
-        return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             Ok(localised_text.clone())
         } else {
             Err("not found")
-        };
+        }
     }
 }
