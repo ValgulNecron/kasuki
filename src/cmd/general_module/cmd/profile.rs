@@ -22,15 +22,12 @@ pub async fn run(
     if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
-            let result = profile_with_user(ctx, command, &user).await;
-            result
+            profile_with_user(ctx, command, user).await
         } else {
-            let result = profile_without_user(ctx, command).await;
-            result
+            profile_without_user(ctx, command).await
         }
     } else {
-        let result = profile_without_user(ctx, command).await;
-        result
+        profile_without_user(ctx, command).await
     }
 }
 
