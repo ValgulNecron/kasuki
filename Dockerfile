@@ -1,18 +1,26 @@
-FROM rust:1.72-buster AS builder
+# Step 1: Compute a recipe file
+FROM rust:1-buster AS planner
+WORKDIR app
+RUN cargo install cargo-chef
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
-RUN USER=root cargo new --bin kasuki
+# Step 2: Cache project dependencies
+FROM rust:1-buster AS cacher
+WORKDIR app
+RUN cargo install cargo-chef
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
 
-WORKDIR /kasuki
+# Step 3: Build the binary
+FROM rust:1-buster AS builder
+WORKDIR app
+COPY . .
+# Copy over the cached dependencies from above
+COPY --from=cacher /app/target target
+COPY --from=cacher /usr/local/cargo /usr/local/cargo
+RUN cargo build --release --bin app
 
-COPY ./Cargo.toml ./Cargo.toml
-
-RUN cargo build --release
-RUN rm src/*.rs
-
-COPY ./src ./src
-
-RUN rm ./target/release/deps/kasuki*
-RUN cargo build --release
 
 FROM debian:buster-slim AS bot
 
