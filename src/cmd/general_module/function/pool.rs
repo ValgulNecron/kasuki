@@ -26,6 +26,5 @@ use sqlx::{Pool, Sqlite, SqlitePool};
 /// * This function is async and should be awaited.
 ///
 pub async fn get_pool(database_url: &str) -> Pool<Sqlite> {
-    let pool = SqlitePool::connect(database_url).await.unwrap();
-    pool
+    SqlitePool::connect(database_url).await.unwrap()
 }
