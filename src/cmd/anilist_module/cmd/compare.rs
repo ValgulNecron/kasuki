@@ -130,12 +130,8 @@ pub async fn embed(
     let lang_choice = get_guild_langage(guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        let data;
-        if match value.parse::<i32>() {
-            Ok(_) => true,
-            Err(_) => false,
-        } {
-            data = match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
+        let data = if value.parse::<i32>().is_ok() {
+            match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
@@ -143,21 +139,17 @@ pub async fn embed(
                 }
             }
         } else {
-            data = match UserWrapper::new_user_by_search(value).await {
+            match UserWrapper::new_user_by_search(value).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
                     return;
                 }
             }
-        }
+        };
 
-        let data2;
-        if match value2.parse::<i32>() {
-            Ok(_) => true,
-            Err(_) => false,
-        } {
-            data2 = match UserWrapper::new_user_by_id(value2.parse().unwrap()).await {
+        let data2 = if value2.parse::<i32>().is_ok() {
+            match UserWrapper::new_user_by_id(value2.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
@@ -165,129 +157,124 @@ pub async fn embed(
                 }
             }
         } else {
-            data2 = match UserWrapper::new_user_by_search(value2).await {
+            match UserWrapper::new_user_by_search(value2).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
                     return;
                 }
             }
-        }
+        };
 
-        let anime_count_text;
-        if data.get_anime_count() > data2.get_anime_count() {
-            anime_count_text = format!(
+        let anime_count_text = if data.get_anime_count() > data2.get_anime_count() {
+            format!(
                 "{}{}{}",
                 data.get_username(),
                 &localised_text.more_anime,
                 data.get_username()
             )
         } else if data.get_anime_count() < data2.get_anime_count() {
-            anime_count_text = format!(
+            format!(
                 "{}{}{}",
                 data2.get_username(),
                 &localised_text.more_anime,
                 data.get_username()
             )
         } else {
-            anime_count_text = format!(
+            format!(
                 "{}{}{}{}",
                 data.get_username(),
                 &localised_text.connector_user_same_anime,
                 data2.get_username(),
                 &localised_text.same_anime
             )
-        }
+        };
 
-        let anime_watch_time;
-        if data.get_anime_minute() > data2.get_anime_minute() {
-            anime_watch_time = format!(
+        let anime_watch_time = if data.get_anime_minute() > data2.get_anime_minute() {
+            format!(
                 "{}{}{}",
                 data.get_username(),
                 &localised_text.time_anime_watch,
                 data2.get_username()
             )
         } else if data.get_anime_minute() < data2.get_anime_minute() {
-            anime_watch_time = format!(
+            format!(
                 "{}{}{}",
                 data2.get_username(),
                 &localised_text.time_anime_watch,
                 data.get_username()
             )
         } else {
-            anime_watch_time = format!(
+            format!(
                 "{}{}{}{}",
                 data.get_username(),
                 &localised_text.connector_user_same_time,
                 data2.get_username(),
                 &localised_text.time_anime_watch
             )
-        }
+        };
 
-        let manga_count_text;
-        if data.get_manga_count() > data2.get_manga_count() {
-            manga_count_text = format!(
+        let manga_count_text = if data.get_manga_count() > data2.get_manga_count() {
+            format!(
                 "{}{}{}",
                 data.get_username(),
                 &localised_text.more_manga,
                 data2.get_username()
             )
         } else if data.get_manga_count() < data2.get_manga_count() {
-            manga_count_text = format!(
+            format!(
                 "{}{}{}",
                 data2.get_username(),
                 &localised_text.more_manga,
                 data.get_username()
             )
         } else {
-            manga_count_text = format!(
+            format!(
                 "{}{}{}{}",
                 data.get_username(),
                 &localised_text.connector_user_same_manga,
                 data2.get_username(),
                 &localised_text.same_manga
             )
-        }
+        };
 
-        let manga_chapter_count;
-        if data.get_manga_completed() > data2.get_manga_completed() {
-            manga_chapter_count = format!(
+        let manga_chapter_count = if data.get_manga_completed() > data2.get_manga_completed() {
+            format!(
                 "{}{}{}",
                 data.get_username(),
                 &localised_text.more_chapter,
                 data2.get_username()
             )
         } else if data.get_manga_completed() < data2.get_manga_completed() {
-            manga_chapter_count = format!(
+            format!(
                 "{}{}{}",
                 data2.get_username(),
                 &localised_text.more_chapter,
                 data.get_username()
             )
         } else {
-            manga_chapter_count = format!(
+            format!(
                 "{}{}{}{}",
                 data.get_username(),
                 &localised_text.connector_user_same_chapter,
                 data2.get_username(),
                 &localised_text.same_chapter
             )
-        }
+        };
 
         let pref_anime_genre1 = data.get_one_anime_genre(0);
         let pref_anime_genre2 = data2.get_one_anime_genre(1);
-        let pref_anime_genre_text;
-        if pref_anime_genre1 == pref_anime_genre2 {
-            pref_anime_genre_text = format!(
+        let pref_anime_genre_text = if pref_anime_genre1 == pref_anime_genre2 {
+            format!(
                 "{}{}{}{}{}",
                 data.get_username(),
                 &localised_text.genre_same_connector_anime,
                 data2.get_username(),
                 &localised_text.genre_same_prefer_anime,
                 pref_anime_genre1
-            );
+            )
         } else {
-            pref_anime_genre_text = format!(
+            format!(
                 "{}{}{}{}{}{}{}",
                 data.get_username(),
                 &localised_text.diff_pref_genre_1_anime,
@@ -296,23 +283,22 @@ pub async fn embed(
                 data2.get_username(),
                 &localised_text.diff_pref_genre_2_anime,
                 pref_anime_genre2
-            );
-        }
+            )
+        };
 
         let pref_anime_tag1 = data.get_one_anime_tag(0);
         let pref_anime_tag2 = data2.get_one_anime_tag(0);
-        let pref_anime_tag_text;
-        if pref_anime_tag1 == pref_anime_tag2 {
-            pref_anime_tag_text = format!(
+        let pref_anime_tag_text = if pref_anime_tag1 == pref_anime_tag2 {
+            format!(
                 "{}{}{}{}{}",
                 data.get_username(),
                 &localised_text.same_tag_connector_anime,
                 data2.get_username(),
                 &localised_text.same_tag_prefer_anime,
                 pref_anime_tag1
-            );
+            )
         } else {
-            pref_anime_tag_text = format!(
+            format!(
                 "{}{}{}{}{}{}{}",
                 data.get_username(),
                 &localised_text.diff_pref_tag_1_anime,
@@ -321,23 +307,22 @@ pub async fn embed(
                 data2.get_username(),
                 &localised_text.diff_pref_tag_2_anime,
                 pref_anime_tag2
-            );
-        }
+            )
+        };
 
         let pref_manga_genre1 = data.get_one_manga_genre(0);
         let pref_manga_genre2 = data2.get_one_manga_genre(0);
-        let pref_manga_genre_text;
-        if pref_manga_genre1 == pref_manga_genre2 {
-            pref_manga_genre_text = format!(
+        let pref_manga_genre_text = if pref_manga_genre1 == pref_manga_genre2 {
+            format!(
                 "{}{}{}{}{}",
                 data.get_username(),
                 &localised_text.genre_same_connector_manga,
                 data2.get_username(),
                 &localised_text.genre_same_prefer_manga,
                 pref_manga_genre1
-            );
+            )
         } else {
-            pref_manga_genre_text = format!(
+            format!(
                 "{}{}{}{}{}{}{}",
                 data.get_username(),
                 &localised_text.diff_pref_genre_1_manga,
@@ -346,23 +331,22 @@ pub async fn embed(
                 data2.get_username(),
                 &localised_text.diff_pref_genre_2_manga,
                 pref_manga_genre2
-            );
-        }
+            )
+        };
 
         let pref_manga_tag1 = data.get_one_manga_tag(0);
         let pref_manga_tag2 = data2.get_one_manga_tag(0);
-        let pref_manga_tag_text;
-        if pref_manga_tag1 == pref_manga_tag2 {
-            pref_manga_tag_text = format!(
+        let pref_manga_tag_text = if pref_manga_tag1 == pref_manga_tag2 {
+            format!(
                 "{}{}{}{}{}",
                 data.get_username(),
                 &localised_text.same_tag_connector_manga,
                 data2.get_username(),
                 &localised_text.same_tag_prefer_manga,
                 pref_manga_tag1
-            );
+            )
         } else {
-            pref_manga_tag_text = format!(
+            format!(
                 "{}{}{}{}{}{}{}",
                 data.get_username(),
                 &localised_text.diff_pref_tag_1_manga,
@@ -371,8 +355,8 @@ pub async fn embed(
                 data2.get_username(),
                 &localised_text.diff_pref_tag_2_manga,
                 pref_manga_tag2
-            );
-        }
+            )
+        };
 
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
