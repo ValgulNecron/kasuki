@@ -34,12 +34,8 @@ pub async fn run(
                 Ok(data) => data,
                 Err(_) => return,
             };
-        let data;
-        if match value.parse::<i32>() {
-            Ok(_) => true,
-            Err(_) => false,
-        } {
-            data = match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
+        let data = if value.parse::<i32>().is_ok() {
+            match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
@@ -47,28 +43,23 @@ pub async fn run(
                 }
             }
         } else {
-            data = match UserWrapper::new_user_by_search(value).await {
+            match UserWrapper::new_user_by_search(value).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
                     return;
                 }
             }
-        }
-        let profile_picture = data.data.user.avatar.large.clone().unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
-        let user = data
-            .data
-            .user
-            .name
-            .clone()
-            .unwrap_or_else(|| "N/A".to_string());
+        };
+        let profile_picture = data.data.user.avatar.large.clone().unwrap_or( "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
+        let user = data.data.user.name.clone().unwrap_or("N/A".to_string());
         let anime = data.data.user.statistics.anime.clone();
         let manga = data.data.user.statistics.manga.clone();
         let (anime_completed, anime_watching) = get_total(anime.statuses.clone());
         let (manga_completed, manga_reading) = get_total(manga.statuses.clone());
 
-        let chap = manga.chapters_read.unwrap_or_else(|| 0) as f64;
-        let min = anime.minutes_watched.unwrap_or_else(|| 0) as f64;
+        let chap = manga.chapters_read.unwrap_or(0) as f64;
+        let min = anime.minutes_watched.unwrap_or(0) as f64;
         let input = (anime_completed * 2.5 + anime_watching * 1.0)
             + (manga_completed * 2.5 + manga_reading * 1.0)
             + chap * 5.0
@@ -151,12 +142,11 @@ pub fn get_total(media: Vec<Statuses>) -> (f64, f64) {
     let mut watching = 0.0;
     let mut completed = 0.0;
     for i in media {
-        if i.status == "COMPLETED".to_string() {
+        if i.status == *"COMPLETED" {
             completed = i.count as f64;
-        } else if i.status == "CURRENT".to_string() {
+        } else if i.status == *"CURRENT" {
             watching = i.count as f64
         }
     }
-    let tuple = (watching, completed);
-    return tuple;
+    (watching, completed)
 }
