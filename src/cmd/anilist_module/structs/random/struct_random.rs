@@ -111,7 +111,7 @@ impl PageWrapper {
                     }
                 }";
 
-        let json = json!({"query": query, "variables": {"anime_page": number}});
+        let json = json!({"query": query, "variables": {"manga_page": number}});
         let res = make_request_anilist(json, false).await;
 
         serde_json::from_str(&res).unwrap()

@@ -67,7 +67,7 @@ pub async fn run(
 
         let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
 
-        let page_number = last_page.unwrap_or(1444); // This is as today date the last page, i will update it sometime.
+        let page_number = last_page.unwrap_or(1567); // This is as today date the last page, i will update it sometime.
 
         let previous_page = page_number - 1;
         let cached_response = response.unwrap_or("Nothing".to_string());
@@ -134,7 +134,9 @@ pub async fn embed(
         follow_up_message(ctx, command, color, data, url).await
     } else if random_type == "anime" {
         let data = PageWrapper::new_anime_page(number).await;
+
         let url = data.get_anime_url();
+
         follow_up_message(ctx, command, color, data, url).await
     } else {
         let mut file = match File::open("lang_file/embed/anilist/random.json") {
