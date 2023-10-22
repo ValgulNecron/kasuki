@@ -66,7 +66,7 @@ pub async fn run(
         if option.name == "delays" {
             let resolved = option.resolved.as_ref().unwrap();
             if let CommandDataOptionValue::Integer(delays_option) = resolved {
-                delays = delays_option.clone()
+                delays = *delays_option
             } else {
                 delays = 0;
             }
@@ -86,12 +86,8 @@ pub async fn run(
             Ok(data) => data,
             Err(_) => return,
         };
-    let data;
-    if match value.parse::<i32>() {
-        Ok(_) => true,
-        Err(_) => false,
-    } {
-        data = match MinimalAnimeWrapper::new_minimal_anime_by_id(
+    let data = if value.parse::<i32>().is_ok() {
+        match MinimalAnimeWrapper::new_minimal_anime_by_id(
             localised_text.clone(),
             value.parse().unwrap(),
         )
@@ -104,7 +100,7 @@ pub async fn run(
             }
         }
     } else {
-        data = match MinimalAnimeWrapper::new_minimal_anime_by_search(
+        match MinimalAnimeWrapper::new_minimal_anime_by_search(
             localised_text.clone(),
             value.to_string(),
         )
@@ -116,7 +112,7 @@ pub async fn run(
                 return;
             }
         }
-    }
+    };
     let anime_id = data.get_id();
 
     let mut anime_name = data.get_name();
@@ -159,7 +155,7 @@ pub async fn run(
         let mut buf = Cursor::new(Vec::new());
         img.write_to(&mut buf, ImageFormat::Jpeg)
             .expect("Failed to encode image");
-        let base64 = general_purpose::STANDARD.encode(&buf.into_inner());
+        let base64 = general_purpose::STANDARD.encode(buf.into_inner());
         let image = format!("data:image/jpeg;base64,{}", base64);
         let map = json!({
             "avatar": image,

@@ -265,7 +265,7 @@ pub async fn translation(
         .await
         .unwrap();
     let content = res["choices"][0]["message"]["content"].to_string();
-    let no_quote = content.replace("\"", "");
+    let no_quote = content.replace('"', "");
     let line_break = no_quote.replace("\\n", " \\n ");
     return line_break;
 }
@@ -282,7 +282,7 @@ pub async fn translation_embed(
         .edit(&ctx.http, |m| {
             m.embed(|e| {
                 e.title(&localised_text.title)
-                    .description(format!("{}", text))
+                    .description(text.to_string())
                     .timestamp(Timestamp::now())
                     .color(color)
             })
