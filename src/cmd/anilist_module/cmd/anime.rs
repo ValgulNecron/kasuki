@@ -35,27 +35,21 @@ pub async fn run(
                 Ok(data) => data,
                 Err(_) => return,
             };
-        let data: MediaWrapper;
-        if match value.parse::<i32>() {
-            Ok(_) => true,
-            Err(_) => false,
-        } {
-            data = match MediaWrapper::new_anime_by_id(value.parse().unwrap(), color, ctx, command)
-                .await
-            {
+        let data: MediaWrapper = if value.parse::<i32>().is_ok() {
+            match MediaWrapper::new_anime_by_id(value.parse().unwrap(), color, ctx, command).await {
                 Ok(media_wrapper) => media_wrapper,
                 Err(_) => {
                     return;
                 }
             }
         } else {
-            data = match MediaWrapper::new_anime_by_search(value, color, ctx, command).await {
+            match MediaWrapper::new_anime_by_search(value, color, ctx, command).await {
                 Ok(media_wrapper) => media_wrapper,
                 Err(_) => {
                     return;
                 }
             }
-        }
+        };
 
         if data.get_nsfw() && !get_nsfw(command, ctx).await {
             error_not_nsfw(color, ctx, command).await;
@@ -95,7 +89,7 @@ pub async fn run(
             })
             .await
         {
-            println!("{}: {}", "Error creating slash command", why);
+            println!("Error creating slash command: {}", why);
         }
     }
 }
@@ -112,14 +106,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, anime) in &animes {
+            for anime in animes.values() {
                 option
                     .name_localized(&anime.code, &anime.option1)
                     .description_localized(&anime.code, &anime.option1_desc);
             }
             option
         });
-    for (_key, anime) in &animes {
+    for anime in animes.values() {
         command
             .name_localized(&anime.code, &anime.name)
             .description_localized(&anime.code, &anime.desc);
