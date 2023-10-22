@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
@@ -166,100 +167,117 @@ pub async fn embed(
             }
         };
 
-        let anime_count_text = if data.get_anime_count() > data2.get_anime_count() {
-            format!(
-                "{}{}{}",
-                data.get_username(),
-                &localised_text.more_anime,
-                data.get_username()
-            )
-        } else if data.get_anime_count() < data2.get_anime_count() {
-            format!(
-                "{}{}{}",
-                data2.get_username(),
-                &localised_text.more_anime,
-                data.get_username()
-            )
-        } else {
-            format!(
-                "{}{}{}{}",
-                data.get_username(),
-                &localised_text.connector_user_same_anime,
-                data2.get_username(),
-                &localised_text.same_anime
-            )
+        let anime_count_text = match data.get_anime_count().cmp(&data2.get_anime_count()) {
+            Ordering::Equal => {
+                format!(
+                    "{}{}{}{}",
+                    data.get_username(),
+                    &localised_text.connector_user_same_anime,
+                    data2.get_username(),
+                    &localised_text.same_anime
+                )
+            }
+            Ordering::Less => {
+                format!(
+                    "{}{}{}",
+                    data2.get_username(),
+                    &localised_text.more_anime,
+                    data.get_username()
+                )
+            }
+            Ordering::Greater => {
+                format!(
+                    "{}{}{}",
+                    data.get_username(),
+                    &localised_text.more_anime,
+                    data.get_username()
+                )
+            }
         };
 
-        let anime_watch_time = if data.get_anime_minute() > data2.get_anime_minute() {
-            format!(
-                "{}{}{}",
-                data.get_username(),
-                &localised_text.time_anime_watch,
-                data2.get_username()
-            )
-        } else if data.get_anime_minute() < data2.get_anime_minute() {
-            format!(
-                "{}{}{}",
-                data2.get_username(),
-                &localised_text.time_anime_watch,
-                data.get_username()
-            )
-        } else {
-            format!(
-                "{}{}{}{}",
-                data.get_username(),
-                &localised_text.connector_user_same_time,
-                data2.get_username(),
-                &localised_text.time_anime_watch
-            )
+        let anime_watch_time = match data.get_anime_minute().cmp(&data2.get_anime_minute()) {
+            Ordering::Equal => {
+                format!(
+                    "{}{}{}{}",
+                    data.get_username(),
+                    &localised_text.connector_user_same_time,
+                    data2.get_username(),
+                    &localised_text.time_anime_watch
+                )
+            }
+            Ordering::Less => {
+                format!(
+                    "{}{}{}",
+                    data2.get_username(),
+                    &localised_text.time_anime_watch,
+                    data.get_username()
+                )
+            }
+            Ordering::Greater => {
+                format!(
+                    "{}{}{}",
+                    data.get_username(),
+                    &localised_text.time_anime_watch,
+                    data2.get_username()
+                )
+            }
         };
 
-        let manga_count_text = if data.get_manga_count() > data2.get_manga_count() {
-            format!(
-                "{}{}{}",
-                data.get_username(),
-                &localised_text.more_manga,
-                data2.get_username()
-            )
-        } else if data.get_manga_count() < data2.get_manga_count() {
-            format!(
-                "{}{}{}",
-                data2.get_username(),
-                &localised_text.more_manga,
-                data.get_username()
-            )
-        } else {
-            format!(
-                "{}{}{}{}",
-                data.get_username(),
-                &localised_text.connector_user_same_manga,
-                data2.get_username(),
-                &localised_text.same_manga
-            )
+        let manga_count_text = match data.get_manga_count().cmp(&data2.get_manga_count()) {
+            Ordering::Equal => {
+                format!(
+                    "{}{}{}{}",
+                    data.get_username(),
+                    &localised_text.connector_user_same_manga,
+                    data2.get_username(),
+                    &localised_text.same_manga
+                )
+            }
+            Ordering::Greater => {
+                format!(
+                    "{}{}{}",
+                    data.get_username(),
+                    &localised_text.more_manga,
+                    data2.get_username()
+                )
+            }
+            Ordering::Less => {
+                format!(
+                    "{}{}{}",
+                    data2.get_username(),
+                    &localised_text.more_manga,
+                    data.get_username()
+                )
+            }
         };
 
-        let manga_chapter_count = if data.get_manga_completed() > data2.get_manga_completed() {
-            format!(
-                "{}{}{}",
-                data.get_username(),
-                &localised_text.more_chapter,
-                data2.get_username()
-            )
-        } else if data.get_manga_completed() < data2.get_manga_completed() {
-            format!(
-                "{}{}{}",
-                data2.get_username(),
-                &localised_text.more_chapter,
-                data.get_username()
-            )
-        } else {
-            format!(
-                "{}{}{}{}",
-                data.get_username(),
-                &localised_text.connector_user_same_chapter,
-                data2.get_username(),
-                &localised_text.same_chapter
-            )
+        let manga_chapter_count = match data.get_manga_completed().cmp(&data2.get_manga_completed())
+        {
+            Ordering::Equal => {
+                format!(
+                    "{}{}{}{}",
+                    data.get_username(),
+                    &localised_text.connector_user_same_chapter,
+                    data2.get_username(),
+                    &localised_text.same_chapter
+                )
+            }
+            Ordering::Greater => {
+                format!(
+                    "{}{}{}",
+                    data.get_username(),
+                    &localised_text.more_chapter,
+                    data2.get_username()
+                )
+            }
+            Ordering::Less => {
+                format!(
+                    "{}{}{}",
+                    data2.get_username(),
+                    &localised_text.more_chapter,
+                    data.get_username()
+                )
+            }
         };
 
         let pref_anime_genre1 = data.get_one_anime_genre(0);
