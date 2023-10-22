@@ -59,13 +59,10 @@ pub async fn embed(
                     }
                 }
             }
-        } else {
-            if search_type == "NOVEL" {
-                data = match MediaWrapper::new_ln_by_search(
-                    value.parse().unwrap(),
-                    localised_text.clone(),
-                )
-                .await
+        } else if search_type == "NOVEL" {
+            data =
+                match MediaWrapper::new_ln_by_search(value.parse().unwrap(), localised_text.clone())
+                    .await
                 {
                     Ok(character_wrapper) => character_wrapper,
                     Err(error) => {
@@ -73,18 +70,17 @@ pub async fn embed(
                         return;
                     }
                 }
-            } else {
-                data = match MediaWrapper::new_manga_by_search(
-                    value.parse().unwrap(),
-                    localised_text.clone(),
-                )
-                .await
-                {
-                    Ok(character_wrapper) => character_wrapper,
-                    Err(error) => {
-                        custom_error(color, ctx, command, &error).await;
-                        return;
-                    }
+        } else {
+            data = match MediaWrapper::new_manga_by_search(
+                value.parse().unwrap(),
+                localised_text.clone(),
+            )
+            .await
+            {
+                Ok(character_wrapper) => character_wrapper,
+                Err(error) => {
+                    custom_error(color, ctx, command, &error).await;
+                    return;
                 }
             }
         }

@@ -206,7 +206,7 @@ pub async fn run(
             .edit(&ctx.http, |m| {
                 m.embed(|e| {
                     e.title(&localised_text.title)
-                        .description(format!("{}", text))
+                        .description(text.to_string())
                         .timestamp(Timestamp::now())
                         .color(color)
                 })

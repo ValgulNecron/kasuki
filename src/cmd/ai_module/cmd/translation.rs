@@ -79,7 +79,7 @@ pub async fn run(
         }
 
         let allowed_extensions = vec!["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
-        let parsed_url = Url::parse(&*content).expect("Failed to parse URL");
+        let parsed_url = Url::parse(&content).expect("Failed to parse URL");
         let path_segments = parsed_url
             .path_segments()
             .expect("Failed to retrieve path segments");
@@ -110,7 +110,7 @@ pub async fn run(
 
         let message: Message;
 
-        match in_progress_embed(&ctx, &command).await {
+        match in_progress_embed(ctx, command).await {
             Ok(Some(message_option)) => {
                 message = message_option;
             }
@@ -140,7 +140,7 @@ pub async fn run(
         let file = fs::read(fname).unwrap();
         let part = multipart::Part::bytes(file)
             .file_name(file_name)
-            .mime_str(&*content_type)
+            .mime_str(&content_type)
             .unwrap();
         let form = multipart::Form::new()
             .part("file", part)
@@ -180,10 +180,8 @@ pub async fn run(
         if lang != "en" {
             let text = translation(lang, text.to_string(), api_key, api_base_url).await;
             translation_embed(ctx, text, message, localised_text.clone()).await;
-            return;
         } else {
             translation_embed(ctx, text.to_string(), message, localised_text.clone()).await;
-            return;
         }
     }
 }
@@ -267,7 +265,7 @@ pub async fn translation(
     let content = res["choices"][0]["message"]["content"].to_string();
     let no_quote = content.replace('"', "");
     let line_break = no_quote.replace("\\n", " \\n ");
-    return line_break;
+    line_break
 }
 
 pub async fn translation_embed(
