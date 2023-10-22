@@ -132,14 +132,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, level) in &levels {
+            for level in levels.values() {
                 option
                     .name_localized(&level.code, &level.option1)
                     .description_localized(&level.code, &level.option1_desc);
             }
             option
         });
-    for (_key, level) in &levels {
+    for level in levels.values() {
         command
             .name_localized(&level.code, &level.name)
             .description_localized(&level.code, &level.desc);

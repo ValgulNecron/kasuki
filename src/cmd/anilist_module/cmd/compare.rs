@@ -63,7 +63,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, manga) in &compares {
+            for manga in compares.values() {
                 option
                     .name_localized(&manga.code, &manga.option1)
                     .description_localized(&manga.code, &manga.option1_desc);
@@ -77,14 +77,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, manga) in &compares {
+            for manga in compares.values() {
                 option
                     .name_localized(&manga.code, &manga.option2)
                     .description_localized(&manga.code, &manga.option2_desc);
             }
             option
         });
-    for (_key, manga) in &compares {
+    for manga in compares.values() {
         command
             .name_localized(&manga.code, &manga.name)
             .description_localized(&manga.code, &manga.desc);

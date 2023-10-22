@@ -30,14 +30,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, ln) in &lns {
+            for ln in lns.values() {
                 option
                     .name_localized(&ln.code, &ln.option1)
                     .description_localized(&ln.code, &ln.option1_desc);
             }
             option
         });
-    for (_key, ln) in &lns {
+    for ln in lns.values() {
         command
             .name_localized(&ln.code, &ln.name)
             .description_localized(&ln.code, &ln.desc);

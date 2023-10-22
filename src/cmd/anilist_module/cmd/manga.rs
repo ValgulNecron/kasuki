@@ -30,14 +30,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, manga) in &mangas {
+            for manga in mangas.values() {
                 option
                     .name_localized(&manga.code, &manga.option1)
                     .description_localized(&manga.code, &manga.option1_desc);
             }
             option
         });
-    for (_key, manga) in &mangas {
+    for manga in mangas.values() {
         command
             .name_localized(&manga.code, &manga.name)
             .description_localized(&manga.code, &manga.desc);
