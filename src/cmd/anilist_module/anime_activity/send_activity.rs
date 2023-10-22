@@ -68,7 +68,7 @@ pub async fn send_activity() {
             let guild_id = row.server_id.clone();
             if row.delays.unwrap() != 0 {
                 tokio::spawn(async move {
-                    sleep(Duration::from_secs((row2.delays.clone().unwrap()) as u64));
+                    tokio::time::sleep(Duration::from_secs((row2.delays.unwrap()) as u64)).await;
                     send_specific_activity(row, guild_id.unwrap(), row2).await
                 });
             } else {
@@ -133,5 +133,5 @@ pub async fn send_specific_activity(row: ActivityData, guild_id: String, row2: A
         .execute(&http, false, |w| w.embeds(vec![embed]))
         .await
         .unwrap();
-    tokio::spawn(async move { update_info(row2, guild_id) });
+    tokio::spawn(async move { update_info(row2, guild_id).await });
 }

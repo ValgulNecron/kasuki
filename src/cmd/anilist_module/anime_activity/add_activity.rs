@@ -217,7 +217,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, activity) in &activities {
+            for activity in activities.values() {
                 option
                     .name_localized(&activity.code, &activity.option1)
                     .description_localized(&activity.code, &activity.option1_desc);
@@ -230,7 +230,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("A delays in second")
                 .kind(CommandOptionType::Integer)
                 .required(false);
-            for (_key, activity) in &activities {
+            for activity in activities.values() {
                 option
                     .name_localized(&activity.code, &activity.option2)
                     .description_localized(&activity.code, &activity.option2_desc);
@@ -238,7 +238,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
             option
         })
         .default_member_permissions(Permissions::ADMINISTRATOR);
-    for (_key, activity) in &activities {
+    for activity in activities.values() {
         command
             .name_localized(&activity.code, &activity.name)
             .description_localized(&activity.code, &activity.desc);
@@ -257,11 +257,5 @@ pub async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
         .fetch_one(&pool)
         .await
         .unwrap_or((None, None, None, None));
-    let is_row_none = row.0.is_none() && row.1.is_none() && row.2.is_none() && row.3.is_none();
-
-    if is_row_none {
-        false
-    } else {
-        true
-    }
+    !(row.0.is_none() && row.1.is_none() && row.2.is_none() && row.3.is_none())
 }

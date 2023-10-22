@@ -46,8 +46,7 @@ pub async fn run(
         .expect("Expected username object");
     if let CommandDataOptionValue::String(username1) = option {
         if let CommandDataOptionValue::String(username2) = option2 {
-            embed(ctx, command, username1, username2).await;
-            return;
+            embed(ctx, command, username1, username2).await
         }
     }
 }
