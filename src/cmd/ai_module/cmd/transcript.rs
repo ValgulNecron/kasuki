@@ -230,7 +230,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("File of the video you want the transcript of 25mb max.")
                 .kind(Attachment)
                 .required(true);
-            for (_key, transcript) in &transcripts {
+            for transcript in transcripts.values() {
                 option
                     .name_localized(&transcript.code, &transcript.option1)
                     .description_localized(&transcript.code, &transcript.option1_desc);
@@ -245,7 +245,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 )
                 .kind(CommandOptionType::String)
                 .required(false);
-            for (_key, transcript) in &transcripts {
+            for transcript in transcripts.values() {
                 option
                     .name_localized(&transcript.code, &transcript.option2)
                     .description_localized(&transcript.code, &transcript.option2_desc);

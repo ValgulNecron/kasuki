@@ -36,22 +36,22 @@ pub async fn run(
     let color = Colour::FABLED_PINK;
 
     let mut lang: String = "en".to_string();
-    let attachement_option;
-    if options.get(0).expect("Expected attachement option").name == "video" {
-        attachement_option = options
+    let attachement_option = if options.get(0).expect("Expected attachement option").name == "video"
+    {
+        options
             .get(0)
             .expect("Expected attachement option")
             .resolved
             .as_ref()
-            .expect("Expected attachement object");
+            .expect("Expected attachement object")
     } else {
-        attachement_option = options
+        options
             .get(1)
             .expect("Expected attachement option")
             .resolved
             .as_ref()
-            .expect("Expected attachement object");
-    }
+            .expect("Expected attachement object")
+    };
 
     for option in options {
         if option.name == "lang" {
@@ -108,12 +108,8 @@ pub async fn run(
 
         differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
-        let message: Message;
-
-        match in_progress_embed(ctx, command).await {
-            Ok(Some(message_option)) => {
-                message = message_option;
-            }
+        let message: Message = match in_progress_embed(ctx, command).await {
+            Ok(Some(message_option)) => message_option,
             Ok(None) => {
                 error_resolving_value_followup(color, ctx, command).await;
                 return;
@@ -122,7 +118,7 @@ pub async fn run(
                 println!("Error: {}", error);
                 return;
             }
-        }
+        };
 
         let my_path = "./.env";
         let path = Path::new(my_path);
@@ -197,7 +193,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("File of the video you want the translation of 25mb max.")
                 .kind(Attachment)
                 .required(true);
-            for (_key, translation) in &translations {
+            for translation in translations.values() {
                 option
                     .name_localized(&translation.code, &translation.option1)
                     .description_localized(&translation.code, &translation.option1_desc);
@@ -210,14 +206,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Lang in ISO-639-1 format.")
                 .kind(CommandOptionType::String)
                 .required(false);
-            for (_key, translation) in &translations {
+            for translation in translations.values() {
                 option
                     .name_localized(&translation.code, &translation.option2)
                     .description_localized(&translation.code, &translation.option2_desc);
             }
             option
         });
-    for (_key, translation) in &translations {
+    for translation in translations.values() {
         command
             .name_localized(&translation.code, &translation.name)
             .description_localized(&translation.code, &translation.desc);
