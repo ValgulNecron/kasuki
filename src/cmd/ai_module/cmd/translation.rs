@@ -264,8 +264,8 @@ pub async fn translation(
         .unwrap();
     let content = res["choices"][0]["message"]["content"].to_string();
     let no_quote = content.replace('"', "");
-    let line_break = no_quote.replace("\\n", " \\n ");
-    line_break
+
+    no_quote.replace("\\n", " \\n ")
 }
 
 pub async fn translation_embed(
