@@ -9,8 +9,8 @@ use serenity::model::user::User;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
 
-use crate::cmd::error_module::common::custom_error;
-use crate::cmd::error_module::error_avatar::error_no_avatar;
+use crate::cmd::error_modules::common::custom_error;
+use crate::cmd::error_modules::error_avatar::error_no_avatar;
 use crate::cmd::lang_struct::embed::general::struct_lang_profile::ProfileLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_profile_register::RegisterLocalisedProfile;
 
@@ -19,19 +19,16 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    return if let Some(option) = options.get(0) {
+    if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
-            let result = profile_with_user(ctx, command, &user).await;
-            result
+            profile_with_user(ctx, command, user).await
         } else {
-            let result = profile_without_user(ctx, command).await;
-            result
+            profile_without_user(ctx, command).await
         }
     } else {
-        let result = profile_without_user(ctx, command).await;
-        result
-    };
+        profile_without_user(ctx, command).await
+    }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -45,14 +42,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("The user you wan the profile of")
                 .kind(CommandOptionType::User)
                 .required(false);
-            for (_key, profile) in &profiles {
+            for profile in profiles.values() {
                 option
                     .name_localized(&profile.code, &profile.option1)
                     .description_localized(&profile.code, &profile.option1_desc);
             }
             option
         });
-    for (_key, profile) in &profiles {
+    for profile in profiles.values() {
         command
             .name_localized(&profile.code, &profile.name)
             .description_localized(&profile.code, &profile.desc);
@@ -161,7 +158,7 @@ pub async fn description(
         joined_at
     );
 
-    return desc;
+    desc
 }
 
 pub async fn send_embed(
@@ -191,6 +188,6 @@ pub async fn send_embed(
         })
         .await
     {
-        println!("{}: {}", "Error creating slash command", why);
+        println!("Error creating slash command: {}", why);
     }
 }

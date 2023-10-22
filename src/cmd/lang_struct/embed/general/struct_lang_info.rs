@@ -7,7 +7,7 @@ use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error_module::no_lang_error::{
+use crate::cmd::error_modules::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json,
 };
@@ -66,10 +66,10 @@ impl InfoLocalisedText {
         };
         let lang_choice = get_guild_langage(guild_id).await;
 
-        return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
+        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             Ok(localised_text.clone())
         } else {
             Err("not found")
-        };
+        }
     }
 }

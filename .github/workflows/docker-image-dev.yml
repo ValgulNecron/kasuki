@@ -1,13 +1,13 @@
-name: Build & Publish Release Docker Image
+name: Build & Publish Dev Docker Image
 
 on:
   push:
     branches:
-      - master
+      - dev
   workflow_dispatch:
 
 concurrency:
-  group: "release"
+  group: "dev"
   cancel-in-progress: false
 
 jobs:
@@ -30,4 +30,4 @@ jobs:
         with:
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: valgul/kasuki:latest
+          tags: valgul/kasuki:dev

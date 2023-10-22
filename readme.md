@@ -1,3 +1,5 @@
+[![Build & Publish Release Docker Image](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-release.yml/badge.svg?branch=master)](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-release.yml)
+[![Build & Publish Release Dev Image](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-dev.yml/badge.svg?branch=dev)](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-dev.yml)
 # TODO
 
 
@@ -152,6 +154,9 @@ Please remember that after a pull you will need to rebuild
 ```bash
 docker compose up -d --build 
 ```
+
+you can also use the image valgul/kasuki instead of building the bot locally.
+
 
 ### or Rust
 

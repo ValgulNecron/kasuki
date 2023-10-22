@@ -44,7 +44,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     let credits = RegisterLocalisedCredit::get_credit_register_localised().unwrap();
     let command = command.name("credit").description("List of credit");
-    for (_key, credit) in &credits {
+    for credit in credits.values() {
         command
             .name_localized(&credit.code, &credit.name)
             .description_localized(&credit.code, &credit.desc);

@@ -1,15 +1,15 @@
 use serenity::client::Context;
-use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
+use serenity::model::prelude::Message;
 use serenity::utils::Colour;
 
-use crate::cmd::error_module::common::{edit_embed_message, get_localised_langage_edit};
+use crate::cmd::error_modules::common::{edit_embed_message, get_localised_langage_edit};
 
-pub async fn error_no_token_edit(
+pub async fn error_parsing_json_edit(
     color: Colour,
     ctx: &Context,
-    command: &ApplicationCommandInteraction,
     message: Message,
+    command: &ApplicationCommandInteraction,
 ) {
     let localised_text =
         match get_localised_langage_edit(color, ctx, message.clone(), command).await {
@@ -20,8 +20,8 @@ pub async fn error_no_token_edit(
         color,
         ctx,
         message,
-        localised_text.error_title.clone(),
-        localised_text.no_token.clone(),
+        localised_text.error_title,
+        localised_text.error_parsing_json,
     )
-    .await;
+    .await
 }

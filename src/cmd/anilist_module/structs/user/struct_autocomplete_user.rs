@@ -54,14 +54,10 @@ impl UserPageWrapper {
             users
                 .iter()
                 .filter_map(|item| {
-                    if let Some(item) = item {
-                        Some(AutocompleteOption {
-                            name: item.name.clone(),
-                            value: item.id.to_string(),
-                        })
-                    } else {
-                        None
-                    }
+                    item.as_ref().map(|item| AutocompleteOption {
+                        name: item.name.clone(),
+                        value: item.id.to_string(),
+                    })
                 })
                 .collect::<Vec<AutocompleteOption>>()
         } else {

@@ -64,7 +64,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     let pings = RegisterLocalisedPing::get_ping_register_localised().unwrap();
     let command = command.name("ping").description("A ping command");
-    for (_key, ping) in &pings {
+    for ping in pings.values() {
         command
             .name_localized(&ping.code, &ping.name)
             .description_localized(&ping.code, &ping.desc);

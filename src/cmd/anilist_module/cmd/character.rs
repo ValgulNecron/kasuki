@@ -12,7 +12,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::structs::character::struct_autocomplete_character::CharacterPageWrapper;
 use crate::cmd::anilist_module::structs::character::struct_character::*;
-use crate::cmd::error_module::common::custom_error;
+use crate::cmd::error_modules::common::custom_error;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_character::CharacterLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_character_register::RegisterLocalisedCharacter;
 
@@ -35,12 +35,8 @@ pub async fn run(
                 Ok(data) => data,
                 Err(_) => return,
             };
-        let data: CharacterWrapper;
-        if match value.parse::<i32>() {
-            Ok(_) => true,
-            Err(_) => false,
-        } {
-            data = match CharacterWrapper::new_character_by_id(
+        let data: CharacterWrapper = if value.parse::<i32>().is_ok() {
+            match CharacterWrapper::new_character_by_id(
                 value.parse().unwrap(),
                 localised_text.clone(),
             )
@@ -53,16 +49,14 @@ pub async fn run(
                 }
             }
         } else {
-            data = match CharacterWrapper::new_character_by_search(value, localised_text.clone())
-                .await
-            {
+            match CharacterWrapper::new_character_by_search(value, localised_text.clone()).await {
                 Ok(character_wrapper) => character_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
                     return;
                 }
             }
-        }
+        };
         let name = data.get_name();
         let desc = data.get_desc(localised_text.clone());
 
@@ -90,7 +84,7 @@ pub async fn run(
             })
             .await
         {
-            println!("{}: {}", "Error creating slash command", why);
+            println!("Error creating slash command: {}", why);
         }
     }
 }
@@ -107,14 +101,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, character) in &characters {
+            for character in characters.values() {
                 option
                     .name_localized(&character.code, &character.name)
                     .description_localized(&character.code, &character.desc);
             }
             option
         });
-    for (_key, character) in &characters {
+    for character in characters.values() {
         command
             .name_localized(&character.code, &character.name)
             .description_localized(&character.code, &character.desc);

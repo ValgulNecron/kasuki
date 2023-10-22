@@ -4,7 +4,7 @@ version = "1.0.0"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
-readme = "readme.MD"
+readme = "readme.md"
 repository = "https://github.com/ValgulNecron/kasuki"
 license-file = "LICENSE"
 
@@ -25,3 +25,6 @@ dotenv = "0.15.0"
 tide = "0.16.0"
 image = "0.24.7"
 base64 = "0.21.2"
+
+[profile.release]
+lto = true

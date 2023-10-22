@@ -3,7 +3,7 @@ use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error_module::common::{edit_embed_message, send_embed_message};
+use crate::cmd::error_modules::common::{edit_embed_message, send_embed_message};
 
 pub async fn no_langage_error(
     color: Colour,

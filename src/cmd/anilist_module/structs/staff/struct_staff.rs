@@ -159,14 +159,13 @@ query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
 ";
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, false).await;
-        let data: StaffWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"));
+                Err(String::from("Error: Failed to retrieve user data"))
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_staff_by_search(search: &String) -> Result<StaffWrapper, String> {
@@ -227,14 +226,13 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
 ";
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, false).await;
-        let data: StaffWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"));
+                Err(String::from("Error: Failed to retrieve user data"))
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub fn format_va(&self) -> String {
@@ -256,7 +254,7 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
                     .clone()
                     .unwrap_or_else(|| "N/A".to_string());
                 let name = format!("{} / {}", name_natif, name_full);
-                format!("{}", name)
+                name.to_string()
             })
             .collect();
 
@@ -297,13 +295,13 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
                 .name
                 .native
                 .clone()
-                .unwrap_or_else(|| "N/A".to_string()),
+                .unwrap_or("N/A".to_string()),
             self.data
                 .staff
                 .name
                 .full
                 .clone()
-                .unwrap_or_else(|| "N/A".to_string())
+                .unwrap_or("N/A".to_string())
         )
     }
 
@@ -355,18 +353,18 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
     pub fn get_birth(&self) -> String {
         format!(
             "{}/{}/{}",
-            &self.data.staff.date_of_birth.month.unwrap_or_else(|| 0),
-            &self.data.staff.date_of_birth.day.unwrap_or_else(|| 0),
-            &self.data.staff.date_of_birth.year.unwrap_or_else(|| 0)
+            &self.data.staff.date_of_birth.month.unwrap_or(0),
+            &self.data.staff.date_of_birth.day.unwrap_or(0),
+            &self.data.staff.date_of_birth.year.unwrap_or(0)
         )
     }
 
     pub fn get_death(&self) -> String {
         format!(
             "{}/{}/{}",
-            &self.data.staff.date_of_death.month.unwrap_or_else(|| 0),
-            &self.data.staff.date_of_death.day.unwrap_or_else(|| 0),
-            &self.data.staff.date_of_death.year.unwrap_or_else(|| 0)
+            &self.data.staff.date_of_death.month.unwrap_or(0),
+            &self.data.staff.date_of_death.day.unwrap_or(0),
+            &self.data.staff.date_of_death.year.unwrap_or(0)
         )
     }
 
@@ -383,7 +381,7 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
             .staff
             .home_town
             .clone()
-            .unwrap_or_else(|| "N/A".to_string())
+            .unwrap_or("N/A".to_string())
     }
 
     pub fn get_occupation(&self) -> String {

@@ -73,14 +73,13 @@ impl MinimalAnimeWrapper {
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         // Get json
-        let data: MinimalAnimeWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_no_media.clone());
+                Err(localised_text.error_no_media.clone())
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_minimal_anime_by_id_no_error(search: String) -> MinimalAnimeWrapper {
@@ -104,8 +103,7 @@ impl MinimalAnimeWrapper {
         ";
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
-        let data: MinimalAnimeWrapper = serde_json::from_str(&resp).unwrap();
-        data
+        serde_json::from_str(&resp).unwrap()
     }
 
     pub async fn new_minimal_anime_by_search(
@@ -134,14 +132,13 @@ impl MinimalAnimeWrapper {
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         // Get json
-        let data: MinimalAnimeWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_no_media.clone());
+                Err(localised_text.error_no_media.clone())
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub fn get_id(&self) -> i32 {
@@ -150,7 +147,7 @@ impl MinimalAnimeWrapper {
 
     pub fn get_timestamp(&self) -> i64 {
         let media = self.data.media.next_airing_episode.clone().unwrap();
-        media.airing_at.clone().unwrap()
+        media.airing_at.unwrap_or(0)
     }
 
     pub fn get_name(&self) -> String {

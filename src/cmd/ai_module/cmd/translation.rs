@@ -19,10 +19,10 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
-use crate::cmd::error_module::error_file::{error_file_extension, error_file_type};
-use crate::cmd::error_module::error_parsing_json::error_parsing_json_edit;
-use crate::cmd::error_module::error_request::error_making_request_edit;
-use crate::cmd::error_module::error_resolving_value::error_resolving_value_followup;
+use crate::cmd::error_modules::error_file::{error_file_extension, error_file_type};
+use crate::cmd::error_modules::error_parsing_json::error_parsing_json_edit;
+use crate::cmd::error_modules::error_request::error_making_request_edit;
+use crate::cmd::error_modules::error_resolving_value::error_resolving_value_followup;
 use crate::cmd::general_module::function::differed_response::differed_response_with_file_deletion;
 use crate::cmd::general_module::function::in_progress::in_progress_embed;
 use crate::cmd::lang_struct::embed::ai::struct_lang_translation::TranslationLocalisedText;
@@ -36,22 +36,22 @@ pub async fn run(
     let color = Colour::FABLED_PINK;
 
     let mut lang: String = "en".to_string();
-    let attachement_option;
-    if options.get(0).expect("Expected attachement option").name == "video" {
-        attachement_option = options
+    let attachement_option = if options.get(0).expect("Expected attachement option").name == "video"
+    {
+        options
             .get(0)
             .expect("Expected attachement option")
             .resolved
             .as_ref()
-            .expect("Expected attachement object");
+            .expect("Expected attachement object")
     } else {
-        attachement_option = options
+        options
             .get(1)
             .expect("Expected attachement option")
             .resolved
             .as_ref()
-            .expect("Expected attachement object");
-    }
+            .expect("Expected attachement object")
+    };
 
     for option in options {
         if option.name == "lang" {
@@ -79,7 +79,7 @@ pub async fn run(
         }
 
         let allowed_extensions = vec!["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
-        let parsed_url = Url::parse(&*content).expect("Failed to parse URL");
+        let parsed_url = Url::parse(&content).expect("Failed to parse URL");
         let path_segments = parsed_url
             .path_segments()
             .expect("Failed to retrieve path segments");
@@ -108,12 +108,8 @@ pub async fn run(
 
         differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
-        let message: Message;
-
-        match in_progress_embed(&ctx, &command).await {
-            Ok(Some(message_option)) => {
-                message = message_option;
-            }
+        let message: Message = match in_progress_embed(ctx, command).await {
+            Ok(Some(message_option)) => message_option,
             Ok(None) => {
                 error_resolving_value_followup(color, ctx, command).await;
                 return;
@@ -122,7 +118,7 @@ pub async fn run(
                 println!("Error: {}", error);
                 return;
             }
-        }
+        };
 
         let my_path = "./.env";
         let path = Path::new(my_path);
@@ -140,7 +136,7 @@ pub async fn run(
         let file = fs::read(fname).unwrap();
         let part = multipart::Part::bytes(file)
             .file_name(file_name)
-            .mime_str(&*content_type)
+            .mime_str(&content_type)
             .unwrap();
         let form = multipart::Form::new()
             .part("file", part)
@@ -180,10 +176,8 @@ pub async fn run(
         if lang != "en" {
             let text = translation(lang, text.to_string(), api_key, api_base_url).await;
             translation_embed(ctx, text, message, localised_text.clone()).await;
-            return;
         } else {
             translation_embed(ctx, text.to_string(), message, localised_text.clone()).await;
-            return;
         }
     }
 }
@@ -199,7 +193,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("File of the video you want the translation of 25mb max.")
                 .kind(Attachment)
                 .required(true);
-            for (_key, translation) in &translations {
+            for translation in translations.values() {
                 option
                     .name_localized(&translation.code, &translation.option1)
                     .description_localized(&translation.code, &translation.option1_desc);
@@ -212,14 +206,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Lang in ISO-639-1 format.")
                 .kind(CommandOptionType::String)
                 .required(false);
-            for (_key, translation) in &translations {
+            for translation in translations.values() {
                 option
                     .name_localized(&translation.code, &translation.option2)
                     .description_localized(&translation.code, &translation.option2_desc);
             }
             option
         });
-    for (_key, translation) in &translations {
+    for translation in translations.values() {
         command
             .name_localized(&translation.code, &translation.name)
             .description_localized(&translation.code, &translation.desc);
@@ -265,9 +259,9 @@ pub async fn translation(
         .await
         .unwrap();
     let content = res["choices"][0]["message"]["content"].to_string();
-    let no_quote = content.replace("\"", "");
-    let line_break = no_quote.replace("\\n", " \\n ");
-    return line_break;
+    let no_quote = content.replace('"', "");
+
+    no_quote.replace("\\n", " \\n ")
 }
 
 pub async fn translation_embed(
@@ -282,7 +276,7 @@ pub async fn translation_embed(
         .edit(&ctx.http, |m| {
             m.embed(|e| {
                 e.title(&localised_text.title)
-                    .description(format!("{}", text))
+                    .description(text.to_string())
                     .timestamp(Timestamp::now())
                     .color(color)
             })

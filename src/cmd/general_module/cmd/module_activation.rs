@@ -8,7 +8,7 @@ use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 use sqlx::{Pool, Sqlite};
 
-use crate::cmd::error_module::error_module::error_no_module;
+use crate::cmd::error_modules::error_module::error_no_module;
 use crate::cmd::general_module::function::pool::get_pool;
 use crate::cmd::lang_struct::embed::general::struct_lang_module_activation::ModuleLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_modules_register::RegisterLocalisedModule;
@@ -52,7 +52,7 @@ pub async fn run(
         if option.name == "state" {
             let resolved = option.resolved.as_ref().unwrap();
             if let CommandDataOptionValue::Boolean(state_option) = resolved {
-                state = state_option.clone()
+                state = *state_option
             } else {
                 state = false
             }
@@ -81,12 +81,11 @@ pub async fn run(
                 .await
                 .unwrap();
 
-            let text;
-            if state {
-                text = &localised_text.on
+            let text = if state {
+                &localised_text.on
             } else {
-                text = &localised_text.off
-            }
+                &localised_text.off
+            };
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
@@ -105,7 +104,7 @@ pub async fn run(
                 })
                 .await
             {
-                println!("{}: {}", "Error creating slash", why);
+                println!("Error creating slash: {}", why);
             }
         }
         "AI" => {
@@ -128,12 +127,11 @@ pub async fn run(
                 .await
                 .unwrap();
 
-            let text;
-            if state {
-                text = &localised_text.on
+            let text = if state {
+                &localised_text.on
             } else {
-                text = &localised_text.off
-            }
+                &localised_text.off
+            };
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
@@ -152,7 +150,7 @@ pub async fn run(
                 })
                 .await
             {
-                println!("{}: {}", "Error creating slash", why);
+                println!("Error creating slash: {}", why);
             }
         }
         _ => error_no_module(color, ctx, command).await,
@@ -173,7 +171,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .add_string_choice("AI", "AI")
                 .add_string_choice("ANIME", "ANIME")
                 .required(true);
-            for (_key, module) in &modules {
+            for module in modules.values() {
                 option
                     .name_localized(&module.code, &module.option1)
                     .description_localized(&module.code, &module.option1_desc);
@@ -186,14 +184,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("ON or OFF")
                 .kind(CommandOptionType::Boolean)
                 .required(true);
-            for (_key, module) in &modules {
+            for module in modules.values() {
                 option
                     .name_localized(&module.code, &module.option2)
                     .description_localized(&module.code, &module.option2_desc);
             }
             option
         });
-    for (_key, module) in &modules {
+    for module in modules.values() {
         command
             .name_localized(&module.code, &module.name)
             .description_localized(&module.code, &module.desc);

@@ -3,9 +3,9 @@ use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error_module::common::{edit_embed_message, get_localised_langage_edit};
+use crate::cmd::error_modules::common::{edit_embed_message, get_localised_langage_edit};
 
-pub async fn error_instance_admin_models_edit(
+pub async fn error_making_request_edit(
     color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
@@ -21,7 +21,7 @@ pub async fn error_instance_admin_models_edit(
         ctx,
         message,
         localised_text.error_title.clone(),
-        localised_text.admin_instance_error.clone(),
+        localised_text.error_request.clone(),
     )
-    .await
+    .await;
 }

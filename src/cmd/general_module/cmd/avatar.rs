@@ -1,8 +1,6 @@
+use crate::cmd::lang_struct::register::general::struct_avatar_register::RegisterLocalisedAvatar;
 use serenity::builder::CreateApplicationCommand;
 use serenity::model::application::command::CommandOptionType;
-use crate::cmd::lang_struct::register::general::struct_avatar_register::RegisterLocalisedAvatar;
-
-
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     let profiles = RegisterLocalisedAvatar::get_avatar_register_localised().unwrap();
@@ -22,7 +20,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
             }
             option
         });
-    for  profile in profiles.values() {
+    for profile in profiles.values() {
         command
             .name_localized(&profile.code, &profile.name)
             .description_localized(&profile.code, &profile.description);

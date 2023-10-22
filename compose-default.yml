@@ -1,10 +1,14 @@
 version: '3'
 services:
   kasuki:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    user: kasuki
+    # let you build with the git file you have cloned (there is no guaranteed on a working states)
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    image: valgul/kasuki:latest # the latest stable version of kasuki
+    # image: valgul/kasuki:dev # the latest dev build that compile there could be error.
+    container_name: kasuki
+    restart: unless-stopped
     environment:
       - DISCORD_TOKEN=your_discord_token_here
       - AI_API_TOKEN=your_token_here_for_the_ai_part

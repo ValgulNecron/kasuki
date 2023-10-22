@@ -4,7 +4,7 @@ use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error_module::error_no::error_no_anime_specified;
+use crate::cmd::error_modules::error_no::error_no_anime_specified;
 use crate::cmd::general_module::function::html_parser::convert_to_discord_markdown;
 use crate::cmd::general_module::function::request::make_request_anilist;
 use crate::cmd::general_module::function::trim::trim;
@@ -176,15 +176,14 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        let data: MediaWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
                 error_no_anime_specified(color, ctx, command).await;
-                return Err("not found".to_string());
+                Err("not found".to_string())
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_anime_by_search(
@@ -253,15 +252,14 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        let data: MediaWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
                 error_no_anime_specified(color, ctx, command).await;
-                return Err("not found".to_string());
+                Err("not found".to_string())
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_manga_by_id(
@@ -329,14 +327,13 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        let data: MediaWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_no_media.clone());
+                Err(localised_text.error_no_media.clone())
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_manga_by_search(
@@ -403,14 +400,13 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        let data: MediaWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_no_media.clone());
+                Err(localised_text.error_no_media.clone())
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_ln_by_id(
@@ -478,14 +474,13 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        let data: MediaWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_no_media.clone());
+                Err(localised_text.error_no_media.clone())
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_ln_by_search(
@@ -553,14 +548,13 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        let data: MediaWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
                 println!("Error: {}", error);
-                return Err(localised_text.error_no_media.clone());
+                Err(localised_text.error_no_media.clone())
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub fn get_nsfw(&self) -> bool {
@@ -592,7 +586,7 @@ impl MediaWrapper {
             .title
             .english
             .clone()
-            .unwrap_or_else(|| "NA".to_string())
+            .unwrap_or("NA".to_string())
     }
 
     pub fn get_rj_title(&self) -> String {
@@ -601,11 +595,11 @@ impl MediaWrapper {
             .title
             .romaji
             .clone()
-            .unwrap_or_else(|| "NA".to_string())
+            .unwrap_or("NA".to_string())
     }
 
     pub fn get_thumbnail(&self) -> String {
-        self.data.media.cover_image.extra_large.clone().unwrap_or_else(|| "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string())
+        self.data.media.cover_image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string())
     }
 
     pub fn get_url(&self) -> String {
@@ -613,7 +607,7 @@ impl MediaWrapper {
             .media
             .site_url
             .clone()
-            .unwrap_or_else(|| "https://example.com".to_string())
+            .unwrap_or("https://example.com".to_string())
     }
 
     pub fn get_name(&self) -> String {
@@ -621,43 +615,33 @@ impl MediaWrapper {
     }
 
     pub fn get_format(&self) -> String {
-        self.data
-            .media
-            .format
-            .clone()
-            .unwrap_or_else(|| "N/A".to_string())
+        self.data.media.format.clone().unwrap_or("N/A".to_string())
     }
 
     pub fn get_source(&self) -> String {
-        self.data
-            .media
-            .source
-            .clone()
-            .unwrap_or_else(|| "N/A".to_string())
+        self.data.media.source.clone().unwrap_or("N/A".to_string())
     }
 
     pub fn get_start_date(&self) -> String {
-        let start_y = self.data.media.start_date.year.unwrap_or_else(|| 0);
-        let start_d = self.data.media.start_date.day.unwrap_or_else(|| 0);
-        let start_m = self.data.media.start_date.month.unwrap_or_else(|| 0);
-        let start_date = if start_y == 0 && start_d == 0 && start_m == 0 {
+        let start_y = self.data.media.start_date.year.unwrap_or(0);
+        let start_d = self.data.media.start_date.day.unwrap_or(0);
+        let start_m = self.data.media.start_date.month.unwrap_or(0);
+        if start_y == 0 && start_d == 0 && start_m == 0 {
             "N/A".to_string()
         } else {
             format!("{}/{}/{}", start_d, start_m, start_y)
-        };
-        start_date
+        }
     }
 
     pub fn get_end_date(&self) -> String {
-        let end_y = self.data.media.end_date.year.unwrap_or_else(|| 0);
-        let end_d = self.data.media.end_date.day.unwrap_or_else(|| 0);
-        let end_m = self.data.media.end_date.month.unwrap_or_else(|| 0);
-        let end_date = if end_y == 0 && end_d == 0 && end_m == 0 {
+        let end_y = self.data.media.end_date.year.unwrap_or(0);
+        let end_d = self.data.media.end_date.day.unwrap_or(0);
+        let end_m = self.data.media.end_date.month.unwrap_or(0);
+        if end_y == 0 && end_d == 0 && end_m == 0 {
             "N/A".to_string()
         } else {
             format!("{}/{}/{}", end_y, end_d, end_m)
-        };
-        end_date
+        }
     }
 
     pub fn get_anime_staff(&self, localised_text: AnimeLocalisedText) -> String {

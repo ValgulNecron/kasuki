@@ -8,7 +8,7 @@ use serenity::model::prelude::interaction::application_command::{
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::cmd::{anime, character, ln, manga, staff, studio, user};
-use crate::cmd::error_module::error_not_implemented::error_not_implemented;
+use crate::cmd::error_modules::error_not_implemented::error_not_implemented;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -26,13 +26,13 @@ pub async fn run(
     if let CommandDataOptionValue::String(search_type) = option {
         let search_types = search_type.as_ref();
         match search_types {
-            "anime" => anime::run(&command.data.options, &ctx, &command).await,
-            "character" => character::run(&command.data.options, &ctx, &command).await,
-            "ln" => ln::run(&command.data.options, &ctx, &command).await,
-            "manga" => manga::run(&command.data.options, &ctx, &command).await,
-            "staff" => staff::run(&command.data.options, &ctx, &command).await,
-            "user" => user::run(&command.data.options, &ctx, &command).await,
-            "studio" => studio::run(&command.data.options, &ctx, &command).await,
+            "anime" => anime::run(&command.data.options, ctx, command).await,
+            "character" => character::run(&command.data.options, ctx, command).await,
+            "ln" => ln::run(&command.data.options, ctx, command).await,
+            "manga" => manga::run(&command.data.options, ctx, command).await,
+            "staff" => staff::run(&command.data.options, ctx, command).await,
+            "user" => user::run(&command.data.options, ctx, command).await,
+            "studio" => studio::run(&command.data.options, ctx, command).await,
             _ => {
                 let color = Colour::FABLED_PINK;
                 error_not_implemented(color, ctx, command).await

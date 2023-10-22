@@ -104,7 +104,7 @@ impl UserWrapper {
             .get(i)
             .and_then(|g| g.genre.as_ref())
         {
-            return genre.clone();
+            genre.clone()
         } else {
             "N/A".to_string()
         }
@@ -131,7 +131,7 @@ impl UserWrapper {
             .get(i)
             .and_then(|g| g.tag.name.as_ref())
         {
-            return tag.clone();
+            tag.clone()
         } else {
             "N/A".to_string()
         }
@@ -149,12 +149,7 @@ impl UserWrapper {
     }
 
     pub fn get_anime_minute(&self) -> i32 {
-        self.data
-            .user
-            .statistics
-            .anime
-            .minutes_watched
-            .unwrap_or_else(|| 0)
+        self.data.user.statistics.anime.minutes_watched.unwrap_or(0)
     }
 
     pub fn time_anime_watched(&self, localised_text: UserLocalisedText) -> String {
@@ -166,17 +161,17 @@ impl UserWrapper {
 
         if min >= 60 {
             hour = min / 60;
-            min = min % 60;
+            min %= 60;
         }
 
         if hour >= 24 {
             days = hour / 24;
-            hour = hour % 24;
+            hour %= 24;
         }
 
         if days >= 7 {
             week = days / 7;
-            days = days % 7;
+            days %= 7;
         }
 
         format!(
@@ -193,16 +188,11 @@ impl UserWrapper {
     }
 
     pub fn get_anime_count(&self) -> i32 {
-        self.data.user.statistics.anime.count.unwrap_or_else(|| 0)
+        self.data.user.statistics.anime.count.unwrap_or(0)
     }
 
     pub fn get_anime_score(&self) -> f64 {
-        self.data
-            .user
-            .statistics
-            .anime
-            .mean_score
-            .unwrap_or_else(|| 0f64)
+        self.data.user.statistics.anime.mean_score.unwrap_or(0f64)
     }
 
     pub fn get_anime_standard_deviation(&self) -> f64 {
@@ -211,14 +201,14 @@ impl UserWrapper {
             .statistics
             .anime
             .standard_deviation
-            .unwrap_or_else(|| 0f64)
+            .unwrap_or(0f64)
     }
 
     pub fn get_anime_completed(&self) -> i32 {
         let anime_statuses = &self.data.user.statistics.anime.statuses;
         let mut anime_completed = 0;
         for i in anime_statuses {
-            if i.status == "COMPLETED".to_string() {
+            if i.status == *"COMPLETED" {
                 anime_completed = i.count;
             }
         }
@@ -282,7 +272,7 @@ impl UserWrapper {
             .get(i)
             .and_then(|g| g.genre.as_ref())
         {
-            return genre.clone();
+            genre.clone()
         } else {
             "N/A".to_string()
         }
@@ -309,7 +299,7 @@ impl UserWrapper {
             .get(i)
             .and_then(|g| g.tag.name.as_ref())
         {
-            return tag.clone();
+            tag.clone()
         } else {
             "N/A".to_string()
         }
@@ -327,25 +317,15 @@ impl UserWrapper {
     }
 
     pub fn get_manga_chapter(&self) -> i32 {
-        self.data
-            .user
-            .statistics
-            .manga
-            .chapters_read
-            .unwrap_or_else(|| 0)
+        self.data.user.statistics.manga.chapters_read.unwrap_or(0)
     }
 
     pub fn get_manga_count(&self) -> i32 {
-        self.data.user.statistics.manga.count.unwrap_or_else(|| 0)
+        self.data.user.statistics.manga.count.unwrap_or(0)
     }
 
     pub fn get_manga_score(&self) -> f64 {
-        self.data
-            .user
-            .statistics
-            .manga
-            .mean_score
-            .unwrap_or_else(|| 0f64)
+        self.data.user.statistics.manga.mean_score.unwrap_or(0f64)
     }
 
     pub fn get_manga_standard_deviation(&self) -> f64 {
@@ -354,14 +334,14 @@ impl UserWrapper {
             .statistics
             .manga
             .standard_deviation
-            .unwrap_or_else(|| 0f64)
+            .unwrap_or(0f64)
     }
 
     pub fn get_manga_completed(&self) -> i32 {
         let manga_statuses = &self.data.user.statistics.manga.statuses;
         let mut manga_completed = 0;
         for i in manga_statuses {
-            if i.status == "COMPLETED".to_string() {
+            if i.status == *"COMPLETED" {
                 manga_completed = i.count;
             }
         }
@@ -369,10 +349,7 @@ impl UserWrapper {
     }
 
     pub fn get_user_url(&self) -> String {
-        format!(
-            "https://anilist.co/user/{}",
-            self.data.user.id.unwrap_or_else(|| 1)
-        )
+        format!("https://anilist.co/user/{}", self.data.user.id.unwrap_or(1))
     }
 
     pub fn get_user_anime_url(&self) -> String {
@@ -439,14 +416,13 @@ options{
 ";
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
-        let data: UserWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"));
+                Err(String::from("Error: Failed to retrieve user data"))
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_user_by_search(search: &String) -> Result<UserWrapper, String> {
@@ -505,13 +481,12 @@ options{
 ";
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
-        let data: UserWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
-                return Err(String::from("Error: Failed to retrieve user data"));
+                Err(String::from("Error: Failed to retrieve user data"))
             }
-        };
-        return Ok(data);
+        }
     }
 }

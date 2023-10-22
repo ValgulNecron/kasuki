@@ -60,21 +60,17 @@ impl CharacterPageWrapper {
             let suggestions: Vec<AutocompleteOption> = character
                 .iter()
                 .filter_map(|item| {
-                    if let Some(item) = item {
-                        Some(AutocompleteOption {
-                            name: match &item.name {
-                                Some(name) => {
-                                    let english = name.user_preferred.clone();
-                                    let romaji = name.full.clone();
-                                    String::from(english.unwrap_or(romaji))
-                                }
-                                None => String::default(),
-                            },
-                            value: item.id.to_string(),
-                        })
-                    } else {
-                        None
-                    }
+                    item.as_ref().map(|item| AutocompleteOption {
+                        name: match &item.name {
+                            Some(name) => {
+                                let english = name.user_preferred.clone();
+                                let romaji = name.full.clone();
+                                english.unwrap_or(romaji)
+                            }
+                            None => String::default(),
+                        },
+                        value: item.id.to_string(),
+                    })
                 })
                 .collect();
             let choices = json!(suggestions);

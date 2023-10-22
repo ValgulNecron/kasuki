@@ -13,7 +13,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::structs::staff::struct_autocomplete_staff::StaffPageWrapper;
 use crate::cmd::anilist_module::structs::staff::struct_staff::*;
-use crate::cmd::error_module::common::custom_error;
+use crate::cmd::error_modules::common::custom_error;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_staff::StaffLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_staff_register::RegisterLocalisedStaff;
 
@@ -31,12 +31,8 @@ pub async fn run(
         .as_ref()
         .expect("Expected name object");
     if let CommandDataOptionValue::String(value) = option {
-        let data;
-        if match value.parse::<i32>() {
-            Ok(_) => true,
-            Err(_) => false,
-        } {
-            data = match StaffWrapper::new_staff_by_id(value.parse().unwrap()).await {
+        let data = if value.parse::<i32>().is_ok() {
+            match StaffWrapper::new_staff_by_id(value.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
@@ -44,14 +40,14 @@ pub async fn run(
                 }
             }
         } else {
-            data = match StaffWrapper::new_staff_by_search(value).await {
+            match StaffWrapper::new_staff_by_search(value).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
                     return;
                 }
             }
-        }
+        };
 
         let staff_url = data.get_url();
 
@@ -81,8 +77,8 @@ pub async fn run(
                                 .color(color)
                                 .fields(vec![
                                     (&localised_text.desc_title, desc, false),
-                                    (&localised_text.media, format!("{}", result_role), true),
-                                    (&localised_text.va, format!("{}", result_va), true),
+                                    (&localised_text.media, result_role, true),
+                                    (&localised_text.va, result_va, true),
                                 ])
                                 .url(staff_url)
                                 .image(image)
@@ -108,14 +104,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, staff) in &staffs {
+            for staff in staffs.values() {
                 option
                     .name_localized(&staff.code, &staff.option1)
                     .description_localized(&staff.code, &staff.option1_desc);
             }
             option
         });
-    for (_key, staff) in &staffs {
+    for staff in staffs.values() {
         command
             .name_localized(&staff.code, &staff.name)
             .description_localized(&staff.code, &staff.desc);

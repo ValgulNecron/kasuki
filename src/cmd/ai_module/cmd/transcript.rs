@@ -9,7 +9,6 @@ use serde_json::Value;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
-use serenity::model::channel::Message;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::command::CommandOptionType::Attachment;
 use serenity::model::prelude::interaction::application_command::{
@@ -19,11 +18,11 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
-use crate::cmd::error_module::error_base_url::error_no_base_url_edit;
-use crate::cmd::error_module::error_file::{error_file_extension, error_file_type};
-use crate::cmd::error_module::error_request::error_making_request_edit;
-use crate::cmd::error_module::error_resolving_value::error_resolving_value_followup;
-use crate::cmd::error_module::error_token::error_no_token_edit;
+use crate::cmd::error_modules::error_base_url::error_no_base_url_edit;
+use crate::cmd::error_modules::error_file::{error_file_extension, error_file_type};
+use crate::cmd::error_modules::error_request::error_making_request_edit;
+use crate::cmd::error_modules::error_resolving_value::error_resolving_value_followup;
+use crate::cmd::error_modules::error_token::error_no_token_edit;
 use crate::cmd::general_module::function::differed_response::differed_response_with_file_deletion;
 use crate::cmd::general_module::function::in_progress::in_progress_embed;
 use crate::cmd::lang_struct::embed::ai::struct_lang_transcript::TranscriptLocalisedText;
@@ -93,7 +92,7 @@ pub async fn run(
         }
 
         let allowed_extensions = vec!["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
-        let parsed_url = Url::parse(&*content).expect("Failed to parse URL");
+        let parsed_url = Url::parse(content.as_str()).expect("Failed to parse URL");
         let path_segments = parsed_url
             .path_segments()
             .expect("Failed to retrieve path segments");
@@ -121,12 +120,8 @@ pub async fn run(
 
         differed_response_with_file_deletion(ctx, command, file_to_delete.clone()).await;
 
-        let message: Message;
-
-        match in_progress_embed(&ctx, &command).await {
-            Ok(Some(message_option)) => {
-                message = message_option;
-            }
+        let message = match in_progress_embed(ctx, command).await {
+            Ok(Some(message_option)) => message_option,
             Ok(None) => {
                 error_resolving_value_followup(color, ctx, command).await;
                 return;
@@ -135,7 +130,7 @@ pub async fn run(
                 println!("Error: {}", error);
                 return;
             }
-        }
+        };
 
         let my_path = "./.env";
         let path = Path::new(my_path);
@@ -165,7 +160,7 @@ pub async fn run(
         let file = fs::read(fname).unwrap();
         let part = multipart::Part::bytes(file)
             .file_name(file_name)
-            .mime_str(&*content_type)
+            .mime_str(content_type.as_str())
             .unwrap();
         let prompt = prompt;
         let form = multipart::Form::new()
@@ -211,7 +206,7 @@ pub async fn run(
             .edit(&ctx.http, |m| {
                 m.embed(|e| {
                     e.title(&localised_text.title)
-                        .description(format!("{}", text))
+                        .description(text.to_string())
                         .timestamp(Timestamp::now())
                         .color(color)
                 })
@@ -235,7 +230,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("File of the video you want the transcript of 25mb max.")
                 .kind(Attachment)
                 .required(true);
-            for (_key, transcript) in &transcripts {
+            for transcript in transcripts.values() {
                 option
                     .name_localized(&transcript.code, &transcript.option1)
                     .description_localized(&transcript.code, &transcript.option1_desc);
@@ -250,7 +245,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 )
                 .kind(CommandOptionType::String)
                 .required(false);
-            for (_key, transcript) in &transcripts {
+            for transcript in transcripts.values() {
                 option
                     .name_localized(&transcript.code, &transcript.option2)
                     .description_localized(&transcript.code, &transcript.option2_desc);
@@ -263,14 +258,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Input language in ISO-639-1 format improves accuracy and latency.")
                 .kind(CommandOptionType::String)
                 .required(false);
-            for (_key, transcript) in &transcripts {
+            for transcript in transcripts.values() {
                 option
                     .name_localized(&transcript.code, &transcript.option3)
                     .description_localized(&transcript.code, &transcript.option3_desc);
             }
             option
         });
-    for (_key, transcript) in &transcripts {
+    for transcript in transcripts.values() {
         command
             .name_localized(&transcript.code, &transcript.name)
             .description_localized(&transcript.code, &transcript.desc);

@@ -18,7 +18,7 @@ use sqlx::{Pool, Sqlite};
 use crate::cmd::anilist_module::structs::random::struct_random::*;
 use crate::cmd::anilist_module::structs::random::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::cmd::anilist_module::structs::random::struct_site_statistic_manga::SiteStatisticsMangaWrapper;
-use crate::cmd::error_module::no_lang_error::{
+use crate::cmd::error_modules::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json,
 };
@@ -67,10 +67,7 @@ pub async fn run(
 
         let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
 
-        let page_number = match last_page {
-            Some(page) => page,
-            None => 1444, // This is as today date the last page, i will update it sometime.
-        };
+        let page_number = last_page.unwrap_or(1567); // This is as today date the last page, i will update it sometime.
 
         let previous_page = page_number - 1;
         let cached_response = response.unwrap_or("Nothing".to_string());
@@ -132,63 +129,15 @@ pub async fn embed(
     if random_type == "manga" {
         let data = PageWrapper::new_manga_page(number).await;
 
-        let title_user = data.get_user_pref_title();
-        let title = data.get_native_title();
-
-        let tag = data.get_tags();
-        let genre = data.get_genre();
-
-        let cover_image = data.get_cover_image();
-
-        let description = data.get_description();
-
-        let format = data.get_format();
-
         let url = data.get_manga_url();
-        follow_up_message(
-            ctx,
-            command,
-            genre,
-            tag,
-            format,
-            description,
-            title_user,
-            title,
-            color,
-            cover_image,
-            url,
-        )
-        .await;
+
+        follow_up_message(ctx, command, color, data, url).await
     } else if random_type == "anime" {
         let data = PageWrapper::new_anime_page(number).await;
 
-        let title_user = data.get_user_pref_title();
-        let title = data.get_native_title();
-
-        let tag = data.get_tags();
-        let genre = data.get_genre();
-
-        let cover_image = data.get_cover_image();
-
-        let description = data.get_description();
-
-        let format = data.get_format();
-
         let url = data.get_anime_url();
-        follow_up_message(
-            ctx,
-            command,
-            genre,
-            tag,
-            format,
-            description,
-            title_user,
-            title,
-            color,
-            cover_image,
-            url,
-        )
-        .await;
+
+        follow_up_message(ctx, command, color, data, url).await
     } else {
         let mut file = match File::open("lang_file/embed/anilist/random.json") {
             Ok(file) => file,
@@ -241,19 +190,21 @@ pub async fn embed(
 pub async fn follow_up_message(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-    genre: String,
-    tag: String,
-    format: String,
-    description: String,
-    title_user: String,
-    title: String,
     color: Colour,
-    cover_image: String,
+    data: PageWrapper,
     url: String,
 ) {
     let mut file = File::open("lang_file/embed/anilist/random.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
+
+    let title_user = data.get_user_pref_title();
+    let title = data.get_native_title();
+    let genre = data.get_genre();
+    let tag = data.get_tags();
+    let format = data.get_format();
+    let description = data.get_description();
+    let cover_image = data.get_cover_image();
 
     let json_data: HashMap<String, RandomLocalisedText> =
         serde_json::from_str(&json).expect("Failed to parse JSON");

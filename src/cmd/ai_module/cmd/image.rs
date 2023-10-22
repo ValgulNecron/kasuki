@@ -6,7 +6,6 @@ use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
-use serenity::model::channel::Message;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
@@ -15,19 +14,19 @@ use serenity::model::Timestamp;
 use serenity::utils::Colour;
 use uuid::Uuid;
 
-use crate::cmd::error_module::error_base_url::error_no_base_url_edit;
-use crate::cmd::error_module::error_creating_header::error_creating_header_edit;
-use crate::cmd::error_module::error_getting_option::error_no_option;
-use crate::cmd::error_module::error_instance_admin::error_instance_admin_models_edit;
-use crate::cmd::error_module::error_parsing_json::error_parsing_json_edit;
-use crate::cmd::error_module::error_request::error_making_request_edit;
-use crate::cmd::error_module::error_resolving_value::error_resolving_value_followup;
-use crate::cmd::error_module::error_response::{
+use crate::cmd::error_modules::error_base_url::error_no_base_url_edit;
+use crate::cmd::error_modules::error_creating_header::error_creating_header_edit;
+use crate::cmd::error_modules::error_getting_option::error_no_option;
+use crate::cmd::error_modules::error_instance_admin::error_instance_admin_models_edit;
+use crate::cmd::error_modules::error_parsing_json::error_parsing_json_edit;
+use crate::cmd::error_modules::error_request::error_making_request_edit;
+use crate::cmd::error_modules::error_resolving_value::error_resolving_value_followup;
+use crate::cmd::error_modules::error_response::{
     error_getting_bytes_response_edit, error_getting_response_from_url_edit,
     error_writing_file_response_edit,
 };
-use crate::cmd::error_module::error_token::error_no_token_edit;
-use crate::cmd::error_module::error_url::error_no_url_edit;
+use crate::cmd::error_modules::error_token::error_no_token_edit;
+use crate::cmd::error_modules::error_url::error_no_url_edit;
 use crate::cmd::general_module::function::differed_response::differed_response;
 use crate::cmd::general_module::function::in_progress::in_progress_embed;
 use crate::cmd::lang_struct::embed::ai::struct_lang_image::ImageLocalisedText;
@@ -66,11 +65,8 @@ pub async fn run(
             };
         differed_response(ctx, command).await;
 
-        let message: Message;
-        match in_progress_embed(&ctx, &command).await {
-            Ok(Some(message_option)) => {
-                message = message_option;
-            }
+        let message = match in_progress_embed(ctx, command).await {
+            Ok(Some(message_option)) => message_option,
             Ok(None) => {
                 error_resolving_value_followup(color, ctx, command).await;
                 return;
@@ -79,7 +75,7 @@ pub async fn run(
                 println!("Error: {}", error);
                 return;
             }
-        }
+        };
 
         let my_path = "./.env";
         let path = Path::new(my_path);
@@ -247,14 +243,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Description of the image you want to generate.")
                 .kind(CommandOptionType::String)
                 .required(true);
-            for (_key, image) in &images {
+            for image in images.values() {
                 option
                     .name_localized(&image.code, &image.option1)
                     .description_localized(&image.code, &image.option1_desc);
             }
             option
         });
-    for (_key, image) in &images {
+    for image in images.values() {
         command
             .name_localized(&image.code, &image.name)
             .description_localized(&image.code, &image.desc);

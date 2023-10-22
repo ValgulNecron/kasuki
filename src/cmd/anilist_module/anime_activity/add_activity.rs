@@ -15,8 +15,8 @@ use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAnimeWrapper;
-use crate::cmd::error_module::error_no::error_no_anime_specified;
-use crate::cmd::error_module::no_lang_error::error_no_langage_guild_id;
+use crate::cmd::error_modules::error_no::error_no_anime_specified;
+use crate::cmd::error_modules::no_lang_error::error_no_langage_guild_id;
 use crate::cmd::general_module::function::differed_response::differed_response;
 use crate::cmd::general_module::function::pool::get_pool;
 use crate::cmd::general_module::function::trim::trim_webhook;
@@ -66,7 +66,7 @@ pub async fn run(
         if option.name == "delays" {
             let resolved = option.resolved.as_ref().unwrap();
             if let CommandDataOptionValue::Integer(delays_option) = resolved {
-                delays = delays_option.clone()
+                delays = *delays_option
             } else {
                 delays = 0;
             }
@@ -86,12 +86,8 @@ pub async fn run(
             Ok(data) => data,
             Err(_) => return,
         };
-    let data;
-    if match value.parse::<i32>() {
-        Ok(_) => true,
-        Err(_) => false,
-    } {
-        data = match MinimalAnimeWrapper::new_minimal_anime_by_id(
+    let data = if value.parse::<i32>().is_ok() {
+        match MinimalAnimeWrapper::new_minimal_anime_by_id(
             localised_text.clone(),
             value.parse().unwrap(),
         )
@@ -104,7 +100,7 @@ pub async fn run(
             }
         }
     } else {
-        data = match MinimalAnimeWrapper::new_minimal_anime_by_search(
+        match MinimalAnimeWrapper::new_minimal_anime_by_search(
             localised_text.clone(),
             value.to_string(),
         )
@@ -116,7 +112,7 @@ pub async fn run(
                 return;
             }
         }
-    }
+    };
     let anime_id = data.get_id();
 
     let mut anime_name = data.get_name();
@@ -159,7 +155,7 @@ pub async fn run(
         let mut buf = Cursor::new(Vec::new());
         img.write_to(&mut buf, ImageFormat::Jpeg)
             .expect("Failed to encode image");
-        let base64 = general_purpose::STANDARD.encode(&buf.into_inner());
+        let base64 = general_purpose::STANDARD.encode(buf.into_inner());
         let image = format!("data:image/jpeg;base64,{}", base64);
         let map = json!({
             "avatar": image,
@@ -217,7 +213,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, activity) in &activities {
+            for activity in activities.values() {
                 option
                     .name_localized(&activity.code, &activity.option1)
                     .description_localized(&activity.code, &activity.option1_desc);
@@ -230,7 +226,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("A delays in second")
                 .kind(CommandOptionType::Integer)
                 .required(false);
-            for (_key, activity) in &activities {
+            for activity in activities.values() {
                 option
                     .name_localized(&activity.code, &activity.option2)
                     .description_localized(&activity.code, &activity.option2_desc);
@@ -238,7 +234,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
             option
         })
         .default_member_permissions(Permissions::ADMINISTRATOR);
-    for (_key, activity) in &activities {
+    for activity in activities.values() {
         command
             .name_localized(&activity.code, &activity.name)
             .description_localized(&activity.code, &activity.desc);
@@ -257,11 +253,5 @@ pub async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
         .fetch_one(&pool)
         .await
         .unwrap_or((None, None, None, None));
-    let is_row_none = row.0.is_none() && row.1.is_none() && row.2.is_none() && row.3.is_none();
-
-    if is_row_none {
-        false
-    } else {
-        true
-    }
+    !(row.0.is_none() && row.1.is_none() && row.2.is_none() && row.3.is_none())
 }

@@ -83,8 +83,7 @@ impl PageWrapper {
         let json = json!({"query": query, "variables": {"anime_page": number}});
         let res = make_request_anilist(json, false).await;
 
-        let data = serde_json::from_str(&res).unwrap();
-        data
+        serde_json::from_str(&res).unwrap()
     }
 
     pub async fn new_manga_page(number: i64) -> PageWrapper {
@@ -112,11 +111,10 @@ impl PageWrapper {
                     }
                 }";
 
-        let json = json!({"query": query, "variables": {"anime_page": number}});
+        let json = json!({"query": query, "variables": {"manga_page": number}});
         let res = make_request_anilist(json, false).await;
 
-        let data = serde_json::from_str(&res).unwrap();
-        data
+        serde_json::from_str(&res).unwrap()
     }
 
     pub fn get_media(&self) -> Media {

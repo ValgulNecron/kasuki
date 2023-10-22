@@ -2,9 +2,9 @@ use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::utils::Colour;
 
-use crate::cmd::error_module::common::{get_localised_langage, send_embed_message};
+use crate::cmd::error_modules::common::{get_localised_langage, send_embed_message};
 
-pub async fn error_no_user_specified(
+pub async fn error_file_type(
     color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
@@ -18,12 +18,12 @@ pub async fn error_no_user_specified(
         ctx,
         command,
         localised_text.error_title.clone(),
-        localised_text.forgot_module.clone(),
+        localised_text.error_file_type.clone(),
     )
     .await
 }
 
-pub async fn error_no_anime_specified(
+pub async fn error_file_extension(
     color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
@@ -37,7 +37,7 @@ pub async fn error_no_anime_specified(
         ctx,
         command,
         localised_text.error_title.clone(),
-        localised_text.error_no_anime_specified.clone(),
+        localised_text.error_file_extension.clone(),
     )
     .await
 }

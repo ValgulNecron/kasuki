@@ -9,8 +9,8 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::function::get_nsfw_channel::get_nsfw;
 use crate::cmd::anilist_module::structs::media::struct_media::*;
-use crate::cmd::error_module::common::custom_error;
-use crate::cmd::error_module::error_not_nsfw::error_not_nsfw;
+use crate::cmd::error_modules::common::custom_error;
+use crate::cmd::error_modules::error_not_nsfw::error_not_nsfw;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_media::MediaLocalisedText;
 
 pub async fn embed(
@@ -33,10 +33,7 @@ pub async fn embed(
                 Err(_) => return,
             };
         let data: MediaWrapper;
-        if match value.parse::<i32>() {
-            Ok(_) => true,
-            Err(_) => false,
-        } {
+        if value.parse::<i32>().is_ok() {
             if search_type == "NOVEL" {
                 data =
                     match MediaWrapper::new_ln_by_id(value.parse().unwrap(), localised_text.clone())
@@ -62,13 +59,10 @@ pub async fn embed(
                     }
                 }
             }
-        } else {
-            if search_type == "NOVEL" {
-                data = match MediaWrapper::new_ln_by_search(
-                    value.parse().unwrap(),
-                    localised_text.clone(),
-                )
-                .await
+        } else if search_type == "NOVEL" {
+            data =
+                match MediaWrapper::new_ln_by_search(value.parse().unwrap(), localised_text.clone())
+                    .await
                 {
                     Ok(character_wrapper) => character_wrapper,
                     Err(error) => {
@@ -76,18 +70,17 @@ pub async fn embed(
                         return;
                     }
                 }
-            } else {
-                data = match MediaWrapper::new_manga_by_search(
-                    value.parse().unwrap(),
-                    localised_text.clone(),
-                )
-                .await
-                {
-                    Ok(character_wrapper) => character_wrapper,
-                    Err(error) => {
-                        custom_error(color, ctx, command, &error).await;
-                        return;
-                    }
+        } else {
+            data = match MediaWrapper::new_manga_by_search(
+                value.parse().unwrap(),
+                localised_text.clone(),
+            )
+            .await
+            {
+                Ok(character_wrapper) => character_wrapper,
+                Err(error) => {
+                    custom_error(color, ctx, command, &error).await;
+                    return;
                 }
             }
         }

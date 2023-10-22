@@ -11,8 +11,6 @@ pub struct RandomLocalisedText {
     pub error_slash_command: String,
 }
 
-
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CompareLocalisedText {
     pub more_anime: String,
