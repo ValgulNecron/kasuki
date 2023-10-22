@@ -30,12 +30,8 @@ pub async fn run(
         .as_ref()
         .expect("Expected name object");
     if let CommandDataOptionValue::String(value) = option {
-        let data;
-        if match value.parse::<i32>() {
-            Ok(_) => true,
-            Err(_) => false,
-        } {
-            data = match StudioWrapper::new_studio_by_id(value.parse().unwrap()).await {
+        let data = if value.parse::<i32>().is_ok() {
+            match StudioWrapper::new_studio_by_id(value.parse().unwrap()).await {
                 Ok(studio_wrapper) => studio_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
@@ -43,14 +39,14 @@ pub async fn run(
                 }
             }
         } else {
-            data = match StudioWrapper::new_studio_by_search(value).await {
+            match StudioWrapper::new_studio_by_search(value).await {
                 Ok(studio_wrapper) => studio_wrapper,
                 Err(error) => {
                     custom_error(color, ctx, command, &error).await;
                     return;
                 }
             }
-        }
+        };
         let localised_text =
             match StudioLocalisedText::get_studio_localised(color, ctx, command).await {
                 Ok(data) => data,
@@ -95,14 +91,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(true)
                 .set_autocomplete(true);
-            for (_key, studio) in &studios {
+            for studio in studios.values() {
                 option
                     .name_localized(&studio.code, &studio.option1)
                     .description_localized(&studio.code, &studio.option1_desc);
             }
             option
         });
-    for (_key, studio) in &studios {
+    for studio in studios.values() {
         command
             .name_localized(&studio.code, &studio.name)
             .description_localized(&studio.code, &studio.desc);

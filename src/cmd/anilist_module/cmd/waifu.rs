@@ -50,7 +50,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
         })
         .await
     {
-        println!("{}: {}", "Error creating slash command", why);
+        println!("Error creating slash command: {}", why);
     }
 }
 
@@ -65,14 +65,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Username of the discord user you want the waifu of")
                 .kind(CommandOptionType::User)
                 .required(false);
-            for (_key, waifu) in &waifus {
+            for waifu in waifus.values() {
                 option
                     .name_localized(&waifu.code, &waifu.name)
                     .description_localized(&waifu.code, &waifu.desc);
             }
             option
         });
-    for (_key, waifu) in &waifus {
+    for waifu in waifus.values() {
         command
             .name_localized(&waifu.code, &waifu.name)
             .description_localized(&waifu.code, &waifu.desc);

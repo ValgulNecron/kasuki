@@ -114,14 +114,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .description("Your anilist user name.")
                 .kind(CommandOptionType::String)
                 .required(true);
-            for (_key, register) in &registers {
+            for register in registers.values() {
                 option
                     .name_localized(&register.code, &register.option1)
                     .description_localized(&register.code, &register.option1_desc);
             }
             option
         });
-    for (_key, register) in &registers {
+    for register in registers.values() {
         command
             .name_localized(&register.code, &register.name)
             .description_localized(&register.code, &register.desc);

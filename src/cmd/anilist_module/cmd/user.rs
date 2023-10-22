@@ -24,11 +24,9 @@ pub async fn run(
     if let Some(option) = _options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::String(user) = resolved {
-            let result = embed(_options, ctx, command, &user).await;
-            result
+            embed(_options, ctx, command, user).await
         } else {
-            custom_error(color, ctx, command, &"error_modules".to_string()).await;
-            return;
+            custom_error(color, ctx, command, "error_modules").await
         }
     } else {
         let database_url = "./data.db";
@@ -42,15 +40,14 @@ pub async fn run(
         .await
         .unwrap_or((None, None));
         let (user, _): (Option<String>, Option<String>) = row;
-        let result = embed(
+        embed(
             _options,
             ctx,
             command,
             &user.unwrap_or("N/A".parse().unwrap()),
         )
-        .await;
-        result
-    };
+        .await
+    }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -65,14 +62,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::String)
                 .required(false)
                 .set_autocomplete(true);
-            for (_key, user) in &users {
+            for user in users.values() {
                 option
                     .name_localized(&user.code, &user.option1)
                     .description_localized(&user.code, &user.option1_desc);
             }
             option
         });
-    for (_key, user) in &users {
+    for user in users.values() {
         command
             .name_localized(&user.code, &user.name)
             .description_localized(&user.code, &user.desc);
@@ -87,12 +84,8 @@ pub async fn embed(
     value: &String,
 ) {
     let color = Colour::FABLED_PINK;
-    let data;
-    if match value.parse::<i32>() {
-        Ok(_) => true,
-        Err(_) => false,
-    } {
-        data = match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
+    let data = if value.parse::<i32>().is_ok() {
+        match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
             Ok(user_wrapper) => user_wrapper,
             Err(error) => {
                 custom_error(color, ctx, command, &error).await;
@@ -100,14 +93,14 @@ pub async fn embed(
             }
         }
     } else {
-        data = match UserWrapper::new_user_by_search(value).await {
+        match UserWrapper::new_user_by_search(value).await {
             Ok(user_wrapper) => user_wrapper,
             Err(error) => {
                 custom_error(color, ctx, command, &error).await;
                 return;
             }
         }
-    }
+    };
 
     let localised_text = match UserLocalisedText::get_user_localised(color, ctx, command).await {
         Ok(data) => data,
