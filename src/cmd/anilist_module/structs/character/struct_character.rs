@@ -87,14 +87,13 @@ impl CharacterWrapper {
         ";
         let json = json!({"query": query_id, "variables": {"name": value}});
         let resp = make_request_anilist(json, false).await;
-        let data: CharacterWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
-                return Err(localised_text.error_no_character);
+                Err(localised_text.error_no_character)
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub async fn new_character_by_search(
@@ -129,14 +128,13 @@ query ($name: String) {
 ";
         let json = json!({"query": query_string, "variables": {"name": value}});
         let resp = make_request_anilist(json, false).await;
-        let data: CharacterWrapper = match serde_json::from_str(&resp) {
+        match serde_json::from_str(&resp) {
             Ok(result) => result,
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
-                return Err(localised_text.error_no_character);
+                Err(localised_text.error_no_character)
             }
-        };
-        return Ok(data);
+        }
     }
 
     pub fn get_name(&self) -> String {
@@ -186,30 +184,15 @@ query ($name: String) {
     }
 
     pub fn get_fav(&self) -> u32 {
-        self.data.character.favourites.clone()
+        self.data.character.favourites
     }
 
     pub fn get_date_of_birth(&self) -> String {
         format!(
             "{}/{}/{}",
-            self.data
-                .character
-                .date_of_birth
-                .month
-                .clone()
-                .unwrap_or_else(|| 0),
-            self.data
-                .character
-                .date_of_birth
-                .day
-                .clone()
-                .unwrap_or_else(|| 0),
-            self.data
-                .character
-                .date_of_birth
-                .year
-                .clone()
-                .unwrap_or_else(|| 0)
+            self.data.character.date_of_birth.month.unwrap_or(0),
+            self.data.character.date_of_birth.day.unwrap_or(0),
+            self.data.character.date_of_birth.year.unwrap_or(0)
         )
     }
 

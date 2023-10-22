@@ -33,10 +33,7 @@ pub async fn embed(
                 Err(_) => return,
             };
         let data: MediaWrapper;
-        if match value.parse::<i32>() {
-            Ok(_) => true,
-            Err(_) => false,
-        } {
+        if value.parse().is_ok() {
             if search_type == "NOVEL" {
                 data =
                     match MediaWrapper::new_ln_by_id(value.parse().unwrap(), localised_text.clone())
