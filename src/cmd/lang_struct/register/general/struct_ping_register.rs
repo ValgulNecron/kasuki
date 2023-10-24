@@ -14,6 +14,35 @@ pub struct RegisterLocalisedPing {
 type RegisterLocalisedPingList = HashMap<String, RegisterLocalisedPing>;
 
 impl RegisterLocalisedPing {
+    /// `get_ping_register_localised` is a function that attempts to open and parse a JSON file located at "lang_file/command_register/general/ping.json".
+    ///
+    /// # Returns
+    ///
+    /// This function returns a `Result` with either a successfully parsed data in `RegisterLocalisedPingList` or an error message of type `&'static str` that indicating the kind of error that occurred.
+    /// Available error messages are:
+    /// * "Failed to open file": It could not locate or access the file at the specified path.
+    /// * "Failed to read file": It could open the file, but could not read it.
+    /// * "Failed to parse json.": It could read the file, but could not parse the JSON.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if it can't open the JSON file, read its contents or parse the JSON string.
+    ///
+    /// # Examples
+    ///
+    /// Below is a hypothetical usage example of this function:
+    ///
+    /// ```rust
+    /// let ping_list = get_ping_register_localised();
+    /// match ping_list {
+    ///     Ok(list) => {
+    ///         println!("{:?}", list);
+    ///     },
+    ///     Err(message) => {
+    ///        println!("Error: {}", message);
+    ///     }
+    /// }
+    /// ```
     pub fn get_ping_register_localised() -> Result<RegisterLocalisedPingList, &'static str> {
         let mut file = match File::open("lang_file/command_register/general/ping.json") {
             Ok(file) => file,
