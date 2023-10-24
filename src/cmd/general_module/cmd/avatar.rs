@@ -50,6 +50,6 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command
 }
 
-fn avatar_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {}
+async fn avatar_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {}
 
-fn avatar_with_user(ctx: &Context, command: &ApplicationCommandInteraction, user: &User) {}
+async fn avatar_with_user(ctx: &Context, command: &ApplicationCommandInteraction, user: &User) {}
