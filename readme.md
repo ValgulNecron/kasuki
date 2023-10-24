@@ -210,7 +210,7 @@ cargo run --release
 - Thanks Srayeals for the badge I use as the bot
   pfp. ([https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))
 - Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
-  anymore.)
+  anymore. (and now it seems to work again.))
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
   idea.
 - [https://github.com/Skittyblock/AniBot](https://github.com/Skittyblock/AniBot) For auto-complete on command, did not
@@ -220,5 +220,4 @@ cargo run --release
 
 
 ![kasuki](https://counter.valgul.moe/get/@kasuki?theme=gelbooru)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/987dc84319a24235a346a662ca9045c1)](https://app.codacy.com/gh/ValgulNecron/kasuki/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 ![Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/master?style=plastic)
