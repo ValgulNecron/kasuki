@@ -23,7 +23,7 @@ pub struct BannerLocalisedText {
 }
 
 impl BannerLocalisedText {
-    pub async fn get_in_progress_localised(
+    pub async fn get_banner_localised(
         color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
