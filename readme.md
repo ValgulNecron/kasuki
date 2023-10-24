@@ -79,6 +79,11 @@
 
 - Moderation submodule:
     - [ ] General moderation stuff
+    - 
+- Games module:
+    - [ ] get game price from different platform (ubi, steam, epic, ea, etc....)
+    - [ ] get player stat
+    - [ ] get free promotion notification
 
 ## Website
 
