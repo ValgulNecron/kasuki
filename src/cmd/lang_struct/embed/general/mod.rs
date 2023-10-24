@@ -1,3 +1,4 @@
+pub mod struct_lang_avatar;
 pub mod struct_lang_banner;
 pub mod struct_lang_credit;
 pub mod struct_lang_in_progress;

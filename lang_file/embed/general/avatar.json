@@ -1,13 +1,22 @@
 {
   "En": {
-
+    "title": "Here's the banner of ",
+    "no_banner_title": "No banner",
+    "error_no_user": "Error getting user"
   },
   "Fr": {
-
+    "title": "Voici la bannière de ",
+    "no_banner_title": "Aucune bannière",
+    "error_no_user": "Erreur lors de l'obtention de l'utilisateur"
   },
   "De": {
+    "title": "Hier ist das Banner von ",
+    "no_banner_title": "Keine Banner",
+    "error_no_user": "Fehler beim Abrufen des Benutzers"
   },
   "Jp": {
-
+    "title": "ここにバナーがあります ",
+    "no_banner_title": "バナーがありません",
+    "error_no_user": "ユーザーの取得中にエラーが発生しました"
   }
 }
