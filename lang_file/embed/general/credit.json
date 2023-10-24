@@ -4,6 +4,9 @@
     "list": [
       {
         "text": "Valgul: Main dev / original creator / french and english translation"
+      },
+      {
+        "text": "Sionnakh: Dev of the website."
       }
     ]
   },
@@ -12,6 +15,9 @@
     "list": [
       {
         "text": "Valgul : Développeur principal / Créateur original / Traduction française et anglaise"
+      },
+      {
+        "text": "Sionnakh : Développeur du site web."
       }
     ]
   },
@@ -20,6 +26,9 @@
     "list": [
       {
         "text": "バルガル：メインデベロッパー／オリジナルクリエイター／フランス語と英語の翻訳"
+      },
+      {
+        "text": "Sionnakh：ウェブサイトの開発者。"
       }
     ]
   },
@@ -27,7 +36,10 @@
     "title": "Credits",
     "list": [
       {
-        "text": "Valgul: Hauptentwickler / Urheber / Französische und englische Übersetzung"
+        "text": "Valgul: Hauptentwickler / Originaler Schöpfer / Französische und englische Übersetzung"
+      },
+      {
+        "text": "Sionnakh: Entwickler der Website."
       }
     ]
   }
