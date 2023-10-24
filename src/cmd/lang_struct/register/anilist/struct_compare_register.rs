@@ -19,12 +19,10 @@ type RegisterLocalisedCompareList = HashMap<String, RegisterLocalisedCompare>;
 
 impl RegisterLocalisedCompare {
     pub fn get_compare_register_localised() -> Result<RegisterLocalisedCompareList, &'static str> {
-        let mut file =
-            match File::open("lang_file/command_register/anilist/anime_activity/add_activity.json")
-            {
-                Ok(file) => file,
-                Err(_) => return Err("Failed to open file"),
-            };
+        let mut file = match File::open("lang_file/command_register/anilist/compare.json") {
+            Ok(file) => file,
+            Err(_) => return Err("Failed to open file"),
+        };
         let mut json = String::new();
         match file.read_to_string(&mut json) {
             Ok(_) => {}

@@ -88,7 +88,7 @@ impl CharacterWrapper {
         let json = json!({"query": query_id, "variables": {"name": value}});
         let resp = make_request_anilist(json, false).await;
         match serde_json::from_str(&resp) {
-            Ok(result) => result,
+            Ok(result) => Ok(result),
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
                 Err(localised_text.error_no_character)
@@ -129,7 +129,7 @@ query ($name: String) {
         let json = json!({"query": query_string, "variables": {"name": value}});
         let resp = make_request_anilist(json, false).await;
         match serde_json::from_str(&resp) {
-            Ok(result) => result,
+            Ok(result) => Ok(result),
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
                 Err(localised_text.error_no_character)

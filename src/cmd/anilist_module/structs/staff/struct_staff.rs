@@ -160,7 +160,7 @@ query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, false).await;
         match serde_json::from_str(&resp) {
-            Ok(result) => result,
+            Ok(result) => Ok(result),
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
                 Err(String::from("Error: Failed to retrieve user data"))
@@ -227,7 +227,7 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, false).await;
         match serde_json::from_str(&resp) {
-            Ok(result) => result,
+            Ok(result) => Ok(result),
             Err(e) => {
                 println!("Failed to parse JSON: {}", e);
                 Err(String::from("Error: Failed to retrieve user data"))

@@ -177,7 +177,7 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         match serde_json::from_str(&resp) {
-            Ok(data) => data,
+            Ok(data) => Ok(data),
             Err(error) => {
                 println!("Error: {}", error);
                 error_no_anime_specified(color, ctx, command).await;
@@ -253,7 +253,7 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         match serde_json::from_str(&resp) {
-            Ok(data) => data,
+            Ok(data) => Ok(data),
             Err(error) => {
                 println!("Error: {}", error);
                 error_no_anime_specified(color, ctx, command).await;
@@ -328,7 +328,7 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         match serde_json::from_str(&resp) {
-            Ok(data) => data,
+            Ok(data) => Ok(data),
             Err(error) => {
                 println!("Error: {}", error);
                 Err(localised_text.error_no_media.clone())
@@ -401,7 +401,7 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         match serde_json::from_str(&resp) {
-            Ok(data) => data,
+            Ok(data) => Ok(data),
             Err(error) => {
                 println!("Error: {}", error);
                 Err(localised_text.error_no_media.clone())
@@ -475,7 +475,7 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         match serde_json::from_str(&resp) {
-            Ok(data) => data,
+            Ok(data) => Ok(data),
             Err(error) => {
                 println!("Error: {}", error);
                 Err(localised_text.error_no_media.clone())
@@ -549,7 +549,7 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         match serde_json::from_str(&resp) {
-            Ok(data) => data,
+            Ok(data) => Ok(data),
             Err(error) => {
                 println!("Error: {}", error);
                 Err(localised_text.error_no_media.clone())

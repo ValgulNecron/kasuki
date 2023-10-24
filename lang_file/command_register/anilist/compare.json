@@ -12,9 +12,9 @@
     "code": "fr",
     "name": "comparer",
     "desc": "comparer les statistiques de deux utilisateurs",
-    "option1": "nom d'utilisateur",
+    "option1": "nom_d_utilisateur",
     "option1_desc": "Nom d'utilisateur du 1er utilisateur AniList à comparer",
-    "option2": "nom d'utilisateur2",
+    "option2": "nom_d_utilisateur2",
     "option2_desc": "Nom d'utilisateur du 2e utilisateur AniList à comparer"
   },
   "De": {
