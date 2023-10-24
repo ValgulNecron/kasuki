@@ -58,11 +58,11 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 
 pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction, username: String) {
     let color = Colour::FABLED_PINK;
-    let localised_text =
-        match BannerLocalisedText::get_in_progress_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
+    let localised_text = match BannerLocalisedText::get_banner_localised(color, ctx, command).await
+    {
+        Ok(data) => data,
+        Err(_) => return,
+    };
 
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
@@ -88,11 +88,11 @@ pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction, u
 pub async fn banner_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {
     let color = Colour::FABLED_PINK;
 
-    let localised_text =
-        match BannerLocalisedText::get_in_progress_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
+    let localised_text = match BannerLocalisedText::get_banner_localised(color, ctx, command).await
+    {
+        Ok(data) => data,
+        Err(_) => return,
+    };
     let user = command.user.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
     let result = if let Ok(user) = real_user {
@@ -119,11 +119,11 @@ pub async fn banner_with_user(
 ) {
     let color = Colour::FABLED_PINK;
 
-    let localised_text =
-        match BannerLocalisedText::get_in_progress_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
+    let localised_text = match BannerLocalisedText::get_banner_localised(color, ctx, command).await
+    {
+        Ok(data) => data,
+        Err(_) => return,
+    };
     let user = user_data.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
     let result = if let Ok(user) = real_user {
