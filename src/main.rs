@@ -36,7 +36,7 @@ use crate::cmd::anilist_module::structs::user::struct_autocomplete_user;
 use crate::cmd::error_modules::no_lang_error::no_langage_error;
 use crate::cmd::general_module::cmd::module_activation::check_activation_status;
 use crate::cmd::general_module::cmd::{
-    banner, credit, info, lang, module_activation, ping, profile,
+    avatar, banner, credit, info, lang, module_activation, ping, profile,
 };
 use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
 use crate::cmd::general_module::function::pool::get_pool;
@@ -69,6 +69,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| profile::register(command))
                 .create_application_command(|command| module_activation::register(command))
                 .create_application_command(|command| credit::register(command))
+                .create_application_command(|command| avatar::register(command))
                 // Anilist module.
                 .create_application_command(|command| anime::register(command))
                 .create_application_command(|command| character::register(command))
@@ -123,6 +124,7 @@ impl EventHandler for Handler {
                     "profile" => profile::run(&command.data.options, &ctx, &command).await,
                     "module" => module_activation::run(&command.data.options, &ctx, &command).await,
                     "credit" => credit::run(&ctx, &command).await,
+                    "avatar" => avatar::run(&command.data.options, &ctx, &command).await,
 
                     // Anilist module
                     "anime" => {

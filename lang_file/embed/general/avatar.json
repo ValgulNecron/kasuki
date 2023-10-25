@@ -1,22 +1,22 @@
 {
   "En": {
-    "title": "Here's the banner of ",
-    "no_banner_title": "No banner",
+    "title": "Here's the avatar of ",
+    "no_banner_title": "No avatar",
     "error_no_user": "Error getting user"
   },
   "Fr": {
-    "title": "Voici la bannière de ",
-    "no_banner_title": "Aucune bannière",
+    "title": "Voici l'avatar de ",
+    "no_banner_title": "Pas d'avatar",
     "error_no_user": "Erreur lors de l'obtention de l'utilisateur"
   },
   "De": {
-    "title": "Hier ist das Banner von ",
-    "no_banner_title": "Keine Banner",
+    "title": "Hier ist das Avatar von ",
+    "no_banner_title": "Kein Avatar",
     "error_no_user": "Fehler beim Abrufen des Benutzers"
   },
   "Jp": {
-    "title": "ここにバナーがあります ",
-    "no_banner_title": "バナーがありません",
-    "error_no_user": "ユーザーの取得中にエラーが発生しました"
+    "title": "こちらがのアバターです ",
+    "no_banner_title": "アバターなし",
+    "error_no_user": "ユーザーの取得エラー"
   }
 }

@@ -1,7 +1,10 @@
+use crate::cmd::error_modules::common::custom_error;
+use crate::cmd::error_modules::error_avatar::error_no_avatar;
 use crate::cmd::lang_struct::embed::general::struct_lang_avatar::AvatarLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_avatar_register::RegisterLocalisedAvatar;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
+use serenity::http::Http;
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::prelude::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
@@ -53,9 +56,52 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command
 }
 
-async fn avatar_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {}
+async fn avatar_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {
+    let color = Colour::FABLED_PINK;
 
-async fn avatar_with_user(ctx: &Context, command: &ApplicationCommandInteraction, user: &User) {}
+    let localised_text = match AvatarLocalisedText::get_avatar_localised(color, ctx, command).await
+    {
+        Ok(data) => data,
+        Err(_) => return,
+    };
+    let user = command.user.id.0;
+    let real_user = Http::get_user(&ctx.http, user).await;
+    let result = if let Ok(user) = real_user {
+        user
+    } else {
+        custom_error(color, ctx, command, &localised_text.error_no_user).await;
+        return;
+    };
+
+    avatar_with_user(ctx, command, &result).await
+}
+
+async fn avatar_with_user(ctx: &Context, command: &ApplicationCommandInteraction, user: &User) {
+    let color = Colour::FABLED_PINK;
+    let localised_text = match AvatarLocalisedText::get_avatar_localised(color, ctx, command).await
+    {
+        Ok(data) => data,
+        Err(_) => return,
+    };
+
+    let avatar_url = match user.avatar_url() {
+        Some(url) => url,
+        None => {
+            error_no_avatar(color, ctx, command).await;
+            return;
+        }
+    };
+
+    send_embed(
+        avatar_url,
+        color,
+        ctx,
+        command,
+        localised_text.clone(),
+        user.name.clone(),
+    )
+    .await
+}
 
 pub async fn send_embed(
     avatar_url: String,
@@ -63,7 +109,7 @@ pub async fn send_embed(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     localised_text: AvatarLocalisedText,
-    result: User,
+    username: String,
 ) {
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
@@ -71,7 +117,7 @@ pub async fn send_embed(
                 .kind(InteractionResponseType::ChannelMessageWithSource)
                 .interaction_response_data(|message| {
                     message.embed(|m| {
-                        m.title(format!("{}{}", &localised_text.title, result.name))
+                        m.title(format!("{}{}", &localised_text.title, username))
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())

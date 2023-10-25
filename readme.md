@@ -14,6 +14,8 @@
   - [ ] Clean the code. — It will never be done.
   - [X] Find a name for the bot. — Found one kasuki. if you have any better, don't hesitate to recommend.
   - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db. (change to PostgreSQL)
+    — will add a var variable that will either be "sqlite" or "postgresql" with a url var for PostgreSQL 
+    — will need to do some change and move db logic to it's own funtion.
   - [X] Banner. Show your or a specified user banner. — Done.
   - [X] Profil. Show a user profile and some info. — Done.
   - [ ] Avatar. show you the profile picture of a user. — In progress
