@@ -19,6 +19,7 @@ FROM debian:buster-slim AS bot
 LABEL maintainer="valgul"
 LABEL author="valgul"
 LABEL "com.docker.compose.hide"="true"
+LABEL hidden="true"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
