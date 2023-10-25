@@ -18,7 +18,7 @@ use crate::cmd::anilist_module::anime_activity::struct_minimal_anime::MinimalAni
 use crate::cmd::error_modules::error_no::error_no_anime_specified;
 use crate::cmd::error_modules::no_lang_error::error_no_langage_guild_id;
 use crate::cmd::general_module::function::differed_response::differed_response;
-use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::general_module::function::sql::get_pool;
 use crate::cmd::general_module::function::trim::trim_webhook;
 use crate::cmd::lang_struct::embed::anilist::anilist_activity::struct_lang_add_activity::AddActivityLocalisedText;
 use crate::cmd::lang_struct::register::anilist::anilist_activity::struct_add_activity_register::RegisterLocalisedAddActivity;

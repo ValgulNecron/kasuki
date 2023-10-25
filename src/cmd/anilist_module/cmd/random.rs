@@ -24,7 +24,7 @@ use crate::cmd::error_modules::no_lang_error::{
 };
 use crate::cmd::general_module::function::differed_response::differed_response;
 use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::general_module::function::sql::get_pool;
 use crate::cmd::general_module::lang_struct::RandomLocalisedText;
 
 pub async fn run(

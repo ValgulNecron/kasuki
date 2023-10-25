@@ -11,7 +11,7 @@ use serenity::utils::Colour;
 
 use crate::cmd::anilist_module::structs::user::struct_user::*;
 use crate::cmd::error_modules::common::custom_error;
-use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::general_module::function::sql::get_pool;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_user::UserLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_user_register::RegisterLocalisedUser;
 

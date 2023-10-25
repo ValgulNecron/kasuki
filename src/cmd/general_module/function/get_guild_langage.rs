@@ -1,4 +1,4 @@
-use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::general_module::function::sql::get_pool;
 
 /// Asynchronously fetches the language of a given guild from the database.
 ///

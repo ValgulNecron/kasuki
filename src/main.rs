@@ -39,7 +39,7 @@ use crate::cmd::general_module::cmd::{
     avatar, banner, credit, info, lang, module_activation, ping, profile,
 };
 use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::general_module::function::sql::get_pool;
 use crate::cmd::lang_struct::embed::error::ErrorLocalisedText;
 
 mod cmd;

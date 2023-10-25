@@ -1,4 +1,4 @@
-use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::general_module::function::sql::get_pool;
 use crate::cmd::lang_struct::embed::anilist::struct_lang_register::RegisterLocalisedText;
 use crate::cmd::lang_struct::register::anilist::struct_register_register::RegisterLocalisedRegister;
 use serenity::builder::CreateApplicationCommand;

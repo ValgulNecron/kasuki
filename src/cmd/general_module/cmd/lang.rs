@@ -9,7 +9,7 @@ use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
 
 use crate::cmd::error_modules::no_lang_error::error_no_langage_guild_id;
-use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::general_module::function::sql::get_pool;
 use crate::cmd::lang_struct::available_lang::AvailableLang;
 use crate::cmd::lang_struct::embed::general::struct_lang_lang::LangLocalisedText;
 use crate::cmd::lang_struct::register::general::struct_lang_register::LangRegister;

@@ -2,7 +2,7 @@ use chrono::Utc;
 use reqwest::Client;
 use serde_json::Value;
 
-use crate::cmd::general_module::function::pool::get_pool;
+use crate::cmd::general_module::function::sql::get_pool;
 
 /// the number of day before the cache is too old and need to be renewed.
 const DAYS: i64 = 3;

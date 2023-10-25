@@ -11,8 +11,8 @@ mod tests {
         convert_html_line_break_to_line_break, convert_italic, convert_link_to_discord_markdown,
         convert_spoiler, convert_to_discord_markdown,
     };
-    use crate::cmd::general_module::function::pool::get_pool;
     use crate::cmd::general_module::function::request::make_request_anilist;
+    use crate::cmd::general_module::function::sql::get_pool;
     use crate::cmd::general_module::function::trim::{trim, trim_webhook};
 
     #[test]
