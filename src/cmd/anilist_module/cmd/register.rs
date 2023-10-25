@@ -39,6 +39,7 @@ pub async fn run(
 
     if let CommandDataOptionValue::String(username) = option {
         let user_id = &command.user.id.to_string();
+        let username = &command.user.name;
         let user_pfp_ref = &command.user.avatar.as_ref().unwrap();
         let profile_picture;
         if let Some(first) = user_pfp_ref.split('_').next() {
@@ -86,8 +87,9 @@ pub async fn run(
                                 .thumbnail(profile_picture)
                                 .color(color)
                                 .description(format!(
-                                    "{}{}{}{}{}",
+                                    "{}{}({}){}{}{}",
                                     &localised_text.part_1,
+                                    username,
                                     user_id,
                                     &localised_text.part_2,
                                     username,
