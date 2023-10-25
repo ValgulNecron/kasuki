@@ -16,6 +16,10 @@ RUN cargo build --release
 
 FROM debian:buster-slim AS bot
 
+LABEL maintainer="valgul"
+LABEL author="valgul"
+LABEL "com.docker.compose.hide"="true"
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
