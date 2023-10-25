@@ -1,12 +1,10 @@
+use crate::cmd::general_module::function::sql::get_pool;
+use crate::constant::DAYS;
 use chrono::Utc;
 use reqwest::Client;
 use serde_json::Value;
 
-use crate::cmd::general_module::function::sql::get_pool;
-
 /// the number of day before the cache is too old and need to be renewed.
-const DAYS: i64 = 3;
-
 /// Makes a request to AniList.
 ///
 /// This function takes a JSON object and a boolean flag `always_update` as arguments.

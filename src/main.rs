@@ -43,6 +43,7 @@ use crate::cmd::general_module::function::sql::get_pool;
 use crate::cmd::lang_struct::embed::error::ErrorLocalisedText;
 
 mod cmd;
+mod constant;
 mod tests;
 
 struct Handler;
