@@ -27,7 +27,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
 
     let latency = match runner.latency {
         Some(duration) => format!("{:.2}ms", duration.as_millis()),
-        None => "?ms",
+        None => "?ms".to_string(),
     };
 
     let color = Colour::FABLED_PINK;

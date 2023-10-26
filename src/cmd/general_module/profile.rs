@@ -1,10 +1,7 @@
-use crate::function::error_management::common::custom_error;
-use crate::function::error_management::error_avatar::error_no_avatar;
 use crate::structure::embed::general::struct_lang_profile::ProfileLocalisedText;
 use crate::structure::register::general::struct_profile_register::RegisterLocalisedProfile;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
-use serenity::http::client::Http;
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::application::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::application::interaction::InteractionResponseType;
@@ -91,8 +88,11 @@ async fn send_embed(ctx: &Context, command: &ApplicationCommandInteraction, user
             Ok(data) => data,
             Err(_) => return,
         };
-    let avatar_url = user.avatar_url();
-    let desc = description(user, command, localised_text);
+    let avatar_url = match user.avatar_url() {
+        Some(a) => a,
+        None => "exemple.com".to_string(),
+    };
+    let desc = description(user.clone(), command, localised_text.clone()).await;
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
             response
