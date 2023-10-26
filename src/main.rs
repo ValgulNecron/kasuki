@@ -21,29 +21,29 @@ use serenity::prelude::*;
 use serenity::utils::Colour;
 use tokio::time::sleep;
 
-use cmd::general_module::structs::struct_shard_manager::ShardManagerContainer;
-
-use crate::cmd::ai_module::cmd::{image, transcript, translation};
-use crate::cmd::anilist_module::anime_activity;
-use crate::cmd::anilist_module::anime_activity::add_activity;
-use crate::cmd::anilist_module::anime_activity::send_activity::manage_activity;
-use crate::cmd::anilist_module::cmd::{
-    anime, character, compare, level, ln, manga, random, register, search, staff, studio, user,
-    waifu,
+use crate::cmd::ai_module::{image, transcript, translation};
+use crate::cmd::anilist_module::send_activity::manage_activity;
+use crate::cmd::anilist_module::{
+    add_activity, anime, character, compare, level, ln, manga, random, register, search, staff,
+    studio, user, waifu,
 };
-use crate::cmd::anilist_module::structs::media::struct_autocomplete_media;
-use crate::cmd::anilist_module::structs::user::struct_autocomplete_user;
-use crate::cmd::error_modules::no_lang_error::no_langage_error;
-use crate::cmd::general_module::cmd::module_activation::check_activation_status;
-use crate::cmd::general_module::cmd::{
+use crate::cmd::general_module::module_activation::check_activation_status;
+use crate::cmd::general_module::{
     avatar, banner, credit, info, lang, module_activation, ping, profile,
 };
-use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
-use crate::cmd::general_module::function::sql::get_pool;
-use crate::cmd::lang_struct::embed::error::ErrorLocalisedText;
+use crate::function::error_management::no_lang_error::no_langage_error;
+use crate::function::general::get_guild_langage::get_guild_langage;
+use crate::function::sql::sql::get_sqlite_pool;
+use crate::structure::anilist::media::struct_autocomplete_media;
+use crate::structure::anilist::user::struct_autocomplete_user;
+use crate::structure::embed::error::ErrorLocalisedText;
+use structure::struct_shard_manager::ShardManagerContainer;
 
+mod available_lang;
 mod cmd;
 mod constant;
+mod function;
+mod structure;
 mod tests;
 
 struct Handler;
@@ -322,8 +322,7 @@ impl EventHandler for Handler {
                         {
                             return;
                         }
-                        anime_activity::add_activity::run(&command.data.options, &ctx, &command)
-                            .await
+                        add_activity::run(&command.data.options, &ctx, &command).await
                     }
 
                     // AI module
@@ -422,7 +421,7 @@ async fn main() {
 
     tokio::spawn(async move {
         let database_url = "./data.db";
-        let pool = get_pool(database_url).await;
+        let pool = get_sqlite_pool(database_url).await;
 
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS ping_history (
@@ -437,7 +436,7 @@ async fn main() {
         .unwrap();
         loop {
             sleep(Duration::from_secs(600)).await;
-            let pool = get_pool(database_url).await;
+            let pool = get_sqlite_pool(database_url).await;
 
             let lock = manager.lock().await;
             let shard_runners = lock.runners.lock().await;

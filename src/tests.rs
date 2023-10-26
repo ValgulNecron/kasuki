@@ -12,7 +12,7 @@ mod tests {
         convert_spoiler, convert_to_discord_markdown,
     };
     use crate::cmd::general_module::function::request::make_request_anilist;
-    use crate::cmd::general_module::function::sql::get_pool;
+    use crate::cmd::general_module::function::sql::get_sqlite_pool;
     use crate::cmd::general_module::function::trim::{trim, trim_webhook};
 
     #[test]
@@ -112,7 +112,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_pool() {
-        let pool = get_pool("./cache.db").await;
+        let pool = get_sqlite_pool("./cache.db").await;
         assert_eq!(TypeId::of::<Pool<Sqlite>>(), pool.type_id());
     }
 
