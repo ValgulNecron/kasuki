@@ -11,20 +11,23 @@ use serenity::utils::Colour;
 use crate::structure::struct_shard_manager::ShardManagerContainer;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let latency = {
-        let data_read = ctx.data.read().await;
-        let shard_manager = data_read.get::<ShardManagerContainer>().unwrap();
+    let data_read = ctx.data.read().await;
+    let shard_manager = match data_read.get::<ShardManagerContainer>() {
+        Some(data) => data,
+        None => return,
+    };
 
-        let manager = shard_manager.lock().await;
-        let runners = manager.runners.lock().await;
+    let manager = shard_manager.lock().await;
+    let runners = manager.runners.lock().await;
 
-        let runner = runners.get(&ShardId(ctx.shard_id)).unwrap();
+    let runner = match runners.get(&ShardId(ctx.shard_id)) {
+        Some(data) => data,
+        None => return,
+    };
 
-        if let Some(duration) = runner.latency {
-            format!("{:.2}ms", duration.as_millis())
-        } else {
-            "?ms".to_string()
-        }
+    let latency = match runner.latency {
+        Some(duration) => format!("{:.2}ms", duration.as_millis()),
+        None => "?ms",
     };
 
     let color = Colour::FABLED_PINK;
