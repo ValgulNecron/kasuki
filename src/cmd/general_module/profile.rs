@@ -18,22 +18,15 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let color = Colour::FABLED_PINK;
-
-    let localised_text =
-        match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
     if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
-            send_embed(color, ctx, command, localised_text, user.clone()).await;
+            send_embed(ctx, command, user.clone()).await;
             return;
         }
     }
     let user = &command.user;
-    send_embed(color, ctx, command, localised_text, user.clone()).await
+    send_embed(ctx, command, user.clone()).await
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -90,13 +83,14 @@ async fn description(
     )
 }
 
-async fn send_embed(
-    color: Colour,
-    ctx: &Context,
-    command: &ApplicationCommandInteraction,
-    localised_text: ProfileLocalisedText,
-    user: User,
-) {
+async fn send_embed(ctx: &Context, command: &ApplicationCommandInteraction, user: User) {
+    let color = Colour::FABLED_PINK;
+
+    let localised_text =
+        match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
     let avatar_url = user.avatar_url();
     let desc = description(user, command, localised_text);
     if let Err(why) = command
