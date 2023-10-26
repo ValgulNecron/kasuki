@@ -18,16 +18,22 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
+    let color = Colour::FABLED_PINK;
+
+    let localised_text =
+        match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
     if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
-            profile_with_user(ctx, command, user).await
-        } else {
-            profile_without_user(ctx, command).await
+            send_embed(color, ctx, command, localised_text, user.clone()).await;
+            return;
         }
-    } else {
-        profile_without_user(ctx, command).await
     }
+    let user = &command.user;
+    send_embed(color, ctx, command, localised_text, user.clone()).await
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -56,81 +62,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command
 }
 
-pub async fn profile_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let color = Colour::FABLED_PINK;
-
-    let localised_text =
-        match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
-    let user = command.user.id.0;
-    let real_user = Http::get_user(&ctx.http, user).await;
-    let result = if let Ok(user) = real_user {
-        user
-    } else {
-        custom_error(color, ctx, command, &localised_text.error_no_user).await;
-        return;
-    };
-    let avatar_url = result.avatar_url().unwrap();
-
-    let desc = description(result.clone(), command, localised_text.clone()).await;
-
-    send_embed(
-        avatar_url,
-        desc,
-        color,
-        ctx,
-        command,
-        localised_text.clone(),
-        result,
-    )
-    .await
-}
-
-pub async fn profile_with_user(
-    ctx: &Context,
-    command: &ApplicationCommandInteraction,
-    user_data: &User,
-) {
-    let color = Colour::FABLED_PINK;
-    let localised_text =
-        match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
-    let user = user_data.id.0;
-    let real_user = Http::get_user(&ctx.http, user).await;
-    let result = if let Ok(user) = real_user {
-        user
-    } else {
-        custom_error(color, ctx, command, &localised_text.error_no_user).await;
-        return;
-    };
-
-    let avatar_url = match result.avatar_url() {
-        Some(url) => url,
-        None => {
-            error_no_avatar(color, ctx, command).await;
-            return;
-        }
-    };
-
-    let desc = description(result.clone(), command, localised_text.clone()).await;
-
-    send_embed(
-        avatar_url,
-        desc,
-        color,
-        ctx,
-        command,
-        localised_text.clone(),
-        result,
-    )
-    .await
-}
-
-pub async fn description(
+async fn description(
     user: User,
     command: &ApplicationCommandInteraction,
     localised_text: ProfileLocalisedText,
@@ -143,7 +75,7 @@ pub async fn description(
     let joined_at = member
         .joined_at
         .unwrap_or(Timestamp::from_unix_timestamp(0i64).unwrap());
-    let desc = format!(
+    format!(
         "\n {}{} \n {}{} \n {}{:?} \n {}{} \n {}{}",
         &localised_text.user_id,
         user_id,
@@ -155,27 +87,25 @@ pub async fn description(
         created_at,
         &localised_text.joined_at,
         joined_at
-    );
-
-    desc
+    )
 }
 
-pub async fn send_embed(
-    avatar_url: String,
-    desc: String,
+async fn send_embed(
     color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     localised_text: ProfileLocalisedText,
-    result: User,
+    user: User,
 ) {
+    let avatar_url = user.avatar_url();
+    let desc = description(user, command, localised_text);
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
                 .interaction_response_data(|message| {
                     message.embed(|m| {
-                        m.title(format!("{}{}", &localised_text.title, result.name))
+                        m.title(format!("{}{}", &localised_text.title, user.name))
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
