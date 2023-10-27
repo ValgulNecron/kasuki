@@ -1,5 +1,5 @@
 use crate::function::general::differed_response::differed_response;
-use crate::function::sql::sql::get_sqlite_pool;
+use crate::function::sql::sqlite::pool::get_sqlite_pool;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;

@@ -1,3 +1,5 @@
+use crate::function::sql::sqlite::pool::get_sqlite_pool;
+
 /// Asynchronously fetches the language of a given guild from the database.
 ///
 /// This function takes the guild_id as an argument and returns the language associated with that guild.
@@ -33,7 +35,7 @@
 /// language from the database.
 pub async fn get_guild_langage(guild_id: String) -> String {
     let database_url = "./data.db";
-    let pool = crate::function::sql::sql::get_sqlite_pool(database_url).await;
+    let pool = get_sqlite_pool(database_url).await;
     let row: (Option<String>, Option<String>) =
         sqlx::query_as("SELECT lang, guild FROM guild_lang WHERE guild = ?")
             .bind(guild_id)

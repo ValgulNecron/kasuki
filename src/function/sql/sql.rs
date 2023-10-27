@@ -1,7 +1,5 @@
-use sqlx::{Pool, Sqlite, SqlitePool};
+use crate::function::sql::sqlite::init::init_sqlite;
 use std::env;
-use std::fs::File;
-use std::path::Path;
 
 /// Asynchronously establish a connection pool to a SQLite database.
 ///
@@ -28,9 +26,6 @@ use std::path::Path;
 ///
 /// * This function is async and should be awaited.
 ///
-pub async fn get_sqlite_pool(database_url: &str) -> Pool<Sqlite> {
-    SqlitePool::connect(database_url).await.unwrap()
-}
 
 pub async fn init() {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
@@ -41,25 +36,3 @@ pub async fn init() {
         init_sqlite().await
     }
 }
-
-async fn init_sqlite() {
-    let paths = ["./data.db", "./cache.db"];
-
-    for path in &paths {
-        let p = Path::new(path);
-        if !p.exists() {
-            match File::create(p) {
-                Ok(_) => {
-                    let pool = get_sqlite_pool(p.to_str().unwrap()).await;
-                    init_sqlite_cache(&pool).await
-                }
-                Err(e) => {
-                    println!("Failed to create the file {} : {}", path, e);
-                    return;
-                }
-            }
-        }
-    }
-}
-
-async fn init_sqlite_cache(pool: &Pool<Sqlite>) {}

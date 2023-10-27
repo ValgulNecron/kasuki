@@ -1,4 +1,4 @@
-use crate::function::sql::sql::get_sqlite_pool;
+use crate::function::sql::sqlite::pool::get_sqlite_pool;
 use crate::structure::embed::anilist::struct_lang_register::RegisterLocalisedText;
 use crate::structure::register::anilist::struct_register_register::RegisterLocalisedRegister;
 use serenity::builder::CreateApplicationCommand;

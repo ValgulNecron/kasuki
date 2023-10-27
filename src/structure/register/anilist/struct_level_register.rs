@@ -54,7 +54,7 @@ impl RegisterLocalisedLevel {
     ///     }
     /// }
     /// ```
-    pub fn get_ln_register_localised() -> Result<RegisterLocalisedLNList, &'static str> {
+    pub fn get_level_register_localised() -> Result<RegisterLocalisedLevelList, &'static str> {
         let mut file = match File::open("./lang_file/command_register/anilist/ln.json") {
             Ok(file) => file,
             Err(_) => return Err("Failed to open file"),

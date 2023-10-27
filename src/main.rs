@@ -33,7 +33,7 @@ use crate::cmd::general_module::{
 };
 use crate::function::error_management::no_lang_error::no_langage_error;
 use crate::function::general::get_guild_langage::get_guild_langage;
-use crate::function::sql::sql::get_sqlite_pool;
+use crate::function::sql::sqlite::pool::get_sqlite_pool;
 use crate::structure::anilist::media::struct_autocomplete_media;
 use crate::structure::anilist::user::struct_autocomplete_user;
 use crate::structure::embed::error::ErrorLocalisedText;

@@ -2,7 +2,7 @@ use std::env;
 use std::thread::sleep;
 use std::time::Duration;
 
-use crate::function::sql::sql::get_sqlite_pool;
+use crate::function::sql::sqlite::pool::get_sqlite_pool;
 use crate::structure::anilist::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::structure::embed::anilist::struct_lang_send_activity::SendActivityLocalisedText;
 use chrono::Utc;

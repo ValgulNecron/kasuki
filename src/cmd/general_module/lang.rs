@@ -1,6 +1,6 @@
 use crate::available_lang::AvailableLang;
 use crate::function::error_management::no_lang_error::error_no_langage_guild_id;
-use crate::function::sql::sql::get_sqlite_pool;
+use crate::function::sql::sqlite::pool::get_sqlite_pool;
 use crate::structure::embed::general::struct_lang_lang::LangLocalisedText;
 use crate::structure::register::general::struct_lang_register::LangRegister;
 use serenity::builder::CreateApplicationCommand;
