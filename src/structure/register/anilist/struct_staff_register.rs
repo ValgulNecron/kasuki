@@ -16,6 +16,32 @@ pub struct RegisterLocalisedStaff {
 type RegisterLocalisedStaffList = HashMap<String, RegisterLocalisedStaff>;
 
 impl RegisterLocalisedStaff {
+    /// Opens and reads from a localized staff registration file in JSON format.
+    ///
+    /// This function performs the following steps:
+    /// 1. Open the file "./lang_file/command_register/anilist/staff.json".
+    /// 2. Read the contents of the file into a string.
+    /// 3. Parse the string as JSON using Serde.
+    ///
+    /// # Returns
+    ///
+    /// * On success, a `std::result::Result::Ok` value is returned containing an instance of `RegisterLocalisedStaffList`,
+    /// constructed from the parsed JSON.
+    /// * If the file cannot be opened, read, or the JSON cannot be parsed, a `std::result::Result::Err` value is returned with an error message.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the file cannot be opened, the file cannot be read into a string, or the string cannot be parsed as JSON.
+    ///
+    /// # Example
+    ///
+    /// ```Rust
+    /// let result = get_staff_register_localised();
+    /// match result {
+    ///     Ok(data) => println!("Staff register: {:?}", data),
+    ///     Err(e) => println!("An error occurred: {}", e),
+    /// }
+    /// ```
     pub fn get_staff_register_localised() -> Result<RegisterLocalisedStaffList, &'static str> {
         let mut file = match File::open("./lang_file/command_register/anilist/staff.json") {
             Ok(file) => file,

@@ -18,6 +18,37 @@ pub struct RegisterLocalisedAddActivity {
 type RegisterLocalisedAddActivityList = HashMap<String, RegisterLocalisedAddActivity>;
 
 impl RegisterLocalisedAddActivity {
+    /// This function is used to read a local language JSON file (`add_activity.json`) and convert it to
+    /// `RegisterLocalisedAddActivityList` type. It is located in the path `./lang_file/command_register/anilist/anime_activity/add_activity.json`.
+    ///
+    /// The purpose of this function is to facilitate internationalization/localization by providing
+    /// a way to read localized strings from a configuration file.
+    ///
+    /// # Returns
+    ///
+    /// On Success: A `Result` wrapping `RegisterLocalisedAddActivityList`. This contains a list of localized
+    /// strings for adding activities.
+    ///
+    /// On Failure: A `Result` wrapping a static string, indicating the error reason.
+    ///
+    /// - Fails when the file could not be opened ("Failed to open file").
+    /// - Fails when the file could not be read into a string ("Failed to read file").
+    /// - Fails when the string could not be parsed into json ("Failed to parse json").
+    ///
+    /// # Example
+    ///
+    /// ```Rust
+    /// let result = get_add_activity_register_localised();
+    /// match result {
+    ///     Ok(data) => println!("{:?}", data),
+    ///     Err(e) => println!("Error: {}", e),
+    /// }
+    /// ```
+    ///
+    /// # Note
+    ///
+    /// The error messages are static and not particularly descriptive. As an enhancement, you might want to
+    /// return more descriptive error types, such as using `std::io::Error` or your own custom error type.
     pub fn get_add_activity_register_localised(
     ) -> Result<RegisterLocalisedAddActivityList, &'static str> {
         let mut file = match File::open(

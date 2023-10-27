@@ -16,6 +16,32 @@ pub struct RegisterLocalisedManga {
 type RegisterLocalisedMangaList = HashMap<String, RegisterLocalisedManga>;
 
 impl RegisterLocalisedManga {
+    /// `get_manga_register_localised` is a function in the Rust programming language.
+    ///
+    /// This function is used to read and parse a JSON file that contains localised manga registration information.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a `Result` variant. The `Ok` variant contains a `RegisterLocalisedMangaList` representing the parsed information from the JSON file. If there is an error when trying to open, read, or parse the file, the function returns an `Err` variant containing a static string detailing the error that occurred.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following situations:
+    ///
+    /// * The file cannot be opened (returns "Failed to open file").
+    /// * The file cannot be read (returns "Failed to read file").
+    /// * The JSON in the file cannot be parsed (returns "Failed to parse json.").
+    ///
+    /// # Example
+    ///
+    /// ```Rust
+    /// let result = get_manga_register_localised();
+    /// match result {
+    ///     Ok(register) => /* process the register */,
+    ///     Err(e) => println!("An error occurred: {}", e),
+    /// }
+    /// ```
+    ///
     pub fn get_manga_register_localised() -> Result<RegisterLocalisedMangaList, &'static str> {
         let mut file = match File::open("./lang_file/command_register/anilist/manga.json") {
             Ok(file) => file,
