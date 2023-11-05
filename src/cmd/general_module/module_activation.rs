@@ -198,7 +198,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command
 }
 
-pub async fn check_activation_status(module: String, guild_id: String) -> bool {
+pub async fn check_activation_status(module: &str, guild_id: String) -> bool {
     let database_url = "./data.db";
     let pool = get_sqlite_pool(database_url).await;
 
@@ -211,7 +211,7 @@ pub async fn check_activation_status(module: String, guild_id: String) -> bool {
     .unwrap_or((None, None, None));
 
     let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
-    return match module.as_str() {
+    return match module {
         "ANILIST" => anilist_module.unwrap_or(true),
         "AI" => ai_module.unwrap_or(true),
         _ => false,
