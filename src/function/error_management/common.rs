@@ -1,3 +1,4 @@
+use log::error;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
@@ -31,7 +32,7 @@ pub async fn send_embed_message(
                 .interaction_response_data(|message| {
                     message.embed(|m| {
                         m.title(title)
-                            .description(desc)
+                            .description(&desc)
                             .timestamp(Timestamp::now())
                             .color(color)
                     })
@@ -39,8 +40,10 @@ pub async fn send_embed_message(
         })
         .await
     {
-        println!("Cannot respond to slash command: {}", why);
+        error!("Cannot respond to slash command: {}", why);
+        return;
     }
+    error!("{} {}", title, desc)
 }
 
 pub async fn edit_embed_message(
@@ -61,8 +64,9 @@ pub async fn edit_embed_message(
         })
         .await
     {
-        println!("Cannot respond to slash command: {}", why);
+        error!("Cannot respond to slash command: {}", why);
     }
+    error!("{} {}", title, desc)
 }
 
 pub async fn send_followup_embed_message(
@@ -83,8 +87,9 @@ pub async fn send_followup_embed_message(
         })
         .await
     {
-        println!("Cannot respond to slash command: {}", why);
+        error!("Cannot respond to slash command: {}", why);
     }
+    error!("{} {}", title, desc)
 }
 
 pub async fn get_localised_langage(

@@ -1,3 +1,4 @@
+use crate::constant::N_A;
 use crate::function::request::request::make_request_anilist;
 use crate::structure::embed::anilist::struct_lang_add_activity::AddActivityLocalisedText;
 use serde::{Deserialize, Serialize};
@@ -161,7 +162,7 @@ impl MinimalAnimeWrapper {
             .unwrap()
             .english
             .clone()
-            .unwrap_or_else(|| "NA".to_string())
+            .unwrap_or(N_A.to_string())
     }
 
     pub fn get_rj_title(&self) -> String {
@@ -172,7 +173,7 @@ impl MinimalAnimeWrapper {
             .unwrap()
             .romaji
             .clone()
-            .unwrap_or_else(|| "NA".to_string())
+            .unwrap_or(N_A.to_string())
     }
 
     pub fn get_episode(&self) -> i32 {
