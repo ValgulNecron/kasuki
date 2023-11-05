@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::function::error_management::common::custom_error;
 use crate::structure::anilist::character::struct_autocomplete_character::CharacterPageWrapper;
 use crate::structure::anilist::character::struct_character::CharacterWrapper;
@@ -13,15 +14,12 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let color = Colour::FABLED_PINK;
-
     let option = options
         .get(0)
         .expect("Expected username option")
@@ -30,7 +28,7 @@ pub async fn run(
         .expect("Expected username object");
     if let CommandDataOptionValue::String(value) = option {
         let localised_text =
-            match CharacterLocalisedText::get_character_localised(color, ctx, command).await {
+            match CharacterLocalisedText::get_character_localised(ctx, command).await {
                 Ok(data) => data,
                 Err(_) => return,
             };
@@ -43,7 +41,7 @@ pub async fn run(
             {
                 Ok(character_wrapper) => character_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
@@ -51,7 +49,7 @@ pub async fn run(
             match CharacterWrapper::new_character_by_search(value, localised_text.clone()).await {
                 Ok(character_wrapper) => character_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
@@ -73,11 +71,10 @@ pub async fn run(
                             m.title(name)
                                 .url(url)
                                 .timestamp(Timestamp::now())
-                                .color(color)
+                                .color(COLOR)
                                 .description(desc)
                                 .thumbnail(image)
                                 .field(&localised_text.info, info, true)
-                                .color(color)
                         })
                     })
             })

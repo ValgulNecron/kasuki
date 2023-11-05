@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::function::error_management::common::custom_error;
 use crate::structure::embed::general::struct_lang_banner::BannerLocalisedText;
 use crate::structure::register::general::struct_banner_register::RegisterLocalisedBanner;
@@ -10,7 +11,6 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
 use serenity::model::user::User;
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -56,9 +56,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 }
 
 pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction, username: String) {
-    let color = Colour::FABLED_PINK;
-    let localised_text = match BannerLocalisedText::get_banner_localised(color, ctx, command).await
-    {
+    let localised_text = match BannerLocalisedText::get_banner_localised(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };
@@ -73,7 +71,7 @@ pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction, u
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
-                            .color(color)
+                            .color(COLOR)
                             .description(&localised_text.description)
                     })
                 })
@@ -85,10 +83,7 @@ pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction, u
 }
 
 pub async fn banner_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let color = Colour::FABLED_PINK;
-
-    let localised_text = match BannerLocalisedText::get_banner_localised(color, ctx, command).await
-    {
+    let localised_text = match BannerLocalisedText::get_banner_localised(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };
@@ -97,7 +92,7 @@ pub async fn banner_without_user(ctx: &Context, command: &ApplicationCommandInte
     let result = if let Ok(user) = real_user {
         user
     } else {
-        custom_error(color, ctx, command, &localised_text.error_no_user).await;
+        custom_error(ctx, command, &localised_text.error_no_user).await;
         return;
     };
     let banner_url = &result.banner_url();
@@ -108,7 +103,7 @@ pub async fn banner_without_user(ctx: &Context, command: &ApplicationCommandInte
         return;
     };
 
-    send_embed(color, ctx, command, localised_text.clone(), banner, result).await;
+    send_embed(ctx, command, localised_text.clone(), banner, result).await;
 }
 
 pub async fn banner_with_user(
@@ -116,10 +111,7 @@ pub async fn banner_with_user(
     command: &ApplicationCommandInteraction,
     user_data: &User,
 ) {
-    let color = Colour::FABLED_PINK;
-
-    let localised_text = match BannerLocalisedText::get_banner_localised(color, ctx, command).await
-    {
+    let localised_text = match BannerLocalisedText::get_banner_localised(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };
@@ -128,7 +120,7 @@ pub async fn banner_with_user(
     let result = if let Ok(user) = real_user {
         user
     } else {
-        custom_error(color, ctx, command, &localised_text.error_no_user).await;
+        custom_error(ctx, command, &localised_text.error_no_user).await;
         return;
     };
     let banner_url = &result.banner_url();
@@ -139,11 +131,10 @@ pub async fn banner_with_user(
         return;
     };
 
-    send_embed(color, ctx, command, localised_text.clone(), banner, result).await;
+    send_embed(ctx, command, localised_text.clone(), banner, result).await;
 }
 
 pub async fn send_embed(
-    color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     localised_text: BannerLocalisedText,
@@ -160,7 +151,7 @@ pub async fn send_embed(
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
-                            .color(color)
+                            .color(COLOR)
                             .image(banner)
                     })
                 })

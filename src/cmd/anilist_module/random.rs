@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::Read;
 
 use crate::cmd::general_module::lang_struct::RandomLocalisedText;
+use crate::constant::COLOR;
 use crate::function::error_management::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json,
@@ -23,7 +24,6 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 use sqlx::{Pool, Sqlite};
 
 pub async fn run(
@@ -123,38 +123,37 @@ pub async fn embed(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let color = Colour::FABLED_PINK;
     let number = thread_rng().gen_range(1..=last_page);
     if random_type == "manga" {
         let data = PageWrapper::new_manga_page(number).await;
 
         let url = data.get_manga_url();
 
-        follow_up_message(ctx, command, color, data, url).await
+        follow_up_message(ctx, command, data, url).await
     } else if random_type == "anime" {
         let data = PageWrapper::new_anime_page(number).await;
 
         let url = data.get_anime_url();
 
-        follow_up_message(ctx, command, color, data, url).await
+        follow_up_message(ctx, command, data, url).await
     } else {
-        let mut file = match File::open("../../../lang_file/embed/anilist/random.json") {
+        let mut file = match File::open("./lang_file/embed/anilist/random.json") {
             Ok(file) => file,
             Err(_) => {
-                error_langage_file_not_found(color, ctx, command).await;
+                error_langage_file_not_found(ctx, command).await;
                 return;
             }
         };
         let mut json = String::new();
         match file.read_to_string(&mut json) {
             Ok(_) => {}
-            Err(_) => error_cant_read_langage_file(color, ctx, command).await,
+            Err(_) => error_cant_read_langage_file(ctx, command).await,
         }
 
         let json_data: HashMap<String, RandomLocalisedText> = match serde_json::from_str(&json) {
             Ok(data) => data,
             Err(_) => {
-                error_parsing_langage_json(color, ctx, command).await;
+                error_parsing_langage_json(ctx, command).await;
                 return;
             }
         };
@@ -162,7 +161,7 @@ pub async fn embed(
         let guild_id = match command.guild_id {
             Some(id) => id.0.to_string(),
             None => {
-                error_no_langage_guild_id(color, ctx, command).await;
+                error_no_langage_guild_id(ctx, command).await;
                 return;
             }
         };
@@ -175,7 +174,7 @@ pub async fn embed(
                         m.title(&localised_text.error_title)
                             .description(&localised_text.error_message)
                             .timestamp(Timestamp::now())
-                            .color(color)
+                            .color(COLOR)
                     })
                 })
                 .await
@@ -189,7 +188,6 @@ pub async fn embed(
 pub async fn follow_up_message(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-    color: Colour,
     data: PageWrapper,
     url: String,
 ) {
@@ -229,7 +227,7 @@ pub async fn follow_up_message(
                             description
                         ))
                         .timestamp(Timestamp::now())
-                        .color(color)
+                        .color(COLOR)
                         .thumbnail(cover_image)
                         .url(url)
                 })

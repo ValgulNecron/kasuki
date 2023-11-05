@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::Read;
 
 use crate::cmd::general_module::lang_struct::CompareLocalisedText;
+use crate::constant::COLOR;
 use crate::function::error_management::common::custom_error;
 use crate::function::error_management::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
@@ -24,7 +25,6 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -97,24 +97,23 @@ pub async fn embed(
     value: &String,
     value2: &String,
 ) {
-    let color = Colour::FABLED_PINK;
     let mut file = match File::open("../../../lang_file/embed/anilist/compare.json") {
         Ok(file) => file,
         Err(_) => {
-            error_langage_file_not_found(color, ctx, command).await;
+            error_langage_file_not_found(ctx, command).await;
             return;
         }
     };
     let mut json = String::new();
     match file.read_to_string(&mut json) {
         Ok(_) => {}
-        Err(_) => error_cant_read_langage_file(color, ctx, command).await,
+        Err(_) => error_cant_read_langage_file(ctx, command).await,
     }
 
     let json_data: HashMap<String, CompareLocalisedText> = match serde_json::from_str(&json) {
         Ok(data) => data,
         Err(_) => {
-            error_parsing_langage_json(color, ctx, command).await;
+            error_parsing_langage_json(ctx, command).await;
             return;
         }
     };
@@ -122,7 +121,7 @@ pub async fn embed(
     let guild_id = match command.guild_id {
         Some(id) => id.0.to_string(),
         None => {
-            error_no_langage_guild_id(color, ctx, command).await;
+            error_no_langage_guild_id(ctx, command).await;
             return;
         }
     };
@@ -133,7 +132,7 @@ pub async fn embed(
             match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
@@ -141,7 +140,7 @@ pub async fn embed(
             match UserWrapper::new_user_by_search(value).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
@@ -151,7 +150,7 @@ pub async fn embed(
             match UserWrapper::new_user_by_id(value2.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
@@ -159,7 +158,7 @@ pub async fn embed(
             match UserWrapper::new_user_by_search(value2).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
@@ -407,7 +406,7 @@ pub async fn embed(
                                     ),
                                     false,
                                 )
-                                .color(color)
+                                .color(COLOR)
                         })
                     })
             })
@@ -416,7 +415,7 @@ pub async fn embed(
             println!("{}: {}", localised_text.error_slash_command, why);
         }
     } else {
-        no_langage_error(color, ctx, command).await;
+        no_langage_error(ctx, command).await;
     }
 }
 

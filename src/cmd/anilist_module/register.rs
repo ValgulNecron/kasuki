@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::function::sql::sqlite::pool::get_sqlite_pool;
 use crate::structure::embed::anilist::struct_lang_register::RegisterLocalisedText;
 use crate::structure::register::anilist::struct_register_register::RegisterLocalisedRegister;
@@ -10,7 +11,6 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -35,9 +35,8 @@ pub async fn run(
         .resolved
         .as_ref()
         .expect("Expected username object");
-    let color = Colour::FABLED_PINK;
 
-    if let CommandDataOptionValue::String(username) = option {
+    if let CommandDataOptionValue::String(_) = option {
         let user_id = &command.user.id.to_string();
         let username = &command.user.name;
         let user_pfp_ref = &command.user.avatar.as_ref().unwrap();
@@ -69,11 +68,11 @@ pub async fn run(
         .await
         .unwrap();
 
-        let localised_text =
-            match RegisterLocalisedText::get_register_localised(color, ctx, command).await {
-                Ok(data) => data,
-                Err(_) => return,
-            };
+        let localised_text = match RegisterLocalisedText::get_register_localised(ctx, command).await
+        {
+            Ok(data) => data,
+            Err(_) => return,
+        };
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
                 response
@@ -85,7 +84,7 @@ pub async fn run(
                                 // This also accepts a rfc3339 Timestamp
                                 .timestamp(Timestamp::now())
                                 .thumbnail(profile_picture)
-                                .color(color)
+                                .color(COLOR)
                                 .description(format!(
                                     "{}{}({}){}{}{}",
                                     &localised_text.part_1,

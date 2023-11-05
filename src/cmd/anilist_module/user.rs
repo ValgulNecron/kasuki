@@ -12,20 +12,18 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(
     _options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let color = Colour::FABLED_PINK;
     if let Some(option) = _options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::String(user) = resolved {
             embed(_options, ctx, command, user).await
         } else {
-            custom_error(color, ctx, command, "error_management").await
+            custom_error(ctx, command, "error_management").await
         }
     } else {
         let database_url = "./data.db";
@@ -82,12 +80,11 @@ pub async fn embed(
     command: &ApplicationCommandInteraction,
     value: &String,
 ) {
-    let color = Colour::FABLED_PINK;
     let data = if value.parse::<i32>().is_ok() {
         match UserWrapper::new_user_by_id(value.parse().unwrap()).await {
             Ok(user_wrapper) => user_wrapper,
             Err(error) => {
-                custom_error(color, ctx, command, &error).await;
+                custom_error(ctx, command, &error).await;
                 return;
             }
         }
@@ -95,13 +92,13 @@ pub async fn embed(
         match UserWrapper::new_user_by_search(value).await {
             Ok(user_wrapper) => user_wrapper,
             Err(error) => {
-                custom_error(color, ctx, command, &error).await;
+                custom_error(ctx, command, &error).await;
                 return;
             }
         }
     };
 
-    let localised_text = match UserLocalisedText::get_user_localised(color, ctx, command).await {
+    let localised_text = match UserLocalisedText::get_user_localised(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };

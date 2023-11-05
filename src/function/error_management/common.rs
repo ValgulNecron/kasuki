@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
+use crate::constant::COLOR;
 use crate::function::error_management::no_lang_error::{
     error_cant_read_langage_file, error_cant_read_langage_file_edit, error_langage_file_not_found,
     error_langage_file_not_found_edit, error_no_langage_guild_id, error_no_langage_guild_id_edit,
@@ -16,14 +17,12 @@ use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::model::prelude::InteractionResponseType;
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn send_embed_message(
-    color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     title: String,
-    desc: String,
+    desc: &str,
 ) {
     if let Err(why) = command
         .create_interaction_response(&ctx.http, |response| {
@@ -31,10 +30,10 @@ pub async fn send_embed_message(
                 .kind(InteractionResponseType::ChannelMessageWithSource)
                 .interaction_response_data(|message| {
                     message.embed(|m| {
-                        m.title(title)
+                        m.title(&title)
                             .description(&desc)
                             .timestamp(Timestamp::now())
-                            .color(color)
+                            .color(COLOR)
                     })
                 })
         })
@@ -46,20 +45,14 @@ pub async fn send_embed_message(
     error!("{} {}", title, desc)
 }
 
-pub async fn edit_embed_message(
-    color: Colour,
-    ctx: &Context,
-    mut message: Message,
-    title: String,
-    desc: String,
-) {
+pub async fn edit_embed_message(ctx: &Context, mut message: Message, title: String, desc: &str) {
     if let Err(why) = message
         .edit(&ctx.http, |message| {
             message.embed(|m| {
-                m.title(title)
+                m.title(&title)
                     .description(desc)
                     .timestamp(Timestamp::now())
-                    .color(color)
+                    .color(COLOR)
             })
         })
         .await
@@ -70,19 +63,18 @@ pub async fn edit_embed_message(
 }
 
 pub async fn send_followup_embed_message(
-    color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     title: String,
-    desc: String,
+    desc: &str,
 ) {
     if let Err(why) = command
         .create_followup_message(&ctx.http, |message| {
             message.embed(|m| {
-                m.title(title)
+                m.title(&title)
                     .description(desc)
                     .timestamp(Timestamp::now())
-                    .color(color)
+                    .color(COLOR)
             })
         })
         .await
@@ -93,14 +85,13 @@ pub async fn send_followup_embed_message(
 }
 
 pub async fn get_localised_langage(
-    color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> Result<ErrorLocalisedText, &'static str> {
     let mut file = match File::open("lang_file/embed/error.json") {
         Ok(file) => file,
         Err(_) => {
-            error_langage_file_not_found(color, ctx, command).await;
+            error_langage_file_not_found(ctx, command).await;
             return Err("not found");
         }
     };
@@ -108,7 +99,7 @@ pub async fn get_localised_langage(
     match file.read_to_string(&mut json) {
         Ok(_) => {}
         Err(_) => {
-            error_cant_read_langage_file(color, ctx, command).await;
+            error_cant_read_langage_file(ctx, command).await;
             return Err("not found");
         }
     }
@@ -116,7 +107,7 @@ pub async fn get_localised_langage(
     let json_data: HashMap<String, ErrorLocalisedText> = match serde_json::from_str(&json) {
         Ok(data) => data,
         Err(_) => {
-            error_parsing_langage_json(color, ctx, command).await;
+            error_parsing_langage_json(ctx, command).await;
             return Err("not found");
         }
     };
@@ -124,7 +115,7 @@ pub async fn get_localised_langage(
     let guild_id = match command.guild_id {
         Some(id) => id.0.to_string(),
         None => {
-            error_no_langage_guild_id(color, ctx, command).await;
+            error_no_langage_guild_id(ctx, command).await;
             return Err("not found");
         }
     };
@@ -132,13 +123,12 @@ pub async fn get_localised_langage(
     return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         Ok(localised_text.clone())
     } else {
-        no_langage_error(color, ctx, command).await;
+        no_langage_error(ctx, command).await;
         Err("not found")
     };
 }
 
 pub async fn get_localised_langage_edit(
-    color: Colour,
     ctx: &Context,
     message: Message,
     command: &ApplicationCommandInteraction,
@@ -146,7 +136,7 @@ pub async fn get_localised_langage_edit(
     let mut file = match File::open("lang_file/embed/error.json") {
         Ok(file) => file,
         Err(_) => {
-            error_langage_file_not_found_edit(color, ctx, message.clone()).await;
+            error_langage_file_not_found_edit(ctx, message.clone()).await;
             return Err("not found");
         }
     };
@@ -154,7 +144,7 @@ pub async fn get_localised_langage_edit(
     match file.read_to_string(&mut json) {
         Ok(_) => {}
         Err(_) => {
-            error_cant_read_langage_file_edit(color, ctx, message.clone()).await;
+            error_cant_read_langage_file_edit(ctx, message.clone()).await;
             return Err("not found");
         }
     }
@@ -162,7 +152,7 @@ pub async fn get_localised_langage_edit(
     let json_data: HashMap<String, ErrorLocalisedText> = match serde_json::from_str(&json) {
         Ok(data) => data,
         Err(_) => {
-            error_parsing_langage_json_edit(color, ctx, message.clone()).await;
+            error_parsing_langage_json_edit(ctx, message.clone()).await;
             return Err("not found");
         }
     };
@@ -170,7 +160,7 @@ pub async fn get_localised_langage_edit(
     let guild_id = match command.guild_id {
         Some(id) => id.0.to_string(),
         None => {
-            error_no_langage_guild_id_edit(color, ctx, message.clone()).await;
+            error_no_langage_guild_id_edit(ctx, message.clone()).await;
             return Err("not found");
         }
     };
@@ -178,27 +168,15 @@ pub async fn get_localised_langage_edit(
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         Ok(localised_text.clone())
     } else {
-        no_langage_error_edit(color, ctx, message.clone()).await;
+        no_langage_error_edit(ctx, message.clone()).await;
         Err("not found")
     }
 }
 
-pub async fn custom_error(
-    color: Colour,
-    ctx: &Context,
-    command: &ApplicationCommandInteraction,
-    error: &str,
-) {
-    let localised_text = match get_localised_langage(color, ctx, command).await {
+pub async fn custom_error(ctx: &Context, command: &ApplicationCommandInteraction, error: &str) {
+    let localised_text = match get_localised_langage(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };
-    send_embed_message(
-        color,
-        ctx,
-        command,
-        localised_text.error_title,
-        error.to_owned(),
-    )
-    .await;
+    send_embed_message(ctx, command, localised_text.error_title, error).await;
 }

@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::function::error_management::common::custom_error;
 use crate::structure::anilist::character::struct_character::CharacterWrapper;
 use crate::structure::embed::anilist::struct_lang_character::CharacterLocalisedText;
@@ -8,23 +9,19 @@ use serenity::model::application::command::CommandOptionType;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::model::prelude::InteractionResponseType;
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let color = Colour::FABLED_PINK;
-    let localised_text =
-        match CharacterLocalisedText::get_character_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
+    let localised_text = match CharacterLocalisedText::get_character_localised(ctx, command).await {
+        Ok(data) => data,
+        Err(_) => return,
+    };
     let data = match CharacterWrapper::new_character_by_id(156323, localised_text.clone()).await {
         Ok(character_wrapper) => character_wrapper,
         Err(error) => {
-            custom_error(color, ctx, command, &error).await;
+            custom_error(ctx, command, &error).await;
             return;
         }
     };
-    let color = Colour::FABLED_PINK;
 
     let name = data.get_name();
     let url = data.get_url();
@@ -40,10 +37,9 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
                         m.title(name)
                             .url(url)
                             .timestamp(Timestamp::now())
-                            .color(color)
+                            .color(COLOR)
                             .description(desc)
                             .thumbnail(image)
-                            .color(color)
                     })
                 })
         })

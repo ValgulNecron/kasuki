@@ -7,7 +7,6 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -32,10 +31,7 @@ pub async fn run(
             "staff" => staff::run(&command.data.options, ctx, command).await,
             "user" => user::run(&command.data.options, ctx, command).await,
             "studio" => studio::run(&command.data.options, ctx, command).await,
-            _ => {
-                let color = Colour::FABLED_PINK;
-                error_not_implemented(color, ctx, command).await
-            }
+            _ => error_not_implemented(ctx, command).await,
         };
     }
 }

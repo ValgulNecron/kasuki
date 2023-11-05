@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::structure::embed::general::struct_lang_credit::CreditLocalisedText;
 use crate::structure::register::general::struct_credit_register::RegisterLocalisedCredit;
 use serenity::builder::CreateApplicationCommand;
@@ -5,16 +6,12 @@ use serenity::client::Context;
 use serenity::model::application::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let color = Colour::FABLED_PINK;
-
-    let credit_localised =
-        match CreditLocalisedText::get_credit_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
+    let credit_localised = match CreditLocalisedText::get_credit_localised(ctx, command).await {
+        Ok(data) => data,
+        Err(_) => return,
+    };
     let mut desc: String = "".to_string();
     for x in credit_localised.list {
         desc += x.text.as_str()
@@ -29,7 +26,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
-                            .color(color)
+                            .color(COLOR)
                             .description(desc)
                     })
                 })

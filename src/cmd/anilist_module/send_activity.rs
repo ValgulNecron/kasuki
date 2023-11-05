@@ -2,6 +2,7 @@ use std::env;
 use std::thread::sleep;
 use std::time::Duration;
 
+use crate::constant::COLOR;
 use crate::function::sql::sqlite::pool::get_sqlite_pool;
 use crate::structure::anilist::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::structure::embed::anilist::struct_lang_send_activity::SendActivityLocalisedText;
@@ -9,7 +10,6 @@ use chrono::Utc;
 use serenity::http::Http;
 use serenity::model::channel::Embed;
 use serenity::model::prelude::Webhook;
-use serenity::utils::Colour;
 use sqlx::FromRow;
 
 #[derive(Debug, FromRow, Clone)]
@@ -100,7 +100,6 @@ pub async fn update_info(row: ActivityData, guild_id: String) {
 }
 
 pub async fn send_specific_activity(row: ActivityData, guild_id: String, row2: ActivityData) {
-    let color = Colour::FABLED_PINK;
     let localised_text = SendActivityLocalisedText::get_send_activity_localised(guild_id.clone())
         .await
         .unwrap();
@@ -126,7 +125,7 @@ pub async fn send_specific_activity(row: ActivityData, guild_id: String, row2: A
                 row.name.unwrap(),
                 localised_text.end,
             ))
-            .color(color)
+            .color(COLOR)
     });
     webhook
         .execute(&http, false, |w| w.embeds(vec![embed]))

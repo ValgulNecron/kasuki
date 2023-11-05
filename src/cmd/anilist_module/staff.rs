@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::function::error_management::common::custom_error;
 use crate::structure::anilist::staff::struct_autocomplete_staff::StaffPageWrapper;
 use crate::structure::anilist::staff::struct_staff::StaffWrapper;
@@ -14,15 +15,12 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let color = Colour::FABLED_PINK;
-
     let option = options
         .get(0)
         .expect("Expected name option")
@@ -34,7 +32,7 @@ pub async fn run(
             match StaffWrapper::new_staff_by_id(value.parse().unwrap()).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
@@ -42,7 +40,7 @@ pub async fn run(
             match StaffWrapper::new_staff_by_search(value).await {
                 Ok(user_wrapper) => user_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
@@ -58,11 +56,10 @@ pub async fn run(
 
         let result_va: String = data.format_va();
 
-        let localised_text =
-            match StaffLocalisedText::get_staff_localised(color, ctx, command).await {
-                Ok(data) => data,
-                Err(_) => return,
-            };
+        let localised_text = match StaffLocalisedText::get_staff_localised(ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
         let desc = data.get_desc(&localised_text);
 
         if let Err(why) = command
@@ -73,7 +70,7 @@ pub async fn run(
                         message.embed(|m| {
                             m.title(staff_name)
                                 .timestamp(Timestamp::now())
-                                .color(color)
+                                .color(COLOR)
                                 .fields(vec![
                                     (&localised_text.desc_title, desc, false),
                                     (&localised_text.media, result_role, true),

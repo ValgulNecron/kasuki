@@ -1,5 +1,6 @@
 use std::io::Cursor;
 
+use crate::constant::COLOR;
 use crate::function::error_management::error_no::error_no_anime_specified;
 use crate::function::error_management::no_lang_error::error_no_langage_guild_id;
 use crate::function::general::differed_response::differed_response;
@@ -20,15 +21,12 @@ use serenity::model::prelude::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
 use serenity::model::{Permissions, Timestamp};
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let color = Colour::FABLED_PINK;
-
     differed_response(ctx, command).await;
 
     let database_url = "./data.db";
@@ -58,7 +56,7 @@ pub async fn run(
             if let CommandDataOptionValue::String(value_option) = resolved {
                 value = value_option.clone()
             } else {
-                error_no_anime_specified(color, ctx, command).await;
+                error_no_anime_specified(ctx, command).await;
                 return;
             }
         }
@@ -75,13 +73,13 @@ pub async fn run(
     let guild_id = match command.guild_id {
         Some(id) => id.0.to_string(),
         None => {
-            error_no_langage_guild_id(color, ctx, command).await;
+            error_no_langage_guild_id(ctx, command).await;
             return;
         }
     };
 
     let localised_text =
-        match AddActivityLocalisedText::get_add_activity_localised(color, ctx, command).await {
+        match AddActivityLocalisedText::get_add_activity_localised(ctx, command).await {
             Ok(data) => data,
             Err(_) => return,
         };
@@ -94,7 +92,7 @@ pub async fn run(
         {
             Ok(minimal_anime) => minimal_anime,
             Err(_) => {
-                error_no_anime_specified(color, ctx, command).await;
+                error_no_anime_specified(ctx, command).await;
                 return;
             }
         }
@@ -107,7 +105,7 @@ pub async fn run(
         {
             Ok(minimal_anime) => minimal_anime,
             Err(_) => {
-                error_no_anime_specified(color, ctx, command).await;
+                error_no_anime_specified(ctx, command).await;
                 return;
             }
         }
@@ -116,7 +114,6 @@ pub async fn run(
 
     let mut anime_name = data.get_name();
     let channel_id = command.channel_id.0;
-    let color = Colour::FABLED_PINK;
     if check_if_activity_exist(anime_id, guild_id.clone()).await {
         if let Err(why) = command
             .create_followup_message(&ctx.http, |f| {
@@ -124,13 +121,12 @@ pub async fn run(
                     m.title(&localised_text.title1)
                         .url(format!("https://anilist.co/anime/{}", data.get_id()))
                         .timestamp(Timestamp::now())
-                        .color(color)
+                        .color(COLOR)
                         .description(format!(
                             "{} {}",
                             &localised_text.already_added,
                             data.get_name()
                         ))
-                        .color(color)
                 })
             })
             .await
@@ -188,9 +184,8 @@ pub async fn run(
                     m.title(&localised_text.title2)
                         .url(format!("https://anilist.co/anime/{}", data.get_id()))
                         .timestamp(Timestamp::now())
-                        .color(color)
+                        .color(COLOR)
                         .description(format!("{} {}", &localised_text.adding, data.get_name()))
-                        .color(color)
                 })
             })
             .await

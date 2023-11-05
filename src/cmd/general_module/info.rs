@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::structure::embed::general::struct_lang_info::InfoLocalisedText;
 use crate::structure::register::general::struct_info_register::RegisterLocalisedInfo;
 use serenity::builder::CreateApplicationCommand;
@@ -6,11 +7,9 @@ use serenity::model::application::component::ButtonStyle;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let color = Colour::FABLED_PINK;
-    let localised_text = match InfoLocalisedText::get_info_localised(color, ctx, command).await {
+    let localised_text = match InfoLocalisedText::get_info_localised(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };
@@ -25,7 +24,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
                             .description(&localised_text.description)
                             .footer(|f| f.text(&localised_text.footer))
                             .timestamp(Timestamp::now())
-                            .color(color)
+                            .color(COLOR)
                     })
                     .components(|components| {
                         components.create_action_row(|row| {

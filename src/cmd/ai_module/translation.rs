@@ -3,6 +3,7 @@ use std::io::copy;
 use std::path::Path;
 use std::{env, fs};
 
+use crate::constant::COLOR;
 use crate::function::error_management::error_file::{error_file_extension, error_file_type};
 use crate::function::error_management::error_parsing_json::error_parsing_json_edit;
 use crate::function::error_management::error_request::error_making_request_edit;
@@ -24,7 +25,6 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 use uuid::Uuid;
 
 pub async fn run(
@@ -32,8 +32,6 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let color = Colour::FABLED_PINK;
-
     let mut lang: String = "en".to_string();
     let attachement_option = if options.get(0).expect("Expected attachement option").name == "video"
     {
@@ -65,7 +63,7 @@ pub async fn run(
 
     if let CommandDataOptionValue::Attachment(attachement) = attachement_option {
         let localised_text =
-            match TranslationLocalisedText::get_translation_localised(color, ctx, command).await {
+            match TranslationLocalisedText::get_translation_localised(ctx, command).await {
                 Ok(data) => data,
                 Err(_) => return,
             };
@@ -73,7 +71,7 @@ pub async fn run(
         let content = attachement.proxy_url.clone();
 
         if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-            error_file_type(color, ctx, command).await;
+            error_file_type(ctx, command).await;
             return;
         }
 
@@ -91,7 +89,7 @@ pub async fn run(
             .to_lowercase();
 
         if !allowed_extensions.contains(&&*file_extension) {
-            error_file_extension(color, ctx, command).await;
+            error_file_extension(ctx, command).await;
             return;
         }
 
@@ -110,7 +108,7 @@ pub async fn run(
         let message: Message = match in_progress_embed(ctx, command).await {
             Ok(Some(message_option)) => message_option,
             Ok(None) => {
-                error_resolving_value_followup(color, ctx, command).await;
+                error_resolving_value_followup(ctx, command).await;
                 return;
             }
             Err(error) => {
@@ -153,7 +151,7 @@ pub async fn run(
             Err(err) => {
                 let _ = fs::remove_file(&file_to_delete);
                 eprintln!("Error sending the request: {}", err);
-                error_making_request_edit(color, ctx, command, message).await;
+                error_making_request_edit(ctx, command, message).await;
                 return;
             }
         };
@@ -165,7 +163,7 @@ pub async fn run(
             Err(err) => {
                 let _ = fs::remove_file(&file_to_delete);
                 eprintln!("Error parsing response as JSON: {}", err);
-                error_parsing_json_edit(color, ctx, message, command).await;
+                error_parsing_json_edit(ctx, message, command).await;
                 return;
             }
         };
@@ -269,7 +267,6 @@ pub async fn translation_embed(
     message: Message,
     localised_text: TranslationLocalisedText,
 ) {
-    let color = Colour::FABLED_PINK;
     let mut real_message = message.clone();
     if let Err(why) = real_message
         .edit(&ctx.http, |m| {
@@ -277,7 +274,7 @@ pub async fn translation_embed(
                 e.title(&localised_text.title)
                     .description(text.to_string())
                     .timestamp(Timestamp::now())
-                    .color(color)
+                    .color(COLOR)
             })
         })
         .await

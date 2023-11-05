@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::function::error_management::common::custom_error;
 use crate::function::error_management::error_avatar::error_no_avatar;
 use crate::structure::embed::general::struct_lang_avatar::AvatarLocalisedText;
@@ -11,7 +12,6 @@ use serenity::model::prelude::application_command::{
 };
 use serenity::model::prelude::{InteractionResponseType, User};
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -57,10 +57,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 }
 
 async fn avatar_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let color = Colour::FABLED_PINK;
-
-    let localised_text = match AvatarLocalisedText::get_avatar_localised(color, ctx, command).await
-    {
+    let localised_text = match AvatarLocalisedText::get_avatar_localised(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };
@@ -69,7 +66,7 @@ async fn avatar_without_user(ctx: &Context, command: &ApplicationCommandInteract
     let result = if let Ok(user) = real_user {
         user
     } else {
-        custom_error(color, ctx, command, &localised_text.error_no_user).await;
+        custom_error(ctx, command, &localised_text.error_no_user).await;
         return;
     };
 
@@ -77,9 +74,7 @@ async fn avatar_without_user(ctx: &Context, command: &ApplicationCommandInteract
 }
 
 async fn avatar_with_user(ctx: &Context, command: &ApplicationCommandInteraction, user: &User) {
-    let color = Colour::FABLED_PINK;
-    let localised_text = match AvatarLocalisedText::get_avatar_localised(color, ctx, command).await
-    {
+    let localised_text = match AvatarLocalisedText::get_avatar_localised(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };
@@ -87,14 +82,13 @@ async fn avatar_with_user(ctx: &Context, command: &ApplicationCommandInteraction
     let avatar_url = match user.avatar_url() {
         Some(url) => url,
         None => {
-            error_no_avatar(color, ctx, command).await;
+            error_no_avatar(ctx, command).await;
             return;
         }
     };
 
     send_embed(
         avatar_url,
-        color,
         ctx,
         command,
         localised_text.clone(),
@@ -105,7 +99,6 @@ async fn avatar_with_user(ctx: &Context, command: &ApplicationCommandInteraction
 
 pub async fn send_embed(
     avatar_url: String,
-    color: Colour,
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     localised_text: AvatarLocalisedText,
@@ -121,7 +114,7 @@ pub async fn send_embed(
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
-                            .color(color)
+                            .color(COLOR)
                             .image(avatar_url)
                     })
                 })

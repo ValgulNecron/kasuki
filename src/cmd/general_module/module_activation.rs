@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::function::error_management::error_module::error_no_module;
 use crate::function::sql::sqlite::pool::get_sqlite_pool;
 use crate::structure::embed::general::struct_lang_module_activation::ModuleLocalisedText;
@@ -9,7 +10,6 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::prelude::InteractionResponseType;
 use serenity::model::{Permissions, Timestamp};
-use serenity::utils::Colour;
 use sqlx::{Pool, Sqlite};
 
 pub async fn run(
@@ -31,9 +31,7 @@ pub async fn run(
     .await
     .unwrap();
 
-    let color = Colour::FABLED_PINK;
-    let localised_text = match ModuleLocalisedText::get_module_localised(color, ctx, command).await
-    {
+    let localised_text = match ModuleLocalisedText::get_module_localised(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };
@@ -96,7 +94,7 @@ pub async fn run(
                                     // Add a timestamp for the current time
                                     // This also accepts a rfc3339 Timestamp
                                     .timestamp(Timestamp::now())
-                                    .color(color)
+                                    .color(COLOR)
                                     .description(text)
                             })
                         })
@@ -142,7 +140,7 @@ pub async fn run(
                                     // Add a timestamp for the current time
                                     // This also accepts a rfc3339 Timestamp
                                     .timestamp(Timestamp::now())
-                                    .color(color)
+                                    .color(COLOR)
                                     .description(text)
                             })
                         })
@@ -152,7 +150,7 @@ pub async fn run(
                 println!("Error creating slash: {}", why);
             }
         }
-        _ => error_no_module(color, ctx, command).await,
+        _ => error_no_module(ctx, command).await,
     }
 }
 

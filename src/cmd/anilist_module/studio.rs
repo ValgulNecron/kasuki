@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::function::error_management::common::custom_error;
 use crate::structure::anilist::studio::struct_autocomplete_studio::StudioPageWrapper;
 use crate::structure::anilist::studio::struct_studio::StudioWrapper;
@@ -14,14 +15,12 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::prelude::InteractionResponseType;
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let color = Colour::FABLED_PINK;
     let option = options
         .get(0)
         .expect("Expected name option")
@@ -33,7 +32,7 @@ pub async fn run(
             match StudioWrapper::new_studio_by_id(value.parse().unwrap()).await {
                 Ok(studio_wrapper) => studio_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
@@ -41,19 +40,17 @@ pub async fn run(
             match StudioWrapper::new_studio_by_search(value).await {
                 Ok(studio_wrapper) => studio_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
         };
-        let localised_text =
-            match StudioLocalisedText::get_studio_localised(color, ctx, command).await {
-                Ok(data) => data,
-                Err(_) => return,
-            };
+        let localised_text = match StudioLocalisedText::get_studio_localised(ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
         let name = data.get_studio_name();
         let url = data.get_site_url();
-        let color = Colour::FABLED_PINK;
         let desc = data.get_desc(localised_text.clone());
 
         if let Err(why) = command
@@ -65,9 +62,8 @@ pub async fn run(
                             m.title(name)
                                 .url(url)
                                 .timestamp(Timestamp::now())
-                                .color(color)
+                                .color(COLOR)
                                 .description(desc)
-                                .color(color)
                         })
                     })
             })

@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::function::error_management::error_not_nsfw::error_not_nsfw;
 use crate::function::general::get_nsfw_channel::get_nsfw;
 use crate::structure::anilist::media::struct_media::MediaWrapper;
@@ -12,7 +13,6 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -28,21 +28,19 @@ pub async fn run(
         .expect("Expected name object");
     // Check if the option variable contain the correct value.
     if let CommandDataOptionValue::String(value) = option {
-        let color = Colour::FABLED_PINK;
-        let localised_text =
-            match AnimeLocalisedText::get_anime_localised(color, ctx, command).await {
-                Ok(data) => data,
-                Err(_) => return,
-            };
+        let localised_text = match AnimeLocalisedText::get_anime_localised(ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
         let data: MediaWrapper = if value.parse::<i32>().is_ok() {
-            match MediaWrapper::new_anime_by_id(value.parse().unwrap(), color, ctx, command).await {
+            match MediaWrapper::new_anime_by_id(value.parse().unwrap(), ctx, command).await {
                 Ok(media_wrapper) => media_wrapper,
                 Err(_) => {
                     return;
                 }
             }
         } else {
-            match MediaWrapper::new_anime_by_search(value, color, ctx, command).await {
+            match MediaWrapper::new_anime_by_search(value, ctx, command).await {
                 Ok(media_wrapper) => media_wrapper,
                 Err(_) => {
                     return;
@@ -51,7 +49,7 @@ pub async fn run(
         };
 
         if data.get_nsfw() && !get_nsfw(command, ctx).await {
-            error_not_nsfw(color, ctx, command).await;
+            error_not_nsfw(ctx, command).await;
             return;
         }
 
@@ -82,7 +80,7 @@ pub async fn run(
                                     (&localised_text.fields_name_1, genre, true),
                                     (&localised_text.fields_name_2, tag, true),
                                 ])
-                                .color(color)
+                                .color(COLOR)
                         })
                     })
             })

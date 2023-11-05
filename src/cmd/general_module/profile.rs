@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::structure::embed::general::struct_lang_profile::ProfileLocalisedText;
 use crate::structure::register::general::struct_profile_register::RegisterLocalisedProfile;
 use serenity::builder::CreateApplicationCommand;
@@ -8,7 +9,6 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
 use serenity::model::user::User;
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -81,13 +81,10 @@ async fn description(
 }
 
 async fn send_embed(ctx: &Context, command: &ApplicationCommandInteraction, user: User) {
-    let color = Colour::FABLED_PINK;
-
-    let localised_text =
-        match ProfileLocalisedText::get_profile_localised(color, ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
+    let localised_text = match ProfileLocalisedText::get_profile_localised(ctx, command).await {
+        Ok(data) => data,
+        Err(_) => return,
+    };
     let avatar_url = match user.avatar_url() {
         Some(a) => a,
         None => "exemple.com".to_string(),
@@ -103,7 +100,7 @@ async fn send_embed(ctx: &Context, command: &ApplicationCommandInteraction, user
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
-                            .color(color)
+                            .color(COLOR)
                             .thumbnail(avatar_url)
                             .description(desc)
                     })

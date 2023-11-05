@@ -43,7 +43,7 @@ pub async fn run(
         let guild_id = match command.guild_id {
             Some(id) => id.0.to_string(),
             None => {
-                error_no_langage_guild_id(color, ctx, command).await;
+                error_no_langage_guild_id(ctx, command).await;
                 return;
             }
         };

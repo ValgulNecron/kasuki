@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::function::error_management::common::custom_error;
 use crate::function::error_management::error_not_nsfw::error_not_nsfw;
 use crate::function::general::get_nsfw_channel::get_nsfw;
@@ -10,7 +11,6 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 pub async fn embed(
     options: &[CommandDataOption],
@@ -18,7 +18,6 @@ pub async fn embed(
     command: &ApplicationCommandInteraction,
     search_type: &str,
 ) {
-    let color = Colour::FABLED_PINK;
     let option = options
         .get(0)
         .expect("Expected name option")
@@ -26,11 +25,10 @@ pub async fn embed(
         .as_ref()
         .expect("Expected name object");
     if let CommandDataOptionValue::String(value) = option {
-        let localised_text =
-            match MediaLocalisedText::get_media_localised(color, ctx, command).await {
-                Ok(data) => data,
-                Err(_) => return,
-            };
+        let localised_text = match MediaLocalisedText::get_media_localised(ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
         let data: MediaWrapper;
         if value.parse::<i32>().is_ok() {
             if search_type == "NOVEL" {
@@ -40,7 +38,7 @@ pub async fn embed(
                     {
                         Ok(character_wrapper) => character_wrapper,
                         Err(error) => {
-                            custom_error(color, ctx, command, &error).await;
+                            custom_error(ctx, command, &error).await;
                             return;
                         }
                     }
@@ -53,7 +51,7 @@ pub async fn embed(
                 {
                     Ok(character_wrapper) => character_wrapper,
                     Err(error) => {
-                        custom_error(color, ctx, command, &error).await;
+                        custom_error(ctx, command, &error).await;
                         return;
                     }
                 }
@@ -65,7 +63,7 @@ pub async fn embed(
                 {
                     Ok(character_wrapper) => character_wrapper,
                     Err(error) => {
-                        custom_error(color, ctx, command, &error).await;
+                        custom_error(ctx, command, &error).await;
                         return;
                     }
                 }
@@ -78,14 +76,14 @@ pub async fn embed(
             {
                 Ok(character_wrapper) => character_wrapper,
                 Err(error) => {
-                    custom_error(color, ctx, command, &error).await;
+                    custom_error(ctx, command, &error).await;
                     return;
                 }
             }
         }
 
         if data.get_nsfw() && !get_nsfw(command, ctx).await {
-            error_not_nsfw(color, ctx, command).await;
+            error_not_nsfw(ctx, command).await;
             return;
         }
 
@@ -107,7 +105,7 @@ pub async fn embed(
                             m.title(name)
                                 .url(site_url)
                                 .timestamp(Timestamp::now())
-                                .color(color)
+                                .color(COLOR)
                                 .description(desc)
                                 .thumbnail(thumbnail)
                                 .image(banner_image)

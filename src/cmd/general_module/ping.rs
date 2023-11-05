@@ -1,3 +1,4 @@
+use crate::constant::COLOR;
 use crate::structure::embed::general::struct_lang_ping::PingLocalisedText;
 use crate::structure::register::general::struct_ping_register::RegisterLocalisedPing;
 use serenity::builder::CreateApplicationCommand;
@@ -6,7 +7,6 @@ use serenity::client::Context;
 use serenity::model::application::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 
 use crate::structure::struct_shard_manager::ShardManagerContainer;
 
@@ -30,9 +30,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
         None => "?ms".to_string(),
     };
 
-    let color = Colour::FABLED_PINK;
-
-    let localised_text = match PingLocalisedText::get_ping_localised(color, ctx, command).await {
+    let localised_text = match PingLocalisedText::get_ping_localised(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,
     };
@@ -46,7 +44,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
                             // Add a timestamp for the current time
                             // This also accepts a rfc3339 Timestamp
                             .timestamp(Timestamp::now())
-                            .color(color)
+                            .color(COLOR)
                             .description(format!(
                                 "{}{}{}{}{}",
                                 &localised_text.description_part_1,

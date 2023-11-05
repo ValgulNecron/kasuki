@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::{env, fs};
 
+use crate::constant::COLOR;
 use crate::function::error_management::error_base_url::error_no_base_url_edit;
 use crate::function::error_management::error_creating_header::error_creating_header_edit;
 use crate::function::error_management::error_getting_option::error_no_option;
@@ -28,7 +29,6 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 use uuid::Uuid;
 
 pub async fn run(
@@ -36,19 +36,17 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let color = Colour::FABLED_PINK;
-
     let option = match options.get(0) {
         Some(data) => data,
         None => {
-            error_no_option(color, ctx, command).await;
+            error_no_option(ctx, command).await;
             return;
         }
     };
     let option = match option.resolved.as_ref() {
         Some(data) => data,
         None => {
-            error_no_option(color, ctx, command).await;
+            error_no_option(ctx, command).await;
             return;
         }
     };
@@ -57,17 +55,16 @@ pub async fn run(
         let filename = format!("{}.png", uuid_name);
         let filename_str = filename.as_str();
 
-        let localised_text =
-            match ImageLocalisedText::get_image_localised(color, ctx, command).await {
-                Ok(data) => data,
-                Err(_) => return,
-            };
+        let localised_text = match ImageLocalisedText::get_image_localised(ctx, command).await {
+            Ok(data) => data,
+            Err(_) => return,
+        };
         differed_response(ctx, command).await;
 
         let message = match in_progress_embed(ctx, command).await {
             Ok(Some(message_option)) => message_option,
             Ok(None) => {
-                error_resolving_value_followup(color, ctx, command).await;
+                error_resolving_value_followup(ctx, command).await;
                 return;
             }
             Err(error) => {
@@ -84,7 +81,7 @@ pub async fn run(
             Ok(x) => x,
             Err(why) => {
                 println!("{}", why);
-                error_no_token_edit(color, ctx, command, message).await;
+                error_no_token_edit(ctx, command, message).await;
                 return;
             }
         };
@@ -92,7 +89,7 @@ pub async fn run(
             Ok(x) => x,
             Err(why) => {
                 println!("{}", why);
-                error_no_base_url_edit(color, ctx, command, message).await;
+                error_no_base_url_edit(ctx, command, message).await;
                 return;
             }
         };
@@ -104,7 +101,7 @@ pub async fn run(
                     Ok(data) => data,
                     Err(why) => {
                         println!("{}", why);
-                        error_instance_admin_models_edit(color, ctx, command, message).await;
+                        error_instance_admin_models_edit(ctx, command, message).await;
                         return;
                     }
                 };
@@ -141,7 +138,7 @@ pub async fn run(
                 Ok(data) => data,
                 Err(why) => {
                     println!("{}", why);
-                    error_creating_header_edit(color, ctx, command, message).await;
+                    error_creating_header_edit(ctx, command, message).await;
                     return;
                 }
             },
@@ -159,13 +156,13 @@ pub async fn run(
                 Ok(data) => data,
                 Err(why) => {
                     println!("{}", why);
-                    error_parsing_json_edit(color, ctx, message, command).await;
+                    error_parsing_json_edit(ctx, message, command).await;
                     return;
                 }
             },
             Err(why) => {
                 println!("{}", why);
-                error_making_request_edit(color, ctx, command, message).await;
+                error_making_request_edit(ctx, command, message).await;
                 return;
             }
         };
@@ -177,7 +174,7 @@ pub async fn run(
                     url_string = match url.as_str() {
                         Some(url) => url,
                         None => {
-                            error_no_url_edit(color, ctx, command, message).await;
+                            error_no_url_edit(ctx, command, message).await;
                             return;
                         }
                     }
@@ -190,7 +187,7 @@ pub async fn run(
             Ok(data) => data,
             Err(why) => {
                 println!("{}", why);
-                error_getting_response_from_url_edit(color, ctx, command, message).await;
+                error_getting_response_from_url_edit(ctx, command, message).await;
                 return;
             }
         };
@@ -198,7 +195,7 @@ pub async fn run(
             Ok(data) => data,
             Err(why) => {
                 println!("{}", why);
-                error_getting_bytes_response_edit(color, ctx, command, message).await;
+                error_getting_bytes_response_edit(ctx, command, message).await;
                 return;
             }
         };
@@ -206,7 +203,7 @@ pub async fn run(
             Ok(_) => {}
             Err(why) => {
                 println!("{}", why);
-                error_writing_file_response_edit(color, ctx, command, message).await;
+                error_writing_file_response_edit(ctx, command, message).await;
                 return;
             }
         }
@@ -219,7 +216,7 @@ pub async fn run(
                     e.title(&localised_text.title)
                         .image(format!("attachment://{}", filename))
                         .timestamp(Timestamp::now())
-                        .color(color)
+                        .color(COLOR)
                 })
             })
             .await

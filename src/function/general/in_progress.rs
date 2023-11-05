@@ -50,7 +50,7 @@ pub async fn in_progress_embed(
 ) -> Result<Option<Message>, String> {
     let color = Colour::FABLED_PINK;
     let localised_text =
-        match InProgressLocalisedText::get_in_progress_localised(color, ctx, command).await {
+        match InProgressLocalisedText::get_in_progress_localised(ctx, command).await {
             Ok(data) => data,
             Err(data) => return Err(data.parse().unwrap()),
         };

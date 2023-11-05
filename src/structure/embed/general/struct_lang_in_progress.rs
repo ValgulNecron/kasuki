@@ -10,7 +10,6 @@ use crate::function::general::get_guild_langage::get_guild_langage;
 use serde::{Deserialize, Serialize};
 use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
-use serenity::utils::Colour;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct InProgressLocalisedText {
@@ -20,14 +19,13 @@ pub struct InProgressLocalisedText {
 
 impl InProgressLocalisedText {
     pub async fn get_in_progress_localised(
-        color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
     ) -> Result<InProgressLocalisedText, &'static str> {
         let mut file = match File::open("./lang_file/embed/general/in_progress.json") {
             Ok(file) => file,
             Err(_) => {
-                error_langage_file_not_found(color, ctx, command).await;
+                error_langage_file_not_found(ctx, command).await;
                 return Err("not found");
             }
         };
@@ -35,7 +33,7 @@ impl InProgressLocalisedText {
         match file.read_to_string(&mut json) {
             Ok(_) => {}
             Err(_) => {
-                error_cant_read_langage_file(color, ctx, command).await;
+                error_cant_read_langage_file(ctx, command).await;
                 return Err("not found");
             }
         }
@@ -44,7 +42,7 @@ impl InProgressLocalisedText {
         {
             Ok(data) => data,
             Err(_) => {
-                error_parsing_langage_json(color, ctx, command).await;
+                error_parsing_langage_json(ctx, command).await;
                 return Err("not found");
             }
         };
@@ -52,7 +50,7 @@ impl InProgressLocalisedText {
         let guild_id = match command.guild_id {
             Some(id) => id.0.to_string(),
             None => {
-                error_no_langage_guild_id(color, ctx, command).await;
+                error_no_langage_guild_id(ctx, command).await;
                 return Err("not found");
             }
         };
@@ -61,7 +59,7 @@ impl InProgressLocalisedText {
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             Ok(localised_text.clone())
         } else {
-            no_langage_error(color, ctx, command).await;
+            no_langage_error(ctx, command).await;
             Err("not found")
         }
     }

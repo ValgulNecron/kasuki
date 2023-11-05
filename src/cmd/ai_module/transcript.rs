@@ -3,6 +3,7 @@ use std::io::copy;
 use std::path::Path;
 use std::{env, fs};
 
+use crate::constant::COLOR;
 use crate::function::error_management::error_base_url::error_no_base_url_edit;
 use crate::function::error_management::error_file::{error_file_extension, error_file_type};
 use crate::function::error_management::error_request::error_making_request_edit;
@@ -24,7 +25,6 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::Colour;
 use uuid::Uuid;
 
 pub async fn run(
@@ -32,7 +32,6 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let color = Colour::FABLED_PINK;
     let attachement_option;
     if options.get(0).expect("Expected attachement option").name == "video" {
         attachement_option = options
@@ -78,7 +77,7 @@ pub async fn run(
     }
     if let CommandDataOptionValue::Attachment(attachement) = attachement_option {
         let localised_text =
-            match TranscriptLocalisedText::get_transcript_localised(color, ctx, command).await {
+            match TranscriptLocalisedText::get_transcript_localised(ctx, command).await {
                 Ok(data) => data,
                 Err(_) => return,
             };
@@ -86,7 +85,7 @@ pub async fn run(
         let content = attachement.proxy_url.clone();
 
         if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-            error_file_type(color, ctx, command).await;
+            error_file_type(ctx, command).await;
             return;
         }
 
@@ -104,7 +103,7 @@ pub async fn run(
             .to_lowercase();
 
         if !allowed_extensions.contains(&&*file_extension) {
-            error_file_extension(color, ctx, command).await;
+            error_file_extension(ctx, command).await;
             return;
         }
 
@@ -122,7 +121,7 @@ pub async fn run(
         let message = match in_progress_embed(ctx, command).await {
             Ok(Some(message_option)) => message_option,
             Ok(None) => {
-                error_resolving_value_followup(color, ctx, command).await;
+                error_resolving_value_followup(ctx, command).await;
                 return;
             }
             Err(error) => {
@@ -137,14 +136,14 @@ pub async fn run(
         let api_key = match env::var("AI_API_TOKEN") {
             Ok(x) => x,
             Err(_) => {
-                error_no_token_edit(color, ctx, command, message.clone()).await;
+                error_no_token_edit(ctx, command, message.clone()).await;
                 return;
             }
         };
         let api_base_url = match env::var("AI_API_BASE_URL") {
             Ok(x) => x,
             Err(_) => {
-                error_no_base_url_edit(color, ctx, command, message.clone()).await;
+                error_no_base_url_edit(ctx, command, message.clone()).await;
                 return;
             }
         };
@@ -180,7 +179,7 @@ pub async fn run(
             Err(err) => {
                 eprintln!("Error sending the request: {}", err);
                 let _ = fs::remove_file(&file_to_delete);
-                error_making_request_edit(color, ctx, command, message).await;
+                error_making_request_edit(ctx, command, message).await;
                 return;
             }
         };
@@ -191,7 +190,7 @@ pub async fn run(
             Err(err) => {
                 eprintln!("Error parsing response as JSON: {}", err);
                 let _ = fs::remove_file(&file_to_delete);
-                error_making_request_edit(color, ctx, command, message.clone()).await;
+                error_making_request_edit(ctx, command, message.clone()).await;
                 return;
             }
         };
@@ -207,7 +206,7 @@ pub async fn run(
                     e.title(&localised_text.title)
                         .description(text.to_string())
                         .timestamp(Timestamp::now())
-                        .color(color)
+                        .color(COLOR)
                 })
             })
             .await

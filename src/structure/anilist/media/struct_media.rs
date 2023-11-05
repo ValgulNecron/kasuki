@@ -8,7 +8,6 @@ use serde::Deserialize;
 use serde_json::json;
 use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
-use serenity::utils::Colour;
 
 #[derive(Debug, Deserialize)]
 pub struct MediaWrapper {
@@ -110,7 +109,6 @@ pub struct Name {
 impl MediaWrapper {
     pub async fn new_anime_by_id(
         search: String,
-        color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
     ) -> Result<MediaWrapper, String> {
@@ -179,7 +177,7 @@ impl MediaWrapper {
             Ok(data) => Ok(data),
             Err(error) => {
                 println!("Error: {}", error);
-                error_no_anime_specified(color, ctx, command).await;
+                error_no_anime_specified(ctx, command).await;
                 Err("not found".to_string())
             }
         }
@@ -187,7 +185,6 @@ impl MediaWrapper {
 
     pub async fn new_anime_by_search(
         search: &String,
-        color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
     ) -> Result<MediaWrapper, String> {
@@ -255,7 +252,7 @@ impl MediaWrapper {
             Ok(data) => Ok(data),
             Err(error) => {
                 println!("Error: {}", error);
-                error_no_anime_specified(color, ctx, command).await;
+                error_no_anime_specified(ctx, command).await;
                 Err("not found".to_string())
             }
         }
