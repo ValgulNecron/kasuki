@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Utc;
-use log::{debug, error, info, trace};
+use log::{debug, error, info, trace, warn};
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
@@ -38,6 +38,7 @@ use crate::constant::{ACTIVITY_NAME, COLOR};
 use crate::function::error_management::no_lang_error::no_langage_error;
 use crate::function::general::get_guild_langage::get_guild_langage;
 use crate::function::sql::sqlite::pool::get_sqlite_pool;
+use crate::logger::init;
 use crate::structure::anilist::media::struct_autocomplete_media;
 use crate::structure::anilist::user::struct_autocomplete_user;
 use crate::structure::embed::error::ErrorLocalisedText;
@@ -46,6 +47,7 @@ mod available_lang;
 mod cmd;
 mod constant;
 mod function;
+mod logger;
 mod structure;
 mod tests;
 
@@ -255,11 +257,20 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-    info!("starting the bot.");
     // Configure the client with your Discord bot token in the environment.
     let my_path = "./.env";
     let path = std::path::Path::new(my_path);
     let _ = dotenv::from_path(path);
+    let env = env::var("LOG").unwrap_or_else(|_| "info".to_string());
+    let log = env.to_lowercase();
+    match init(log) {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!("{}", e);
+            return;
+        }
+    };
+    info!("starting the bot.");
     let token = match env::var("DISCORD_TOKEN") {
         Ok(token) => {
             debug!("Successfully got the token from env.");
