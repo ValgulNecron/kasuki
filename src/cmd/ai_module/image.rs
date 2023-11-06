@@ -1,3 +1,4 @@
+use log::error;
 use std::path::Path;
 use std::{env, fs};
 
@@ -68,7 +69,7 @@ pub async fn run(
                 return;
             }
             Err(error) => {
-                println!("Error: {}", error);
+                error!("Error: {}", error);
                 return;
             }
         };
@@ -80,7 +81,7 @@ pub async fn run(
         let api_key = match env::var("AI_API_TOKEN") {
             Ok(x) => x,
             Err(why) => {
-                println!("{}", why);
+                error!("{}", why);
                 error_no_token_edit(ctx, command, message).await;
                 return;
             }
@@ -88,7 +89,7 @@ pub async fn run(
         let api_base_url = match env::var("AI_API_BASE_URL") {
             Ok(x) => x,
             Err(why) => {
-                println!("{}", why);
+                error!("{}", why);
                 error_no_base_url_edit(ctx, command, message).await;
                 return;
             }
@@ -100,7 +101,7 @@ pub async fn run(
                 let model = match env::var("IMAGE_GENERATION_MODELS") {
                     Ok(data) => data,
                     Err(why) => {
-                        println!("{}", why);
+                        error!("{}", why);
                         error_instance_admin_models_edit(ctx, command, message).await;
                         return;
                     }
@@ -137,7 +138,7 @@ pub async fn run(
             match HeaderValue::from_str(&format!("Bearer {}", api_key)) {
                 Ok(data) => data,
                 Err(why) => {
-                    println!("{}", why);
+                    error!("{}", why);
                     error_creating_header_edit(ctx, command, message).await;
                     return;
                 }
@@ -161,7 +162,7 @@ pub async fn run(
                 }
             },
             Err(why) => {
-                println!("{}", why);
+                error!("{}", why);
                 error_making_request_edit(ctx, command, message).await;
                 return;
             }
@@ -186,7 +187,7 @@ pub async fn run(
         let response = match reqwest::get(url_string).await {
             Ok(data) => data,
             Err(why) => {
-                println!("{}", why);
+                error!("{}", why);
                 error_getting_response_from_url_edit(ctx, command, message).await;
                 return;
             }
@@ -194,7 +195,7 @@ pub async fn run(
         let bytes = match response.bytes().await {
             Ok(data) => data,
             Err(why) => {
-                println!("{}", why);
+                error!("{}", why);
                 error_getting_bytes_response_edit(ctx, command, message).await;
                 return;
             }
@@ -202,7 +203,7 @@ pub async fn run(
         match fs::write(filename.clone(), &bytes) {
             Ok(_) => {}
             Err(why) => {
-                println!("{}", why);
+                error!("{}", why);
                 error_writing_file_response_edit(ctx, command, message).await;
                 return;
             }
@@ -222,14 +223,20 @@ pub async fn run(
             .await
         {
             let _ = fs::remove_file(filename_str);
-            println!("Cannot respond to slash command: {}", why);
+            error!("Cannot respond to slash command: {}", why);
         }
         let _ = fs::remove_file(filename_str);
     }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    let images = ImageRegister::get_image_register_localised().unwrap();
+    let images = match ImageRegister::get_image_register_localised() {
+        Ok(images) => images,
+        Err(e) => {
+            error!("error when creating images command: {}", e);
+            return command;
+        }
+    };
     let command = command
         .name("image")
         .description("generate an image")

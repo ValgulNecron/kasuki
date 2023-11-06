@@ -25,7 +25,8 @@ dotenv = "0.15.0"
 tide = "0.16.0"
 image = "0.24.7"
 base64 = "0.21.2"
-log = "0.4.20"
+log = { version = "0.4.20", features = ["max_level_trace", "release_max_level_debug"] }
+
 
 [profile.release]
 lto = true

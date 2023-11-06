@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Utc;
-use log::{debug, error, info};
+use log::{debug, error, info, trace};
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
@@ -99,7 +99,7 @@ impl EventHandler for Handler {
         match guild_command {
             Ok(commands) => {
                 for command in commands {
-                    debug!("Command {}, Version {}", command.name, command.version);
+                    trace!("Command {}, Version {}", command.name, command.version);
                 }
             }
             Err(e) => {
