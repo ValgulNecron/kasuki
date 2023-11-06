@@ -35,12 +35,12 @@ impl RegisterLocalisedAvatar {
     /// # Example
     ///
     /// ```
-    /// fn main() {
+    ///
     ///     match get_avatar_register_localised() {
     ///         Ok(data) => println!("Data: {:?}", data),
     ///         Err(e) => println!("An error occurred: {}", e),
     ///     }
-    /// }
+    ///
     /// ```
     ///
     pub fn get_avatar_register_localised() -> Result<RegisterLocalisedAvatarList, &'static str> {

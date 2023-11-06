@@ -1,4 +1,4 @@
-use crate::function::request::request::make_request_anilist;
+use crate::function::requests::request::make_request_anilist;
 use crate::structure::anilist::struct_autocomplete::AutocompleteOption;
 use serde::Deserialize;
 use serde_json::json;

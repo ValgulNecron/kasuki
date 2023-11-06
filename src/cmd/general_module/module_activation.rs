@@ -209,11 +209,11 @@ pub async fn check_activation_status(module: &str, guild_id: String) -> bool {
     .unwrap_or((None, None, None));
 
     let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
-    return match module {
+    match module {
         "ANILIST" => anilist_module.unwrap_or(true),
         "AI" => ai_module.unwrap_or(true),
         _ => false,
-    };
+    }
 }
 
 pub async fn make_sql_request(

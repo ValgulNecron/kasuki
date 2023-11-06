@@ -1,5 +1,5 @@
 use crate::constant::N_A;
-use crate::function::request::request::make_request_anilist;
+use crate::function::requests::request::make_request_anilist;
 use crate::structure::embed::anilist::struct_lang_add_activity::AddActivityLocalisedText;
 use serde::{Deserialize, Serialize};
 use serde_json::json;

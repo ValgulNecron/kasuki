@@ -29,9 +29,9 @@ use std::env;
 
 pub async fn init() {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
-    if db_type == "sqlite".to_string() {
+    if db_type == *"sqlite" {
         init_sqlite().await
-    } else if db_type == "postgresql".to_string() {
+    } else if db_type == *"postgresql" {
     } else {
         init_sqlite().await
     }

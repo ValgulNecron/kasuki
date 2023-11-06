@@ -5,13 +5,13 @@ use reqwest::Client;
 use serde_json::Value;
 
 /// the number of day before the cache is too old and need to be renewed.
-/// Makes a request to AniList.
+/// Makes a requests to AniList.
 ///
 /// This function takes a JSON object and a boolean flag `always_update` as arguments.
 ///
-/// If `always_update` is set to true, it will directly make a new request regardless of the cache.
+/// If `always_update` is set to true, it will directly make a new requests regardless of the cache.
 /// Otherwise, if `always_update` is false, it will first check if a cached response exists for the
-/// given JSON object. If a cached response exists, it will be returned; if not, a new request will
+/// given JSON object. If a cached response exists, it will be returned; if not, a new requests will
 /// be made.
 ///
 /// The result of this function is a JSON response in the form of a String.
@@ -20,8 +20,8 @@ use serde_json::Value;
 ///
 /// # Arguments
 ///
-/// * `json` - A JSON object that represents the request to be sent.
-/// * `always_update` - A boolean flag. If it's true, a new request will be made regardless of the cache.
+/// * `json` - A JSON object that represents the requests to be sent.
+/// * `always_update` - A boolean flag. If it's true, a new requests will be made regardless of the cache.
 ///
 /// # Examples
 ///
@@ -45,25 +45,25 @@ pub async fn make_request_anilist(json: Value, always_update: bool) -> String {
     }
 }
 
-/// Asynchronously retrieves cached request data from a SQLite database.
+/// Asynchronously retrieves cached requests data from a SQLite database.
 ///
 /// This function takes a JSON object (`json`) as input and queries a SQLite database (`./cache.db`)
-/// to try and retrieve any cached request data that matches the input.
+/// to try and retrieve any cached requests data that matches the input.
 ///
-/// If the database does not contain any matching request data, the function executes
-/// an unspecified request operation (`do_request()`) with the given `json` object.
+/// If the database does not contain any matching requests data, the function executes
+/// an unspecified requests operation (`do_request()`) with the given `json` object.
 /// Furthermore, if any cached data hasn't been updated within a specified time period
 /// (calculated as the number of `DAYS` times the number of seconds in a day),
 /// `do_request()` will be executed as well.
 ///
 /// # Arguments
 ///
-/// * `json` - A Serde JSON object representing the request data to be queried in the SQLite database.
+/// * `json` - A Serde JSON object representing the requests data to be queried in the SQLite database.
 ///
 /// # Returns
 ///
-/// * A `String` value representing the response related to the provided request data (i.e., `json`).
-/// This `String` is either directly fetched from the database or is the result of a fresh request.
+/// * A `String` value representing the response related to the provided requests data (i.e., `json`).
+/// This `String` is either directly fetched from the database or is the result of a fresh requests.
 ///
 /// # Errors
 ///
@@ -116,12 +116,12 @@ async fn get_cache(json: Value) -> String {
     }
 }
 
-/// Asynchronous function to add a JSON request and its corresponding response to a cache database.
+/// Asynchronous function to add a JSON requests and its corresponding response to a cache database.
 ///
 /// # Arguments
 ///
-/// * `json` - A Value object representing the JSON request.
-/// * `resp` - A String object containing the response for the JSON request.
+/// * `json` - A Value object representing the JSON requests.
+/// * `resp` - A String object containing the response for the JSON requests.
 ///
 /// # Returns
 ///
@@ -130,9 +130,9 @@ async fn get_cache(json: Value) -> String {
 /// # Database interactions
 ///
 /// * Connects to a SQLite database located at "./cache.db" on the local filesystem.
-/// * Executes an SQL query to insert the JSON request, the response, and a timestamp of the last modification into a table named "request_cache".
-/// * The parameters provided to the SQL query are the JSON request, the response, and the current timestamp.
-/// * In case the table already contains a record with the same JSON request, it will be replaced due to the "REPLACE" keyword.
+/// * Executes an SQL query to insert the JSON requests, the response, and a timestamp of the last modification into a table named "request_cache".
+/// * The parameters provided to the SQL query are the JSON requests, the response, and the current timestamp.
+/// * In case the table already contains a record with the same JSON requests, it will be replaced due to the "REPLACE" keyword.
 ///
 /// # Panics
 ///
@@ -166,12 +166,12 @@ async fn add_cache(json: Value, resp: String) -> bool {
     true
 }
 
-/// This function executes a POST request to a specific URL (https://graphql.anilist.co/).
+/// This function executes a POST requests to a specific URL (https://graphql.anilist.co/).
 ///
 /// # Arguments
 ///
-/// * `json: Value` - The JSON content that acts as the body for the POST request.
-/// This is cloned into the body of the request.
+/// * `json: Value` - The JSON content that acts as the body for the POST requests.
+/// This is cloned into the body of the requests.
 ///
 /// * `always_update: bool` - A boolean flag determining whether the response should be added to the cache.
 /// If `always_update` is false, the response from the server will be added to the cache.
@@ -184,7 +184,7 @@ async fn add_cache(json: Value, resp: String) -> bool {
 ///
 /// # Error Handling
 ///
-/// Note that in case of any error occuring while executing the request or retrieving the response,
+/// Note that in case of any error occuring while executing the requests or retrieving the response,
 /// the function will panic due to the use of `unwrap()`.
 ///
 /// # Usage
@@ -196,7 +196,7 @@ async fn add_cache(json: Value, resp: String) -> bool {
 ///
 /// # Features
 ///
-/// * Uses POST method to send the request.
+/// * Uses POST method to send the requests.
 /// * Adds common headers such as "Content-Type" and "Accept".
 /// * Caches the response if the `always_update` flag is set to false.
 ///

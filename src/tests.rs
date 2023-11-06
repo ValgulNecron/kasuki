@@ -9,7 +9,7 @@ mod tests {
         convert_spoiler, convert_to_discord_markdown,
     };
     use crate::function::general::trim::{trim, trim_webhook};
-    use crate::function::request::request::make_request_anilist;
+    use crate::function::requests::request::make_request_anilist;
     use crate::function::sql::sqlite::pool::get_sqlite_pool;
     use serde_json::json;
     use sqlx::{Pool, Sqlite};

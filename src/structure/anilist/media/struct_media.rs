@@ -1,7 +1,7 @@
 use crate::function::error_management::error_no::error_no_anime_specified;
 use crate::function::general::html_parser::convert_to_discord_markdown;
 use crate::function::general::trim::trim;
-use crate::function::request::request::make_request_anilist;
+use crate::function::requests::request::make_request_anilist;
 use crate::structure::embed::anilist::struct_lang_anime::AnimeLocalisedText;
 use crate::structure::embed::anilist::struct_lang_media::MediaLocalisedText;
 use serde::Deserialize;

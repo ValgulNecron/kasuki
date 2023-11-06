@@ -31,7 +31,7 @@ pub async fn send_embed_message(
                 .interaction_response_data(|message| {
                     message.embed(|m| {
                         m.title(&title)
-                            .description(&desc)
+                            .description(desc)
                             .timestamp(Timestamp::now())
                             .color(COLOR)
                     })

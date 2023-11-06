@@ -24,6 +24,6 @@ pub async fn init_sqlite() {
     init_sqlite_data(&pool).await;
 }
 
-async fn init_sqlite_cache(pool: &Pool<Sqlite>) {}
+async fn init_sqlite_cache(_pool: &Pool<Sqlite>) {}
 
-async fn init_sqlite_data(pool: &Pool<Sqlite>) {}
+async fn init_sqlite_data(_pool: &Pool<Sqlite>) {}

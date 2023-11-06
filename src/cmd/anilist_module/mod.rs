@@ -2,7 +2,7 @@ pub mod add_activity;
 pub mod anime;
 pub mod character;
 pub mod compare;
-pub mod get_activity;
+//pub mod get_activity;
 pub mod get_register_user;
 pub mod level;
 pub mod ln;

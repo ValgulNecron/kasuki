@@ -450,6 +450,6 @@ pub async fn send_deactivated_message(
             println!("Cannot respond to slash command: {}", why);
         }
     } else {
-        no_langage_error(&ctx, &command).await
+        no_langage_error(ctx, command).await
     }
 }

@@ -21,7 +21,7 @@ pub struct LangLocalisedText {
 
 impl LangLocalisedText {
     pub async fn get_ping_localised(
-        color: Colour,
+        _color: Colour,
         ctx: &Context,
         command: &ApplicationCommandInteraction,
     ) -> Result<LangLocalisedText, &'static str> {

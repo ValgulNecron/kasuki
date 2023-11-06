@@ -89,7 +89,7 @@ pub async fn run(
             return;
         }
 
-        let allowed_extensions = vec!["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
+        let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
         let parsed_url = Url::parse(content.as_str()).expect("Failed to parse URL");
         let path_segments = parsed_url
             .path_segments()
@@ -177,7 +177,7 @@ pub async fn run(
         let response = match response_result {
             Ok(res) => res,
             Err(err) => {
-                eprintln!("Error sending the request: {}", err);
+                eprintln!("Error sending the requests: {}", err);
                 let _ = fs::remove_file(&file_to_delete);
                 error_making_request_edit(ctx, command, message).await;
                 return;
