@@ -31,7 +31,6 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use serenity::utils::NsfwLevel;
 use uuid::Uuid;
 
 pub async fn run(
