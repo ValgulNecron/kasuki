@@ -38,7 +38,7 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    if !get_nsfw(command, ctx) {
+    if !get_nsfw(command, ctx).await {
         return;
     }
     let option = match options.get(0) {
