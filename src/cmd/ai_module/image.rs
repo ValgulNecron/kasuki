@@ -17,6 +17,7 @@ use crate::function::error_management::error_response::{
 use crate::function::error_management::error_token::error_no_token_edit;
 use crate::function::error_management::error_url::error_no_url_edit;
 use crate::function::general::differed_response::differed_response;
+use crate::function::general::get_nsfw_channel::get_nsfw;
 use crate::function::general::in_progress::in_progress_embed;
 use crate::structure::embed::ai::struct_lang_image::ImageLocalisedText;
 use crate::structure::register::ai::struct_image_register::ImageRegister;
@@ -30,6 +31,7 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+use serenity::utils::NsfwLevel;
 use uuid::Uuid;
 
 pub async fn run(
@@ -37,6 +39,9 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
+    if !get_nsfw(command, ctx) {
+        return;
+    }
     let option = match options.get(0) {
         Some(data) => data,
         None => {
