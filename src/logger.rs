@@ -1,4 +1,3 @@
-use lazy_static::lazy_static;
 use log::{Level, Metadata, Record};
 use log::{LevelFilter, SetLoggerError};
 
@@ -19,7 +18,7 @@ struct SimpleLogger;
 
 impl log::Log for SimpleLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
-        metadata.level() <= Level::Debug
+        metadata.level() <= Level::Warn || metadata.target().starts_with("kasuki")
     }
 
     fn log(&self, record: &Record) {

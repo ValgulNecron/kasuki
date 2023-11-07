@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Utc;
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, info, set_max_level, trace, warn, LevelFilter, Log};
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
