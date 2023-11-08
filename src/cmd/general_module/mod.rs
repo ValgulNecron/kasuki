@@ -1,4 +1,9 @@
-pub mod cmd;
-pub mod function;
+pub mod avatar;
+pub mod banner;
+pub mod credit;
+pub mod info;
+pub mod lang;
 pub mod lang_struct;
-pub mod structs;
+pub mod module_activation;
+pub mod ping;
+pub mod profile;

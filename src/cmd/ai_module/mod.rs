@@ -1,1 +1,3 @@
-pub mod cmd;
+pub mod image;
+pub mod transcript;
+pub mod translation;

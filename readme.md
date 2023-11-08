@@ -1,5 +1,9 @@
 [![Build & Publish Release Docker Image](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-release.yml/badge.svg?branch=master)](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-release.yml)
 [![Build & Publish Release Dev Image](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-dev.yml/badge.svg?branch=dev)](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-dev.yml)
+[![Rust Clippy](https://github.com/ValgulNecron/kasuki/actions/workflows/linting.yml/badge.svg?branch=master)](https://github.com/ValgulNecron/kasuki/actions/workflows/linting.yml)
+[![Rust Testing](https://github.com/ValgulNecron/kasuki/actions/workflows/testing.yml/badge.svg)](https://github.com/ValgulNecron/kasuki/actions/workflows/testing.yml)
+![Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/master?style=plastic)
+
 # TODO
 
 
@@ -10,6 +14,8 @@
   - [ ] Clean the code. — It will never be done.
   - [X] Find a name for the bot. — Found one kasuki. if you have any better, don't hesitate to recommend.
   - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db. (change to PostgreSQL)
+    — will add a var variable that will either be "sqlite" or "postgresql" with a url var for PostgreSQL 
+    — will need to do some change and move db logic to it's own funtion.
   - [X] Banner. Show your or a specified user banner. — Done.
   - [X] Profil. Show a user profile and some info. — Done.
   - [ ] Avatar. show you the profile picture of a user. — In progress
@@ -79,6 +85,11 @@
 
 - Moderation submodule:
     - [ ] General moderation stuff
+
+- Games module:
+    - [ ] get game price from different platform (ubi, steam, epic, ea, etc....)
+    - [ ] get player stat
+    - [ ] get free promotion notification
 
 ## Website
 
@@ -205,7 +216,7 @@ cargo run --release
 - Thanks Srayeals for the badge I use as the bot
   pfp. ([https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))
 - Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
-  anymore.)
+  anymore. (and now it seems to work again.))
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
   idea.
 - [https://github.com/Skittyblock/AniBot](https://github.com/Skittyblock/AniBot) For auto-complete on command, did not
@@ -215,5 +226,3 @@ cargo run --release
 
 
 ![kasuki](https://counter.valgul.moe/get/@kasuki?theme=gelbooru)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/987dc84319a24235a346a662ca9045c1)](https://app.codacy.com/gh/ValgulNecron/kasuki/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-![Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/master?style=plastic)

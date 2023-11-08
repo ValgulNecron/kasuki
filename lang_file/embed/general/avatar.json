@@ -1,0 +1,22 @@
+{
+  "En": {
+    "title": "Here's the avatar of ",
+    "no_banner_title": "No avatar",
+    "error_no_user": "Error getting user"
+  },
+  "Fr": {
+    "title": "Voici l'avatar de ",
+    "no_banner_title": "Pas d'avatar",
+    "error_no_user": "Erreur lors de l'obtention de l'utilisateur"
+  },
+  "De": {
+    "title": "Hier ist das Avatar von ",
+    "no_banner_title": "Kein Avatar",
+    "error_no_user": "Fehler beim Abrufen des Benutzers"
+  },
+  "Jp": {
+    "title": "こちらがのアバターです ",
+    "no_banner_title": "アバターなし",
+    "error_no_user": "ユーザーの取得エラー"
+  }
+}

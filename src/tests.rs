@@ -2,18 +2,17 @@
 mod tests {
     use std::any::{Any, TypeId};
 
-    use serde_json::json;
-    use sqlx::{Pool, Sqlite};
-
-    use crate::cmd::general_module::function::get_guild_langage::get_guild_langage;
-    use crate::cmd::general_module::function::html_parser::{
+    use crate::function::general::get_guild_langage::get_guild_langage;
+    use crate::function::general::html_parser::{
         add_anti_slash, convert_bold, convert_html_entity_to_real_char,
         convert_html_line_break_to_line_break, convert_italic, convert_link_to_discord_markdown,
         convert_spoiler, convert_to_discord_markdown,
     };
-    use crate::cmd::general_module::function::pool::get_pool;
-    use crate::cmd::general_module::function::request::make_request_anilist;
-    use crate::cmd::general_module::function::trim::{trim, trim_webhook};
+    use crate::function::general::trim::{trim, trim_webhook};
+    use crate::function::requests::request::make_request_anilist;
+    use crate::function::sql::sqlite::pool::get_sqlite_pool;
+    use serde_json::json;
+    use sqlx::{Pool, Sqlite};
 
     #[test]
     fn test_parser_mdash() {
@@ -112,7 +111,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_pool() {
-        let pool = get_pool("./cache.db").await;
+        let pool = get_sqlite_pool("./cache.db").await;
         assert_eq!(TypeId::of::<Pool<Sqlite>>(), pool.type_id());
     }
 

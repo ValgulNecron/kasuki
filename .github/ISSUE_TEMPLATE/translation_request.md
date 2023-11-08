@@ -1,5 +1,5 @@
 ---
-name: Translation request
+name: Translation requests
 about: Ask for a translation in a specific langage
 title: ''
 labels: 'translation'
