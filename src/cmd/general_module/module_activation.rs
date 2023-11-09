@@ -1,6 +1,6 @@
 use crate::constant::COLOR;
 use crate::function::error_management::error_module::error_no_module;
-use crate::function::sql::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use crate::structure::embed::general::struct_lang_module_activation::ModuleLocalisedText;
 use crate::structure::register::general::struct_modules_register::RegisterLocalisedModule;
 use serenity::builder::CreateApplicationCommand;

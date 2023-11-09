@@ -5,7 +5,7 @@ use crate::function::error_management::error_no::error_no_anime_specified;
 use crate::function::error_management::no_lang_error::error_no_langage_guild_id;
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::trim::trim_webhook;
-use crate::function::sql::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use crate::structure::anilist::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::structure::embed::anilist::struct_lang_add_activity::AddActivityLocalisedText;
 use crate::structure::register::anilist::struct_add_activity_register::RegisterLocalisedAddActivity;

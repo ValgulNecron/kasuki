@@ -10,7 +10,7 @@ mod tests {
     };
     use crate::function::general::trim::{trim, trim_webhook};
     use crate::function::requests::request::make_request_anilist;
-    use crate::function::sql::sqlite::pool::get_sqlite_pool;
+    use crate::function::sqls::sqlite::pool::get_sqlite_pool;
     use serde_json::json;
     use sqlx::{Pool, Sqlite};
 

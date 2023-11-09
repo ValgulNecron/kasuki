@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Utc;
-use log::{debug, error, info, set_max_level, trace, warn, LevelFilter, Log};
+use log::{debug, error, info, trace, Log};
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
@@ -37,7 +37,7 @@ use crate::cmd::general_module::{
 use crate::constant::{ACTIVITY_NAME, COLOR};
 use crate::function::error_management::no_lang_error::no_langage_error;
 use crate::function::general::get_guild_langage::get_guild_langage;
-use crate::function::sql::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use crate::logger::init;
 use crate::structure::anilist::media::struct_autocomplete_media;
 use crate::structure::anilist::user::struct_autocomplete_user;

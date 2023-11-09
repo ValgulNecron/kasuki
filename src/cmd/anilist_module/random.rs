@@ -10,7 +10,7 @@ use crate::function::error_management::no_lang_error::{
 };
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::get_guild_langage::get_guild_langage;
-use crate::function::sql::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use crate::structure::anilist::random::struct_random::PageWrapper;
 use crate::structure::anilist::random::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::structure::anilist::random::struct_site_statistic_manga::SiteStatisticsMangaWrapper;

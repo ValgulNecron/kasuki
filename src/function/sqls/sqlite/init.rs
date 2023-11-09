@@ -1,4 +1,4 @@
-use crate::function::sql::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use sqlx::{Pool, Sqlite};
 use std::fs::File;
 use std::path::Path;

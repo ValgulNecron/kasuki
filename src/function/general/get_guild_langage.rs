@@ -1,4 +1,4 @@
-use crate::function::sql::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 
 /// Asynchronously fetches the language of a given guild from the database.
 ///
