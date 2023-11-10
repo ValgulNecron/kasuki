@@ -5,45 +5,45 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct NextAiringEpisode {
+struct NextAiringEpisode {
     #[serde(rename = "airingAt")]
     pub airing_at: Option<i64>,
     #[serde(rename = "timeUntilAiring")]
-    pub time_until_airing: Option<i64>,
-    pub episode: Option<i32>,
+    time_until_airing: Option<i64>,
+    episode: Option<i32>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Title {
-    pub romaji: Option<String>,
-    pub english: Option<String>,
+struct Title {
+    romaji: Option<String>,
+    english: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct MinimalAnime {
-    pub id: i32,
-    pub title: Option<Title>,
+struct MinimalAnime {
+    id: i32,
+    title: Option<Title>,
     #[serde(rename = "nextAiringEpisode")]
-    pub next_airing_episode: Option<NextAiringEpisode>,
+    next_airing_episode: Option<NextAiringEpisode>,
     #[serde(rename = "coverImage")]
-    pub cover_image: Option<CoverImage>,
+    cover_image: Option<CoverImage>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MinimalAnimeWrapper {
-    pub data: MinimalAnimeData,
+    data: MinimalAnimeData,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct MinimalAnimeData {
+struct MinimalAnimeData {
     #[serde(rename = "Media")]
-    pub media: MinimalAnime,
+    media: MinimalAnime,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct CoverImage {
+struct CoverImage {
     #[serde(rename = "extraLarge")]
-    pub extra_large: Option<String>,
+    extra_large: Option<String>,
 }
 
 impl MinimalAnimeWrapper {
@@ -82,7 +82,7 @@ impl MinimalAnimeWrapper {
         }
     }
 
-    pub async fn new_minimal_anime_by_id_no_error(search: String) -> MinimalAnimeWrapper {
+    pub async fn new_minimal_anime_by_search_no_error(search: String) -> MinimalAnimeWrapper {
         let query = "
             query ($name: Int) {
               Media(type: ANIME, search: $name) {
