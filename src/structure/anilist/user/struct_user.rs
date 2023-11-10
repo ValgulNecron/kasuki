@@ -1,3 +1,4 @@
+use crate::constant::N_A;
 use crate::function::requests::request::make_request_anilist;
 use crate::structure::embed::anilist::struct_lang_user::UserLocalisedText;
 use serde::Deserialize;
@@ -93,19 +94,13 @@ pub struct Genre {
 }
 
 impl UserWrapper {
-    pub fn get_one_anime_genre(&self, i: usize) -> String {
-        if let Some(genre) = self
-            .data
-            .user
-            .statistics
-            .anime
-            .genres
-            .get(i)
-            .and_then(|g| g.genre.as_ref())
-        {
-            genre.clone()
-        } else {
-            "N/A".to_string()
+    pub fn get_one_anime_genre(&self, i: usize) -> &str {
+        match &self.data.user.statistics.anime.genres.get(i) {
+            Some(a) => match &a.genre {
+                Some(b) => b.as_str(),
+                None => N_A,
+            },
+            None => N_A,
         }
     }
 
@@ -120,19 +115,13 @@ impl UserWrapper {
         anime_genre
     }
 
-    pub fn get_one_anime_tag(&self, i: usize) -> String {
-        if let Some(tag) = self
-            .data
-            .user
-            .statistics
-            .anime
-            .tags
-            .get(i)
-            .and_then(|g| g.tag.name.as_ref())
-        {
-            tag.clone()
-        } else {
-            "N/A".to_string()
+    pub fn get_one_anime_tag(&self, i: usize) -> &str {
+        match &self.data.user.statistics.anime.tags.get(i) {
+            Some(a) => match &a.tag.name {
+                Some(b) => b.as_str(),
+                None => N_A,
+            },
+            None => N_A,
         }
     }
 
@@ -173,17 +162,25 @@ impl UserWrapper {
             days %= 7;
         }
 
-        format!(
-            "{}{}{}{}{}{}{}{}",
-            week,
-            &localised_text.week,
-            days,
-            &localised_text.day,
-            hour,
-            &localised_text.hour,
-            min,
-            &localised_text.minute
-        )
+        let mut data: String = String::new();
+
+        if week > 0 {
+            data.push_str(format!("{}{}", week, &localised_text.week).as_str())
+        }
+
+        if days > 0 {
+            data.push_str(format!("{}{}", days, &localised_text.day).as_str())
+        }
+
+        if hour > 0 {
+            data.push_str(format!("{}{}", hour, &localised_text.hour).as_str())
+        }
+
+        if min > 0 {
+            data.push_str(format!("{}{}", min, &localised_text.minute).as_str())
+        }
+
+        data
     }
 
     pub fn get_anime_count(&self) -> i32 {
@@ -215,32 +212,23 @@ impl UserWrapper {
     }
 
     pub fn get_color(&self) -> Colour {
-        let mut _color = Colour::FABLED_PINK;
-        match self
-            .data
-            .user
-            .options
-            .profile_color
-            .clone()
-            .unwrap_or_else(|| "#FF00FF".to_string())
-            .as_str()
-        {
-            "blue" => _color = Colour::BLUE,
-            "purple" => _color = Colour::PURPLE,
-            "pink" => _color = Colour::MEIBE_PINK,
-            "orange" => _color = Colour::ORANGE,
-            "red" => _color = Colour::RED,
-            "green" => _color = Colour::DARK_GREEN,
-            "gray" => _color = Colour::LIGHT_GREY,
-            _ => {
-                _color = {
+        match &self.data.user.options.profile_color {
+            Some(a) => match a.as_str() {
+                "blue" => Colour::BLUE,
+                "purple" => Colour::PURPLE,
+                "pink" => Colour::MEIBE_PINK,
+                "orange" => Colour::ORANGE,
+                "red" => Colour::RED,
+                "green" => Colour::DARK_GREEN,
+                "gray" => Colour::LIGHT_GREY,
+                _ => {
                     let hex_code = "#0D966D";
                     let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
                     Colour::new(color_code)
                 }
-            }
+            },
+            None => Colour::FABLED_PINK,
         }
-        _color
     }
 
     pub fn get_username(&self) -> String {
