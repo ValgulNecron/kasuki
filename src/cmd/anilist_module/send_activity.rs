@@ -83,8 +83,8 @@ pub async fn update_info(row: ActivityData, guild_id: String) {
     sleep(Duration::from_secs(30 * 60));
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id_no_error(match &row.anime_id {
         Some(anime_id) => match anime_id.parse() {
-            Some(id) => id,
-            None => 0,
+            Ok(id) => id,
+            Err(_) => 0,
         },
         None => 0,
     })
