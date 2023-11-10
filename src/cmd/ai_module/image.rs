@@ -7,6 +7,7 @@ use crate::function::error_management::error_base_url::error_no_base_url_edit;
 use crate::function::error_management::error_creating_header::error_creating_header_edit;
 use crate::function::error_management::error_getting_option::error_no_option;
 use crate::function::error_management::error_instance_admin::error_instance_admin_models_edit;
+use crate::function::error_management::error_not_nsfw::error_not_nsfw;
 use crate::function::error_management::error_parsing_json::error_parsing_json_edit;
 use crate::function::error_management::error_request::error_making_request_edit;
 use crate::function::error_management::error_resolving_value::error_resolving_value_followup;
@@ -38,8 +39,25 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    if !get_nsfw(command, ctx).await {
-        return;
+    let my_path = "./.env";
+    let path = Path::new(my_path);
+    let _ = dotenv::from_path(path);
+    let nsfw_env = env::var("NSFW");
+    match nsfw_env {
+        Ok(nsfw) => {
+            let is_ok = nsfw.to_lowercase() == "true";
+            if !get_nsfw(command, ctx).await && is_ok {
+                error_not_nsfw(ctx, command).await;
+                return;
+            }
+        }
+        Err(e) => {
+            error!("{}", e);
+            if !get_nsfw(command, ctx).await {
+                error_not_nsfw(ctx, command).await;
+                return;
+            }
+        }
     }
     let option = match options.get(0) {
         Some(data) => data,
@@ -78,9 +96,6 @@ pub async fn run(
             }
         };
 
-        let my_path = "./.env";
-        let path = Path::new(my_path);
-        let _ = dotenv::from_path(path);
         let prompt = description;
         let api_key = match env::var("AI_API_TOKEN") {
             Ok(x) => x,
@@ -98,7 +113,12 @@ pub async fn run(
                 return;
             }
         };
-        let data;
+        let mut data = json!({
+            "prompt": prompt,
+            "n": 1,
+            "size": "1024x1024",
+            "response_format": "url"
+        });
         if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
             let is_ok = image_generation_mode.to_lowercase() == "true";
             if is_ok {
@@ -117,21 +137,7 @@ pub async fn run(
                     "model": model,
                    "response_format": "url"
                 })
-            } else {
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": "1024x1024",
-                    "response_format": "url"
-                })
             }
-        } else {
-            data = json!({
-                "prompt": prompt,
-                "n": 1,
-                "size": "1024x1024",
-                "response_format": "url"
-            })
         }
         let api_url = format!("{}images/generations", api_base_url);
         let client = reqwest::Client::new();

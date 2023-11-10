@@ -270,6 +270,10 @@ async fn main() {
             return;
         }
     };
+
+    let nsfw_env = env::var("NSFW");
+    println!("{:?}", nsfw_env);
+
     info!("starting the bot.");
     let token = match env::var("DISCORD_TOKEN") {
         Ok(token) => {

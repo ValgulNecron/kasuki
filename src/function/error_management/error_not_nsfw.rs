@@ -11,7 +11,7 @@ pub async fn error_not_nsfw(ctx: &Context, command: &ApplicationCommandInteracti
         ctx,
         command,
         localised_text.error_title.clone(),
-        localised_text.forgot_module.as_str(),
+        localised_text.error_not_nsfw.as_str(),
     )
     .await
 }
