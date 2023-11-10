@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Utc;
-use log::{debug, error, info, trace, Log};
+use log::{debug, error, info, trace};
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
@@ -261,7 +261,7 @@ async fn main() {
     let my_path = "./.env";
     let path = std::path::Path::new(my_path);
     let _ = dotenv::from_path(path);
-    let env = env::var("LOG").unwrap_or_else(|_| "info".to_string());
+    let env = env::var("LOG").unwrap_or("info".to_string());
     let log = env.to_lowercase();
     match init(log) {
         Ok(_) => {}

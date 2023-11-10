@@ -154,36 +154,34 @@ impl MinimalAnimeWrapper {
         format!("{} / {}", self.get_en_title(), self.get_rj_title())
     }
 
-    pub fn get_en_title(&self) -> String {
-        self.data
-            .media
-            .title
-            .clone()
-            .unwrap()
-            .english
-            .clone()
-            .unwrap_or(N_A.to_string())
+    pub fn get_en_title(&self) -> &str {
+        match &self.data.media.title {
+            Some(a) => match &a.english {
+                Some(b) => b.as_str(),
+                None => N_A,
+            },
+            None => N_A,
+        }
     }
 
-    pub fn get_rj_title(&self) -> String {
-        self.data
-            .media
-            .title
-            .clone()
-            .unwrap()
-            .romaji
-            .clone()
-            .unwrap_or(N_A.to_string())
+    pub fn get_rj_title(&self) -> &str {
+        match &self.data.media.title {
+            Some(a) => match &a.romaji {
+                Some(b) => b.as_str(),
+                None => N_A,
+            },
+            None => N_A,
+        }
     }
 
     pub fn get_episode(&self) -> i32 {
-        self.data
-            .media
-            .next_airing_episode
-            .clone()
-            .unwrap()
-            .episode
-            .unwrap()
+        match &self.data.media.next_airing_episode {
+            Some(a) => match &a.episode {
+                Some(b) => b.as_str(),
+                None => 0,
+            },
+            None => 0,
+        }
     }
 
     pub fn get_image(&self) -> String {

@@ -78,10 +78,10 @@ mod tests {
     #[test]
     fn test_trim_less() {
         let desc = "In the serene forest, the rustling leaves and chirping birds created a peaceful melody. The sun gently kissed the earth, painting the sky with hues of orange and pink, as nature embraced its tranquil symphony.".to_string();
-        let lenght_diff = 4096 - desc.len() as i32;
+        let length_diff = 4096 - desc.len() as i32;
         let result_len;
-        if lenght_diff <= 0 {
-            result_len = trim(desc, lenght_diff).len()
+        if length_diff <= 0 {
+            result_len = trim(desc, length_diff).len()
         } else {
             result_len = desc.len();
         }
@@ -91,10 +91,10 @@ mod tests {
     #[test]
     fn test_trim_more() {
         let desc = "In the serene forest, the rustling leaves and chirping birds created a peaceful melody. The sun gently kissed the earth, painting the sky with hues of orange and pink, as nature embraced its tranquil symphony. The fragrance of wildflowers filled the air, and a gentle breeze caressed the leaves, carrying the whispers of the ancient trees. As the day unfolded, the forest awakened with life. Squirrels darted through the branches, and deer gracefully danced in the clearings. The harmonious chorus of crickets and cicadas added to the symphony of nature, captivating all who listened. Beyond the forest's edge, a meandering river sparkled under the warm rays of the sun. Dragonflies flitted over the water, while fish swam gracefully beneath the surface. The river's gentle flow seemed to echo the rhythm of the forest, blending in perfect harmony. As the evening approached, the forest transformed into a magical realm. Fireflies emerged, their ethereal glow illuminating the darkening woods. The stars appeared one by one, painting the night sky with their celestial beauty.  In this enchanted world, time seemed to slow down, and worries faded away. The forest was a sanctuary of tranquility, a place where one could connect with the essence of life itself. It reminded all who wandered through its depths of the profound interconnectedness of all living beings. Under the moon's gentle gaze, the forest exuded an aura of mystery and wonder. Legends whispered in the wind, tales of ancient spirits and mystical creatures. Each rustle of leaves seemed to carry a secret, inviting the curious to explore the unknown. The forest's embrace was a balm for the soul, a source of solace and inspiration. It reminded humanity of its humble place in the grand tapestry of the universe, urging reverence for the natural world. As night turned to dawn, the forest prepared for a new day. The first rays of sunlight gently filtered through the canopy, casting a soft glow on the forest floor. Creatures big and small stirred from their slumber, greeting the dawn with anticipation. And so, the timeless dance of life continued, day after day, season after season. The serene forest remained an eternal witness to the ever-changing cycle of existence, a sanctuary of beauty and wisdom for all who sought its embrace. In the serene forest, the rustling leaves and chirping birds created a peaceful melody. The sun gently kissed the earth, painting the sky with hues of orange and pink, as nature embraced its tranquil symphony. The fragrance of wildflowers filled the air, and a gentle breeze caressed the leaves, carrying the whispers of the ancient trees. As the day unfolded, the forest awakened with life. Squirrels darted through the branches, and deer gracefully danced in the clearings. The harmonious chorus of crickets and cicadas added to the symphony of nature, captivating all who listened. Beyond the forest's edge, a meandering river sparkled under the warm rays of the sun. Dragonflies flitted over the water, while fish swam gracefully beneath the surface. The river's gentle flow seemed to echo the rhythm of the forest, blending in perfect harmony. As the evening approached, the forest transformed into a magical realm. Fireflies emerged, their ethereal glow illuminating the darkening woods. The stars appeared one by one, painting the night sky with their celestial beauty.  In this enchanted world, time seemed to slow down, and worries faded away. The forest was a sanctuary of tranquility, a place where one could connect with the essence of life itself. It reminded all who wandered through its depths of the profound interconnectedness of all living beings. Under the moon's gentle gaze, the forest exuded an aura of mystery and wonder. Legends whispered in the wind, tales of ancient spirits and mystical creatures. Each rustle of leaves seemed to carry a secret, inviting the curious to explore the unknown. The forest's embrace was a balm for the soul, a source of solace and inspiration. It reminded humanity of its humble place in the grand tapestry of the universe, urging reverence for the natural world. As night turned to dawn, the forest prepared for a new day. The first rays of sunlight gently filtered through the canopy, casting a soft glow on the forest floor. Creatures big and small stirred from their slumber, greeting the dawn with anticipation. And so, the timeless dance of life continued, day after day, season after season. The serene forest remained an eternal witness to the ever-changing cycle of existence, a sanctuary of beauty and wisdom for all who sought its embrace.".to_string();
-        let lenght_diff = 4096 - desc.len() as i32;
+        let length_diff = 4096 - desc.len() as i32;
         let result_len;
-        if lenght_diff <= 0 {
-            result_len = trim(desc, lenght_diff).len()
+        if length_diff <= 0 {
+            result_len = trim(desc, length_diff).len()
         } else {
             result_len = desc.len();
         }
@@ -131,10 +131,10 @@ mod tests {
     #[test]
     fn trim_webhook_more() {
         let desc = "In the serene forest, the rustling leaves and chirping birds created a peaceful melody. The sun gently kissed the earth, painting the sky with hues of orange and pink, as nature embraced its tranquil symphony.".to_string();
-        let lenght_diff = 50 - desc.len() as i32;
+        let length_diff = 50 - desc.len() as i32;
         let result_len;
-        if lenght_diff <= 0 {
-            result_len = trim_webhook(desc, lenght_diff).len()
+        if length_diff <= 0 {
+            result_len = trim_webhook(desc, length_diff).len()
         } else {
             result_len = desc.len();
         }
@@ -144,10 +144,10 @@ mod tests {
     #[test]
     fn trim_webhook_less() {
         let desc = "The cat purred contentedly on my lap.".to_string();
-        let lenght_diff = 50 - desc.len() as i32;
+        let length_diff = 50 - desc.len() as i32;
         let result_len;
-        if lenght_diff <= 0 {
-            result_len = trim_webhook(desc, lenght_diff).len()
+        if length_diff <= 0 {
+            result_len = trim_webhook(desc, length_diff).len()
         } else {
             result_len = desc.len();
         }
