@@ -156,8 +156,8 @@ impl MinimalAnimeWrapper {
 
     pub fn get_en_title(&self) -> &str {
         match &self.data.media.title {
-            Some(a) => match &a.english {
-                Some(b) => b.as_str(),
+            Some(title) => match &title.english {
+                Some(english) => english.as_str(),
                 None => N_A,
             },
             None => N_A,
@@ -166,8 +166,8 @@ impl MinimalAnimeWrapper {
 
     pub fn get_rj_title(&self) -> &str {
         match &self.data.media.title {
-            Some(a) => match &a.romaji {
-                Some(b) => b.as_str(),
+            Some(title) => match &title.romaji {
+                Some(romaji) => romaji.as_str(),
                 None => N_A,
             },
             None => N_A,
@@ -176,8 +176,8 @@ impl MinimalAnimeWrapper {
 
     pub fn get_episode(&self) -> i32 {
         match &self.data.media.next_airing_episode {
-            Some(a) => match &a.episode {
-                Some(b) => b.clone(),
+            Some(next_airing_episode) => match &next_airing_episode.episode {
+                Some(episode) => episode.clone(),
                 None => 0,
             },
             None => 0,
@@ -186,8 +186,8 @@ impl MinimalAnimeWrapper {
 
     pub fn get_image(&self) -> &str {
         match &self.data.media.cover_image {
-            Some(a) => match &a.extra_large {
-                Some(b) => &b.as_str(),
+            Some(cover_image) => match &cover_image.extra_large {
+                Some(extra_large) => &extra_large.as_str(),
                 None => N_A,
             },
             None => N_A,
