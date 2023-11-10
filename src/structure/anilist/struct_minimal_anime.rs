@@ -82,7 +82,7 @@ impl MinimalAnimeWrapper {
         }
     }
 
-    pub async fn new_minimal_anime_by_search_no_error(search: String) -> MinimalAnimeWrapper {
+    pub async fn new_minimal_anime_by_id_no_error(id: i32) -> MinimalAnimeWrapper {
         let query = "
             query ($name: Int) {
               Media(type: ANIME, search: $name) {

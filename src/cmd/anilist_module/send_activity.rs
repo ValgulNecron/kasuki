@@ -81,8 +81,14 @@ pub async fn update_info(row: ActivityData, guild_id: String) {
     let database_url = "./data.db";
     let pool = get_sqlite_pool(database_url).await;
     sleep(Duration::from_secs(30 * 60));
-    let data =
-        MinimalAnimeWrapper::new_minimal_anime_by_id_no_error(row.anime_id.clone().unwrap()).await;
+    let data = MinimalAnimeWrapper::new_minimal_anime_by_id_no_error(match &row.anime_id {
+        Some(anime_id) => match anime_id.parse() {
+            Some(id) => id,
+            None => 0,
+        },
+        None => 0,
+    })
+    .await;
     sqlx::query(
         "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays) VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
