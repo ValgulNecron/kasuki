@@ -96,8 +96,8 @@ pub struct Genre {
 impl UserWrapper {
     pub fn get_one_anime_genre(&self, i: usize) -> &str {
         match &self.data.user.statistics.anime.genres.get(i) {
-            Some(a) => match &a.genre {
-                Some(b) => b.as_str(),
+            Some(genres) => match &genres.genre {
+                Some(genre) => genre.as_str(),
                 None => N_A,
             },
             None => N_A,
@@ -117,8 +117,8 @@ impl UserWrapper {
 
     pub fn get_one_anime_tag(&self, i: usize) -> &str {
         match &self.data.user.statistics.anime.tags.get(i) {
-            Some(a) => match &a.tag.name {
-                Some(b) => b.as_str(),
+            Some(tags) => match &tags.tag.name {
+                Some(tag_name) => tag_name.as_str(),
                 None => N_A,
             },
             None => N_A,
@@ -204,7 +204,7 @@ impl UserWrapper {
         let anime_statuses = &self.data.user.statistics.anime.statuses;
         let mut anime_completed = 0;
         for i in anime_statuses {
-            if i.status == *"COMPLETED" {
+            if i.status.as_str() == "COMPLETED" {
                 anime_completed = i.count;
             }
         }
@@ -231,37 +231,37 @@ impl UserWrapper {
         }
     }
 
-    pub fn get_username(&self) -> String {
-        self.data
-            .user
-            .name
-            .clone()
-            .unwrap_or_else(|| "N/A".to_string())
+    pub fn get_username(&self) -> &str {
+        match &self.data.user.name {
+            Some(user_name) => user_name.as_str(),
+            None => N_A,
+        }
     }
 
-    pub fn get_pfp(&self) -> String {
-        self.data.user.avatar.large.clone().unwrap_or_else(||
-            "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
-                .to_string())
+    pub fn get_pfp(&self) -> &str {
+        match &self.data.user.avatar.large{
+            Some(user_avatar_large) => user_avatar_large.as_str(),
+            None => "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+        }
     }
 
     pub fn get_banner(&self) -> String {
-        format!("https://img.anili.st/user/{}", self.data.user.id.unwrap())
+        format!(
+            "https://img.anili.st/user/{}",
+            match &self.data.user.id {
+                Some(user_id) => user_id,
+                None => &-1,
+            }
+        )
     }
 
-    pub fn get_one_manga_genre(&self, i: usize) -> String {
-        if let Some(genre) = self
-            .data
-            .user
-            .statistics
-            .manga
-            .genres
-            .get(i)
-            .and_then(|g| g.genre.as_ref())
-        {
-            genre.clone()
-        } else {
-            "N/A".to_string()
+    pub fn get_one_manga_genre(&self, i: usize) -> &str {
+        match &self.data.user.statistics.manga.genres.get(i) {
+            Some(genres) => match &genres.genre {
+                Some(genre) => genre.as_str(),
+                None => N_A,
+            },
+            None => N_A,
         }
     }
 
@@ -276,19 +276,13 @@ impl UserWrapper {
         manga_genre
     }
 
-    pub fn get_one_manga_tag(&self, i: usize) -> String {
-        if let Some(tag) = self
-            .data
-            .user
-            .statistics
-            .manga
-            .tags
-            .get(i)
-            .and_then(|g| g.tag.name.as_ref())
-        {
-            tag.clone()
-        } else {
-            "N/A".to_string()
+    pub fn get_one_manga_tag(&self, i: usize) -> &str {
+        match &self.data.user.statistics.manga.tags.get(i) {
+            Some(tags) => match &tags.tag.name {
+                Some(tag_name) => tag_name.as_str(),
+                None => N_A,
+            },
+            None => N_A,
         }
     }
 
