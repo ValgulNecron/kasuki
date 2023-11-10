@@ -350,17 +350,17 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
     pub fn get_birth(&self) -> String {
         let mut date = String::new();
         match &self.data.staff.date_of_birth.month {
-            Some(month) => date.push_str(month.as_str()),
-            None => date.push_str("Unknown month"),
+            Some(month) => date.push_str(format!("{}/", month).as_str()),
+            None => date.push_str("Unknown mont/"),
         }
 
         match &self.data.staff.date_of_birth.day {
-            Some(day) => date.push_str(day.as_str()),
-            None => date.push_str("Unknown day"),
+            Some(day) => date.push_str(format!("{}/", day).as_str()),
+            None => date.push_str("Unknown day/"),
         }
 
         match &self.data.staff.date_of_birth.year {
-            Some(year) => date.push_str(year.as_str()),
+            Some(year) => date.push_str(format!("{}", year).as_str()),
             None => date.push_str("Unknown year"),
         }
 
@@ -370,17 +370,17 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
     pub fn get_death(&self) -> String {
         let mut date = String::new();
         match &self.data.staff.date_of_death.month {
-            Some(month) => date.push_str(month.as_str()),
-            None => date.push_str("Unknown month"),
+            Some(month) => date.push_str(format!("{}/", month).as_str()),
+            None => date.push_str("Unknown mont/"),
         }
 
         match &self.data.staff.date_of_death.day {
-            Some(day) => date.push_str(day.as_str()),
-            None => date.push_str("Unknown day"),
+            Some(day) => date.push_str(format!("{}/", day).as_str()),
+            None => date.push_str("Unknown day/"),
         }
 
         match &self.data.staff.date_of_death.year {
-            Some(year) => date.push_str(year.as_str()),
+            Some(year) => date.push_str(format!("{}", year).as_str()),
             None => date.push_str("Unknown year"),
         }
 
