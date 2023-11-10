@@ -111,16 +111,16 @@ impl StudioWrapper {
         }
     }
 
-    pub fn get_studio_name(&self) -> String {
-        self.data.studio.name.clone()
+    pub fn get_studio_name(&self) -> &str {
+        &self.data.studio.name
     }
 
-    pub fn get_site_url(&self) -> String {
-        self.data.studio.site_url.clone()
+    pub fn get_site_url(&self) -> &str {
+        &self.data.studio.site_url
     }
 
-    pub fn get_favourite(&self) -> String {
-        self.data.studio.favourites.to_string()
+    pub fn get_favourite(&self) -> u32 {
+        self.data.studio.favourites
     }
 
     pub fn get_anime_manga_list(&self, localised_text: StudioLocalisedText) -> String {
