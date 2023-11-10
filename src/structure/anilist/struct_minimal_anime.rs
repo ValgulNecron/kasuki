@@ -101,7 +101,7 @@ impl MinimalAnimeWrapper {
                 }
               }
         ";
-        let json = json!({"query": query, "variables": {"name": search}});
+        let json = json!({"query": query, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp).unwrap()
     }
