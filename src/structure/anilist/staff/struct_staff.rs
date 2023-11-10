@@ -1,7 +1,9 @@
+use crate::constant::N_A;
 use crate::function::general::html_parser::convert_to_discord_markdown;
 use crate::function::general::trim::trim;
 use crate::function::requests::request::make_request_anilist;
 use crate::structure::embed::anilist::struct_lang_staff::StaffLocalisedText;
+use log::error;
 use serde::Deserialize;
 use serde_json::json;
 
@@ -161,7 +163,7 @@ query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
         match serde_json::from_str(&resp) {
             Ok(result) => Ok(result),
             Err(e) => {
-                println!("Failed to parse JSON: {}", e);
+                error!("Failed to parse JSON: {}", e);
                 Err(String::from("Error: Failed to retrieve user data"))
             }
         }
@@ -228,7 +230,7 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
         match serde_json::from_str(&resp) {
             Ok(result) => Ok(result),
             Err(e) => {
-                println!("Failed to parse JSON: {}", e);
+                error!("Failed to parse JSON: {}", e);
                 Err(String::from("Error: Failed to retrieve user data"))
             }
         }
@@ -289,18 +291,14 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
     pub fn get_name(&self) -> String {
         format!(
             "{}/{}",
-            self.data
-                .staff
-                .name
-                .native
-                .clone()
-                .unwrap_or("N/A".to_string()),
-            self.data
-                .staff
-                .name
-                .full
-                .clone()
-                .unwrap_or("N/A".to_string())
+            match &self.data.staff.name.native {
+                Some(native) => native,
+                None => N_A,
+            },
+            match &self.data.staff.name.full {
+                Some(full) => full,
+                None => N_A,
+            }
         )
     }
 
@@ -350,37 +348,58 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
     }
 
     pub fn get_birth(&self) -> String {
-        format!(
-            "{}/{}/{}",
-            &self.data.staff.date_of_birth.month.unwrap_or(0),
-            &self.data.staff.date_of_birth.day.unwrap_or(0),
-            &self.data.staff.date_of_birth.year.unwrap_or(0)
-        )
+        let mut date = String::new();
+        match &self.data.staff.date_of_birth.month {
+            Some(month) => date.push_str(month.as_str()),
+            None => date.push_str("Unknown month"),
+        }
+
+        match &self.data.staff.date_of_birth.day {
+            Some(day) => date.push_str(day.as_str()),
+            None => date.push_str("Unknown day"),
+        }
+
+        match &self.data.staff.date_of_birth.year {
+            Some(year) => date.push_str(year.as_str()),
+            None => date.push_str("Unknown year"),
+        }
+
+        date
     }
 
     pub fn get_death(&self) -> String {
-        format!(
-            "{}/{}/{}",
-            &self.data.staff.date_of_death.month.unwrap_or(0),
-            &self.data.staff.date_of_death.day.unwrap_or(0),
-            &self.data.staff.date_of_death.year.unwrap_or(0)
-        )
+        let mut date = String::new();
+        match &self.data.staff.date_of_death.month {
+            Some(month) => date.push_str(month.as_str()),
+            None => date.push_str("Unknown month"),
+        }
+
+        match &self.data.staff.date_of_death.day {
+            Some(day) => date.push_str(day.as_str()),
+            None => date.push_str("Unknown day"),
+        }
+
+        match &self.data.staff.date_of_death.year {
+            Some(year) => date.push_str(year.as_str()),
+            None => date.push_str("Unknown year"),
+        }
+
+        date
     }
 
-    pub fn get_lang(&self) -> String {
-        self.data.staff.language_v2.clone()
+    pub fn get_lang(&self) -> &str {
+        &self.data.staff.language_v2
     }
 
-    pub fn get_image(&self) -> String {
-        self.data.staff.image.large.clone()
+    pub fn get_image(&self) -> &str {
+        &self.data.staff.image.large
     }
 
-    pub fn get_hometown(&self) -> String {
-        self.data
-            .staff
-            .home_town
-            .clone()
-            .unwrap_or("N/A".to_string())
+    pub fn get_hometown(&self) -> &str {
+        match &self.data.staff.home_town {
+            Some(home_town) => home_town.as_str(),
+            None => N_A,
+        }
     }
 
     pub fn get_occupation(&self) -> String {
