@@ -3,8 +3,8 @@ use log::{LevelFilter, SetLoggerError};
 
 static LOGGER: SimpleLogger = SimpleLogger;
 
-pub fn init(log: String) -> Result<(), SetLoggerError> {
-    let level_filter = match log.as_str() {
+pub fn init(log: &str) -> Result<(), SetLoggerError> {
+    let level_filter = match log {
         "info" => LevelFilter::Info,
         "warn" => LevelFilter::Warn,
         "error" => LevelFilter::Error,
