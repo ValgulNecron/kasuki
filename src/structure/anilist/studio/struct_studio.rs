@@ -1,5 +1,6 @@
 use crate::function::requests::request::make_request_anilist;
 use crate::structure::embed::anilist::struct_lang_studio::StudioLocalisedText;
+use log::error;
 use serde::Deserialize;
 use serde_json::json;
 
@@ -72,7 +73,7 @@ impl StudioWrapper {
         match serde_json::from_str(&resp) {
             Ok(result) => Ok(result),
             Err(e) => {
-                println!("Failed to parse JSON: {}", e);
+                error!("Failed to parse JSON: {}", e);
                 Err(String::from("Error: Failed to retrieve user data"))
             }
         }
@@ -104,7 +105,7 @@ impl StudioWrapper {
         match serde_json::from_str(&resp) {
             Ok(result) => Ok(result),
             Err(e) => {
-                println!("Failed to parse JSON: {}", e);
+                error!("Failed to parse JSON: {}", e);
                 Err(String::from("Error: Failed to retrieve user data"))
             }
         }

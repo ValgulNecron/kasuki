@@ -1,6 +1,7 @@
 use crate::constant::N_A;
 use crate::function::requests::request::make_request_anilist;
 use crate::structure::embed::anilist::struct_lang_add_activity::AddActivityLocalisedText;
+use log::error;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -76,7 +77,7 @@ impl MinimalAnimeWrapper {
         match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
-                println!("Error: {}", error);
+                error!("Error: {}", error);
                 Err(localised_text.error_no_media.clone())
             }
         }
@@ -135,7 +136,7 @@ impl MinimalAnimeWrapper {
         match serde_json::from_str(&resp) {
             Ok(data) => data,
             Err(error) => {
-                println!("Error: {}", error);
+                error!("Error: {}", error);
                 Err(localised_text.error_no_media.clone())
             }
         }
