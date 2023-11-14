@@ -37,8 +37,9 @@ use crate::cmd::general_module::{
 use crate::constant::{ACTIVITY_NAME, COLOR};
 use crate::function::error_management::no_lang_error::no_langage_error;
 use crate::function::general::get_guild_langage::get_guild_langage;
+use crate::function::sqls::sql::init_sql;
 use crate::function::sqls::sqlite::pool::get_sqlite_pool;
-use crate::logger::init;
+use crate::logger::init_logger;
 use crate::structure::anilist::media::struct_autocomplete_media;
 use crate::structure::anilist::user::struct_autocomplete_user;
 use crate::structure::embed::error::ErrorLocalisedText;
@@ -257,13 +258,14 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
+    init_sql().await;
     // Configure the client with your Discord bot token in the environment.
     let my_path = "./.env";
     let path = std::path::Path::new(my_path);
     let _ = dotenv::from_path(path);
     let env = env::var("LOG").unwrap_or("info".to_string()).to_lowercase();
     let log = env.as_str();
-    match init(log) {
+    match init_logger(log) {
         Ok(_) => {}
         Err(e) => {
             eprintln!("{}", e);

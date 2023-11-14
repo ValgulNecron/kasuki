@@ -27,7 +27,7 @@ use std::env;
 /// * This function is async and should be awaited.
 ///
 
-pub async fn init() {
+pub async fn init_sql() {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         init_sqlite().await

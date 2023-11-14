@@ -84,17 +84,6 @@ async fn get_cache(json: Value) -> String {
     let database_url = "./cache.db";
     let pool = get_sqlite_pool(database_url).await;
 
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS request_cache (
-            json TEXT PRIMARY KEY,
-            response TEXT NOT NULL,
-            last_updated INTEGER NOT NULL
-        )",
-    )
-    .execute(&pool)
-    .await
-    .unwrap();
-
     let row: (Option<String>, Option<String>, Option<i64>) =
         sqlx::query_as("SELECT json, response, last_updated FROM request_cache WHERE json = ?")
             .bind(json.clone())
