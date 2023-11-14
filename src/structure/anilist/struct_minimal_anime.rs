@@ -178,7 +178,7 @@ impl MinimalAnimeWrapper {
     pub fn get_episode(&self) -> i32 {
         match &self.data.media.next_airing_episode {
             Some(next_airing_episode) => match &next_airing_episode.episode {
-                Some(episode) => episode.clone(),
+                Some(episode) => *episode,
                 None => 0,
             },
             None => 0,
@@ -188,7 +188,7 @@ impl MinimalAnimeWrapper {
     pub fn get_image(&self) -> &str {
         match &self.data.media.cover_image {
             Some(cover_image) => match &cover_image.extra_large {
-                Some(extra_large) => &extra_large.as_str(),
+                Some(extra_large) => extra_large.as_str(),
                 None => N_A,
             },
             None => N_A,

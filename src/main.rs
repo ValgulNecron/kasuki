@@ -263,7 +263,7 @@ async fn main() {
     let _ = dotenv::from_path(path);
     let env = env::var("LOG").unwrap_or("info".to_string()).to_lowercase();
     let log = env.as_str();
-    match init(&log) {
+    match init(log) {
         Ok(_) => {}
         Err(e) => {
             eprintln!("{}", e);

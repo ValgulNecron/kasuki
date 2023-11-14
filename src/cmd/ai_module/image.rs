@@ -135,7 +135,7 @@ pub async fn run(
                     "n": 1,
                     "size": "1024x1024",
                     "model": model,
-                   "response_format": "url"
+                    "response_format": "url"
                 })
             }
         }
@@ -247,11 +247,11 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
             return command;
         }
     };
-    let command = command
+    command
         .name("image")
         .description("generate an image")
         .create_option(|option| {
-            let option = option
+            option
                 .name("description")
                 .description("Description of the image you want to generate.")
                 .kind(CommandOptionType::String)
