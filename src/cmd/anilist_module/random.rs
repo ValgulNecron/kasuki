@@ -34,18 +34,6 @@ pub async fn run(
     let database_url = "./cache.db";
     let pool = get_sqlite_pool(database_url).await;
 
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS cache_stats (
-            key TEXT PRIMARY KEY,
-            response TEXT NOT NULL,
-            last_updated INTEGER NOT NULL,
-            last_page INTEGER NOT NULL
-        )",
-    )
-    .execute(&pool)
-    .await
-    .unwrap();
-
     let option = options
         .get(0)
         .expect("Expected username option")

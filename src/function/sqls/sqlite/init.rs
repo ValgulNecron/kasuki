@@ -41,6 +41,21 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) {
         Ok(_) => {}
         Err(e) => error!("{}", e),
     }
+
+    match sqlx::query(
+        "CREATE TABLE IF NOT EXISTS cache_stats (
+            key TEXT PRIMARY KEY,
+            response TEXT NOT NULL,
+            last_updated INTEGER NOT NULL,
+            last_page INTEGER NOT NULL
+        )",
+    )
+    .execute(&pool)
+    .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("{}", e),
+    }
 }
 
 async fn init_sqlite_data(_pool: &Pool<Sqlite>) {}
