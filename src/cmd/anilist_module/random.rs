@@ -10,6 +10,7 @@ use crate::function::error_management::no_lang_error::{
 };
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::get_guild_langage::get_guild_langage;
+use crate::function::sqls::sql::get_random_cache;
 use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use crate::structure::anilist::random::struct_random::PageWrapper;
 use crate::structure::anilist::random::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
@@ -34,47 +35,30 @@ pub async fn run(
     let database_url = "./cache.db";
     let pool = get_sqlite_pool(database_url).await;
 
-    let option = options
+    let resolved = options
         .get(0)
         .expect("Expected username option")
         .resolved
         .as_ref()
         .expect("Expected username object");
+    let CommandDataOptionValue::String(random_type) = resolved else {
+        return;
+    };
 
-    if let CommandDataOptionValue::String(random_type) = option {
-        differed_response(ctx, command).await;
+    differed_response(ctx, command).await;
 
-        let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as(
-            "SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?",
-        )
-        .bind(random_type)
-        .fetch_one(&pool)
-        .await
-        .unwrap_or((None, None, None));
+    let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) =
+        get_random_cache(random_type).await;
 
-        let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
+    let page_number = last_page.unwrap_or(1567); // This is as today date the last page, i will update it sometime.
 
-        let page_number = last_page.unwrap_or(1567); // This is as today date the last page, i will update it sometime.
+    let previous_page = page_number - 1;
+    let cached_response = response.unwrap_or("Nothing".to_string());
 
-        let previous_page = page_number - 1;
-        let cached_response = response.unwrap_or("Nothing".to_string());
-
-        if let Some(updated) = last_updated {
-            let duration_since_updated = Utc::now().timestamp() - updated;
-            if duration_since_updated < 24 * 60 * 60 {
-                embed(page_number, random_type.to_string(), ctx, command).await;
-            } else {
-                update_cache(
-                    page_number,
-                    random_type,
-                    ctx,
-                    command,
-                    previous_page,
-                    cached_response,
-                    pool,
-                )
-                .await
-            }
+    if let Some(updated) = last_updated {
+        let duration_since_updated = Utc::now().timestamp() - updated;
+        if duration_since_updated < 24 * 60 * 60 {
+            embed(page_number, random_type.to_string(), ctx, command).await;
         } else {
             update_cache(
                 page_number,
@@ -87,6 +71,17 @@ pub async fn run(
             )
             .await
         }
+    } else {
+        update_cache(
+            page_number,
+            random_type,
+            ctx,
+            command,
+            previous_page,
+            cached_response,
+            pool,
+        )
+        .await
     }
 }
 

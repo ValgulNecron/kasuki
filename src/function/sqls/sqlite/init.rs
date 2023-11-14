@@ -1,3 +1,4 @@
+use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
 use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use log::error;
 use sqlx::{Pool, Sqlite};
@@ -5,24 +6,30 @@ use std::fs::File;
 use std::path::Path;
 
 pub async fn init_sqlite() {
-    let paths = ["./data.db", "./cache.db"];
-
-    for path in &paths {
-        let p = Path::new(path);
-        if !p.exists() {
-            match File::create(p) {
-                Ok(_) => {}
-                Err(e) => {
-                    println!("Failed to create the file {} : {}", path, e);
-                    return;
-                }
+    let p = Path::new(DATA_SQLITE_DB);
+    if !p.exists() {
+        match File::create(p) {
+            Ok(_) => {}
+            Err(e) => {
+                println!("Failed to create the file {} : {}", DATA_SQLITE_DB, e);
+                return;
             }
         }
     }
-    let pool = get_sqlite_pool(paths[1]).await;
+    let p = Path::new(CACHE_SQLITE_DB);
+    if !p.exists() {
+        match File::create(p) {
+            Ok(_) => {}
+            Err(e) => {
+                println!("Failed to create the file {} : {}", CACHE_SQLITE_DB, e);
+                return;
+            }
+        }
+    }
+    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await;
     init_sqlite_cache(&pool).await;
     pool.close().await;
-    let pool = get_sqlite_pool(paths[0]).await;
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
     init_sqlite_data(&pool).await;
     pool.close().await;
 }

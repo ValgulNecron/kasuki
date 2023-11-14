@@ -16,3 +16,5 @@ pub const COLOR: Colour = Colour::FABLED_PINK;
 ///
 /// This constant represents the special value "N/A". It is of type `&str`.
 pub const N_A: &str = "N/A";
+pub const DATA_SQLITE_DB: &str = "./data.db";
+pub const CACHE_SQLITE_DB: &str = "./cache.db";
