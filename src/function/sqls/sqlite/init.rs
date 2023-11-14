@@ -35,7 +35,7 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) {
             last_updated INTEGER NOT NULL
         )",
     )
-    .execute(&pool)
+    .execute(pool)
     .await
     {
         Ok(_) => {}
@@ -50,7 +50,7 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) {
             last_page INTEGER NOT NULL
         )",
     )
-    .execute(&pool)
+    .execute(pool)
     .await
     {
         Ok(_) => {}
