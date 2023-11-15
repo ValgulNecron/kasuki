@@ -21,6 +21,8 @@ LABEL author="valgul"
 LABEL "com.docker.compose.hide"="true"
 LABEL hidden="true"
 
+HEALTHCHECK CMD ps aux | grep kasuki || exit 1
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
