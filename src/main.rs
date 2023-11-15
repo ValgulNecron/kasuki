@@ -7,7 +7,6 @@ use std::io::Read;
 use std::sync::Arc;
 use std::time::Duration;
 
-use chrono::Utc;
 use log::{debug, error, info, trace};
 use serenity::async_trait;
 use serenity::client::Context;
@@ -37,8 +36,9 @@ use crate::cmd::general_module::{
 use crate::constant::{ACTIVITY_NAME, COLOR};
 use crate::function::error_management::no_lang_error::no_langage_error;
 use crate::function::general::get_guild_langage::get_guild_langage;
+use crate::function::sqls::general::data::set_data_ping_history;
 use crate::function::sqls::general::sql::init_sql_database;
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
+
 use crate::logger::init_logger;
 use crate::structure::anilist::media::struct_autocomplete_media;
 use crate::structure::anilist::user::struct_autocomplete_user;
@@ -310,26 +310,6 @@ async fn main() {
     let manager = client.shard_manager.clone();
 
     tokio::spawn(async move {
-        let database_url = "./data.db";
-        let pool = get_sqlite_pool(database_url).await;
-
-        match sqlx::query(
-            "CREATE TABLE IF NOT EXISTS ping_history (
-                        shard_id TEXT,
-                        timestamp TEXT,
-                        ping TEXT NOT NULL,
-                        PRIMARY KEY (shard_id, timestamp)
-                    )",
-        )
-        .execute(&pool)
-        .await
-        {
-            Ok(_) => {}
-            Err(e) => {
-                error!("Error while creating the table: {}", e)
-            }
-        };
-
         loop {
             sleep(Duration::from_secs(600)).await;
 
@@ -340,21 +320,7 @@ async fn main() {
                 let shard_id = id.0.to_string();
                 let latency_content = runner.latency.unwrap_or(Duration::from_secs(0));
                 let latency = format!("{:?}", latency_content);
-                let now = Utc::now().timestamp().to_string();
-                match sqlx::query(
-                    "INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)",
-                )
-                    .bind(shard_id)
-                    .bind(now)
-                    .bind(latency)
-                    .execute(&pool)
-                    .await
-                {
-                    Ok(_) => {}
-                    Err(e) => {
-                        error!("Error while creating the table: {}", e)
-                    }
-                };
+                set_data_ping_history(shard_id, latency).await;
             }
         }
     });

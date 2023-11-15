@@ -29,7 +29,7 @@ pub async fn init_sqlite() {
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await;
     init_sqlite_cache(&pool).await;
     pool.close().await;
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await;
     init_sqlite_data(&pool).await;
     pool.close().await;
 }
@@ -65,4 +65,23 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) {
     }
 }
 
-async fn init_sqlite_data(_pool: &Pool<Sqlite>) {}
+async fn init_sqlite_data(_pool: &Pool<Sqlite>) {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+
+    match sqlx::query(
+        "CREATE TABLE IF NOT EXISTS ping_history (
+                    shard_id TEXT,
+                    timestamp TEXT,
+                    ping TEXT NOT NULL,
+                    PRIMARY KEY (shard_id, timestamp)
+                )",
+    )
+    .execute(&pool)
+    .await
+    {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Error while creating the table: {}", e)
+        }
+    };
+}
