@@ -10,7 +10,7 @@ use crate::function::error_management::no_lang_error::{
 };
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::get_guild_langage::get_guild_langage;
-use crate::function::sqls::sql::{get_random_cache, set_random_cache};
+use crate::function::sqls::general::cache::{get_database_random_cache, set_database_random_cache};
 use crate::structure::anilist::random::struct_random::PageWrapper;
 use crate::structure::anilist::random::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::structure::anilist::random::struct_site_statistic_manga::SiteStatisticsMangaWrapper;
@@ -43,7 +43,7 @@ pub async fn run(
     differed_response(ctx, command).await;
 
     let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) =
-        get_random_cache(random_type).await;
+        get_database_random_cache(random_type).await;
 
     let page_number = last_page.unwrap_or(1567); // This is as today date the last page, i will update it sometime.
 
@@ -253,6 +253,6 @@ pub async fn update_cache(
         }
     }
 
-    set_random_cache(random_type, cached_response.as_str(), now, previous_page).await;
+    set_database_random_cache(random_type, cached_response.as_str(), now, previous_page).await;
     embed(previous_page, random_type.to_string(), ctx, command).await;
 }

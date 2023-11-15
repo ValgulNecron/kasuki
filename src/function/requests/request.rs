@@ -1,5 +1,5 @@
 use crate::constant::DAYS;
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::general::cache::{get_database_cache, set_database_cache};
 use chrono::Utc;
 use reqwest::Client;
 use serde_json::Value;
@@ -81,16 +81,8 @@ pub async fn make_request_anilist(json: Value, always_update: bool) -> String {
 ///
 /// This function is `async`, meaning it returns a `Future`. It must be `await`ed in an asynchronous context.
 async fn get_cache(json: Value) -> String {
-    let database_url = "./cache.db";
-    let pool = get_sqlite_pool(database_url).await;
-
-    let row: (Option<String>, Option<String>, Option<i64>) =
-        sqlx::query_as("SELECT json, response, last_updated FROM request_cache WHERE json = ?")
-            .bind(json.clone())
-            .fetch_one(&pool)
-            .await
-            .unwrap_or((None, None, None));
-    let (json_resp, response, last_updated): (Option<String>, Option<String>, Option<i64>) = row;
+    let (json_resp, response, last_updated): (Option<String>, Option<String>, Option<i64>) =
+        get_database_cache(json.clone()).await;
 
     if json_resp.is_none() || response.is_none() || last_updated.is_none() {
         do_request(json.clone(), false).await
@@ -139,18 +131,7 @@ async fn get_cache(json: Value) -> String {
 ///
 /// This function always currently returns true, so the boolean return value is currently not indicative of whether the operation was successful. This might be subject for future improvements, such as implementing error handling, to prevent possible panics.
 async fn add_cache(json: Value, resp: String) -> bool {
-    let database_url = "./cache.db";
-    let pool = get_sqlite_pool(database_url).await;
-    let now = Utc::now().timestamp();
-    sqlx::query(
-        "INSERT OR REPLACE INTO request_cache (json, response, last_updated) VALUES (?, ?, ?)",
-    )
-    .bind(json.clone())
-    .bind(resp.clone())
-    .bind(now)
-    .execute(&pool)
-    .await
-    .unwrap();
+    set_database_cache(json, resp).await;
 
     true
 }
