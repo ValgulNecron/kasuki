@@ -10,8 +10,7 @@ use crate::function::error_management::no_lang_error::{
 };
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::get_guild_langage::get_guild_langage;
-use crate::function::sqls::sql::get_random_cache;
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::sql::{get_random_cache, set_random_cache};
 use crate::structure::anilist::random::struct_random::PageWrapper;
 use crate::structure::anilist::random::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::structure::anilist::random::struct_site_statistic_manga::SiteStatisticsMangaWrapper;
@@ -25,16 +24,12 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
-use sqlx::{Pool, Sqlite};
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let database_url = "./cache.db";
-    let pool = get_sqlite_pool(database_url).await;
-
     let resolved = options
         .get(0)
         .expect("Expected username option")
@@ -67,7 +62,6 @@ pub async fn run(
                 command,
                 previous_page,
                 cached_response,
-                pool,
             )
             .await
         }
@@ -79,7 +73,6 @@ pub async fn run(
             command,
             previous_page,
             cached_response,
-            pool,
         )
         .await
     }
@@ -175,7 +168,7 @@ pub async fn follow_up_message(
     url: String,
 ) {
     let mut file =
-        File::open("../../../lang_file/embed/anilist/random.json").expect("Failed to open file");
+        File::open("./lang_file/embed/anilist/random.json").expect("Failed to open file");
     let mut json = String::new();
     file.read_to_string(&mut json).expect("Failed to read file");
 
@@ -229,7 +222,6 @@ pub async fn update_cache(
     command: &ApplicationCommandInteraction,
     mut previous_page: i64,
     mut cached_response: String,
-    pool: Pool<Sqlite>,
 ) {
     let now = Utc::now().timestamp();
 
@@ -261,12 +253,6 @@ pub async fn update_cache(
         }
     }
 
-    sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
-        .bind(random_type)
-        .bind(&cached_response)
-        .bind(now)
-        .bind(previous_page)
-        .execute(&pool)
-        .await.unwrap();
+    set_random_cache(random_type, cached_response.as_str(), now, previous_page).await;
     embed(previous_page, random_type.to_string(), ctx, command).await;
 }

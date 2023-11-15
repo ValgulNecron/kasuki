@@ -1,4 +1,4 @@
-use crate::function::sqls::sqlite::cache::get_random_cache_sqlite;
+use crate::function::sqls::sqlite::cache::{get_random_cache_sqlite, set_random_cache_sqlite};
 use crate::function::sqls::sqlite::init::init_sqlite;
 use std::env;
 
@@ -46,5 +46,20 @@ pub async fn get_random_cache(random_type: &str) -> (Option<String>, Option<i64>
         (None, None, None)
     } else {
         get_random_cache_sqlite(random_type).await
+    }
+}
+
+pub async fn set_random_cache(
+    random_type: &str,
+    cached_response: &str,
+    now: i64,
+    previous_page: i64,
+) {
+    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
+    if db_type == *"sqlite" {
+        set_random_cache_sqlite(random_type, cached_response, now, previous_page).await
+    } else if db_type == *"postgresql" {
+    } else {
+        set_random_cache_sqlite(random_type, cached_response, now, previous_page).await
     }
 }
