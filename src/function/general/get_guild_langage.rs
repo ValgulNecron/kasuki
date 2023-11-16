@@ -1,4 +1,4 @@
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::general::data::get_data_guild_langage;
 
 /// Asynchronously fetches the language of a given guild from the database.
 ///
@@ -34,15 +34,8 @@ use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 /// This function will return a tuple (None, None) if there is any error trying to fetch the guild
 /// language from the database.
 pub async fn get_guild_langage(guild_id: String) -> String {
-    let database_url = "./data.db";
-    let pool = get_sqlite_pool(database_url).await;
-    let row: (Option<String>, Option<String>) =
-        sqlx::query_as("SELECT lang, guild FROM guild_lang WHERE guild = ?")
-            .bind(guild_id)
-            .fetch_one(&pool)
-            .await
-            .unwrap_or((None, None));
-    let (lang, _): (Option<String>, Option<String>) = row;
+    let (lang, _): (Option<String>, Option<String>) =
+        get_data_guild_langage(guild_id.as_str()).await;
 
     lang.unwrap_or("En".to_string())
 }

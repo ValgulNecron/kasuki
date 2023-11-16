@@ -84,4 +84,17 @@ async fn init_sqlite_data(_pool: &Pool<Sqlite>) {
             error!("Error while creating the table: {}", e)
         }
     };
+
+    match sqlx::query(
+        "CREATE TABLE IF NOT EXISTS guild_lang (
+            guild TEXT PRIMARY KEY,
+            lang TEXT NOT NULL
+        )",
+    )
+    .execute(&pool)
+    .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("{}", e),
+    }
 }

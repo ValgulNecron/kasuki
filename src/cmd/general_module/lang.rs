@@ -1,6 +1,6 @@
 use crate::available_lang::AvailableLang;
 use crate::function::error_management::no_lang_error::error_no_langage_guild_id;
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::general::data::set_data_guild_langage;
 use crate::structure::embed::general::struct_lang_lang::LangLocalisedText;
 use crate::structure::register::general::struct_lang_register::LangRegister;
 use serenity::builder::CreateApplicationCommand;
@@ -18,19 +18,6 @@ pub async fn run(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) {
-    let database_url = "./data.db";
-    let pool = get_sqlite_pool(database_url).await;
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS guild_lang (
-            guild TEXT PRIMARY KEY,
-            lang TEXT NOT NULL
-        )",
-    )
-    .execute(&pool)
-    .await
-    .unwrap();
-
     let option = options
         .get(0)
         .expect("Expected lang option")
@@ -47,17 +34,12 @@ pub async fn run(
                 return;
             }
         };
+        set_data_guild_langage(guild_id, lang).await;
         let localised_text = match LangLocalisedText::get_ping_localised(color, ctx, command).await
         {
             Ok(data) => data,
             Err(_) => return,
         };
-        sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
-            .bind(guild_id)
-            .bind(lang)
-            .execute(&pool)
-            .await
-            .unwrap();
 
         if let Err(why) = command
             .create_interaction_response(&ctx.http, |response| {
