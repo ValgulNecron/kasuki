@@ -88,6 +88,9 @@
 
 - Games module:
     - [ ] get game price from different platform (ubi, steam, epic, ea, etc....)
+      Set "server" curency. 
+      Get game price
+     
     - [ ] get player stat
     - [ ] get free promotion notification
 
