@@ -3,6 +3,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use crate::constant::COLOR;
+use crate::function::sqls::general::data::set_data_activity;
 use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use crate::structure::anilist::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::structure::embed::anilist::struct_lang_send_activity::SendActivityLocalisedText;
@@ -78,28 +79,21 @@ pub async fn send_activity() {
 }
 
 pub async fn update_info(row: ActivityData, guild_id: String) {
-    let database_url = "./data.db";
-    let pool = get_sqlite_pool(database_url).await;
-    sleep(Duration::from_secs(30 * 60));
+    tokio::time::sleep(Duration::from_secs(30 * 60)).await;
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id_no_error(match &row.anime_id {
         Some(anime_id) => anime_id.parse().unwrap_or(0),
         None => 0,
     })
     .await;
-    sqlx::query(
-        "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    set_data_activity(
+        data.get_id(),
+        data.get_timestamp(),
+        guild_id,
+        row.webhook.unwrap(),
+        data.get_episode(),
+        data.get_name(),
+        row.delays.unwrap() as i64,
     )
-        .bind(row.anime_id.unwrap())
-        .bind(data.get_timestamp())
-        .bind(guild_id)
-        .bind(row.webhook.unwrap())
-        .bind(data.get_episode())
-        .bind(data.get_name())
-        .bind(data.get_name())
-        .bind(row.delays.unwrap())
-        .execute(&pool)
-        .await
-        .unwrap();
 }
 
 pub async fn send_specific_activity(row: ActivityData, guild_id: String, row2: ActivityData) {
