@@ -11,20 +11,19 @@ license-file = "LICENSE"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-regex = "1.9.3"
-reqwest = "0.11.18"
-serde = "1.0.183"
-serde_json = "1.0.105"
-serenity = { version = "0.11.6", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils"] }
+regex = "1.10.2"
+reqwest = "0.11.2"
+serde = "1.0.192"
+serde_json = "1.0.108"
+serenity = { version = "0.11.7", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils"] }
 tokio = { version = "1.32.0", features = ["full"] }
-sqlx = { version = "0.7.1", features = ["sqlite", "runtime-tokio-native-tls"] }
+sqlx = { version = "0.7.2", features = ["sqlite", "runtime-tokio-native-tls"] }
 rand = "0.8.5"
-chrono = "0.4.26"
-uuid = { version = "1.4.1", features = ["v4"] }
+chrono = "0.4.31"
+uuid = { version = "1.5.0", features = ["v4"] }
 dotenv = "0.15.0"
-tide = "0.16.0"
 image = "0.24.7"
-base64 = "0.21.2"
+base64 = "0.21.5"
 log = { version = "0.4.20" }
 
 
