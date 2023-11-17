@@ -228,4 +228,3 @@ cargo run --release
 
 
 ![kasuki](https://counter.valgul.moe/get/@kasuki?theme=gelbooru)
-
