@@ -45,3 +45,63 @@ pub async fn set_data_guild_langage_sqlite(guild_id: String, lang: &String) {
         Err(e) => error!("{}", e),
     }
 }
+
+pub async fn get_data_activity_sqlite() {}
+
+pub async fn set_data_activity_sqlite(
+    anime_id: i32,
+    timestamp: i64,
+    guild_id: String,
+    webhook: String,
+    episode: i32,
+    name: String,
+    delays: i64,
+) {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+    match sqlx::query(
+            "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        )
+            .bind(anime_id)
+            .bind(timestamp)
+            .bind(guild_id)
+            .bind(webhook)
+            .bind(episode)
+            .bind(name)
+            .bind(delays)
+            .execute(&pool)
+            .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("{}", e),
+    }
+}
+
+pub async fn get_data_activity_sqlite() {}
+
+pub async fn set_data_activity_sqlite(
+    anime_id: i32,
+    timestamp: i64,
+    guild_id: String,
+    webhook: String,
+    episode: i32,
+    name: String,
+    delays: i64,
+) {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+    match sqlx::query(
+        "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    )
+        .bind(anime_id)
+        .bind(timestamp)
+        .bind(guild_id)
+        .bind(webhook)
+        .bind(episode)
+        .bind(name)
+        .bind(delays)
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("{}", e),
+    }
+}

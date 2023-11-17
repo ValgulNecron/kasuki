@@ -63,6 +63,28 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) {
         Ok(_) => {}
         Err(e) => error!("{}", e),
     }
+
+    let database_url = "./data.db";
+    let pool = get_sqlite_pool(database_url).await;
+
+    match sqlx::query(
+        "CREATE TABLE IF NOT EXISTS activity_data (
+        anime_id TEXT,
+        timestamp TEXT,
+        server_id TEXT,
+        webhook TEXT,
+        episode TEXT,
+        name TEXT,
+        delays INTEGER DEFAULT 0,
+        PRIMARY KEY (anime_id, server_id)
+    )",
+    )
+    .execute(&pool)
+    .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("{}", e),
+    }
 }
 
 async fn init_sqlite_data(_pool: &Pool<Sqlite>) {
@@ -90,6 +112,28 @@ async fn init_sqlite_data(_pool: &Pool<Sqlite>) {
             guild TEXT PRIMARY KEY,
             lang TEXT NOT NULL
         )",
+    )
+    .execute(&pool)
+    .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("{}", e),
+    }
+
+    let database_url = "./data.db";
+    let pool = get_sqlite_pool(database_url).await;
+
+    match sqlx::query(
+        "CREATE TABLE IF NOT EXISTS activity_data (
+        anime_id TEXT,
+        timestamp TEXT,
+        server_id TEXT,
+        webhook TEXT,
+        episode TEXT,
+        name TEXT,
+        delays INTEGER DEFAULT 0,
+        PRIMARY KEY (anime_id, server_id)
+    )",
     )
     .execute(&pool)
     .await

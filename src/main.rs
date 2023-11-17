@@ -320,7 +320,8 @@ async fn main() {
                 let shard_id = id.0.to_string();
                 let latency_content = runner.latency.unwrap_or(Duration::from_secs(0));
                 let latency = format!("{:?}", latency_content);
-                set_data_ping_history(shard_id, latency).await;
+                set_data_ping_history(shard_id, latency.clone()).await;
+                debug!("{}", latency)
             }
         }
     });
@@ -430,7 +431,7 @@ pub async fn send_deactivated_message(
             })
             .await
         {
-            println!("Cannot respond to slash command: {}", why);
+            error!("Cannot respond to slash command: {}", why);
         }
     } else {
         no_langage_error(ctx, command).await

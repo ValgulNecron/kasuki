@@ -5,6 +5,7 @@ use crate::function::error_management::error_no::error_no_anime_specified;
 use crate::function::error_management::no_lang_error::error_no_langage_guild_id;
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::trim::trim_webhook;
+use crate::function::sqls::general::data::set_data_activity;
 use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use crate::structure::anilist::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::structure::embed::anilist::struct_lang_add_activity::AddActivityLocalisedText;
@@ -28,25 +29,6 @@ pub async fn run(
     command: &ApplicationCommandInteraction,
 ) {
     differed_response(ctx, command).await;
-
-    let database_url = "./data.db";
-    let pool = get_sqlite_pool(database_url).await;
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS activity_data (
-        anime_id TEXT,
-        timestamp TEXT,
-        server_id TEXT,
-        webhook TEXT,
-        episode TEXT,
-        name TEXT,
-        delays INTEGER DEFAULT 0,
-        PRIMARY KEY (anime_id, server_id)
-    )",
-    )
-    .execute(&pool)
-    .await
-    .unwrap();
 
     let mut value = "".to_string();
     let mut delays = 0;
@@ -164,20 +146,17 @@ pub async fn run(
             .url()
             .unwrap();
 
-        sqlx::query(
-            "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        set_data_activity(
+            anime_id,
+            data.get_timestamp(),
+            guild_id,
+            webhook,
+            data.get_episode(),
+            data.get_name(),
+            delays,
         )
-            .bind(anime_id)
-            .bind(data.get_timestamp())
-            .bind(guild_id)
-            .bind(webhook)
-            .bind(data.get_episode())
-            .bind(data.get_name())
-            .bind(data.get_name())
-            .bind(delays)
-            .execute(&pool)
-            .await
-            .unwrap();
+        .await;
+
         if let Err(why) = command
             .create_followup_message(&ctx.http, |f| {
                 f.embed(|m| {
