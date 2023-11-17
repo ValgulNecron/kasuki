@@ -1,6 +1,7 @@
+use crate::cmd::anilist_module::send_activity::ActivityData;
 use crate::function::sqls::sqlite::data::{
-    get_data_guild_langage_sqlite, set_data_activity_sqlite, set_data_guild_langage_sqlite,
-    set_data_ping_history_sqlite,
+    get_data_activity_sqlite, get_data_guild_langage_sqlite, set_data_activity_sqlite,
+    set_data_guild_langage_sqlite, set_data_ping_history_sqlite,
 };
 use std::env;
 
@@ -35,13 +36,14 @@ pub async fn set_data_guild_langage(guild_id: String, lang: &String) {
     }
 }
 
-pub async fn get_data_activity() {
+pub async fn get_data_activity() -> Vec<ActivityData> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
-        set_data_guild_langage_sqlite().await
+        get_data_activity_sqlite().await
     } else if db_type == *"postgresql" {
+        Vec::new()
     } else {
-        set_data_guild_langage_sqlite().await
+        get_data_activity_sqlite().await
     }
 }
 

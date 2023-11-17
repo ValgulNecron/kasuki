@@ -3,7 +3,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use crate::constant::COLOR;
-use crate::function::sqls::general::data::set_data_activity;
+use crate::function::sqls::general::data::{get_data_activity, set_data_activity};
 use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use crate::structure::anilist::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::structure::embed::anilist::struct_lang_send_activity::SendActivityLocalisedText;
@@ -51,16 +51,7 @@ pub async fn manage_activity() {
 }
 
 pub async fn send_activity() {
-    let database_url = "./data.db";
-    let pool = get_sqlite_pool(database_url).await;
-    let now = Utc::now().timestamp().to_string();
-    let rows: Vec<ActivityData> = sqlx::query_as(
-        "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays FROM activity_data WHERE timestamp = ?",
-    )
-        .bind(now.clone())
-        .fetch_all(&pool)
-        .await
-        .unwrap();
+    let rows = get_data_activity().await;
     for row in rows {
         if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap() {
         } else {
@@ -94,6 +85,7 @@ pub async fn update_info(row: ActivityData, guild_id: String) {
         data.get_name(),
         row.delays.unwrap() as i64,
     )
+    .await
 }
 
 pub async fn send_specific_activity(row: ActivityData, guild_id: String, row2: ActivityData) {

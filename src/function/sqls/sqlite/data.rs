@@ -1,3 +1,4 @@
+use crate::cmd::anilist_module::send_activity::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
 use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use chrono::Utc;
@@ -46,7 +47,18 @@ pub async fn set_data_guild_langage_sqlite(guild_id: String, lang: &String) {
     }
 }
 
-pub async fn get_data_activity_sqlite() {}
+pub async fn get_data_activity_sqlite() -> Vec<ActivityData> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+    let now = Utc::now().timestamp().to_string();
+    let rows: Vec<ActivityData> = sqlx::query_as(
+        "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays FROM activity_data WHERE timestamp = ?",
+    )
+        .bind(now.clone())
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+    rows
+}
 
 pub async fn set_data_activity_sqlite(
     anime_id: i32,
