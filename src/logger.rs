@@ -1,3 +1,4 @@
+use colored::Colorize;
 use log::{Level, Metadata, Record};
 use log::{LevelFilter, SetLoggerError};
 
@@ -23,7 +24,25 @@ impl log::Log for SimpleLogger {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            println!("{} - {}", record.level(), record.args());
+            let text = match record.level() {
+                Level::Error => {
+                    format!("{} - {}", record.level(), record.args()).truecolor(230, 6, 6)
+                }
+                Level::Warn => {
+                    format!("{} - {}", record.level(), record.args()).truecolor(230, 84, 6)
+                }
+                Level::Info => {
+                    format!("{} - {}", record.level(), record.args()).truecolor(22, 255, 239)
+                }
+                Level::Debug => {
+                    format!("{} - {}", record.level(), record.args()).truecolor(106, 255, 0)
+                }
+                Level::Trace => {
+                    format!("{} - {}", record.level(), record.args()).truecolor(255, 0, 204)
+                }
+            };
+
+            println!("{}", text);
         }
     }
 

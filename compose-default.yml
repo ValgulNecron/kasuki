@@ -16,7 +16,7 @@ services:
       - IMAGE_GENERATION_MODELS_ON=True # true if you use have a proxy server on which you added another model
       - IMAGE_GENERATION_MODELS=model_name # the name of the model you want only used if IMAGE_GENERATION_MODELS_ON is True
       - LOG="info" # trace, debug, info, warn or error
-      - NSFW=True # if the bot should only do /image in NSFW channel or not (depend if your models and if there is a filter)
+      - NSFW=True # if the bot should only do /image in NSFW channel or not (depend if your models can generate some and if there is a filter)
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db

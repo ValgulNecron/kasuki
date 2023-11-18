@@ -25,6 +25,7 @@ dotenv = "0.15.0"
 image = "0.24.7"
 base64 = "0.21.5"
 log = { version = "0.4.20" }
+colored = "2.0.4"
 
 
 [profile.release]
