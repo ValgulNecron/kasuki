@@ -36,6 +36,7 @@
     proofread the json file and continue to complete the not finished one.
   - [ ] Rename function, structure, command name etc... so it makes more sense. Started lazy to continue
   - [ ] Add docs to every public function. (Run, Register and Autocomplete do not need this.)
+  - [X] Logging
 
 - Anime submodule:
     - [X] Finish comparison function.   
