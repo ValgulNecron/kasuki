@@ -34,8 +34,8 @@
     proofread the json file and continue to complete the not finished one.
   - [ ] Localisation for command — Working on it. Compare will be done later. Lazy to continue will need some help to
     proofread the json file and continue to complete the not finished one.
-  - [ ] Rename function, structure, command name etc... so it makes more sense. Started lazy to continue
-  - [ ] Add docs to every public function. (Run, Register and Autocomplete do not need this.)
+  - [ ] Rename function, structure, command name etc... so it makes more sense. Doing it should be good atm.
+  - [ ] Add docs to every public function. (Run, Register and Autocomplete do not need this.). started and clearly not finished.
   - [X] Logging
 
 - Anime submodule:
