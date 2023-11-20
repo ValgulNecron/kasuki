@@ -1,3 +1,4 @@
+use chrono::Utc;
 use colored::Colorize;
 use log::{Level, Metadata, Record};
 use log::{LevelFilter, SetLoggerError};
@@ -26,19 +27,19 @@ impl log::Log for SimpleLogger {
         if self.enabled(record.metadata()) {
             let text = match record.level() {
                 Level::Error => {
-                    format!("{} - {}", record.level(), record.args()).truecolor(230, 6, 6)
+                    format!("{} : {} - {}", Utc::now(), record.level(), record.args()).truecolor(230, 6, 6)
                 }
                 Level::Warn => {
-                    format!("{} - {}", record.level(), record.args()).truecolor(230, 84, 6)
+                    format!("{} : {} - {}", Utc::now(), record.level(), record.args()).truecolor(230, 84, 6)
                 }
                 Level::Info => {
-                    format!("{} - {}", record.level(), record.args()).truecolor(22, 255, 239)
+                    format!("{} : {} - {}", Utc::now(), record.level(), record.args()).truecolor(22, 255, 239)
                 }
                 Level::Debug => {
-                    format!("{} - {}", record.level(), record.args()).truecolor(106, 255, 0)
+                    format!("{} : {} - {}", Utc::now(), record.level(), record.args()).truecolor(106, 255, 0)
                 }
                 Level::Trace => {
-                    format!("{} - {}", record.level(), record.args()).truecolor(255, 0, 204)
+                    format!("{} : {} - {}", Utc::now(), record.level(), record.args()).truecolor(255, 0, 204)
                 }
             };
 

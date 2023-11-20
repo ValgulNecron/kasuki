@@ -323,7 +323,7 @@ async fn main() {
                 let latency_content = runner.latency.unwrap_or(Duration::from_secs(0));
                 let latency = format!("{:?}", latency_content);
                 set_data_ping_history(shard_id, latency.clone()).await;
-                debug!("{} : {}", Utc::now(), latency)
+                debug!("{}", latency)
             }
         }
     });

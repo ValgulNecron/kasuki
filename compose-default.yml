@@ -9,6 +9,7 @@ services:
     # image: valgul/kasuki:dev # the latest dev build that compile there could be error.
     container_name: kasuki
     restart: unless-stopped
+    tty: true
     environment:
       - DISCORD_TOKEN=your_discord_token_here
       - AI_API_TOKEN=your_token_here_for_the_ai_part
@@ -17,6 +18,7 @@ services:
       - IMAGE_GENERATION_MODELS=model_name # the name of the model you want only used if IMAGE_GENERATION_MODELS_ON is True
       - LOG="info" # trace, debug, info, warn or error
       - NSFW=True # if the bot should only do /image in NSFW channel or not (depend if your models can generate some and if there is a filter)
+      - TERM=xterm-256color
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db
