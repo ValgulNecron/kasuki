@@ -1,5 +1,6 @@
 extern crate core;
 
+use chrono::Utc;
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
@@ -33,7 +34,7 @@ use crate::cmd::general_module::module_activation::check_activation_status;
 use crate::cmd::general_module::{
     avatar, banner, credit, info, lang, module_activation, ping, profile,
 };
-use crate::constant::{ACTIVITY_NAME, COLOR};
+use crate::constant::{ACTIVITY_NAME, COLOR, PING_UPDATE_DELAYS};
 use crate::function::error_management::no_lang_error::no_langage_error;
 use crate::function::general::get_guild_langage::get_guild_langage;
 use crate::function::sqls::general::data::set_data_ping_history;
@@ -245,6 +246,7 @@ impl EventHandler for Handler {
                 "ln" => ln::autocomplete(ctx, command).await,
                 "character" => character::autocomplete(ctx, command).await,
                 "staff" => staff::autocomplete(ctx, command).await,
+                "seiyuu" => staff::autocomplete(ctx, command).await,
                 "user" => struct_autocomplete_user::autocomplete(ctx, command).await,
                 "compare" => compare::autocomplete(ctx, command).await,
                 "level" => struct_autocomplete_user::autocomplete(ctx, command).await,
@@ -311,7 +313,7 @@ async fn main() {
 
     tokio::spawn(async move {
         loop {
-            sleep(Duration::from_secs(600)).await;
+            sleep(Duration::from_secs(PING_UPDATE_DELAYS)).await;
 
             let lock = manager.lock().await;
             let shard_runners = lock.runners.lock().await;
@@ -321,7 +323,7 @@ async fn main() {
                 let latency_content = runner.latency.unwrap_or(Duration::from_secs(0));
                 let latency = format!("{:?}", latency_content);
                 set_data_ping_history(shard_id, latency.clone()).await;
-                debug!("{}", latency)
+                debug!("{}:{}", Utc::now(), latency)
             }
         }
     });

@@ -11,6 +11,7 @@ pub mod random;
 pub mod register;
 pub mod register_waifu;
 pub mod search;
+pub mod seiyuu;
 pub mod send_activity;
 pub mod staff;
 pub mod studio;
