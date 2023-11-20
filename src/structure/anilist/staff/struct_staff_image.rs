@@ -5,13 +5,13 @@ use serde_json::json;
 
 #[derive(Debug, Deserialize)]
 pub struct StaffImageWrapper {
-    pub data: StaffImageData,
+    data: StaffImageData,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct StaffImageData {
     #[serde(rename = "Staff")]
-    pub staff: Staff,
+    staff: Staff,
 }
 
 #[derive(Debug, Deserialize)]
