@@ -245,6 +245,7 @@ impl EventHandler for Handler {
                 "ln" => ln::autocomplete(ctx, command).await,
                 "character" => character::autocomplete(ctx, command).await,
                 "staff" => staff::autocomplete(ctx, command).await,
+                "seiyuu" => staff::autocomplete(ctx, command).await,
                 "user" => struct_autocomplete_user::autocomplete(ctx, command).await,
                 "compare" => compare::autocomplete(ctx, command).await,
                 "level" => struct_autocomplete_user::autocomplete(ctx, command).await,
