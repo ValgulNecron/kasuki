@@ -34,7 +34,7 @@ use crate::cmd::general_module::module_activation::check_activation_status;
 use crate::cmd::general_module::{
     avatar, banner, credit, info, lang, module_activation, ping, profile,
 };
-use crate::constant::{ACTIVITY_NAME, COLOR};
+use crate::constant::{ACTIVITY_NAME, COLOR, PING_UPDATE_DELAYS};
 use crate::function::error_management::no_lang_error::no_langage_error;
 use crate::function::general::get_guild_langage::get_guild_langage;
 use crate::function::sqls::general::data::set_data_ping_history;
@@ -313,7 +313,7 @@ async fn main() {
 
     tokio::spawn(async move {
         loop {
-            sleep(Duration::from_secs(600)).await;
+            sleep(Duration::from_secs(PING_UPDATE_DELAYS)).await;
 
             let lock = manager.lock().await;
             let shard_runners = lock.runners.lock().await;
