@@ -1,6 +1,5 @@
 extern crate core;
 
-use chrono::Utc;
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
