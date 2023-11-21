@@ -19,9 +19,8 @@ use serenity::model::prelude::application_command::ApplicationCommandInteraction
 use serenity::model::Timestamp;
 use serenity::prelude::*;
 use serenity::utils::Colour;
-use tokio::time::sleep;
-
 use structure::struct_shard_manager::ShardManagerContainer;
+use tokio::time::sleep;
 
 use crate::cmd::ai_module::{image, transcript, translation};
 use crate::cmd::anilist_module::send_activity::manage_activity;
@@ -39,7 +38,7 @@ use crate::function::general::get_guild_langage::get_guild_langage;
 use crate::function::sqls::general::data::set_data_ping_history;
 use crate::function::sqls::general::sql::init_sql_database;
 
-use crate::logger::init_logger;
+use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::structure::anilist::media::struct_autocomplete_media;
 use crate::structure::anilist::user::struct_autocomplete_user;
 use crate::structure::embed::error::ErrorLocalisedText;
@@ -273,12 +272,22 @@ async fn main() {
     let _ = dotenv::from_path(path);
     let env = env::var("LOG").unwrap_or("info".to_string()).to_lowercase();
     let log = env.as_str();
+
+    match create_log_directory() {
+        Ok(_) => {}
+        Err(_) => return,
+    };
     match init_logger(log) {
         Ok(_) => {}
         Err(e) => {
             eprintln!("{}", e);
             return;
         }
+    };
+
+    match remove_old_logs() {
+        Ok(_) => {}
+        Err(_) => {}
     };
 
     let nsfw_env = env::var("NSFW");
