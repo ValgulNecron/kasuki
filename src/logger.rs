@@ -26,21 +26,16 @@ impl log::Log for SimpleLogger {
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
             let text = match record.level() {
-                Level::Error => {
-                    format!("{} : {} - {}", Utc::now(), record.level(), record.args()).truecolor(230, 6, 6)
-                }
-                Level::Warn => {
-                    format!("{} : {} - {}", Utc::now(), record.level(), record.args()).truecolor(230, 84, 6)
-                }
-                Level::Info => {
-                    format!("{} : {} - {}", Utc::now(), record.level(), record.args()).truecolor(22, 255, 239)
-                }
-                Level::Debug => {
-                    format!("{} : {} - {}", Utc::now(), record.level(), record.args()).truecolor(106, 255, 0)
-                }
-                Level::Trace => {
-                    format!("{} : {} - {}", Utc::now(), record.level(), record.args()).truecolor(255, 0, 204)
-                }
+                Level::Error => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
+                    .truecolor(230, 6, 6),
+                Level::Warn => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
+                    .truecolor(230, 84, 6),
+                Level::Info => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
+                    .truecolor(22, 255, 239),
+                Level::Debug => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
+                    .truecolor(106, 255, 0),
+                Level::Trace => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
+                    .truecolor(255, 0, 204),
             };
 
             println!("{}", text);
@@ -49,4 +44,3 @@ impl log::Log for SimpleLogger {
 
     fn flush(&self) {}
 }
-
