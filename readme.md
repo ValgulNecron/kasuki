@@ -19,7 +19,7 @@
     — will need to do some change and move db logic to it's own funtion.
   - [X] Banner. Show your or a specified user banner. — Done.
   - [X] Profil. Show a user profile and some info. — Done.
-  - [ ] Avatar. show you the profile picture of a user. — In progress
+  - [X] Avatar. show you the profile picture of a user. — Done
   - [X] Add support to turn on and off module. — Done.
   - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is
     done.
