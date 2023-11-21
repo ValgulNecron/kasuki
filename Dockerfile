@@ -1,4 +1,4 @@
-FROM rust:1.72-buster AS builder
+FROM rust:1.72-slim-buster AS builder
 
 RUN USER=root cargo new --bin kasuki
 
@@ -23,14 +23,14 @@ LABEL hidden="true"
 
 HEALTHCHECK CMD ps aux | grep kasuki || exit 1
 
+WORKDIR /kasuki/
+
+COPY lang_file /kasuki/lang_file
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
     ca-certificates && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /kasuki/
-
-COPY lang_file /kasuki/lang_file
 
 COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
 
