@@ -1,4 +1,4 @@
-FROM rust:1.72-slim-buster AS builder
+FROM rust:1.72-buster AS builder
 
 RUN USER=root cargo new --bin kasuki
 
