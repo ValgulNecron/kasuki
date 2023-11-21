@@ -33,22 +33,7 @@ pub async fn run(
     command: &ApplicationCommandInteraction,
 ) {
     let mut lang: String = "en".to_string();
-    let attachement_option = if options.get(0).expect("Expected attachement option").name == "video"
-    {
-        options
-            .get(0)
-            .expect("Expected attachement option")
-            .resolved
-            .as_ref()
-            .expect("Expected attachement object")
-    } else {
-        options
-            .get(1)
-            .expect("Expected attachement option")
-            .resolved
-            .as_ref()
-            .expect("Expected attachement object")
-    };
+    let mut attachement: Option<serenity::model::prelude::Attachment> = None;
 
     for option in options {
         if option.name == "lang" {
@@ -57,6 +42,14 @@ pub async fn run(
                 lang = lang_option.clone()
             } else {
                 lang = "En".to_string();
+            }
+        }
+        if option.name == "video" {
+            let resolved = option.resolved.as_ref().unwrap();
+            if let CommandDataOptionValue::Attachment(attachement_option) = resolved {
+                attachement = Some(attachement_option.clone())
+            } else {
+                return;
             }
         }
     }
