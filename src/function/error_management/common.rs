@@ -180,3 +180,15 @@ pub async fn custom_error(ctx: &Context, command: &ApplicationCommandInteraction
     };
     send_embed_message(ctx, command, localised_text.error_title, error).await;
 }
+
+pub async fn custom_followup_error(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    error: &str,
+) {
+    let localised_text = match get_localised_langage(ctx, command).await {
+        Ok(data) => data,
+        Err(_) => return,
+    };
+    send_followup_embed_message(ctx, command, localised_text.error_title, error).await;
+}
