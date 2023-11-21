@@ -1,11 +1,10 @@
 use crate::constant::COLOR;
 use crate::function::error_management::common::{custom_error, custom_followup_error};
-use crate::function::error_management::error_resolving_value::error_resolving_value_followup;
 use crate::function::error_management::error_response::error_writing_file_response_edit;
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::in_progress::in_progress_embed;
 use crate::structure::anilist::staff::struct_staff_image::StaffImageWrapper;
-use image::EncodableLayout;
+use image::{open, DynamicImage, GenericImage, GenericImageView};
 use log::error;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -16,7 +15,8 @@ use serenity::model::prelude::application_command::{
 use serenity::model::Timestamp;
 use std::fs::File;
 use std::io::{Read, Write};
-use uuid::{Bytes, Uuid};
+use std::path::Path;
+use uuid::Uuid;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -72,7 +72,7 @@ pub async fn run(
             uuids.push(uuid);
         }
 
-        let mut images: Vec<&[u8]> = Vec::new();
+        let mut images: Vec<Vec<u8>> = Vec::new();
         let url = data.get_staff_image();
         let response = match reqwest::get(url).await {
             Ok(resp) => resp,
@@ -144,6 +144,32 @@ pub async fn run(
             }
             i = i + 1
         }
+
+        let mut images = Vec::new();
+        for uuid in uuids {
+            let path = uuid.to_string();
+            let img_path = Path::new(&path);
+
+            // Open the image file
+            match open(&img_path) {
+                Ok(img) => images.push(img),
+                Err(e) => {
+                    error!("Failed to open the image: {}", e);
+                    return;
+                }
+            }
+        }
+
+        let mut combined_image = DynamicImage::new_luma8(600, 600);
+
+        for (i, img) in images.iter().enumerate() {
+            let (width, height) = img.dimensions();
+            let mut sub_image = img.to_owned().crop(0, 0, width, height);
+            combined_image
+                .copy_from(&sub_image, 0, i as u32 * width)
+                .unwrap();
+        }
+        combined_image.save("combined_image.png").unwrap();
 
         if let Err(why) = message
             .edit(&ctx.http, |m| {
