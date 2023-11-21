@@ -17,13 +17,13 @@ pub struct StaffImageData {
 #[derive(Debug, Deserialize)]
 pub struct Staff {
     id: i32,
-    images: StaffImageImage,
+    image: StaffImageImage,
     characters: StaffImageCharacters,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct StaffImageImage {
-    large: String,
+    pub large: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -33,7 +33,7 @@ pub struct StaffImageCharacters {
 
 #[derive(Debug, Deserialize)]
 pub struct StaffImageNodes {
-    image: StaffImageImage,
+    pub image: StaffImageImage,
 }
 
 impl StaffImageWrapper {
@@ -96,7 +96,7 @@ query ($name: String, $limit: Int = 4) {
     }
 
     pub fn get_staff_image(&self) -> &String {
-        &self.data.staff.images.large
+        &self.data.staff.image.large
     }
 
     pub fn get_characters_image(&self) -> &Vec<StaffImageNodes> {

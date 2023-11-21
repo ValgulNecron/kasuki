@@ -1,9 +1,11 @@
 use crate::constant::COLOR;
 use crate::function::error_management::common::{custom_error, custom_followup_error};
 use crate::function::error_management::error_resolving_value::error_resolving_value_followup;
+use crate::function::error_management::error_response::error_writing_file_response_edit;
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::in_progress::in_progress_embed;
 use crate::structure::anilist::staff::struct_staff_image::StaffImageWrapper;
+use image::EncodableLayout;
 use log::error;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -12,6 +14,9 @@ use serenity::model::prelude::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
 use serenity::model::Timestamp;
+use std::fs::File;
+use std::io::{Read, Write};
+use uuid::{Bytes, Uuid};
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -60,6 +65,85 @@ pub async fn run(
                 return;
             }
         };
+
+        let mut uuids: Vec<Uuid> = Vec::new();
+        for _ in 0..5 {
+            let uuid = Uuid::new_v4();
+            uuids.push(uuid);
+        }
+
+        let mut images: Vec<&[u8]> = Vec::new();
+        let url = data.get_staff_image();
+        let response = match reqwest::get(url).await {
+            Ok(resp) => resp,
+            Err(e) => {
+                error!("{}", e);
+                return;
+            }
+        };
+        let bytes = match response.bytes().await {
+            Ok(b) => b.as_ref().to_owned(),
+            Err(e) => {
+                error!("{}", e);
+                return;
+            }
+        };
+
+        let mut buffer = match File::create(uuids[0].to_string()) {
+            Ok(buff) => buff,
+            Err(e) => {
+                error_writing_file_response_edit(ctx, command, message.clone()).await;
+                error!("{}", e);
+                return;
+            }
+        };
+
+        match buffer.write_all(&*bytes) {
+            Ok(buff) => buff,
+            Err(e) => {
+                error_writing_file_response_edit(ctx, command, message.clone()).await;
+                error!("{}", e);
+                return;
+            }
+        }
+
+        let mut i = 1;
+        let characters_images_url = data.get_characters_image();
+        for character_image in characters_images_url {
+            let response = match reqwest::get(&character_image.image.large).await {
+                Ok(resp) => resp,
+                Err(e) => {
+                    error!("{}", e);
+                    return;
+                }
+            };
+            let bytes = match response.bytes().await {
+                Ok(b) => b.as_ref().to_owned(),
+                Err(e) => {
+                    error!("{}", e);
+                    return;
+                }
+            };
+
+            let mut buffer = match File::create(uuids[i].to_string()) {
+                Ok(buff) => buff,
+                Err(e) => {
+                    error_writing_file_response_edit(ctx, command, message.clone()).await;
+                    error!("{}", e);
+                    return;
+                }
+            };
+
+            match buffer.write_all(&*bytes) {
+                Ok(buff) => buff,
+                Err(e) => {
+                    error_writing_file_response_edit(ctx, command, message.clone()).await;
+                    error!("{}", e);
+                    return;
+                }
+            }
+            i = i + 1
+        }
 
         if let Err(why) = message
             .edit(&ctx.http, |m| {

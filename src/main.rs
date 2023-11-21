@@ -26,8 +26,8 @@ use structure::struct_shard_manager::ShardManagerContainer;
 use crate::cmd::ai_module::{image, transcript, translation};
 use crate::cmd::anilist_module::send_activity::manage_activity;
 use crate::cmd::anilist_module::{
-    add_activity, anime, character, compare, level, ln, manga, random, register, search, staff,
-    studio, user, waifu,
+    add_activity, anime, character, compare, level, ln, manga, random, register, search, seiyuu,
+    staff, studio, user, waifu,
 };
 use crate::cmd::general_module::module_activation::check_activation_status;
 use crate::cmd::general_module::{
@@ -93,6 +93,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| waifu::register(command))
                 .create_application_command(|command| studio::register(command))
                 .create_application_command(|command| add_activity::register(command))
+                .create_application_command(|command| seiyuu::register(command))
                 // AI module.
                 .create_application_command(|command| image::register(command))
                 .create_application_command(|command| transcript::register(command))
@@ -212,6 +213,12 @@ impl EventHandler for Handler {
                         return;
                     }
                     add_activity::run(&command.data.options, &ctx, &command).await
+                }
+                "seiyuu" => {
+                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
+                        return;
+                    }
+                    seiyuu::run(&command.data.options, &ctx, &command).await
                 }
 
                 // AI module
