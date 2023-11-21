@@ -1,11 +1,17 @@
-use crate::function::error_management::common::custom_error;
+use crate::constant::COLOR;
+use crate::function::error_management::common::{custom_error, custom_followup_error};
+use crate::function::error_management::error_resolving_value::error_resolving_value_followup;
+use crate::function::general::differed_response::differed_response;
+use crate::function::general::in_progress::in_progress_embed;
 use crate::structure::anilist::staff::struct_staff_image::StaffImageWrapper;
+use log::error;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::prelude::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
+use serenity::model::Timestamp;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -37,6 +43,32 @@ pub async fn run(
                 }
             }
         };
+
+        differed_response(ctx, command).await;
+
+        let mut message = match in_progress_embed(ctx, command).await {
+            Ok(message) => match message {
+                Some(real_message) => real_message,
+                None => {
+                    error!("There where a big error.");
+                    return;
+                }
+            },
+            Err(e) => {
+                error!("{}", e);
+                custom_followup_error(ctx, command, e.as_str()).await;
+                return;
+            }
+        };
+
+        if let Err(why) = message
+            .edit(&ctx.http, |m| {
+                m.embed(|e| e.title("seiyuu").timestamp(Timestamp::now()).color(COLOR))
+            })
+            .await
+        {
+            println!("Error creating slash command: {}", why);
+        }
     }
 }
 
