@@ -2,13 +2,14 @@ use chrono::Utc;
 use colored::Colorize;
 use log::{Level, Log, Metadata, Record};
 use log::{LevelFilter, SetLoggerError};
+use once_cell::sync::Lazy;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{Error, Write};
 use std::path::Path;
 use uuid::Uuid;
 
-static LOGGER: SimpleLogger = SimpleLogger::new(Uuid::new_v4().to_string());
+static LOGGER: Lazy<SimpleLogger> = Lazy::new(SimpleLogger::new);
 
 pub fn init_logger(log: &str) -> Result<(), SetLoggerError> {
     let level_filter = match log {
@@ -17,16 +18,23 @@ pub fn init_logger(log: &str) -> Result<(), SetLoggerError> {
         "error" => LevelFilter::Error,
         _ => LevelFilter::Debug,
     };
-    log::set_logger(&LOGGER).map(|()| log::set_max_level(level_filter))
+    log::set_logger(&*LOGGER).map(|()| log::set_max_level(level_filter))
 }
 
 struct SimpleLogger {
-    uuid: String,
+    uuid: Uuid,
 }
 
 impl SimpleLogger {
-    pub fn new(uuid: String) -> Self {
-        SimpleLogger { uuid }
+    pub fn new() -> Self {
+        let uuid_generated = Uuid::new_v4();
+        match File::create(format!("./logs/log_{}.log", uuid_generated)) {
+            Ok(_) => {}
+            Err(_) => {}
+        }
+        SimpleLogger {
+            uuid: uuid_generated,
+        }
     }
 }
 impl log::Log for SimpleLogger {
@@ -49,20 +57,17 @@ impl log::Log for SimpleLogger {
                     .truecolor(255, 0, 204),
             };
 
-            match File::create(format!("log/{}", &self.uuid)) {
-                Ok(_) => {}
-                Err(_) => return,
-            }
+                        println!("{}", text);
+
 
             let mut file = OpenOptions::new()
                 .write(true)
                 .append(true)
-                .open(format!("log/log_{}.txt", &self.uuid))
+                .open(format!("./logs/log_{}.log", &self.uuid))
                 .unwrap();
 
             writeln!(file, "{}", text).unwrap();
 
-            println!("{}", text);
         }
     }
 
@@ -70,14 +75,19 @@ impl log::Log for SimpleLogger {
 }
 
 pub fn remove_old_logs() -> Result<(), Error> {
-    let path = Path::new("./");
+    let path = Path::new("./logs");
     let mut entries: Vec<_> = fs::read_dir(&path)?.filter_map(Result::ok).collect();
 
     // Sort the entries by modification time
     entries.sort_by_key(|e| e.metadata().unwrap().modified().unwrap());
 
     // Remove the oldest ones until there are only 5 left
-    for entry in entries.iter().clone().into_iter().take(entries.len() - 5) {
+    for entry in entries
+        .iter()
+        .clone()
+        .into_iter()
+        .take(entries.len().checked_sub(5).unwrap_or(0))
+    {
         fs::remove_file(entry.path())?;
     }
 
@@ -85,5 +95,5 @@ pub fn remove_old_logs() -> Result<(), Error> {
 }
 
 pub fn create_log_directory() -> std::io::Result<()> {
-    fs::create_dir_all("log/")
+    fs::create_dir_all("./logs")
 }
