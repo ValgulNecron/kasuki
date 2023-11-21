@@ -57,8 +57,7 @@ impl log::Log for SimpleLogger {
                     .truecolor(255, 0, 204),
             };
 
-                        println!("{}", text);
-
+            println!("{}", text);
 
             let mut file = OpenOptions::new()
                 .write(true)
@@ -67,7 +66,6 @@ impl log::Log for SimpleLogger {
                 .unwrap();
 
             writeln!(file, "{}", text).unwrap();
-
         }
     }
 

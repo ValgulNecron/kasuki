@@ -96,4 +96,6 @@ fabric.properties
 
 .env
 
-.idea/
+.idea/rust-project.json
+
+./logs
