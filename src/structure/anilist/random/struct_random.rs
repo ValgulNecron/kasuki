@@ -4,7 +4,6 @@ use crate::function::requests::request::make_request_anilist;
 use log::error;
 use serde::Deserialize;
 use serde_json::json;
-use std::fs::read_to_string;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Media {

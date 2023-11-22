@@ -74,18 +74,13 @@ impl log::Log for SimpleLogger {
 
 pub fn remove_old_logs() -> Result<(), Error> {
     let path = Path::new("./logs");
-    let mut entries: Vec<_> = fs::read_dir(&path)?.filter_map(Result::ok).collect();
+    let mut entries: Vec<_> = fs::read_dir(path)?.filter_map(Result::ok).collect();
 
     // Sort the entries by modification time
     entries.sort_by_key(|e| e.metadata().unwrap().modified().unwrap());
 
     // Remove the oldest ones until there are only 5 left
-    for entry in entries
-        .iter()
-        .clone()
-        .into_iter()
-        .take(entries.len().checked_sub(5).unwrap_or(0))
-    {
+    for entry in entries.iter().clone().take(entries.len().saturating_sub(5)) {
         fs::remove_file(entry.path())?;
     }
 

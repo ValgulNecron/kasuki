@@ -72,7 +72,6 @@ pub async fn run(
             uuids.push(uuid);
         }
 
-        let mut images: Vec<Vec<u8>> = Vec::new();
         let url = data.get_staff_image();
         let response = match reqwest::get(url).await {
             Ok(resp) => resp,
@@ -98,7 +97,7 @@ pub async fn run(
             }
         };
 
-        match buffer.write_all(&*bytes) {
+        match buffer.write_all(&bytes) {
             Ok(buff) => buff,
             Err(e) => {
                 error_writing_file_response_edit(ctx, command, message.clone()).await;
@@ -134,7 +133,7 @@ pub async fn run(
                 }
             };
 
-            match buffer.write_all(&*bytes) {
+            match buffer.write_all(&bytes) {
                 Ok(buff) => buff,
                 Err(e) => {
                     error_writing_file_response_edit(ctx, command, message.clone()).await;
@@ -142,7 +141,7 @@ pub async fn run(
                     return;
                 }
             }
-            i = i + 1
+            i += 1
         }
 
         let mut images = Vec::new();
@@ -151,7 +150,7 @@ pub async fn run(
             let img_path = Path::new(&path);
 
             // Open the image file
-            match open(&img_path) {
+            match open(img_path) {
                 Ok(img) => images.push(img),
                 Err(e) => {
                     error!("Failed to open the image: {}", e);
