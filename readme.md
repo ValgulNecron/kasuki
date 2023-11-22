@@ -70,7 +70,7 @@
       — (like 1h for a translation).
       — Need anime notification first.
       it will be easy once anime is done. On wait but will be done
-    - [ ] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835)
+  - [X] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835)
       idea of generating image
       with a seiyuu and va role.
       — This is possible, I'm not competent enough.
