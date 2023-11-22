@@ -15,6 +15,7 @@ use crate::structure::anilist::random::struct_random::PageWrapper;
 use crate::structure::anilist::random::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::structure::anilist::random::struct_site_statistic_manga::SiteStatisticsMangaWrapper;
 use chrono::Utc;
+use log::error;
 use rand::prelude::*;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -101,13 +102,25 @@ pub async fn embed(
 ) {
     let number = thread_rng().gen_range(1..=last_page);
     if random_type == "manga" {
-        let data = PageWrapper::new_manga_page(number).await;
+        let data = match PageWrapper::new_manga_page(number).await {
+            Ok(a) => a,
+            Err(e) => {
+                error!("{}", e);
+                return;
+            }
+        };
 
         let url = data.get_manga_url();
 
         follow_up_message(ctx, command, data, url).await
     } else if random_type == "anime" {
-        let data = PageWrapper::new_anime_page(number).await;
+        let data = match PageWrapper::new_anime_page(number).await {
+            Ok(a) => a,
+            Err(e) => {
+                error!("{}", e);
+                return;
+            }
+        };
 
         let url = data.get_anime_url();
 
