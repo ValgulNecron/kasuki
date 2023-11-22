@@ -4,8 +4,9 @@ use crate::function::error_management::error_response::error_writing_file_respon
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::in_progress::in_progress_embed;
 use crate::structure::anilist::staff::struct_staff_image::StaffImageWrapper;
-use image::{open, DynamicImage, GenericImage, GenericImageView};
-use log::error;
+use image::imageops::FilterType;
+use image::{DynamicImage, GenericImage, GenericImageView};
+use log::{debug, error};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::command::CommandOptionType;
@@ -13,8 +14,9 @@ use serenity::model::prelude::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
 use serenity::model::Timestamp;
+use std::fs;
 use std::fs::File;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::Path;
 use uuid::Uuid;
 
@@ -88,7 +90,7 @@ pub async fn run(
             }
         };
 
-        let mut buffer = match File::create(uuids[0].to_string()) {
+        let mut buffer = match File::create(format!("{}.png", uuids[0])) {
             Ok(buff) => buff,
             Err(e) => {
                 error_writing_file_response_edit(ctx, command, message.clone()).await;
@@ -124,7 +126,7 @@ pub async fn run(
                 }
             };
 
-            let mut buffer = match File::create(uuids[i].to_string()) {
+            let mut buffer = match File::create(format!("{}.png", uuids[i])) {
                 Ok(buff) => buff,
                 Err(e) => {
                     error_writing_file_response_edit(ctx, command, message.clone()).await;
@@ -145,38 +147,106 @@ pub async fn run(
         }
 
         let mut images = Vec::new();
-        for uuid in uuids {
-            let path = uuid.to_string();
+        for uuid in &uuids {
+            let path = format!("{}.png", uuid);
             let img_path = Path::new(&path);
 
-            // Open the image file
-            match open(img_path) {
+            // Read the image file into a byte vector
+            let mut file = match File::open(img_path) {
+                Ok(file) => file,
+                Err(e) => {
+                    error!("Failed to open the file: {}", e);
+                    continue;
+                }
+            };
+
+            let mut buffer = Vec::new();
+            match file.read_to_end(&mut buffer) {
+                Ok(_) => (),
+                Err(e) => {
+                    error!("Failed to read the file: {}", e);
+                    continue;
+                }
+            };
+
+            // Load the image from the byte vector
+            match image::load_from_memory(&buffer) {
                 Ok(img) => images.push(img),
                 Err(e) => {
-                    error!("Failed to open the image: {}", e);
-                    return;
+                    error!("Failed to load the image: {}", e);
+                    continue;
                 }
-            }
+            };
         }
 
-        let mut combined_image = DynamicImage::new_luma8(600, 600);
+        let mut real_total_width = 0;
 
+        let (width, height) = images[0].dimensions();
+        let sub_image = images[0].to_owned().crop(0, 0, width, height);
+        let aspect_ratio = width as f32 / height as f32;
+        let new_height = 2000;
+        let new_width = (new_height as f32 * aspect_ratio) as u32;
+
+        let smaller_height = new_height / 2;
+        let smaller_width = new_width / 2;
+
+        let total_width = smaller_width * 2 + new_width;
+
+        let mut combined_image = DynamicImage::new_rgba16(total_width, 2000);
+
+        let resized_img =
+            image::imageops::resize(&sub_image, new_width, new_height, FilterType::Nearest);
+        combined_image.copy_from(&resized_img, 0, 0).unwrap();
+        let pos_list = [
+            (new_width, 0),
+            (new_width + smaller_width, 0),
+            (new_width, smaller_height),
+            (new_width + smaller_width, smaller_height),
+        ];
+        images.remove(0);
         for (i, img) in images.iter().enumerate() {
             let (width, height) = img.dimensions();
             let sub_image = img.to_owned().crop(0, 0, width, height);
+            let resized_img = image::imageops::resize(
+                &sub_image,
+                smaller_width,
+                smaller_height,
+                FilterType::Nearest,
+            );
+            let (pos_width, pos_height) = pos_list[i];
             combined_image
-                .copy_from(&sub_image, 0, i as u32 * width)
+                .copy_from(&resized_img, pos_width, pos_height)
                 .unwrap();
         }
-        combined_image.save("combined_image.png").unwrap();
+
+        let combined_uuid = Uuid::new_v4();
+        combined_image
+            .save(format!("{}.png", combined_uuid))
+            .unwrap();
+        uuids.push(combined_uuid);
+        let image_path = &format!("{}.png", combined_uuid);
+        let combined_image_path = Path::new(image_path);
 
         if let Err(why) = message
             .edit(&ctx.http, |m| {
-                m.embed(|e| e.title("seiyuu").timestamp(Timestamp::now()).color(COLOR))
+                m.attachment(combined_image_path).embed(|e| {
+                    e.title("seiyuu")
+                        .image(format!("attachment://{}", image_path))
+                        .timestamp(Timestamp::now())
+                        .color(COLOR)
+                })
             })
             .await
         {
-            println!("Error creating slash command: {}", why);
+            error!("Error creating slash command: {}", why);
+        }
+
+        for uuid in uuids {
+            let path = format!("{}.png", uuid);
+            match fs::remove_file(path) {
+                Ok(_) => debug!("File {} has been removed successfully", uuid),
+                Err(e) => error!("Failed to remove file {}: {}", uuid, e),
+            }
         }
     }
 }
