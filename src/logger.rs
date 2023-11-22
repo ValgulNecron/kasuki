@@ -28,16 +28,14 @@ struct SimpleLogger {
 impl SimpleLogger {
     pub fn new() -> Self {
         let uuid_generated = Uuid::new_v4();
-        match File::create(format!("./logs/log_{}.log", uuid_generated)) {
-            Ok(_) => {}
-            Err(_) => {}
-        }
+        if let Ok(_) = File::create(format!("./logs/log_{}.log", uuid_generated)) {}
         SimpleLogger {
             uuid: uuid_generated,
         }
     }
 }
-impl log::Log for SimpleLogger {
+
+impl Log for SimpleLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= Level::Warn || metadata.target().starts_with("kasuki")
     }
