@@ -14,7 +14,7 @@ use serenity::model::prelude::application_command::{
 };
 use serenity::model::Timestamp;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Write;
 use std::path::Path;
 use uuid::Uuid;
 
@@ -163,7 +163,7 @@ pub async fn run(
 
         for (i, img) in images.iter().enumerate() {
             let (width, height) = img.dimensions();
-            let mut sub_image = img.to_owned().crop(0, 0, width, height);
+            let sub_image = img.to_owned().crop(0, 0, width, height);
             combined_image
                 .copy_from(&sub_image, 0, i as u32 * width)
                 .unwrap();
