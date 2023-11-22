@@ -45,7 +45,7 @@ impl StaffImageWrapper {
     image{
       large
     }
-    characters(perPage: $limit) {
+    characters(perPage: $limit, sort: FAVOURITES_DESC) {
       nodes {
         image {
           large
@@ -74,7 +74,7 @@ query ($name: String, $limit: Int = 4) {
     image{
       large
     }
-    characters(perPage: $limit) {
+    characters(perPage: $limit, sort: FAVOURITES_DESC) {
       nodes {
         image {
           large
