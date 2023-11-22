@@ -278,7 +278,7 @@ async fn main() {
         Err(_) => return,
     };
 
-    if remove_old_logs().is_ok() {}
+    let _ = remove_old_logs().is_ok();
 
     match init_logger(log) {
         Ok(_) => {}
