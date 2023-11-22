@@ -22,3 +22,4 @@ services:
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db
+      - ./logs/:/kasuki/logs/
