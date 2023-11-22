@@ -1,8 +1,10 @@
 use crate::function::general::html_parser::convert_to_discord_markdown;
 use crate::function::general::trim::trim;
 use crate::function::requests::request::make_request_anilist;
+use log::error;
 use serde::Deserialize;
 use serde_json::json;
+use std::fs::read_to_string;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Media {
@@ -54,7 +56,7 @@ pub struct CoverImage {
 }
 
 impl PageWrapper {
-    pub async fn new_anime_page(number: i64) -> PageWrapper {
+    pub async fn new_anime_page(number: i64) -> Result<PageWrapper, String> {
         let query = "
                     query($anime_page: Int){
                         Page(page: $anime_page, perPage: 1){
@@ -81,11 +83,16 @@ impl PageWrapper {
 
         let json = json!({"query": query, "variables": {"anime_page": number}});
         let res = make_request_anilist(json, false).await;
-
-        serde_json::from_str(&res).unwrap()
+        match serde_json::from_str(&res) {
+            Ok(result) => Ok(result),
+            Err(e) => {
+                error!("Failed to parse JSON: {}", e);
+                Err(String::from("Error: Failed to retrieve user data"))
+            }
+        }
     }
 
-    pub async fn new_manga_page(number: i64) -> PageWrapper {
+    pub async fn new_manga_page(number: i64) -> Result<PageWrapper, String> {
         let query = "
                     query($manga_page: Int){
                         Page(page: $manga_page, perPage: 1){
@@ -113,7 +120,13 @@ impl PageWrapper {
         let json = json!({"query": query, "variables": {"manga_page": number}});
         let res = make_request_anilist(json, false).await;
 
-        serde_json::from_str(&res).unwrap()
+        match serde_json::from_str(&res) {
+            Ok(result) => Ok(result),
+            Err(e) => {
+                error!("Failed to parse JSON: {}", e);
+                Err(String::from("Error: Failed to retrieve user data"))
+            }
+        }
     }
 
     pub fn get_media(&self) -> Media {
@@ -148,9 +161,9 @@ impl PageWrapper {
     pub fn get_description(&self) -> String {
         let mut desc = self.get_media().description;
         desc = convert_to_discord_markdown(desc);
-        let lenght_diff = 4096 - desc.len() as i32;
-        if lenght_diff <= 0 {
-            trim(desc, lenght_diff)
+        let length_diff = 4096 - desc.len() as i32;
+        if length_diff <= 0 {
+            trim(desc, length_diff)
         } else {
             desc
         }
