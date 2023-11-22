@@ -28,7 +28,7 @@ struct SimpleLogger {
 impl SimpleLogger {
     pub fn new() -> Self {
         let uuid_generated = Uuid::new_v4();
-        if let Ok(_) = File::create(format!("./logs/log_{}.log", uuid_generated)) {}
+        let _ = File::create(format!("./logs/log_{}.log", uuid_generated)).is_ok();
         SimpleLogger {
             uuid: uuid_generated,
         }
