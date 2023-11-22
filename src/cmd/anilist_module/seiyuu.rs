@@ -195,7 +195,7 @@ pub async fn run(
         let mut combined_image = DynamicImage::new_rgba16(total_width, 2000);
 
         let resized_img =
-            image::imageops::resize(&sub_image, new_width, new_height, FilterType::Nearest);
+            image::imageops::resize(&sub_image, new_width, new_height, FilterType::CatmullRom);
         combined_image.copy_from(&resized_img, 0, 0).unwrap();
         let pos_list = [
             (new_width, 0),
@@ -211,7 +211,7 @@ pub async fn run(
                 &sub_image,
                 smaller_width,
                 smaller_height,
-                FilterType::Nearest,
+                FilterType::CatmullRom,
             );
             let (pos_width, pos_height) = pos_list[i];
             combined_image
