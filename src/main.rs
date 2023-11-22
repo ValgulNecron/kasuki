@@ -277,17 +277,15 @@ async fn main() {
         Ok(_) => {}
         Err(_) => return,
     };
+
+    if let Ok(_) = remove_old_logs() {}
+
     match init_logger(log) {
         Ok(_) => {}
         Err(e) => {
             eprintln!("{}", e);
             return;
         }
-    };
-
-    match remove_old_logs() {
-        Ok(_) => {}
-        Err(_) => {}
     };
 
     let nsfw_env = env::var("NSFW");
