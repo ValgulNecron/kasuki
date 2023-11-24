@@ -4,6 +4,18 @@ use chrono::Utc;
 use log::error;
 use serde_json::Value;
 
+/// Retrieves the cache statistics for a given random type from a SQLite database using a connection pool.
+/// The cache statistics include the response, last updated timestamp, and last page.
+/// If the cache statistics for the given random type are found in the database, they are returned.
+/// If no cache statistics are found, `None` is returned for each value.
+///
+/// # Arguments
+///
+/// * `random_type` - The random type to retrieve cache statistics for.
+///
+/// # Returns
+///
+/// A tuple containing the response, last updated timestamp, and last page of the cache statistics.
 pub async fn get_database_random_cache_sqlite(
     random_type: &str,
 ) -> (Option<String>, Option<i64>, Option<i64>) {
@@ -18,6 +30,17 @@ pub async fn get_database_random_cache_sqlite(
     row
 }
 
+/// Sets the database random cache for SQLite.
+///
+/// This function inserts or replaces a record in the `cache_stats` table of the SQLite database with the given parameters.
+///
+/// # Arguments
+///
+/// * `random_type` - The key identifying the random type.
+/// * `cached_response` - The cached response to be stored.
+/// * `now` - The timestamp for the last update.
+/// * `previous_page` - The value of the last page.
+///
 pub async fn set_database_random_cache_sqlite(
     random_type: &str,
     cached_response: &str,
@@ -38,6 +61,17 @@ pub async fn set_database_random_cache_sqlite(
     pool.close().await;
 }
 
+/// Retrieves data from a SQLite database cache based on the provided JSON.
+///
+/// # Arguments
+///
+/// * `json` - The JSON data to search for in the cache.
+///
+/// # Returns
+///
+/// A tuple containing the JSON, response, and last_updated values from the cache.
+/// If no matching JSON is found in the cache, the returned tuple will contain `None` values.
+///
 pub async fn get_database_cache_sqlite(
     json: Value,
 ) -> (Option<String>, Option<String>, Option<i64>) {
@@ -52,6 +86,13 @@ pub async fn get_database_cache_sqlite(
     row
 }
 
+/// Sets the database cache for SQLite.
+///
+/// # Arguments
+///
+/// * `json` - The JSON value to be stored in the cache.
+/// * `resp` - The response string to be stored in the cache.
+///
 pub async fn set_database_cache_sqlite(json: Value, resp: String) {
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await;
     let now = Utc::now().timestamp();

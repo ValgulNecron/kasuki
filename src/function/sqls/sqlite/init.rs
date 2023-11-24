@@ -5,6 +5,11 @@ use sqlx::{Pool, Sqlite};
 use std::fs::File;
 use std::path::Path;
 
+/// Initializes SQLite database.
+///
+/// This function checks if the SQLite database files exist and creates them if they don't.
+/// It then initializes the database by creating necessary tables and indices.
+/// This function uses two separate SQLite databases: one for data and one for cache.
 pub async fn init_sqlite() {
     let p = Path::new(DATA_SQLITE_DB);
     if !p.exists() {
@@ -87,6 +92,11 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) {
     }
 }
 
+/// Initializes the SQLite tables and data.
+///
+/// # Arguments
+///
+/// * `_pool` - A reference to the SQLite connection pool.
 async fn init_sqlite_data(_pool: &Pool<Sqlite>) {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
 
