@@ -179,8 +179,6 @@ pub async fn run(
             };
         }
 
-        let mut real_total_width = 0;
-
         let (width, height) = images[0].dimensions();
         let sub_image = images[0].to_owned().crop(0, 0, width, height);
         let aspect_ratio = width as f32 / height as f32;
