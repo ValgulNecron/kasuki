@@ -15,18 +15,10 @@ use std::env;
 ///
 /// * This function will panic if it fails to establish a connection to the database.
 ///
-/// # Examples
-///
-/// ```rust
-/// let database_url = "sqlite:./my_db.db";
-/// let pool = get_pool(database_url).await;
-/// ```
-///
 /// # Notes
 ///
 /// * This function is async and should be awaited.
 ///
-
 pub async fn init_sql_database() {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
