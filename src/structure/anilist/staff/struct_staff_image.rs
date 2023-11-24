@@ -1,7 +1,8 @@
-use crate::function::requests::request::make_request_anilist;
 use log::error;
 use serde::Deserialize;
 use serde_json::json;
+
+use crate::function::requests::request::make_request_anilist;
 
 #[derive(Debug, Deserialize)]
 pub struct StaffImageWrapper {
@@ -16,7 +17,6 @@ pub struct StaffImageData {
 
 #[derive(Debug, Deserialize)]
 pub struct Staff {
-    id: i32,
     image: StaffImageImage,
     characters: StaffImageCharacters,
 }
@@ -41,7 +41,6 @@ impl StaffImageWrapper {
         let query_id: &str = "
         query ($name: Int, $limit: Int = 4) {
 	Staff(id: $name){
-    id
     image{
       large
     }
@@ -70,7 +69,6 @@ impl StaffImageWrapper {
         let query_string: &str = "
 query ($name: String, $limit: Int = 4) {
 	Staff(search: $name){
-    id
     image{
       large
     }
