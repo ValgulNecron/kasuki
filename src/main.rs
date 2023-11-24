@@ -354,7 +354,7 @@ async fn main() {
     }
 }
 
-pub async fn check_if_anime_is_on(
+async fn check_if_anime_is_on(
     command: &ApplicationCommandInteraction,
     color: Colour,
     ctx: &Context,
@@ -377,7 +377,7 @@ pub async fn check_if_anime_is_on(
     }
 }
 
-pub async fn check_if_ai_is_on(
+async fn check_if_ai_is_on(
     command: &ApplicationCommandInteraction,
     color: Colour,
     ctx: &Context,
@@ -400,7 +400,7 @@ pub async fn check_if_ai_is_on(
     }
 }
 
-pub async fn send_deactivated_message(
+async fn send_deactivated_message(
     command: &ApplicationCommandInteraction,
     color: Colour,
     ctx: &Context,

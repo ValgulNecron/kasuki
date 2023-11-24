@@ -9,18 +9,43 @@ use std::io::{Error, Write};
 use std::path::Path;
 use uuid::Uuid;
 
+/// A lazy static instance of `SimpleLogger`.
+///
+/// The `LOGGER` constant is lazily initialized using the `Lazy` type from the [`lazy_static`](https://docs.rs/lazy_static) crate.
+/// It holds an instance of `SimpleLogger` which is used for logging in the application.
+///
+/// # Note
+/// This constant should be used to access the logger instance when logging is needed.
+///
 static LOGGER: Lazy<SimpleLogger> = Lazy::new(SimpleLogger::new);
 
+
+/// Initializes the logger with the specified log level filter.
+///
+/// # Arguments
+///
+/// * `log` - A string representing the desired log level. Possible values are "info",
+///           "warn", "error", "debug", and "trace".
+///
+/// # Returns
+///
+/// A `Result` indicating success or failure. If successful, the logger is initialized
+/// and the log level filter is set. If an error occurs, the corresponding error is
 pub fn init_logger(log: &str) -> Result<(), SetLoggerError> {
     let level_filter = match log {
         "info" => LevelFilter::Info,
         "warn" => LevelFilter::Warn,
         "error" => LevelFilter::Error,
-        _ => LevelFilter::Debug,
+        "debug" => LevelFilter::Debug,
+        "trace" => LevelFilter::Trace,
+        _ => LevelFilter::Info,
     };
     log::set_logger(&*LOGGER).map(|()| log::set_max_level(level_filter))
 }
 
+/// Struct representing a simple logger.
+///
+/// The `SimpleLogger` struct is used to log messages.
 struct SimpleLogger {
     uuid: Uuid,
 }
@@ -70,6 +95,16 @@ impl Log for SimpleLogger {
     fn flush(&self) {}
 }
 
+/// Removes old logs from the "./logs" directory.
+///
+/// # Errors
+///
+/// This function will return an error if:
+///
+/// - The directory "./logs" does not exist.
+/// - There is an error reading the directory.
+/// - There is an error getting the metadata of a file.
+/// - There is an error removing a file.
 pub fn remove_old_logs() -> Result<(), Error> {
     let path = Path::new("./logs");
     let mut entries: Vec<_> = fs::read_dir(path)?.filter_map(Result::ok).collect();
@@ -85,6 +120,14 @@ pub fn remove_old_logs() -> Result<(), Error> {
     Ok(())
 }
 
+/// Creates a directory named "logs" if it doesn't exist.
+/// # Errors
+///
+/// Returns an `std::io::Result` indicating whether the directory was successfully created or encountered an error.
+///
+/// # Remarks
+///
+/// If the directory already exists, this function does nothing and returns `Ok(())`.
 pub fn create_log_directory() -> std::io::Result<()> {
     fs::create_dir_all("./logs")
 }
