@@ -27,6 +27,7 @@ use serde_json::{json, Value};
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
+use serenity::model::channel::Message;
 use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
@@ -113,32 +114,10 @@ pub async fn run(
                 return;
             }
         };
-        let mut data = json!({
-            "prompt": prompt,
-            "n": 1,
-            "size": "1024x1024",
-            "response_format": "url"
-        });
-        if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
-            let is_ok = image_generation_mode.to_lowercase() == "true";
-            if is_ok {
-                let model = match env::var("IMAGE_GENERATION_MODELS") {
-                    Ok(data) => data,
-                    Err(why) => {
-                        error!("{}", why);
-                        error_instance_admin_models_edit(ctx, command, message).await;
-                        return;
-                    }
-                };
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": "1024x1024",
-                    "model": model,
-                    "response_format": "url"
-                })
-            }
-        }
+        let data = match do_json(ctx, command, message.clone(), prompt).await {
+            Ok(a) => a,
+            Err(_) => return
+        };
         let api_url = format!("{}images/generations", api_base_url);
         let client = reqwest::Client::new();
 
@@ -193,7 +172,7 @@ pub async fn run(
             }
         }
 
-        let mut real_message = message.clone();
+        let real_message = message.clone();
         let response = match reqwest::get(url_string).await {
             Ok(data) => data,
             Err(why) => {
@@ -210,7 +189,7 @@ pub async fn run(
                 return;
             }
         };
-        match fs::write(filename.clone(), &bytes) {
+        match fs::write(&filename, &bytes) {
             Ok(_) => {}
             Err(why) => {
                 error!("{}", why);
@@ -219,23 +198,8 @@ pub async fn run(
             }
         }
 
-        let path = Path::new(filename_str);
 
-        if let Err(why) = real_message
-            .edit(&ctx.http, |m| {
-                m.attachment(path).embed(|e| {
-                    e.title(&localised_text.title)
-                        .image(format!("attachment://{}", filename))
-                        .timestamp(Timestamp::now())
-                        .color(COLOR)
-                })
-            })
-            .await
-        {
-            let _ = fs::remove_file(filename_str);
-            error!("Cannot respond to slash command: {}", why);
-        }
-        let _ = fs::remove_file(filename_str);
+        send_embed(real_message, ctx, &filename, filename_str, localised_text).await;
     }
 }
 
@@ -269,4 +233,54 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
             .description_localized(&image.code, &image.desc);
     }
     command
+}
+
+async fn send_embed(mut real_message: Message, ctx: &Context, filename: &String, filename_str: &str, localised_text: ImageLocalisedText) {
+    let path = Path::new(filename_str);
+
+    if let Err(why) = real_message
+            .edit(&ctx.http, |m| {
+                m.attachment(path).embed(|e| {
+                    e.title(&localised_text.title)
+                        .image(format!("attachment://{}", filename))
+                        .timestamp(Timestamp::now())
+                        .color(COLOR)
+                })
+            })
+            .await
+        {
+            let _ = fs::remove_file(filename_str);
+            error!("Cannot respond to slash command: {}", why);
+        }
+        let _ = fs::remove_file(filename_str);
+}
+
+async fn do_json(ctx: &Context, command: &ApplicationCommandInteraction, message: Message, prompt: &String) -> Result<Value, String> {
+    let mut data = json!({
+            "prompt": prompt,
+            "n": 1,
+            "size": "1024x1024",
+            "response_format": "url"
+        });
+        if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
+            let is_ok = image_generation_mode.to_lowercase() == "true";
+            if is_ok {
+                let model = match env::var("IMAGE_GENERATION_MODELS") {
+                    Ok(data) => data,
+                    Err(why) => {
+                        error!("{}", why);
+                        error_instance_admin_models_edit(ctx, command, message).await;
+                        return Err(why.to_string())
+                    }
+                };
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "model": model,
+                    "response_format": "url"
+                })
+            }
+        }
+    Ok(data)
 }
