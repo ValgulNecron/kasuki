@@ -116,7 +116,7 @@ pub async fn run(
         };
         let data = match do_json(ctx, command, message.clone(), prompt).await {
             Ok(a) => a,
-            Err(_) => return
+            Err(_) => return,
         };
         let api_url = format!("{}images/generations", api_base_url);
         let client = reqwest::Client::new();
@@ -198,7 +198,6 @@ pub async fn run(
             }
         }
 
-
         send_embed(real_message, ctx, &filename, filename_str, localised_text).await;
     }
 }
@@ -235,52 +234,63 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command
 }
 
-async fn send_embed(mut real_message: Message, ctx: &Context, filename: &String, filename_str: &str, localised_text: ImageLocalisedText) {
+async fn send_embed(
+    mut real_message: Message,
+    ctx: &Context,
+    filename: &String,
+    filename_str: &str,
+    localised_text: ImageLocalisedText,
+) {
     let path = Path::new(filename_str);
 
     if let Err(why) = real_message
-            .edit(&ctx.http, |m| {
-                m.attachment(path).embed(|e| {
-                    e.title(&localised_text.title)
-                        .image(format!("attachment://{}", filename))
-                        .timestamp(Timestamp::now())
-                        .color(COLOR)
-                })
+        .edit(&ctx.http, |m| {
+            m.attachment(path).embed(|e| {
+                e.title(&localised_text.title)
+                    .image(format!("attachment://{}", filename))
+                    .timestamp(Timestamp::now())
+                    .color(COLOR)
             })
-            .await
-        {
-            let _ = fs::remove_file(filename_str);
-            error!("Cannot respond to slash command: {}", why);
-        }
+        })
+        .await
+    {
         let _ = fs::remove_file(filename_str);
+        error!("Cannot respond to slash command: {}", why);
+    }
+    let _ = fs::remove_file(filename_str);
 }
 
-async fn do_json(ctx: &Context, command: &ApplicationCommandInteraction, message: Message, prompt: &String) -> Result<Value, String> {
+async fn do_json(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    message: Message,
+    prompt: &String,
+) -> Result<Value, String> {
     let mut data = json!({
-            "prompt": prompt,
-            "n": 1,
-            "size": "1024x1024",
-            "response_format": "url"
-        });
-        if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
-            let is_ok = image_generation_mode.to_lowercase() == "true";
-            if is_ok {
-                let model = match env::var("IMAGE_GENERATION_MODELS") {
-                    Ok(data) => data,
-                    Err(why) => {
-                        error!("{}", why);
-                        error_instance_admin_models_edit(ctx, command, message).await;
-                        return Err(why.to_string())
-                    }
-                };
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": "1024x1024",
-                    "model": model,
-                    "response_format": "url"
-                })
-            }
+        "prompt": prompt,
+        "n": 1,
+        "size": "1024x1024",
+        "response_format": "url"
+    });
+    if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
+        let is_ok = image_generation_mode.to_lowercase() == "true";
+        if is_ok {
+            let model = match env::var("IMAGE_GENERATION_MODELS") {
+                Ok(data) => data,
+                Err(why) => {
+                    error!("{}", why);
+                    error_instance_admin_models_edit(ctx, command, message).await;
+                    return Err(why.to_string());
+                }
+            };
+            data = json!({
+                "prompt": prompt,
+                "n": 1,
+                "size": "1024x1024",
+                "model": model,
+                "response_format": "url"
+            })
         }
+    }
     Ok(data)
 }

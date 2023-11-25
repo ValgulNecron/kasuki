@@ -19,7 +19,6 @@ use uuid::Uuid;
 ///
 static LOGGER: Lazy<SimpleLogger> = Lazy::new(SimpleLogger::new);
 
-
 /// Initializes the logger with the specified log level filter.
 ///
 /// # Arguments

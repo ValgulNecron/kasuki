@@ -33,6 +33,7 @@ use crate::cmd::general_module::{
     avatar, banner, credit, info, lang, module_activation, ping, profile,
 };
 use crate::constant::{ACTIVITY_NAME, COLOR, PING_UPDATE_DELAYS};
+use crate::function::error_management::error_dispatching::error_dispatching;
 use crate::function::error_management::no_lang_error::no_langage_error;
 use crate::function::general::get_guild_langage::get_guild_langage;
 use crate::function::sqls::general::data::set_data_ping_history;
@@ -46,6 +47,7 @@ use crate::structure::embed::error::ErrorLocalisedText;
 mod available_lang;
 mod cmd;
 mod constant;
+mod error_enum;
 mod function;
 mod logger;
 mod structure;
@@ -119,7 +121,14 @@ impl EventHandler for Handler {
             );
             match command.data.name.as_str() {
                 // General module.
-                "ping" => ping::run(&ctx, &command).await,
+                "ping" => {
+                    match ping::run(&ctx, &command).await {
+                        Err(e) => {
+                            error_dispatching(e, &ctx, &command).await
+                        }
+                        _ => {}
+                    }
+                }
                 "lang" => lang::run(&command.data.options, &ctx, &command).await,
                 "info" => info::run(&ctx, &command).await,
                 "banner" => banner::run(&command.data.options, &ctx, &command).await,
