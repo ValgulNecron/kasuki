@@ -1,9 +1,10 @@
-use crate::function::requests::request::make_request_anilist;
-use crate::structure::anilist::struct_autocomplete::AutocompleteOption;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use serenity::client::Context;
 use serenity::model::prelude::autocomplete::AutocompleteInteraction;
+
+use crate::function::requests::request::make_request_anilist;
+use crate::structure::anilist::struct_autocomplete::AutocompleteOption;
 
 #[derive(Debug, Deserialize)]
 pub struct AutocompleteTitle {

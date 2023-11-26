@@ -1,9 +1,3 @@
-use crate::available_lang::AvailableLang;
-use crate::error_enum::AppError::{LangageGuildIdError, NoCommandOption};
-use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, OPTION_ERROR};
-use crate::function::sqls::general::data::set_data_guild_langage;
-use crate::structure::embed::general::struct_lang_lang::LangLocalisedText;
-use crate::structure::register::general::struct_lang_register::LangRegister;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::command::CommandOptionType;
@@ -14,6 +8,13 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::CommandDataOptionValue;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
+
+use crate::available_lang::AvailableLang;
+use crate::error_enum::AppError::{LangageGuildIdError, NoCommandOption};
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::function::sqls::general::data::set_data_guild_langage;
+use crate::structure::embed::general::struct_lang_lang::LangLocalisedText;
+use crate::structure::register::general::struct_lang_register::LangRegister;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -28,7 +29,7 @@ pub async fn run(
         _ => {
             return Err(NoCommandOption(String::from(
                 "The command contain no option.",
-            )))
+            )));
         }
     };
     let color = Colour::FABLED_PINK;

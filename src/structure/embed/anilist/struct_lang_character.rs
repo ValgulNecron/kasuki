@@ -2,14 +2,15 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
+use serde::{Deserialize, Serialize};
+use serenity::client::Context;
+use serenity::model::prelude::application_command::ApplicationCommandInteraction;
+
 use crate::function::error_management::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json,
 };
 use crate::function::general::get_guild_langage::get_guild_langage;
-use serde::{Deserialize, Serialize};
-use serenity::client::Context;
-use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CharacterLocalisedText {

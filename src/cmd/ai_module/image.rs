@@ -1,6 +1,19 @@
-use log::error;
 use std::path::Path;
 use std::{env, fs};
+
+use log::error;
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use serde_json::{json, Value};
+use serenity::builder::CreateApplicationCommand;
+use serenity::client::Context;
+use serenity::model::application::interaction::application_command::CommandDataOptionValue;
+use serenity::model::channel::Message;
+use serenity::model::prelude::command::CommandOptionType;
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::Timestamp;
+use uuid::Uuid;
 
 use crate::constant::COLOR;
 use crate::function::error_management::error_base_url::error_no_base_url_edit;
@@ -22,18 +35,6 @@ use crate::function::general::get_nsfw_channel::get_nsfw;
 use crate::function::general::in_progress::in_progress_embed;
 use crate::structure::embed::ai::struct_lang_image::ImageLocalisedText;
 use crate::structure::register::ai::struct_image_register::ImageRegister;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use serde_json::{json, Value};
-use serenity::builder::CreateApplicationCommand;
-use serenity::client::Context;
-use serenity::model::application::interaction::application_command::CommandDataOptionValue;
-use serenity::model::channel::Message;
-use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::{
-    ApplicationCommandInteraction, CommandDataOption,
-};
-use serenity::model::Timestamp;
-use uuid::Uuid;
 
 pub async fn run(
     options: &[CommandDataOption],

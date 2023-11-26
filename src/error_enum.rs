@@ -11,7 +11,6 @@ pub enum AppError {
     NoLangageError(String),
     FailedToGetUser(String),
     NoAvatarError(String),
-    NoBannerError(String),
     NoCommandOption(String),
     SqlInsertError(String),
     SqlSelectError(String),
@@ -31,6 +30,3 @@ pub static COMMAND_SENDING_ERROR: Lazy<AppError> = Lazy::new(|| {
 
 pub static NO_AVATAR_ERROR: Lazy<AppError> =
     Lazy::new(|| AppError::NoAvatarError(String::from("Error while getting the user avatar.")));
-
-pub static NO_BANNER_ERROR: Lazy<AppError> =
-    Lazy::new(|| AppError::NoBannerError(String::from("Error while getting the user banner.")));

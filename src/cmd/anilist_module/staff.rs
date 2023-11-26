@@ -1,9 +1,3 @@
-use crate::constant::COLOR;
-use crate::function::error_management::common::custom_error;
-use crate::structure::anilist::staff::struct_autocomplete_staff::StaffPageWrapper;
-use crate::structure::anilist::staff::struct_staff::StaffWrapper;
-use crate::structure::embed::anilist::struct_lang_staff::StaffLocalisedText;
-use crate::structure::register::anilist::struct_staff_register::RegisterLocalisedStaff;
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -15,6 +9,13 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+
+use crate::constant::COLOR;
+use crate::function::error_management::common::custom_error;
+use crate::structure::anilist::staff::struct_autocomplete_staff::StaffPageWrapper;
+use crate::structure::anilist::staff::struct_staff::StaffWrapper;
+use crate::structure::embed::anilist::struct_lang_staff::StaffLocalisedText;
+use crate::structure::register::anilist::struct_staff_register::RegisterLocalisedStaff;
 
 pub async fn run(
     options: &[CommandDataOption],

@@ -2,6 +2,9 @@
 mod tests {
     use std::any::{Any, TypeId};
 
+    use serde_json::json;
+    use sqlx::{Pool, Sqlite};
+
     use crate::function::general::get_guild_langage::get_guild_langage;
     use crate::function::general::html_parser::{
         add_anti_slash, convert_bold, convert_html_entity_to_real_char,
@@ -11,8 +14,6 @@ mod tests {
     use crate::function::general::trim::{trim, trim_webhook};
     use crate::function::requests::request::make_request_anilist;
     use crate::function::sqls::sqlite::pool::get_sqlite_pool;
-    use serde_json::json;
-    use sqlx::{Pool, Sqlite};
 
     #[test]
     fn test_parser_mdash() {

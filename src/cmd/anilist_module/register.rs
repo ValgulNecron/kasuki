@@ -1,7 +1,3 @@
-use crate::constant::COLOR;
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
-use crate::structure::embed::anilist::struct_lang_register::RegisterLocalisedText;
-use crate::structure::register::anilist::struct_register_register::RegisterLocalisedRegister;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -11,6 +7,11 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+
+use crate::constant::COLOR;
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
+use crate::structure::embed::anilist::struct_lang_register::RegisterLocalisedText;
+use crate::structure::register::anilist::struct_register_register::RegisterLocalisedRegister;
 
 pub async fn run(
     options: &[CommandDataOption],

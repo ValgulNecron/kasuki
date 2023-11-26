@@ -1,9 +1,3 @@
-use crate::constant::COLOR;
-use crate::function::error_management::common::custom_error;
-use crate::structure::anilist::character::struct_autocomplete_character::CharacterPageWrapper;
-use crate::structure::anilist::character::struct_character::CharacterWrapper;
-use crate::structure::embed::anilist::struct_lang_character::CharacterLocalisedText;
-use crate::structure::register::anilist::struct_character_register::RegisterLocalisedCharacter;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -14,6 +8,13 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+
+use crate::constant::COLOR;
+use crate::function::error_management::common::custom_error;
+use crate::structure::anilist::character::struct_autocomplete_character::CharacterPageWrapper;
+use crate::structure::anilist::character::struct_character::CharacterWrapper;
+use crate::structure::embed::anilist::struct_lang_character::CharacterLocalisedText;
+use crate::structure::register::anilist::struct_character_register::RegisterLocalisedCharacter;
 
 pub async fn run(
     options: &[CommandDataOption],

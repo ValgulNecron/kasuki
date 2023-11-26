@@ -1,3 +1,5 @@
+use std::env;
+
 use crate::cmd::anilist_module::send_activity::ActivityData;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
@@ -7,7 +9,6 @@ use crate::function::sqls::sqlite::data::{
     set_data_guild_langage_sqlite, set_data_module_activation_status_sqlite,
     set_data_ping_history_sqlite,
 };
-use std::env;
 
 pub async fn set_data_ping_history(shard_id: String, latency: String) {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());

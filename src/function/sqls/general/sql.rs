@@ -1,5 +1,6 @@
-use crate::function::sqls::sqlite::init::init_sqlite;
 use std::env;
+
+use crate::function::sqls::sqlite::init::init_sqlite;
 
 /// Asynchronously establish a connection pool to a SQLite database.
 ///

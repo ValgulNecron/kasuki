@@ -2,16 +2,17 @@ use std::env;
 use std::thread::sleep;
 use std::time::Duration;
 
-use crate::constant::COLOR;
-use crate::function::sqls::general::data::{get_data_activity, set_data_activity};
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
-use crate::structure::anilist::struct_minimal_anime::MinimalAnimeWrapper;
-use crate::structure::embed::anilist::struct_lang_send_activity::SendActivityLocalisedText;
 use chrono::Utc;
 use serenity::http::Http;
 use serenity::model::channel::Embed;
 use serenity::model::prelude::Webhook;
 use sqlx::FromRow;
+
+use crate::constant::COLOR;
+use crate::function::sqls::general::data::{get_data_activity, set_data_activity};
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
+use crate::structure::anilist::struct_minimal_anime::MinimalAnimeWrapper;
+use crate::structure::embed::anilist::struct_lang_send_activity::SendActivityLocalisedText;
 
 #[derive(Debug, FromRow, Clone)]
 pub struct ActivityData {

@@ -1,9 +1,11 @@
-use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
-use log::error;
-use sqlx::{Pool, Sqlite};
 use std::fs::File;
 use std::path::Path;
+
+use log::error;
+use sqlx::{Pool, Sqlite};
+
+use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 
 /// Initializes SQLite database.
 ///

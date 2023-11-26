@@ -3,15 +3,6 @@ use std::io::copy;
 use std::path::Path;
 use std::{env, fs};
 
-use crate::constant::COLOR;
-use crate::function::error_management::error_file::{error_file_extension, error_file_type};
-use crate::function::error_management::error_parsing_json::error_parsing_json_edit;
-use crate::function::error_management::error_request::error_making_request_edit;
-use crate::function::error_management::error_resolving_value::error_resolving_value_followup;
-use crate::function::general::differed_response::differed_response_with_file_deletion;
-use crate::function::general::in_progress::in_progress_embed;
-use crate::structure::embed::ai::struct_lang_translation::TranslationLocalisedText;
-use crate::structure::register::ai::struct_translation_register::RegisterLocalisedTranslation;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
 use serde_json::{json, Value};
@@ -26,6 +17,16 @@ use serenity::model::prelude::interaction::application_command::{
 };
 use serenity::model::Timestamp;
 use uuid::Uuid;
+
+use crate::constant::COLOR;
+use crate::function::error_management::error_file::{error_file_extension, error_file_type};
+use crate::function::error_management::error_parsing_json::error_parsing_json_edit;
+use crate::function::error_management::error_request::error_making_request_edit;
+use crate::function::error_management::error_resolving_value::error_resolving_value_followup;
+use crate::function::general::differed_response::differed_response_with_file_deletion;
+use crate::function::general::in_progress::in_progress_embed;
+use crate::structure::embed::ai::struct_lang_translation::TranslationLocalisedText;
+use crate::structure::register::ai::struct_translation_register::RegisterLocalisedTranslation;
 
 pub async fn run(
     options: &[CommandDataOption],

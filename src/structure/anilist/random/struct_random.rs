@@ -1,9 +1,10 @@
-use crate::function::general::html_parser::convert_to_discord_markdown;
-use crate::function::general::trim::trim;
-use crate::function::requests::request::make_request_anilist;
 use log::error;
 use serde::Deserialize;
 use serde_json::json;
+
+use crate::function::general::html_parser::convert_to_discord_markdown;
+use crate::function::general::trim::trim;
+use crate::function::requests::request::make_request_anilist;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Media {

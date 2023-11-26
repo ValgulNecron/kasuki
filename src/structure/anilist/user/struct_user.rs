@@ -1,10 +1,11 @@
-use crate::constant::N_A;
-use crate::function::requests::request::make_request_anilist;
-use crate::structure::embed::anilist::struct_lang_user::UserLocalisedText;
 use log::error;
 use serde::Deserialize;
 use serde_json::json;
 use serenity::utils::Colour;
+
+use crate::constant::N_A;
+use crate::function::requests::request::make_request_anilist;
+use crate::structure::embed::anilist::struct_lang_user::UserLocalisedText;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct UserWrapper {
@@ -240,7 +241,7 @@ impl UserWrapper {
     }
 
     pub fn get_pfp(&self) -> &str {
-        match &self.data.user.avatar.large{
+        match &self.data.user.avatar.large {
             Some(user_avatar_large) => user_avatar_large.as_str(),
             None => "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
         }

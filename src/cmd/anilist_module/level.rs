@@ -1,8 +1,3 @@
-use crate::function::error_management::common::custom_error;
-use crate::structure::anilist::level::struct_level::LevelSystem;
-use crate::structure::anilist::user::struct_user::{Statuses, UserWrapper};
-use crate::structure::embed::anilist::struct_lang_level::LevelLocalisedText;
-use crate::structure::register::anilist::struct_level_register::RegisterLocalisedLevel;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -12,6 +7,12 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+
+use crate::function::error_management::common::custom_error;
+use crate::structure::anilist::level::struct_level::LevelSystem;
+use crate::structure::anilist::user::struct_user::{Statuses, UserWrapper};
+use crate::structure::embed::anilist::struct_lang_level::LevelLocalisedText;
+use crate::structure::register::anilist::struct_level_register::RegisterLocalisedLevel;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -46,7 +47,7 @@ pub async fn run(
                 }
             }
         };
-        let profile_picture = data.data.user.avatar.large.clone().unwrap_or( "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
+        let profile_picture = data.data.user.avatar.large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string());
         let user = data.data.user.name.clone().unwrap_or("N/A".to_string());
         let anime = data.data.user.statistics.anime.clone();
         let manga = data.data.user.statistics.manga.clone();

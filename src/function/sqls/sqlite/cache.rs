@@ -1,8 +1,9 @@
-use crate::constant::CACHE_SQLITE_DB;
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use chrono::Utc;
 use log::error;
 use serde_json::Value;
+
+use crate::constant::CACHE_SQLITE_DB;
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 
 /// Retrieves the cache statistics for a given random type from a SQLite database using a connection pool.
 /// The cache statistics include the response, last updated timestamp, and last page.
@@ -55,7 +56,7 @@ pub async fn set_database_random_cache_sqlite(
         .bind(previous_page)
         .execute(&pool)
         .await {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => error!("{}", e)
     }
     pool.close().await;

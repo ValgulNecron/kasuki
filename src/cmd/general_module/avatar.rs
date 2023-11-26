@@ -1,8 +1,3 @@
-use crate::constant::COLOR;
-use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
-use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, NO_AVATAR_ERROR};
-use crate::structure::embed::general::struct_lang_avatar::AvatarLocalisedText;
-use crate::structure::register::general::struct_avatar_register::RegisterLocalisedAvatar;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::http::Http;
@@ -12,6 +7,12 @@ use serenity::model::prelude::application_command::{
 };
 use serenity::model::prelude::{InteractionResponseType, User};
 use serenity::model::Timestamp;
+
+use crate::constant::COLOR;
+use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, NO_AVATAR_ERROR};
+use crate::structure::embed::general::struct_lang_avatar::AvatarLocalisedText;
+use crate::structure::register::general::struct_avatar_register::RegisterLocalisedAvatar;
 
 pub async fn run(
     options: &[CommandDataOption],

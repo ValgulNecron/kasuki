@@ -2,6 +2,18 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
+use chrono::Utc;
+use log::error;
+use rand::prelude::*;
+use serenity::builder::CreateApplicationCommand;
+use serenity::client::Context;
+use serenity::model::application::interaction::application_command::CommandDataOptionValue;
+use serenity::model::prelude::command::CommandOptionType;
+use serenity::model::prelude::interaction::application_command::{
+    ApplicationCommandInteraction, CommandDataOption,
+};
+use serenity::model::Timestamp;
+
 use crate::cmd::general_module::lang_struct::RandomLocalisedText;
 use crate::constant::COLOR;
 use crate::function::error_management::no_lang_error::{
@@ -14,17 +26,6 @@ use crate::function::sqls::general::cache::{get_database_random_cache, set_datab
 use crate::structure::anilist::random::struct_random::PageWrapper;
 use crate::structure::anilist::random::struct_site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::structure::anilist::random::struct_site_statistic_manga::SiteStatisticsMangaWrapper;
-use chrono::Utc;
-use log::error;
-use rand::prelude::*;
-use serenity::builder::CreateApplicationCommand;
-use serenity::client::Context;
-use serenity::model::application::interaction::application_command::CommandDataOptionValue;
-use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::{
-    ApplicationCommandInteraction, CommandDataOption,
-};
-use serenity::model::Timestamp;
 
 pub async fn run(
     options: &[CommandDataOption],

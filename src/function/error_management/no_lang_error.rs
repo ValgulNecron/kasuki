@@ -1,7 +1,8 @@
-use crate::function::error_management::common::{edit_embed_message, send_embed_message};
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
+
+use crate::function::error_management::common::{edit_embed_message, send_embed_message};
 
 pub async fn no_langage_error(ctx: &Context, command: &ApplicationCommandInteraction) {
     println!("Error: Langage does not exist.");

@@ -1,7 +1,8 @@
-use crate::function::error_management::common::{edit_embed_message, get_localised_langage_edit};
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
+
+use crate::function::error_management::common::{edit_embed_message, get_localised_langage_edit};
 
 pub async fn error_no_url_edit(
     ctx: &Context,

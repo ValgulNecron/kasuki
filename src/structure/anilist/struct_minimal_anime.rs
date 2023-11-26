@@ -1,9 +1,10 @@
-use crate::constant::N_A;
-use crate::function::requests::request::make_request_anilist;
-use crate::structure::embed::anilist::struct_lang_add_activity::AddActivityLocalisedText;
 use log::error;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+
+use crate::constant::N_A;
+use crate::function::requests::request::make_request_anilist;
+use crate::structure::embed::anilist::struct_lang_add_activity::AddActivityLocalisedText;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct NextAiringEpisode {

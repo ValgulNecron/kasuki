@@ -1,9 +1,8 @@
-use crate::constant::COLOR;
-use crate::function::error_management::common::{custom_error, custom_followup_error};
-use crate::function::error_management::error_response::error_writing_file_response_edit;
-use crate::function::general::differed_response::differed_response;
-use crate::function::general::in_progress::in_progress_embed;
-use crate::structure::anilist::staff::struct_staff_image::StaffImageWrapper;
+use std::fs;
+use std::fs::File;
+use std::io::{Read, Write};
+use std::path::Path;
+
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView};
 use log::{debug, error};
@@ -14,11 +13,14 @@ use serenity::model::prelude::application_command::{
     ApplicationCommandInteraction, CommandDataOption, CommandDataOptionValue,
 };
 use serenity::model::Timestamp;
-use std::fs;
-use std::fs::File;
-use std::io::{Read, Write};
-use std::path::Path;
 use uuid::Uuid;
+
+use crate::constant::COLOR;
+use crate::function::error_management::common::{custom_error, custom_followup_error};
+use crate::function::error_management::error_response::error_writing_file_response_edit;
+use crate::function::general::differed_response::differed_response;
+use crate::function::general::in_progress::in_progress_embed;
+use crate::structure::anilist::staff::struct_staff_image::StaffImageWrapper;
 
 pub async fn run(
     options: &[CommandDataOption],

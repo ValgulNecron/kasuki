@@ -1,10 +1,11 @@
+use chrono::Utc;
+use log::error;
+
 use crate::cmd::anilist_module::send_activity::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::SqlInsertError;
 use crate::function::sqls::sqlite::pool::get_sqlite_pool;
-use chrono::Utc;
-use log::error;
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
 ///

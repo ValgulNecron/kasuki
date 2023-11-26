@@ -2,12 +2,13 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
+use serde::{Deserialize, Serialize};
+
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
     LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
 };
 use crate::function::general::get_guild_langage::get_guild_langage;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ProfileLocalisedText {

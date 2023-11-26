@@ -1,9 +1,3 @@
-use crate::constant::COLOR;
-use crate::function::error_management::common::custom_error;
-use crate::function::error_management::error_not_nsfw::error_not_nsfw;
-use crate::function::general::get_nsfw_channel::get_nsfw;
-use crate::structure::anilist::media::struct_media::MediaWrapper;
-use crate::structure::embed::anilist::struct_lang_media::MediaLocalisedText;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
 use serenity::model::application::interaction::InteractionResponseType;
@@ -11,6 +5,13 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+
+use crate::constant::COLOR;
+use crate::function::error_management::common::custom_error;
+use crate::function::error_management::error_not_nsfw::error_not_nsfw;
+use crate::function::general::get_nsfw_channel::get_nsfw;
+use crate::structure::anilist::media::struct_media::MediaWrapper;
+use crate::structure::embed::anilist::struct_lang_media::MediaLocalisedText;
 
 pub async fn embed(
     options: &[CommandDataOption],

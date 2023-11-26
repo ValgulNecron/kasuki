@@ -3,17 +3,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use crate::cmd::general_module::lang_struct::CompareLocalisedText;
-use crate::constant::COLOR;
-use crate::function::error_management::common::custom_error;
-use crate::function::error_management::no_lang_error::{
-    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
-    error_parsing_langage_json, no_langage_error,
-};
-use crate::function::general::get_guild_langage::get_guild_langage;
-use crate::structure::anilist::user::struct_autocomplete_user::UserPageWrapper;
-use crate::structure::anilist::user::struct_user::UserWrapper;
-use crate::structure::register::anilist::struct_compare_register::RegisterLocalisedCompare;
 use serde_json::json;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
@@ -25,6 +14,18 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+
+use crate::cmd::general_module::lang_struct::CompareLocalisedText;
+use crate::constant::COLOR;
+use crate::function::error_management::common::custom_error;
+use crate::function::error_management::no_lang_error::{
+    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
+    error_parsing_langage_json, no_langage_error,
+};
+use crate::function::general::get_guild_langage::get_guild_langage;
+use crate::structure::anilist::user::struct_autocomplete_user::UserPageWrapper;
+use crate::structure::anilist::user::struct_user::UserWrapper;
+use crate::structure::register::anilist::struct_compare_register::RegisterLocalisedCompare;
 
 pub async fn run(
     options: &[CommandDataOption],

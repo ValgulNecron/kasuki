@@ -1,5 +1,3 @@
-use crate::cmd::anilist_module::{anime, character, ln, manga, staff, studio, user};
-use crate::function::error_management::error_not_implemented::error_not_implemented;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -7,6 +5,9 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
+
+use crate::cmd::anilist_module::{anime, character, ln, manga, staff, studio, user};
+use crate::function::error_management::error_not_implemented::error_not_implemented;
 
 pub async fn run(
     options: &[CommandDataOption],

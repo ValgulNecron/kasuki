@@ -1,8 +1,9 @@
-use crate::constant::DAYS;
-use crate::function::sqls::general::cache::{get_database_cache, set_database_cache};
 use chrono::Utc;
 use reqwest::Client;
 use serde_json::Value;
+
+use crate::constant::DAYS;
+use crate::function::sqls::general::cache::{get_database_cache, set_database_cache};
 
 /// the number of day before the cache is too old and need to be renewed.
 /// Makes a requests to AniList.

@@ -1,9 +1,11 @@
+use std::env;
+
+use serde_json::Value;
+
 use crate::function::sqls::sqlite::cache::{
     get_database_cache_sqlite, get_database_random_cache_sqlite, set_database_cache_sqlite,
     set_database_random_cache_sqlite,
 };
-use serde_json::Value;
-use std::env;
 
 pub async fn get_database_random_cache(
     random_type: &str,

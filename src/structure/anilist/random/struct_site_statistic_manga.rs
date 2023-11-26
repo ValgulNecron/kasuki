@@ -1,6 +1,7 @@
-use crate::function::requests::request::make_request_anilist;
 use serde::Deserialize;
 use serde_json::json;
+
+use crate::function::requests::request::make_request_anilist;
 
 #[derive(Debug, Deserialize)]
 pub struct SiteStatisticsMangaWrapper {

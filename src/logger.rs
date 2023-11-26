@@ -1,12 +1,13 @@
+use std::fs;
+use std::fs::{File, OpenOptions};
+use std::io::{Error, Write};
+use std::path::Path;
+
 use chrono::Utc;
 use colored::Colorize;
 use log::{Level, Log, Metadata, Record};
 use log::{LevelFilter, SetLoggerError};
 use once_cell::sync::Lazy;
-use std::fs;
-use std::fs::{File, OpenOptions};
-use std::io::{Error, Write};
-use std::path::Path;
 use uuid::Uuid;
 
 /// A lazy static instance of `SimpleLogger`.

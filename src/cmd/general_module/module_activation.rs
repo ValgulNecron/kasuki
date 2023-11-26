@@ -1,3 +1,11 @@
+use serenity::builder::CreateApplicationCommand;
+use serenity::client::Context;
+use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
+use serenity::model::prelude::command::CommandOptionType;
+use serenity::model::prelude::interaction::application_command::ApplicationCommandInteraction;
+use serenity::model::prelude::InteractionResponseType;
+use serenity::model::{Permissions, Timestamp};
+
 use crate::constant::COLOR;
 use crate::error_enum::AppError::LangageGuildIdError;
 use crate::error_enum::{AppError, COMMAND_SENDING_ERROR};
@@ -6,13 +14,6 @@ use crate::function::sqls::general::data::{
 };
 use crate::structure::embed::general::struct_lang_module_activation::ModuleLocalisedText;
 use crate::structure::register::general::struct_modules_register::RegisterLocalisedModule;
-use serenity::builder::CreateApplicationCommand;
-use serenity::client::Context;
-use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
-use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::interaction::application_command::ApplicationCommandInteraction;
-use serenity::model::prelude::InteractionResponseType;
-use serenity::model::{Permissions, Timestamp};
 
 pub async fn run(
     options: &[CommandDataOption],

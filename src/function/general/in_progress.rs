@@ -1,9 +1,10 @@
-use crate::structure::embed::general::struct_lang_in_progress::InProgressLocalisedText;
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::model::Timestamp;
 use serenity::utils::Colour;
+
+use crate::structure::embed::general::struct_lang_in_progress::InProgressLocalisedText;
 
 /// An asynchronous function that sends an embedded message indicating a command is in progress.
 ///

@@ -1,6 +1,3 @@
-use crate::function::anilist::command_media::embed;
-use crate::structure::anilist::media::struct_autocomplete_media::MediaPageWrapper;
-use crate::structure::register::anilist::struct_manga_register::RegisterLocalisedManga;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::prelude::autocomplete::AutocompleteInteraction;
@@ -8,6 +5,10 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
+
+use crate::function::anilist::command_media::embed;
+use crate::structure::anilist::media::struct_autocomplete_media::MediaPageWrapper;
+use crate::structure::register::anilist::struct_manga_register::RegisterLocalisedManga;
 
 pub async fn run(
     options: &[CommandDataOption],

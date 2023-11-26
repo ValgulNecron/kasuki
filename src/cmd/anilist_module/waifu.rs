@@ -1,14 +1,15 @@
-use crate::constant::COLOR;
-use crate::function::error_management::common::custom_error;
-use crate::structure::anilist::character::struct_character::CharacterWrapper;
-use crate::structure::embed::anilist::struct_lang_character::CharacterLocalisedText;
-use crate::structure::register::anilist::struct_waifu_register::RegisterLocalisedWaifu;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::command::CommandOptionType;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::model::prelude::InteractionResponseType;
 use serenity::model::Timestamp;
+
+use crate::constant::COLOR;
+use crate::function::error_management::common::custom_error;
+use crate::structure::anilist::character::struct_character::CharacterWrapper;
+use crate::structure::embed::anilist::struct_lang_character::CharacterLocalisedText;
+use crate::structure::register::anilist::struct_waifu_register::RegisterLocalisedWaifu;
 
 pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
     let localised_text = match CharacterLocalisedText::get_character_localised(ctx, command).await {

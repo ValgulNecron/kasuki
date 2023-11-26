@@ -1,6 +1,7 @@
-use crate::function::error_management::common::{get_localised_langage, send_embed_message};
 use serenity::client::Context;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
+
+use crate::function::error_management::common::{get_localised_langage, send_embed_message};
 
 pub async fn error_no_user_specified(ctx: &Context, command: &ApplicationCommandInteraction) {
     let localised_text = match get_localised_langage(ctx, command).await {

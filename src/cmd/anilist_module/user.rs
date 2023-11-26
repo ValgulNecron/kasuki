@@ -1,8 +1,3 @@
-use crate::function::error_management::common::custom_error;
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
-use crate::structure::anilist::user::struct_user::UserWrapper;
-use crate::structure::embed::anilist::struct_lang_user::UserLocalisedText;
-use crate::structure::register::anilist::struct_user_register::RegisterLocalisedUser;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::model::application::interaction::application_command::CommandDataOptionValue;
@@ -12,6 +7,12 @@ use serenity::model::prelude::interaction::application_command::{
     ApplicationCommandInteraction, CommandDataOption,
 };
 use serenity::model::Timestamp;
+
+use crate::function::error_management::common::custom_error;
+use crate::function::sqls::sqlite::pool::get_sqlite_pool;
+use crate::structure::anilist::user::struct_user::UserWrapper;
+use crate::structure::embed::anilist::struct_lang_user::UserLocalisedText;
+use crate::structure::register::anilist::struct_user_register::RegisterLocalisedUser;
 
 pub async fn run(
     _options: &[CommandDataOption],

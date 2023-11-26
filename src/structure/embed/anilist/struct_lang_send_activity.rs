@@ -2,8 +2,9 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use crate::function::general::get_guild_langage::get_guild_langage;
 use serde::{Deserialize, Serialize};
+
+use crate::function::general::get_guild_langage::get_guild_langage;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SendActivityLocalisedText {
