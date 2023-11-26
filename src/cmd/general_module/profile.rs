@@ -1,4 +1,6 @@
 use crate::constant::COLOR;
+use crate::error_enum::AppError::LangageGuildIdError;
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR};
 use crate::structure::embed::general::struct_lang_profile::ProfileLocalisedText;
 use crate::structure::register::general::struct_profile_register::RegisterLocalisedProfile;
 use serenity::builder::CreateApplicationCommand;
@@ -14,12 +16,11 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) {
+) -> Result<(), AppError> {
     if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
-            send_embed(ctx, command, user.clone()).await;
-            return;
+            return send_embed(ctx, command, user.clone()).await;
         }
     }
     let user = &command.user;
@@ -56,16 +57,24 @@ async fn description(
     user: User,
     command: &ApplicationCommandInteraction,
     localised_text: ProfileLocalisedText,
-) -> String {
+) -> Result<String, AppError> {
     let is_bot = &user.bot;
-    let public_flag = &user.public_flags.unwrap();
+    let public_flag = &user.public_flags.ok_or(LangageGuildIdError(String::from(
+        "Guild id for langage not found.",
+    )))?;
     let user_id = &user.id;
     let created_at = &user.created_at();
-    let member = &command.member.clone().unwrap();
-    let joined_at = member
-        .joined_at
-        .unwrap_or(Timestamp::from_unix_timestamp(0i64).unwrap());
-    format!(
+    let member = &command
+        .member
+        .clone()
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?;
+    let joined_at = member.joined_at.unwrap_or(
+        Timestamp::from_unix_timestamp(0i64)
+            .map_err(|_| LangageGuildIdError(String::from("Guild id for langage not found.")))?,
+    );
+    Ok(format!(
         "\n {}{} \n {}{} \n {}{:?} \n {}{} \n {}{}",
         &localised_text.user_id,
         user_id,
@@ -77,20 +86,28 @@ async fn description(
         created_at,
         &localised_text.joined_at,
         joined_at
-    )
+    ))
 }
 
-async fn send_embed(ctx: &Context, command: &ApplicationCommandInteraction, user: User) {
-    let localised_text = match ProfileLocalisedText::get_profile_localised(ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+async fn send_embed(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    user: User,
+) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
+    let localised_text = ProfileLocalisedText::get_profile_localised(guild_id).await?;
     let avatar_url = match user.avatar_url() {
         Some(a) => a,
         None => "exemple.com".to_string(),
     };
-    let desc = description(user.clone(), command, localised_text.clone()).await;
-    if let Err(why) = command
+    let desc = description(user.clone(), command, localised_text.clone()).await?;
+    command
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -107,7 +124,5 @@ async fn send_embed(ctx: &Context, command: &ApplicationCommandInteraction, user
                 })
         })
         .await
-    {
-        println!("Error creating slash command: {}", why);
-    }
+        .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }

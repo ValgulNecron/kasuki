@@ -121,18 +121,17 @@ impl EventHandler for Handler {
             );
             match command.data.name.as_str() {
                 // General module.
-                "ping" => {
-                    match ping::run(&ctx, &command).await {
-                        Err(e) => {
-                            error_dispatching(e, &ctx, &command).await
-                        }
-                        _ => {}
-                    }
-                }
+                "ping" => match ping::run(&ctx, &command).await {
+                    Err(e) => error_dispatching(e, &ctx, &command).await,
+                    _ => {}
+                },
                 "lang" => lang::run(&command.data.options, &ctx, &command).await,
                 "info" => info::run(&ctx, &command).await,
                 "banner" => banner::run(&command.data.options, &ctx, &command).await,
-                "profile" => profile::run(&command.data.options, &ctx, &command).await,
+                "profile" => match profile::run(&command.data.options, &ctx, &command).await {
+                    Err(e) => error_dispatching(e, &ctx, &command).await,
+                    _ => {}
+                },
                 "module" => module_activation::run(&command.data.options, &ctx, &command).await,
                 "credit" => credit::run(&ctx, &command).await,
                 "avatar" => avatar::run(&command.data.options, &ctx, &command).await,

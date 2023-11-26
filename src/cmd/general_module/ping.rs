@@ -1,4 +1,5 @@
 use crate::constant::COLOR;
+use crate::error_enum::AppError::LangageGuildIdError;
 use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::structure::embed::general::struct_lang_ping::PingLocalisedText;
 use crate::structure::register::general::struct_ping_register::RegisterLocalisedPing;
@@ -8,7 +9,6 @@ use serenity::client::Context;
 use serenity::model::application::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
-use crate::error_enum::AppError::LangageGuildIdError;
 
 use crate::structure::struct_shard_manager::ShardManagerContainer;
 
@@ -21,19 +21,22 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Resu
     let manager = shard_manager.lock().await;
     let runners = manager.runners.lock().await;
 
-    let runner = runners.get(&ShardId(ctx.shard_id)).ok_or(OPTION_ERROR.clone())?;
+    let runner = runners
+        .get(&ShardId(ctx.shard_id))
+        .ok_or(OPTION_ERROR.clone())?;
 
     let latency = match runner.latency {
         Some(duration) => format!("{:.2}ms", duration.as_millis()),
         None => "?ms".to_string(),
     };
 
-    let guild_id = match command.guild_id {
-            Some(id) => id.0.to_string(),
-            None => {
-                return Err(LangageGuildIdError(String::from("Guild id for langage not found.")));
-            }
-        };
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
 
     let localised_text = PingLocalisedText::get_ping_localised(guild_id).await?;
     command

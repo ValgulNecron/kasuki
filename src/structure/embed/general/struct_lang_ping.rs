@@ -3,7 +3,9 @@ use std::fs::File;
 use std::io::Read;
 
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommonError, LocalisationFileError, LocalisationParsingError, LocalisationReadError};
+use crate::error_enum::AppError::{
+    CommonError, LocalisationFileError, LocalisationParsingError, LocalisationReadError,
+};
 use crate::function::general::get_guild_langage::get_guild_langage;
 use serde::{Deserialize, Serialize};
 
@@ -38,7 +40,9 @@ impl PingLocalisedText {
         let json_data: HashMap<String, PingLocalisedText> = match serde_json::from_str(&json) {
             Ok(data) => data,
             Err(_) => {
-                return Err(LocalisationParsingError(String::from("Failing to parse ping.json.")));
+                return Err(LocalisationParsingError(String::from(
+                    "Failing to parse ping.json.",
+                )));
             }
         };
 
