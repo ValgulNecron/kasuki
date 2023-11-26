@@ -1,4 +1,6 @@
 use crate::constant::COLOR;
+use crate::error_enum::AppError::LangageGuildIdError;
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR};
 use crate::structure::embed::general::struct_lang_info::InfoLocalisedText;
 use crate::structure::register::general::struct_info_register::RegisterLocalisedInfo;
 use serenity::builder::CreateApplicationCommand;
@@ -8,13 +10,17 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::Timestamp;
 
-pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let localised_text = match InfoLocalisedText::get_info_localised(ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
+    let localised_text = InfoLocalisedText::get_info_localised(guild_id).await?;
 
-    if let Err(why) = command
+    command
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -55,14 +61,12 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
                 )
         })
         .await
-    {
-        println!("Cannot respond to slash command: {}", why);
-    }
+        .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     let infos = RegisterLocalisedInfo::get_info_register_localised().unwrap();
-    let command = command
+    command
         .name("info")
         .description("Get information on the bot");
     for info in infos.values() {
