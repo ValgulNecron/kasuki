@@ -148,7 +148,7 @@ pub async fn get_data_module_activation_status_sqlite(
     let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
         "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = ?",
     )
-    .bind(&guild_id)
+    .bind(guild_id)
     .fetch_one(&pool)
     .await
     .unwrap_or((None, None, None));
@@ -164,7 +164,7 @@ pub async fn set_data_module_activation_status_sqlite(
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module) VALUES (?, ?, ?)",
     )
-        .bind(&guild_id)
+        .bind(guild_id)
         .bind(anilist_value)
         .bind(ai_value)
         .execute(&pool)

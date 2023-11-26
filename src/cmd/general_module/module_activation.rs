@@ -167,9 +167,9 @@ pub async fn check_activation_status(module: &str, guild_id: String) -> Result<b
         get_data_module_activation_status(&guild_id).await?;
 
     let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
-    return Ok(match module {
+    Ok(match module {
         "ANILIST" => anilist_module.unwrap_or(true),
         "AI" => ai_module.unwrap_or(true),
         _ => false,
-    });
+    })
 }
