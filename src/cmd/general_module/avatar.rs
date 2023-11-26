@@ -1,8 +1,6 @@
 use crate::constant::COLOR;
 use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
-use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, OPTION_ERROR};
-use crate::function::error_management::common::custom_error;
-use crate::function::error_management::error_avatar::error_no_avatar;
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, NO_AVATAR_ERROR};
 use crate::structure::embed::general::struct_lang_avatar::AvatarLocalisedText;
 use crate::structure::register::general::struct_avatar_register::RegisterLocalisedAvatar;
 use serenity::builder::CreateApplicationCommand;
@@ -88,7 +86,7 @@ async fn avatar_with_user(
         .to_string();
     let localised_text = AvatarLocalisedText::get_avatar_localised(guild_id).await?;
 
-    let avatar_url = user.avatar_url().ok_or(OPTION_ERROR.clone())?;
+    let avatar_url = user.avatar_url().ok_or(NO_AVATAR_ERROR.clone())?;
 
     send_embed(
         avatar_url,

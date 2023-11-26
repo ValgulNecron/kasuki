@@ -1,4 +1,6 @@
 use crate::constant::COLOR;
+use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, NO_BANNER_ERROR};
 use crate::function::error_management::common::custom_error;
 use crate::structure::embed::general::struct_lang_banner::BannerLocalisedText;
 use crate::structure::register::general::struct_banner_register::RegisterLocalisedBanner;
@@ -16,17 +18,14 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) {
-    return if let Some(option) = options.get(0) {
+) -> Result<(), AppError> {
+    if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
-            banner_with_user(ctx, command, user).await;
-        } else {
-            banner_without_user(ctx, command).await;
+            return banner_with_user(ctx, command, user).await;
         }
-    } else {
-        banner_without_user(ctx, command).await;
-    };
+    }
+    banner_without_user(ctx, command).await
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -55,13 +54,21 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command
 }
 
-pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction, username: String) {
-    let localised_text = match BannerLocalisedText::get_banner_localised(ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+pub async fn no_banner(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    username: String,
+) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
+    let localised_text = BannerLocalisedText::get_banner_localised(guild_id).await?;
 
-    if let Err(why) = command
+    command
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -77,61 +84,48 @@ pub async fn no_banner(ctx: &Context, command: &ApplicationCommandInteraction, u
                 })
         })
         .await
-    {
-        println!("{}: {}", &localised_text.error_slash_command, why);
-    }
+        .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }
 
-pub async fn banner_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let localised_text = match BannerLocalisedText::get_banner_localised(ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+pub async fn banner_without_user(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
+    let localised_text = BannerLocalisedText::get_banner_localised(guild_id).await?;
     let user = command.user.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
-    let result = if let Ok(user) = real_user {
-        user
-    } else {
-        custom_error(ctx, command, &localised_text.error_no_user).await;
-        return;
-    };
-    let banner_url = &result.banner_url();
-    let banner = if let Some(string) = banner_url {
-        string
-    } else {
-        no_banner(ctx, command, command.user.name.clone()).await;
-        return;
-    };
+    let result = real_user.map_err(|_| FailedToGetUser(String::from("Could no resolve user.")))?;
+    let banner_url = &result.banner_url().ok_or(NO_BANNER_ERROR.clone())?;
 
-    send_embed(ctx, command, localised_text.clone(), banner, result).await;
+    send_embed(ctx, command, localised_text.clone(), banner_url, result).await
 }
 
 pub async fn banner_with_user(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     user_data: &User,
-) {
-    let localised_text = match BannerLocalisedText::get_banner_localised(ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
+    let localised_text = BannerLocalisedText::get_banner_localised(guild_id).await?;
     let user = user_data.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
-    let result = if let Ok(user) = real_user {
-        user
-    } else {
-        custom_error(ctx, command, &localised_text.error_no_user).await;
-        return;
-    };
-    let banner_url = &result.banner_url();
-    let banner = if let Some(string) = banner_url {
-        string
-    } else {
-        no_banner(ctx, command, user_data.name.clone()).await;
-        return;
-    };
+    let result = real_user.map_err(|_| FailedToGetUser(String::from("Could no resolve user.")))?;
+    let banner_url = &result.banner_url().ok_or(NO_BANNER_ERROR.clone())?;
 
-    send_embed(ctx, command, localised_text.clone(), banner, result).await;
+    send_embed(ctx, command, localised_text.clone(), banner_url, result).await
 }
 
 pub async fn send_embed(
@@ -140,8 +134,8 @@ pub async fn send_embed(
     localised_text: BannerLocalisedText,
     banner: &String,
     result: User,
-) {
-    if let Err(why) = command
+) -> Result<(), AppError> {
+    command
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -157,7 +151,5 @@ pub async fn send_embed(
                 })
         })
         .await
-    {
-        println!("{}: {}", &localised_text.error_slash_command, why);
-    }
+        .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }

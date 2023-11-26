@@ -1,4 +1,6 @@
 use crate::constant::COLOR;
+use crate::error_enum::AppError::LangageGuildIdError;
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR};
 use crate::structure::embed::general::struct_lang_credit::CreditLocalisedText;
 use crate::structure::register::general::struct_credit_register::RegisterLocalisedCredit;
 use serenity::builder::CreateApplicationCommand;
@@ -7,16 +9,20 @@ use serenity::model::application::interaction::application_command::ApplicationC
 use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::Timestamp;
 
-pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let credit_localised = match CreditLocalisedText::get_credit_localised(ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
+    let credit_localised = CreditLocalisedText::get_credit_localised(guild_id).await?;
     let mut desc: String = "".to_string();
     for x in credit_localised.list {
         desc += x.text.as_str()
     }
-    if let Err(why) = command
+    command
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -32,9 +38,7 @@ pub async fn run(ctx: &Context, command: &ApplicationCommandInteraction) {
                 })
         })
         .await
-    {
-        println!("Cannot respond to slash command: {}", why);
-    }
+        .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

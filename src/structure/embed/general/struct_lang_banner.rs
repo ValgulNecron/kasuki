@@ -2,6 +2,10 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::{
+    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
+};
 use crate::function::error_management::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json, no_langage_error,
@@ -21,48 +25,23 @@ pub struct BannerLocalisedText {
 }
 
 impl BannerLocalisedText {
-    pub async fn get_banner_localised(
-        ctx: &Context,
-        command: &ApplicationCommandInteraction,
-    ) -> Result<BannerLocalisedText, &'static str> {
-        let mut file = match File::open("./lang_file/embed/general/banner.json") {
-            Ok(file) => file,
-            Err(_) => {
-                error_langage_file_not_found(ctx, command).await;
-                return Err("not found");
-            }
-        };
+    pub async fn get_banner_localised(guild_id: String) -> Result<BannerLocalisedText, AppError> {
+        let mut file = File::open("./lang_file/embed/general/banner.json")
+            .map_err(|_| LocalisationFileError(String::from("File banner.json not found.")))?;
+
         let mut json = String::new();
-        match file.read_to_string(&mut json) {
-            Ok(_) => {}
-            Err(_) => {
-                error_cant_read_langage_file(ctx, command).await;
-                return Err("not found");
-            }
-        }
+        file.read_to_string(&mut json)
+            .map_err(|_| LocalisationReadError(String::from("File banner.json can't be read.")))?;
 
-        let json_data: HashMap<String, BannerLocalisedText> = match serde_json::from_str(&json) {
-            Ok(data) => data,
-            Err(_) => {
-                error_parsing_langage_json(ctx, command).await;
-                return Err("not found");
-            }
-        };
+        let json_data: HashMap<String, BannerLocalisedText> = serde_json::from_str(&json)
+            .map_err(|_| LocalisationParsingError(String::from("Failing to parse banner.json.")))?;
 
-        let guild_id = match command.guild_id {
-            Some(id) => id.0.to_string(),
-            None => {
-                error_no_langage_guild_id(ctx, command).await;
-                return Err("not found");
-            }
-        };
         let lang_choice = get_guild_langage(guild_id).await;
 
-        if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-            Ok(localised_text.clone())
-        } else {
-            no_langage_error(ctx, command).await;
-            Err("not found")
-        }
+        let avatar_localised_text = json_data
+            .get(lang_choice.as_str())
+            .ok_or(NoLangageError(String::from("not found")))?;
+
+        Ok(avatar_localised_text.clone())
     }
 }
