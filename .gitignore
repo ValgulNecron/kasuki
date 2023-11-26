@@ -99,3 +99,17 @@ fabric.properties
 .idea/rust-project.json
 
 ./logs
+/.idea/.gitignore
+/.idea/codeStyles/codeStyleConfig.xml
+/.idea/dataSources.xml
+/.idea/kasuki.iml
+/logs/log_8d6fe47c-8c46-49c2-82c6-93bd4e3437a8.log
+/logs/log_8e4b249a-9b49-45b2-8ab8-60bf2e8b64e1.log
+/logs/log_016323ef-ea3f-42dd-9736-32e9dc45d846.log
+/logs/log_220647e1-7227-4f52-99be-501a90ac140f.log
+/logs/log_c577b710-0e43-4f1e-97ae-0ed3662e751c.log
+/logs/log_fbbd1ffb-1193-419f-aae4-47d7be1446fa.log
+/.idea/modules.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/rust.xml
+/.idea/vcs.xml
