@@ -16,3 +16,17 @@ pub async fn error_no_module(ctx: &Context, command: &ApplicationCommandInteract
     )
     .await
 }
+
+pub async fn error_module_off(ctx: &Context, command: &ApplicationCommandInteraction) {
+    let localised_text = match get_localised_langage(ctx, command).await {
+        Ok(data) => data,
+        Err(_) => return,
+    };
+    send_embed_message(
+        ctx,
+        command,
+        localised_text.error_title.clone(),
+        localised_text.module_off.as_str(),
+    )
+    .await
+}
