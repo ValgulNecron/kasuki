@@ -10,6 +10,7 @@ use crate::function::error_management::no_lang_error::{
 };
 use log::error;
 use serenity::client::Context;
+use serenity::futures::TryFutureExt;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 
 pub async fn error_dispatching(
@@ -30,8 +31,8 @@ pub async fn error_dispatching(
         NoCommandOption(..) => error!("Error command option."),
         SqlInsertError(..) => error!("Error Insert sql."),
         SqlSelectError(..) => error!("Error Select sql."),
-        ModuleError(..) => error_no_module(ctx, command),
-        ModuleOffError(..) => error_module_off(ctx, command),
+        ModuleError(..) => error_no_module(ctx, command).await,
+        ModuleOffError(..) => error_module_off(ctx, command).await,
         UnknownCommandError(..) => error!("What that shit you've done."),
         _ => {}
     }
