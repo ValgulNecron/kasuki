@@ -1,6 +1,9 @@
 use crate::constant::COLOR;
-use crate::function::error_management::error_module::error_no_module;
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
+use crate::error_enum::AppError::LangageGuildIdError;
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR};
+use crate::function::sqls::general::data::{
+    get_data_module_activation_status, set_data_module_activation_status,
+};
 use crate::structure::embed::general::struct_lang_module_activation::ModuleLocalisedText;
 use crate::structure::register::general::struct_modules_register::RegisterLocalisedModule;
 use serenity::builder::CreateApplicationCommand;
@@ -10,20 +13,21 @@ use serenity::model::prelude::command::CommandOptionType;
 use serenity::model::prelude::interaction::application_command::ApplicationCommandInteraction;
 use serenity::model::prelude::InteractionResponseType;
 use serenity::model::{Permissions, Timestamp};
-use sqlx::{Pool, Sqlite};
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) {
-    let database_url = "./data.db";
-    let pool = get_sqlite_pool(database_url).await;
+) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
 
-    let localised_text = match ModuleLocalisedText::get_module_localised(ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+    let localised_text = ModuleLocalisedText::get_module_localised(&guild_id).await?;
     let mut module = "".to_string();
     let mut state = false;
     for option in options {
@@ -45,27 +49,14 @@ pub async fn run(
         }
     }
 
-    let guild_id = command.guild_id.unwrap().0.to_string().clone();
-
     match module.as_str() {
         "ANIME" => {
-            let row = make_sql_request(guild_id.clone(), &pool).await;
+            let row = get_data_module_activation_status(&guild_id).await?;
             let (_, ai_module, _): (Option<String>, Option<bool>, Option<bool>) = row;
 
-            let ai_value = match ai_module {
-                Some(true) => 1,
-                Some(false) => 0,
-                None => 1,
-            };
-            sqlx::query(
-                "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module) VALUES (?, ?, ?)",
-            )
-                .bind(&guild_id)
-                .bind(state)
-                .bind(ai_value)
-                .execute(&pool)
-                .await
-                .unwrap();
+            let ai_value = ai_module.unwrap_or(false);
+
+            set_data_module_activation_status(&guild_id, state, ai_value).await?;
 
             let text = if state {
                 &localised_text.on
@@ -73,7 +64,7 @@ pub async fn run(
                 &localised_text.off
             };
 
-            if let Err(why) = command
+            command
                 .create_interaction_response(&ctx.http, |response| {
                     response
                         .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -89,29 +80,15 @@ pub async fn run(
                         })
                 })
                 .await
-            {
-                println!("Error creating slash: {}", why);
-            }
+                .map_err(|_| COMMAND_SENDING_ERROR.clone())
         }
         "AI" => {
-            let row = make_sql_request(guild_id.clone(), &pool).await;
+            let row = get_data_module_activation_status(&guild_id).await?;
             let (_, _, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
 
-            let anilist_value = match anilist_module {
-                Some(true) => 1,
-                Some(false) => 0,
-                None => 1,
-            };
+            let anilist_value = anilist_module.unwrap_or(false);
 
-            sqlx::query(
-                "INSERT OR REPLACE INTO module_activation (guild_id, ai_module, anilist_module) VALUES (?, ?, ?)",
-            )
-                .bind(&guild_id)
-                .bind(state)
-                .bind(anilist_value)
-                .execute(&pool)
-                .await
-                .unwrap();
+            set_data_module_activation_status(&guild_id, anilist_value, state).await?;
 
             let text = if state {
                 &localised_text.on
@@ -119,7 +96,7 @@ pub async fn run(
                 &localised_text.off
             };
 
-            if let Err(why) = command
+            command
                 .create_interaction_response(&ctx.http, |response| {
                     response
                         .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -135,22 +112,22 @@ pub async fn run(
                         })
                 })
                 .await
-            {
-                println!("Error creating slash: {}", why);
-            }
+                .map_err(|_| COMMAND_SENDING_ERROR.clone())
         }
-        _ => error_no_module(ctx, command).await,
+        _ => Err(AppError::ModuleError(String::from(
+            "This module does not exist.",
+        ))),
     }
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     let modules = RegisterLocalisedModule::get_module_register_localised().unwrap();
-    let command = command
+    command
         .name("module")
         .description("Turn on and off module.")
         .default_member_permissions(Permissions::ADMINISTRATOR)
         .create_option(|option| {
-            let option = option
+            option
                 .name("module_name")
                 .description("The name of the module you want to turn on or off")
                 .kind(CommandOptionType::String)
@@ -165,7 +142,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
             option
         })
         .create_option(|option| {
-            let option = option
+            option
                 .name("state")
                 .description("ON or OFF")
                 .kind(CommandOptionType::Boolean)
@@ -185,36 +162,14 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command
 }
 
-pub async fn check_activation_status(module: &str, guild_id: String) -> bool {
-    let database_url = "./data.db";
-    let pool = get_sqlite_pool(database_url).await;
-
-    let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild_id = ?",
-    )
-    .bind(&guild_id)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None, None));
+pub async fn check_activation_status(module: &str, guild_id: String) -> Result<bool, AppError> {
+    let row: (Option<String>, Option<bool>, Option<bool>) =
+        get_data_module_activation_status(&guild_id).await?;
 
     let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
-    match module {
+    return Ok(match module {
         "ANILIST" => anilist_module.unwrap_or(true),
         "AI" => ai_module.unwrap_or(true),
         _ => false,
-    }
-}
-
-pub async fn make_sql_request(
-    guild_id: String,
-    pool: &Pool<Sqlite>,
-) -> (Option<String>, Option<bool>, Option<bool>) {
-    let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = ?",
-    )
-    .bind(&guild_id)
-    .fetch_one(pool)
-    .await
-    .unwrap_or((None, None, None));
-    row
+    });
 }

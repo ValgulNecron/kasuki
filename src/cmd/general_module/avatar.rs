@@ -57,14 +57,6 @@ async fn avatar_without_user(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> Result<(), AppError> {
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .0
-        .to_string();
-    let localised_text = AvatarLocalisedText::get_avatar_localised(guild_id).await?;
     let user = command.user.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
     let result = real_user.map_err(|_| FailedToGetUser(String::from("Could no resolve user.")))?;

@@ -154,7 +154,7 @@ pub async fn embed(
                 return;
             }
         };
-        let lang_choice = get_guild_langage(guild_id).await;
+        let lang_choice = get_guild_langage(&guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             if let Err(why) = command
@@ -197,7 +197,7 @@ pub async fn follow_up_message(
         serde_json::from_str(&json).expect("Failed to parse JSON");
 
     let guild_id = command.guild_id.unwrap().0.to_string().clone();
-    let lang_choice = get_guild_langage(guild_id).await;
+    let lang_choice = get_guild_langage(&guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         if let Err(why) = command

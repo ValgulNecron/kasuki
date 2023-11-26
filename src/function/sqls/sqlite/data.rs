@@ -1,5 +1,7 @@
 use crate::cmd::anilist_module::send_activity::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::SqlInsertError;
 use crate::function::sqls::sqlite::pool::get_sqlite_pool;
 use chrono::Utc;
 use log::error;
@@ -67,7 +69,7 @@ pub async fn get_data_guild_langage_sqlite(guild_id: &str) -> (Option<String>, O
 ///
 /// * `guild_id` - The ID of the guild.
 /// * `lang` - The language to set for the guild.
-pub async fn set_data_guild_langage_sqlite(guild_id: String, lang: &String) {
+pub async fn set_data_guild_langage_sqlite(guild_id: &&String, lang: &String) {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
     match sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
         .bind(guild_id)
@@ -137,4 +139,36 @@ pub async fn set_data_activity_sqlite(
         Ok(_) => {}
         Err(e) => error!("{}", e),
     }
+}
+
+pub async fn get_data_module_activation_status_sqlite(
+    guild_id: &String,
+) -> Result<(Option<String>, Option<bool>, Option<bool>), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+    let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
+        "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = ?",
+    )
+    .bind(&guild_id)
+    .fetch_one(&pool)
+    .await
+    .unwrap_or((None, None, None));
+    Ok(row)
+}
+
+pub async fn set_data_module_activation_status_sqlite(
+    guild_id: &String,
+    anilist_value: bool,
+    ai_value: bool,
+) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+    let _ = sqlx::query(
+        "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module) VALUES (?, ?, ?)",
+    )
+        .bind(&guild_id)
+        .bind(anilist_value)
+        .bind(ai_value)
+        .execute(&pool)
+        .await
+        .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+    Ok(())
 }

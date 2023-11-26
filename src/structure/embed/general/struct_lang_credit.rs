@@ -32,7 +32,7 @@ impl CreditLocalisedText {
         let json_data: HashMap<String, CreditLocalisedText> = serde_json::from_str(&json)
             .map_err(|_| LocalisationParsingError(String::from("Failing to parse credit.json.")))?;
 
-        let lang_choice = get_guild_langage(guild_id).await;
+        let lang_choice = get_guild_langage(&guild_id).await;
 
         let avatar_localised_text = json_data
             .get(lang_choice.as_str())

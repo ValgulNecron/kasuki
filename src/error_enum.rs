@@ -2,7 +2,6 @@ use once_cell::sync::Lazy;
 
 #[derive(Debug, Clone)]
 pub enum AppError {
-    CommonError(String),
     OptionError(String),
     CommandSendingError(String),
     LocalisationFileError(String),
@@ -14,6 +13,12 @@ pub enum AppError {
     NoAvatarError(String),
     NoBannerError(String),
     NoCommandOption(String),
+    SqlInsertError(String),
+    SqlSelectError(String),
+    ModuleError(String),
+    ModuleOffError(String),
+    UnknownCommandError(String),
+    UnknownInteractionError(String),
 }
 
 pub static OPTION_ERROR: Lazy<AppError> =

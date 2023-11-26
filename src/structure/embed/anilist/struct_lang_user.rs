@@ -72,7 +72,7 @@ impl UserLocalisedText {
                 return Err("not found");
             }
         };
-        let lang_choice = get_guild_langage(guild_id).await;
+        let lang_choice = get_guild_langage(&guild_id).await;
 
         return if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             Ok(localised_text.clone())

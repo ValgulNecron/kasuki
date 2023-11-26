@@ -4,8 +4,7 @@ use std::io::Read;
 
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
-    CommonError, LocalisationFileError, LocalisationParsingError, LocalisationReadError,
-    NoLangageError,
+    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
 };
 use crate::function::general::get_guild_langage::get_guild_langage;
 use serde::{Deserialize, Serialize};
@@ -35,7 +34,7 @@ impl ProfileLocalisedText {
                 LocalisationParsingError(String::from("Failing to parse profile.json."))
             })?;
 
-        let lang_choice = get_guild_langage(guild_id).await;
+        let lang_choice = get_guild_langage(&guild_id).await;
 
         let avatar_localised_text = json_data
             .get(lang_choice.as_str())

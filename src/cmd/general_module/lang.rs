@@ -1,7 +1,6 @@
 use crate::available_lang::AvailableLang;
 use crate::error_enum::AppError::{LangageGuildIdError, NoCommandOption};
 use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, OPTION_ERROR};
-use crate::function::error_management::no_lang_error::error_no_langage_guild_id;
 use crate::function::sqls::general::data::set_data_guild_langage;
 use crate::structure::embed::general::struct_lang_lang::LangLocalisedText;
 use crate::structure::register::general::struct_lang_register::LangRegister;
@@ -15,30 +14,20 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::CommandDataOptionValue;
 use serenity::model::{Permissions, Timestamp};
 use serenity::utils::Colour;
-use std::any::Any;
-use std::f32::consts::E;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
 ) -> Result<(), AppError> {
-    let option = options
-        .get(0)
-        .expect("Expected lang option")
-        .resolved
-        .as_ref()
-        .expect("Expected lang object");
-    let lang = options
-        .get(0)
-        .ok_or(|_| OPTION_ERROR)?
-        .resolved
-        .ok_or(|_| OPTION_ERROR)?;
+    let lang = options.get(0).ok_or(OPTION_ERROR.clone())?;
+    let lang = lang.resolved.clone().ok_or(OPTION_ERROR.clone())?;
+
     let lang = match lang {
         CommandDataOptionValue::String(lang) => lang,
         _ => {
             return Err(NoCommandOption(String::from(
-                "The command contain no otpion.",
+                "The command contain no option.",
             )))
         }
     };
@@ -51,11 +40,8 @@ pub async fn run(
         )))?
         .0
         .to_string();
-    set_data_guild_langage(guild_id, &lang).await;
-    let localised_text = match LangLocalisedText::get_ping_localised(color, ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+    set_data_guild_langage(&guild_id, &lang).await;
+    let localised_text = LangLocalisedText::get_ping_localised(&guild_id).await?;
 
     command
         .create_interaction_response(&ctx.http, |response| {

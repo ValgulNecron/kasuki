@@ -1,7 +1,6 @@
 use crate::constant::COLOR;
 use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
 use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, NO_BANNER_ERROR};
-use crate::function::error_management::common::custom_error;
 use crate::structure::embed::general::struct_lang_banner::BannerLocalisedText;
 use crate::structure::register::general::struct_banner_register::RegisterLocalisedBanner;
 use serenity::builder::CreateApplicationCommand;

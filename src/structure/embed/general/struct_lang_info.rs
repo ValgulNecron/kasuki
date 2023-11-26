@@ -6,14 +6,8 @@ use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
     LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
 };
-use crate::function::error_management::no_lang_error::{
-    error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
-    error_parsing_langage_json,
-};
 use crate::function::general::get_guild_langage::get_guild_langage;
 use serde::{Deserialize, Serialize};
-use serenity::client::Context;
-use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct InfoLocalisedText {
@@ -41,7 +35,7 @@ impl InfoLocalisedText {
         let json_data: HashMap<String, InfoLocalisedText> = serde_json::from_str(&json)
             .map_err(|_| LocalisationParsingError(String::from("Failing to parse info.json.")))?;
 
-        let lang_choice = get_guild_langage(guild_id).await;
+        let lang_choice = get_guild_langage(&guild_id).await;
 
         let avatar_localised_text = json_data
             .get(lang_choice.as_str())

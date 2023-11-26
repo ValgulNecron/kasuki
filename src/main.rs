@@ -1,9 +1,6 @@
 extern crate core;
 
-use std::collections::HashMap;
 use std::env;
-use std::fs::File;
-use std::io::Read;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -12,13 +9,10 @@ use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::Interaction;
-use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::gateway::Activity;
 use serenity::model::gateway::Ready;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
-use serenity::model::Timestamp;
 use serenity::prelude::*;
-use serenity::utils::Colour;
 use structure::struct_shard_manager::ShardManagerContainer;
 use tokio::time::sleep;
 
@@ -32,17 +26,16 @@ use crate::cmd::general_module::module_activation::check_activation_status;
 use crate::cmd::general_module::{
     avatar, banner, credit, info, lang, module_activation, ping, profile,
 };
-use crate::constant::{ACTIVITY_NAME, COLOR, PING_UPDATE_DELAYS};
+use crate::constant::{ACTIVITY_NAME, PING_UPDATE_DELAYS};
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::{LangageGuildIdError, UnknownCommandError};
 use crate::function::error_management::error_dispatching::error_dispatching;
-use crate::function::error_management::no_lang_error::no_langage_error;
-use crate::function::general::get_guild_langage::get_guild_langage;
 use crate::function::sqls::general::data::set_data_ping_history;
 use crate::function::sqls::general::sql::init_sql_database;
 
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::structure::anilist::media::struct_autocomplete_media;
 use crate::structure::anilist::user::struct_autocomplete_user;
-use crate::structure::embed::error::ErrorLocalisedText;
 
 mod available_lang;
 mod cmd;
@@ -119,131 +112,7 @@ impl EventHandler for Handler {
                 "Received command interaction: {}, Option: {:#?}, User: {}({})",
                 command.data.name, command.data.options, command.user.name, command.user.id
             );
-            match match command.data.name.as_str() {
-                // General module.
-                "avatar" => avatar::run(&command.data.options, &ctx, &command).await,
-                "banner" => banner::run(&command.data.options, &ctx, &command).await,
-                "credit" => credit::run(&ctx, &command).await,
-                "info" => info::run(&ctx, &command).await,
-                "lang" => lang::run(&command.data.options, &ctx, &command).await,
-                "module" => module_activation::run(&command.data.options, &ctx, &command).await,
-                "profile" => profile::run(&command.data.options, &ctx, &command).await,
-                "ping" => ping::run(&ctx, &command).await,
-
-                // Anilist module
-                "anime" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    anime::run(&command.data.options, &ctx, &command).await
-                }
-                "character" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    character::run(&command.data.options, &ctx, &command).await
-                }
-                "compare" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    compare::run(&command.data.options, &ctx, &command).await
-                }
-                "level" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    level::run(&command.data.options, &ctx, &command).await
-                }
-                "ln" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    ln::run(&command.data.options, &ctx, &command).await
-                }
-                "manga" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    manga::run(&command.data.options, &ctx, &command).await
-                }
-                "random" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    random::run(&command.data.options, &ctx, &command).await
-                }
-                "register" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    register::run(&command.data.options, &ctx, &command).await
-                }
-                "search" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    search::run(&command.data.options, &ctx, &command).await
-                }
-                "staff" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    staff::run(&command.data.options, &ctx, &command).await
-                }
-                "user" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    user::run(&command.data.options, &ctx, &command).await
-                }
-                "waifu" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    waifu::run(&ctx, &command).await
-                }
-                "studio" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    studio::run(&command.data.options, &ctx, &command).await
-                }
-                "add_activity" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    add_activity::run(&command.data.options, &ctx, &command).await
-                }
-                "seiyuu" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    seiyuu::run(&command.data.options, &ctx, &command).await
-                }
-
-                // AI module
-                "image" => {
-                    if !check_if_ai_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    image::run(&command.data.options, &ctx, &command).await
-                }
-                "transcript" => {
-                    if !check_if_ai_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    transcript::run(&command.data.options, &ctx, &command).await
-                }
-                "translation" => {
-                    if !check_if_ai_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    translation::run(&command.data.options, &ctx, &command).await
-                }
-
-                _ => return,
-            } {
+            match manage_command_interaction(&command, &ctx).await {
                 Err(e) => error_dispatching(e, &ctx, &command).await,
                 _ => {}
             };
@@ -359,101 +228,179 @@ async fn main() {
     }
 }
 
-async fn check_if_anime_is_on(
-    command: &ApplicationCommandInteraction,
-    color: Colour,
-    ctx: &Context,
-) -> bool {
-    let guild_id = match command.guild_id {
-        Some(id) => id,
-        None => {
-            error!("No guild id");
-            return true;
-        }
-    }
-    .0
-    .to_string()
-    .clone();
-    if !check_activation_status("ANILIST", guild_id.clone()).await {
-        send_deactivated_message(command, color, ctx, guild_id).await;
-        false
-    } else {
-        true
-    }
+async fn check_if_anime_is_on(command: &ApplicationCommandInteraction) -> Result<bool, AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
+    let is_on = check_activation_status("ANILIST", guild_id.clone()).await?;
+    Ok(is_on)
 }
 
-async fn check_if_ai_is_on(
-    command: &ApplicationCommandInteraction,
-    color: Colour,
-    ctx: &Context,
-) -> bool {
-    let guild_id = match command.guild_id {
-        Some(id) => id,
-        None => {
-            error!("No guild id");
-            return true;
-        }
-    }
-    .0
-    .to_string()
-    .clone();
-    if !check_activation_status("AI", guild_id.clone()).await {
-        send_deactivated_message(command, color, ctx, guild_id).await;
-        false
-    } else {
-        true
-    }
+async fn check_if_ai_is_on(command: &ApplicationCommandInteraction) -> Result<bool, AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
+    let is_on = check_activation_status("AI", guild_id.clone()).await?;
+    Ok(is_on)
 }
 
-async fn send_deactivated_message(
+async fn manage_command_interaction(
     command: &ApplicationCommandInteraction,
-    color: Colour,
     ctx: &Context,
-    guild_id: String,
-) {
-    let path = "./lang_file/embed/error.json";
-    let mut file = match File::open(path) {
-        Ok(file) => file,
-        Err(e) => {
-            error!("Error while opening lang file at {}:  {}", path, e);
-            return;
-        }
-    };
-    let mut json = String::new();
-    match file.read_to_string(&mut json) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to read the file {}: {}", path, e)
-        }
-    };
-    let json_data: HashMap<String, ErrorLocalisedText> = match serde_json::from_str(&json) {
-        Ok(json) => json,
-        Err(e) => {
-            error!("Error when paring the json file: {}", e);
-            return;
-        }
-    };
+) -> Result<(), AppError> {
+    let ai_module_error = Err(AppError::ModuleOffError(String::from("AI module is off.")));
+    let anilist_module_error = Err(AppError::ModuleOffError(String::from(
+        "Anilist module is off.",
+    )));
+    match command.data.name.as_str() {
+        // General module.
+        "avatar" => avatar::run(&command.data.options, &ctx, &command).await,
+        "banner" => banner::run(&command.data.options, &ctx, &command).await,
+        "credit" => credit::run(&ctx, &command).await,
+        "info" => info::run(&ctx, &command).await,
+        "lang" => lang::run(&command.data.options, &ctx, &command).await,
+        "module" => module_activation::run(&command.data.options, &ctx, &command).await,
+        "profile" => profile::run(&command.data.options, &ctx, &command).await,
+        "ping" => ping::run(&ctx, &command).await,
 
-    let lang_choice = get_guild_langage(guild_id.clone()).await;
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        message.embed(|m| {
-                            m.title(&localised_text.error_title)
-                                .description(&localised_text.module_off)
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        })
-                    })
-            })
-            .await
-        {
-            error!("Cannot respond to slash command: {}", why);
+        // Anilist module
+        "anime" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(anime::run(&command.data.options, &ctx, &command).await)
+            }
         }
-    } else {
-        no_langage_error(ctx, command).await
+        "character" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(character::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "compare" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(compare::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "level" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(level::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "ln" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(ln::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "manga" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(manga::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "random" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(random::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "register" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(register::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "search" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(search::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "staff" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(staff::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "user" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(user::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "waifu" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(waifu::run(&ctx, &command).await)
+            }
+        }
+        "studio" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(studio::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "add_activity" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(add_activity::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "seiyuu" => {
+            if check_if_anime_is_on(&command).await? {
+                anilist_module_error
+            } else {
+                Ok(seiyuu::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+
+        // AI module
+        "image" => {
+            if check_if_ai_is_on(&command).await? {
+                ai_module_error
+            } else {
+                Ok(image::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "transcript" => {
+            if check_if_ai_is_on(&command).await? {
+                ai_module_error
+            } else {
+                Ok(transcript::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+        "translation" => {
+            if check_if_ai_is_on(&command).await? {
+                ai_module_error
+            } else {
+                Ok(translation::run(&command.data.options, &ctx, &command).await)
+            }
+        }
+
+        _ => Err(UnknownCommandError(String::from("Command does not exist."))),
     }
 }

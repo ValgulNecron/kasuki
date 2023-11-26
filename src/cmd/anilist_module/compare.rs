@@ -125,7 +125,7 @@ pub async fn embed(
             return;
         }
     };
-    let lang_choice = get_guild_langage(guild_id).await;
+    let lang_choice = get_guild_langage(&guild_id).await;
 
     if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
         let data = if value.parse::<i32>().is_ok() {

@@ -33,7 +33,7 @@ use crate::function::sqls::general::data::get_data_guild_langage;
 ///
 /// This function will return a tuple (None, None) if there is any error trying to fetch the guild
 /// language from the database.
-pub async fn get_guild_langage(guild_id: String) -> String {
+pub async fn get_guild_langage(guild_id: &String) -> String {
     let (lang, _): (Option<String>, Option<String>) =
         get_data_guild_langage(guild_id.as_str()).await;
 
