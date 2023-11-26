@@ -10,7 +10,7 @@ use serenity::model::Timestamp;
 
 use crate::constant::COLOR;
 use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
-use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, NO_BANNER_ERROR};
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR};
 use crate::structure::embed::general::struct_lang_banner::BannerLocalisedText;
 use crate::structure::register::general::struct_banner_register::RegisterLocalisedBanner;
 
@@ -102,9 +102,9 @@ pub async fn banner_without_user(
     let user = command.user.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
     let result = real_user.map_err(|_| FailedToGetUser(String::from("Could no resolve user.")))?;
-    let banner_url = match &result.banner_url() {
+    let banner_url = match result.banner_url() {
         Some(banner) => banner,
-        None => no_banner(ctx, command, &result.name),
+        None => return no_banner(ctx, command, &result.name).await,
     };
 
     send_embed(ctx, command, localised_text.clone(), banner_url, result).await
@@ -126,9 +126,9 @@ pub async fn banner_with_user(
     let user = user_data.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
     let result = real_user.map_err(|_| FailedToGetUser(String::from("Could no resolve user.")))?;
-    let banner_url = match &result.banner_url() {
+    let banner_url = match result.banner_url() {
         Some(banner) => banner,
-        None => no_banner(ctx, command, &result.name),
+        None => return no_banner(ctx, command, &result.name).await,
     };
     send_embed(ctx, command, localised_text.clone(), banner_url, result).await
 }
@@ -137,7 +137,7 @@ pub async fn send_embed(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
     localised_text: BannerLocalisedText,
-    banner: &String,
+    banner: String,
     result: User,
 ) -> Result<(), AppError> {
     command

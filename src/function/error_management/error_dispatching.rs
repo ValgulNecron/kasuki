@@ -1,9 +1,3 @@
-use log::error;
-use serenity::client::Context;
-use serenity::http::Http;
-use serenity::model::prelude::application_command::ApplicationCommandInteraction;
-
-use crate::cmd::general_module::banner::no_banner;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::*;
 use crate::function::error_management::error_avatar::error_no_avatar;
@@ -13,6 +7,9 @@ use crate::function::error_management::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json, no_langage_error,
 };
+use log::error;
+use serenity::client::Context;
+use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 
 pub async fn error_dispatching(
     error: AppError,
