@@ -1,8 +1,3 @@
-use crate::constant::COLOR;
-use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
-use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, NO_BANNER_ERROR};
-use crate::structure::embed::general::struct_lang_banner::BannerLocalisedText;
-use crate::structure::register::general::struct_banner_register::RegisterLocalisedBanner;
 use serenity::builder::CreateApplicationCommand;
 use serenity::client::Context;
 use serenity::http::client::Http;
@@ -12,6 +7,12 @@ use serenity::model::application::interaction::InteractionResponseType;
 use serenity::model::prelude::application_command::{CommandDataOption, CommandDataOptionValue};
 use serenity::model::user::User;
 use serenity::model::Timestamp;
+
+use crate::constant::COLOR;
+use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, NO_BANNER_ERROR};
+use crate::structure::embed::general::struct_lang_banner::BannerLocalisedText;
+use crate::structure::register::general::struct_banner_register::RegisterLocalisedBanner;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -56,7 +57,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 pub async fn no_banner(
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-    username: String,
+    username: &String,
 ) -> Result<(), AppError> {
     let guild_id = command
         .guild_id
@@ -101,7 +102,10 @@ pub async fn banner_without_user(
     let user = command.user.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
     let result = real_user.map_err(|_| FailedToGetUser(String::from("Could no resolve user.")))?;
-    let banner_url = &result.banner_url().ok_or(NO_BANNER_ERROR.clone())?;
+    let banner_url = match &result.banner_url() {
+        Some(banner) => banner,
+        None => no_banner(ctx, command, &result.name),
+    };
 
     send_embed(ctx, command, localised_text.clone(), banner_url, result).await
 }
@@ -122,8 +126,10 @@ pub async fn banner_with_user(
     let user = user_data.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
     let result = real_user.map_err(|_| FailedToGetUser(String::from("Could no resolve user.")))?;
-    let banner_url = &result.banner_url().ok_or(NO_BANNER_ERROR.clone())?;
-
+    let banner_url = match &result.banner_url() {
+        Some(banner) => banner,
+        None => no_banner(ctx, command, &result.name),
+    };
     send_embed(ctx, command, localised_text.clone(), banner_url, result).await
 }
 

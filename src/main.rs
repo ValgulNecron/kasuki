@@ -13,8 +13,9 @@ use serenity::model::gateway::Activity;
 use serenity::model::gateway::Ready;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 use serenity::prelude::*;
-use structure::struct_shard_manager::ShardManagerContainer;
 use tokio::time::sleep;
+
+use structure::struct_shard_manager::ShardManagerContainer;
 
 use crate::cmd::ai_module::{image, transcript, translation};
 use crate::cmd::anilist_module::send_activity::manage_activity;
@@ -32,7 +33,6 @@ use crate::error_enum::AppError::{LangageGuildIdError, UnknownCommandError};
 use crate::function::error_management::error_dispatching::error_dispatching;
 use crate::function::sqls::general::data::set_data_ping_history;
 use crate::function::sqls::general::sql::init_sql_database;
-
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::structure::anilist::media::struct_autocomplete_media;
 use crate::structure::anilist::user::struct_autocomplete_user;
@@ -272,6 +272,14 @@ async fn manage_command_interaction(
         "ping" => ping::run(ctx, command).await,
 
         // Anilist module
+        "add_activity" => {
+            if check_if_anime_is_on(command).await? {
+                anilist_module_error
+            } else {
+                add_activity::run(&command.data.options, ctx, command).await;
+                Ok(())
+            }
+        }
         "anime" => {
             if check_if_anime_is_on(command).await? {
                 anilist_module_error
@@ -373,14 +381,6 @@ async fn manage_command_interaction(
                 anilist_module_error
             } else {
                 studio::run(&command.data.options, ctx, command).await;
-                Ok(())
-            }
-        }
-        "add_activity" => {
-            if check_if_anime_is_on(command).await? {
-                anilist_module_error
-            } else {
-                add_activity::run(&command.data.options, ctx, command).await;
                 Ok(())
             }
         }
