@@ -348,4 +348,3 @@ FodyWeavers.xsd
 *.log.*
 *.sig
 pkg/
-src/
