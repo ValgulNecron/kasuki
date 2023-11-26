@@ -20,17 +20,6 @@ pub async fn run(
     let database_url = "./data.db";
     let pool = get_sqlite_pool(database_url).await;
 
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS module_activation (
-            guild_id TEXT PRIMARY KEY,
-            ai_module INTEGER,
-            anilist_module INTEGER
-        )",
-    )
-    .execute(&pool)
-    .await
-    .unwrap();
-
     let localised_text = match ModuleLocalisedText::get_module_localised(ctx, command).await {
         Ok(data) => data,
         Err(_) => return,

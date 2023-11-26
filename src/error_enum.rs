@@ -9,6 +9,8 @@ pub enum AppError {
     LocalisationReadError(String),
     LocalisationParsingError(String),
     LangageGuildIdError(String),
+    NoLangageError(String),
+    FailedToGetUser(String),
 }
 
 pub static OPTION_ERROR: Lazy<AppError> =

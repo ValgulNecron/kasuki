@@ -5,6 +5,7 @@ use std::io::Read;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
     CommonError, LocalisationFileError, LocalisationParsingError, LocalisationReadError,
+    NoLangageError,
 };
 use crate::function::general::get_guild_langage::get_guild_langage;
 use serde::{Deserialize, Serialize};
@@ -54,7 +55,7 @@ impl ProfileLocalisedText {
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             Ok(localised_text.clone())
         } else {
-            Err(CommonError(String::from("not found")))
+            Err(NoLangageError(String::from("not found")))
         }
     }
 }

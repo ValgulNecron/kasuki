@@ -34,7 +34,7 @@ pub async fn init_sqlite() {
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await;
     init_sqlite_cache(&pool).await;
     pool.close().await;
-    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await;
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
     init_sqlite_data(&pool).await;
     pool.close().await;
 }
@@ -69,9 +69,6 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) {
         Err(e) => error!("{}", e),
     }
 
-    let database_url = "./data.db";
-    let pool = get_sqlite_pool(database_url).await;
-
     match sqlx::query(
         "CREATE TABLE IF NOT EXISTS activity_data (
         anime_id TEXT,
@@ -84,7 +81,7 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) {
         PRIMARY KEY (anime_id, server_id)
     )",
     )
-    .execute(&pool)
+    .execute(pool)
     .await
     {
         Ok(_) => {}
@@ -97,9 +94,7 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) {
 /// # Arguments
 ///
 /// * `_pool` - A reference to the SQLite connection pool.
-async fn init_sqlite_data(_pool: &Pool<Sqlite>) {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
-
+async fn init_sqlite_data(pool: &Pool<Sqlite>) {
     match sqlx::query(
         "CREATE TABLE IF NOT EXISTS ping_history (
                     shard_id TEXT,
@@ -108,7 +103,7 @@ async fn init_sqlite_data(_pool: &Pool<Sqlite>) {
                     PRIMARY KEY (shard_id, timestamp)
                 )",
     )
-    .execute(&pool)
+    .execute(pool)
     .await
     {
         Ok(_) => {}
@@ -123,15 +118,12 @@ async fn init_sqlite_data(_pool: &Pool<Sqlite>) {
             lang TEXT NOT NULL
         )",
     )
-    .execute(&pool)
+    .execute(pool)
     .await
     {
         Ok(_) => {}
         Err(e) => error!("{}", e),
     }
-
-    let database_url = "./data.db";
-    let pool = get_sqlite_pool(database_url).await;
 
     match sqlx::query(
         "CREATE TABLE IF NOT EXISTS activity_data (
@@ -145,7 +137,21 @@ async fn init_sqlite_data(_pool: &Pool<Sqlite>) {
         PRIMARY KEY (anime_id, server_id)
     )",
     )
-    .execute(&pool)
+    .execute(pool)
+    .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("{}", e),
+    }
+
+    match sqlx::query(
+        "CREATE TABLE IF NOT EXISTS module_activation (
+            guild_id TEXT PRIMARY KEY,
+            ai_module INTEGER,
+            anilist_module INTEGER
+        )",
+    )
+    .execute(pool)
     .await
     {
         Ok(_) => {}

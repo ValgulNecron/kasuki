@@ -2,6 +2,10 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::{
+    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
+};
 use crate::function::error_management::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json, no_langage_error,
@@ -19,48 +23,40 @@ pub struct AvatarLocalisedText {
 }
 
 impl AvatarLocalisedText {
-    pub async fn get_avatar_localised(
-        ctx: &Context,
-        command: &ApplicationCommandInteraction,
-    ) -> Result<AvatarLocalisedText, &'static str> {
+    pub async fn get_avatar_localised(guild_id: String) -> Result<AvatarLocalisedText, AppError> {
         let mut file = match File::open("./lang_file/embed/general/avatar.json") {
             Ok(file) => file,
             Err(_) => {
-                error_langage_file_not_found(ctx, command).await;
-                return Err("not found");
+                return Err(LocalisationFileError(String::from(
+                    "File avatar.json not found.",
+                )));
             }
         };
         let mut json = String::new();
         match file.read_to_string(&mut json) {
             Ok(_) => {}
             Err(_) => {
-                error_cant_read_langage_file(ctx, command).await;
-                return Err("not found");
+                return Err(LocalisationReadError(String::from(
+                    "File avatar.json can't be read.",
+                )));
             }
         }
 
         let json_data: HashMap<String, AvatarLocalisedText> = match serde_json::from_str(&json) {
             Ok(data) => data,
             Err(_) => {
-                error_parsing_langage_json(ctx, command).await;
-                return Err("not found");
+                return Err(LocalisationParsingError(String::from(
+                    "Failing to parse avatar.json.",
+                )));
             }
         };
 
-        let guild_id = match command.guild_id {
-            Some(id) => id.0.to_string(),
-            None => {
-                error_no_langage_guild_id(ctx, command).await;
-                return Err("not found");
-            }
-        };
         let lang_choice = get_guild_langage(guild_id).await;
 
         if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
             Ok(localised_text.clone())
         } else {
-            no_langage_error(ctx, command).await;
-            Err("not found")
+            Err(NoLangageError(String::from("not found")))
         }
     }
 }

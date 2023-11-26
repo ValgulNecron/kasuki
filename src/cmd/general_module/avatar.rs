@@ -1,4 +1,6 @@
 use crate::constant::COLOR;
+use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::function::error_management::common::custom_error;
 use crate::function::error_management::error_avatar::error_no_avatar;
 use crate::structure::embed::general::struct_lang_avatar::AvatarLocalisedText;
@@ -17,17 +19,14 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) {
+) -> Result<(), AppError> {
     if let Some(option) = options.get(0) {
         let resolved = option.resolved.as_ref().unwrap();
         if let CommandDataOptionValue::User(user, ..) = resolved {
-            avatar_with_user(ctx, command, user).await
-        } else {
-            avatar_without_user(ctx, command).await
+            return avatar_with_user(ctx, command, user).await;
         }
-    } else {
-        avatar_without_user(ctx, command).await
     }
+    avatar_without_user(ctx, command).await
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -56,36 +55,40 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
     command
 }
 
-async fn avatar_without_user(ctx: &Context, command: &ApplicationCommandInteraction) {
-    let localised_text = match AvatarLocalisedText::get_avatar_localised(ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+async fn avatar_without_user(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
+    let localised_text = AvatarLocalisedText::get_avatar_localised(guild_id).await?;
     let user = command.user.id.0;
     let real_user = Http::get_user(&ctx.http, user).await;
-    let result = if let Ok(user) = real_user {
-        user
-    } else {
-        custom_error(ctx, command, &localised_text.error_no_user).await;
-        return;
-    };
+    let result = real_user.map_err(|_| FailedToGetUser(String::from("Could no resolve user.")))?;
 
     avatar_with_user(ctx, command, &result).await
 }
 
-async fn avatar_with_user(ctx: &Context, command: &ApplicationCommandInteraction, user: &User) {
-    let localised_text = match AvatarLocalisedText::get_avatar_localised(ctx, command).await {
-        Ok(data) => data,
-        Err(_) => return,
-    };
+async fn avatar_with_user(
+    ctx: &Context,
+    command: &ApplicationCommandInteraction,
+    user: &User,
+) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
+    let localised_text = AvatarLocalisedText::get_avatar_localised(guild_id).await?;
 
-    let avatar_url = match user.avatar_url() {
-        Some(url) => url,
-        None => {
-            error_no_avatar(ctx, command).await;
-            return;
-        }
-    };
+    let avatar_url = user.avatar_url().ok_or(OPTION_ERROR.clone())?;
 
     send_embed(
         avatar_url,
@@ -103,8 +106,8 @@ pub async fn send_embed(
     command: &ApplicationCommandInteraction,
     localised_text: AvatarLocalisedText,
     username: String,
-) {
-    if let Err(why) = command
+) -> Result<(), AppError> {
+    command
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -120,7 +123,5 @@ pub async fn send_embed(
                 })
         })
         .await
-    {
-        println!("Error creating slash command: {}", why);
-    }
+        .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }
