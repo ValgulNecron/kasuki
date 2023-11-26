@@ -13,6 +13,7 @@ pub enum AppError {
     FailedToGetUser(String),
     NoAvatarError(String),
     NoBannerError(String),
+    NoCommandOption(String),
 }
 
 pub static OPTION_ERROR: Lazy<AppError> =
