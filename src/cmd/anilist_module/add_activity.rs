@@ -15,7 +15,7 @@ use serenity::model::{Permissions, Timestamp};
 
 use crate::constant::COLOR;
 use crate::error_enum::AppError::{LangageGuildIdError, NoAnimeError};
-use crate::error_enum::{AppError, COMMAND_SENDING_ERROR};
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::trim::trim_webhook;
 use crate::function::sqls::general::data::set_data_activity;
@@ -35,7 +35,7 @@ pub async fn run(
     let mut delays = 0;
     for option in options {
         if option.name == "anime_name" {
-            let resolved = option.resolved.as_ref().unwrap();
+            let resolved = option.resolved.as_ref().ok_or(OPTION_ERROR.clone())?;
             if let CommandDataOptionValue::String(value_option) = resolved {
                 value = value_option.clone()
             } else {
@@ -43,7 +43,7 @@ pub async fn run(
             }
         }
         if option.name == "delays" {
-            let resolved = option.resolved.as_ref().unwrap();
+            let resolved = option.resolved.as_ref().ok_or(OPTION_ERROR.clone())?;
             if let CommandDataOptionValue::Integer(delays_option) = resolved {
                 delays = *delays_option
             } else {
