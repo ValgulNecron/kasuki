@@ -14,7 +14,9 @@ use serenity::model::prelude::application_command::{
 use serenity::model::{Permissions, Timestamp};
 
 use crate::constant::COLOR;
-use crate::error_enum::AppError::{LangageGuildIdError, NoAnimeDifferedError};
+use crate::error_enum::AppError::{
+    CreatingWebhookDifferedError, LangageGuildIdError, NoAnimeDifferedError,
+};
 use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::trim::trim_webhook;
@@ -142,9 +144,13 @@ pub async fn run(
             .http
             .create_webhook(channel_id, &map, None)
             .await
-            .unwrap()
+            .map_err(|_| {
+                CreatingWebhookDifferedError(String::from("Error when creating the webhook."))
+            })?
             .url()
-            .unwrap();
+            .map_err(|_| {
+                CreatingWebhookDifferedError(String::from("Error when getting the webhook url."))
+            })?;
 
         set_data_activity(
             anime_id,

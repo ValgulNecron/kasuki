@@ -173,3 +173,20 @@ pub async fn set_data_module_activation_status_sqlite(
         .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
     Ok(())
 }
+
+pub async fn remove_data_module_activation_status_sqlite(
+    server_id: String,
+    anime_id: String, ,
+) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+    let _ = sqlx::query(
+        "DELETE FROM module_activation WHERE anime_id = ? AND server_id = ?",
+    )
+        .bind(anime_id)
+        .bind(server_id)
+        .execute(&pool)
+        .await
+        .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+
+    Ok(())
+}

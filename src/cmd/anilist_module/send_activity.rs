@@ -1,16 +1,18 @@
 use std::env;
-use std::thread::sleep;
 use std::time::Duration;
 
 use chrono::Utc;
+use log::{debug, error};
 use serenity::http::Http;
 use serenity::model::channel::Embed;
 use serenity::model::prelude::Webhook;
+use serenity::utils;
 use sqlx::FromRow;
 
 use crate::constant::COLOR;
-use crate::function::sqls::general::data::{get_data_activity, set_data_activity};
-use crate::function::sqls::sqlite::pool::get_sqlite_pool;
+use crate::function::sqls::general::data::{
+    get_data_activity, remove_data_module_activation_status, set_data_activity,
+};
 use crate::structure::anilist::struct_minimal_anime::MinimalAnimeWrapper;
 use crate::structure::embed::anilist::struct_lang_send_activity::SendActivityLocalisedText;
 
@@ -26,28 +28,11 @@ pub struct ActivityData {
 }
 
 pub async fn manage_activity() {
-    let database_url = "./data.db";
-    let pool = get_sqlite_pool(database_url).await;
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS activity_data (
-        anime_id TEXT,
-        timestamp TEXT,
-        server_id TEXT,
-        webhook TEXT,
-        episode TEXT,
-        name TEXT,
-        delays INTEGER DEFAULT 0,
-        PRIMARY KEY (anime_id, server_id)
-    )",
-    )
-    .execute(&pool)
-    .await
-    .unwrap();
     loop {
         tokio::spawn(async move {
             send_activity().await;
         });
-        sleep(Duration::from_secs(1));
+        tokio::time::sleep(Duration::from_secs(1)).await;
     }
 }
 
@@ -77,16 +62,27 @@ pub async fn update_info(row: ActivityData, guild_id: String) {
         None => 0,
     })
     .await;
-    set_data_activity(
-        data.get_id(),
-        data.get_timestamp(),
-        guild_id,
-        row.webhook.unwrap(),
-        data.get_episode(),
-        data.get_name(),
-        row.delays.unwrap() as i64,
-    )
-    .await
+
+    if data.get_episode().to_string() == row.episode.unwrap_or(String::from(0)) {
+        let url = row.webhook.unwrap().parse().unwrap();
+        let (id, token) = utils::parse_webhook(url).unwrap();
+        let http = Http::new(&*token);
+
+        http.delete_webhook(id).await?;
+
+        remove_data_module_activation_status(row.server_id.unwrap(), row.anime_id.unwrap())
+    } else {
+        set_data_activity(
+            data.get_id(),
+            data.get_timestamp(),
+            guild_id,
+            row.webhook.unwrap(),
+            data.get_episode(),
+            data.get_name(),
+            row.delays.unwrap() as i64,
+        )
+        .await
+    }
 }
 
 pub async fn send_specific_activity(row: ActivityData, guild_id: String, row2: ActivityData) {
