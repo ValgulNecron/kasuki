@@ -176,12 +176,10 @@ pub async fn set_data_module_activation_status_sqlite(
 
 pub async fn remove_data_module_activation_status_sqlite(
     server_id: String,
-    anime_id: String, ,
+    anime_id: String,
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
-    let _ = sqlx::query(
-        "DELETE FROM module_activation WHERE anime_id = ? AND server_id = ?",
-    )
+    let _ = sqlx::query("DELETE FROM module_activation WHERE anime_id = ? AND server_id = ?")
         .bind(anime_id)
         .bind(server_id)
         .execute(&pool)

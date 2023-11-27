@@ -2,7 +2,6 @@ use std::env;
 use std::time::Duration;
 
 use chrono::Utc;
-use log::{debug, error};
 use serenity::http::Http;
 use serenity::model::channel::Embed;
 use serenity::model::prelude::Webhook;
@@ -63,14 +62,20 @@ pub async fn update_info(row: ActivityData, guild_id: String) {
     })
     .await;
 
-    if data.get_episode().to_string() == row.episode.unwrap_or(String::from(0)) {
-        let url = row.webhook.unwrap().parse().unwrap();
-        let (id, token) = utils::parse_webhook(url).unwrap();
+    if data.get_episode().to_string() == row.episode.unwrap_or(String::from("0")) {
+        let webhook_url = row.webhook.unwrap();
+        let url_str = webhook_url.as_str();
+        let url = url_str
+            .parse::<reqwest::Url>()
+            .expect("Failed to parse URL");
+        let (id, token) = utils::parse_webhook(&url).unwrap();
         let http = Http::new(&*token);
 
-        http.delete_webhook(id).await?;
+        http.delete_webhook(id).await.unwrap();
 
         remove_data_module_activation_status(row.server_id.unwrap(), row.anime_id.unwrap())
+            .await
+            .expect("TODO: panic message");
     } else {
         set_data_activity(
             data.get_id(),
