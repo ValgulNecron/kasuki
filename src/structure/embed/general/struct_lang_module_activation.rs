@@ -1,3 +1,4 @@
+use log::trace;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
@@ -34,11 +35,12 @@ impl ModuleLocalisedText {
             })?;
 
         let lang_choice = get_guild_langage(guild_id).await;
+        trace!("{}", lang_choice);
 
         let avatar_localised_text = json_data
             .get(lang_choice.as_str())
             .ok_or(NoLangageError(String::from("not found")))?;
-
+        trace!("{:?}", avatar_localised_text);
         Ok(avatar_localised_text.clone())
     }
 }

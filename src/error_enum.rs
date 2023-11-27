@@ -17,6 +17,10 @@ pub enum AppError {
     ModuleError(String),
     ModuleOffError(String),
     UnknownCommandError(String),
+    NoAnimeError(String),
+    NoAnimeDifferedError(String),
+    NoMediaDifferedError(String),
+    CreatingWebhookDifferedError(String),
 }
 
 pub static OPTION_ERROR: Lazy<AppError> =

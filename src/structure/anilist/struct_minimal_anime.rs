@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::constant::N_A;
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::NoMediaDifferedError;
 use crate::function::requests::request::make_request_anilist;
 use crate::structure::embed::anilist::struct_lang_add_activity::AddActivityLocalisedText;
 
@@ -52,7 +54,7 @@ impl MinimalAnimeWrapper {
     pub async fn new_minimal_anime_by_id(
         localised_text: AddActivityLocalisedText,
         search: String,
-    ) -> Result<MinimalAnimeWrapper, String> {
+    ) -> Result<MinimalAnimeWrapper, AppError> {
         let query = "
                 query ($name: Int) {
                   Media(type: ANIME, id: $name) {
@@ -75,13 +77,9 @@ impl MinimalAnimeWrapper {
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         // Get json
-        match serde_json::from_str(&resp) {
-            Ok(data) => data,
-            Err(error) => {
-                error!("Error: {}", error);
-                Err(localised_text.error_no_media.clone())
-            }
-        }
+        let data = serde_json::from_str(&resp)
+            .map_err(|_| NoMediaDifferedError(localised_text.error_no_media.clone()))?;
+        Ok(data)
     }
 
     pub async fn new_minimal_anime_by_id_no_error(id: i32) -> MinimalAnimeWrapper {
@@ -111,7 +109,7 @@ impl MinimalAnimeWrapper {
     pub async fn new_minimal_anime_by_search(
         localised_text: AddActivityLocalisedText,
         search: String,
-    ) -> Result<MinimalAnimeWrapper, String> {
+    ) -> Result<MinimalAnimeWrapper, AppError> {
         let query = "
             query ($name: String) {
               Media(type: ANIME, search: $name) {
@@ -134,13 +132,9 @@ impl MinimalAnimeWrapper {
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         // Get json
-        match serde_json::from_str(&resp) {
-            Ok(data) => data,
-            Err(error) => {
-                error!("Error: {}", error);
-                Err(localised_text.error_no_media.clone())
-            }
-        }
+        let data = serde_json::from_str(&resp)
+            .map_err(|_| NoMediaDifferedError(localised_text.error_no_media.clone()))?;
+        Ok(data)
     }
 
     pub fn get_id(&self) -> i32 {

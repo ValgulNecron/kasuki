@@ -14,8 +14,10 @@ use serenity::model::prelude::application_command::{
 use serenity::model::{Permissions, Timestamp};
 
 use crate::constant::COLOR;
-use crate::function::error_management::error_no::error_no_anime_specified;
-use crate::function::error_management::no_lang_error::error_no_langage_guild_id;
+use crate::error_enum::AppError::{
+    CreatingWebhookDifferedError, LangageGuildIdError, NoAnimeDifferedError,
+};
+use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::trim::trim_webhook;
 use crate::function::sqls::general::data::set_data_activity;
@@ -28,23 +30,24 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &ApplicationCommandInteraction,
-) {
+) -> Result<(), AppError> {
     differed_response(ctx, command).await;
 
     let mut value = "".to_string();
     let mut delays = 0;
     for option in options {
         if option.name == "anime_name" {
-            let resolved = option.resolved.as_ref().unwrap();
+            let resolved = option.resolved.as_ref().ok_or(OPTION_ERROR.clone())?;
             if let CommandDataOptionValue::String(value_option) = resolved {
                 value = value_option.clone()
             } else {
-                error_no_anime_specified(ctx, command).await;
-                return;
+                return Err(NoAnimeDifferedError(String::from(
+                    "No anime was specified.",
+                )));
             }
         }
         if option.name == "delays" {
-            let resolved = option.resolved.as_ref().unwrap();
+            let resolved = option.resolved.as_ref().ok_or(OPTION_ERROR.clone())?;
             if let CommandDataOptionValue::Integer(delays_option) = resolved {
                 delays = *delays_option
             } else {
@@ -53,19 +56,16 @@ pub async fn run(
         }
     }
 
-    let guild_id = match command.guild_id {
-        Some(id) => id.0.to_string(),
-        None => {
-            error_no_langage_guild_id(ctx, command).await;
-            return;
-        }
-    };
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .0
+        .to_string();
 
     let localised_text =
-        match AddActivityLocalisedText::get_add_activity_localised(ctx, command).await {
-            Ok(data) => data,
-            Err(_) => return,
-        };
+        AddActivityLocalisedText::get_add_activity_localised(guild_id.clone()).await?;
     let data = if value.parse::<i32>().is_ok() {
         match MinimalAnimeWrapper::new_minimal_anime_by_id(
             localised_text.clone(),
@@ -75,8 +75,9 @@ pub async fn run(
         {
             Ok(minimal_anime) => minimal_anime,
             Err(_) => {
-                error_no_anime_specified(ctx, command).await;
-                return;
+                return Err(NoAnimeDifferedError(String::from(
+                    "No anime was specified.",
+                )))
             }
         }
     } else {
@@ -88,8 +89,9 @@ pub async fn run(
         {
             Ok(minimal_anime) => minimal_anime,
             Err(_) => {
-                error_no_anime_specified(ctx, command).await;
-                return;
+                return Err(NoAnimeDifferedError(String::from(
+                    "No anime was specified.",
+                )))
             }
         }
     };
@@ -97,8 +99,8 @@ pub async fn run(
 
     let mut anime_name = data.get_name();
     let channel_id = command.channel_id.0;
-    if check_if_activity_exist(anime_id, guild_id.clone()).await {
-        if let Err(why) = command
+    return if check_if_activity_exist(anime_id, guild_id.clone()).await {
+        command
             .create_followup_message(&ctx.http, |f| {
                 f.embed(|m| {
                     m.title(&localised_text.title1)
@@ -113,9 +115,8 @@ pub async fn run(
                 })
             })
             .await
-        {
-            println!("{}: {}", localised_text.error_slash_command, why);
-        }
+            .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        Ok(())
     } else {
         if anime_name.len() >= 50 {
             anime_name = trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
@@ -143,9 +144,13 @@ pub async fn run(
             .http
             .create_webhook(channel_id, &map, None)
             .await
-            .unwrap()
+            .map_err(|_| {
+                CreatingWebhookDifferedError(String::from("Error when creating the webhook."))
+            })?
             .url()
-            .unwrap();
+            .map_err(|_| {
+                CreatingWebhookDifferedError(String::from("Error when getting the webhook url."))
+            })?;
 
         set_data_activity(
             anime_id,
@@ -158,7 +163,7 @@ pub async fn run(
         )
         .await;
 
-        if let Err(why) = command
+        command
             .create_followup_message(&ctx.http, |f| {
                 f.embed(|m| {
                     m.title(&localised_text.title2)
@@ -169,10 +174,9 @@ pub async fn run(
                 })
             })
             .await
-        {
-            println!("{}: {}", localised_text.error_slash_command, why);
-        }
-    }
+            .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        Ok(())
+    };
 }
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

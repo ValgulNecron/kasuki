@@ -3,7 +3,9 @@ use crate::error_enum::AppError::*;
 use crate::function::error_management::error_avatar::error_no_avatar;
 use crate::function::error_management::error_getting_option::error_no_option;
 use crate::function::error_management::error_module::{error_module_off, error_no_module};
-use crate::function::error_management::error_no::error_no_user_specified;
+use crate::function::error_management::error_no::{
+    error_no_anime_specified, error_no_user_specified,
+};
 use crate::function::error_management::no_lang_error::{
     error_cant_read_langage_file, error_langage_file_not_found, error_no_langage_guild_id,
     error_parsing_langage_json, no_langage_error,
@@ -33,6 +35,7 @@ pub async fn error_dispatching(
         ModuleError(..) => error_no_module(ctx, command).await,
         ModuleOffError(..) => error_module_off(ctx, command).await,
         UnknownCommandError(..) => error!("What that shit you've done."),
+        NoAnimeError(..) => error_no_anime_specified(ctx, command).await,
         _ => {}
     }
 }

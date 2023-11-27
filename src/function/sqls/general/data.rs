@@ -5,9 +5,9 @@ use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
 use crate::function::sqls::sqlite::data::{
     get_data_activity_sqlite, get_data_guild_langage_sqlite,
-    get_data_module_activation_status_sqlite, set_data_activity_sqlite,
-    set_data_guild_langage_sqlite, set_data_module_activation_status_sqlite,
-    set_data_ping_history_sqlite,
+    get_data_module_activation_status_sqlite, remove_data_module_activation_status_sqlite,
+    set_data_activity_sqlite, set_data_guild_langage_sqlite,
+    set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
 };
 
 pub async fn set_data_ping_history(shard_id: String, latency: String) {
@@ -101,5 +101,19 @@ pub async fn set_data_module_activation_status(
         Err(SqlInsertError(String::from("Error")))
     } else {
         set_data_module_activation_status_sqlite(guild_id, anilist_value, ai_value).await
+    }
+}
+
+pub async fn remove_data_module_activation_status(
+    server_id: String,
+    anime_id: String,
+) -> Result<(), AppError> {
+    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
+    if db_type == *"sqlite" {
+        remove_data_module_activation_status_sqlite(server_id, anime_id).await
+    } else if db_type == *"postgresql" {
+        Err(SqlInsertError(String::from("Error")))
+    } else {
+        remove_data_module_activation_status_sqlite(server_id, anime_id).await
     }
 }
