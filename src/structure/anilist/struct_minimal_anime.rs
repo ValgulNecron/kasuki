@@ -77,10 +77,9 @@ impl MinimalAnimeWrapper {
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         // Get json
-        match serde_json::from_str(&resp) {
-            Ok(data) => Ok(data),
-            Err(error) => Err(NoMediaDifferedError(localised_text.error_no_media.clone())),
-        }
+        let data = serde_json::from_str(&resp)
+            .map_err(|_| NoMediaDifferedError(localised_text.error_no_media.clone()))?;
+        Ok(data)
     }
 
     pub async fn new_minimal_anime_by_id_no_error(id: i32) -> MinimalAnimeWrapper {
@@ -133,10 +132,9 @@ impl MinimalAnimeWrapper {
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         // Get json
-        match serde_json::from_str(&resp) {
-            Ok(data) => Ok(data),
-            Err(error) => Err(NoMediaDifferedError(localised_text.error_no_media.clone())),
-        }
+        let data = serde_json::from_str(&resp)
+            .map_err(|_| NoMediaDifferedError(localised_text.error_no_media.clone()))?;
+        Ok(data)
     }
 
     pub fn get_id(&self) -> i32 {
