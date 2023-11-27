@@ -10,7 +10,6 @@ use crate::function::error_management::no_lang_error::{
 };
 use log::error;
 use serenity::client::Context;
-use serenity::futures::TryFutureExt;
 use serenity::model::prelude::application_command::ApplicationCommandInteraction;
 
 pub async fn error_dispatching(
