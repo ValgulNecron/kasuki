@@ -14,7 +14,7 @@ use serenity::model::prelude::application_command::{
 use serenity::model::{Permissions, Timestamp};
 
 use crate::constant::COLOR;
-use crate::error_enum::AppError::{LangageGuildIdError, NoAnimeError};
+use crate::error_enum::AppError::{LangageGuildIdError, NoAnimeDifferedError};
 use crate::error_enum::{AppError, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::function::general::differed_response::differed_response;
 use crate::function::general::trim::trim_webhook;
@@ -39,7 +39,9 @@ pub async fn run(
             if let CommandDataOptionValue::String(value_option) = resolved {
                 value = value_option.clone()
             } else {
-                return Err(NoAnimeError(String::from("No anime was specified.")));
+                return Err(NoAnimeDifferedError(String::from(
+                    "No anime was specified.",
+                )));
             }
         }
         if option.name == "delays" {
@@ -70,7 +72,11 @@ pub async fn run(
         .await
         {
             Ok(minimal_anime) => minimal_anime,
-            Err(_) => return Err(NoAnimeError(String::from("No anime was specified."))),
+            Err(_) => {
+                return Err(NoAnimeDifferedError(String::from(
+                    "No anime was specified.",
+                )))
+            }
         }
     } else {
         match MinimalAnimeWrapper::new_minimal_anime_by_search(
@@ -80,7 +86,11 @@ pub async fn run(
         .await
         {
             Ok(minimal_anime) => minimal_anime,
-            Err(_) => return Err(NoAnimeError(String::from("No anime was specified."))),
+            Err(_) => {
+                return Err(NoAnimeDifferedError(String::from(
+                    "No anime was specified.",
+                )))
+            }
         }
     };
     let anime_id = data.get_id();
