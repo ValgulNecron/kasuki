@@ -33,7 +33,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
 }
 
 async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
-    let mut options_build = Vec::new();
+    let options_build = Vec::new();
     for option in command.args.as_ref().unwrap() {
         let command_type = option.command_type.clone().into();
         let mut options_build = CreateCommandOption::new(command_type, &option.name, &option.desc)

@@ -1,9 +1,11 @@
 mod command_register;
 mod command_run;
+mod common;
 mod constant;
 mod error_enum;
 mod error_management;
 mod logger;
+mod sqls;
 mod structure;
 
 use crate::command_register::command_registration::creates_commands;
@@ -11,11 +13,8 @@ use crate::command_run::command_dispatch::command_dispatching;
 use crate::constant::ACTIVITY_NAME;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::structure::struct_shard_manager::ShardManagerContainer;
-use log::{debug, error, info, trace};
-use serenity::all::{
-    Activity, ActivityData, ActivityType, Command, CommandInteraction, Context, EventHandler,
-    GatewayIntents, Interaction, Ready,
-};
+use log::{debug, error, info};
+use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;
@@ -44,7 +43,7 @@ impl EventHandler for Handler {
                 command.data.name, command.data.options, command.user.name, command.user.id
             );
             match command_dispatching(ctx, command).await {
-                Err(e) => {} //error_dispatching(e, &ctx, &command).await,
+                Err(e) => error_management::error_dispatch::command_dispatching(e).await,
                 _ => {}
             };
 

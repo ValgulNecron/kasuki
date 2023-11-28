@@ -1,34 +1,39 @@
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::LangageGuildIdError;
+use crate::structure::general::credit::load_localization;
+use log::trace;
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
+};
 
-pub async fn run() -> Result<(), AppError> {
-    ctx: &Context, command: &ApplicationCommandInteraction) -> Result < (), AppError > {
-        let guild_id = command
-            .guild_id
-            .ok_or(LangageGuildIdError(String::from(
-                "Guild id for langage not found.",
-            )))?
-            .0
-            .to_string();
-        let credit_localised = CreditLocalisedText::get_credit_localised(guild_id).await?;
-        let mut desc: String = "".to_string();
-        for x in credit_localised.list {
-            desc += x.text.as_str()
-        }
-        command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        message.embed(|m| {
-                            m.title(&credit_localised.title)
-                                // Add a timestamp for the current time
-                                // This also accepts a rfc3339 Timestamp
-                                .timestamp(Timestamp::now())
-                                .color(COLOR)
-                                .description(desc)
-                        })
-                    })
-            })
-            .await
-            .map_err(|_| COMMAND_SENDING_ERROR.clone())
+pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .to_string();
+    trace!("{}", guild_id);
+    let credit_localised = load_localization(guild_id).await?;
+    let mut desc: String = "".to_string();
+    for x in credit_localised.credits {
+        desc += x.desc.as_str()
     }
+
+    let builder_embed = CreateEmbed::new()
+        .timestamp(Timestamp::now())
+        .color(COLOR)
+        .description(desc)
+        .title(&credit_localised.title);
+
+    let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
+
+    let builder = CreateInteractionResponse::Message(builder_message);
+
+    command
+        .create_response(&ctx.http, builder)
+        .await
+        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+}

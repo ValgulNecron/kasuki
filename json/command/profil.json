@@ -21,6 +21,39 @@
           "desc": "Username of the user you want the profil of."
         }
       ]
+    },
+    {
+      "code": "fr",
+      "name": "credit",
+      "desc": "Obtenez le crédit de l'application.",
+      "args": [
+        {
+          "name": "nomdutilisateur",
+          "desc": "Nom d'utilisateur de l'utilisateur que vous voulez profil."
+        }
+      ]
+    },
+    {
+      "code": "de",
+      "name": "profil",
+      "desc": "Holen Sie sich das Profil eines Benutzers.",
+      "args": [
+        {
+          "name": "benutzername",
+          "desc": "Benutzername des Benutzers, dessen Profil Sie möchten."
+        }
+      ]
+    },
+    {
+      "code": "ja",
+      "name": "purofi-ru",
+      "desc": "ユーザーのプロフィールを取得します。",
+      "args": [
+        {
+          "name": "yuuzaamei",
+          "desc": "あなたがプロフィールが欲しいユーザーのユーザー名。"
+        }
+      ]
     }
   ]
 }

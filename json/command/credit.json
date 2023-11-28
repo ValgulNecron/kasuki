@@ -7,6 +7,21 @@
       "code": "en-US",
       "name": "credit",
       "desc": "Get the credit of the app."
+    },
+    {
+      "code": "fr",
+      "name": "credit",
+      "desc": "Obtenir le crédit de l'application."
+    },
+    {
+      "code": "de",
+      "name": "kredit",
+      "desc": "Holen Sie sich das Kredit der App."
+    },
+    {
+      "code": "ja",
+      "name": "クレジット",
+      "desc": "アプリのクレジットを取得します。"
     }
   ]
 }

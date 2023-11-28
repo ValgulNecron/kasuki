@@ -1,8 +1,6 @@
-use serde::de::Visitor;
 use serde::Serialize;
 use serde_json;
 use serenity::all::CommandOptionType;
-use std::fmt::Write;
 use std::fs;
 use std::io::Error;
 
