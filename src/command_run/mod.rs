@@ -1,2 +1,2 @@
 pub mod command_dispatch;
-mod general;
+pub mod general;
