@@ -1,0 +1,59 @@
+{
+  "name": "avatar",
+  "desc": "Get the avatar.",
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "username",
+      "desc": "Username of the user you want the profil of.",
+      "required": false,
+      "command_type": "User"
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "avatar",
+      "desc": "Get the avatar.",
+      "args": [
+        {
+          "name": "username",
+          "desc": "Username of the user you want the profil of."
+        }
+      ]
+    },
+    {
+      "code": "fr",
+      "name": "avatar",
+      "desc": "Obtenez l'avatar.",
+      "args": [
+        {
+          "name": "nomdutilisateur",
+          "desc": "Nom d'utilisateur de l'utilisateur dont vous voulez le profil."
+        }
+      ]
+    },
+    {
+      "code": "de",
+      "name": "avatar",
+      "desc": "Holen Sie sich den Avatar.",
+      "args": [
+        {
+          "name": "benutzername",
+          "desc": "Benutzername des Benutzers, dessen Profil Sie möchten."
+        }
+      ]
+    },
+    {
+      "code": "ja",
+      "name": "avatar",
+      "desc": "アバターを取得します。",
+      "args": [
+        {
+          "name": "username",
+          "desc": "あなたがプロファイルを望むユーザーのユーザー名。"
+        }
+      ]
+    }
+  ]
+}

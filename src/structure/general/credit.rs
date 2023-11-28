@@ -19,7 +19,7 @@ pub struct Locale {
     pub credits: Vec<Credit>,
 }
 
-pub async fn load_localization(guild_id: String) -> Result<Locale, AppError> {
+pub async fn load_localization_credit(guild_id: String) -> Result<Locale, AppError> {
     let mut file = File::open("json/message/general/credit.json")
         .map_err(|_| LocalisationFileError(String::from("File credit.json not found.")))?;
 

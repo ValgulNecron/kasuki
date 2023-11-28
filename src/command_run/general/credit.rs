@@ -1,8 +1,7 @@
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::LangageGuildIdError;
-use crate::structure::general::credit::load_localization;
-use log::trace;
+use crate::structure::general::credit::load_localization_credit;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
@@ -15,8 +14,7 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
             "Guild id for langage not found.",
         )))?
         .to_string();
-    trace!("{}", guild_id);
-    let credit_localised = load_localization(guild_id).await?;
+    let credit_localised = load_localization_credit(guild_id).await?;
     let mut desc: String = "".to_string();
     for x in credit_localised.credits {
         desc += x.desc.as_str()

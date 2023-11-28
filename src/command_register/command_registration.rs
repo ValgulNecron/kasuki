@@ -1,5 +1,5 @@
 use crate::structure::command_structure::{get_commands, CommandData};
-use log::error;
+use log::{error, trace};
 use serenity::all::{Command, CreateCommand, CreateCommandOption, Http};
 use std::sync::Arc;
 
@@ -17,12 +17,19 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
             for localised in localiseds {
                 build = build
                     .name_localized(&localised.code, &localised.name)
-                    .description(&localised.desc)
+                    .description_localized(&localised.code, &localised.desc)
             }
         }
         None => {}
     }
 
+    if &command.arg_num > &(0u32) {
+        let options = create_option(command).await;
+        for option in options {
+            build = build.add_option(option);
+        }
+    }
+    trace!("{:?}", build);
     match Command::create_global_command(http, build).await {
         Ok(res) => res,
         Err(e) => {
@@ -33,7 +40,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
 }
 
 async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
-    let options_build = Vec::new();
+    let mut options_builds = Vec::new();
     for option in command.args.as_ref().unwrap() {
         let command_type = option.command_type.clone().into();
         let mut options_build = CreateCommandOption::new(command_type, &option.name, &option.desc)
@@ -50,6 +57,7 @@ async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
             }
             None => {}
         }
+        options_builds.push(options_build)
     }
-    return options_build;
+    return options_builds;
 }
