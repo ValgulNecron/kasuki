@@ -1,0 +1,26 @@
+{
+  "name": "profil",
+  "desc": "Get the profil of a user.",
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "username",
+      "desc": "Username of the user you want the profil of.",
+      "required": true,
+      "command_type": "String"
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "credit",
+      "desc": "Get the credit of the app.",
+      "args": [
+        {
+          "name": "username",
+          "desc": "Username of the user you want the profil of."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "credit",
+  "desc": "Get the credit of the app.",
+  "arg_num": 0,
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "credit",
+      "desc": "Get the credit of the app."
+    }
+  ]
+}
