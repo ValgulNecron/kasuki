@@ -1,0 +1,59 @@
+{
+  "name": "banner",
+  "desc": "Get the banner.",
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "username",
+      "desc": "Username of the user you want the profile of.",
+      "required": false,
+      "command_type": "User"
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "banner",
+      "desc": "Get the banner.",
+      "args": [
+        {
+          "name": "username",
+          "desc": "Username of the user you want the banner of."
+        }
+      ]
+    },
+    {
+      "code": "fr",
+      "name": "bannière",
+      "desc": "Obtenez la bannière.",
+      "args": [
+        {
+          "name": "nomdutilisateur",
+          "desc": "Nom d'utilisateur de l'utilisateur dont vous voulez le profil."
+        }
+      ]
+    },
+    {
+      "code": "de",
+      "name": "banner",
+      "desc": "Holen Sie das Banner.",
+      "args": [
+        {
+          "name": "benutzername",
+          "desc": "Benutzername des Benutzers, dessen Profil Sie möchten."
+        }
+      ]
+    },
+    {
+      "code": "ja",
+      "name": "バナー",
+      "desc": "バナーを取得します。",
+      "args": [
+        {
+          "name": "ユーザーネーム",
+          "desc": "プロフィールを取得したいユーザーのユーザーネーム。"
+        }
+      ]
+    }
+  ]
+}

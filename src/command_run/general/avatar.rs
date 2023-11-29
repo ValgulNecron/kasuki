@@ -53,15 +53,13 @@ pub async fn send_embed(
         )))?
         .to_string();
 
-    let localised_text = load_localization_avatar(guild_id).await?;
-
-    let title = localised_text.title.replace("$user$", username.as_str());
+    let avatar_localised = load_localization_avatar(guild_id).await?;
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
         .image(avatar_url)
-        .title(title);
+        .title(avatar_localised.title.replace("$user$", username.as_str()));
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

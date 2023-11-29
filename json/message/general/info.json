@@ -1,0 +1,17 @@
+{
+  "en": {
+    "title": "Info",
+    "desc": "This bot uses the AniList API to provide information on a show or a user.",
+    "footer": "Creator: valgul.",
+    "button_see_on_github": "See on GitHub",
+    "button_official_website": "Official website",
+    "button_official_discord": "Official Discord",
+    "button_add_the_bot": "Add the bot"
+  },
+  "fr": {
+  },
+  "jp": {
+  },
+  "de": {
+  }
+}

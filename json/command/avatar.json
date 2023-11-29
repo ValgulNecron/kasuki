@@ -5,7 +5,7 @@
   "args": [
     {
       "name": "username",
-      "desc": "Username of the user you want the profil of.",
+      "desc": "Username of the user you want the avatar of.",
       "required": false,
       "command_type": "User"
     }
@@ -18,18 +18,18 @@
       "args": [
         {
           "name": "username",
-          "desc": "Username of the user you want the profil of."
+          "desc": "Username of the user you want the avatar of."
         }
       ]
     },
     {
       "code": "fr",
       "name": "avatar",
-      "desc": "Obtenez l'avatar.",
+      "desc": "Obtenir l'avatar.",
       "args": [
         {
           "name": "nomdutilisateur",
-          "desc": "Nom d'utilisateur de l'utilisateur dont vous voulez le profil."
+          "desc": "Nom d'utilisateur de l'utilisateur dont vous souhaitez l'avatar."
         }
       ]
     },
@@ -40,18 +40,18 @@
       "args": [
         {
           "name": "benutzername",
-          "desc": "Benutzername des Benutzers, dessen Profil Sie möchten."
+          "desc": "Benutzername des Benutzers, von dem Sie den Avatar möchten."
         }
       ]
     },
     {
       "code": "ja",
-      "name": "avatar",
+      "name": "アバター",
       "desc": "アバターを取得します。",
       "args": [
         {
-          "name": "username",
-          "desc": "あなたがプロファイルを望むユーザーのユーザー名。"
+          "name": "ユーザー名",
+          "desc": "アバターを取得したいユーザーのユーザー名。"
         }
       ]
     }
