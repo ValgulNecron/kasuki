@@ -13,6 +13,12 @@ pub struct Arg {
     pub required: bool,
     #[serde(with = "RemoteCommandOptionType", rename = "command_type")]
     pub command_type: RemoteCommandOptionType,
+    pub choices: Option<Vec<ArgChoice>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ArgChoice {
+    pub option_choice: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

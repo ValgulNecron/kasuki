@@ -1,0 +1,73 @@
+{
+  "name": "lang",
+  "desc": "Change the language of the bot's response.",
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "lang",
+      "desc": "The language you want to set the response to.",
+      "required": false,
+      "command_type": "String",
+      "choices": [
+        {
+          "option_choice": "en"
+        },
+        {
+          "option_choice": "jp"
+        },
+        {
+          "option_choice": "de"
+        },
+        {
+          "option_choice": "fr"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "lang",
+      "desc": "Change the language of the bot's response.",
+      "args": [
+        {
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        }
+      ]
+    },
+    {
+      "code": "fr",
+      "name": "lang",
+      "desc": "Change la langue de la réponse du bot.",
+      "args": [
+        {
+          "name": "lang",
+          "desc": "La langue que vous voulez fixer pour la réponse."
+        }
+      ]
+    },
+    {
+      "code": "de",
+      "name": "lang",
+      "desc": "Ändern Sie die Sprache der Bot-Antwort.",
+      "args": [
+        {
+          "name": "lang",
+          "desc": "Die Sprache, die Sie für die Antwort festlegen möchten."
+        }
+      ]
+    },
+    {
+      "code": "ja",
+      "name": "lang",
+      "desc": "ボットの応答の言語を変更します。",
+      "args": [
+        {
+          "name": "lang",
+          "desc": "応答に設定したい言語。"
+        }
+      ]
+    }
+  ]
+}

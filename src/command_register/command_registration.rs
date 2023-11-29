@@ -45,6 +45,15 @@ async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
         let command_type = option.command_type.clone().into();
         let mut options_build = CreateCommandOption::new(command_type, &option.name, &option.desc)
             .required(option.required);
+        match &option.choices {
+            Some(choices) => {
+                for choice in choices {
+                    options_build = options_build
+                        .add_string_choice(&choice.option_choice, &choice.option_choice);
+                }
+            }
+            None => {}
+        }
         match &command.localised {
             Some(localiseds) => {
                 for localised in localiseds {
