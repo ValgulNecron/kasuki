@@ -23,11 +23,26 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
         .description(&info_localised.desc)
         .title(&info_localised.title)
         .footer(CreateEmbedFooter::new(&info_localised.footer));
+    let mut buttons = Vec::new();
     let mut components = Vec::new();
-    let button = CreateButton::new_link("github")
+
+    let button = CreateButton::new_link("https://github.com/ValgulNecron/kasuki")
         .style(ButtonStyle::Primary)
         .label(&info_localised.button_see_on_github);
-    components.push(CreateActionRow::from(button));
+    buttons.push(button);
+    let button = CreateButton::new_link("https://kasuki.valgul.moe/")
+        .style(ButtonStyle::Primary)
+        .label(&info_localised.button_official_website);
+    buttons.push(button);
+    let button = CreateButton::new_link("https://discord.gg/h4hYxMURQx")
+        .style(ButtonStyle::Primary)
+        .label(&info_localised.button_official_discord);
+    buttons.push(button);
+    let button = CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot")
+        .style(ButtonStyle::Primary)
+        .label(&info_localised.button_add_the_bot);
+    buttons.push(button);
+    components.push(CreateActionRow::Buttons(buttons));
 
     let builder_message = CreateInteractionResponseMessage::new()
         .embed(builder_embed)

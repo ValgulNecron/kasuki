@@ -1,0 +1,27 @@
+{
+  "name": "info",
+  "desc": "Get information on the bot.",
+  "arg_num": 0,
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "info",
+      "desc": "Get information on the bot."
+    },
+    {
+      "code": "fr",
+      "name": "info",
+      "desc": "Obtenez des informations sur le bot."
+    },
+    {
+      "code": "de",
+      "name": "info",
+      "desc": "Holen Sie sich Informationen über den Bot."
+    },
+    {
+      "code": "ja",
+      "name": "info",
+      "desc": "ボットの情報を取得します。"
+    }
+  ]
+}

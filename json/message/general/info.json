@@ -9,9 +9,30 @@
     "button_add_the_bot": "Add the bot"
   },
   "fr": {
+    "title": "Info",
+    "desc": "Ce bot utilise l'API AniList pour fournir des informations sur une émission ou un utilisateur.",
+    "footer": "Créateur: valgul.",
+    "button_see_on_github": "Voir sur GitHub",
+    "button_official_website": "Site officiel",
+    "button_official_discord": "Discord officiel",
+    "button_add_the_bot": "Ajouter le bot"
   },
   "jp": {
+    "title": "情報",
+    "desc": "このボットはAniList APIを使用して、ショーまたはユーザーの情報を提供します。",
+    "footer": "作成者: valgul.",
+    "button_see_on_github": "GitHubで見る",
+    "button_official_website": "公式ウェブサイト",
+    "button_official_discord": "公式Discord",
+    "button_add_the_bot": "ボットを追加する"
   },
   "de": {
+    "title": "Info",
+    "desc": "Dieser Bot verwendet die AniList API, um Informationen über eine Show oder einen Benutzer bereitzustellen.",
+    "footer": "Ersteller: valgul.",
+    "button_see_on_github": "Auf GitHub anzeigen",
+    "button_official_website": "Offizielle Webseite",
+    "button_official_discord": "Offizielle Discord",
+    "button_add_the_bot": "Den Bot hinzufügen"
   }
 }

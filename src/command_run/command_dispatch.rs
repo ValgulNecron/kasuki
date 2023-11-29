@@ -1,4 +1,4 @@
-use crate::command_run::general::{avatar, banner, credit};
+use crate::command_run::general::{avatar, banner, credit, info};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::UnknownCommandError;
 use log::info;
@@ -15,6 +15,7 @@ pub async fn command_dispatching(
         "avatar" => avatar::run(&command.data.options, &ctx, &command).await?,
         "banner" => banner::run(&command.data.options, &ctx, &command).await?,
         "credit" => credit::run(&ctx, &command).await?,
+        "info" => info::run(&ctx, &command).await?,
         _ => return Err(UnknownCommandError(String::from("Command does not exist."))),
     }
 

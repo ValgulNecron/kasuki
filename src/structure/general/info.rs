@@ -17,7 +17,6 @@ pub struct InfoLocalised {
     pub button_official_website: String,
     pub button_official_discord: String,
     pub button_add_the_bot: String,
-    pub server_specific_info: String,
 }
 
 pub async fn load_localization_info(guild_id: String) -> Result<InfoLocalised, AppError> {
