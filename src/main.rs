@@ -12,6 +12,7 @@ use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::command_dispatching;
 use crate::constant::ACTIVITY_NAME;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
+use crate::sqls::general::sql::init_sql_database;
 use crate::structure::struct_shard_manager::ShardManagerContainer;
 use log::{debug, error, info};
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
@@ -55,6 +56,7 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
+    init_sql_database().await;
     // Configure the client with your Discord bot token in the environment.
     let my_path = "./.env";
     let path = std::path::Path::new(my_path);

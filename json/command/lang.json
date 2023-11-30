@@ -6,7 +6,7 @@
     {
       "name": "lang",
       "desc": "The language you want to set the response to.",
-      "required": false,
+      "required": true,
       "command_type": "String",
       "choices": [
         {

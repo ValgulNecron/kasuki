@@ -1,0 +1,97 @@
+{
+  "name": "module",
+  "desc": "Turn on or off a module.",
+  "arg_num": 2,
+  "args": [
+    {
+      "name": "module",
+      "desc": "The module you want to change the state of.",
+      "required": true,
+      "command_type": "String",
+      "choices": [
+        {
+          "option_choice": "AI"
+        },
+        {
+          "option_choice": "ANILIST"
+        }
+      ]
+    },
+    {
+      "name": "state",
+      "desc": "The state you want to to.",
+      "required": true,
+      "command_type": "Boolean",
+      "choices": [
+        {
+          "option_choice": "True"
+        },
+        {
+          "option_choice": "False"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "module_activation",
+      "desc": "Turn on or off a module.",
+      "args": [
+        {
+          "name": "module",
+          "desc": "The module you want to change the state of."
+        },
+        {
+          "name": "state",
+          "desc": "The state you want to to."
+        }
+      ]
+    },
+    {
+      "code": "fr",
+      "name": "activation_du_module",
+      "desc": "Allumez ou éteignez un module.",
+      "args": [
+        {
+          "name": "module",
+          "desc": "Le module dont vous voulez changer l'état."
+        },
+        {
+          "name": "etat",
+          "desc": "L'état que vous voulez changer."
+        }
+      ]
+    },
+    {
+      "code": "de",
+      "name": "modul_aktivierung",
+      "desc": "Ein Modul ein- oder ausschalten.",
+      "args": [
+        {
+          "name": "modul",
+          "desc": "Das Modul, dessen Zustand Sie ändern möchten."
+        },
+        {
+          "name": "zustand",
+          "desc": "Der Zustand, den Sie ändern möchten."
+        }
+      ]
+    },
+    {
+      "code": "ja",
+      "name": "モジュールの有効化",
+      "desc": "モジュールをオンまたはオフにします。",
+      "args": [
+        {
+          "name": "モジュール",
+          "desc": "状態を変更したいモジュール。"
+        },
+        {
+          "name": "状態",
+          "desc": "変更したい状態。"
+        }
+      ]
+    }
+  ]
+}
