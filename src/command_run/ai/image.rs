@@ -21,7 +21,7 @@ pub async fn run(
 
     let image_localised = load_localization_avatar(guild_id).await?;
 
-    let builder_message = Defer()
+    let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command
         .create_response(&ctx.http, builder_message)

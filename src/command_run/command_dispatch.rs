@@ -1,8 +1,8 @@
+use crate::command_run::ai::image;
 use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{LangageGuildIdError, UnknownCommandError};
-use crate::sqls::general::data::get_data_module_activation_status;
 use crate::sqls::sqlite::data::get_data_module_activation_kill_switch_status_sqlite;
 use log::info;
 use serenity::all::{CommandInteraction, Context};
@@ -23,11 +23,8 @@ pub async fn command_dispatching(
         "module" => module::run(&command.data.options, &ctx, &command).await?,
         "ping" => ping::run(&ctx, &command).await?,
         "profile" => profile::run(&command.data.options, &ctx, &command).await?,
-        _ => {
-            return Err(UnknownCommandError(String::from(
-                "Command doespin not exist.",
-            )))
-        }
+        "image" => image::run(&command.data.options, &ctx, &command).await?,
+        _ => return Err(UnknownCommandError(String::from("Command does not exist."))),
     }
 
     Ok(())
