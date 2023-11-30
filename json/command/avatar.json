@@ -7,53 +7,51 @@
       "name": "username",
       "desc": "Username of the user you want the avatar of.",
       "required": false,
-      "command_type": "User"
+      "command_type": "User",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "username",
+          "desc": "Username of the user you want the avatar of."
+        },
+        {
+          "code": "fr",
+          "name": "nom_dutilisateur",
+          "desc": "Nom d'utilisateur de l'utilisateur dont vous souhaitez l'avatar."
+        },
+        {
+          "code": "de",
+          "name": "benutzername",
+          "desc": "Benutzername des Benutzers, von dem Sie den Avatar möchten."
+        },
+        {
+          "code": "ja",
+          "name": "ユーザー名",
+          "desc": "アバターを取得したいユーザーのユーザー名。"
+        }
+      ]
     }
   ],
   "localised": [
     {
       "code": "en-US",
       "name": "avatar",
-      "desc": "Get the avatar.",
-      "args": [
-        {
-          "name": "username",
-          "desc": "Username of the user you want the avatar of."
-        }
-      ]
+      "desc": "Get the avatar."
     },
     {
       "code": "fr",
       "name": "avatar",
-      "desc": "Obtenir l'avatar.",
-      "args": [
-        {
-          "name": "nomdutilisateur",
-          "desc": "Nom d'utilisateur de l'utilisateur dont vous souhaitez l'avatar."
-        }
-      ]
+      "desc": "Obtenir l'avatar."
     },
     {
       "code": "de",
       "name": "avatar",
-      "desc": "Holen Sie sich den Avatar.",
-      "args": [
-        {
-          "name": "benutzername",
-          "desc": "Benutzername des Benutzers, von dem Sie den Avatar möchten."
-        }
-      ]
+      "desc": "Holen Sie sich den Avatar."
     },
     {
       "code": "ja",
       "name": "アバター",
-      "desc": "アバターを取得します。",
-      "args": [
-        {
-          "name": "ユーザー名",
-          "desc": "アバターを取得したいユーザーのユーザー名。"
-        }
-      ]
+      "desc": "アバターを取得します。"
     }
   ]
 }

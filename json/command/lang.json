@@ -1,10 +1,10 @@
 {
-  "name": "lang",
+  "name": "langage",
   "desc": "Change the language of the bot's response.",
   "arg_num": 1,
   "args": [
     {
-      "name": "lang",
+      "name": "lang_choice",
       "desc": "The language you want to set the response to.",
       "required": true,
       "command_type": "String",
@@ -21,53 +21,52 @@
         {
           "option_choice": "fr"
         }
+      ],
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": lang
+          ",
+          "desc": "The language you want to set the response to."
+        },
+        {
+          "code": "fr",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        },
+        {
+          "code": "de",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        },
+        {
+          "code": "ja",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        }
       ]
     }
   ],
   "localised": [
     {
       "code": "en-US",
-      "name": "lang",
-      "desc": "Change the language of the bot's response.",
-      "args": [
-        {
-          "name": "lang",
-          "desc": "The language you want to set the response to."
-        }
-      ]
+      "name": "lang_choice",
+      "desc": "Change the language of the bot's response."
     },
     {
       "code": "fr",
-      "name": "lang",
-      "desc": "Change la langue de la réponse du bot.",
-      "args": [
-        {
-          "name": "lang",
-          "desc": "La langue que vous voulez fixer pour la réponse."
-        }
-      ]
+      "name": "lang_choice",
+      "desc": "Change the language of the bot's response."
     },
     {
       "code": "de",
-      "name": "lang",
-      "desc": "Ändern Sie die Sprache der Bot-Antwort.",
-      "args": [
-        {
-          "name": "lang",
-          "desc": "Die Sprache, die Sie für die Antwort festlegen möchten."
-        }
-      ]
+      "name": "lang_choice",
+      "desc": "Change the language of the bot's response."
     },
     {
       "code": "ja",
-      "name": "lang",
-      "desc": "ボットの応答の言語を変更します。",
-      "args": [
-        {
-          "name": "lang",
-          "desc": "応答に設定したい言語。"
-        }
-      ]
+      "name": "lang_choice",
+      "desc": "Change the language of the bot's response."
     }
   ]
 }

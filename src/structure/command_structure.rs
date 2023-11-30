@@ -14,6 +14,7 @@ pub struct Arg {
     #[serde(with = "RemoteCommandOptionType", rename = "command_type")]
     pub command_type: RemoteCommandOptionType,
     pub choices: Option<Vec<ArgChoice>>,
+    pub localised_args: Option<Vec<LocalisedArg>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -23,6 +24,7 @@ pub struct ArgChoice {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LocalisedArg {
+    pub code: String,
     pub name: String,
     pub desc: String,
 }
@@ -32,7 +34,6 @@ pub struct Localised {
     pub code: String,
     pub name: String,
     pub desc: String,
-    pub args: Option<Vec<LocalisedArg>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -1,0 +1,150 @@
+[
+  "CreateCommandOption"
+  (
+  "CommandOption"
+  {
+    "kind": "String",
+    "name": "module_name",
+    "name_localizations": "Some"
+    (
+  {
+    "en-US": "state",
+    "ja": "状態",
+    "fr": "statut",
+    "de": "status"
+  },
+  ),
+  "description"
+  :
+  "The module you want to change the state of.",
+  "description_localizations"
+  :
+  "Some"
+  (
+  {
+    "de": "Der Zustand den Sie anwenden möchten.",
+    "ja": "適用したい状態。",
+    "en-US": "The state you want to to.",
+    "fr": "L'état que vous voulez appliquer."
+  }
+  ),
+  "required"
+  :
+  true,
+  "choices"
+  :
+  [
+    "CommandOptionChoice"
+    {
+      "name": "AI",
+      "name_localizations": "None",
+      "value": "String"
+      (
+      "AI"
+      )
+    },
+    "CommandOptionChoice"
+    {
+      "name": "ANILIST",
+      "name_localizations": "None",
+      "value": "String"
+      (
+      "ANILIST"
+      )
+    }
+  ],
+  "options"
+  :
+  [],
+  "channel_types"
+  :
+  [],
+  "min_value"
+  :
+  None,
+  max_value
+  :
+  None,
+  min_length
+  :
+  None,
+  max_length
+  :
+  None,
+  autocomplete
+  :
+  false
+  }
+  ),
+  CreateCommandOption(CommandOption
+  {
+    kind: Boolean,
+    name: "state",
+    name_localizations: Some(
+  {
+    "en-US": "state",
+    "fr": "statut",
+    "de": "status",
+    "ja": "状態"
+  }
+  ),
+  description
+  :
+  "The state you want to to.",
+  description_localizations
+  :
+  Some(
+  {
+    "en-US": "The state you want to to.",
+    "ja": "適用したい状態。",
+    "de": "Der Zustand den Sie anwenden möchten.",
+    "fr": "L'état que vous voulez appliquer."
+  }
+  ),
+  required
+  :
+  true,
+  choices
+  :
+  [
+    CommandOptionChoice
+    {
+      name: "True",
+      name_localizations: None,
+      value: String(
+      "True"
+      )
+    },
+    CommandOptionChoice
+    {
+      name: "False",
+      name_localizations: None,
+      value: String(
+      "False"
+      )
+    }
+  ],
+  options
+  :
+  [],
+  channel_types
+  :
+  [],
+  min_value
+  :
+  None,
+  max_value
+  :
+  None,
+  min_length
+  :
+  None,
+  max_length
+  :
+  None,
+  autocomplete
+  :
+  false
+  }
+  )
+]

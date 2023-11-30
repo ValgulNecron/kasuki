@@ -159,4 +159,31 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) {
         Ok(_) => {}
         Err(e) => error!("{}", e),
     }
+
+    match sqlx::query(
+        "CREATE TABLE IF NOT EXISTS global_kill_switch (
+            id TEXT PRIMARY KEY,
+            ai_module INTEGER,
+            anilist_module INTEGER
+        )",
+    )
+    .execute(pool)
+    .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("{}", e),
+    }
+
+    match sqlx::query(
+        "INSERT OR REPLACE INTO global_kill_switch (guild_id, anilist_module, ai_module) VALUES (?, ?, ?)",
+    )
+        .bind("1")
+        .bind(1)
+        .bind(1)
+        .execute(pool)
+        .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("{}", e),
+    }
 }

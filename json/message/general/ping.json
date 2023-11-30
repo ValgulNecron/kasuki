@@ -1,0 +1,18 @@
+{
+  "en": {
+    "title": "Ping",
+    "description_part_1": "Hey, I'm alive! \n You are running on shard: $shard$ \n Latency is: $latency$"
+  },
+  "fr": {
+    "title": "Ping",
+    "description_part_1": "Hé, je suis vivant! \n Vous fonctionnez sur le shard: $shard$ \n La latence est: $latency$"
+  },
+  "jp": {
+    "title": "Ping",
+    "description_part_1": "ねえ、私は生きている！ \n シャードで実行しています: $shard$ \n レイテンシは: $latency$"
+  },
+  "de": {
+    "title": "Ping",
+    "description_part_1": "Hey, ich lebe noch! \n Sie laufen auf Shard: $shard$ \n Die Latenz beträgt: $latency$"
+  }
+}

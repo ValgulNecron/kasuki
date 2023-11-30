@@ -17,18 +17,15 @@ pub struct InfoLocalised {
 pub async fn load_localization_module_activation(
     guild_id: String,
 ) -> Result<InfoLocalised, AppError> {
-    let mut file = File::open("json/message/general/module_activation.json").map_err(|_| {
-        LocalisationFileError(String::from("File module_activation.json not found."))
-    })?;
+    let mut file = File::open("json/message/general/module.json")
+        .map_err(|_| LocalisationFileError(String::from("File module.json not found.")))?;
 
     let mut json = String::new();
-    file.read_to_string(&mut json).map_err(|_| {
-        LocalisationReadError(String::from("File module_activation.json can't be read."))
-    })?;
+    file.read_to_string(&mut json)
+        .map_err(|_| LocalisationReadError(String::from("File module.json can't be read.")))?;
 
-    let json_data: HashMap<String, InfoLocalised> = serde_json::from_str(&json).map_err(|_| {
-        LocalisationParsingError(String::from("Failing to parse module_activation.json."))
-    })?;
+    let json_data: HashMap<String, InfoLocalised> = serde_json::from_str(&json)
+        .map_err(|_| LocalisationParsingError(String::from("Failing to parse module.json.")))?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 

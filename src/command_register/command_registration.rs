@@ -33,7 +33,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
     match Command::create_global_command(http, build).await {
         Ok(res) => res,
         Err(e) => {
-            error!("{}", e);
+            error!("{} for command {}", e, command.name);
             return;
         }
     };
@@ -42,6 +42,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
 async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
     let mut options_builds = Vec::new();
     for option in command.args.as_ref().unwrap() {
+        println!("{:?}", option);
         let command_type = option.command_type.clone().into();
         let mut options_build = CreateCommandOption::new(command_type, &option.name, &option.desc)
             .required(option.required);
@@ -54,19 +55,18 @@ async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
             }
             None => {}
         }
-        match &command.localised {
+        match &option.localised_args {
             Some(localiseds) => {
                 for localised in localiseds {
-                    for arg in localised.args.as_ref().unwrap() {
-                        options_build = options_build
-                            .name_localized(&localised.code, &arg.name)
-                            .description_localized(&localised.code, &arg.desc)
-                    }
+                    options_build = options_build
+                        .name_localized(&localised.code, &localised.name)
+                        .description_localized(&localised.code, &localised.desc)
                 }
             }
             None => {}
         }
         options_builds.push(options_build)
     }
+
     return options_builds;
 }

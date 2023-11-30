@@ -7,53 +7,51 @@
       "name": "username",
       "desc": "Username of the user you want the profile of.",
       "required": false,
-      "command_type": "User"
+      "command_type": "User",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "username",
+          "desc": "Username of the user you want the avatar of."
+        },
+        {
+          "code": "fr",
+          "name": "nom_dutilisateur",
+          "desc": "Nom d'utilisateur de l'utilisateur dont vous souhaitez l'avatar."
+        },
+        {
+          "code": "de",
+          "name": "benutzername",
+          "desc": "Benutzername des Benutzers, von dem Sie den Avatar möchten."
+        },
+        {
+          "code": "ja",
+          "name": "ユーザー名",
+          "desc": "アバターを取得したいユーザーのユーザー名。"
+        }
+      ]
     }
   ],
   "localised": [
     {
       "code": "en-US",
       "name": "banner",
-      "desc": "Get the banner.",
-      "args": [
-        {
-          "name": "username",
-          "desc": "Username of the user you want the banner of."
-        }
-      ]
+      "desc": "Get the banner."
     },
     {
       "code": "fr",
       "name": "bannière",
-      "desc": "Obtenez la bannière.",
-      "args": [
-        {
-          "name": "nomdutilisateur",
-          "desc": "Nom d'utilisateur de l'utilisateur dont vous voulez le profil."
-        }
-      ]
+      "desc": "Obtenez la bannière."
     },
     {
       "code": "de",
       "name": "banner",
-      "desc": "Holen Sie das Banner.",
-      "args": [
-        {
-          "name": "benutzername",
-          "desc": "Benutzername des Benutzers, dessen Profil Sie möchten."
-        }
-      ]
+      "desc": "Holen Sie das Banner."
     },
     {
       "code": "ja",
       "name": "バナー",
-      "desc": "バナーを取得します。",
-      "args": [
-        {
-          "name": "ユーザーネーム",
-          "desc": "プロフィールを取得したいユーザーのユーザーネーム。"
-        }
-      ]
+      "desc": "バナーを取得します。"
     }
   ]
 }
