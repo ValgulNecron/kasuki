@@ -29,9 +29,9 @@ pub async fn load_localization_module_activation(
 
     let lang_choice = get_guild_langage(guild_id).await;
 
-    let info_localised_text = json_data
+    let module_localised_text = json_data
         .get(lang_choice.as_str())
         .ok_or(NoLangageError(String::from("not found")))?;
 
-    Ok(info_localised_text.clone())
+    Ok(module_localised_text.clone())
 }

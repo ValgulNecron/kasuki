@@ -1,0 +1,57 @@
+{
+  "name": "image",
+  "desc": "Generate an image.",
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "username",
+      "desc": "Username of the user you want the avatar of.",
+      "required": true,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "description",
+          "desc": "Enter a description of the image you want to generate."
+        },
+        {
+          "code": "fr",
+          "name": "description",
+          "desc": "Entrez une description de l'image que vous voulez générer."
+        },
+        {
+          "code": "de",
+          "name": "beschreibung",
+          "desc": "Geben Sie eine Beschreibung des Bildes ein, das Sie generieren möchten."
+        },
+        {
+          "code": "ja",
+          "name": "説明",
+          "desc": "生成したい画像の説明を入力してください。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "image",
+      "desc": "Generate an image."
+    },
+    {
+      "code": "fr",
+      "name": "image",
+      "desc": "Générer une image."
+    },
+    {
+      "code": "de",
+      "name": "bild",
+      "desc": "Ein Bild generieren."
+    },
+    {
+      "code": "ja",
+      "name": "画像",
+      "desc": "画像を生成する。"
+    }
+  ]
+}

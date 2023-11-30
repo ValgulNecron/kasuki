@@ -3,6 +3,8 @@ use log::error;
 use serde_json::Value;
 
 use crate::constant::CACHE_SQLITE_DB;
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::SqlInsertError;
 use crate::sqls::sqlite::pool::get_sqlite_pool;
 
 /// Retrieves the cache statistics for a given random type from a SQLite database using a connection pool.
@@ -19,8 +21,8 @@ use crate::sqls::sqlite::pool::get_sqlite_pool;
 /// A tuple containing the response, last updated timestamp, and last page of the cache statistics.
 pub async fn get_database_random_cache_sqlite(
     random_type: &str,
-) -> (Option<String>, Option<i64>, Option<i64>) {
-    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await;
+) -> Result<(Option<String>, Option<i64>, Option<i64>), AppError> {
+    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
     let row: (Option<String>, Option<i64>, Option<i64>) =
         sqlx::query_as("SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?")
             .bind(random_type)
@@ -28,7 +30,7 @@ pub async fn get_database_random_cache_sqlite(
             .await
             .unwrap_or((None, None, None));
     pool.close().await;
-    row
+    Ok(row)
 }
 
 /// Sets the database random cache for SQLite.
@@ -47,19 +49,18 @@ pub async fn set_database_random_cache_sqlite(
     cached_response: &str,
     now: i64,
     previous_page: i64,
-) {
-    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await;
-    match sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
+) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
+    sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
         .bind(random_type)
         .bind(cached_response)
         .bind(now)
         .bind(previous_page)
         .execute(&pool)
-        .await {
-        Ok(_) => {}
-        Err(e) => error!("{}", e)
-    }
+        .await
+        .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
     pool.close().await;
+    Ok(())
 }
 
 /// Retrieves data from a SQLite database cache based on the provided JSON.
@@ -75,8 +76,8 @@ pub async fn set_database_random_cache_sqlite(
 ///
 pub async fn get_database_cache_sqlite(
     json: Value,
-) -> (Option<String>, Option<String>, Option<i64>) {
-    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await;
+) -> Result<(Option<String>, Option<String>, Option<i64>), AppError> {
+    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
     let row: (Option<String>, Option<String>, Option<i64>) =
         sqlx::query_as("SELECT json, response, last_updated FROM request_cache WHERE json = ?")
             .bind(json.clone())
@@ -84,7 +85,7 @@ pub async fn get_database_cache_sqlite(
             .await
             .unwrap_or((None, None, None));
     pool.close().await;
-    row
+    Ok(row)
 }
 
 /// Sets the database cache for SQLite.
@@ -94,10 +95,10 @@ pub async fn get_database_cache_sqlite(
 /// * `json` - The JSON value to be stored in the cache.
 /// * `resp` - The response string to be stored in the cache.
 ///
-pub async fn set_database_cache_sqlite(json: Value, resp: String) {
-    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await;
+pub async fn set_database_cache_sqlite(json: Value, resp: String) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
     let now = Utc::now().timestamp();
-    match sqlx::query(
+    sqlx::query(
         "INSERT OR REPLACE INTO request_cache (json, response, last_updated) VALUES (?, ?, ?)",
     )
     .bind(json.clone())
@@ -105,9 +106,7 @@ pub async fn set_database_cache_sqlite(json: Value, resp: String) {
     .bind(now)
     .execute(&pool)
     .await
-    {
-        Ok(_) => {}
-        Err(e) => error!("{}", e),
-    }
+    .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
     pool.close().await;
+    Ok(())
 }

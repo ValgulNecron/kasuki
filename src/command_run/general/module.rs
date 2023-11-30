@@ -22,7 +22,7 @@ pub async fn run(
             "Guild id for langage not found.",
         )))?
         .to_string();
-    let module_activation_localised = load_localization_module_activation(guild_id.clone()).await?;
+    let module_localised = load_localization_module_activation(guild_id.clone()).await?;
     let mut module = "".to_string();
     let mut state = false;
     for option in options {
@@ -55,9 +55,9 @@ pub async fn run(
             set_data_module_activation_status(&guild_id, state, ai_value).await?;
 
             desc = if state {
-                &module_activation_localised.on
+                &module_localised.on
             } else {
-                &module_activation_localised.off
+                &module_localised.off
             };
         }
         "AI" => {
@@ -69,9 +69,9 @@ pub async fn run(
             set_data_module_activation_status(&guild_id, anilist_value, state).await?;
 
             desc = if state {
-                &module_activation_localised.on
+                &module_localised.on
             } else {
-                &module_activation_localised.off
+                &module_localised.off
             };
         }
         _ => {

@@ -17,6 +17,5 @@ pub static COMMAND_SENDING_ERROR: Lazy<AppError> = Lazy::new(|| {
         "Error while sending the response of the command.",
     ))
 });
-
 pub static NO_AVATAR_ERROR: Lazy<AppError> =
     Lazy::new(|| AppError::NoAvatarError(String::from("Error while getting the user avatar.")));

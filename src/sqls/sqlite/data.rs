@@ -1,5 +1,4 @@
 use chrono::Utc;
-use log::error;
 
 use crate::constant::DATA_SQLITE_DB;
 use crate::error_enum::AppError;
@@ -22,23 +21,21 @@ use crate::sqls::sqlite::pool::get_sqlite_pool;
 /// # Errors
 ///
 /// This function will log errors encountered when executing the SQL command, but does not return them.
-pub async fn set_data_ping_history_sqlite(shard_id: String, latency: String) {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+pub async fn set_data_ping_history_sqlite(
+    shard_id: String,
+    latency: String,
+) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let now = Utc::now().timestamp().to_string();
-    match sqlx::query(
-        "INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)",
-    )
-    .bind(shard_id)
-    .bind(now)
-    .bind(latency)
-    .execute(&pool)
-    .await
-    {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Error while creating the table: {}", e)
-        }
-    };
+    sqlx::query("INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)")
+        .bind(shard_id)
+        .bind(now)
+        .bind(latency)
+        .execute(&pool)
+        .await
+        .map_err(|_| SqlInsertError(String::from("Failed to insert into the table.")))?;
+    pool.close().await;
+    Ok(())
 }
 
 /// This function retrieves language data for a guild from a SQLite database.
@@ -52,15 +49,18 @@ pub async fn set_data_ping_history_sqlite(shard_id: String, latency: String) {
 /// A tuple containing the language and guild ID as optional strings.
 /// If the data is found in the database, it will be returned.
 /// If not found, both values will be `None`.
-pub async fn get_data_guild_langage_sqlite(guild_id: &str) -> (Option<String>, Option<String>) {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+pub async fn get_data_guild_langage_sqlite(
+    guild_id: &str,
+) -> Result<(Option<String>, Option<String>), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: (Option<String>, Option<String>) =
         sqlx::query_as("SELECT lang, guild FROM guild_lang WHERE guild = ?")
             .bind(guild_id)
             .fetch_one(&pool)
             .await
             .unwrap_or((None, None));
-    row
+    pool.close().await;
+    Ok(row)
 }
 
 /// Sets the language for a guild in the SQLite database.
@@ -69,17 +69,19 @@ pub async fn get_data_guild_langage_sqlite(guild_id: &str) -> (Option<String>, O
 ///
 /// * `guild_id` - The ID of the guild.
 /// * `lang` - The language to set for the guild.
-pub async fn set_data_guild_langage_sqlite(guild_id: &&String, lang: &String) {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
-    match sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
+pub async fn set_data_guild_langage_sqlite(
+    guild_id: &&String,
+    lang: &String,
+) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
         .bind(guild_id)
         .bind(lang)
         .execute(&pool)
         .await
-    {
-        Ok(_) => {}
-        Err(e) => error!("{}", e),
-    }
+        .map_err(|_| SqlInsertError(String::from("Failed to insert into the table.")))?;
+    pool.close().await;
+    Ok(())
 }
 
 /// Retrieves activity data from SQLite database.
@@ -121,9 +123,9 @@ pub async fn set_data_activity_sqlite(
     episode: i32,
     name: String,
     delays: i64,
-) {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
-    match sqlx::query(
+) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    sqlx::query(
         "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays) VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
         .bind(anime_id)
@@ -134,17 +136,15 @@ pub async fn set_data_activity_sqlite(
         .bind(name)
         .bind(delays)
         .execute(&pool)
-        .await
-    {
-        Ok(_) => {}
-        Err(e) => error!("{}", e),
-    }
+        .await.map_err(|_| SqlInsertError(String::from("Failed to insert into the table.")))?;
+    pool.close().await;
+    Ok(())
 }
 
 pub async fn get_data_module_activation_status_sqlite(
     guild_id: &String,
 ) -> Result<(Option<String>, Option<bool>, Option<bool>), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
         "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = ?",
     )
@@ -152,6 +152,7 @@ pub async fn get_data_module_activation_status_sqlite(
     .fetch_one(&pool)
     .await
     .unwrap_or((None, None, None));
+    pool.close().await;
     Ok(row)
 }
 
@@ -160,7 +161,7 @@ pub async fn set_data_module_activation_status_sqlite(
     anilist_value: bool,
     ai_value: bool,
 ) -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module) VALUES (?, ?, ?)",
     )
@@ -170,20 +171,51 @@ pub async fn set_data_module_activation_status_sqlite(
         .execute(&pool)
         .await
         .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+    pool.close().await;
     Ok(())
 }
 
-pub async fn remove_data_module_activation_status_sqlite(
+pub async fn remove_data_activity_status_sqlite(
     server_id: String,
     anime_id: String,
 ) -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
-    let _ = sqlx::query("DELETE FROM module_activation WHERE anime_id = ? AND server_id = ?")
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let _ = sqlx::query("DELETE FROM activity_data WHERE anime_id = ? AND server_id = ?")
         .bind(anime_id)
         .bind(server_id)
         .execute(&pool)
         .await
         .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+    pool.close().await;
 
     Ok(())
+}
+
+pub async fn get_data_module_activation_kill_switch_status_sqlite(
+) -> Result<(Option<String>, Option<bool>, Option<bool>), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
+        "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = 1",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap_or((None, None, None));
+    pool.close().await;
+
+    Ok(row)
+}
+
+pub async fn get_data_guild_lang(
+    guild_id: String,
+) -> Result<(Option<String>, Option<String>), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let row: (Option<String>, Option<String>) =
+        sqlx::query_as("SELECT lang, guild FROM guild_lang WHERE guild = ?")
+            .bind(guild_id)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((None, None));
+    pool.close().await;
+
+    Ok(row)
 }

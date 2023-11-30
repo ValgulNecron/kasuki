@@ -1,6 +1,9 @@
+use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::UnknownCommandError;
+use crate::error_enum::AppError::{LangageGuildIdError, UnknownCommandError};
+use crate::sqls::general::data::get_data_module_activation_status;
+use crate::sqls::sqlite::data::get_data_module_activation_kill_switch_status_sqlite;
 use log::info;
 use serenity::all::{CommandInteraction, Context};
 
@@ -28,4 +31,28 @@ pub async fn command_dispatching(
     }
 
     Ok(())
+}
+
+async fn check_if_ai_moule_is_on(command: &CommandInteraction) -> Result<bool, AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .to_string();
+    let state = check_activation_status("AI", guild_id.clone()).await?;
+    let state = state && check_kill_switch_status("AI").await?;
+    println!("{}", state);
+    Ok(state)
+}
+
+async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
+    let row: (Option<String>, Option<bool>, Option<bool>) =
+        get_data_module_activation_kill_switch_status_sqlite().await?;
+    let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
+    Ok(match module {
+        "ANILIST" => anilist_module.unwrap_or(true),
+        "AI" => ai_module.unwrap_or(true),
+        _ => false,
+    })
 }

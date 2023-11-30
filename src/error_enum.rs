@@ -12,6 +12,7 @@ pub enum AppError {
     NoCommandOption(String),
     SqlInsertError(String),
     SqlSelectError(String),
+    SqlCreateError(String),
     ModuleError(String),
     ModuleOffError(String),
     UnknownCommandError(String),
@@ -19,4 +20,6 @@ pub enum AppError {
     NoAnimeDifferedError(String),
     NoMediaDifferedError(String),
     CreatingWebhookDifferedError(String),
+    CreatingPoolError(String),
+    FailedToCreateAFile(String),
 }

@@ -32,7 +32,7 @@ pub async fn run(
             "Guild id for langage not found.",
         )))?
         .to_string();
-    set_data_guild_langage(&guild_id, &lang).await;
+    let _ = set_data_guild_langage(&guild_id, &lang).await;
     let lang_localised = load_localization_lang(guild_id).await?;
 
     let builder_embed = CreateEmbed::new()

@@ -27,9 +27,9 @@ pub async fn load_localization_profile(guild_id: String) -> Result<AvatarLocalis
 
     let lang_choice = get_guild_langage(guild_id).await;
 
-    let avatar_localised_text = json_data
+    let profile_localised_text = json_data
         .get(lang_choice.as_str())
         .ok_or(NoLangageError(String::from("not found")))?;
 
-    Ok(avatar_localised_text.clone())
+    Ok(profile_localised_text.clone())
 }

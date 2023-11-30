@@ -9,28 +9,26 @@ use std::fs::File;
 use std::io::prelude::*;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct BannerLocalised {
+pub struct AvatarLocalised {
     pub title: String,
-    pub no_banner: String,
-    pub no_banner_title: String,
 }
 
-pub async fn load_localization_banner(guild_id: String) -> Result<BannerLocalised, AppError> {
-    let mut file = File::open("json/message/general/banner.json")
+pub async fn load_localization_image(guild_id: String) -> Result<AvatarLocalised, AppError> {
+    let mut file = File::open("json/message/ai/image.json")
         .map_err(|_| LocalisationFileError(String::from("File image.json not found.")))?;
 
     let mut json = String::new();
     file.read_to_string(&mut json)
         .map_err(|_| LocalisationReadError(String::from("File image.json can't be read.")))?;
 
-    let json_data: HashMap<String, BannerLocalised> = serde_json::from_str(&json)
+    let json_data: HashMap<String, AvatarLocalised> = serde_json::from_str(&json)
         .map_err(|_| LocalisationParsingError(String::from("Failing to parse image.json.")))?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 
-    let banner_localised_text = json_data
+    let image_localised_text = json_data
         .get(lang_choice.as_str())
         .ok_or(NoLangageError(String::from("not found")))?;
 
-    Ok(banner_localised_text.clone())
+    Ok(image_localised_text.clone())
 }

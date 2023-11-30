@@ -4,37 +4,40 @@ use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
 use crate::sqls::sqlite::data::{
     get_data_guild_langage_sqlite, get_data_module_activation_status_sqlite,
-    remove_data_module_activation_status_sqlite, set_data_activity_sqlite,
-    set_data_guild_langage_sqlite, set_data_module_activation_status_sqlite,
-    set_data_ping_history_sqlite,
+    remove_data_activity_status_sqlite, set_data_activity_sqlite, set_data_guild_langage_sqlite,
+    set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
 };
 
-pub async fn set_data_ping_history(shard_id: String, latency: String) {
+pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_data_ping_history_sqlite(shard_id, latency).await
     } else if db_type == *"postgresql" {
+        Ok(())
     } else {
         set_data_ping_history_sqlite(shard_id, latency).await
     }
 }
 
-pub async fn get_data_guild_langage(guild_id: &str) -> (Option<String>, Option<String>) {
+pub async fn get_data_guild_langage(
+    guild_id: &str,
+) -> Result<(Option<String>, Option<String>), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_guild_langage_sqlite(guild_id).await
     } else if db_type == *"postgresql" {
-        (None, None)
+        Ok((None, None))
     } else {
         get_data_guild_langage_sqlite(guild_id).await
     }
 }
 
-pub async fn set_data_guild_langage(guild_id: &String, lang: &String) {
+pub async fn set_data_guild_langage(guild_id: &String, lang: &String) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_data_guild_langage_sqlite(&guild_id, lang).await
     } else if db_type == *"postgresql" {
+        Ok(())
     } else {
         set_data_guild_langage_sqlite(&guild_id, lang).await
     }
@@ -59,7 +62,7 @@ pub async fn set_data_activity(
     episode: i32,
     name: String,
     delays: i64,
-) {
+) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_data_activity_sqlite(
@@ -67,6 +70,7 @@ pub async fn set_data_activity(
         )
         .await
     } else if db_type == *"postgresql" {
+        Ok(())
     } else {
         set_data_activity_sqlite(
             anime_id, timestamp, guild_id, webhook, episode, name, delays,
@@ -109,10 +113,10 @@ pub async fn remove_data_module_activation_status(
 ) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
-        remove_data_module_activation_status_sqlite(server_id, anime_id).await
+        remove_data_activity_status_sqlite(server_id, anime_id).await
     } else if db_type == *"postgresql" {
         Err(SqlInsertError(String::from("Error")))
     } else {
-        remove_data_module_activation_status_sqlite(server_id, anime_id).await
+        remove_data_activity_status_sqlite(server_id, anime_id).await
     }
 }

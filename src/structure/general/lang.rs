@@ -27,9 +27,9 @@ pub async fn load_localization_lang(guild_id: String) -> Result<InfoLocalised, A
 
     let lang_choice = get_guild_langage(guild_id).await;
 
-    let info_localised_text = json_data
+    let lang_localised_text = json_data
         .get(lang_choice.as_str())
         .ok_or(NoLangageError(String::from("not found")))?;
 
-    Ok(info_localised_text.clone())
+    Ok(lang_localised_text.clone())
 }
