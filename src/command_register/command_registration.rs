@@ -4,7 +4,13 @@ use serenity::all::{Command, CreateCommand, CreateCommandOption, Http};
 use std::sync::Arc;
 
 pub async fn creates_commands(http: &Arc<Http>) {
-    let commands = get_commands("./json/command").unwrap();
+    let commands = match get_commands("./json/command") {
+        Err(e) => {
+            error!("{:?}", e);
+            return;
+        }
+        Ok(c) => c,
+    };
     for command in commands {
         create_command(&command, http).await;
     }
@@ -42,7 +48,6 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
 async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
     let mut options_builds = Vec::new();
     for option in command.args.as_ref().unwrap() {
-        println!("{:?}", option);
         let command_type = option.command_type.clone().into();
         let mut options_build = CreateCommandOption::new(command_type, &option.name, &option.desc)
             .required(option.required);

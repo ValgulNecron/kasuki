@@ -4,3 +4,4 @@ pub mod credit;
 pub mod info;
 pub mod lang;
 pub mod module;
+pub mod ping;
