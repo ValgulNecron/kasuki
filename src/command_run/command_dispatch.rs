@@ -1,4 +1,4 @@
-use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping};
+use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::UnknownCommandError;
 use log::info;
@@ -19,6 +19,7 @@ pub async fn command_dispatching(
         "lang" => lang::run(&command.data.options, &ctx, &command).await?,
         "module" => module::run(&command.data.options, &ctx, &command).await?,
         "ping" => ping::run(&ctx, &command).await?,
+        "profile" => profile::run(&command.data.options, &ctx, &command).await?,
         _ => {
             return Err(UnknownCommandError(String::from(
                 "Command doespin not exist.",

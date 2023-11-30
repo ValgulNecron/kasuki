@@ -3,13 +3,12 @@ use serenity::all::{
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{LangageGuildIdError, NoCommandOption};
+use crate::error_enum::AppError::LangageGuildIdError;
 use crate::sqls::general::data::{
-    get_data_module_activation_status, set_data_guild_langage, set_data_module_activation_status,
+    get_data_module_activation_status, set_data_module_activation_status,
 };
-use crate::structure::general::lang::load_localization_lang;
 use crate::structure::general::module::load_localization_module_activation;
 
 pub async fn run(

@@ -1,6 +1,6 @@
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse,
-    CreateInteractionResponseMessage, ShardId, Timestamp,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
 };
 
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
