@@ -44,7 +44,7 @@ pub async fn run(
         }
     }
 
-    let mut desc = "";
+    let desc;
     match module.as_str() {
         "ANIME" => {
             let row = get_data_module_activation_status(&guild_id).await?;

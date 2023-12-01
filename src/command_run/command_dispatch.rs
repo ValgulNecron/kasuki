@@ -15,6 +15,11 @@ pub async fn command_dispatching(
     let ai_module_error = AppError::ModuleOffError(String::from("AI module is off."));
     let anilist_module_error = AppError::ModuleOffError(String::from("Anilist module is off."));
     match command.data.name.as_str() {
+        /*
+
+        THIS IS THE GENERAL MODULE.
+
+         */
         "avatar" => avatar::run(&command.data.options, &ctx, &command).await?,
         "banner" => banner::run(&command.data.options, &ctx, &command).await?,
         "credit" => credit::run(&ctx, &command).await?,
@@ -23,7 +28,19 @@ pub async fn command_dispatching(
         "module" => module::run(&command.data.options, &ctx, &command).await?,
         "ping" => ping::run(&ctx, &command).await?,
         "profile" => profile::run(&command.data.options, &ctx, &command).await?,
-        "image" => image::run(&command.data.options, &ctx, &command).await?,
+
+        /*
+
+        THIS IS THE AI MODULE.
+
+         */
+        "image" => {
+            if check_if_ai_moule_is_on(&command).await? {
+                image::run(&command.data.options, &ctx, &command).await?
+            } else {
+                return Err(ai_module_error);
+            }
+        }
         _ => return Err(UnknownCommandError(String::from("Command does not exist."))),
     }
 
@@ -39,7 +56,6 @@ async fn check_if_ai_moule_is_on(command: &CommandInteraction) -> Result<bool, A
         .to_string();
     let state = check_activation_status("AI", guild_id.clone()).await?;
     let state = state && check_kill_switch_status("AI").await?;
-    println!("{}", state);
     Ok(state)
 }
 
