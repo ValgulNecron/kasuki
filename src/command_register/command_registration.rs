@@ -1,4 +1,4 @@
-use crate::structure::command_structure::{get_commands, CommandData};
+use crate::lang_struct::command_structure::{get_commands, CommandData};
 use log::{error, trace};
 use serenity::all::{Command, CreateCommand, CreateCommandOption, Http};
 use std::sync::Arc;

@@ -14,7 +14,7 @@ pub async fn run(
     let mut lang: String = String::new();
     let mut attachement: Option<Attachment> = None;
     for option in options {
-        if option.name == "lang" {
+        if option.name == "lang_struct" {
             let resolved = &option.value;
             if let CommandDataOptionValue::String(lang_option) = resolved {
                 lang = lang_option.clone()

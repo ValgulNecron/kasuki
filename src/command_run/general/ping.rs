@@ -6,8 +6,8 @@ use serenity::all::{
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::LangageGuildIdError;
-use crate::structure::general::ping::load_localization_ping;
-use crate::structure::struct_shard_manager::ShardManagerContainer;
+use crate::lang_struct::general::ping::load_localization_ping;
+use crate::lang_struct::struct_shard_manager::ShardManagerContainer;
 
 pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = command

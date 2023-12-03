@@ -24,7 +24,7 @@ pub async fn command_dispatching(
         "banner" => banner::run(&command.data.options, &ctx, &command).await?,
         "credit" => credit::run(&ctx, &command).await?,
         "info" => info::run(&ctx, &command).await?,
-        "lang" => lang::run(&command.data.options, &ctx, &command).await?,
+        "lang_struct" => lang::run(&command.data.options, &ctx, &command).await?,
         "module" => module::run(&command.data.options, &ctx, &command).await?,
         "ping" => ping::run(&ctx, &command).await?,
         "profile" => profile::run(&command.data.options, &ctx, &command).await?,

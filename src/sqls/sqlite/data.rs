@@ -54,7 +54,7 @@ pub async fn get_data_guild_langage_sqlite(
 ) -> Result<(Option<String>, Option<String>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: (Option<String>, Option<String>) =
-        sqlx::query_as("SELECT lang, guild FROM guild_lang WHERE guild = ?")
+        sqlx::query_as("SELECT lang_struct, guild FROM guild_lang WHERE guild = ?")
             .bind(guild_id)
             .fetch_one(&pool)
             .await
@@ -68,13 +68,13 @@ pub async fn get_data_guild_langage_sqlite(
 /// # Arguments
 ///
 /// * `guild_id` - The ID of the guild.
-/// * `lang` - The language to set for the guild.
+/// * `lang_struct` - The language to set for the guild.
 pub async fn set_data_guild_langage_sqlite(
     guild_id: &&String,
     lang: &String,
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
+    sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang_struct) VALUES (?, ?)")
         .bind(guild_id)
         .bind(lang)
         .execute(&pool)
@@ -210,7 +210,7 @@ pub async fn get_data_guild_lang(
 ) -> Result<(Option<String>, Option<String>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: (Option<String>, Option<String>) =
-        sqlx::query_as("SELECT lang, guild FROM guild_lang WHERE guild = ?")
+        sqlx::query_as("SELECT lang_struct, guild FROM guild_lang WHERE guild = ?")
             .bind(guild_id)
             .fetch_one(&pool)
             .await

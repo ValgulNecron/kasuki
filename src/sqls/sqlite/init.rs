@@ -109,7 +109,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS guild_lang (
             guild TEXT PRIMARY KEY,
-            lang TEXT NOT NULL
+            lang_struct TEXT NOT NULL
         )",
     )
     .execute(pool)

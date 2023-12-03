@@ -4,16 +4,16 @@ mod common;
 mod constant;
 mod error_enum;
 mod error_management;
+mod lang_struct;
 mod logger;
 mod sqls;
-mod structure;
 
 use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::command_dispatching;
 use crate::constant::ACTIVITY_NAME;
+use crate::lang_struct::struct_shard_manager::ShardManagerContainer;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::sqls::general::sql::init_sql_database;
-use crate::structure::struct_shard_manager::ShardManagerContainer;
 use log::{debug, error, info};
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::{async_trait, Client};

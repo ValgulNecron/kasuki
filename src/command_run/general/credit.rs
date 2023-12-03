@@ -1,7 +1,7 @@
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::LangageGuildIdError;
-use crate::structure::general::credit::load_localization_credit;
+use crate::lang_struct::general::credit::load_localization_credit;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,

@@ -1,7 +1,7 @@
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
-use crate::structure::general::avatar::load_localization_avatar;
+use crate::lang_struct::general::avatar::load_localization_avatar;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,

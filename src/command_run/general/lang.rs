@@ -6,8 +6,8 @@ use serenity::all::{
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{LangageGuildIdError, NoCommandOption};
+use crate::lang_struct::general::lang::load_localization_lang;
 use crate::sqls::general::data::set_data_guild_langage;
-use crate::structure::general::lang::load_localization_lang;
 
 pub async fn run(
     options: &[CommandDataOption],

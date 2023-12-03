@@ -9,7 +9,7 @@ use crate::error_enum::AppError::{
     DifferedResponseError, DifferedTokenError, DifferedWritingFile, LangageGuildIdError,
     NoCommandOption, NsfwError,
 };
-use crate::structure::ai::image::load_localization_image;
+use crate::lang_struct::ai::image::load_localization_image;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
