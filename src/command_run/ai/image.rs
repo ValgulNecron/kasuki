@@ -10,14 +10,12 @@ use crate::error_enum::AppError::{
     NoCommandOption, NsfwError,
 };
 use crate::structure::ai::image::load_localization_image;
-use crate::structure::general::avatar::load_localization_avatar;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateAttachment,
-    CreateEmbed, CreateInteractionResponse, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, Timestamp,
+    CreateEmbed, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
 use std::{env, fs};
 use uuid::Uuid;

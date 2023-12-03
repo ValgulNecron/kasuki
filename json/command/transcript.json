@@ -1,0 +1,113 @@
+{
+  "name": "transcript",
+  "desc": "Generate a transcript from a video.",
+  "arg_num": 3,
+  "args": [
+    {
+      "name": "video",
+      "desc": "Upload video file (max. 25MB).",
+      "required": true,
+      "command_type": "Attachment",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "video",
+          "desc": "Upload video file (max. 25MB)."
+        },
+        {
+          "code": "fr",
+          "name": "video",
+          "desc": "Télécharger le fichier vidéo (max. 25MB)."
+        },
+        {
+          "code": "de",
+          "name": "video",
+          "desc": "Video-Datei hochladen (max. 25MB)."
+        },
+        {
+          "code": "ja",
+          "name": "video",
+          "desc": "ビデオファイルをアップロード（最大25MB）。"
+        }
+      ]
+    },
+    {
+      "name": "prompt",
+      "desc": "An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language.",
+      "required": false,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "prompt",
+          "desc": "An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language."
+        },
+        {
+          "code": "fr",
+          "name": "prompt",
+          "desc": "Un texte optionnel pour guider le style du modèle ou poursuivre un segment audio précédent. L'invite doit correspondre à la langue audio."
+        },
+        {
+          "code": "de",
+          "name": "prompt",
+          "desc": "Ein optionaler Text, um den Stil des Modells zu leiten oder ein vorheriges Audiosegment fortzusetzen. Der Prompt sollte zur Audiosprache passen."
+        },
+        {
+          "code": "ja",
+          "name": "prompt",
+          "desc": "モデルのスタイルを指南するためのオプションのテキスト、または前のオーディオセグメントを続けます。プロンプトはオーディオ言語に一致するべきです。"
+        }
+      ]
+    },
+    {
+      "name": "lang",
+      "desc": "Select input language (ISO-639-1)",
+      "required": false,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "lang",
+          "desc": "Select input language (ISO-639-1)"
+        },
+        {
+          "code": "fr",
+          "name": "lang",
+          "desc": "Sélectionnez la langue d'entrée (ISO-639-1)"
+        },
+        {
+          "code": "de",
+          "name": "lang",
+          "desc": "Eingabesprache auswählen (ISO-639-1)"
+        },
+        {
+          "code": "ja",
+          "name": "lang",
+          "desc": "入力言語を選択（ISO-639-1)"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "transcript",
+      "desc": "Generate a transcript from a video."
+    },
+    {
+      "code": "fr",
+      "name": "transcription",
+      "desc": "Générer une transcription à partir d'une vidéo."
+    },
+    {
+      "code": "de",
+      "name": "transkript",
+      "desc": "Erstellt ein Transkript aus einem Video."
+    },
+    {
+      "code": "ja",
+      "name": "トランスクリプト",
+      "desc": "動画から脚本を生成する。"
+    }
+  ]
+}
