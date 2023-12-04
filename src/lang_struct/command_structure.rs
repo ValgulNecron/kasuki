@@ -11,6 +11,7 @@ pub struct Arg {
     pub name: String,
     pub desc: String,
     pub required: bool,
+    pub autocomplete: bool,
     #[serde(with = "RemoteCommandOptionType", rename = "command_type")]
     pub command_type: RemoteCommandOptionType,
     pub choices: Option<Vec<ArgChoice>>,

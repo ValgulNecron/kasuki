@@ -43,6 +43,7 @@
       "name": "state",
       "desc": "The state you want to to.",
       "required": true,
+      "autocomplete": false,
       "command_type": "Boolean",
       "choices": [
         {

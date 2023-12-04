@@ -70,6 +70,8 @@ async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
             }
             None => {}
         }
+        options_build = options_build.set_autocomplete(option.autocomplete);
+
         options_builds.push(options_build)
     }
 

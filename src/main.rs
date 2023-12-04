@@ -1,3 +1,5 @@
+mod anilist_struct;
+mod command_autocomplete;
 mod command_register;
 mod command_run;
 mod common;
@@ -8,6 +10,7 @@ mod lang_struct;
 mod logger;
 mod sqls;
 
+use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::command_dispatching;
 use crate::constant::ACTIVITY_NAME;
@@ -50,6 +53,7 @@ impl EventHandler for Handler {
 
             // check if the command was successfully done.
         } else if let Interaction::Autocomplete(command) = interaction {
+            autocomplete_dispatching(command).await;
         }
     }
 }

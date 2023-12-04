@@ -7,6 +7,7 @@
       "name": "username",
       "desc": "Username of the user you want the avatar of.",
       "required": true,
+      "autocomplete": false,
       "command_type": "String",
       "localised_args": [
         {
