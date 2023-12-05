@@ -41,7 +41,7 @@ impl EventHandler for Handler {
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-        if let Interaction::Command(command) = interaction {
+        if let Interaction::Command(command) = interaction.clone() {
             info!(
                 "Received command interaction: {}, Option: {:#?}, User: {}({})",
                 command.data.name, command.data.options, command.user.name, command.user.id
@@ -52,8 +52,8 @@ impl EventHandler for Handler {
             };
 
             // check if the command was successfully done.
-        } else if let Interaction::Autocomplete(command) = interaction {
-            autocomplete_dispatching(command).await;
+        } else if let Interaction::Autocomplete(command) = interaction.clone() {
+            autocomplete_dispatching(ctx, interaction, command).await;
         }
     }
 }
