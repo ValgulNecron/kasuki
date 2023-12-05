@@ -7,6 +7,7 @@
       "name": "name",
       "desc": "The module you want to change the state of.",
       "required": true,
+      "autocomplete": false,
       "command_type": "String",
       "choices": [
         {
