@@ -6,7 +6,6 @@ use serenity::builder::CreateAutocompleteResponse;
 use serenity::http::Request;
 
 pub async fn autocomplete(ctx: Context, interaction: Interaction, command: CommandInteraction) {
-    let client = Client::new();
     let search = &command
         .data
         .options
@@ -53,6 +52,9 @@ pub async fn autocomplete(ctx: Context, interaction: Interaction, command: Comma
         interaction_token,
     );
     request.set_body(&json!(autocomplete_interaction));
+
+    let client = Client::new();
+    let response = client.send_request(&request).await;
 
     match response {
         Ok(_) => println!("Autocomplete response sent successfully"),
