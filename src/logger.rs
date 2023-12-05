@@ -1,6 +1,7 @@
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::SetLoggerError;
-use colored::Colorize;
+use chrono::Utc;
+use colored::{Color, Colorize};
 use once_cell::sync::Lazy;
 use std::fs;
 use std::fs::{File, OpenOptions};
@@ -116,11 +117,13 @@ impl<S: Subscriber> Layer<S> for SimpleSubscriber {
         let mut visitor = MessageVisitor::new();
         event.record(&mut visitor);
         let message = visitor.message;
-        let message = message.truecolor(color.get_red(), color.get_green(), color.get_blue());
-        println!("{} {} {}", level_str, target_str, message);
+        let date = Utc::now().to_string().color(Color::Black);
+        let message = message.color(Color::BrightBlack);
 
-        writeln!(file, "{}", message).unwrap();
-        println!("{} {} {}", level_str, target_str, message);
+        let text = format!("{} - {} / {} {}", date, level_str, target_str, message);
+        println!("{}", text);
+
+        writeln!(file, "{}", text).unwrap();
     }
 }
 
