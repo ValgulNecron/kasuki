@@ -36,6 +36,7 @@
       "name": "prompt",
       "desc": "A guide text for audio style. Must match the audio language.",
       "required": false,
+      "autocomplete": false,
       "command_type": "String",
       "localised_args": [
         {
@@ -64,6 +65,7 @@
       "name": "lang",
       "desc": "Select input language (ISO-639-1)",
       "required": false,
+      "autocomplete": false,
       "command_type": "String",
       "localised_args": [
         {

@@ -1,13 +1,15 @@
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::SetLoggerError;
+use colored::Colorize;
+use once_cell::sync::Lazy;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{Error, Write};
 use std::path::Path;
-
-use chrono::Utc;
-use colored::Colorize;
-use log::{Level, Log, Metadata, Record};
-use log::{LevelFilter, SetLoggerError};
-use once_cell::sync::Lazy;
+use tracing::{Event, Level, Subscriber};
+use tracing_core::*;
+use tracing_subscriber::layer::{Context, SubscriberExt};
+use tracing_subscriber::Layer;
 use uuid::Uuid;
 
 /// A lazy static instance of `SimpleLogger`.
@@ -18,7 +20,7 @@ use uuid::Uuid;
 /// # Note
 /// This constant should be used to access the logger instance when logging is needed.
 ///
-static LOGGER: Lazy<SimpleLogger> = Lazy::new(SimpleLogger::new);
+static LOGGER: Lazy<SimpleSubscriber> = Lazy::new(SimpleSubscriber::new);
 
 /// Initializes the logger with the specified log level filter.
 ///
@@ -31,68 +33,95 @@ static LOGGER: Lazy<SimpleLogger> = Lazy::new(SimpleLogger::new);
 ///
 /// A `Result` indicating success or failure. If successful, the logger is initialized
 /// and the log level filter is set. If an error occurs, the corresponding error is
-pub fn init_logger(log: &str) -> Result<(), SetLoggerError> {
+
+pub fn init_logger(log: &str) -> Result<(), AppError> {
     let level_filter = match log {
-        "info" => LevelFilter::Info,
-        "warn" => LevelFilter::Warn,
-        "error" => LevelFilter::Error,
-        "debug" => LevelFilter::Debug,
-        "trace" => LevelFilter::Trace,
-        _ => LevelFilter::Info,
+        "info" => LevelFilter::INFO,
+        "warn" => LevelFilter::WARN,
+        "error" => LevelFilter::ERROR,
+        "debug" => LevelFilter::DEBUG,
+        "trace" => LevelFilter::TRACE,
+        _ => LevelFilter::INFO,
     };
-    log::set_logger(&*LOGGER).map(|()| log::set_max_level(level_filter))
+
+    let subscriber = tracing_subscriber::fmt::Subscriber::builder()
+        .with_max_level(level_filter)
+        .finish()
+        .with(SimpleSubscriber::new());
+    tracing::subscriber::set_global_default(subscriber)
+        .map_err(|_| SetLoggerError(String::from("Error creating the Logger")))?;
+
+    Ok(())
 }
 
 /// Struct representing a simple logger.
 ///
 /// The `SimpleLogger` struct is used to log messages.
-struct SimpleLogger {
+struct SimpleSubscriber {
     uuid: Uuid,
 }
 
-impl SimpleLogger {
+impl SimpleSubscriber {
     pub fn new() -> Self {
         let uuid_generated = Uuid::new_v4();
         let _ = File::create(format!("./logs/log_{}.log", uuid_generated)).is_ok();
-        SimpleLogger {
+        SimpleSubscriber {
             uuid: uuid_generated,
         }
     }
 }
 
-impl Log for SimpleLogger {
-    fn enabled(&self, metadata: &Metadata) -> bool {
-        metadata.level() <= Level::Warn || metadata.target().starts_with("kasuki")
+impl<S: Subscriber> Layer<S> for SimpleSubscriber {
+    fn on_event(&self, event: &Event, ctx: Context<S>) {
+        let level = event.metadata().level();
+        let color = match level {
+            &Level::ERROR => RgbColor {
+                red: 230,
+                green: 6,
+                blue: 6,
+            },
+            &Level::WARN => RgbColor {
+                red: 230,
+                green: 84,
+                blue: 6,
+            },
+            &Level::INFO => RgbColor {
+                red: 22,
+                green: 255,
+                blue: 239,
+            },
+            &Level::DEBUG => RgbColor {
+                red: 106,
+                green: 255,
+                blue: 0,
+            },
+            &Level::TRACE => RgbColor {
+                red: 255,
+                green: 0,
+                blue: 204,
+            },
+        };
+
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open(format!("./logs/log_{}.log", &self.uuid))
+            .unwrap();
+        let level_str =
+            level
+                .to_string()
+                .truecolor(color.get_red(), color.get_green(), color.get_blue());
+        let target = event.metadata().target();
+        let target_str = target.truecolor(color.get_red(), color.get_green(), color.get_blue());
+        let mut visitor = MessageVisitor::new();
+        event.record(&mut visitor);
+        let message = visitor.message;
+        let message = message.truecolor(color.get_red(), color.get_green(), color.get_blue());
+        println!("{} {} {}", level_str, target_str, message);
+
+        writeln!(file, "{}", message).unwrap();
+        println!("{} {} {}", level_str, target_str, message);
     }
-
-    fn log(&self, record: &Record) {
-        if self.enabled(record.metadata()) {
-            let text = match record.level() {
-                Level::Error => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
-                    .truecolor(230, 6, 6),
-                Level::Warn => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
-                    .truecolor(230, 84, 6),
-                Level::Info => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
-                    .truecolor(22, 255, 239),
-                Level::Debug => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
-                    .truecolor(106, 255, 0),
-                Level::Trace => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
-                    .truecolor(255, 0, 204),
-            };
-
-            println!("{}", text);
-
-            let mut file = OpenOptions::new()
-                .write(true)
-                .append(true)
-                .open(format!("./logs/log_{}.log", &self.uuid))
-                .unwrap();
-
-            writeln!(file, "{}", text).unwrap();
-        }
-    }
-
-    fn flush(&self) {}
 }
 
 /// Removes old logs from the "./logs" directory.
@@ -130,4 +159,60 @@ pub fn remove_old_logs() -> Result<(), Error> {
 /// If the directory already exists, this function does nothing and returns `Ok(())`.
 pub fn create_log_directory() -> std::io::Result<()> {
     fs::create_dir_all("./logs")
+}
+
+struct MessageVisitor {
+    message: String,
+}
+
+impl MessageVisitor {
+    fn new() -> Self {
+        MessageVisitor {
+            message: String::new(),
+        }
+    }
+}
+
+impl field::Visit for MessageVisitor {
+    fn record_debug(&mut self, field: &Field, value: &dyn std::fmt::Debug) {
+        if field.name() == "message" {
+            self.message = format!("{:?}", value);
+        }
+    }
+}
+
+pub struct RgbColor {
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
+}
+
+impl RgbColor {
+    pub fn new(red: u8, green: u8, blue: u8) -> RgbColor {
+        RgbColor { red, green, blue }
+    }
+
+    pub fn set_red(&mut self, red: u8) {
+        self.red = red;
+    }
+
+    pub fn set_green(&mut self, green: u8) {
+        self.green = green;
+    }
+
+    pub fn set_blue(&mut self, blue: u8) {
+        self.blue = blue;
+    }
+
+    pub fn get_red(&self) -> u8 {
+        self.red
+    }
+
+    pub fn get_green(&self) -> u8 {
+        self.green
+    }
+
+    pub fn get_blue(&self) -> u8 {
+        self.blue
+    }
 }

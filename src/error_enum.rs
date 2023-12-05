@@ -33,4 +33,5 @@ pub enum AppError {
     DifferedFailedToGetBytes(String),
     DifferedWritingFile(String),
     DifferedCommandSendingError(String),
+    SetLoggerError(String),
 }

@@ -1,5 +1,5 @@
 use crate::error_enum::AppError;
-use log::error;
+use tracing::error;
 
 pub async fn command_dispatching(error: AppError) {
     match error {

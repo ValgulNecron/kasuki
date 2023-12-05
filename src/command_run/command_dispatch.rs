@@ -4,8 +4,8 @@ use crate::command_run::general::{avatar, banner, credit, info, lang, module, pi
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{LangageGuildIdError, UnknownCommandError};
 use crate::sqls::sqlite::data::get_data_module_activation_kill_switch_status_sqlite;
-use log::info;
 use serenity::all::{CommandInteraction, Context};
+use tracing::info;
 
 pub async fn command_dispatching(
     ctx: Context,

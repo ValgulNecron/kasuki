@@ -17,11 +17,11 @@ use crate::constant::ACTIVITY_NAME;
 use crate::lang_struct::struct_shard_manager::ShardManagerContainer;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::sqls::general::sql::init_sql_database;
-use log::{debug, error, info};
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;
+use tracing::{debug, error, info};
 
 struct Handler;
 
@@ -77,7 +77,7 @@ async fn main() {
     match init_logger(log) {
         Ok(_) => {}
         Err(e) => {
-            eprintln!("{}", e);
+            eprintln!("{:?}", e);
             return;
         }
     };

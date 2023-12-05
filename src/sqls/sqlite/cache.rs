@@ -1,6 +1,6 @@
 use chrono::Utc;
-use log::error;
 use serde_json::Value;
+use tracing::error;
 
 use crate::constant::CACHE_SQLITE_DB;
 use crate::error_enum::AppError;
