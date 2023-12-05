@@ -1,13 +1,9 @@
 use crate::command_autocomplete::anilist::anime;
-use serenity::all::{CommandInteraction, Context, Interaction};
+use serenity::all::{CommandInteraction, Context};
 
-pub async fn autocomplete_dispatching(
-    ctx: Context,
-    interaction: Interaction,
-    command: CommandInteraction,
-) {
+pub async fn autocomplete_dispatching(ctx: Context, command: CommandInteraction) {
     match command.data.name.as_str() {
-        "anime" => anime::autocomplete(ctx, interaction, command).await,
+        "anime" => anime::autocomplete(ctx, command).await,
         _ => {}
     }
 }

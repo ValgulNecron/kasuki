@@ -53,7 +53,7 @@ impl EventHandler for Handler {
 
             // check if the command was successfully done.
         } else if let Interaction::Autocomplete(command) = interaction.clone() {
-            autocomplete_dispatching(ctx, interaction, command).await;
+            autocomplete_dispatching(ctx, command).await;
         }
     }
 }
