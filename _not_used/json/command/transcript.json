@@ -33,29 +33,29 @@
     },
     {
       "name": "prompt",
-      "desc": "An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language.",
+      "desc": "A guide text for audio style. Must match the audio language.",
       "required": false,
       "command_type": "String",
       "localised_args": [
         {
           "code": "en-US",
           "name": "prompt",
-          "desc": "An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language."
+          "desc": "A guide text for audio style. Must match the audio language."
         },
         {
           "code": "fr",
-          "name": "prompt",
-          "desc": "Un texte optionnel pour guider le style du modèle ou poursuivre un segment audio précédent. L'invite doit correspondre à la langue audio."
+          "name": "invite",
+          "desc": "Un texte de guide pour le style audio. Doit correspondre à la langue de l'audio."
         },
         {
           "code": "de",
-          "name": "prompt",
-          "desc": "Ein optionaler Text, um den Stil des Modells zu leiten oder ein vorheriges Audiosegment fortzusetzen. Der Prompt sollte zur Audiosprache passen."
+          "name": "auffordern",
+          "desc": "Ein Leittext für den Audio-Stil. Muss der Audiosprache entsprechen."
         },
         {
           "code": "ja",
-          "name": "prompt",
-          "desc": "モデルのスタイルを指南するためのオプションのテキスト、または前のオーディオセグメントを続けます。プロンプトはオーディオ言語に一致するべきです。"
+          "name": "プロンプト",
+          "desc": "オーディオスタイルのガイドテキスト。オーディオの言語と一致する必要があります。"
         }
       ]
     },
