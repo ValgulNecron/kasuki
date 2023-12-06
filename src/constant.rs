@@ -27,3 +27,4 @@ pub static DIFFERED_COMMAND_SENDING_ERROR: Lazy<AppError> = Lazy::new(|| {
 pub static DIFFERED_OPTION_ERROR: Lazy<AppError> =
     Lazy::new(|| AppError::DifferedOptionError(String::from("The option contain no value")));
 pub static AUTOCOMPLETE_COUNT: u32 = 8;
+pub static OTHER_CRATE_LEVEL: &str = "warn";

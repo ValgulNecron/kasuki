@@ -65,7 +65,9 @@ async fn main() {
     let my_path = "./.env";
     let path = std::path::Path::new(my_path);
     let _ = dotenv::from_path(path);
-    let env = env::var("LOG").unwrap_or("info".to_string()).to_lowercase();
+    let env = env::var("RUST_LOG")
+        .unwrap_or("info".to_string())
+        .to_lowercase();
     let log = env.as_str();
     match create_log_directory() {
         Ok(_) => {}
