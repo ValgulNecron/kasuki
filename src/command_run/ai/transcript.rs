@@ -18,7 +18,7 @@ pub async fn run(
     let mut prompt: String = String::new();
     let mut lang: String = String::new();
     let mut attachement: Option<Attachment> = None;
-    for option in options.to_owned() {
+    for option in options.iter().clone() {
         if option.name == "lang_struct" {
             let resolved = option.value.clone();
             if let ResolvedValue::String(lang_option) = resolved {
@@ -37,7 +37,7 @@ pub async fn run(
                 ..
             } = option
             {
-                attachement = Some(attachment_option.to_owned())
+                attachement = Some(attachment_option.clone().clone())
             } else {
                 return Err(NoCommandOption(String::from(
                     "The command contain no option.",

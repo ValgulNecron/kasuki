@@ -35,7 +35,7 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
 
     let latency = match shard_runner_info.latency {
         Some(latency) => format!("{:.2}ms", latency.as_millis()),
-        None => format!("?,??ms"),
+        None => "?,??ms".to_string(),
     };
 
     let tx_status = &shard_runner_info.stage.to_string();
@@ -44,7 +44,7 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
         .timestamp(Timestamp::now())
         .color(COLOR)
         .description(
-            &ping_localised
+            ping_localised
                 .desc
                 .replace("$shard$", shard_id.to_string().as_str())
                 .replace("$latency$", latency.as_str())

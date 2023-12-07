@@ -28,7 +28,7 @@ pub async fn run(
 pub async fn no_banner(
     ctx: &Context,
     command: &CommandInteraction,
-    username: &String,
+    username: &str,
 ) -> Result<(), AppError> {
     let guild_id = command
         .guild_id
@@ -41,11 +41,7 @@ pub async fn no_banner(
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .description(
-            banner_localised
-                .no_banner
-                .replace("$user$", username.as_str()),
-        )
+        .description(banner_localised.no_banner.replace("$user$", username))
         .title(&banner_localised.no_banner_title);
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);

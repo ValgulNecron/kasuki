@@ -38,7 +38,7 @@ pub async fn run(
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .description(&lang_localised.desc.replace("$lang$", lang.as_str()))
+        .description(lang_localised.desc.replace("$lang$", lang.as_str()))
         .title(&lang_localised.title);
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);

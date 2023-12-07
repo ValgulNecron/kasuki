@@ -29,7 +29,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
         None => {}
     }
 
-    if &command.arg_num > &(0u32) {
+    if command.arg_num > (0u32) {
         let options = create_option(command).await;
         for option in options {
             build = build.add_option(option);
@@ -75,5 +75,5 @@ async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
         options_builds.push(options_build)
     }
 
-    return options_builds;
+    options_builds
 }
