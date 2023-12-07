@@ -1,4 +1,5 @@
 use crate::command_run::ai::{image, transcript};
+use crate::command_run::anilist::anime;
 use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;
@@ -48,6 +49,20 @@ pub async fn command_dispatching(
                 return Err(ai_module_error);
             }
         }
+
+        /*
+
+        THIS IS THE ANILIST MODULE.
+
+         */
+        "anime" => {
+            if check_if_anilist_moule_is_on(&command).await? {
+                anime::run(&command.data.options, &ctx, &command).await?
+            } else {
+                return Err(ai_module_error);
+            }
+        }
+
         _ => return Err(UnknownCommandError(String::from("Command does not exist."))),
     }
 
@@ -75,4 +90,16 @@ async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
         "AI" => ai_module.unwrap_or(true),
         _ => false,
     })
+}
+
+async fn check_if_anilist_moule_is_on(command: &CommandInteraction) -> Result<bool, AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .to_string();
+    let state = check_activation_status("ANILIST", guild_id.clone()).await?;
+    let state = state && check_kill_switch_status("ANILIST").await?;
+    Ok(state)
 }

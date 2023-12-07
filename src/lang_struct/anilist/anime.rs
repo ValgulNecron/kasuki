@@ -10,7 +10,7 @@ use std::io::prelude::*;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AnimeLocalised {
-    pub title: String,
+    pub desc: String,
 }
 
 pub async fn load_localization_anime(guild_id: String) -> Result<AnimeLocalised, AppError> {
