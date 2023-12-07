@@ -9,12 +9,12 @@ use std::fs::File;
 use std::io::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct InfoLocalised {
+pub struct LangLocalised {
     pub title: String,
     pub desc: String,
 }
 
-pub async fn load_localization_lang(guild_id: String) -> Result<InfoLocalised, AppError> {
+pub async fn load_localization_lang(guild_id: String) -> Result<LangLocalised, AppError> {
     let mut file = File::open("json/message/general/lang.json")
         .map_err(|_| LocalisationFileError(String::from("File lang_struct.json not found.")))?;
 
@@ -22,7 +22,7 @@ pub async fn load_localization_lang(guild_id: String) -> Result<InfoLocalised, A
     file.read_to_string(&mut json)
         .map_err(|_| LocalisationReadError(String::from("File lang_struct.json can't be read.")))?;
 
-    let json_data: HashMap<String, InfoLocalised> = serde_json::from_str(&json).map_err(|_| {
+    let json_data: HashMap<String, LangLocalised> = serde_json::from_str(&json).map_err(|_| {
         LocalisationParsingError(String::from("Failing to parse lang_struct.json."))
     })?;
 

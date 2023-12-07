@@ -9,26 +9,26 @@ use std::fs::File;
 use std::io::prelude::*;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ImageLocalised {
+pub struct AnimeLocalised {
     pub title: String,
 }
 
-pub async fn load_localization_image(guild_id: String) -> Result<ImageLocalised, AppError> {
-    let mut file = File::open("json/message/ai/image.json")
-        .map_err(|_| LocalisationFileError(String::from("File image.json not found.")))?;
+pub async fn load_localization_anime(guild_id: String) -> Result<AnimeLocalised, AppError> {
+    let mut file = File::open("json/message/ai/anime.json")
+        .map_err(|_| LocalisationFileError(String::from("File anime.json not found.")))?;
 
     let mut json = String::new();
     file.read_to_string(&mut json)
-        .map_err(|_| LocalisationReadError(String::from("File image.json can't be read.")))?;
+        .map_err(|_| LocalisationReadError(String::from("File anime.json can't be read.")))?;
 
-    let json_data: HashMap<String, ImageLocalised> = serde_json::from_str(&json)
-        .map_err(|_| LocalisationParsingError(String::from("Failing to parse image.json.")))?;
+    let json_data: HashMap<String, AnimeLocalised> = serde_json::from_str(&json)
+        .map_err(|_| LocalisationParsingError(String::from("Failing to parse anime.json.")))?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 
-    let image_localised_text = json_data
+    let anime_localised_text = json_data
         .get(lang_choice.as_str())
         .ok_or(NoLangageError(String::from("not found")))?;
 
-    Ok(image_localised_text.clone())
+    Ok(anime_localised_text.clone())
 }

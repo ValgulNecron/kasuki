@@ -9,11 +9,13 @@ use std::fs::File;
 use std::io::prelude::*;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct AvatarLocalised {
+pub struct TranscriptLocalised {
     pub title: String,
 }
 
-pub async fn load_localization_transcript(guild_id: String) -> Result<AvatarLocalised, AppError> {
+pub async fn load_localization_transcript(
+    guild_id: String,
+) -> Result<TranscriptLocalised, AppError> {
     let mut file = File::open("json/message/ai/transcript.json")
         .map_err(|_| LocalisationFileError(String::from("File transcript.json not found.")))?;
 
@@ -21,7 +23,7 @@ pub async fn load_localization_transcript(guild_id: String) -> Result<AvatarLoca
     file.read_to_string(&mut json)
         .map_err(|_| LocalisationReadError(String::from("File transcript.json can't be read.")))?;
 
-    let json_data: HashMap<String, AvatarLocalised> = serde_json::from_str(&json)
+    let json_data: HashMap<String, TranscriptLocalised> = serde_json::from_str(&json)
         .map_err(|_| LocalisationParsingError(String::from("Failing to parse transcript.json.")))?;
 
     let lang_choice = get_guild_langage(guild_id).await;

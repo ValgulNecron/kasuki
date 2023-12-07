@@ -1,4 +1,9 @@
+use crate::common::make_anilist_request::make_request_anilist;
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::MediaGettingError;
 use serde::Deserialize;
+use serde_json::json;
+use serenity::futures::TryFutureExt;
 
 #[derive(Debug, Deserialize)]
 pub struct MediaWrapper {
@@ -95,4 +100,400 @@ pub struct Name {
     pub full: Option<String>,
     #[serde(rename = "userPreferred")]
     pub user_preferred: Option<String>,
+}
+
+impl MediaWrapper {
+    pub async fn new_anime_by_id(search: String) -> Result<MediaWrapper, AppError> {
+        let query_id: &str = "
+    query ($search: Int, $limit: Int = 5) {
+		Media (id: $search, type: ANIME){
+    id
+      description
+    title{
+      romaji
+      english
+    }
+    type
+    format
+    source
+    isAdult
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    chapters
+    volumes
+    status
+    season
+    isLicensed
+    coverImage {
+      extraLarge
+    }
+    bannerImage
+    genres
+    tags {
+      name
+    }
+    averageScore
+    meanScore
+    popularity
+    favourites
+    siteUrl
+    staff(perPage: $limit) {
+      edges {
+        node {
+          id
+          name {
+            full
+            userPreferred
+          }
+        }
+        id
+        role
+      }
+    }
+  }
+}
+";
+
+        let json = json!({"query": query_id, "variables": {"search": search}});
+        let resp = make_request_anilist(json, false).await;
+        // Get json
+        serde_json::from_str(&resp)
+            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+    }
+
+    pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, AppError> {
+        let query_string: &str = "
+    query ($search: String, $limit: Int = 5) {
+		Media (search: $search, type: ANIME){
+    id
+      description
+    title{
+      romaji
+      english
+    }
+    type
+    format
+    source
+    isAdult
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    chapters
+    volumes
+    status
+    season
+    isLicensed
+    coverImage {
+      extraLarge
+    }
+    bannerImage
+    genres
+    tags {
+      name
+    }
+    averageScore
+    meanScore
+    popularity
+    favourites
+    siteUrl
+    staff(perPage: $limit) {
+      edges {
+        node {
+          id
+          name {
+            full
+            userPreferred
+          }
+        }
+        id
+        role
+      }
+    }
+  }
+}
+";
+        let json = json!({"query": query_string, "variables": {"search": search}});
+        let resp = make_request_anilist(json, false).await;
+        // Get json
+        serde_json::from_str(&resp)
+            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+    }
+
+    pub async fn new_manga_by_id(search: String) -> Result<MediaWrapper, AppError> {
+        let query_id: &str = "
+    query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
+		Media (id: $search, type: MANGA, format_not: $format){
+    id
+      description
+    title{
+      romaji
+      english
+    }
+    type
+    format
+    source
+    isAdult
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    chapters
+    volumes
+    status
+    season
+    isLicensed
+    coverImage {
+      extraLarge
+    }
+    bannerImage
+    genres
+    tags {
+      name
+    }
+    averageScore
+    meanScore
+    popularity
+    favourites
+    siteUrl
+    staff(perPage: $limit) {
+      edges {
+        node {
+          id
+          name {
+            full
+            userPreferred
+          }
+        }
+        id
+        role
+      }
+    }
+  }
+}
+";
+
+        let json = json!({"query": query_id, "variables": {"search": search}});
+        let resp = make_request_anilist(json, false).await;
+        // Get json
+        serde_json::from_str(&resp)
+            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+    }
+
+    pub async fn new_manga_by_search(search: String) -> Result<MediaWrapper, AppError> {
+        let query_string: &str = "
+    query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
+		Media (search: $search, type: MANGA, format_not: $format){
+    id
+      description
+    title{
+      romaji
+      english
+    }
+    type
+    format
+    source
+    isAdult
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    chapters
+    volumes
+    status
+    season
+    isLicensed
+    coverImage {
+      extraLarge
+    }
+    bannerImage
+    genres
+    tags {
+      name
+    }
+    averageScore
+    meanScore
+    popularity
+    favourites
+    siteUrl
+    staff(perPage: $limit) {
+      edges {
+        node {
+          id
+          name {
+            full
+            userPreferred
+          }
+        }
+        id
+        role
+      }
+    }
+  }
+}
+";
+        let json = json!({"query": query_string, "variables": {"search": search}});
+        let resp = make_request_anilist(json, false).await;
+        // Get json
+        serde_json::from_str(&resp)
+            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+    }
+
+    pub async fn new_ln_by_id(search: String) -> Result<MediaWrapper, AppError> {
+        let query_id: &str = "
+    query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
+		Media (id: $search, type: MANGA, format: $format){
+    id
+      description
+    title{
+      romaji
+      english
+    }
+    type
+    format
+    source
+    isAdult
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    chapters
+    volumes
+    status
+    season
+    isLicensed
+    coverImage {
+      extraLarge
+    }
+    bannerImage
+    genres
+    tags {
+      name
+    }
+    averageScore
+    meanScore
+    popularity
+    favourites
+    siteUrl
+    staff(perPage: $limit) {
+      edges {
+        node {
+          id
+          name {
+            full
+            userPreferred
+          }
+        }
+        id
+        role
+      }
+    }
+  }
+}
+";
+
+        let json = json!({"query": query_id, "variables": {"search": search}});
+        let resp = make_request_anilist(json, false).await;
+        // Get json
+        serde_json::from_str(&resp)
+            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+    }
+
+    pub async fn new_ln_by_search(search: String) -> Result<MediaWrapper, AppError> {
+        let query_string: &str = "
+    query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
+		Media (search: $search, type: MANGA, format: $format){
+    id
+      description
+    title{
+      romaji
+      english
+    }
+    type
+    format
+    source
+    isAdult
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    chapters
+    volumes
+    status
+    season
+    isLicensed
+    coverImage {
+      extraLarge
+    }
+    bannerImage
+    genres
+    tags {
+      name
+    }
+    averageScore
+    meanScore
+    popularity
+    favourites
+    siteUrl
+    staff(perPage: $limit) {
+      edges {
+        node {
+          id
+          name {
+            full
+            userPreferred
+          }
+        }
+        id
+        role
+      }
+    }
+  }
+}
+";
+
+        let json = json!({"query": query_string, "variables": {"search": search}});
+        let resp = make_request_anilist(json, false).await;
+        // Get json
+        serde_json::from_str(&resp)
+            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+    }
 }

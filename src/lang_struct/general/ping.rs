@@ -9,12 +9,12 @@ use std::fs::File;
 use std::io::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct InfoLocalised {
+pub struct PingLocalised {
     pub title: String,
     pub desc: String,
 }
 
-pub async fn load_localization_ping(guild_id: String) -> Result<InfoLocalised, AppError> {
+pub async fn load_localization_ping(guild_id: String) -> Result<PingLocalised, AppError> {
     let mut file = File::open("json/message/general/ping.json")
         .map_err(|_| LocalisationFileError(String::from("File ping.json not found.")))?;
 
@@ -22,7 +22,7 @@ pub async fn load_localization_ping(guild_id: String) -> Result<InfoLocalised, A
     file.read_to_string(&mut json)
         .map_err(|_| LocalisationReadError(String::from("File ping.json can't be read.")))?;
 
-    let json_data: HashMap<String, InfoLocalised> = serde_json::from_str(&json)
+    let json_data: HashMap<String, PingLocalised> = serde_json::from_str(&json)
         .map_err(|_| LocalisationParsingError(String::from("Failing to parse ping.json.")))?;
 
     let lang_choice = get_guild_langage(guild_id).await;

@@ -9,14 +9,14 @@ use std::fs::File;
 use std::io::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct InfoLocalised {
+pub struct ModuleLocalised {
     pub on: String,
     pub off: String,
 }
 
 pub async fn load_localization_module_activation(
     guild_id: String,
-) -> Result<InfoLocalised, AppError> {
+) -> Result<ModuleLocalised, AppError> {
     let mut file = File::open("json/message/general/module.json")
         .map_err(|_| LocalisationFileError(String::from("File module.json not found.")))?;
 
@@ -24,7 +24,7 @@ pub async fn load_localization_module_activation(
     file.read_to_string(&mut json)
         .map_err(|_| LocalisationReadError(String::from("File module.json can't be read.")))?;
 
-    let json_data: HashMap<String, InfoLocalised> = serde_json::from_str(&json)
+    let json_data: HashMap<String, ModuleLocalised> = serde_json::from_str(&json)
         .map_err(|_| LocalisationParsingError(String::from("Failing to parse module.json.")))?;
 
     let lang_choice = get_guild_langage(guild_id).await;
