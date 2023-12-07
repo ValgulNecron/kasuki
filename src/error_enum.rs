@@ -34,4 +34,6 @@ pub enum AppError {
     DifferedWritingFile(String),
     DifferedCommandSendingError(String),
     SetLoggerError(String),
+    DifferedFileTypeError(String),
+    DifferedFileExtensionError(String),
 }

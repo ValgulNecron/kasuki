@@ -35,7 +35,7 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
         _ => "kasuki=info",
     };
 
-    let crate_log = match Directive::from_str(OTHER_CRATE_LEVEL.clone()) {
+    let crate_log = match Directive::from_str(OTHER_CRATE_LEVEL) {
         Ok(d) => d,
         Err(e) => {
             eprintln!("{}", e);
@@ -61,7 +61,7 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
         .with_file(false)
         .with_line_number(false);
 
-    let subscriber = tracing_subscriber::registry()
+    tracing_subscriber::registry()
         .with(filter)
         .with(format)
         .with(SimpleSubscriber::new())
@@ -122,7 +122,7 @@ impl SimpleSubscriber {
 }
 
 impl<S: Subscriber> Layer<S> for SimpleSubscriber {
-    fn on_event(&self, event: &Event, ctx: Context<S>) {
+    fn on_event(&self, event: &Event, _ctx: Context<S>) {
         let level = event.metadata().level();
         let mut file = OpenOptions::new()
             .write(true)
@@ -136,7 +136,6 @@ impl<S: Subscriber> Layer<S> for SimpleSubscriber {
         event.record(&mut visitor);
         let message = visitor.message;
         let date = Utc::now().to_string();
-        let message = message;
 
         let text = format!("{} - {} | {} - {}", date, level_str, target_str, message);
 

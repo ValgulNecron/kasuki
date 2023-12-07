@@ -48,7 +48,7 @@ impl EventHandler for Handler {
             );
             match command_dispatching(ctx, command).await {
                 Err(e) => error_management::error_dispatch::command_dispatching(e).await,
-                _ => {}
+                Ok(a) => a,
             };
 
             // check if the command was successfully done.
