@@ -36,4 +36,6 @@ pub enum AppError {
     SetLoggerError(String),
     DifferedFileTypeError(String),
     DifferedFileExtensionError(String),
+    DifferedCopyBytesError(String),
+    DifferedGettingBytesError(String),
 }

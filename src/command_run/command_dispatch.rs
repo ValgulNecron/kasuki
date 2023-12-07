@@ -1,4 +1,4 @@
-use crate::command_run::ai::image;
+use crate::command_run::ai::{image, transcript};
 use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;
@@ -37,6 +37,13 @@ pub async fn command_dispatching(
         "image" => {
             if check_if_ai_moule_is_on(&command).await? {
                 image::run(&command.data.options, &ctx, &command).await?
+            } else {
+                return Err(ai_module_error);
+            }
+        }
+        "transcript" => {
+            if check_if_ai_moule_is_on(&command).await? {
+                transcript::run(&command.data.options(), &ctx, &command).await?
             } else {
                 return Err(ai_module_error);
             }

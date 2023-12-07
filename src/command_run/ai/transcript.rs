@@ -1,14 +1,27 @@
-use crate::constant::{COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
-    DifferedFileExtensionError, DifferedFileTypeError, NoCommandOption,
+    DifferedCopyBytesError, DifferedFileExtensionError, DifferedFileTypeError,
+    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, LangageGuildIdError,
+    NoCommandOption,
 };
-use reqwest::Url;
+use crate::lang_struct::ai::image::load_localization_image;
+use crate::lang_struct::ai::transcript::load_localization_transcript;
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
+use reqwest::{multipart, Url};
+use serde_json::Value;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    Attachment, CommandDataOption, CommandDataOptionValue, CommandInteraction, Context,
-    CreateInteractionResponseMessage, ResolvedOption, ResolvedValue,
+    Attachment, CommandInteraction, Context, CreateAttachment, CreateEmbed,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, ResolvedOption,
+    ResolvedValue, Timestamp,
 };
+use std::fs::File;
+use std::io::copy;
+use std::path::Path;
+use std::{env, fs};
+use tracing::log::trace;
+use uuid::Uuid;
 
 pub async fn run(
     options: &[ResolvedOption<'_>],
@@ -55,8 +68,20 @@ pub async fn run(
         }
     };
 
-    let content_type = attachement.content_type.clone().unwrap();
+    let content_type = attachement
+        .content_type
+        .clone()
+        .ok_or(OPTION_ERROR.clone())?;
     let content = attachement.proxy_url.clone();
+
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .to_string();
+
+    let transcript_localised = load_localization_transcript(guild_id).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
         return Err(DifferedFileTypeError(String::from("Bad file type.")));
@@ -87,6 +112,87 @@ pub async fn run(
             "Bad file extension",
         )));
     }
+
+    let response = reqwest::get(content).await.expect("download");
+    let uuid_name = Uuid::new_v4();
+    let fname = Path::new("./").join(format!("{}.{}", uuid_name, file_extension));
+    let file_name = format!("/{}.{}", uuid_name, file_extension);
+    let mut file = File::create(fname.clone()).expect("file name");
+    let resp_byte = response.bytes().await.map_err(|_| {
+        DifferedGettingBytesError(String::from("Failed to get the bytes from the response."))
+    })?;
+    copy(&mut resp_byte.as_ref(), &mut file)
+        .map_err(|_| DifferedCopyBytesError(String::from("Failed to copy bytes data.")))?;
+    let file_to_delete = fname.clone();
+
+    let my_path = "./.env";
+    let path = Path::new(my_path);
+    let _ = dotenv::from_path(path);
+    let api_key = match env::var("AI_API_TOKEN") {
+        Ok(x) => x,
+        Err(_) => {
+            return Err(DifferedTokenError(String::from(
+                "There was an error while getting the token.",
+            )))
+        }
+    };
+    let api_base_url = match env::var("AI_API_BASE_URL") {
+        Ok(x) => x,
+        Err(_) => "https://api.openai.com/v1/".to_string(),
+    };
+    let api_url = format!("{}audio/transcriptions", api_base_url);
+    let client = reqwest::Client::new();
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+    );
+
+    let file = fs::read(fname).unwrap();
+    let part = multipart::Part::bytes(file)
+        .file_name(file_name)
+        .mime_str(content_type.as_str())
+        .unwrap();
+    let prompt = prompt;
+    let form = multipart::Form::new()
+        .part("file", part)
+        .text("model", "whisper-1")
+        .text("prompt", prompt)
+        .text("language", lang)
+        .text("response_format", "json");
+
+    let response_result = client
+        .post(api_url)
+        .headers(headers)
+        .multipart(form)
+        .send()
+        .await;
+    let response = response_result.map_err(|_| {
+        DifferedResponseError(String::from("Failed to get the response from the server."))
+    })?;
+    let res_result: Result<Value, reqwest::Error> = response.json().await;
+
+    let res = res_result.map_err(|_| {
+        DifferedResponseError(String::from("Failed to get the response from the server."))
+    })?;
+
+    let _ = fs::remove_file(&file_to_delete);
+    trace!("{}", res);
+    let text = res["text"].as_str().unwrap_or("");
+    trace!("{}", text);
+
+    let builder_embed = CreateEmbed::new()
+        .timestamp(Timestamp::now())
+        .color(COLOR)
+        .title(transcript_localised.title)
+        .description(text);
+
+    let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
+
+    command
+        .create_followup(&ctx.http, builder_message)
+        .await
+        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
 
     Ok(())
 }

@@ -66,7 +66,7 @@ pub async fn run(
         Err(_) => {
             return Err(DifferedTokenError(String::from(
                 "There was an error while getting the token.",
-            )));
+            )))
         }
     };
 
