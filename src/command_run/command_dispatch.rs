@@ -1,5 +1,5 @@
 use crate::command_run::ai::{image, transcript};
-use crate::command_run::anilist::anime;
+use crate::command_run::anilist::{anime, ln, manga};
 use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;
@@ -58,6 +58,20 @@ pub async fn command_dispatching(
         "anime" => {
             if check_if_anilist_moule_is_on(&command).await? {
                 anime::run(&command.data.options, &ctx, &command).await?
+            } else {
+                return Err(ai_module_error);
+            }
+        }
+        "ln" => {
+            if check_if_anilist_moule_is_on(&command).await? {
+                ln::run(&command.data.options, &ctx, &command).await?
+            } else {
+                return Err(ai_module_error);
+            }
+        }
+        "manga" => {
+            if check_if_anilist_moule_is_on(&command).await? {
+                manga::run(&command.data.options, &ctx, &command).await?
             } else {
                 return Err(ai_module_error);
             }

@@ -1,13 +1,18 @@
 use crate::common::html_parser::convert_to_discord_markdown;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
-use crate::constant::UNKNOWN;
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR, UNKNOWN};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::MediaGettingError;
-use crate::lang_struct::anilist::media::MediaLocalised;
+use crate::error_enum::AppError::{LangageGuildIdError, MediaGettingError};
+use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 use serde::Deserialize;
 use serde_json::json;
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
+};
 use serenity::futures::TryFutureExt;
+use tracing::trace;
 
 #[derive(Debug, Deserialize)]
 pub struct MediaWrapper {
@@ -304,7 +309,7 @@ impl MediaWrapper {
             .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
     }
 
-    pub async fn new_manga_by_search(search: String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, AppError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (search: $search, type: MANGA, format_not: $format){
@@ -435,7 +440,7 @@ impl MediaWrapper {
             .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
     }
 
-    pub async fn new_ln_by_search(search: String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, AppError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (search: $search, type: MANGA, format: $format){
@@ -502,7 +507,7 @@ impl MediaWrapper {
     }
 }
 
-pub fn embed_title(data: &MediaWrapper) -> String {
+fn embed_title(data: &MediaWrapper) -> String {
     let en = data.data.media.title.english.clone();
     let rj = data.data.media.title.romaji.clone();
     let en = en.unwrap_or(String::from(""));
@@ -547,7 +552,7 @@ fn embed_desc(data: &MediaWrapper) -> String {
     desc
 }
 
-pub fn get_genre(data: &MediaWrapper) -> String {
+fn get_genre(data: &MediaWrapper) -> String {
     data.data
         .media
         .genres
@@ -556,10 +561,10 @@ pub fn get_genre(data: &MediaWrapper) -> String {
         .map(|s| s.as_str())
         .take(5)
         .collect::<Vec<&str>>()
-        .join(" / ")
+        .join("\n")
 }
 
-pub fn get_tag(data: &MediaWrapper) -> String {
+fn get_tag(data: &MediaWrapper) -> String {
     data.data
         .media
         .tags
@@ -568,10 +573,10 @@ pub fn get_tag(data: &MediaWrapper) -> String {
         .map(|s| s.as_str())
         .take(5)
         .collect::<Vec<&str>>()
-        .join(" / ")
+        .join("\n")
 }
 
-pub fn get_url(data: &MediaWrapper) -> String {
+fn get_url(data: &MediaWrapper) -> String {
     data.data
         .media
         .site_url
@@ -579,7 +584,7 @@ pub fn get_url(data: &MediaWrapper) -> String {
         .unwrap_or("https://example.com".to_string())
 }
 
-pub fn get_thumbnail(data: &MediaWrapper) -> String {
+fn get_thumbnail(data: &MediaWrapper) -> String {
     data.data.media.cover_image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string())
 }
 
@@ -587,7 +592,7 @@ pub fn get_banner(data: &MediaWrapper) -> String {
     format!("https://img.anili.st/media/{}", data.data.media.id)
 }
 
-pub fn media_info(data: &MediaWrapper, media_localised: &MediaLocalised) -> String {
+fn media_info(data: &MediaWrapper, media_localised: &MediaLocalised) -> String {
     let mut desc = format!(
         "{} \n\n\
     {}",
@@ -652,4 +657,39 @@ fn get_staff(staff: &Vec<Edge>, staff_string: &String) -> String {
     }
 
     staff_text
+}
+
+pub async fn send_embed(
+    ctx: &Context,
+    command: &CommandInteraction,
+    data: MediaWrapper,
+) -> Result<(), AppError> {
+    let guild_id = command
+        .guild_id
+        .ok_or(LangageGuildIdError(String::from(
+            "Guild id for langage not found.",
+        )))?
+        .to_string();
+
+    let anime_localised = load_localization_media(guild_id).await?;
+
+    let builder_embed = CreateEmbed::new()
+        .timestamp(Timestamp::now())
+        .color(COLOR)
+        .description(media_info(&data, &anime_localised))
+        .title(embed_title(&data))
+        .url(get_url(&data))
+        .field(&anime_localised.field1_title, get_genre(&data), true)
+        .field(&anime_localised.field2_title, get_tag(&data), true)
+        .thumbnail(get_thumbnail(&data))
+        .image(get_banner(&data));
+
+    let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
+
+    let builder = CreateInteractionResponse::Message(builder_message);
+
+    command
+        .create_response(&ctx.http, builder)
+        .await
+        .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }

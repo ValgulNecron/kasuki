@@ -85,7 +85,7 @@ impl MediaPageWrapper {
         data
     }
 
-    pub async fn new_autocomplete_ln(search: &String, format: &str) -> MediaPageWrapper {
+    pub async fn new_autocomplete_ln(search: &String) -> MediaPageWrapper {
         let query_str =
             "query($search: String, $type: MediaType, $count: Int, $format: MediaFormat) {
           Page(perPage: $count) {
