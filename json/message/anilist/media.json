@@ -1,0 +1,29 @@
+{
+  "en":{
+    "field1_title": "Genre",
+    "field2_title": "Tag",
+    "desc": "**Info** \n Format: $format$ / Source: $source$ \n Start date: $start_date$ \n End date: $end_date$ \n \n **Staff** \n $staff_list$",
+    "staff_text": "Name: $name$ with the role $role$"
+  },
+  "fr": {
+"field1_title": "Genre",
+    "field2_title": "Tag",
+        "desc": "**Info** \n Format: $format$ / Source: $source$ \n Start date: $start_date$ \n End date: $end_date$",
+    "staff_text": "Name: $name$ with the role $role$"
+
+  },
+  "jp": {
+"field1_title": "Genre",
+    "field2_title": "Tag",
+        "desc": "**Info** \n Format: $format$ / Source: $source$ \n Start date: $start_date$ \n End date: $end_date$",
+    "staff_text": "Name: $name$ with the role $role$"
+
+  },
+  "de": {
+"field1_title": "Genre",
+    "field2_title": "Tag",
+        "desc": "**Info** \n Format: $format$ / Source: $source$ \n Start date: $start_date$ \n End date: $end_date$",
+    "staff_text": "Name: $name$ with the role $role$"
+
+  }
+}

@@ -1,9 +1,10 @@
-use crate::anilist_struct::run::media::MediaWrapper;
-use crate::common::html_parser::convert_to_discord_markdown;
-use crate::common::trimer::trim;
+use crate::anilist_struct::run::media::{
+    embed_title, get_banner, get_genre, get_tag, get_thumbnail, get_url, media_info, MediaWrapper,
+};
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{LangageGuildIdError, NoCommandOption};
+use crate::lang_struct::anilist::media::load_localization_media;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
@@ -38,11 +39,18 @@ pub async fn run(
         )))?
         .to_string();
 
+    let anime_localised = load_localization_media(guild_id).await?;
+
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .description(embed_desc(&data))
-        .title(embed_title(&data));
+        .description(media_info(&data, &anime_localised))
+        .title(embed_title(&data))
+        .url(get_url(&data))
+        .field(&anime_localised.field1_title, get_genre(&data), true)
+        .field(&anime_localised.field2_title, get_tag(&data), true)
+        .thumbnail(get_thumbnail(&data))
+        .image(get_banner(&data));
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 
@@ -52,49 +60,4 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())
-}
-
-fn embed_title(data: &MediaWrapper) -> String {
-    let en = data.data.media.title.english.clone();
-    let rj = data.data.media.title.romaji.clone();
-    let en = en.unwrap_or(String::from(""));
-    let rj = rj.unwrap_or(String::from(""));
-    let mut title = String::new();
-    let mut total = 0;
-    match en.as_str() {
-        "\"\"" => {}
-        _ => {
-            total += 1;
-            title.push_str(en.as_str())
-        }
-    }
-
-    match rj.as_str() {
-        "\"\"" => {}
-        _ => {
-            if total == 1 {
-                title.push_str(" / ");
-                title.push_str(en.as_str())
-            } else {
-                title.push_str(en.as_str())
-            }
-        }
-    }
-
-    title
-}
-
-fn embed_desc(data: &MediaWrapper) -> String {
-    let mut desc = data
-        .data
-        .media
-        .description
-        .clone()
-        .unwrap_or_else(|| "".to_string());
-    desc = convert_to_discord_markdown(desc);
-    let lenght_diff = 4096 - desc.len() as i32;
-    if lenght_diff <= 0 {
-        desc = trim(desc, lenght_diff)
-    }
-    desc
 }

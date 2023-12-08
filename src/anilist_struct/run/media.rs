@@ -1,6 +1,10 @@
+use crate::common::html_parser::convert_to_discord_markdown;
 use crate::common::make_anilist_request::make_request_anilist;
+use crate::common::trimer::trim;
+use crate::constant::UNKNOWN;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::MediaGettingError;
+use crate::lang_struct::anilist::media::MediaLocalised;
 use serde::Deserialize;
 use serde_json::json;
 use serenity::futures::TryFutureExt;
@@ -496,4 +500,156 @@ impl MediaWrapper {
         serde_json::from_str(&resp)
             .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
     }
+}
+
+pub fn embed_title(data: &MediaWrapper) -> String {
+    let en = data.data.media.title.english.clone();
+    let rj = data.data.media.title.romaji.clone();
+    let en = en.unwrap_or(String::from(""));
+    let rj = rj.unwrap_or(String::from(""));
+    let mut title = String::new();
+    let mut total = 0;
+    match en.as_str() {
+        "" => {}
+        _ => {
+            total += 1;
+            title.push_str(en.as_str())
+        }
+    }
+
+    match rj.as_str() {
+        "\"\"" => {}
+        _ => {
+            if total == 1 {
+                title.push_str(" / ");
+                title.push_str(rj.as_str())
+            } else {
+                title.push_str(rj.as_str())
+            }
+        }
+    }
+
+    title
+}
+
+fn embed_desc(data: &MediaWrapper) -> String {
+    let mut desc = data
+        .data
+        .media
+        .description
+        .clone()
+        .unwrap_or_else(|| "".to_string());
+    desc = convert_to_discord_markdown(desc);
+    let lenght_diff = 4096 - desc.len() as i32;
+    if lenght_diff <= 0 {
+        desc = trim(desc, lenght_diff)
+    }
+    desc
+}
+
+pub fn get_genre(data: &MediaWrapper) -> String {
+    data.data
+        .media
+        .genres
+        .iter()
+        .filter_map(|x| x.as_ref())
+        .map(|s| s.as_str())
+        .take(5)
+        .collect::<Vec<&str>>()
+        .join(" / ")
+}
+
+pub fn get_tag(data: &MediaWrapper) -> String {
+    data.data
+        .media
+        .tags
+        .iter()
+        .filter_map(|x| x.name.as_ref())
+        .map(|s| s.as_str())
+        .take(5)
+        .collect::<Vec<&str>>()
+        .join(" / ")
+}
+
+pub fn get_url(data: &MediaWrapper) -> String {
+    data.data
+        .media
+        .site_url
+        .clone()
+        .unwrap_or("https://example.com".to_string())
+}
+
+pub fn get_thumbnail(data: &MediaWrapper) -> String {
+    data.data.media.cover_image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string())
+}
+
+pub fn get_banner(data: &MediaWrapper) -> String {
+    format!("https://img.anili.st/media/{}", data.data.media.id)
+}
+
+pub fn media_info(data: &MediaWrapper, media_localised: &MediaLocalised) -> String {
+    let mut desc = format!(
+        "{} \n\n\
+    {}",
+        embed_desc(data),
+        get_info(&data.data.media, media_localised)
+    );
+    desc = convert_to_discord_markdown(desc);
+    let lenght_diff = 4096 - desc.len() as i32;
+    if lenght_diff <= 0 {
+        desc = trim(desc, lenght_diff)
+    }
+    desc
+}
+
+fn get_info(data: &Media, media_localised: &MediaLocalised) -> String {
+    let text = media_localised.desc.clone();
+    let format = data.format.clone();
+    let source = data.source.clone();
+    text.replace(
+        "$format$",
+        format.unwrap_or(UNKNOWN.clone().to_string()).as_str(),
+    )
+    .replace(
+        "$source$",
+        source.unwrap_or(UNKNOWN.clone().to_string()).as_str(),
+    )
+    .replace("$start_date$", get_date(&data.start_date).as_str())
+    .replace("$end_date$", get_date(&data.end_date).as_str())
+    .replace(
+        "$staff_list$",
+        get_staff(&data.staff.edges, &media_localised.staff_text).as_str(),
+    )
+}
+
+fn get_date(date: &StartEndDate) -> String {
+    let date_y = date.year.unwrap_or(0);
+    let date_d = date.day.unwrap_or(0);
+    let date_m = date.month.unwrap_or(0);
+    if date_y == 0 && date_d == 0 && date_m == 0 {
+        UNKNOWN.to_string()
+    } else {
+        format!("{}/{}/{}", date_d, date_m, date_y)
+    }
+}
+
+fn get_staff(staff: &Vec<Edge>, staff_string: &String) -> String {
+    let mut staff_text = String::new();
+    for s in staff {
+        let text = staff_string.clone();
+        let node = &s.node;
+        let name = &node.name;
+        let full = name.full.clone();
+        let user_pref = name.user_preferred.clone();
+        let staff_name = user_pref.unwrap_or(full.unwrap_or(UNKNOWN.to_string()));
+        let s_role = s.role.clone();
+        let role = s_role.unwrap_or(UNKNOWN.to_string());
+        staff_text.push_str(
+            text.replace("$name$", staff_name.as_str())
+                .replace("$role$", role.as_str())
+                .as_str(),
+        )
+    }
+
+    staff_text
 }
