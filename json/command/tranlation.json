@@ -1,0 +1,87 @@
+{
+  "name": "translation",
+  "desc": "Generate a translation.",
+  "arg_num": 2,
+  "args": [
+    {
+      "name": "video",
+      "desc": "Upload video file (max. 25MB).",
+      "required": true,
+      "autocomplete": false,
+      "command_type": "Attachment",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "video",
+          "desc": "Upload video file (max. 25MB)."
+        },
+        {
+          "code": "fr",
+          "name": "video",
+          "desc": "Télécharger le fichier vidéo (max. 25MB)."
+        },
+        {
+          "code": "de",
+          "name": "video",
+          "desc": "Video-Datei hochladen (max. 25MB)."
+        },
+        {
+          "code": "ja",
+          "name": "video",
+          "desc": "ビデオファイルをアップロード（最大25MB）。"
+        }
+      ]
+    },
+    {
+      "name": "lang",
+      "desc": "Select input language (ISO-639-1)",
+      "required": false,
+      "autocomplete": false,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "lang",
+          "desc": "Select input language (ISO-639-1)"
+        },
+        {
+          "code": "fr",
+          "name": "lang",
+          "desc": "Sélectionnez la langue d'entrée (ISO-639-1)"
+        },
+        {
+          "code": "de",
+          "name": "lang",
+          "desc": "Eingabesprache auswählen (ISO-639-1)"
+        },
+        {
+          "code": "ja",
+          "name": "lang",
+          "desc": "入力言語を選択（ISO-639-1)"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "translation",
+      "desc": "Generate a translation."
+    },
+    {
+      "code": "fr",
+      "name": "traduction",
+      "desc": "Générer une traduction."
+    },
+    {
+      "code": "de",
+      "name": "ubersetzung",
+      "desc": "Erzeugen Sie eine Übersetzung."
+    },
+    {
+      "code": "ja",
+      "name": "hon'yaku",
+      "desc": "翻訳を生成する。"
+    }
+  ]
+}

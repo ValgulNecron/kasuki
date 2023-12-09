@@ -26,10 +26,10 @@ pub async fn load_localization_transcript(
     let json_data: HashMap<String, TranscriptLocalised> = serde_json::from_str(&json)
         .map_err(|_| LocalisationParsingError(String::from("Failing to parse transcript.json.")))?;
 
-    let lang_choice = get_guild_langage(guild_id).await;
+    let transcript_choice = get_guild_langage(guild_id).await;
 
     let transcript_localised_text = json_data
-        .get(lang_choice.as_str())
+        .get(transcript_choice.as_str())
         .ok_or(NoLangageError(String::from("not found")))?;
 
     Ok(transcript_localised_text.clone())

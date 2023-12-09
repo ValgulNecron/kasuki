@@ -6,9 +6,9 @@ use crate::error_enum::AppError::{
     NoCommandOption,
 };
 use crate::lang_struct::ai::transcript::load_localization_transcript;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
-use serde_json::Value;
+use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     Attachment, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
@@ -30,16 +30,10 @@ pub async fn run(
     let mut lang: String = String::new();
     let mut attachement: Option<Attachment> = None;
     for option in options.iter().clone() {
-        if option.name == "lang" {
+        if option.name == "lang_struct" {
             let resolved = option.value.clone();
             if let ResolvedValue::String(lang_option) = resolved {
                 lang = String::from(lang_option)
-            }
-        }
-        if option.name == "prompt" {
-            let resolved = option.value.clone();
-            if let ResolvedValue::String(prompt_option) = resolved {
-                prompt = String::from(prompt_option)
             }
         }
         if option.name == "video" {
@@ -158,7 +152,7 @@ pub async fn run(
         .part("file", part)
         .text("model", "whisper-1")
         .text("prompt", prompt)
-        .text("language", lang)
+        .text("language", lang.clone())
         .text("response_format", "json");
 
     let response_result = client
@@ -181,6 +175,12 @@ pub async fn run(
     let text = res["text"].as_str().unwrap_or("");
     trace!("{}", text);
 
+    let text = if lang != "en" {
+        translation(lang, text.to_string(), api_key, api_base_url).await?
+    } else {
+        text
+    };
+
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
@@ -195,4 +195,47 @@ pub async fn run(
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
 
     Ok(())
+}
+
+pub async fn translation(
+    lang: String,
+    text: String,
+    api_key: String,
+    api_base_url: String,
+) -> Result<String, AppError> {
+    let prompt_gpt = format!("
+            i will give you a text and a ISO-639-1 code and you will translate it in the corresponding langage
+            iso code: {}
+            text:
+            {}
+            ", lang, text);
+
+    let api_url = format!("{}chat/completions", api_base_url);
+    let client = reqwest::Client::new();
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+    );
+    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
+    let data = json!({
+         "model": "gpt-3.5-turbo-16k",
+         "messages": [{"role": "system", "content": "You are a expert in translating and only do that."},{"role": "user", "content": prompt_gpt}]
+    });
+
+    let res = client
+        .post(api_url)
+        .headers(headers)
+        .json(&data)
+        .send()
+        .await
+        .map_err(DifferedResponseError(String::from("error translation")))?
+        .json()
+        .await
+        .map_err(DifferedResponseError(String::from("error translation")))?;
+    let content = res["choices"][0]["message"]["content"].to_string();
+    let no_quote = content.replace('"', "");
+
+    Ok(no_quote.replace("\\n", " \\n "))
 }
