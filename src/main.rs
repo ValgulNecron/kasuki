@@ -36,8 +36,13 @@ impl EventHandler for Handler {
             "Shard {:?} of {} is connected!",
             ready.shard, ready.user.name
         );
+        let is_ok = env::var("REMOVE_OLD_COMMAND_ON_STARTUP")
+            .unwrap()
+            .to_lowercase()
+            .as_str()
+            == "true";
 
-        creates_commands(&ctx.http).await;
+        creates_commands(&ctx.http, is_ok).await;
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {

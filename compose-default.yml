@@ -19,6 +19,7 @@ services:
       - RUST_LOG="info" # trace, debug, info, warn or error
       - NSFW=True # if the bot should only do /image in NSFW channel or not (depend if your models can generate some and if there is a filter)
       - TERM=xterm-256color
+      - REMOVE_OLD_COMMAND_ON_STARTUP=True # if the bot should remove the old command when it start.
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db

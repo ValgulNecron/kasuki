@@ -1,9 +1,11 @@
+use crate::anilist_struct::run::minimal_anime::ActivityData;
 use std::env;
 
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
 use crate::sqls::sqlite::data::{
-    get_data_guild_langage_sqlite, get_data_module_activation_status_sqlite,
+    get_data_activity_sqlite, get_data_guild_langage_sqlite,
+    get_data_module_activation_status_sqlite, get_one_activity_sqlite,
     remove_data_activity_status_sqlite, set_data_activity_sqlite, set_data_guild_langage_sqlite,
     set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
 };
@@ -43,16 +45,16 @@ pub async fn set_data_guild_langage(guild_id: &String, lang: &String) -> Result<
     }
 }
 
-/*pub async fn get_data_activity() -> Vec<ActivityData> {
+pub async fn get_data_activity() -> Result<Vec<ActivityData>, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_activity_sqlite().await
     } else if db_type == *"postgresql" {
-        Vec::new()
+        Ok(Vec::new())
     } else {
         get_data_activity_sqlite().await
     }
-}*/
+}
 
 pub async fn set_data_activity(
     anime_id: i32,
@@ -118,5 +120,27 @@ pub async fn remove_data_module_activation_status(
         Err(SqlInsertError(String::from("Error")))
     } else {
         remove_data_activity_status_sqlite(server_id, anime_id).await
+    }
+}
+
+pub async fn get_one_activity(
+    anime_id: i32,
+    server_id: String,
+) -> Result<
+    (
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    ),
+    AppError,
+> {
+    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
+    if db_type == *"sqlite" {
+        get_one_activity_sqlite(server_id, anime_id).await
+    } else if db_type == *"postgresql" {
+        Ok((None, None, None, None))
+    } else {
+        get_one_activity_sqlite(server_id, anime_id).await
     }
 }

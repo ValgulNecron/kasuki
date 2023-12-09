@@ -3,7 +3,10 @@ use serenity::all::{Command, CreateCommand, CreateCommandOption, Http};
 use std::sync::Arc;
 use tracing::{error, trace};
 
-pub async fn creates_commands(http: &Arc<Http>) {
+pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
+    if is_ok {
+        delete_command(http).await;
+    }
     let commands = match get_commands("./json/command") {
         Err(e) => {
             error!("{:?}", e);
@@ -76,4 +79,12 @@ async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
     }
 
     options_builds
+}
+
+async fn delete_command(http: &Arc<Http>) {
+    let cmds = Command::get_global_commands(http).await.unwrap();
+    for cmd in cmds {
+        let test = Command::delete_global_command(http, cmd.id).await;
+        trace!("{:?}", test);
+    }
 }

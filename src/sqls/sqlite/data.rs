@@ -1,3 +1,4 @@
+use crate::anilist_struct::run::minimal_anime::ActivityData;
 use chrono::Utc;
 
 use crate::constant::DATA_SQLITE_DB;
@@ -90,8 +91,8 @@ pub async fn set_data_guild_langage_sqlite(
 ///
 /// A `Vec<ActivityData>` containing the retrieved data.
 ///
-/*pub async fn get_data_activity_sqlite() -> Vec<ActivityData> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await;
+pub async fn get_data_activity_sqlite() -> Result<Vec<ActivityData>, AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let now = Utc::now().timestamp().to_string();
     let rows: Vec<ActivityData> = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays FROM activity_data WHERE timestamp = ?",
@@ -100,8 +101,8 @@ pub async fn set_data_guild_langage_sqlite(
         .fetch_all(&pool)
         .await
         .unwrap();
-    rows
-}*/
+    Ok(rows)
+}
 
 /// Sets data activity in SQLite database.
 ///
@@ -215,6 +216,33 @@ pub async fn get_data_guild_lang(
             .fetch_one(&pool)
             .await
             .unwrap_or((None, None));
+    pool.close().await;
+
+    Ok(row)
+}
+
+pub async fn get_one_activity_sqlite(
+    server_id: String,
+    anime_id: i32,
+) -> Result<
+    (
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    ),
+    AppError,
+> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let row: (Option<String>, Option<String>, Option<String>, Option<String>) = sqlx::query_as(
+        "SELECT anime_id, timestamp, server_id, webhook FROM activity_data WHERE anime_id = ? AND server_id = ?",
+    )
+        .bind(anime_id)
+        .bind(server_id)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None, None, None));
+
     pool.close().await;
 
     Ok(row)

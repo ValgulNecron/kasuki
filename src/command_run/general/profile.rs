@@ -4,7 +4,7 @@ use crate::error_enum::AppError::{FailedToGetUser, LangageGuildIdError};
 use crate::lang_struct::general::profile::load_localization_profile;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User, UserPublicFlags,
+    CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
 };
 
 pub async fn run(

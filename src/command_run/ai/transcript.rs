@@ -5,16 +5,14 @@ use crate::error_enum::AppError::{
     DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, LangageGuildIdError,
     NoCommandOption,
 };
-use crate::lang_struct::ai::image::load_localization_image;
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
 use serde_json::Value;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    Attachment, CommandInteraction, Context, CreateAttachment, CreateEmbed,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, ResolvedOption,
-    ResolvedValue, Timestamp,
+    Attachment, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, ResolvedOption, ResolvedValue, Timestamp,
 };
 use std::fs::File;
 use std::io::copy;
@@ -50,7 +48,9 @@ pub async fn run(
                 ..
             } = option
             {
-                attachement = Some(attachment_option.clone().clone())
+                let simple = *attachment_option;
+                let attach_option = simple.clone();
+                attachement = Some(attach_option)
             } else {
                 return Err(NoCommandOption(String::from(
                     "The command contain no option.",

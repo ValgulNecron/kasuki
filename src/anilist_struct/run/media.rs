@@ -11,8 +11,6 @@ use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
-use serenity::futures::TryFutureExt;
-use tracing::trace;
 
 #[derive(Debug, Deserialize)]
 pub struct MediaWrapper {
@@ -611,20 +609,14 @@ fn get_info(data: &Media, media_localised: &MediaLocalised) -> String {
     let text = media_localised.desc.clone();
     let format = data.format.clone();
     let source = data.source.clone();
-    text.replace(
-        "$format$",
-        format.unwrap_or(UNKNOWN.clone().to_string()).as_str(),
-    )
-    .replace(
-        "$source$",
-        source.unwrap_or(UNKNOWN.clone().to_string()).as_str(),
-    )
-    .replace("$start_date$", get_date(&data.start_date).as_str())
-    .replace("$end_date$", get_date(&data.end_date).as_str())
-    .replace(
-        "$staff_list$",
-        get_staff(&data.staff.edges, &media_localised.staff_text).as_str(),
-    )
+    text.replace("$format$", format.unwrap_or(UNKNOWN.to_string()).as_str())
+        .replace("$source$", source.unwrap_or(UNKNOWN.to_string()).as_str())
+        .replace("$start_date$", get_date(&data.start_date).as_str())
+        .replace("$end_date$", get_date(&data.end_date).as_str())
+        .replace(
+            "$staff_list$",
+            get_staff(&data.staff.edges, &media_localised.staff_text).as_str(),
+        )
 }
 
 fn get_date(date: &StartEndDate) -> String {

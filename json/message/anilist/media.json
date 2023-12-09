@@ -1,11 +1,11 @@
 {
-  "en":{
+  "en": {
     "field1_title": "Genre",
     "field2_title": "Tag",
     "desc": "**Info** \n Format: $format$ / Source: $source$ \n Start date: $start_date$ \n End date: $end_date$ \n \n **Staff** \n $staff_list$",
     "staff_text": "Name: $name$ with the role $role$"
   },
-  "fr":{
+  "fr": {
     "field1_title": "Genre",
     "field2_title": "Tag",
     "desc": "**Info** \n Format: $format$ / Source: $source$ \n Date de début: $start_date$ \n Date de fin: $end_date$ \n\n **Équipe** \n $staff_list$",
