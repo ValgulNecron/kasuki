@@ -9,14 +9,6 @@
       "required": true,
       "autocomplete": true,
       "command_type": "String",
-      "choices": [
-        {
-          "option_choice": "AI"
-        },
-        {
-          "option_choice": "ANILIST"
-        }
-      ],
       "localised_args": [
         {
           "code": "en-US",
@@ -43,7 +35,7 @@
     {
       "name": "delays",
       "desc": "A delay in seconds.",
-      "required": true,
+      "required": false,
       "autocomplete": false,
       "command_type": "Integer",
       "localised_args": [

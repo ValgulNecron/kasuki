@@ -2,6 +2,7 @@ use crate::common::make_anilist_request::make_request_anilist;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::FromRow;
+use tracing::log::trace;
 
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NoMediaDifferedError;
@@ -71,34 +72,11 @@ impl MinimalAnimeWrapper {
         ";
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
+        trace!("{:?}", resp);
         // Get json
         let data = serde_json::from_str(&resp)
             .map_err(|_| NoMediaDifferedError(String::from("No media")))?;
         Ok(data)
-    }
-
-    pub async fn new_minimal_anime_by_id_no_error(id: i32) -> MinimalAnimeWrapper {
-        let query = "
-            query ($name: Int) {
-              Media(type: ANIME, search: $name) {
-                id
-                coverImage {
-                  extraLarge
-                }
-                title {
-                  romaji
-                  english
-                }
-                nextAiringEpisode {
-                  airingAt
-                  timeUntilAiring
-                  episode
-                }
-              }
-        ";
-        let json = json!({"query": query, "variables": {"name": id}});
-        let resp = make_request_anilist(json, true).await;
-        serde_json::from_str(&resp).unwrap()
     }
 
     pub async fn new_minimal_anime_by_search(

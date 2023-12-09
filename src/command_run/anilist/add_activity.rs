@@ -37,7 +37,7 @@ pub async fn run(
                 delay = 0;
             }
         }
-        if option.name == "anime" {
+        if option.name == "anime_name" {
             let resolved = &option.value;
             if let CommandDataOptionValue::String(anime_option) = resolved {
                 anime = anime_option.clone()

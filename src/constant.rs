@@ -5,7 +5,6 @@ use serenity::all::Colour;
 pub const DAYS: i64 = 3;
 pub const ACTIVITY_NAME: &str = "Let you get info from anilist.";
 pub const COLOR: Colour = Colour::FABLED_PINK;
-pub const N_A: &str = "N/A";
 pub const DATA_SQLITE_DB: &str = "./data.db";
 pub const CACHE_SQLITE_DB: &str = "./cache.db";
 pub const PING_UPDATE_DELAYS: u64 = 600;

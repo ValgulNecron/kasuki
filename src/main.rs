@@ -1,3 +1,5 @@
+mod activity;
+mod activity;
 mod anilist_struct;
 mod command_autocomplete;
 mod command_register;
@@ -37,7 +39,7 @@ impl EventHandler for Handler {
             ready.shard, ready.user.name
         );
         let is_ok = env::var("REMOVE_OLD_COMMAND_ON_STARTUP")
-            .unwrap()
+            .unwrap_or("false".to_string())
             .to_lowercase()
             .as_str()
             == "true";
