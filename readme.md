@@ -43,7 +43,7 @@
   - [X] Logging
   - [ ] Updating to serenity 0.12 — Working on it.
   - [ ] Support for command in dm (would need a rewrite on the langage part to default to en even when there is no guild
-    id)
+    id) — Working on it.
 
 - Anime submodule:
   - [X] Finish comparison function.   

@@ -3,7 +3,7 @@ use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, UNKNOWN};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{LangageGuildIdError, MediaGettingError};
+use crate::error_enum::AppError::MediaGettingError;
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 use serde::Deserialize;
 use serde_json::json;
@@ -11,6 +11,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
+use tracing::trace;
 
 #[derive(Debug, Deserialize)]
 pub struct MediaWrapper {
@@ -656,12 +657,14 @@ pub async fn send_embed(
     command: &CommandInteraction,
     data: MediaWrapper,
 ) -> Result<(), AppError> {
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .to_string();
+    trace!("{:?}", command.guild_id);
+    let guild_id = match command.guild_id {
+        Some(id) => {
+            trace!("{:?}", id);
+            id.to_string()
+        }
+        None => String::from("0"),
+    };
 
     let anime_localised = load_localization_media(guild_id).await?;
 

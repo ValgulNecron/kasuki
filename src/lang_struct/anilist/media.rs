@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
+use tracing::trace;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MediaLocalised {
@@ -27,7 +28,14 @@ pub async fn load_localization_media(guild_id: String) -> Result<MediaLocalised,
     let json_data: HashMap<String, MediaLocalised> = serde_json::from_str(&json)
         .map_err(|_| LocalisationParsingError(String::from("Failing to parse media.json.")))?;
 
-    let lang_choice = get_guild_langage(guild_id).await;
+    trace!("{}", guild_id);
+    trace!("{}", guild_id != String::from("0"));
+
+    let lang_choice = if guild_id != String::from("0") {
+        get_guild_langage(guild_id).await
+    } else {
+        String::from("en")
+    };
 
     let media_localised_text = json_data
         .get(lang_choice.as_str())

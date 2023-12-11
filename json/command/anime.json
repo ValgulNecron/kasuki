@@ -1,7 +1,7 @@
 {
   "name": "anime",
   "desc": "Info of an anime.",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
   "arg_num": 1,
   "args": [
