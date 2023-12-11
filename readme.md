@@ -11,6 +11,7 @@
 
 ## BOT
 
+
 - General part:
   - [X] Change how the text is displayed to support localization. — Done.
   - [ ] Clean the code. — It will never be done.
@@ -40,6 +41,9 @@
   - [ ] Add docs to every public function. (Run, Register and Autocomplete do not need this.). started and clearly not
     finished.
   - [X] Logging
+  - [ ] Updating to serenity 0.12 — Working on it.
+  - [ ] Support for command in dm (would need a rewrite on the langage part to default to en even when there is no guild
+    id)
 
 - Anime submodule:
   - [X] Finish comparison function.   
