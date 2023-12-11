@@ -1,6 +1,6 @@
 use serde::Serialize;
 use serde_json;
-use serenity::all::CommandOptionType;
+use serenity::all::{CommandOptionType, Permissions};
 use std::fs;
 use std::io::Error;
 
@@ -65,7 +65,7 @@ pub fn get_commands(directory: &str) -> Result<Vec<CommandData>, Error> {
     Ok(commands)
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum RemoteCommandOptionType {
     SubCommand,
     SubCommandGroup,
@@ -96,7 +96,7 @@ impl From<RemoteCommandOptionType> for CommandOptionType {
             RemoteCommandOptionType::Number => CommandOptionType::Number,
             RemoteCommandOptionType::Attachment => CommandOptionType::Attachment,
             RemoteCommandOptionType::Unknown(value) => CommandOptionType::Unknown(value),
-            _ => RemoteCommandOptionType::String,
+            _ => CommandOptionType::String,
         }
     }
 }
@@ -117,6 +117,71 @@ impl From<CommandOptionType> for RemoteCommandOptionType {
             CommandOptionType::Attachment => RemoteCommandOptionType::Attachment,
             CommandOptionType::Unknown(value) => RemoteCommandOptionType::Unknown(value),
             _ => RemoteCommandOptionType::String,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+pub enum RemotePermissionType {
+    CreateInstantInvite,
+    KickMembers,
+    BanMembers,
+    Administrator,
+    ManageChannels,
+    ManageGuild,
+    AddReactions,
+    ViewAuditLog,
+    PrioritySpeaker,
+    Stream,
+    ViewChannel,
+    SendMessages,
+    SendTtsMessages,
+    ManageMessages,
+    EmbedLinks,
+    AttachFiles,
+    ReadMessageHistory,
+    MentionEveryone,
+    UseExternalEmojis,
+    ViewGuildInsights,
+    Connect,
+    Speak,
+    MuteMembers,
+    DeafenMembers,
+    MoveMembers,
+    UseVad,
+    ChangeNickname,
+    ManageNicknames,
+    ManageRoles,
+    ManageWebhooks,
+    ManageGuildExpressions,
+    UseApplicationCommands,
+    RequestToSpeak,
+    ManageEvents,
+    ManageThreads,
+    CreatePublicThreads,
+    CreatePrivateThreads,
+    UseExternalStickers,
+    SendMessagesInThreads,
+    UseEmbeddedActivities,
+    ModerateMembers,
+    ViewCreatorMonetizationAnalytics,
+    UseSoundboard,
+    CreateGuildExpressions,
+    CreateEvents,
+    UseExternalSounds,
+    SendVoiceMessages,
+    SetVoiceChannelStatus,
+    Unknown,
+}
+
+impl From<RemotePermissionType> for Permissions {
+    fn from(remote: RemotePermissionType) -> Self {
+        match remote {
+            RemotePermissionType::CreateInstantInvite => Permissions::CREATE_INSTANT_INVITE,
+            RemotePermissionType::KickMembers => Permissions::KICK_MEMBERS,
+            RemotePermissionType::BanMembers => Permissions::BAN_MEMBERS,
+            RemotePermissionType::Administrator => Permissions::ADMINISTRATOR,
+            _ => Permissions::ADMINISTRATOR,
         }
     }
 }

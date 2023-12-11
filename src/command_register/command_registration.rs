@@ -24,8 +24,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
     let mut build = CreateCommand::new(&command.name)
         .description(&command.desc)
         .dm_permission(command.dm_command)
-        .nsfw(command.nsfw)
-        .default_member_permissions();
+        .nsfw(command.nsfw);
     match &command.localised {
         Some(localiseds) => {
             for localised in localiseds {
