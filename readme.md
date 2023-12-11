@@ -42,8 +42,9 @@
     finished.
   - [X] Logging
   - [ ] Updating to serenity 0.12 — Working on it.
-  - [ ] Support for command in dm (would need a rewrite on the langage part to default to en even when there is no guild
-    id) — Working on it.
+  - [X] Support for command in dm (would need a rewrite on the langage part to default to en even when there is no guild
+    id) — Now working.
+    (for the command I want to be on in dm)
 
 - Anime submodule:
   - [X] Finish comparison function.   
