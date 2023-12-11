@@ -3,6 +3,7 @@
   "desc": "Info of an anime.",
   "dm_command": true,
   "nsfw": false,
+  "perm": false,
   "arg_num": 1,
   "args": [
     {

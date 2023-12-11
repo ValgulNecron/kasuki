@@ -1,6 +1,5 @@
 use crate::command_register::command_structure::{get_commands, CommandData};
-use serenity::all::Change::Permissions;
-use serenity::all::{Command, CreateCommand, CreateCommandOption, Http};
+use serenity::all::{Command, CreateCommand, CreateCommandOption, Http, Permissions};
 use std::sync::Arc;
 use tracing::{error, trace};
 
@@ -21,10 +20,21 @@ pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
 }
 
 async fn create_command(command: &CommandData, http: &Arc<Http>) {
+    let mut permission = Permissions::from_bits(0).unwrap();
+    if command.perm {
+        let mut perm_bit: u64 = 0;
+        let perm_list = command.default_permissions.clone().unwrap();
+        for permi in perm_list {
+            let permission: Permissions = permi.permission.into();
+            perm_bit += permission.bits()
+        }
+        permission = Permissions::from_bits(perm_bit).unwrap()
+    }
     let mut build = CreateCommand::new(&command.name)
         .description(&command.desc)
         .dm_permission(command.dm_command)
-        .nsfw(command.nsfw);
+        .nsfw(command.nsfw)
+        .default_member_permissions(permission);
     match &command.localised {
         Some(localiseds) => {
             for localised in localiseds {

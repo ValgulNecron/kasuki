@@ -3,6 +3,7 @@
   "desc": "Get the ping of the bot (and the shard id).",
   "dm_command": false,
   "nsfw": false,
+  "perm": false,
   "arg_num": 0,
   "localised": [
     {

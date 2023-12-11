@@ -3,6 +3,12 @@
   "desc": "Add an anime activity.",
   "dm_command": false,
   "nsfw": false,
+  "perm": true,
+  "default_permissions": [
+    {
+      "permission": "Administrator"
+    }
+  ],
   "arg_num": 2,
   "args": [
     {

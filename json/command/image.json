@@ -3,6 +3,7 @@
   "desc": "Generate an image.",
   "dm_command": false,
   "nsfw": true,
+  "perm": false,
   "arg_num": 1,
   "args": [
     {

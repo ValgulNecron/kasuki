@@ -3,6 +3,7 @@
   "desc": "Change the language of the bot's response.",
   "dm_command": false,
   "nsfw": false,
+  "perm": false,
   "arg_num": 1,
   "args": [
     {

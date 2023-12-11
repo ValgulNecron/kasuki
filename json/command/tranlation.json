@@ -3,6 +3,7 @@
   "desc": "Generate a translation.",
   "dm_command": false,
   "nsfw": false,
+  "perm": false,
   "arg_num": 2,
   "args": [
     {

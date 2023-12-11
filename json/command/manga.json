@@ -3,6 +3,7 @@
   "desc": "Info of a manga.",
   "dm_command": false,
   "nsfw": false,
+  "perm": false,
   "arg_num": 1,
   "args": [
     {
