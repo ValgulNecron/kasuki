@@ -11,7 +11,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
-use tracing::trace;
+use tracing::{info, trace};
 
 #[derive(Debug, Deserialize)]
 pub struct MediaWrapper {
@@ -657,12 +657,8 @@ pub async fn send_embed(
     command: &CommandInteraction,
     data: MediaWrapper,
 ) -> Result<(), AppError> {
-    trace!("{:?}", command.guild_id);
     let guild_id = match command.guild_id {
-        Some(id) => {
-            trace!("{:?}", id);
-            id.to_string()
-        }
+        Some(id) => id.to_string(),
         None => String::from("0"),
     };
 

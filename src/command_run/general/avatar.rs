@@ -46,12 +46,10 @@ pub async fn send_embed(
     command: &CommandInteraction,
     username: String,
 ) -> Result<(), AppError> {
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .to_string();
+    let guild_id = match command.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
 
     let avatar_localised = load_localization_avatar(guild_id).await?;
 

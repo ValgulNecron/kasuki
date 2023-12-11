@@ -54,12 +54,7 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
         .add_directive(crate_log)
         .add_directive(kasuki_log);
 
-    let format = fmt::layer()
-        .with_ansi(true)
-        .with_thread_names(false)
-        .with_thread_ids(false)
-        .with_file(false)
-        .with_line_number(false);
+    let format = fmt::layer().with_ansi(true);
 
     tracing_subscriber::registry()
         .with(filter)

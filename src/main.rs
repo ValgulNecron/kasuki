@@ -24,7 +24,7 @@ use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;
 use struct_shard_manager::ShardManagerContainer;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, trace};
 
 struct Handler;
 
@@ -54,6 +54,7 @@ impl EventHandler for Handler {
                 "Received command interaction: {}, Option: {:#?}, User: {}({})",
                 command.data.name, command.data.options, command.user.name, command.user.id
             );
+            trace!("{:#?}", command);
             match command_dispatching(ctx, command).await {
                 Err(e) => error_management::error_dispatch::command_dispatching(e).await,
                 Ok(a) => a,

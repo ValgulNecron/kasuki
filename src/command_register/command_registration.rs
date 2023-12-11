@@ -98,7 +98,8 @@ async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
 async fn delete_command(http: &Arc<Http>) {
     let cmds = Command::get_global_commands(http).await.unwrap();
     for cmd in cmds {
-        let test = Command::delete_global_command(http, cmd.id).await;
-        trace!("{:?}", test);
+        trace!("Removing {:?}", cmd.name);
+        let error = Command::delete_global_command(http, cmd.id).await;
+        error!("{:?}", error);
     }
 }

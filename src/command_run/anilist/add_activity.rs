@@ -47,12 +47,10 @@ pub async fn run(
         }
     }
 
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .to_string();
+    let guild_id = match command.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 

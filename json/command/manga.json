@@ -1,7 +1,7 @@
 {
   "name": "manga",
   "desc": "Info of a manga.",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
   "perm": false,
   "arg_num": 1,

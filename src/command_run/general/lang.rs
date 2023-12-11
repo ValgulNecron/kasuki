@@ -26,12 +26,10 @@ pub async fn run(
         }
     };
 
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .to_string();
+    let guild_id = match command.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
     let _ = set_data_guild_langage(&guild_id, &lang).await;
     let lang_localised = load_localization_lang(guild_id).await?;
 

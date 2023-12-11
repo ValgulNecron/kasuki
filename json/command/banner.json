@@ -1,7 +1,7 @@
 {
   "name": "banner",
   "desc": "Get the banner.",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
   "perm": false,
   "arg_num": 1,

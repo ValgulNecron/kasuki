@@ -1,7 +1,7 @@
 {
   "name": "avatar",
   "desc": "Get the avatar.",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
   "perm": false,
   "arg_num": 1,

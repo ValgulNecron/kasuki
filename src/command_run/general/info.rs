@@ -9,12 +9,10 @@ use crate::error_enum::AppError::LangageGuildIdError;
 use crate::lang_struct::general::info::load_localization_info;
 
 pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppError> {
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .to_string();
+    let guild_id = match command.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
     let info_localised = load_localization_info(guild_id).await?;
 
     let builder_embed = CreateEmbed::new()

@@ -31,11 +31,7 @@ pub async fn load_localization_media(guild_id: String) -> Result<MediaLocalised,
     trace!("{}", guild_id);
     trace!("{}", guild_id != String::from("0"));
 
-    let lang_choice = if guild_id != String::from("0") {
-        get_guild_langage(guild_id).await
-    } else {
-        String::from("en")
-    };
+    let lang_choice = get_guild_langage(guild_id).await;
 
     let media_localised_text = json_data
         .get(lang_choice.as_str())

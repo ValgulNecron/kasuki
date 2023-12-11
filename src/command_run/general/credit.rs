@@ -8,12 +8,10 @@ use serenity::all::{
 };
 
 pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppError> {
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .to_string();
+    let guild_id = match command.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
     let credit_localised = load_localization_credit(guild_id).await?;
     let mut desc: String = "".to_string();
     for x in credit_localised.credits {

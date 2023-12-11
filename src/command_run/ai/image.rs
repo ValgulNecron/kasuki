@@ -28,12 +28,10 @@ pub async fn run(
     if !get_nsfw(command, ctx).await {
         return Err(NsfwError(String::from("This channel is not nsfw.")));
     }
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .to_string();
+    let guild_id = match command.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
 
     let lang = options.get(0).ok_or(OPTION_ERROR.clone())?;
     let lang = lang.value.clone();

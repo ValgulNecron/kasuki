@@ -1,7 +1,7 @@
 {
   "name": "credit",
   "desc": "Get the credit of the app.",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
   "perm": false,
   "arg_num": 0,

@@ -30,12 +30,10 @@ pub async fn no_banner(
     command: &CommandInteraction,
     username: &str,
 ) -> Result<(), AppError> {
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .to_string();
+    let guild_id = match command.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
     let banner_localised = load_localization_banner(guild_id).await?;
 
     let builder_embed = CreateEmbed::new()
@@ -81,12 +79,10 @@ pub async fn send_embed(
     command: &CommandInteraction,
     banner: String,
 ) -> Result<(), AppError> {
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .to_string();
+    let guild_id = match command.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
     let banner_localised = load_localization_banner(guild_id).await?;
 
     let builder_embed = CreateEmbed::new()

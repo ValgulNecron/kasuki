@@ -10,12 +10,10 @@ use crate::lang_struct::general::ping::load_localization_ping;
 use crate::struct_shard_manager::ShardManagerContainer;
 
 pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppError> {
-    let guild_id = command
-        .guild_id
-        .ok_or(LangageGuildIdError(String::from(
-            "Guild id for langage not found.",
-        )))?
-        .to_string();
+    let guild_id = match command.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
     let ping_localised = load_localization_ping(guild_id).await?;
     let data_read = ctx.data.read().await;
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
