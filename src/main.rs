@@ -1,5 +1,4 @@
 mod activity;
-mod activity;
 mod anilist_struct;
 mod command_autocomplete;
 mod command_register;
@@ -11,18 +10,20 @@ mod error_management;
 mod lang_struct;
 mod logger;
 mod sqls;
+pub mod struct_shard_manager;
 
+use crate::activity::anime_activity::manage_activity;
 use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::command_dispatching;
 use crate::constant::ACTIVITY_NAME;
-use crate::lang_struct::struct_shard_manager::ShardManagerContainer;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::sqls::general::sql::init_sql_database;
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;
+use struct_shard_manager::ShardManagerContainer;
 use tracing::{debug, error, info};
 
 struct Handler;
@@ -90,6 +91,11 @@ async fn main() {
             return;
         }
     };
+
+    tokio::spawn(async move {
+        info!("Launching the activity management thread!");
+        manage_activity().await
+    });
 
     info!("starting the bot.");
     let token = match env::var("DISCORD_TOKEN") {

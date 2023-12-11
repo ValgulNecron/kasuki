@@ -1,6 +1,8 @@
 {
   "name": "banner",
   "desc": "Get the banner.",
+  "dm_command": false,
+  "nsfw": false,
   "arg_num": 1,
   "args": [
     {

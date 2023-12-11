@@ -1,6 +1,8 @@
 {
   "name": "module",
   "desc": "Turn on or off a module.",
+  "dm_command": false,
+  "nsfw": false,
   "arg_num": 2,
   "args": [
     {

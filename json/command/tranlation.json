@@ -1,6 +1,8 @@
 {
   "name": "translation",
   "desc": "Generate a translation.",
+  "dm_command": false,
+  "nsfw": false,
   "arg_num": 2,
   "args": [
     {
@@ -80,7 +82,7 @@
     },
     {
       "code": "ja",
-      "name": "hon'yaku",
+      "name": "honyaku",
       "desc": "翻訳を生成する。"
     }
   ]

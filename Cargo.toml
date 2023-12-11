@@ -28,7 +28,6 @@ tracing = { version = "0.1.40" }
 once_cell = "1.18.0"
 tracing-subscriber = { version = "0.3.18", features = ["default", "env-filter"] }
 tracing-core = "0.1.32"
-
 [profile.dev]
 codegen-units = 512
 

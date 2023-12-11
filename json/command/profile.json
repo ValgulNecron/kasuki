@@ -1,6 +1,8 @@
 {
   "name": "profile",
   "desc": "Show the profile of a user.",
+  "dm_command": false,
+  "nsfw": false,
   "arg_num": 1,
   "args": [
     {

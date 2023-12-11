@@ -1,6 +1,8 @@
 {
   "name": "add_activity",
   "desc": "Add an anime activity.",
+  "dm_command": false,
+  "nsfw": false,
   "arg_num": 2,
   "args": [
     {

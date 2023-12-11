@@ -91,13 +91,12 @@ pub async fn set_data_guild_langage_sqlite(
 ///
 /// A `Vec<ActivityData>` containing the retrieved data.
 ///
-pub async fn get_data_activity_sqlite() -> Result<Vec<ActivityData>, AppError> {
+pub async fn get_data_activity_sqlite(now: String) -> Result<Vec<ActivityData>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let now = Utc::now().timestamp().to_string();
     let rows: Vec<ActivityData> = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays FROM activity_data WHERE timestamp = ?",
     )
-        .bind(now.clone())
+        .bind(now)
         .fetch_all(&pool)
         .await
         .unwrap();

@@ -1,6 +1,8 @@
 {
   "name": "credit",
   "desc": "Get the credit of the app.",
+  "dm_command": false,
+  "nsfw": false,
   "arg_num": 0,
   "localised": [
     {

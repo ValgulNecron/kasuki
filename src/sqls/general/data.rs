@@ -45,14 +45,14 @@ pub async fn set_data_guild_langage(guild_id: &String, lang: &String) -> Result<
     }
 }
 
-pub async fn get_data_activity() -> Result<Vec<ActivityData>, AppError> {
+pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
-        get_data_activity_sqlite().await
+        get_data_activity_sqlite(now).await
     } else if db_type == *"postgresql" {
         Ok(Vec::new())
     } else {
-        get_data_activity_sqlite().await
+        get_data_activity_sqlite(now).await
     }
 }
 

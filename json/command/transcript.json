@@ -1,6 +1,8 @@
 {
   "name": "transcript",
   "desc": "Generate a transcript from a video.",
+  "dm_command": false,
+  "nsfw": false,
   "arg_num": 3,
   "args": [
     {

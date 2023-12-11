@@ -1,6 +1,8 @@
 {
   "name": "ln",
   "desc": "Info of a light novel.",
+  "dm_command": false,
+  "nsfw": false,
   "arg_num": 1,
   "args": [
     {

@@ -26,7 +26,7 @@ pub async fn run(
     ctx: &Context,
     command: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let mut prompt: String = String::new();
+    let prompt: String = String::new();
     let mut lang: String = String::new();
     let mut attachement: Option<Attachment> = None;
     for option in options.iter().clone() {
@@ -178,7 +178,7 @@ pub async fn run(
     let text = if lang != "en" {
         translation(lang, text.to_string(), api_key, api_base_url).await?
     } else {
-        text
+        String::from(text)
     };
 
     let builder_embed = CreateEmbed::new()
@@ -224,16 +224,16 @@ pub async fn translation(
          "messages": [{"role": "system", "content": "You are a expert in translating and only do that."},{"role": "user", "content": prompt_gpt}]
     });
 
-    let res = client
+    let res: Value = client
         .post(api_url)
         .headers(headers)
         .json(&data)
         .send()
         .await
-        .map_err(DifferedResponseError(String::from("error translation")))?
+        .map_err(|_| DifferedResponseError(String::from("error translation")))?
         .json()
         .await
-        .map_err(DifferedResponseError(String::from("error translation")))?;
+        .map_err(|_| DifferedResponseError(String::from("error translation")))?;
     let content = res["choices"][0]["message"]["content"].to_string();
     let no_quote = content.replace('"', "");
 

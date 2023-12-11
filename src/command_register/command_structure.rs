@@ -44,6 +44,8 @@ pub struct CommandData {
     pub arg_num: u32,
     pub args: Option<Vec<Arg>>,
     pub localised: Option<Vec<Localised>>,
+    pub dm_command: bool,
+    pub nsfw: bool,
 }
 
 pub fn get_commands(directory: &str) -> Result<Vec<CommandData>, Error> {
@@ -65,27 +67,36 @@ pub fn get_commands(directory: &str) -> Result<Vec<CommandData>, Error> {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum RemoteCommandOptionType {
+    SubCommand,
+    SubCommandGroup,
     String,
     Integer,
     Boolean,
     User,
     Channel,
     Role,
+    Mentionable,
+    Number,
     Attachment,
-    Error,
+    Unknown(u8),
 }
 
 impl From<RemoteCommandOptionType> for CommandOptionType {
     fn from(remote: RemoteCommandOptionType) -> Self {
         match remote {
+            RemoteCommandOptionType::SubCommand => CommandOptionType::SubCommand,
+            RemoteCommandOptionType::SubCommandGroup => CommandOptionType::SubCommandGroup,
             RemoteCommandOptionType::String => CommandOptionType::String,
             RemoteCommandOptionType::Integer => CommandOptionType::Integer,
             RemoteCommandOptionType::Boolean => CommandOptionType::Boolean,
             RemoteCommandOptionType::User => CommandOptionType::User,
             RemoteCommandOptionType::Channel => CommandOptionType::Channel,
             RemoteCommandOptionType::Role => CommandOptionType::Role,
+            RemoteCommandOptionType::Mentionable => CommandOptionType::Mentionable,
+            RemoteCommandOptionType::Number => CommandOptionType::Number,
             RemoteCommandOptionType::Attachment => CommandOptionType::Attachment,
-            _ => CommandOptionType::String,
+            RemoteCommandOptionType::Unknown(value) => CommandOptionType::Unknown(value),
+            _ => RemoteCommandOptionType::String,
         }
     }
 }
@@ -93,13 +104,18 @@ impl From<RemoteCommandOptionType> for CommandOptionType {
 impl From<CommandOptionType> for RemoteCommandOptionType {
     fn from(original: CommandOptionType) -> Self {
         match original {
+            CommandOptionType::SubCommand => RemoteCommandOptionType::SubCommand,
+            CommandOptionType::SubCommandGroup => RemoteCommandOptionType::SubCommandGroup,
             CommandOptionType::String => RemoteCommandOptionType::String,
             CommandOptionType::Integer => RemoteCommandOptionType::Integer,
             CommandOptionType::Boolean => RemoteCommandOptionType::Boolean,
             CommandOptionType::User => RemoteCommandOptionType::User,
             CommandOptionType::Channel => RemoteCommandOptionType::Channel,
             CommandOptionType::Role => RemoteCommandOptionType::Role,
+            CommandOptionType::Mentionable => RemoteCommandOptionType::Mentionable,
+            CommandOptionType::Number => RemoteCommandOptionType::Number,
             CommandOptionType::Attachment => RemoteCommandOptionType::Attachment,
+            CommandOptionType::Unknown(value) => RemoteCommandOptionType::Unknown(value),
             _ => RemoteCommandOptionType::String,
         }
     }

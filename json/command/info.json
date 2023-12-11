@@ -1,6 +1,8 @@
 {
   "name": "info",
   "desc": "Get information on the bot.",
+  "dm_command": false,
+  "nsfw": false,
   "arg_num": 0,
   "localised": [
     {
