@@ -1,5 +1,5 @@
 use crate::command_run::ai::{image, transcript};
-use crate::command_run::anilist::{add_activity, anime, ln, manga};
+use crate::command_run::anilist::{add_activity, anime, ln, manga, user};
 use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;
@@ -47,6 +47,13 @@ pub async fn command_dispatching(
                 return Err(ai_module_error);
             }
         }
+        "translation" => {
+            if check_if_ai_moule_is_on(&command).await? {
+                transcript::run(&command.data.options(), &ctx, &command).await?
+            } else {
+                return Err(ai_module_error);
+            }
+        }
 
         /*
 
@@ -77,6 +84,13 @@ pub async fn command_dispatching(
         "add_activity" => {
             if check_if_anilist_moule_is_on(&command).await? {
                 add_activity::run(&command.data.options, &ctx, &command).await?
+            } else {
+                return Err(ai_module_error);
+            }
+        }
+        "user" => {
+            if check_if_anilist_moule_is_on(&command).await? {
+                user::run(&command.data.options, &ctx, &command).await?
             } else {
                 return Err(ai_module_error);
             }

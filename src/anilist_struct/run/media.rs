@@ -662,16 +662,16 @@ pub async fn send_embed(
         None => String::from("0"),
     };
 
-    let anime_localised = load_localization_media(guild_id).await?;
+    let media_localised = load_localization_media(guild_id).await?;
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .description(media_info(&data, &anime_localised))
+        .description(media_info(&data, &media_localised))
         .title(embed_title(&data))
         .url(get_url(&data))
-        .field(&anime_localised.field1_title, get_genre(&data), true)
-        .field(&anime_localised.field2_title, get_tag(&data), true)
+        .field(&media_localised.field1_title, get_genre(&data), true)
+        .field(&media_localised.field2_title, get_tag(&data), true)
         .thumbnail(get_thumbnail(&data))
         .image(get_banner(&data));
 

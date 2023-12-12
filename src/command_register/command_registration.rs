@@ -20,7 +20,7 @@ pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
 }
 
 async fn create_command(command: &CommandData, http: &Arc<Http>) {
-    let mut permission = Permissions::from_bits(0).unwrap();
+    let mut permission = Permissions::SEND_MESSAGES;
     if command.perm {
         let mut perm_bit: u64 = 0;
         let perm_list = command.default_permissions.clone().unwrap();

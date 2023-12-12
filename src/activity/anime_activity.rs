@@ -8,7 +8,6 @@ use serenity::all::{CreateEmbed, ExecuteWebhook, Http, Webhook};
 use std::env;
 use std::time::Duration;
 use tokio::time::sleep;
-use tracing::error;
 
 pub async fn manage_activity() {
     loop {
