@@ -45,6 +45,7 @@
   - [X] Support for command in dm (would need a rewrite on the langage part to default to en even when there is no guild
     id) — Now working.
     (for the command I want to be on in dm)
+  - [ ] Make an anilist forum post (when v2 is done);
 
 - Anime submodule:
   - [X] Finish comparison function.   
