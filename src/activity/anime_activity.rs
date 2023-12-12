@@ -1,5 +1,6 @@
 use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrapper};
-use crate::constant::COLOR;
+use crate::constant::{COLOR, OPTION_ERROR};
+use crate::error_enum::AppError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 use crate::sqls::general::data::{get_data_activity, set_data_activity};
 use chrono::Utc;
@@ -7,12 +8,11 @@ use serenity::all::{CreateEmbed, ExecuteWebhook, Http, Webhook};
 use std::env;
 use std::time::Duration;
 use tokio::time::sleep;
+use tracing::error;
 
 pub async fn manage_activity() {
     loop {
-        tokio::spawn(async move {
-            send_activity().await;
-        });
+        tokio::spawn(async move { send_activity().await });
         sleep(Duration::from_secs(1)).await;
     }
 }
@@ -28,16 +28,24 @@ pub async fn send_activity() {
             if row.delays.unwrap() != 0 {
                 tokio::spawn(async move {
                     tokio::time::sleep(Duration::from_secs((row2.delays.unwrap()) as u64)).await;
-                    send_specific_activity(row, guild_id.unwrap(), row2).await
+                    send_specific_activity(row, guild_id.unwrap(), row2)
+                        .await
+                        .unwrap()
                 });
             } else {
-                send_specific_activity(row, guild_id.unwrap(), row2).await
+                send_specific_activity(row, guild_id.unwrap(), row2)
+                    .await
+                    .unwrap()
             }
         }
     }
 }
 
-pub async fn send_specific_activity(row: ActivityData, guild_id: String, row2: ActivityData) {
+pub async fn send_specific_activity(
+    row: ActivityData,
+    guild_id: String,
+    row2: ActivityData,
+) -> Result<(), AppError> {
     let localised_text = load_localization_send_activity(guild_id.clone())
         .await
         .unwrap();
@@ -70,17 +78,19 @@ pub async fn send_specific_activity(row: ActivityData, guild_id: String, row2: A
         .await
         .unwrap();
     tokio::spawn(async move { update_info(row2, guild_id).await });
+    Ok(())
 }
 
-pub async fn update_info(row: ActivityData, guild_id: String) {
-    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(row.anime_id.clone().unwrap())
-        .await
-        .unwrap();
+pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
+        row.anime_id.clone().ok_or(OPTION_ERROR.clone())?,
+    )
+    .await?;
     let media = data.data.media;
-    let next_airing = media.next_airing_episode.unwrap();
-    let title = media.title.unwrap();
-    let rj = title.romaji.clone();
-    let en = title.english.clone();
+    let next_airing = media.next_airing_episode.ok_or(OPTION_ERROR.clone())?;
+    let title = media.title.ok_or(OPTION_ERROR.clone())?;
+    let rj = title.romaji;
+    let en = title.english;
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
     set_data_activity(
         media.id,
@@ -92,5 +102,4 @@ pub async fn update_info(row: ActivityData, guild_id: String) {
         row.delays.unwrap_or(0) as i64,
     )
     .await
-    .unwrap();
 }
