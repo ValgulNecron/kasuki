@@ -1,7 +1,7 @@
 use crate::common::html_parser::convert_to_discord_markdown;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, UNKNOWN};
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::MediaGettingError;
 use crate::lang_struct::anilist::character::load_localization_character;
@@ -145,30 +145,43 @@ pub async fn send_embed(
     let dob_data = character.date_of_birth.clone();
     let mut dob_string = String::new();
 
+    let mut mo: bool = false;
+    let mut da: bool = false;
+
     match dob_data.month {
         Some(m) => {
-            dob_string.push_str(m.to_string().as_str());
-            dob_string.push_str("/")
+            dob_string.push_str(format!("{:02}", m).as_str());
+            mo = true
         }
         None => {}
     }
 
     match dob_data.day {
         Some(d) => {
-            dob_string.push_str(d.to_string().as_str());
-            dob_string.push_str("/")
+            if mo {
+                dob_string.push_str("/")
+            }
+            dob_string.push_str(format!("{:02}", d).as_str());
+            da = true
         }
         None => {}
     }
 
     match dob_data.year {
-        Some(y) => dob_string.push_str(y.to_string().as_str()),
+        Some(y) => {
+            if da {
+                dob_string.push_str("/")
+            }
+            dob_string.push_str(format!("{:04}", y).as_str());
+        }
         None => {}
     }
 
     let mut dob = String::new();
     if dob_string != String::new() {
-        dob = character_localised.date_of_birth
+        dob = character_localised
+            .date_of_birth
+            .replace("$date$", dob_string.as_str())
     }
 
     let mut desc = character_localised

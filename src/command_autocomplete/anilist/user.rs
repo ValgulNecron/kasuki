@@ -4,7 +4,7 @@ use serenity::all::{
     CreateInteractionResponse,
 };
 
-pub async fn send_auto_complete(ctx: Context, command: CommandInteraction) {
+pub async fn autocomplete(ctx: Context, command: CommandInteraction) {
     let search = &command
         .data
         .options
