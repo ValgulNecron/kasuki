@@ -1,4 +1,3 @@
-use crate::common::get_nsfw::get_nsfw;
 use crate::constant::{
     COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
     OPTION_ERROR,
@@ -6,8 +5,8 @@ use crate::constant::{
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
     DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError,
-    DifferedResponseError, DifferedTokenError, DifferedWritingFile, LangageGuildIdError,
-    NoCommandOption, NsfwError,
+    DifferedResponseError, DifferedTokenError, DifferedWritingFile,
+    NoCommandOption,
 };
 use crate::lang_struct::ai::image::load_localization_image;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
