@@ -5,7 +5,6 @@ use serenity::all::{
 
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::LangageGuildIdError;
 use crate::lang_struct::general::module::load_localization_module_activation;
 use crate::sqls::general::data::{
     get_data_module_activation_status, set_data_module_activation_status,

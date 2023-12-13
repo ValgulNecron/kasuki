@@ -1,0 +1,18 @@
+{
+  "en": {
+    "desc": "Age: $age$. \n Gender: $gender$. $date_of_birth$ \n Number of Favorites: $fav$. \n\n Description: \n $desc$",
+    "date_of_birth": "\n Date of Birth: $date$."
+  },
+  "fr": {
+    "desc": "Age: $age$. \n Genre: $gender$. \n $date_of_birth$ \n Nombre de favoris: $fav$. \n\n Description: \n $desc$",
+    "date_of_birth": "Date de naissance: $date$."
+  },
+  "de": {
+    "desc": "Alter: $age$. \n Geschlecht: $gender$. \n $date_of_birth$ \n Anzahl der Favoriten: $fav$. \n\n Beschreibung: \n $desc$",
+    "date_of_birth": "Geburtsdatum: $date$."
+  },
+  "jp": {
+    "desc": "せいねん: $age$. \n せいべつ: $gender$. \n $date_of_birth$ \n おきにいりすう: $fav$. \n\n せつめい: \n $desc$",
+    "date_of_birth": "しょうねんつきび: $date$."
+  }
+}

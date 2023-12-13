@@ -104,7 +104,6 @@ impl From<RemoteCommandOptionType> for CommandOptionType {
             RemoteCommandOptionType::Number => CommandOptionType::Number,
             RemoteCommandOptionType::Attachment => CommandOptionType::Attachment,
             RemoteCommandOptionType::Unknown(value) => CommandOptionType::Unknown(value),
-            _ => CommandOptionType::String,
         }
     }
 }

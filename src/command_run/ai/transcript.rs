@@ -2,8 +2,7 @@ use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERR
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
     DifferedCopyBytesError, DifferedFileExtensionError, DifferedFileTypeError,
-    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, LangageGuildIdError,
-    NoCommandOption,
+    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, NoCommandOption,
 };
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};

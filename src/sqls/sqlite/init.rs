@@ -162,5 +162,16 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         .bind(1)
         .execute(pool)
         .await.map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS registered_user  (
+            user_id TEXT PRIMARY KEY,
+            anilist_username TEXT,
+        )",
+    )
+    .execute(pool)
+    .await
+    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+
     Ok(())
 }

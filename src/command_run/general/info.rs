@@ -5,7 +5,6 @@ use serenity::all::{
 
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::LangageGuildIdError;
 use crate::lang_struct::general::info::load_localization_info;
 
 pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppError> {

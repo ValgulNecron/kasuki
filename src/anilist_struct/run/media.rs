@@ -11,20 +11,19 @@ use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
-use tracing::{info, trace};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct MediaWrapper {
     pub data: MediaData,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct MediaData {
     #[serde(rename = "Media")]
     pub media: Media,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Media {
     pub id: i64,
     pub description: Option<String>,
@@ -61,49 +60,49 @@ pub struct Media {
     pub staff: Staff,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Title {
     pub romaji: Option<String>,
     pub english: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct StartEndDate {
     pub year: Option<i32>,
     pub month: Option<i32>,
     pub day: Option<i32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct CoverImage {
     #[serde(rename = "extraLarge")]
     pub extra_large: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Tag {
     pub name: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Staff {
     pub edges: Vec<Edge>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Edge {
     pub node: Node,
     pub id: Option<u32>,
     pub role: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Node {
     pub id: Option<u32>,
     pub name: Name,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Name {
     pub full: Option<String>,
     #[serde(rename = "userPreferred")]
