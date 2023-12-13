@@ -25,9 +25,6 @@ pub async fn run(
     ctx: &Context,
     command: &CommandInteraction,
 ) -> Result<(), AppError> {
-    if !get_nsfw(command, ctx).await {
-        return Err(NsfwError(String::from("This channel is not nsfw.")));
-    }
     let guild_id = match command.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),

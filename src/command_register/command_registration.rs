@@ -1,3 +1,4 @@
+use std::env;
 use crate::command_register::command_structure::{get_commands, CommandData};
 use serenity::all::{Command, CreateCommand, CreateCommandOption, Http, Permissions};
 use std::sync::Arc;
@@ -30,10 +31,19 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
         }
         permission = Permissions::from_bits(perm_bit).unwrap()
     }
+
+    let mut nsfw = command.nsfw.clone();
+
+    if command.name.as_str() == "image" {
+        let honor_nsfw = env::var("IMAGE_GENERATION_MODELS_ON").unwrap_or(String::from("fale"));
+        let is_ok = honor_nsfw.to_lowercase() == "true";
+        nsfw = is_ok
+    }
+
     let mut build = CreateCommand::new(&command.name)
         .description(&command.desc)
         .dm_permission(command.dm_command)
-        .nsfw(command.nsfw)
+        .nsfw(nsfw)
         .default_member_permissions(permission);
     match &command.localised {
         Some(localiseds) => {
