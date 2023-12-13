@@ -5,6 +5,106 @@
 ![Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/master?style=plastic)
 ![Dev Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/dev?style=plastic&label=Dev)
 
+# Vision
+
+
+The bot is in the first place,
+a bot that interfaces discord and the anilist api,
+letting users get different information from it.
+There are also multiple secondary modules that will be added
+when I have ideas or want to test things.
+
+
+# Contributing
+
+
+## I know how to code in rust
+
+
+Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
+something else, just do it and open a pr afterward.
+
+
+## I don't know how to code in rust but still want to contribute
+
+1. You can add new langage by adding a translation in the file located in lang_file and adding it to
+   lang_file/available_lang.json
+2. Contribute to this guide by making it clearer on how to use/ how it works.
+3. Or by opening an issue with enhancement or new feature you want to see.
+
+Please note that for embed you will need to use ISO-639-1 and if no ISO-639-1 exist or need to be more specific like the
+different "version" of chinese use ISO-639-3 and if still not like with a specific chinese written in pinyin, I used the
+ISO-639-3 code for mandarin chinese (cmn) and added a p for pinyin
+
+if working on command_register please use the same structure,
+but the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
+
+
+# How to use
+
+
+## 1. Add the bot to your server
+
+
+you can add my instance of the bot
+with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot)
+
+
+## 2. Self-host your instance
+
+
+### tested on:
+
+
+linux: ubuntu 22.04.2 x86-64
+
+Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates
+
+windows: windows 10 and 11
+
+
+### Docker
+
+- Install docker and docker compose.
+- Clone this repo.
+
+```bash
+git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
+```
+
+- edit compose-default.yml file and add your discord bot token.
+  (not sure if it works or needs to be renamed to
+  compose.yml or docker-compose.yml)
+- run docker compose.
+
+```bash
+docker compose up -d
+```
+
+Please remember that after a pull you will need to rebuild
+
+```bash
+docker compose up -d --build 
+```
+
+you can also use the image valgul/kasuki instead of building the bot locally.
+
+
+### or Rust
+
+- Install rust.
+- Clone this repo.
+
+```bash
+git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
+```
+
+- edit .env-default file and add your discord bot token and rename it to .env.
+- run cargo.
+
+```bash
+cargo run --release
+```
 
 # TODO
 
@@ -110,134 +210,6 @@
 for those of you who prefer web dev.\
 [https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
 
-
-# Vision
-
-
-The bot is in the first place,
-a bot that interfaces discord and the anilist api,
-letting users get different information from it.
-There are also multiple secondary modules that will be added
-when I have ideas or want to test things.
-
-
-# Contributing
-
-
-## I know how to code in rust
-
-
-Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
-something else, just do it and open a pr afterward.
-
-
-## I don't know how to code in rust but still want to contribute
-
-1. You can add new langage by adding a translation in the file located in lang_file and adding it to
-   lang_file/available_lang.json
-2. Contribute to this guide by making it clearer on how to use/ how it works.
-3. Or by opening an issue with enhancement or new feature you want to see.
-
-Please note that for embed you will need to use ISO-639-1 and if no ISO-639-1 exist or need to be more specific like the
-different "version" of chinese use ISO-639-3 and if still not like with a specific chinese written in pinyin, I used the
-ISO-639-3 code for mandarin chinese (cmn) and added a p for pinyin
-
-if working on command_register please use the same structure,
-but the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
-
-
-# How to use
-
-
-## 1. Add the bot to your server
-
-
-you can add my instance of the bot
-with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot)
-
-
-## 2. Self-host your instance
-
-
-### tested on:
-
-
-linux: ubuntu 22.04.2 x86-64
-
-Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates
-
-windows: windows 10 and 11
-
-
-### Docker
-
-- Install docker and docker compose.
-- Clone this repo.
-
-```bash
-git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
-```
-
-- edit compose-default.yml file and add your discord bot token.
-  (not sure if it works or needs to be renamed to
-  compose.yml or docker-compose.yml)
-- run docker compose.
-
-```bash
-docker compose up -d
-```
-
-Please remember that after a pull you will need to rebuild
-
-```bash
-docker compose up -d --build 
-```
-
-you can also use the image valgul/kasuki instead of building the bot locally.
-
-
-### or Rust
-
-- Install rust.
-- Clone this repo.
-
-```bash
-git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
-```
-
-- edit .env-default file and add your discord bot token and rename it to .env.
-- run cargo.
-
-```bash
-cargo run --release
-```
-
-# Commands
-
-
-## /!\ Not updated /!\
-
-- General:
-  - /info - Show info about bot.
-  - /ping - Check if the bot responds to command.
-  - /lang - let you change the langage for your guild. require admin perm.
-- Anime:
-  - /anime - Show info about anime.
-  - /character - Show info on a character.
-  - /compare - Compare 2 different user.
-  - /level - Show your level based on what you read and watched.
-  - /ln - Show info about light novel.
-  - /manga - Show info about manga.
-  - /random - Give a random anime or manga.
-  - /register - Link your anilist and discord account.
-  - /search - Let you search for a different type. Like ln, manga, etc...
-  - /staff - Give information about a specified staff.
-  - /user - Show info about user.
-- AI:
-  - /image - Generate an image from a description.
-  - /transcript - Transcript a video or an audio file with a size limit of 25mb.
-  - /translation
-    — Create a translated transcript of video or an audio file with a size limit of 25mb.
 
 # Credit
 
