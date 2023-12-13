@@ -5,8 +5,7 @@ use crate::constant::{
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
     DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError,
-    DifferedResponseError, DifferedTokenError, DifferedWritingFile,
-    NoCommandOption,
+    DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption,
 };
 use crate::lang_struct::ai::image::load_localization_image;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
