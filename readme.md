@@ -82,10 +82,11 @@
     idea of generating image
     with a seiyuu and va role.
     — This is possible, I'm not competent enough.
-    - [ ] Get all the register users of the server.
-      Working on it after finishing anime activity.
-    - [X] Add studio search.
-    - [X] Add commands that give the best waifu. — Done.
+    — Done
+  - [ ] Get all the register users of the server.
+    Working on it after finishing anime activity.
+  - [X] Add studio search.
+  - [X] Add commands that give the best waifu. — Done.
 
 - AI submodule:
   - [X] Image generation with AI. — Done.

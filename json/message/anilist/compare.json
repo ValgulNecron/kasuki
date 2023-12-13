@@ -1,0 +1,24 @@
+{
+  "en": {
+    "more_anime": "$greater$ as watched more anime than $lesser$",
+    "same_anime": "both $1$ and $2$ as the same amount of anime watched",
+    "more_watch_time": "$greater$ as more watch time than $lesser$",
+    "same_watch_time": "both $1$ and $2$ watched anime for the same amount of time",
+    "genre_anime": "$1$ prefer the $1a$ genre and $2$ prefer the $2a$ genre for anime",
+    "same_genre_anime": "both $1$ and $2$ prefer the $1a$ genre for anime",
+    "tag_anime": "$1$ prefer the $1a$ tag and $2$ prefer the $2a$ tag for anime",
+    "same_tag_anime": "both $1$ and $2$ prefer the $1a$ tag for anime",
+    "more_manga": "$greater$ as read more manga than $lesser$",
+    "same_manga": "both $1$ and $2$ as the same amount of manga read",
+    "genre_manga": "$1$ prefer the $1a$ genre and $2$ prefer the $2a$ genre for manga",
+    "same_genre_manga": "both $1$ and $2$ prefer the $1a$ genre for manga",
+    "tag_manga": "$1$ prefer the $1a$ tag and $2$ prefer the $2a$ tag for manga",
+    "same_tag_manga": "both $1$ and $2$ prefer the $1a$ tag for manga"
+  },
+  "fr": {
+  },
+  "jp": {
+  },
+  "de": {
+  }
+}
