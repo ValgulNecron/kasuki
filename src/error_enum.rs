@@ -40,4 +40,5 @@ pub enum AppError {
     DifferedGettingBytesError(String),
     MediaGettingError(String),
     DifferedNotAiringError(String),
+    NoStatisticDifferedError(String),
 }

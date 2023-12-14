@@ -4,6 +4,6 @@ pub mod character;
 pub mod compare;
 pub mod ln;
 pub mod manga;
+pub mod random;
 pub mod user;
 pub mod waifu;
-pub mod random;
