@@ -6,3 +6,4 @@ pub mod ln;
 pub mod manga;
 pub mod user;
 pub mod waifu;
+pub mod random;
