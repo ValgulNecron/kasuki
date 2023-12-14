@@ -2,10 +2,9 @@ use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERR
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
     DifferedCopyBytesError, DifferedFileExtensionError, DifferedFileTypeError,
-    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, LangageGuildIdError,
-    NoCommandOption,
+    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, NoCommandOption,
 };
-use crate::lang_struct::ai::transcript::load_localization_transcript;
+use crate::lang_struct::ai::translation::load_localization_translation;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
 use serde_json::{json, Value};
@@ -73,7 +72,7 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let transcript_localised = load_localization_transcript(guild_id).await?;
+    let translation_localised = load_localization_translation(guild_id).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
         return Err(DifferedFileTypeError(String::from("Bad file type.")));
@@ -182,7 +181,7 @@ pub async fn run(
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .title(transcript_localised.title)
+        .title(translation_localised.title)
         .description(text);
 
     let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);

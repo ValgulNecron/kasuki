@@ -1,6 +1,6 @@
-use std::env;
 use crate::command_register::command_structure::{get_commands, CommandData};
 use serenity::all::{Command, CreateCommand, CreateCommandOption, Http, Permissions};
+use std::env;
 use std::sync::Arc;
 use tracing::{error, trace};
 

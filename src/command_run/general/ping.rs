@@ -5,7 +5,6 @@ use serenity::all::{
 
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::LangageGuildIdError;
 use crate::lang_struct::general::ping::load_localization_ping;
 use crate::struct_shard_manager::ShardManagerContainer;
 

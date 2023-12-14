@@ -1,4 +1,4 @@
-use crate::sqls::sqlite::data::get_data_guild_lang;
+use crate::sqls::general::data::get_data_guild_lang;
 
 pub async fn get_guild_langage(guild_id: String) -> String {
     if guild_id == String::from("0") {

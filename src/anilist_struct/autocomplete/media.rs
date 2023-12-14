@@ -7,30 +7,30 @@ use serenity::all::{
     CreateInteractionResponse,
 };
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct AutocompleteTitle {
     pub romaji: String,
     pub english: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct AutocompleteMedia {
     pub id: u32,
     pub title: Option<AutocompleteTitle>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct MediaPage {
     pub media: Option<Vec<Option<AutocompleteMedia>>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct MediaPageData {
     #[serde(rename = "Page")]
     pub page: MediaPage,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct MediaPageWrapper {
     pub data: MediaPageData,
 }

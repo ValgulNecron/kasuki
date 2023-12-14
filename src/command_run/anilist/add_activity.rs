@@ -4,9 +4,7 @@ use crate::constant::{
     COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
 };
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    CreatingWebhookDifferedError, DifferedNotAiringError, LangageGuildIdError,
-};
+use crate::error_enum::AppError::{CreatingWebhookDifferedError, DifferedNotAiringError};
 use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
 use crate::sqls::general::data::{get_one_activity, set_data_activity};
 use base64::{engine::general_purpose, Engine as _};

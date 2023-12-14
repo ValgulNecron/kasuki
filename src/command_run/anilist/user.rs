@@ -2,6 +2,7 @@ use crate::anilist_struct::run::user::{send_embed, UserWrapper};
 use crate::constant::OPTION_ERROR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NoCommandOption;
+use crate::sqls::general::data::get_registered_user;
 use serenity::all::{CommandDataOption, CommandDataOptionValue, CommandInteraction, Context};
 
 pub async fn run(
@@ -9,7 +10,7 @@ pub async fn run(
     ctx: &Context,
     command: &CommandInteraction,
 ) -> Result<(), AppError> {
-    if let Some(option) = options.get(0) {
+    if let Some(_) = options.get(0) {
         let option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
 
         let value = match option {
@@ -29,5 +30,11 @@ pub async fn run(
 
         send_embed(ctx, command, data).await
     } else {
+        let user_id = &command.user.id.to_string();
+        let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
+        let (user, _): (Option<String>, Option<String>) = row;
+        let user = user.ok_or(OPTION_ERROR.clone())?;
+        let data = UserWrapper::new_user_by_search(&user).await?;
+        send_embed(ctx, command, data).await
     }
 }

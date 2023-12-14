@@ -205,7 +205,7 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
     Ok(row)
 }
 
-pub async fn get_data_guild_lang(
+pub async fn get_data_guild_lang_sqlite(
     guild_id: String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
@@ -242,6 +242,21 @@ pub async fn get_one_activity_sqlite(
         .await
         .unwrap_or((None, None, None, None));
 
+    pool.close().await;
+
+    Ok(row)
+}
+
+pub async fn get_registered_user_sqlite(
+    user_id: &String,
+) -> Result<(Option<String>, Option<String>), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let row: (Option<String>, Option<String>) =
+        sqlx::query_as("SELECT anilist_username, user_id FROM registered_user WHERE user_id = ?")
+            .bind(user_id)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((None, None));
     pool.close().await;
 
     Ok(row)
