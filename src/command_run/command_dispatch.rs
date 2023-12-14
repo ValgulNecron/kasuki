@@ -1,5 +1,5 @@
 use crate::command_run::ai::{image, transcript, translation};
-use crate::command_run::anilist::{add_activity, anime, character, ln, manga, user, waifu};
+use crate::command_run::anilist::{add_activity, anime, character, compare, ln, manga, user, waifu};
 use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;
@@ -105,6 +105,13 @@ pub async fn command_dispatching(
         "waifu" => {
             if check_if_anilist_moule_is_on(&command).await? {
                 waifu::run(&ctx, &command).await?
+            } else {
+                return Err(anilist_module_error);
+            }
+        }
+        "compare" => {
+            if check_if_anilist_moule_is_on(&command).await? {
+                compare::run(&command.data.options, &ctx, &command).await?
             } else {
                 return Err(anilist_module_error);
             }
