@@ -1,4 +1,4 @@
-use crate::command_autocomplete::anilist::{anime, character, ln, manga, user};
+use crate::command_autocomplete::anilist::{anime, character, compare, ln, manga, user};
 use serenity::all::{CommandInteraction, Context};
 
 pub async fn autocomplete_dispatching(ctx: Context, command: CommandInteraction) {
@@ -9,6 +9,7 @@ pub async fn autocomplete_dispatching(ctx: Context, command: CommandInteraction)
         "manga" => manga::autocomplete(ctx, command).await,
         "user" => user::autocomplete(ctx, command).await,
         "character" => character::autocomplete(ctx, command).await,
+        "compare" => compare::autocomplete(ctx, command).await,
         _ => {}
     }
 }

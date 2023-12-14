@@ -25,6 +25,8 @@ pub struct CompareLocalised {
     pub same_genre_manga: String,
     pub tag_manga: String,
     pub same_tag_manga: String,
+    pub more_manga_chapter: String,
+    pub same_manga_chapter: String,
 }
 
 pub async fn load_localization_compare(guild_id: String) -> Result<CompareLocalised, AppError> {

@@ -1,5 +1,7 @@
 use crate::command_run::ai::{image, transcript, translation};
-use crate::command_run::anilist::{add_activity, anime, character, compare, ln, manga, user, waifu};
+use crate::command_run::anilist::{
+    add_activity, anime, character, compare, ln, manga, user, waifu,
+};
 use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;
