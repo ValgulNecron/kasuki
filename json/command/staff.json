@@ -9,7 +9,7 @@
     {
       "name": "staff_name",
       "desc": "Name of the staff you want info about.",
-      "required": false,
+      "required": true,
       "autocomplete": true,
       "command_type": "String",
       "localised_args": [
