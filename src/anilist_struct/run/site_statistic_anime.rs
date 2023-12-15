@@ -4,30 +4,30 @@ use crate::error_enum::AppError::NoStatisticDifferedError;
 use serde::Deserialize;
 use serde_json::json;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct SiteStatisticsAnimeWrapper {
     pub data: SiteStatisticsAnimeData,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct SiteStatisticsAnimeData {
     #[serde(rename = "SiteStatistics")]
     pub site_statistics: SiteStatisticsAnimeContainer,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct SiteStatisticsAnimeContainer {
     pub anime: SiteStatisticAnime,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct SiteStatisticAnime {
     #[serde(rename = "pageInfo")]
     pub page_info: SiteStatisticsAnimePageInfo,
     pub nodes: Vec<SiteStatisticsAnimeNode>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct SiteStatisticsAnimePageInfo {
     #[serde(rename = "currentPage")]
     pub current_page: i32,
@@ -38,7 +38,7 @@ pub struct SiteStatisticsAnimePageInfo {
     pub has_next_page: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct SiteStatisticsAnimeNode {
     pub date: i64,
     pub count: i32,

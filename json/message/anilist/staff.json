@@ -1,0 +1,15 @@
+{
+  "en": {
+    "field1_title": "Media",
+    "field2_title": "VA",
+    "desc": "**Info** $dob$ $dod$ \n Occupation: $job$ \n Gender: $gender$ \n Age: $aga$",
+    "date_of_birth": "\n Date of Birth: $date$.",
+    "date_of_death": "\n Date of death: $date$."
+  },
+  "fr": {
+  },
+  "jp": {
+  },
+  "de": {
+  }
+}

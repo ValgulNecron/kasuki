@@ -5,4 +5,5 @@ pub mod media;
 pub mod random;
 pub mod register;
 pub mod send_activity;
+pub mod staff;
 pub mod user;
