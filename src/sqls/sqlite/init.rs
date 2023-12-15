@@ -1,4 +1,4 @@
-use sqlx::{Pool, Sqlite};
+use sqlx::{Executor, Pool, Sqlite};
 use std::fs::File;
 use std::path::Path;
 
@@ -143,6 +143,15 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .await
     .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
 
+     pool.execute(
+        "CREATE TABLE IF NOT EXISTS registered_user  (
+            user_id TEXT PRIMARY KEY,
+            anilist_username TEXT,
+        )",
+    )
+    .await
+    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
             id TEXT PRIMARY KEY,
@@ -162,16 +171,6 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         .bind(1)
         .execute(pool)
         .await.map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS registered_user  (
-            user_id TEXT PRIMARY KEY,
-            anilist_username TEXT,
-        )",
-    )
-    .execute(pool)
-    .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
 
     Ok(())
 }

@@ -261,3 +261,20 @@ pub async fn get_registered_user_sqlite(
 
     Ok(row)
 }
+
+pub async fn set_registered_user_sqlite(
+    user_id: &String,
+    username: &String,
+) -> Result<(Option<String>, Option<String>), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let row: (Option<String>, Option<String>) =
+        sqlx::query_as("INSERT OR REPLACE INTO registered_user (user_id, anilist_username) VALUES (?, ?)",)
+            .bind(user_id)
+            .bind(username)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((None, None));
+    pool.close().await;
+
+    Ok(row)
+}

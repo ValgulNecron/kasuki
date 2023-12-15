@@ -69,7 +69,14 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-    error!("{:?}", init_sql_database().await);
+    match init_sql_database().await {
+        Ok(_) => {},
+        Err(e) => {
+            error!("{:?}", e);
+            return;
+        },
+    }
+
     // Configure the client with your Discord bot token in the environment.
     let my_path = "./.env";
     let path = std::path::Path::new(my_path);

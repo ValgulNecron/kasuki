@@ -4,6 +4,7 @@ use crate::error_enum::AppError;
 use crate::error_enum::AppError::NoCommandOption;
 use crate::sqls::general::data::get_registered_user;
 use serenity::all::{CommandDataOption, CommandDataOptionValue, CommandInteraction, Context};
+use tracing::trace;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -32,9 +33,10 @@ pub async fn run(
     } else {
         let user_id = &command.user.id.to_string();
         let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
+        trace!("{:?}", row);
         let (user, _): (Option<String>, Option<String>) = row;
         let user = user.ok_or(OPTION_ERROR.clone())?;
-        let data = UserWrapper::new_user_by_search(&user).await?;
+        let data = UserWrapper::new_user_by_id((&user).parse::<i32>().unwrap()).await?;
         send_embed(ctx, command, data).await
     }
 }

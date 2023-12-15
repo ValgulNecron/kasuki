@@ -9,7 +9,7 @@
     {
       "name": "username",
       "desc": "Username of the anilist user you want to check.",
-      "required": true,
+      "required": false,
       "autocomplete": true,
       "command_type": "String",
       "localised_args": [

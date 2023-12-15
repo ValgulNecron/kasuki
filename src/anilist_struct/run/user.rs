@@ -283,7 +283,7 @@ pub async fn send_embed(
         .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }
 
-fn get_user_url(user_id: &i32) -> String {
+pub fn get_user_url(user_id: &i32) -> String {
     format!("https://anilist.co/user/{}", user_id)
 }
 
@@ -455,7 +455,7 @@ fn get_anime_time_watch(i: i32, localised1: UserLocalised) -> String {
     tw
 }
 
-fn get_color(user: User) -> Colour {
+pub fn get_color(user: User) -> Colour {
     let mut _color = COLOR.clone();
     match user
         .options

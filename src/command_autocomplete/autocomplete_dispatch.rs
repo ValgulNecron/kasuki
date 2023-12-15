@@ -10,6 +10,7 @@ pub async fn autocomplete_dispatching(ctx: Context, command: CommandInteraction)
         "user" => user::autocomplete(ctx, command).await,
         "character" => character::autocomplete(ctx, command).await,
         "compare" => compare::autocomplete(ctx, command).await,
+        "register" => user::autocomplete(ctx, command).await,
         _ => {}
     }
 }

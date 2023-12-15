@@ -1,6 +1,6 @@
 use crate::command_run::ai::{image, transcript, translation};
 use crate::command_run::anilist::{
-    add_activity, anime, character, compare, ln, manga, random, user, waifu,
+    add_activity, anime, character, compare, ln, manga, random, register, user, waifu,
 };
 use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
@@ -121,6 +121,13 @@ pub async fn command_dispatching(
         "random" => {
             if check_if_anilist_moule_is_on(&command).await? {
                 random::run(&command.data.options, &ctx, &command).await?
+            } else {
+                return Err(anilist_module_error);
+            }
+        }
+        "register" => {
+            if check_if_anilist_moule_is_on(&command).await? {
+                register::run(&command.data.options, &ctx, &command).await?
             } else {
                 return Err(anilist_module_error);
             }
