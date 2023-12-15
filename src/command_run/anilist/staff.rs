@@ -13,7 +13,12 @@ pub async fn run(
     ctx: &Context,
     command: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
+    let mut option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
+    for option_data in options {
+        if option_data.name.as_str() != "type" {
+            option = &option;
+        }
+    }
 
     let value = match option {
         CommandDataOptionValue::String(lang) => lang,

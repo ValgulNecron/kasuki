@@ -1,0 +1,14 @@
+{
+  "en": {
+    "desc": "Id: $id$ \n Favorite: $fav$ \n Is animation studio: $animation$ \n $list$"
+  },
+  "fr": {
+    "desc": "Identifiant : $id$ \n Favori : $fav$ \n Est un studio d'animation : $animation$ \n $list$"
+  },
+  "jp": {
+    "desc": "ID: $id$ \n お気に入り: $fav$ \n アニメーションスタジオかどうか: $animation$ \n $list$"
+  },
+  "de": {
+    "desc": "ID: $id$ \n Favorit: $fav$ \n Ist ein Animationsstudio: $animation$ \n $list$"
+  }
+}

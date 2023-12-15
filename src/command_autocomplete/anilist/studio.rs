@@ -1,4 +1,4 @@
-use crate::anilist_struct::autocomplete::staff::StaffPageWrapper;
+use crate::anilist_struct::autocomplete::studio::StudioPageWrapper;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
@@ -11,17 +11,14 @@ pub async fn autocomplete(ctx: Context, command: CommandInteraction) {
             search = option.value.as_str().unwrap().to_string()
         }
     }
-    let data = StaffPageWrapper::new_autocomplete_staff(&search.to_string()).await;
-    let mut choices = Vec::new();
-    let staffs = data.data.page.staff.clone().unwrap();
+    let data = StudioPageWrapper::new_autocomplete_staff(&search.to_string()).await;
+    let studios = data.data.page.studios.clone().unwrap();
 
-    for staff in staffs {
-        let data = staff.unwrap();
-        let user = data
-            .name
-            .user_preferred
-            .clone()
-            .unwrap_or(data.name.full.clone());
+    let mut choices = Vec::new();
+
+    for studio in studios {
+        let data = studio.unwrap();
+        let user = data.name;
         choices.push(AutocompleteChoice::new(user, data.id.to_string()))
     }
 

@@ -2,14 +2,12 @@ use crate::anilist_struct::autocomplete::media::{send_auto_complete, MediaPageWr
 use serenity::all::{CommandInteraction, Context};
 
 pub async fn autocomplete(ctx: Context, command: CommandInteraction) {
-    let search = &command
-        .data
-        .options
-        .first()
-        .unwrap()
-        .value
-        .as_str()
-        .unwrap();
+    let mut search = String::new();
+    for option in &command.data.options {
+        if option.name.as_str() != "type" {
+            search = option.value.as_str().unwrap().to_string()
+        }
+    }
     let manga = MediaPageWrapper::new_autocomplete_manga(&search.to_string()).await;
     send_auto_complete(ctx, command, manga).await;
 }

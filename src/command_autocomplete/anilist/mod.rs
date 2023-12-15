@@ -3,5 +3,7 @@ pub mod character;
 pub mod compare;
 pub mod ln;
 pub mod manga;
+pub mod search;
 pub mod staff;
+pub mod studio;
 pub mod user;

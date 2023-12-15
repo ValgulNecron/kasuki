@@ -5,14 +5,12 @@ use serenity::all::{
 };
 
 pub async fn autocomplete(ctx: Context, command: CommandInteraction) {
-    let search = &command
-        .data
-        .options
-        .first()
-        .unwrap()
-        .value
-        .as_str()
-        .unwrap();
+    let mut search = String::new();
+    for option in &command.data.options {
+        if option.name.as_str() != "type" {
+            search = option.value.as_str().unwrap().to_string()
+        }
+    }
     let data = CharacterPageWrapper::new_autocomplete_character(&search.to_string()).await;
     let mut choices = Vec::new();
     let character = data.data.page.characters.unwrap().clone();

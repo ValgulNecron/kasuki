@@ -11,32 +11,33 @@ pub async fn run(
     ctx: &Context,
     command: &CommandInteraction,
 ) -> Result<(), AppError> {
-    if let Some(_) = options.get(0) {
-        let option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
+    for option in options {
+        if option.name.as_str() != "type" {
+            match option.value.as_str() {
+                Some(a) => {
+                    let value = &a.to_string();
 
-        let value = match option {
-            CommandDataOptionValue::String(lang) => lang,
-            _ => {
-                return Err(NoCommandOption(String::from(
-                    "The command contain no option.",
-                )));
+                    let data: UserWrapper = if value.parse::<i32>().is_ok() {
+                        UserWrapper::new_user_by_id(value.parse().unwrap()).await?
+                    } else {
+                        UserWrapper::new_user_by_search(value).await?
+                    };
+
+                    return send_embed(ctx, command, data).await;
+                }
+
+                None => {
+                    let user_id = &command.user.id.to_string();
+                    let row: (Option<String>, Option<String>) =
+                        get_registered_user(user_id).await?;
+                    trace!("{:?}", row);
+                    let (user, _): (Option<String>, Option<String>) = row;
+                    let user = user.ok_or(OPTION_ERROR.clone())?;
+                    let data = UserWrapper::new_user_by_id((&user).parse::<i32>().unwrap()).await?;
+                    return send_embed(ctx, command, data).await;
+                }
             }
-        };
-
-        let data: UserWrapper = if value.parse::<i32>().is_ok() {
-            UserWrapper::new_user_by_id(value.parse().unwrap()).await?
-        } else {
-            UserWrapper::new_user_by_search(value).await?
-        };
-
-        send_embed(ctx, command, data).await
-    } else {
-        let user_id = &command.user.id.to_string();
-        let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
-        trace!("{:?}", row);
-        let (user, _): (Option<String>, Option<String>) = row;
-        let user = user.ok_or(OPTION_ERROR.clone())?;
-        let data = UserWrapper::new_user_by_id((&user).parse::<i32>().unwrap()).await?;
-        send_embed(ctx, command, data).await
+        }
     }
+    Ok(())
 }
