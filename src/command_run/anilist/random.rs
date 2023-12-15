@@ -14,7 +14,6 @@ use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
-use tracing::log::trace;
 
 pub async fn run(
     options: &[CommandDataOption],
