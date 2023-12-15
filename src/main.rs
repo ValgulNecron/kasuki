@@ -70,11 +70,11 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
     match init_sql_database().await {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             error!("{:?}", e);
             return;
-        },
+        }
     }
 
     // Configure the client with your Discord bot token in the environment.

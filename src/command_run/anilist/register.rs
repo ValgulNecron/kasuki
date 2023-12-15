@@ -3,11 +3,11 @@ use crate::constant::{COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NoCommandOption;
 use crate::lang_struct::anilist::register::load_localization_register;
+use crate::sqls::general::data::set_registered_user;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
-use crate::sqls::general::data::set_registered_user;
 
 pub async fn run(
     options: &[CommandDataOption],

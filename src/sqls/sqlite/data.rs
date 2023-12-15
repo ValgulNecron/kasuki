@@ -195,7 +195,7 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
 ) -> Result<(Option<String>, Option<bool>, Option<bool>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: (Option<String>, Option<bool>, Option<bool>) = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module FROM module_activation WHERE guild = 1",
+        "SELECT id, ai_module, anilist_module FROM module_activation WHERE guild = 1",
     )
     .fetch_one(&pool)
     .await
@@ -267,13 +267,14 @@ pub async fn set_registered_user_sqlite(
     username: &String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>) =
-        sqlx::query_as("INSERT OR REPLACE INTO registered_user (user_id, anilist_username) VALUES (?, ?)",)
-            .bind(user_id)
-            .bind(username)
-            .fetch_one(&pool)
-            .await
-            .unwrap_or((None, None));
+    let row: (Option<String>, Option<String>) = sqlx::query_as(
+        "INSERT OR REPLACE INTO registered_user (user_id, anilist_username) VALUES (?, ?)",
+    )
+    .bind(user_id)
+    .bind(username)
+    .fetch_one(&pool)
+    .await
+    .unwrap_or((None, None));
     pool.close().await;
 
     Ok(row)

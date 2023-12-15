@@ -6,7 +6,7 @@ use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::UnknownCommandError;
-use crate::sqls::sqlite::data::get_data_module_activation_kill_switch_status_sqlite;
+use crate::sqls::general::data::get_data_module_activation_kill_switch_status;
 use serenity::all::{CommandInteraction, Context};
 
 pub async fn command_dispatching(
@@ -150,7 +150,7 @@ async fn check_if_ai_moule_is_on(command: &CommandInteraction) -> Result<bool, A
 
 async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
     let row: (Option<String>, Option<bool>, Option<bool>) =
-        get_data_module_activation_kill_switch_status_sqlite().await?;
+        get_data_module_activation_kill_switch_status().await?;
     let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
     Ok(match module {
         "ANILIST" => anilist_module.unwrap_or(true),
