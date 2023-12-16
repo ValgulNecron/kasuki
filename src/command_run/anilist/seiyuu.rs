@@ -4,13 +4,13 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use image::imageops::FilterType;
-use image::{DynamicImage, GenericImage};
+use image::{DynamicImage, GenericImage, GenericImageView};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandDataOption, CommandInteraction, Context, CreateAttachment, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
-use tracing::{debug, error};
+use tracing::{debug, error, trace};
 use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
@@ -61,7 +61,7 @@ pub async fn run(
         uuids.push(uuid);
     }
 
-    let url = data.get_staff_image();
+    let url = get_staff_image(data.clone());
     let response = reqwest::get(url)
         .await
         .map_err(|_| DifferedFailedUrlError(String::from("failed to get the image.")))?;
@@ -90,22 +90,32 @@ pub async fn run(
         i += 1
     }
 
-    let mut images = Vec::new();
+    let mut images: Vec<DynamicImage> = Vec::new();
     for uuid in &uuids {
         let path = format!("{}.png", uuid);
         let img_path = Path::new(&path);
         // Read the image file into a byte vector
-        let mut file = File::open(img_path)
-            .map_err(|_| DifferedReadingFileError(String::from("Failed to read the file.")))?;
+        let mut file = match File::open(img_path) {
+            Ok(f) => f,
+            Err(e) => {
+                error!("{}", e);
+                continue;
+            }
+        };
 
         let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer)
-            .map_err(|_| DifferedReadingFileError(String::from("Failed to read the file.")))?;
+        match file.read_to_end(&mut buffer) {
+            Ok(f) => f,
+            Err(e) => {
+                error!("{}", e);
+                continue;
+            }
+        };
 
         // Load the image from the byte vector
-        image::load_from_memory(&buffer).map_err(|_| {
+        images.push(image::load_from_memory(&buffer).map_err(|_| {
             DifferedCreatingImageError(String::from("Failed to create the image from the file."))
-        })?;
+        })?);
     }
 
     let (width, height) = images[0].dimensions();
@@ -188,4 +198,8 @@ pub async fn run(
 
 fn get_characters_image(staff: StaffImageWrapper) -> Vec<StaffImageNodes> {
     staff.data.staff.characters.nodes
+}
+
+fn get_staff_image(staff: StaffImageWrapper) -> String {
+    staff.data.staff.image.large
 }
