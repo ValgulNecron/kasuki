@@ -25,7 +25,7 @@ HEALTHCHECK CMD ps aux | grep kasuki || exit 1
 
 WORKDIR /kasuki/
 
-COPY lang_file /kasuki/lang_file
+COPY json /kasuki/json
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
