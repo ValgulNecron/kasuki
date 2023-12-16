@@ -1,3 +1,14 @@
+use std::{env, fs};
+
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use serde_json::{json, Value};
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateAttachment,
+    CreateEmbed, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
+};
+use uuid::Uuid;
+
 use crate::constant::{
     COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
     OPTION_ERROR,
@@ -8,15 +19,6 @@ use crate::error_enum::AppError::{
     DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption,
 };
 use crate::lang_struct::ai::image::load_localization_image;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use serde_json::{json, Value};
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateAttachment,
-    CreateEmbed, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
-};
-use std::{env, fs};
-use uuid::Uuid;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -59,7 +61,7 @@ pub async fn run(
         Err(_) => {
             return Err(DifferedTokenError(String::from(
                 "There was an error while getting the token.",
-            )))
+            )));
         }
     };
 
@@ -82,7 +84,7 @@ pub async fn run(
                 Err(_) => {
                     return Err(DifferedImageModelError(String::from(
                         "Please specify the models you want to use",
-                    )))
+                    )));
                 }
             };
             data = json!({

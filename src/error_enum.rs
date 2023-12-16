@@ -42,4 +42,6 @@ pub enum AppError {
     DifferedNotAiringError(String),
     NoStatisticDifferedError(String),
     NotAValidTypeError(String),
+    DifferedReadingFileError(String),
+    DifferedCreatingImageError(String),
 }

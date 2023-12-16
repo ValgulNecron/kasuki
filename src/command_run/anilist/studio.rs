@@ -1,13 +1,12 @@
-use crate::anilist_struct::run::studio::StudioWrapper;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NoCommandOption;
-use crate::lang_struct::anilist::studio::load_localization_studio;
 use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
+    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
 };
-use tracing::trace;
+
+use crate::anilist_struct::run::studio::StudioWrapper;
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::error_enum::AppError;
+use crate::lang_struct::anilist::studio::load_localization_studio;
 
 pub async fn run(
     options: &[CommandDataOption],

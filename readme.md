@@ -5,6 +5,7 @@
 ![Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/master?style=plastic)
 ![Dev Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/dev?style=plastic&label=Dev)
 
+
 # Vision
 
 
@@ -111,10 +112,10 @@ cargo run --release
 
 ## BOT
 
-
 - General part:
   - [X] Change how the text is displayed to support localization. — Done.
-  - [ ] Clean the code. — It will never be done.
+  - [X] Clean the code. — It will never be done.
+    can be called done for now.
   - [X] Find a name for the bot. — Found one kasuki. if you have any better, don't hesitate to recommend.
   - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db. (change to PostgreSQL)
     — will add a var variable that will either be "sqlite" or "postgresql" with a url var for PostgreSQL
@@ -141,7 +142,7 @@ cargo run --release
   - [ ] Add docs to every public function. (Run, Register and Autocomplete do not need this.). started and clearly not
     finished.
   - [X] Logging
-  - [ ] Updating to serenity 0.12 — Working on it.
+  - [X] Updating to serenity 0.12 — Working on it.
   - [X] Support for command in dm (would need a rewrite on the langage part to default to en even when there is no guild
     id) — Now working.
     (for the command I want to be on in dm)

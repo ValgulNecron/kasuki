@@ -5,6 +5,7 @@ pub mod level;
 pub mod media;
 pub mod random;
 pub mod register;
+pub mod seiyuu;
 pub mod send_activity;
 pub mod staff;
 pub mod studio;

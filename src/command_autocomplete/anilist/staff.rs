@@ -1,8 +1,9 @@
-use crate::anilist_struct::autocomplete::staff::StaffPageWrapper;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
+
+use crate::anilist_struct::autocomplete::staff::StaffPageWrapper;
 
 pub async fn autocomplete(ctx: Context, command: CommandInteraction) {
     let mut search = String::new();

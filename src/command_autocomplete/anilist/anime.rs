@@ -1,5 +1,6 @@
-use crate::anilist_struct::autocomplete::media::{send_auto_complete, MediaPageWrapper};
 use serenity::all::{CommandInteraction, Context};
+
+use crate::anilist_struct::autocomplete::media::{send_auto_complete, MediaPageWrapper};
 
 pub async fn autocomplete(ctx: Context, command: CommandInteraction) {
     let mut search = String::new();

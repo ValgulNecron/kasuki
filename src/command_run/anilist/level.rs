@@ -1,12 +1,13 @@
+use serenity::all::{
+    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
+};
+
 use crate::anilist_struct::run::user::{get_banner, get_color, get_user_url, User, UserWrapper};
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::level::load_localization_level;
 use crate::lang_struct::anilist::user::load_localization_user;
-use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
-};
 
 pub async fn run(
     options: &[CommandDataOption],

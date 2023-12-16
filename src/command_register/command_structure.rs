@@ -1,10 +1,10 @@
-use serde::Serialize;
-use serde_json;
-use serenity::all::{CommandOptionType, Permissions};
 use std::fs;
 use std::io::Error;
 
 use serde::Deserialize;
+use serde::Serialize;
+use serde_json;
+use serenity::all::{CommandOptionType, Permissions};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Arg {

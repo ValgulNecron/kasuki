@@ -1,19 +1,22 @@
-use crate::constant::OTHER_CRATE_LEVEL;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::SetLoggerError;
-use chrono::Utc;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::Error;
 use std::io::Write;
 use std::path::Path;
 use std::str::FromStr;
+
+use chrono::Utc;
 use tracing_core::*;
 use tracing_subscriber::filter::{Directive, EnvFilter};
 use tracing_subscriber::layer::{Context, SubscriberExt};
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, Layer};
 use uuid::Uuid;
+
+use crate::constant::OTHER_CRATE_LEVEL;
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::SetLoggerError;
+
 /// Initializes the logger with the specified log level filter.
 ///
 /// # Arguments

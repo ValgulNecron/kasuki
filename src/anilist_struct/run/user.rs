@@ -1,14 +1,15 @@
-use crate::common::make_anilist_request::make_request_anilist;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::MediaGettingError;
-use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
 use serde::Deserialize;
 use serde_json::json;
 use serenity::all::{
     Colour, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
+
+use crate::common::make_anilist_request::make_request_anilist;
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::MediaGettingError;
+use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct UserWrapper {

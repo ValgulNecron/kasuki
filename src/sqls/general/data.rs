@@ -1,6 +1,6 @@
-use crate::anilist_struct::run::minimal_anime::ActivityData;
 use std::env;
 
+use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
 use crate::sqls::sqlite::data::{

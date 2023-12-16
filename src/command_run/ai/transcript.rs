@@ -1,10 +1,8 @@
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    DifferedCopyBytesError, DifferedFileExtensionError, DifferedFileTypeError,
-    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, NoCommandOption,
-};
-use crate::lang_struct::ai::transcript::load_localization_transcript;
+use std::fs::File;
+use std::io::copy;
+use std::path::Path;
+use std::{env, fs};
+
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
 use serde_json::Value;
@@ -13,12 +11,16 @@ use serenity::all::{
     Attachment, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, ResolvedOption, ResolvedValue, Timestamp,
 };
-use std::fs::File;
-use std::io::copy;
-use std::path::Path;
-use std::{env, fs};
 use tracing::log::trace;
 use uuid::Uuid;
+
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::{
+    DifferedCopyBytesError, DifferedFileExtensionError, DifferedFileTypeError,
+    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, NoCommandOption,
+};
+use crate::lang_struct::ai::transcript::load_localization_transcript;
 
 pub async fn run(
     options: &[ResolvedOption<'_>],
@@ -63,7 +65,7 @@ pub async fn run(
         None => {
             return Err(NoCommandOption(String::from(
                 "The command contain no option.",
-            )))
+            )));
         }
     };
 
@@ -130,7 +132,7 @@ pub async fn run(
         Err(_) => {
             return Err(DifferedTokenError(String::from(
                 "There was an error while getting the token.",
-            )))
+            )));
         }
     };
     let api_base_url = match env::var("AI_API_BASE_URL") {

@@ -1,7 +1,7 @@
-use crate::common::make_anilist_request::make_request_anilist;
-use crate::constant::AUTOCOMPLETE_COUNT;
 use serde::Deserialize;
 use serde_json::json;
+
+use crate::common::make_anilist_request::make_request_anilist;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct AutocompleteStudio {
@@ -24,6 +24,7 @@ pub struct StudioPageData {
 pub struct StudioPageWrapper {
     pub data: StudioPageData,
 }
+
 impl StudioPageWrapper {
     pub async fn new_autocomplete_staff(search: &String) -> StudioPageWrapper {
         let query_str = "query ($search: String, $count: Int) {

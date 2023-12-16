@@ -1,8 +1,10 @@
-use crate::command_register::command_structure::{get_commands, CommandData};
-use serenity::all::{Command, CreateCommand, CreateCommandOption, Http, Permissions};
 use std::env;
 use std::sync::Arc;
+
+use serenity::all::{Command, CreateCommand, CreateCommandOption, Http, Permissions};
 use tracing::{error, trace};
+
+use crate::command_register::command_structure::{get_commands, CommandData};
 
 pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
     if is_ok {

@@ -1,12 +1,12 @@
-use crate::anilist_struct::run::staff::StaffWrapper;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NoCommandOption;
-use crate::lang_struct::anilist::staff::load_localization_staff;
 use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
+    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
 };
+
+use crate::anilist_struct::run::staff::StaffWrapper;
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::error_enum::AppError;
+use crate::lang_struct::anilist::staff::load_localization_staff;
 
 pub async fn run(
     options: &[CommandDataOption],

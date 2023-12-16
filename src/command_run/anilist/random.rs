@@ -1,3 +1,11 @@
+use chrono::Utc;
+use rand::{thread_rng, Rng};
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
+};
+
 use crate::anilist_struct::run::random::PageWrapper;
 use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper;
@@ -7,13 +15,6 @@ use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERR
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::random::{load_localization_random, RandomLocalised};
 use crate::sqls::general::cache::{get_database_random_cache, set_database_random_cache};
-use chrono::Utc;
-use rand::{thread_rng, Rng};
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
-};
 
 pub async fn run(
     options: &[CommandDataOption],

@@ -1,13 +1,15 @@
+use std::env;
+use std::time::Duration;
+
+use chrono::Utc;
+use serenity::all::{CreateEmbed, ExecuteWebhook, Http, Webhook};
+use tokio::time::sleep;
+
 use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrapper};
 use crate::constant::{COLOR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 use crate::sqls::general::data::{get_data_activity, set_data_activity};
-use chrono::Utc;
-use serenity::all::{CreateEmbed, ExecuteWebhook, Http, Webhook};
-use std::env;
-use std::time::Duration;
-use tokio::time::sleep;
 
 pub async fn manage_activity() {
     loop {

@@ -1,3 +1,5 @@
+use serenity::all::{CommandInteraction, Context};
+
 use crate::command_run::ai::{image, transcript, translation};
 use crate::command_run::anilist::{
     add_activity, anime, character, compare, ln, manga, random, register, search, staff, studio,
@@ -8,7 +10,6 @@ use crate::command_run::general::{avatar, banner, credit, info, lang, module, pi
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::UnknownCommandError;
 use crate::sqls::general::data::get_data_module_activation_kill_switch_status;
-use serenity::all::{CommandInteraction, Context};
 
 pub async fn command_dispatching(
     ctx: Context,

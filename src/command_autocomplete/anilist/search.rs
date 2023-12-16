@@ -1,5 +1,6 @@
-use crate::command_autocomplete::anilist::{anime, character, ln, manga, staff, studio, user};
 use serenity::all::{CommandInteraction, Context};
+
+use crate::command_autocomplete::anilist::{anime, character, ln, manga, staff, studio, user};
 
 pub async fn autocomplete(ctx: Context, command: CommandInteraction) {
     let mut search_type = String::new();

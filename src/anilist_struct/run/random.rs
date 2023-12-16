@@ -1,8 +1,9 @@
+use serde::Deserialize;
+use serde_json::json;
+
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NoMediaDifferedError;
-use serde::Deserialize;
-use serde_json::json;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Media {

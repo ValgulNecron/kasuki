@@ -1,9 +1,10 @@
-use crate::anilist_struct::autocomplete::user::UserPageWrapper;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
 use tracing::log::trace;
+
+use crate::anilist_struct::autocomplete::user::UserPageWrapper;
 
 pub async fn autocomplete(ctx: Context, command: CommandInteraction) {
     let mut choice = Vec::new();

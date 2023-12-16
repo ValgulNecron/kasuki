@@ -1,11 +1,12 @@
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::FailedToGetUser;
-use crate::lang_struct::general::banner::load_localization_banner;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
 };
+
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::FailedToGetUser;
+use crate::lang_struct::general::banner::load_localization_banner;
 
 pub async fn run(
     options: &[CommandDataOption],

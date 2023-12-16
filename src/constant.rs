@@ -1,6 +1,7 @@
-use crate::error_enum::AppError;
 use once_cell::sync::Lazy;
 use serenity::all::Colour;
+
+use crate::error_enum::AppError;
 
 pub const DAYS: i64 = 3;
 pub const ACTIVITY_NAME: &str = "Let you get info from anilist.";

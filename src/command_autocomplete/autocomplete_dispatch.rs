@@ -1,7 +1,8 @@
+use serenity::all::{CommandInteraction, Context};
+
 use crate::command_autocomplete::anilist::{
     anime, character, compare, ln, manga, search, staff, studio, user,
 };
-use serenity::all::{CommandInteraction, Context};
 
 pub async fn autocomplete_dispatching(ctx: Context, command: CommandInteraction) {
     match command.data.name.as_str() {
@@ -16,6 +17,7 @@ pub async fn autocomplete_dispatching(ctx: Context, command: CommandInteraction)
         "staff" => staff::autocomplete(ctx, command).await,
         "studio" => studio::autocomplete(ctx, command).await,
         "search" => search::autocomplete(ctx, command).await,
+        "seiyuu" => staff::autocomplete(ctx, command).await,
         _ => {}
     }
 }

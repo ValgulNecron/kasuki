@@ -1,3 +1,10 @@
+use serde::Deserialize;
+use serde_json::json;
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
+};
+
 use crate::common::html_parser::convert_to_discord_markdown;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
@@ -5,12 +12,6 @@ use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::MediaGettingError;
 use crate::lang_struct::anilist::character::load_localization_character;
-use serde::Deserialize;
-use serde_json::json;
-use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
-};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct CharacterWrapper {

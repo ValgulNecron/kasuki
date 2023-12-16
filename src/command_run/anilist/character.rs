@@ -1,8 +1,7 @@
+use serenity::all::{CommandDataOption, CommandInteraction, Context};
+
 use crate::anilist_struct::run::character::{send_embed, CharacterWrapper};
-use crate::constant::OPTION_ERROR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::NoCommandOption;
-use serenity::all::{CommandDataOption, CommandDataOptionValue, CommandInteraction, Context};
 
 pub async fn run(
     options: &[CommandDataOption],

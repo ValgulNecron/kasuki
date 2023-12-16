@@ -7,6 +7,7 @@ pub mod manga;
 pub mod random;
 pub mod register;
 pub mod search;
+mod seiyuu;
 pub mod staff;
 pub mod studio;
 pub mod user;

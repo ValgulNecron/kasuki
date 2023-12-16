@@ -1,6 +1,6 @@
-use crate::anilist_struct::run::minimal_anime::ActivityData;
 use chrono::Utc;
 
+use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::SqlInsertError;

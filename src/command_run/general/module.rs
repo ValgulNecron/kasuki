@@ -74,7 +74,7 @@ pub async fn run(
         _ => {
             return Err(AppError::ModuleError(String::from(
                 "This module does not exist.",
-            )))
+            )));
         }
     }
 

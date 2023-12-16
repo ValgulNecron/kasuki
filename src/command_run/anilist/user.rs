@@ -1,10 +1,10 @@
+use serenity::all::{CommandDataOption, CommandInteraction, Context};
+use tracing::trace;
+
 use crate::anilist_struct::run::user::{send_embed, UserWrapper};
 use crate::constant::OPTION_ERROR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::NoCommandOption;
 use crate::sqls::general::data::get_registered_user;
-use serenity::all::{CommandDataOption, CommandDataOptionValue, CommandInteraction, Context};
-use tracing::trace;
 
 pub async fn run(
     options: &[CommandDataOption],

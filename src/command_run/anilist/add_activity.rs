@@ -1,12 +1,5 @@
-use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
-use crate::common::trimer::trim_webhook;
-use crate::constant::{
-    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
-};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CreatingWebhookDifferedError, DifferedNotAiringError};
-use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
-use crate::sqls::general::data::{get_one_activity, set_data_activity};
+use std::io::Cursor;
+
 use base64::{engine::general_purpose, Engine as _};
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
@@ -17,7 +10,16 @@ use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
-use std::io::Cursor;
+
+use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
+use crate::common::trimer::trim_webhook;
+use crate::constant::{
+    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
+};
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::{CreatingWebhookDifferedError, DifferedNotAiringError};
+use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
+use crate::sqls::general::data::{get_one_activity, set_data_activity};
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -95,11 +97,11 @@ pub async fn run(
         }
 
         let bytes = get(media.cover_image.unwrap().extra_large.
-        unwrap_or(
-            "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
-                .to_string()
-        )
-).await.unwrap().bytes().await.unwrap();
+            unwrap_or(
+                "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+                    .to_string()
+            )
+        ).await.unwrap().bytes().await.unwrap();
         let mut img = image::load(Cursor::new(&bytes), guess_format(&bytes).unwrap()).unwrap();
         let (width, height) = img.dimensions();
         let square_size = width.min(height);
