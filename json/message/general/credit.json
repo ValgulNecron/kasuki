@@ -1,0 +1,46 @@
+{
+  "en": {
+    "title": "Credit",
+    "credits": [
+      {
+        "desc": "valgul: Main dev / original creator / French and English translation \n"
+      },
+      {
+        "desc": "Sionnakh: Dev of the website \n"
+      }
+    ]
+  },
+  "fr": {
+    "title": "Crédit",
+    "credits": [
+      {
+        "desc": "valgul: Développeur principal / créateur original / traduction française et anglaise \n"
+      },
+      {
+        "desc": "Sionnakh: Développeur du site web \n"
+      }
+    ]
+  },
+  "jp": {
+    "title": "クレジット",
+    "credits": [
+      {
+        "desc": "valgul: メイン開発者 / 元のクリエーター / フランス語と英語の翻訳 \n"
+      },
+      {
+        "desc": "Sionnakh: ウェブサイトの開発者 \n"
+      }
+    ]
+  },
+  "de": {
+    "title": "Kredit",
+    "credits": [
+      {
+        "desc": "valgul: Hauptentwickler / ursprünglicher Schöpfer / französische und englische Übersetzung \n"
+      },
+      {
+        "desc": "Sionnakh: Webseiten-Entwickler \n"
+      }
+    ]
+  }
+}

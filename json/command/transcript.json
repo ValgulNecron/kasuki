@@ -1,0 +1,119 @@
+{
+  "name": "transcript",
+  "desc": "Generate a transcript from a video.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 3,
+  "args": [
+    {
+      "name": "video",
+      "desc": "Upload video file (max. 25MB).",
+      "required": true,
+      "autocomplete": false,
+      "command_type": "Attachment",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "video",
+          "desc": "Upload video file (max. 25MB)."
+        },
+        {
+          "code": "fr",
+          "name": "video",
+          "desc": "Télécharger le fichier vidéo (max. 25MB)."
+        },
+        {
+          "code": "de",
+          "name": "video",
+          "desc": "Video-Datei hochladen (max. 25MB)."
+        },
+        {
+          "code": "ja",
+          "name": "video",
+          "desc": "ビデオファイルをアップロード（最大25MB）。"
+        }
+      ]
+    },
+    {
+      "name": "prompt",
+      "desc": "A guide text for audio style. Must match the audio language.",
+      "required": false,
+      "autocomplete": false,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "prompt",
+          "desc": "A guide text for audio style. Must match the audio language."
+        },
+        {
+          "code": "fr",
+          "name": "invite",
+          "desc": "Un texte de guide pour le style audio. Doit correspondre à la langue de l'audio."
+        },
+        {
+          "code": "de",
+          "name": "auffordern",
+          "desc": "Ein Leittext für den Audio-Stil. Muss der Audiosprache entsprechen."
+        },
+        {
+          "code": "ja",
+          "name": "プロンプト",
+          "desc": "オーディオスタイルのガイドテキスト。オーディオの言語と一致する必要があります。"
+        }
+      ]
+    },
+    {
+      "name": "lang",
+      "desc": "Select input language (ISO-639-1)",
+      "required": false,
+      "autocomplete": false,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "lang",
+          "desc": "Select input language (ISO-639-1)"
+        },
+        {
+          "code": "fr",
+          "name": "lang",
+          "desc": "Sélectionnez la langue d'entrée (ISO-639-1)"
+        },
+        {
+          "code": "de",
+          "name": "lang",
+          "desc": "Eingabesprache auswählen (ISO-639-1)"
+        },
+        {
+          "code": "ja",
+          "name": "lang",
+          "desc": "入力言語を選択（ISO-639-1)"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "transcript",
+      "desc": "Generate a transcript from a video."
+    },
+    {
+      "code": "fr",
+      "name": "transcription",
+      "desc": "Générer une transcription à partir d'une vidéo."
+    },
+    {
+      "code": "de",
+      "name": "transkript",
+      "desc": "Erstellt ein Transkript aus einem Video."
+    },
+    {
+      "code": "ja",
+      "name": "トランスクリプト",
+      "desc": "動画から脚本を生成する。"
+    }
+  ]
+}

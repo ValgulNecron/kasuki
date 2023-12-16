@@ -1,24 +1,21 @@
 use std::fs;
 use std::fs::{File, OpenOptions};
-use std::io::{Error, Write};
+use std::io::Error;
+use std::io::Write;
 use std::path::Path;
+use std::str::FromStr;
 
 use chrono::Utc;
-use colored::Colorize;
-use log::{Level, Log, Metadata, Record};
-use log::{LevelFilter, SetLoggerError};
-use once_cell::sync::Lazy;
+use tracing_core::*;
+use tracing_subscriber::filter::{Directive, EnvFilter};
+use tracing_subscriber::layer::{Context, SubscriberExt};
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::{fmt, Layer};
 use uuid::Uuid;
 
-/// A lazy static instance of `SimpleLogger`.
-///
-/// The `LOGGER` constant is lazily initialized using the `Lazy` type from the [`lazy_static`](https://docs.rs/lazy_static) crate.
-/// It holds an instance of `SimpleLogger` which is used for logging in the application.
-///
-/// # Note
-/// This constant should be used to access the logger instance when logging is needed.
-///
-static LOGGER: Lazy<SimpleLogger> = Lazy::new(SimpleLogger::new);
+use crate::constant::OTHER_CRATE_LEVEL;
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::SetLoggerError;
 
 /// Initializes the logger with the specified log level filter.
 ///
@@ -31,68 +28,44 @@ static LOGGER: Lazy<SimpleLogger> = Lazy::new(SimpleLogger::new);
 ///
 /// A `Result` indicating success or failure. If successful, the logger is initialized
 /// and the log level filter is set. If an error occurs, the corresponding error is
-pub fn init_logger(log: &str) -> Result<(), SetLoggerError> {
-    let level_filter = match log {
-        "info" => LevelFilter::Info,
-        "warn" => LevelFilter::Warn,
-        "error" => LevelFilter::Error,
-        "debug" => LevelFilter::Debug,
-        "trace" => LevelFilter::Trace,
-        _ => LevelFilter::Info,
+
+pub fn init_logger(log: &str) -> Result<(), AppError> {
+    let kasuki_filter = match log {
+        "warn" => "kasuki=warn",
+        "error" => "kasuki=error",
+        "debug" => "kasuki=debug",
+        "trace" => "kasuki=trace",
+        _ => "kasuki=info",
     };
-    log::set_logger(&*LOGGER).map(|()| log::set_max_level(level_filter))
-}
 
-/// Struct representing a simple logger.
-///
-/// The `SimpleLogger` struct is used to log messages.
-struct SimpleLogger {
-    uuid: Uuid,
-}
-
-impl SimpleLogger {
-    pub fn new() -> Self {
-        let uuid_generated = Uuid::new_v4();
-        let _ = File::create(format!("./logs/log_{}.log", uuid_generated)).is_ok();
-        SimpleLogger {
-            uuid: uuid_generated,
+    let crate_log = match Directive::from_str(OTHER_CRATE_LEVEL) {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("{}", e);
+            return Err(SetLoggerError(String::from("Error creating the Logger")));
         }
-    }
-}
-
-impl Log for SimpleLogger {
-    fn enabled(&self, metadata: &Metadata) -> bool {
-        metadata.level() <= Level::Warn || metadata.target().starts_with("kasuki")
-    }
-
-    fn log(&self, record: &Record) {
-        if self.enabled(record.metadata()) {
-            let text = match record.level() {
-                Level::Error => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
-                    .truecolor(230, 6, 6),
-                Level::Warn => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
-                    .truecolor(230, 84, 6),
-                Level::Info => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
-                    .truecolor(22, 255, 239),
-                Level::Debug => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
-                    .truecolor(106, 255, 0),
-                Level::Trace => format!("{} : {} - {}", Utc::now(), record.level(), record.args())
-                    .truecolor(255, 0, 204),
-            };
-
-            println!("{}", text);
-
-            let mut file = OpenOptions::new()
-                .write(true)
-                .append(true)
-                .open(format!("./logs/log_{}.log", &self.uuid))
-                .unwrap();
-
-            writeln!(file, "{}", text).unwrap();
+    };
+    let kasuki_log = match Directive::from_str(kasuki_filter) {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("{}", e);
+            return Err(SetLoggerError(String::from("Error creating the Logger")));
         }
-    }
+    };
 
-    fn flush(&self) {}
+    let filter = EnvFilter::from_default_env()
+        .add_directive(crate_log)
+        .add_directive(kasuki_log);
+
+    let format = fmt::layer().with_ansi(true);
+
+    tracing_subscriber::registry()
+        .with(filter)
+        .with(format)
+        .with(SimpleSubscriber::new())
+        .init();
+
+    Ok(())
 }
 
 /// Removes old logs from the "./logs" directory.
@@ -130,4 +103,60 @@ pub fn remove_old_logs() -> Result<(), Error> {
 /// If the directory already exists, this function does nothing and returns `Ok(())`.
 pub fn create_log_directory() -> std::io::Result<()> {
     fs::create_dir_all("./logs")
+}
+
+struct SimpleSubscriber {
+    uuid: Uuid,
+}
+
+impl SimpleSubscriber {
+    pub fn new() -> Self {
+        let uuid_generated = Uuid::new_v4();
+        let _ = File::create(format!("./logs/log_{}.log", uuid_generated)).is_ok();
+        SimpleSubscriber {
+            uuid: uuid_generated,
+        }
+    }
+}
+
+impl<S: Subscriber> Layer<S> for SimpleSubscriber {
+    fn on_event(&self, event: &Event, _ctx: Context<S>) {
+        let level = event.metadata().level();
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open(format!("./logs/log_{}.log", &self.uuid))
+            .unwrap();
+        let level_str = level.to_string();
+        let target = event.metadata().target();
+        let target_str = target;
+        let mut visitor = MessageVisitor::new();
+        event.record(&mut visitor);
+        let message = visitor.message;
+        let date = Utc::now().to_string();
+
+        let text = format!("{} - {} | {} - {}", date, level_str, target_str, message);
+
+        writeln!(file, "{}", text).unwrap();
+    }
+}
+
+struct MessageVisitor {
+    message: String,
+}
+
+impl MessageVisitor {
+    fn new() -> Self {
+        MessageVisitor {
+            message: String::new(),
+        }
+    }
+}
+
+impl field::Visit for MessageVisitor {
+    fn record_debug(&mut self, field: &Field, value: &dyn std::fmt::Debug) {
+        if field.name() == "message" {
+            self.message = format!("{:?}", value);
+        }
+    }
 }

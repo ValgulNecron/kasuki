@@ -1,0 +1,14 @@
+{
+  "en": {
+    "desc": "User $username$ level is $level$ \n with a total of $xp$ \n and is $actual$ / $next$ to the next level"
+  },
+  "fr": {
+    "desc": "Le niveau de l'utilisateur $username$ est $level$ \n avec un total de $xp$ \n et il est à $actual$ / $next$ du niveau suivant"
+  },
+  "jp": {
+    "desc": "ユーザー$username$のレベルは$level$で、合計$xp$あり、次のレベルまで$actual$ / $next$です"
+  },
+  "de": {
+    "desc": "Der Benutzer $username$ hat Level $level$ \n mit insgesamt $xp$ \n und ist $actual$ / $next$ vom nächsten Level entfernt"
+  }
+}

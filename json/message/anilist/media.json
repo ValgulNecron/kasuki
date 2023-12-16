@@ -1,0 +1,26 @@
+{
+  "en": {
+    "field1_title": "Genre",
+    "field2_title": "Tag",
+    "desc": "**Info** \n Format: $format$ / Source: $source$ \n Start date: $start_date$ \n End date: $end_date$ \n \n **Staff** \n $staff_list$",
+    "staff_text": "Name: $name$ with the role $role$"
+  },
+  "fr": {
+    "field1_title": "Genre",
+    "field2_title": "Tag",
+    "desc": "**Info** \n Format: $format$ / Source: $source$ \n Date de début: $start_date$ \n Date de fin: $end_date$ \n\n **Équipe** \n $staff_list$",
+    "staff_text": "Nom: $name$ avec le rôle $role$"
+  },
+  "jp": {
+    "field1_title": "ジャンル",
+    "field2_title": "タグ",
+    "desc": "**情報** \n 形式: $format$ / 情報源: $source$ \n 開始日: $start_date$ \n 終了日: $end_date$ \n\n **スタッフ** \n $staff_list$",
+    "staff_text": "名前: $name$ の役割 $role$"
+  },
+  "de": {
+    "field1_title": "Genre",
+    "field2_title": "Tag",
+    "desc": "**Info** \n Format: $format$ / Quelle: $source$ \n Startdatum: $start_date$ \n Enddatum: $end_date$ \n\n **Personal** \n $staff_list$",
+    "staff_text": "Name: $name$ mit der Rolle $role$"
+  }
+}

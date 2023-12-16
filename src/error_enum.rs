@@ -1,5 +1,3 @@
-use once_cell::sync::Lazy;
-
 #[derive(Debug, Clone)]
 pub enum AppError {
     OptionError(String),
@@ -14,6 +12,7 @@ pub enum AppError {
     NoCommandOption(String),
     SqlInsertError(String),
     SqlSelectError(String),
+    SqlCreateError(String),
     ModuleError(String),
     ModuleOffError(String),
     UnknownCommandError(String),
@@ -21,15 +20,28 @@ pub enum AppError {
     NoAnimeDifferedError(String),
     NoMediaDifferedError(String),
     CreatingWebhookDifferedError(String),
+    CreatingPoolError(String),
+    FailedToCreateAFile(String),
+    NsfwError(String),
+    DifferedTokenError(String),
+    DifferedImageModelError(String),
+    DifferedHeaderError(String),
+    DifferedResponseError(String),
+    DifferedFailedUrlError(String),
+    DifferedOptionError(String),
+    DifferedGettingUrlResponse(String),
+    DifferedFailedToGetBytes(String),
+    DifferedWritingFile(String),
+    DifferedCommandSendingError(String),
+    SetLoggerError(String),
+    DifferedFileTypeError(String),
+    DifferedFileExtensionError(String),
+    DifferedCopyBytesError(String),
+    DifferedGettingBytesError(String),
+    MediaGettingError(String),
+    DifferedNotAiringError(String),
+    NoStatisticDifferedError(String),
+    NotAValidTypeError(String),
+    DifferedReadingFileError(String),
+    DifferedCreatingImageError(String),
 }
-
-pub static OPTION_ERROR: Lazy<AppError> =
-    Lazy::new(|| AppError::OptionError(String::from("The option contain no value")));
-pub static COMMAND_SENDING_ERROR: Lazy<AppError> = Lazy::new(|| {
-    AppError::CommandSendingError(String::from(
-        "Error while sending the response of the command.",
-    ))
-});
-
-pub static NO_AVATAR_ERROR: Lazy<AppError> =
-    Lazy::new(|| AppError::NoAvatarError(String::from("Error while getting the user avatar.")));

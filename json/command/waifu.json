@@ -1,0 +1,30 @@
+{
+  "name": "waifu",
+  "desc": "Give you the best waifu.",
+  "dm_command": true,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 0,
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "waifu",
+      "desc": "Give you the best waifu."
+    },
+    {
+      "code": "fr",
+      "name": "waifu",
+      "desc": "Donner la meilleure waifu."
+    },
+    {
+      "code": "de",
+      "name": "waifu",
+      "desc": "Die beste Waifu für dich."
+    },
+    {
+      "code": "ja",
+      "name": "ワイフ",
+      "desc": "最高のワイフを提供します。"
+    }
+  ]
+}
