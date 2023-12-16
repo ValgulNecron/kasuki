@@ -9,26 +9,18 @@ pub async fn run(
     ctx: &Context,
     command: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let mut option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
+    let mut value = String::new();
     for option_data in options {
         if option_data.name.as_str() != "type" {
-            option = &option;
+            let option_value = option_data.value.as_str().clone().unwrap();
+            value = option_value.to_string().clone()
         }
     }
-
-    let value = match option {
-        CommandDataOptionValue::String(lang) => lang,
-        _ => {
-            return Err(NoCommandOption(String::from(
-                "The command contain no option.",
-            )));
-        }
-    };
 
     let data: CharacterWrapper = if value.parse::<i32>().is_ok() {
         CharacterWrapper::new_character_by_id(value.parse().unwrap()).await?
     } else {
-        CharacterWrapper::new_character_by_search(value).await?
+        CharacterWrapper::new_character_by_search(&value).await?
     };
 
     send_embed(ctx, command, data).await

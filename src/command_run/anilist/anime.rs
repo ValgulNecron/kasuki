@@ -3,32 +3,25 @@ use crate::constant::OPTION_ERROR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NoCommandOption;
 use serenity::all::{CommandDataOption, CommandDataOptionValue, CommandInteraction, Context};
+use tracing::trace;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let mut option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
+    let mut value = String::new();
     for option_data in options {
         if option_data.name.as_str() != "type" {
-            option = &option;
+            let option_value = option_data.value.as_str().clone().unwrap();
+            value = option_value.to_string().clone()
         }
     }
-
-    let value = match option {
-        CommandDataOptionValue::String(lang) => lang,
-        _ => {
-            return Err(NoCommandOption(String::from(
-                "The command contain no option.",
-            )));
-        }
-    };
 
     let data: MediaWrapper = if value.parse::<i32>().is_ok() {
         MediaWrapper::new_anime_by_id(value.parse().unwrap()).await?
     } else {
-        MediaWrapper::new_anime_by_search(value).await?
+        MediaWrapper::new_anime_by_search(&value).await?
     };
 
     send_embed(ctx, command, data).await
