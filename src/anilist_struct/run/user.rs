@@ -287,7 +287,7 @@ pub fn get_user_url(user_id: &i32) -> String {
     format!("https://anilist.co/user/{}", user_id)
 }
 
-fn get_banner(user_id: &i32) -> String {
+pub fn get_banner(user_id: &i32) -> String {
     format!("https://img.anili.st/user/{}", user_id)
 }
 

@@ -12,4 +12,4 @@
 - Get a random anime/manga
 and more... (WIP)
 
-you can find the bot [github]()
+you can find the bot on [github](https://github.com/ValgulNecron/kasuki) or [add it with](https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot)

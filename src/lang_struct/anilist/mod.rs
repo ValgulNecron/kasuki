@@ -1,6 +1,7 @@
 pub mod add_activity;
 pub mod character;
 pub mod compare;
+pub mod level;
 pub mod media;
 pub mod random;
 pub mod register;
