@@ -1,7 +1,10 @@
 use serenity::all::{CommandInteraction, Context};
 
 use crate::command_run::ai::{image, transcript, translation};
-use crate::command_run::anilist::{add_activity, anime, character, compare, level, ln, manga, random, register, search, seiyuu, staff, studio, user, waifu};
+use crate::command_run::anilist::{
+    add_activity, anime, character, compare, level, ln, manga, random, register, search, seiyuu,
+    staff, studio, user, waifu,
+};
 use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
 use crate::error_enum::AppError;

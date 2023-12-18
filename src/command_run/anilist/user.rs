@@ -32,8 +32,7 @@ pub async fn run(
         }
     }
     let user_id = &command.user.id.to_string();
-    let row: (Option<String>, Option<String>) =
-        get_registered_user(user_id).await?;
+    let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
     trace!("{:?}", row);
     let (user, _): (Option<String>, Option<String>) = row;
     let user = user.ok_or(OPTION_ERROR.clone())?;
