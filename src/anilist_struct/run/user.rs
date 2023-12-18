@@ -366,7 +366,7 @@ fn get_genre_list(vec: Vec<Genre>) -> String {
     vec.join("/")
 }
 
-fn get_completed(statuses: Vec<Statuses>) -> i32 {
+pub fn get_completed(statuses: Vec<Statuses>) -> i32 {
     let anime_statuses = statuses;
     let mut anime_completed = 0;
     for i in anime_statuses {

@@ -12,4 +12,4 @@ pub mod staff;
 pub mod studio;
 pub mod user;
 pub mod waifu;
-//pub mod level;
+pub mod level;
