@@ -1,0 +1,61 @@
+{
+  "name": "anime",
+  "desc": "Info of an anime.",
+  "dm_command": true,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "anime_name",
+      "desc": "Name of the anime you want to check.",
+      "required": true,
+      "autocomplete": true,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "anime_name",
+          "desc": "Name of the anime you want to check."
+        },
+        {
+          "code": "fr",
+          "name": "nom_anime",
+          "desc": "Nom de l'anime que vous voulez vérifier."
+        },
+        {
+          "code": "de",
+          "name": "anime_name",
+          "desc": "Name des Animes, den Sie überprüfen möchten."
+        },
+        {
+          "code": "ja",
+          "name": "anime_no_namae",
+          "desc": "チェックしたいアニメの名前。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "anime",
+      "desc": "Info of an anime."
+    },
+    {
+      "code": "fr",
+      "name": "anime",
+      "desc": "Informations sur un anime."
+    },
+    {
+      "code": "de",
+      "name": "anime",
+      "desc": "Informationen zu einem Anime."
+    },
+    {
+      "code": "ja",
+      "name": "anime",
+      "desc": "アニメ情報。"
+    }
+  ]
+}

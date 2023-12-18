@@ -9,13 +9,19 @@ services:
     # image: valgul/kasuki:dev # the latest dev build that compile there could be error.
     container_name: kasuki
     restart: unless-stopped
+    tty: true
     environment:
       - DISCORD_TOKEN=your_discord_token_here
       - AI_API_TOKEN=your_token_here_for_the_ai_part
       - AI_API_BASE_URL=the_url_for_the_request_open_ai_or_any_openai_proxy_one_do_not_forget_to_end_with_a_/_the_url
       - IMAGE_GENERATION_MODELS_ON=True # true if you use have a proxy server on which you added another model
       - IMAGE_GENERATION_MODELS=model_name # the name of the model you want only used if IMAGE_GENERATION_MODELS_ON is True
-      - LOG="info" # trace, debug, info, warn or error
+      - RUST_LOG="info" # trace, debug, info, warn or error
+      - NSFW=True # if the bot should honor the nsfw for image if set to true it will if false it will not. (turn it off if you are 100% the model you use for image can't generate nsfw)
+      - TERM=xterm-256color
+      - REMOVE_OLD_COMMAND_ON_STARTUP=True # if the bot should remove the old command when it start. recommended to set it for the 1st launch or when updating to a breaking change version
+      - DB_TYPE="sqlite"
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db
+      - ./logs/:/kasuki/logs/

@@ -1,0 +1,14 @@
+{
+  "en": {
+    "desc": "The user $user$ (with the id $id$) was linked with the Anilist account $anilist$"
+  },
+  "fr": {
+    "desc": "L'utilisateur $user$ (avec l'identifiant $id$) a été lié au compte Anilist $anilist$"
+  },
+  "jp": {
+    "desc": "ユーザー $user$（ID：$id$）はAnilistアカウント $anilist$ とリンクされました"
+  },
+  "de": {
+    "desc": "Der Benutzer $user$ (mit der ID $id$) wurde mit dem Anilist-Konto $anilist$ verknüpft"
+  }
+}

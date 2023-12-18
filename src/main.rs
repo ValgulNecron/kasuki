@@ -1,55 +1,33 @@
-extern crate core;
-
-use std::collections::HashMap;
 use std::env;
-use std::fs::File;
-use std::io::Read;
 use std::sync::Arc;
-use std::time::Duration;
 
-use chrono::Utc;
-use log::{debug, error, info, set_max_level, trace, warn, LevelFilter, Log};
-use serenity::async_trait;
-use serenity::client::Context;
-use serenity::model::application::command::Command;
-use serenity::model::application::interaction::Interaction;
-use serenity::model::application::interaction::InteractionResponseType;
-use serenity::model::gateway::Activity;
-use serenity::model::gateway::Ready;
-use serenity::model::prelude::application_command::ApplicationCommandInteraction;
-use serenity::model::Timestamp;
-use serenity::prelude::*;
-use serenity::utils::Colour;
-use tokio::time::sleep;
+use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
+use serenity::{async_trait, Client};
+use tracing::{debug, error, info, trace};
 
-use structure::struct_shard_manager::ShardManagerContainer;
+use struct_shard_manager::ShardManagerContainer;
 
-use crate::cmd::ai_module::{image, transcript, translation};
-use crate::cmd::anilist_module::send_activity::manage_activity;
-use crate::cmd::anilist_module::{
-    add_activity, anime, character, compare, level, ln, manga, random, register, search, staff,
-    studio, user, waifu,
-};
-use crate::cmd::general_module::module_activation::check_activation_status;
-use crate::cmd::general_module::{
-    avatar, banner, credit, info, lang, module_activation, ping, profile,
-};
-use crate::constant::{ACTIVITY_NAME, COLOR};
-use crate::function::error_management::no_lang_error::no_langage_error;
-use crate::function::general::get_guild_langage::get_guild_langage;
-use crate::function::sql::sqlite::pool::get_sqlite_pool;
-use crate::logger::init;
-use crate::structure::anilist::media::struct_autocomplete_media;
-use crate::structure::anilist::user::struct_autocomplete_user;
-use crate::structure::embed::error::ErrorLocalisedText;
+use crate::activity::anime_activity::manage_activity;
+use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
+use crate::command_register::command_registration::creates_commands;
+use crate::command_run::command_dispatch::command_dispatching;
+use crate::constant::ACTIVITY_NAME;
+use crate::logger::{create_log_directory, init_logger, remove_old_logs};
+use crate::sqls::general::sql::init_sql_database;
 
-mod available_lang;
-mod cmd;
+mod activity;
+mod anilist_struct;
+mod command_autocomplete;
+mod command_register;
+mod command_run;
+mod common;
 mod constant;
-mod function;
+mod error_enum;
+mod error_management;
+mod lang_struct;
 mod logger;
-mod structure;
-mod tests;
+mod sqls;
+pub mod struct_shard_manager;
 
 struct Handler;
 
@@ -57,219 +35,79 @@ struct Handler;
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         // Add activity to the bot as the type in activity_type and with ACTIVITY_NAME as name
-        let activity_type: Activity = Activity::playing(ACTIVITY_NAME);
-        ctx.set_activity(activity_type).await;
+        let activity_type = Some(ActivityData::custom(ACTIVITY_NAME));
+        ctx.set_activity(activity_type);
 
         info!(
             "Shard {:?} of {} is connected!",
             ready.shard, ready.user.name
         );
+        let is_ok = env::var("REMOVE_OLD_COMMAND_ON_STARTUP")
+            .unwrap_or("false".to_string())
+            .to_lowercase()
+            .as_str()
+            == "true";
 
-        // Create all the commande found in cmd. (if a command is added it will need to be added here).
-        let guild_command = Command::set_global_application_commands(&ctx.http, |commands| {
-            commands
-                // General module.
-                .create_application_command(|command| ping::register(command))
-                .create_application_command(|command| lang::register(command))
-                .create_application_command(|command| info::register(command))
-                .create_application_command(|command| banner::register(command))
-                .create_application_command(|command| profile::register(command))
-                .create_application_command(|command| module_activation::register(command))
-                .create_application_command(|command| credit::register(command))
-                .create_application_command(|command| avatar::register(command))
-                // Anilist module.
-                .create_application_command(|command| anime::register(command))
-                .create_application_command(|command| character::register(command))
-                .create_application_command(|command| compare::register(command))
-                .create_application_command(|command| level::register(command))
-                .create_application_command(|command| ln::register(command))
-                .create_application_command(|command| manga::register(command))
-                .create_application_command(|command| random::register(command))
-                .create_application_command(|command| register::register(command))
-                .create_application_command(|command| search::register(command))
-                .create_application_command(|command| staff::register(command))
-                .create_application_command(|command| user::register(command))
-                .create_application_command(|command| waifu::register(command))
-                .create_application_command(|command| studio::register(command))
-                .create_application_command(|command| add_activity::register(command))
-                // AI module.
-                .create_application_command(|command| image::register(command))
-                .create_application_command(|command| transcript::register(command))
-                .create_application_command(|command| translation::register(command))
-        })
-        .await;
-        match guild_command {
-            Ok(commands) => {
-                for command in commands {
-                    trace!("Command {}, Version {}", command.name, command.version);
-                }
-            }
-            Err(e) => {
-                error!("Error while creating command: {}", e)
-            }
-        }
+        creates_commands(&ctx.http, is_ok).await;
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-        if let Interaction::ApplicationCommand(command) = interaction {
+        if let Interaction::Command(command) = interaction.clone() {
             info!(
                 "Received command interaction: {}, Option: {:#?}, User: {}({})",
                 command.data.name, command.data.options, command.user.name, command.user.id
             );
-            match command.data.name.as_str() {
-                // General module.
-                "ping" => ping::run(&ctx, &command).await,
-                "lang" => lang::run(&command.data.options, &ctx, &command).await,
-                "info" => info::run(&ctx, &command).await,
-                "banner" => banner::run(&command.data.options, &ctx, &command).await,
-                "profile" => profile::run(&command.data.options, &ctx, &command).await,
-                "module" => module_activation::run(&command.data.options, &ctx, &command).await,
-                "credit" => credit::run(&ctx, &command).await,
-                "avatar" => avatar::run(&command.data.options, &ctx, &command).await,
-
-                // Anilist module
-                "anime" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    anime::run(&command.data.options, &ctx, &command).await
-                }
-                "character" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    character::run(&command.data.options, &ctx, &command).await
-                }
-                "compare" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    compare::run(&command.data.options, &ctx, &command).await
-                }
-                "level" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    level::run(&command.data.options, &ctx, &command).await
-                }
-                "ln" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    ln::run(&command.data.options, &ctx, &command).await
-                }
-                "manga" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    manga::run(&command.data.options, &ctx, &command).await
-                }
-                "random" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    random::run(&command.data.options, &ctx, &command).await
-                }
-                "register" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    register::run(&command.data.options, &ctx, &command).await
-                }
-                "search" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    search::run(&command.data.options, &ctx, &command).await
-                }
-                "staff" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    staff::run(&command.data.options, &ctx, &command).await
-                }
-                "user" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    user::run(&command.data.options, &ctx, &command).await
-                }
-                "waifu" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    waifu::run(&ctx, &command).await
-                }
-                "studio" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    studio::run(&command.data.options, &ctx, &command).await
-                }
-                "add_activity" => {
-                    if !check_if_anime_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    add_activity::run(&command.data.options, &ctx, &command).await
-                }
-
-                // AI module
-                "image" => {
-                    if !check_if_ai_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    image::run(&command.data.options, &ctx, &command).await
-                }
-                "transcript" => {
-                    if !check_if_ai_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    transcript::run(&command.data.options, &ctx, &command).await
-                }
-                "translation" => {
-                    if !check_if_ai_is_on(&command, COLOR, &ctx).await {
-                        return;
-                    }
-                    translation::run(&command.data.options, &ctx, &command).await
-                }
-
-                _ => return,
+            trace!("{:#?}", command);
+            match command_dispatching(ctx, command).await {
+                Err(e) => error_management::error_dispatch::command_dispatching(e).await,
+                Ok(a) => a,
             };
 
             // check if the command was successfully done.
-        } else if let Interaction::Autocomplete(command) = interaction {
-            match command.data.name.as_str() {
-                "anime" => struct_autocomplete_media::autocomplete(ctx, command).await,
-                "manga" => manga::autocomplete(ctx, command).await,
-                "ln" => ln::autocomplete(ctx, command).await,
-                "character" => character::autocomplete(ctx, command).await,
-                "staff" => staff::autocomplete(ctx, command).await,
-                "user" => struct_autocomplete_user::autocomplete(ctx, command).await,
-                "compare" => compare::autocomplete(ctx, command).await,
-                "level" => struct_autocomplete_user::autocomplete(ctx, command).await,
-                "studio" => studio::autocomplete(ctx, command).await,
-                "add_activity" => struct_autocomplete_media::autocomplete(ctx, command).await,
-                _ => print!(""),
-            }
+        } else if let Interaction::Autocomplete(command) = interaction.clone() {
+            autocomplete_dispatching(ctx, command).await;
         }
     }
 }
 
 #[tokio::main]
 async fn main() {
+    match init_sql_database().await {
+        Ok(_) => {}
+        Err(e) => {
+            error!("{:?}", e);
+            return;
+        }
+    }
+
     // Configure the client with your Discord bot token in the environment.
     let my_path = "./.env";
     let path = std::path::Path::new(my_path);
     let _ = dotenv::from_path(path);
-    let env = env::var("LOG").unwrap_or_else(|_| "info".to_string());
-    let log = env.to_lowercase();
-    match init(log) {
+    let env = env::var("RUST_LOG")
+        .unwrap_or("info".to_string())
+        .to_lowercase();
+    let log = env.as_str();
+    match create_log_directory() {
+        Ok(_) => {}
+        Err(_) => return,
+    };
+
+    let _ = remove_old_logs().is_ok();
+
+    match init_logger(log) {
         Ok(_) => {}
         Err(e) => {
-            eprintln!("{}", e);
+            eprintln!("{:?}", e);
             return;
         }
     };
+
+    tokio::spawn(async move {
+        info!("Launching the activity management thread!");
+        manage_activity().await
+    });
+
     info!("starting the bot.");
     let token = match env::var("DISCORD_TOKEN") {
         Ok(token) => {
@@ -297,170 +135,15 @@ async fn main() {
         }
     };
 
-    tokio::spawn(async move {
-        // create_server().await.expect("Web server running");
-    });
-
-    let manager = client.shard_manager.clone();
-
-    tokio::spawn(async move {
-        let database_url = "./data.db";
-        let pool = get_sqlite_pool(database_url).await;
-
-        match sqlx::query(
-            "CREATE TABLE IF NOT EXISTS ping_history (
-                        shard_id TEXT,
-                        timestamp TEXT,
-                        ping TEXT NOT NULL,
-                        PRIMARY KEY (shard_id, timestamp)
-                    )",
-        )
-        .execute(&pool)
-        .await
-        {
-            Ok(_) => {}
-            Err(e) => {
-                error!("Error while creating the table: {}", e)
-            }
-        };
-
-        loop {
-            sleep(Duration::from_secs(600)).await;
-
-            let lock = manager.lock().await;
-            let shard_runners = lock.runners.lock().await;
-
-            for (id, runner) in shard_runners.iter() {
-                let shard_id = id.0.to_string();
-                let latency_content = runner.latency.unwrap_or(Duration::from_secs(0));
-                let latency = format!("{:?}", latency_content);
-                let now = Utc::now().timestamp().to_string();
-                match sqlx::query(
-                    "INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)",
-                )
-                    .bind(shard_id)
-                    .bind(now)
-                    .bind(latency)
-                    .execute(&pool)
-                    .await
-                {
-                    Ok(_) => {}
-                    Err(e) => {
-                        error!("Error while creating the table: {}", e)
-                    }
-                };
-            }
-        }
-    });
-
-    tokio::spawn(async move { manage_activity().await });
-
     {
         let mut data = client.data.write().await;
 
-        data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
+        let shard_manager = &client.shard_manager;
+
+        data.insert::<ShardManagerContainer>(Arc::clone(shard_manager));
     }
 
     if let Err(why) = client.start_autosharded().await {
         error!("Client error: {:?}", why);
-    }
-}
-
-pub async fn check_if_anime_is_on(
-    command: &ApplicationCommandInteraction,
-    color: Colour,
-    ctx: &Context,
-) -> bool {
-    let guild_id = match command.guild_id {
-        Some(id) => id,
-        None => {
-            error!("No guild id");
-            return true;
-        }
-    }
-    .0
-    .to_string()
-    .clone();
-    if !check_activation_status("ANILIST", guild_id.clone()).await {
-        send_deactivated_message(command, color, ctx, guild_id).await;
-        false
-    } else {
-        true
-    }
-}
-
-pub async fn check_if_ai_is_on(
-    command: &ApplicationCommandInteraction,
-    color: Colour,
-    ctx: &Context,
-) -> bool {
-    let guild_id = match command.guild_id {
-        Some(id) => id,
-        None => {
-            error!("No guild id");
-            return true;
-        }
-    }
-    .0
-    .to_string()
-    .clone();
-    if !check_activation_status("AI", guild_id.clone()).await {
-        send_deactivated_message(command, color, ctx, guild_id).await;
-        false
-    } else {
-        true
-    }
-}
-
-pub async fn send_deactivated_message(
-    command: &ApplicationCommandInteraction,
-    color: Colour,
-    ctx: &Context,
-    guild_id: String,
-) {
-    let path = "./lang_file/embed/error.json";
-    let mut file = match File::open(path) {
-        Ok(file) => file,
-        Err(e) => {
-            error!("Error while opening lang file at {}:  {}", path, e);
-            return;
-        }
-    };
-    let mut json = String::new();
-    match file.read_to_string(&mut json) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to read the file {}: {}", path, e)
-        }
-    };
-    let json_data: HashMap<String, ErrorLocalisedText> = match serde_json::from_str(&json) {
-        Ok(json) => json,
-        Err(e) => {
-            error!("Error when paring the json file: {}", e);
-            return;
-        }
-    };
-
-    let lang_choice = get_guild_langage(guild_id.clone()).await;
-    if let Some(localised_text) = json_data.get(lang_choice.as_str()) {
-        if let Err(why) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| {
-                        message.embed(|m| {
-                            m.title(&localised_text.error_title)
-                                .description(&localised_text.module_off)
-                                .timestamp(Timestamp::now())
-                                .color(color)
-                        })
-                    })
-            })
-            .await
-        {
-            println!("Cannot respond to slash command: {}", why);
-        }
-    } else {
-        no_langage_error(ctx, command).await
     }
 }

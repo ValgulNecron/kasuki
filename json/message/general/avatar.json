@@ -1,0 +1,14 @@
+{
+  "en": {
+    "title": "Here's the avatar of $user$"
+  },
+  "fr": {
+    "title": "Voici l'avatar de $user$"
+  },
+  "jp": {
+    "title": "$user$のアバターはこちらです"
+  },
+  "de": {
+    "title": "Hier ist der Avatar von $user$"
+  }
+}

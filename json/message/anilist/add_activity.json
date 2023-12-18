@@ -1,0 +1,26 @@
+{
+  "en": {
+    "success": "Activity added Successfully",
+    "fail": "Activity already Exist",
+    "fail_desc": "This activity already exists. You should already have an activity for: $anime$.",
+    "success_desc": "The activity was added successfully for: $anime$."
+  },
+  "fr": {
+    "success": "Activité ajoutée avec succès",
+    "fail": "L'activité existe déjà",
+    "fail_desc": "Cette activité existe déjà. Vous devriez déjà avoir une activité pour : $anime$.",
+    "success_desc": "L'activité a été ajoutée avec succès pour : $anime$."
+  },
+  "jp": {
+    "success": "アクティビティーが成功裏に追加されました",
+    "fail": "アクティビティーはすでに存在します",
+    "fail_desc": "このアクティビティーはすでに存在します。$anime$のアクティビティーはすでにあるはずです。",
+    "success_desc": "$anime$のアクティビティーが成功裏に追加されました。"
+  },
+  "de": {
+    "success": "Aktivität erfolgreich hinzugefügt",
+    "fail": "Aktivität existiert bereits",
+    "fail_desc": "Diese Aktivität existiert bereits. Sie sollten bereits eine Aktivität für haben: $anime$.",
+    "success_desc": "Die Aktivität wurde erfolgreich hinzugefügt für: $anime$."
+  }
+}
