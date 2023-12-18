@@ -252,7 +252,7 @@ pub async fn get_registered_user_sqlite(
 ) -> Result<(Option<String>, Option<String>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: (Option<String>, Option<String>) =
-        sqlx::query_as("SELECT anilist_username, user_id FROM registered_user WHERE user_id = ?")
+        sqlx::query_as("SELECT anilist_id, user_id FROM registered_user WHERE user_id = ?")
             .bind(user_id)
             .fetch_one(&pool)
             .await
@@ -268,7 +268,7 @@ pub async fn set_registered_user_sqlite(
 ) -> Result<(Option<String>, Option<String>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: (Option<String>, Option<String>) = sqlx::query_as(
-        "INSERT OR REPLACE INTO registered_user (user_id, anilist_username) VALUES (?, ?)",
+        "INSERT OR REPLACE INTO registered_user (user_id, anilist_id) VALUES (?, ?)",
     )
     .bind(user_id)
     .bind(username)

@@ -147,7 +147,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
             user_id TEXT PRIMARY KEY,
-            anilist_username TEXT
+            anilist_id TEXT
         )",
     )
     .execute(pool)

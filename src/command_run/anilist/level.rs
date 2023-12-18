@@ -15,6 +15,7 @@ pub async fn run(
     ctx: &Context,
     command: &CommandInteraction,
 ) -> Result<(), AppError> {
+    trace!("{:?}", options);
     for option in options {
         if option.name.as_str() != "type" {
             match option.value.as_str() {
@@ -30,21 +31,18 @@ pub async fn run(
                     return send_embed(ctx, command, data).await;
                 }
 
-                None => {
-                    let user_id = &command.user.id.to_string();
-                    trace!("{:?}", user_id);
-                    let row: (Option<String>, Option<String>) =
-                        get_registered_user(user_id).await?;
-                    trace!("{:?}", row);
-                    let (user, _): (Option<String>, Option<String>) = row;
-                    let user = user.ok_or(OPTION_ERROR.clone())?;
-                    let data = UserWrapper::new_user_by_id((&user).parse::<i32>().unwrap()).await?;
-                    return send_embed(ctx, command, data).await;
-                }
+                None => {}
             }
         }
     }
-    Ok(())
+    let user_id = &command.user.id.to_string();
+    let row: (Option<String>, Option<String>) =
+        get_registered_user(user_id).await?;
+    trace!("{:?}", row);
+    let (user, _): (Option<String>, Option<String>) = row;
+    let user = user.ok_or(OPTION_ERROR.clone())?;
+    let data = UserWrapper::new_user_by_id((&user).parse::<i32>().unwrap()).await?;
+    return send_embed(ctx, command, data).await;
 }
 
 pub async fn send_embed(
