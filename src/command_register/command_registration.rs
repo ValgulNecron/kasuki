@@ -111,7 +111,12 @@ async fn delete_command(http: &Arc<Http>) {
     let cmds = Command::get_global_commands(http).await.unwrap();
     for cmd in cmds {
         trace!("Removing {:?}", cmd.name);
-        let error = Command::delete_global_command(http, cmd.id).await;
-        error!("{:?}", error);
+        match Command::delete_global_command(http, cmd.id).await {
+            Ok(res) => res,
+            Err(e) => {
+                error!("{} for command {}", e, cmd.name);
+                return;
+            }
+        };
     }
 }
