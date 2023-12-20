@@ -33,5 +33,5 @@ pub async fn run(
     let (user, _): (Option<String>, Option<String>) = row;
     let user = user.ok_or(OPTION_ERROR.clone())?;
     let data = UserWrapper::new_user_by_id((user).parse::<i32>().unwrap()).await?;
-    return send_embed(ctx, command, data).await;
+    send_embed(ctx, command, data).await
 }
