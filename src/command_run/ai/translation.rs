@@ -27,7 +27,6 @@ pub async fn run(
     ctx: &Context,
     command: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let prompt: String = String::new();
     let mut lang: String = String::new();
     let mut attachement: Option<Attachment> = None;
     for option in options.iter().clone() {
@@ -146,11 +145,9 @@ pub async fn run(
         .file_name(file_name)
         .mime_str(content_type.as_str())
         .unwrap();
-    let prompt = prompt;
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", "whisper-1")
-        .text("prompt", prompt)
         .text("language", lang.clone())
         .text("response_format", "json");
 

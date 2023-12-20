@@ -40,9 +40,8 @@ pub async fn run(
         let title = m.title.clone();
         let rj = title.romaji;
         let en = title.user_preferred;
-        content.push_str(rj.as_str());
-        content.push_str("/");
-        content.push_str(en.as_str());
+        let text = format!("[{}/{}]({})", rj, en, m.site_url);
+        content.push_str(text.as_str());
         content.push_str("\n");
     }
 
