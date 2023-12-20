@@ -1,7 +1,7 @@
 use crate::sqls::general::data::get_data_guild_lang;
 
 pub async fn get_guild_langage(guild_id: String) -> String {
-    if guild_id == String::from("0") {
+    if guild_id == *"0" {
         return String::from("en");
     };
 

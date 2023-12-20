@@ -37,7 +37,7 @@ pub async fn load_localization_user(guild_id: String) -> Result<UserLocalised, A
         .map_err(|_| LocalisationParsingError(String::from("Failing to parse user.json.")))?;
 
     trace!("{}", guild_id);
-    trace!("{}", guild_id != String::from("0"));
+    trace!("{}", guild_id != *"0");
 
     let lang_choice = get_guild_langage(guild_id).await;
 

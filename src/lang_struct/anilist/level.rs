@@ -28,7 +28,7 @@ pub async fn load_localization_level(guild_id: String) -> Result<LevelLocalised,
         .map_err(|_| LocalisationParsingError(String::from("Failing to parse level.json.")))?;
 
     trace!("{}", guild_id);
-    trace!("{}", guild_id != String::from("0"));
+    trace!("{}", guild_id != *"0");
 
     let lang_choice = get_guild_langage(guild_id).await;
 

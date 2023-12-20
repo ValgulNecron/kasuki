@@ -28,7 +28,7 @@ pub async fn load_localization_register(guild_id: String) -> Result<RegisterLoca
         .map_err(|_| LocalisationParsingError(String::from("Failing to parse register.json.")))?;
 
     trace!("{}", guild_id);
-    trace!("{}", guild_id != String::from("0"));
+    trace!("{}", guild_id != *"0");
 
     let lang_choice = get_guild_langage(guild_id).await;
 
