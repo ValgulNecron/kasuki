@@ -42,6 +42,9 @@ impl EventHandler for Handler {
             "Shard {:?} of {} is connected!",
             ready.shard, ready.user.name
         );
+
+        info!("{:?}", &ctx.cache.guilds().len());
+
         let is_ok = env::var("REMOVE_OLD_COMMAND_ON_STARTUP")
             .unwrap_or("false".to_string())
             .to_lowercase()
