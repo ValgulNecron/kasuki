@@ -16,7 +16,7 @@ RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
 # Stage 2: Runtime stage
-FROM alpine:3.14 AS bot
+FROM alpine:3.18 AS bot
 
 LABEL maintainer="valgul"
 LABEL author="valgul"
