@@ -177,9 +177,6 @@ cargo run --release
   - [ ] Ask a question and reply the response.
     — Not a priority.
 
-- Moderation submodule:
-  - [ ] General moderation stuff
-
 - Games module:
   - [ ] get game price from different platform (ubi, steam, epic, ea, etc....)
     Set "server" curency.
