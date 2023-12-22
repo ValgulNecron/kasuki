@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM rust:1.74-alpine AS builder
+FROM rust:1.74-alpine3.18 AS builder
 
 RUN USER=root cargo new --bin kasuki
 
