@@ -6,7 +6,9 @@ use crate::command_run::anilist::{
     staff, studio, user, waifu,
 };
 use crate::command_run::general::module::check_activation_status;
-use crate::command_run::general::{avatar, banner, credit, info, lang, module, ping, profile};
+use crate::command_run::general::{
+    avatar, banner, credit, guild, info, lang, module, ping, profile,
+};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::UnknownCommandError;
 use crate::sqls::general::data::get_data_module_activation_kill_switch_status;
@@ -31,6 +33,7 @@ pub async fn command_dispatching(
         "module" => module::run(&command.data.options, &ctx, &command).await?,
         "ping" => ping::run(&ctx, &command).await?,
         "profile" => profile::run(&command.data.options, &ctx, &command).await?,
+        "guild" => guild::run(&ctx, &command).await?,
 
         /*
 

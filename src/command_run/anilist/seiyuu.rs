@@ -10,7 +10,7 @@ use serenity::all::{
     CommandDataOption, CommandInteraction, Context, CreateAttachment, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
-use tracing::{debug, error, trace};
+use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
@@ -18,7 +18,7 @@ use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERR
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
     DifferedCreatingImageError, DifferedFailedToGetBytes, DifferedFailedUrlError,
-    DifferedReadingFileError, DifferedWritingFile,
+    DifferedWritingFile,
 };
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
 

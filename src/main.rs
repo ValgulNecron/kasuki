@@ -42,6 +42,9 @@ impl EventHandler for Handler {
             "Shard {:?} of {} is connected!",
             ready.shard, ready.user.name
         );
+
+        info!("{:?}", &ctx.cache.guilds().len());
+
         let is_ok = env::var("REMOVE_OLD_COMMAND_ON_STARTUP")
             .unwrap_or("false".to_string())
             .to_lowercase()
@@ -60,7 +63,7 @@ impl EventHandler for Handler {
             trace!("{:#?}", command);
             match command_dispatching(ctx, command).await {
                 Err(e) => error_management::error_dispatch::command_dispatching(e).await,
-                Ok(a) => a,
+                Ok(_) => {}
             };
 
             // check if the command was successfully done.

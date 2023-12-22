@@ -113,87 +113,69 @@ cargo run --release
 ## BOT
 
 - General part:
-  - [X] Change how the text is displayed to support localization. — Done.
-  - [X] Clean the code. — It will never be done.
-    can be called done for now.
-  - [X] Find a name for the bot. — Found one kasuki. if you have any better, don't hesitate to recommend.
-  - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db. (change to PostgreSQL)
-    — will add a var variable that will either be "sqlite" or "postgresql" with a url var for PostgreSQL
-    — will need to do some change and move db logic to it's own funtion.
-  - [X] Banner. Show your or a specified user banner. — Done.
-  - [X] Profil. Show a user profile and some info. — Done.
-  - [X] Avatar. show you the profile picture of a user. — Done
-  - [X] Add support to turn on and off module. — Done.
-  - [X] Create a parser because some desc uses html and not markdown. — Done. Will need to check to be sure all is
-    done.
+  - [X] Change how the text is displayed to support localization.
+  - [X] Find a name for the bot.
+  - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db. (change to PostgresSQL)
+    — will add a var variable that will either be "sqlite" or "postgresql" with an url var for PostgreSQL
+    — will need to do some change and move db logic to its own function.
+  - [X] Banner. Show your or a specified user banner.
+  - [X] Profil. Show a user profile and some info.
+  - [X] Avatar. show you the profile picture of a user.
+  - [X] Add support to turn on and off module.
+  - [X] Create a parser because some description uses html and not markdown.
+    Will need to check to be sure all are done.
   - [ ] Poll feature with custom choice and a graph afterward for comparison.
   - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
-    size — Done.
+    size.
   - [ ] Better error handling.
     Different error messages,
     type and replies everytime not in certain condition.
     — working on it.
-    Should be okay believe there is still some risk of panic will need to see in the long term.
   - [ ] Localisation for response — Done except for some other "minor" stuff. Lazy to continue will need some help to
     proofread the json file and continue to complete the not finished one.
-  - [ ] Localisation for command — Working on it. Compare will be done later. Lazy to continue will need some help to
-    proofread the json file and continue to complete the not finished one.
-  - [ ] Rename function, structure, command name etc... so it makes more sense. Doing it should be good atm.
-  - [ ] Add docs to every public function. (Run, Register and Autocomplete do not need this.). started and clearly not
+  - [X] Localisation for command.
+  - [X] Rename function, structure, command name etc... so it makes more sense.
+  - [ ] Add docs to every public function.
+    (Run, Register and Autocomplete don’t need this.).
+    started and clearly not
     finished.
   - [X] Logging
   - [X] Updating to serenity 0.12 — Working on it.
-  - [X] Support for command in dm (would need a rewrite on the langage part to default to en even when there is no guild
-    id) — Now working.
-    (for the command I want to be on in dm)
-  - [ ] Make an anilist forum post (when v2 is done);
+  - [X] Support for command in dm.
+  - [X] Make an anilist forum post.
 
 - Anime submodule:
-  - [X] Finish comparison function.   
-    — V1 done. — Will need to be better, but it works.
-    Ideas of improvement add a score on
-    how close two people are (affinity score).
-    — And have better formatting for the text.
-  - [X] Add character search function. — Added character research with name.
-  - [X] Add staff search function. — Added staff research with name.
-  - [X] Add search feature with a type. — Work for all.
-  - [X] Bind anilist account to discord for /user. — Added register command and edited user command.
-  - [X] Random /random {anime, manga}. — Added random for both anime and manga. Manga random can give ln.
-  - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance
-  - [X] Add caching to all requests. — Done now will need to rework random.rs cause it double cache. 3days cache
-    except
-    for "high" priority request like user data.
+  - [X] Finish comparison function.
+  - [ ] Add affinity score to user comparaison.
+  - [X] Add character search function.
+  - [X] Add staff search function.
+  - [X] Add search feature with a type.
+  - [X] Bind anilist account to discord for /user.
+  - [X] Random /random {anime, manga}.
+  - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance.
+  - [X] Add caching to all requests.
   - [X] Send anime release to a channel.
-    — Done
-  - [ ] List all activity
+  - [ ] List all activity.
   - [ ] Delete an activity.
   - [ ] Try to do the same for manga.
-    with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263)
-    (for
-    this one only selected manga not all seasonal).
-    — Did some digging seem possible. I will do anime-first trough.
+    with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263).
+    — Did some digging seem possible.
   - [ ] Activity command (auto sends activity of a user to a channel).
     — Same as anime, but this one will be hard since
     a user can do update every second like every year. Will either have delay or be resource intensive.
   - [X] Add a "delay" option to delay notification.
-    — (like 1h for a translation).
-    — Need anime notification first.
-    it will be easy once anime is done. On wait but will be done
-  - [X] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835)
-    idea of generating image
-    with a seiyuu and va role.
-    — This is possible, I'm not competent enough.
-    — Done
+  - [X] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with a seiyuu and va role.
   - [ ] Get all the register users of the server.
-    Working on it after finishing anime activity.
+    — Working on it after finishing anime activity.
   - [X] Add studio search.
-  - [X] Add commands that give the best waifu. — Done.
+  - [X] Add commands that give the best waifu.
 
 - AI submodule:
-  - [X] Image generation with AI. — Done.
-  - [X] Video transcription. — Done.
-  - [X] Video translation. — Done.
-  - [ ] Ask a question and reply the response. — Not a priority.
+  - [X] Image generation with AI.
+  - [X] Video transcription.
+  - [X] Video translation.
+  - [ ] Ask a question and reply the response.
+    — Not a priority.
 
 - Moderation submodule:
   - [ ] General moderation stuff

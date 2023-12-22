@@ -128,8 +128,8 @@ pub async fn run(
         .nodes
         .iter()
         .filter_map(|x| {
-            let full = x.name.full.as_ref().map(|s| s.as_str());
-            let native = x.name.native.as_ref().map(|s| s.as_str());
+            let full = x.name.full.as_deref();
+            let native = x.name.native.as_deref();
             match (full, native) {
                 (Some(full), Some(native)) => Some(format!("{}/{}", full, native)),
                 (Some(full), None) => Some(full.to_string()),
@@ -146,8 +146,8 @@ pub async fn run(
         .edges
         .iter()
         .filter_map(|x| {
-            let romaji = x.node.title.romaji.as_ref().map(|s| s.as_str());
-            let english = x.node.title.english.as_ref().map(|s| s.as_str());
+            let romaji = x.node.title.romaji.as_deref();
+            let english = x.node.title.english.as_deref();
             match (romaji, english) {
                 (Some(romaji), Some(english)) => Some(format!("{}/{}", romaji, english)),
                 (Some(romaji), None) => Some(romaji.to_string()),

@@ -1,7 +1,7 @@
 {
   "en": {
     "title": "Info",
-    "desc": "This bot uses the AniList API to provide information on a show or a user.",
+    "desc": "This bot uses the AniList API to provide information on a show or a user. \n The bot is on $number$ server. \n The bot version is: $version$",
     "footer": "Creator: valgul.",
     "button_see_on_github": "See on GitHub",
     "button_official_website": "Official website",
@@ -9,9 +9,9 @@
     "button_add_the_bot": "Add the bot"
   },
   "fr": {
-    "title": "Info",
-    "desc": "Ce bot utilise l'API AniList pour fournir des informations sur une émission ou un utilisateur.",
-    "footer": "Créateur: valgul.",
+    "title": "Informations",
+    "desc": "Ce bot utilise l'API AniList pour fournir des informations sur une série ou un utilisateur. \n Le bot est sur $number$ serveur. \n La version du bot est : $version$",
+    "footer": "Créateur : valgul.",
     "button_see_on_github": "Voir sur GitHub",
     "button_official_website": "Site officiel",
     "button_official_discord": "Discord officiel",
@@ -19,20 +19,20 @@
   },
   "jp": {
     "title": "情報",
-    "desc": "このボットはAniList APIを使用して、ショーまたはユーザーの情報を提供します。",
-    "footer": "作成者: valgul.",
+    "desc": "このボットはAniList APIを使用して番組やユーザーの情報を提供します。 \n ボットは$number$サーバーにいます。 \n ボットのバージョンは：$version$",
+    "footer": "作成者：valgul。",
     "button_see_on_github": "GitHubで見る",
     "button_official_website": "公式ウェブサイト",
     "button_official_discord": "公式Discord",
-    "button_add_the_bot": "ボットを追加する"
+    "button_add_the_bot": "ボットを追加"
   },
   "de": {
     "title": "Info",
-    "desc": "Dieser Bot verwendet die AniList API, um Informationen über eine Show oder einen Benutzer bereitzustellen.",
-    "footer": "Ersteller: valgul.",
-    "button_see_on_github": "Auf GitHub anzeigen",
-    "button_official_website": "Offizielle Webseite",
-    "button_official_discord": "Offizielle Discord",
-    "button_add_the_bot": "Den Bot hinzufügen"
+    "desc": "Dieser Bot verwendet die AniList API, um Informationen zu einer Show oder einem Benutzer bereitzustellen. \n Der Bot ist auf $number$ Server. \n Die Bot-Version ist: $version$",
+    "footer": "Schöpfer: valgul.",
+    "button_see_on_github": "Auf GitHub ansehen",
+    "button_official_website": "Offizielle Website",
+    "button_official_discord": "Offizieller Discord",
+    "button_add_the_bot": "Bot hinzufügen"
   }
 }
