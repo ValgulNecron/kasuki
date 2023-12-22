@@ -3,7 +3,7 @@ use serenity::all::{
     CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR, VERSION};
 use crate::error_enum::AppError;
 use crate::lang_struct::general::info::load_localization_info;
 
@@ -17,7 +17,12 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .description(&info_localised.desc)
+        .description(
+            &info_localised
+                .desc
+                .replace("$number$", &ctx.cache.guilds().len().to_string().as_str())
+                .replace("$version$", VERSION),
+        )
         .title(&info_localised.title)
         .footer(CreateEmbedFooter::new(&info_localised.footer));
     let mut buttons = Vec::new();

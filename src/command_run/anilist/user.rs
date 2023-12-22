@@ -14,16 +14,16 @@ pub async fn run(
     trace!("{:?}", options);
     for option in options {
         if option.name.as_str() != "type" {
-             if let Some(a) =  option.value.as_str() {
-                    let value = &a.to_string();
+            if let Some(a) = option.value.as_str() {
+                let value = &a.to_string();
 
-                    let data: UserWrapper = if value.parse::<i32>().is_ok() {
-                        UserWrapper::new_user_by_id(value.parse().unwrap()).await?
-                    } else {
-                        UserWrapper::new_user_by_search(value).await?
-                    };
+                let data: UserWrapper = if value.parse::<i32>().is_ok() {
+                    UserWrapper::new_user_by_id(value.parse().unwrap()).await?
+                } else {
+                    UserWrapper::new_user_by_search(value).await?
+                };
 
-                    return send_embed(ctx, command, data).await;
+                return send_embed(ctx, command, data).await;
             }
         }
     }
