@@ -9,7 +9,9 @@ use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrappe
 use crate::constant::{COLOR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
-use crate::sqls::general::data::{get_data_activity, set_data_activity};
+use crate::sqls::general::data::{
+    get_data_activity, remove_data_activity_status, set_data_activity,
+};
 
 pub async fn manage_activity() {
     loop {
@@ -88,7 +90,10 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
     )
     .await?;
     let media = data.data.media;
-    let next_airing = media.next_airing_episode.ok_or(OPTION_ERROR.clone())?;
+    let next_airing = match media.next_airing_episode {
+        Some(na) => na,
+        None => return remove_activity(row, guild_id).await,
+    };
     let title = media.title.ok_or(OPTION_ERROR.clone())?;
     let rj = title.romaji;
     let en = title.english;
@@ -103,4 +108,8 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
         row.delays.unwrap_or(0) as i64,
     )
     .await
+}
+
+pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+    remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await
 }

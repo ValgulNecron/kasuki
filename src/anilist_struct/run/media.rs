@@ -1,3 +1,4 @@
+use crate::common::get_nsfw::get_nsfw;
 use serde::Deserialize;
 use serde_json::json;
 use serenity::all::{
@@ -10,7 +11,7 @@ use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, UNKNOWN};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::MediaGettingError;
+use crate::error_enum::AppError::{MediaGettingError, NotNSFWError};
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -657,6 +658,10 @@ pub async fn send_embed(
     command: &CommandInteraction,
     data: MediaWrapper,
 ) -> Result<(), AppError> {
+    if data.data.media.is_adult && !get_nsfw(command, ctx).await {
+        return Err(NotNSFWError(String::from("The channel is not nsfw.")));
+    }
+
     let guild_id = match command.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),

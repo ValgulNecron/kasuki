@@ -198,3 +198,17 @@ pub async fn get_data_module_activation_kill_switch_status(
         get_data_module_activation_kill_switch_status_sqlite().await
     }
 }
+
+pub async fn remove_data_activity_status(
+    server_id: String,
+    anime_id: String,
+) -> Result<(), AppError> {
+    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
+    if db_type == *"sqlite" {
+        remove_data_activity_status_sqlite(server_id, anime_id).await
+    } else if db_type == *"postgresql" {
+        Ok(())
+    } else {
+        remove_data_activity_status_sqlite(server_id, anime_id).await
+    }
+}

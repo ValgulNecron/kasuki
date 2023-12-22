@@ -44,4 +44,5 @@ pub enum AppError {
     NotAValidTypeError(String),
     DifferedReadingFileError(String),
     DifferedCreatingImageError(String),
+    NotNSFWError(String),
 }
