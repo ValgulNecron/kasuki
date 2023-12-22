@@ -1,0 +1,30 @@
+{
+  "name": "guild",
+  "desc": "Get information on the guild.",
+  "dm_command": true,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 0,
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "guild",
+      "desc": "Get information on the guild."
+    },
+    {
+      "code": "fr",
+      "name": "guilde",
+      "desc": "Obtenir des informations sur la guilde."
+    },
+    {
+      "code": "de",
+      "name": "gilde",
+      "desc": "Erhalten Sie Informationen über die Gilde."
+    },
+    {
+      "code": "ja",
+      "name": "ギルド",
+      "desc": "ギルドの情報を取得します。"
+    }
+  ]
+}

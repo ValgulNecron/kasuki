@@ -63,7 +63,7 @@ impl EventHandler for Handler {
             trace!("{:#?}", command);
             match command_dispatching(ctx, command).await {
                 Err(e) => error_management::error_dispatch::command_dispatching(e).await,
-                Ok(a) => a,
+                Ok(_) => {}
             };
 
             // check if the command was successfully done.
