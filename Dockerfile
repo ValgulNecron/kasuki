@@ -1,4 +1,5 @@
-FROM rust:1.74-buster AS builder
+# Stage 1: Build stage
+FROM rust:1.74-alpine AS builder
 
 RUN USER=root cargo new --bin kasuki
 
@@ -14,7 +15,8 @@ COPY ./src ./src
 RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
-FROM debian:buster-slim AS bot
+# Stage 2: Runtime stage
+FROM alpine:3.14 AS bot
 
 LABEL maintainer="valgul"
 LABEL author="valgul"
@@ -27,10 +29,10 @@ WORKDIR /kasuki/
 
 COPY json /kasuki/json
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl-dev libsqlite3-dev \
-    libpng-dev libjpeg-dev \
-    ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache \
+  libssl1.1-dev libsqlite3-dev \
+  libpng-dev libjpeg-dev \
+  ca-certificates
 
 COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
 
