@@ -30,9 +30,9 @@ WORKDIR /kasuki/
 COPY json /kasuki/json
 
 RUN apk update && apk add --no-cache \
-  libssl1.1-dev libsqlite3-dev \
-  libpng-dev libjpeg-dev \
-  ca-certificates
+ openssl-dev sqlite-dev \
+ libpng-dev libjpeg-turbo-dev \
+ ca-certificates
 
 COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
 
