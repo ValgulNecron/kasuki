@@ -1,7 +1,7 @@
 {
   "name": "guild",
   "desc": "Get information on the guild.",
-  "dm_command": true,
+  "dm_command": false,
   "nsfw": false,
   "perm": false,
   "arg_num": 0,
