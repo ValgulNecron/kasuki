@@ -39,7 +39,8 @@ pub async fn run(
         let row: (Option<String>, Option<i64>, Option<i64>) =
             get_database_random_cache(random_type).await?;
         let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
-        let page_number = last_page.unwrap_or(1628); // This is as today date the last page, i will update it sometime.
+        let page_number = last_page.unwrap_or(1628); // This is as today date the last page,
+                                                     // I will update it sometime.
         let previous_page = page_number - 1;
         let cached_response = response.unwrap_or("Nothing".to_string());
         if let Some(updated) = last_updated {
