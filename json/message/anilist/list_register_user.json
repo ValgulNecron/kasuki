@@ -1,0 +1,12 @@
+{
+  "en": {
+    "title": "Guild",
+    "desc": "The guild name is $name$. \n It was created on $date$. \n It has $number$ member(s) out of $max$"
+  },
+  "fr": {
+  },
+  "jp": {
+  },
+  "de": {
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "guild",
+  "desc": "Get information on the guild.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 0,
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "guild",
+      "desc": "Get information on the guild."
+    },
+    {
+      "code": "fr",
+    },
+    {
+      "code": "de",
+    },
+    {
+      "code": "ja",
+    }
+  ]
+}
