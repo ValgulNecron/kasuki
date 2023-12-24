@@ -23,22 +23,22 @@ when I have ideas or want to test things.
 
 
 Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
-something else, just do it and open a pr afterward.
+something else, you can do it and open a pr afterward.
 
 
-## I don't know how to code in rust but still want to contribute
+## I don’t know how to code in rust but still want to contribute
 
-1. You can add new langage by adding a translation in the file located in lang_file and adding it to
-   lang_file/available_lang.json
+1. You can add a new language by adding a translation in the file located in json and adding it to the choices in json/command/lang.json
 2. Contribute to this guide by making it clearer on how to use/ how it works.
 3. Or by opening an issue with enhancement or new feature you want to see.
+4. Or by contributing to the website for the bot.
 
 Please note that for embed you will need to use ISO-639-1 and if no ISO-639-1 exist or need to be more specific like the
 different "version" of chinese use ISO-639-3 and if still not like with a specific chinese written in pinyin, I used the
 ISO-639-3 code for mandarin chinese (cmn) and added a p for pinyin
 
-if working on command_register please use the same structure,
-but the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
+for the command json please follow the example,
+the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
 
 
 # How to use
@@ -73,7 +73,7 @@ windows: windows 10 and 11
 git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 ```
 
-- edit compose-default.yml file and add your discord bot token.
+- edit compose-default.yml file and add your discord bot token and edit the other env var.
   (not sure if it works or needs to be renamed to
   compose.yml or docker-compose.yml)
 - run docker compose.
@@ -82,14 +82,11 @@ git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 docker compose up -d
 ```
 
-Please remember that after a pull you will need to rebuild
-
 ```bash
-docker compose up -d --build 
+docker compose up -d --pull always
 ```
 
-you can also use the image valgul/kasuki instead of building the bot locally.
-
+or you can build from the latest commit.
 
 ### or Rust
 
@@ -105,6 +102,10 @@ git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 
 ```bash
 cargo run --release
+```
+
+```bash
+cargo build --release
 ```
 
 # TODO
@@ -199,6 +200,7 @@ for those of you who prefer web dev.\
   anymore. (and now it seems to work again.))
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
   idea.
+  seem like the post was removed.
 - [https://github.com/Skittyblock/AniBot](https://github.com/Skittyblock/AniBot) For auto-complete on command, did not
   even know it existed before.
 
