@@ -51,7 +51,7 @@ pub async fn set_data_ping_history_sqlite(
 /// If the data is found in the database, it will be returned.
 /// If not found, both values will be `None`.
 pub async fn get_data_guild_langage_sqlite(
-    guild_id: &str,
+    guild_id: String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: (Option<String>, Option<String>) =
@@ -200,21 +200,6 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
     .fetch_one(&pool)
     .await
     .unwrap_or((None, None, None));
-    pool.close().await;
-
-    Ok(row)
-}
-
-pub async fn get_data_guild_lang_sqlite(
-    guild_id: String,
-) -> Result<(Option<String>, Option<String>), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>) =
-        sqlx::query_as("SELECT lang_struct, guild FROM guild_lang WHERE guild = ?")
-            .bind(guild_id)
-            .fetch_one(&pool)
-            .await
-            .unwrap_or((None, None));
     pool.close().await;
 
     Ok(row)

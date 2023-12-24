@@ -4,7 +4,7 @@ use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
 use crate::sqls::sqlite::data::{
-    get_data_activity_sqlite, get_data_guild_lang_sqlite, get_data_guild_langage_sqlite,
+    get_data_activity_sqlite, get_data_guild_langage_sqlite,
     get_data_module_activation_kill_switch_status_sqlite, get_data_module_activation_status_sqlite,
     get_one_activity_sqlite, get_registered_user_sqlite, remove_data_activity_status_sqlite,
     set_data_activity_sqlite, set_data_guild_langage_sqlite,
@@ -24,7 +24,7 @@ pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<
 }
 
 pub async fn get_data_guild_langage(
-    guild_id: &str,
+    guild_id: String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
@@ -144,19 +144,6 @@ pub async fn get_one_activity(
         Ok((None, None, None, None))
     } else {
         get_one_activity_sqlite(server_id, anime_id).await
-    }
-}
-
-pub async fn get_data_guild_lang(
-    guild_id: String,
-) -> Result<(Option<String>, Option<String>), AppError> {
-    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
-    if db_type == *"sqlite" {
-        get_data_guild_lang_sqlite(guild_id).await
-    } else if db_type == *"postgresql" {
-        Ok((None, None))
-    } else {
-        get_data_guild_lang_sqlite(guild_id).await
     }
 }
 
