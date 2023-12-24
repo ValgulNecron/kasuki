@@ -70,22 +70,6 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .execute(pool)
     .await
     .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS activity_data (
-        anime_id TEXT,
-        timestamp TEXT,
-        server_id TEXT,
-        webhook TEXT,
-        episode TEXT,
-        name TEXT,
-        delays INTEGER DEFAULT 0,
-        PRIMARY KEY (anime_id, server_id)
-    )",
-    )
-    .execute(pool)
-    .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
     Ok(())
 }
 
@@ -135,15 +119,31 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
-            guild_id TEXT PRIMARY KEY,
-            ai_module INTEGER,
-            anilist_module INTEGER
-        )",
+       guild_id TEXT PRIMARY KEY,
+       ai_module INTEGER,
+       anilist_module INTEGER
+   )",
     )
     .execute(pool)
     .await
     .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
 
+    // Check if the column exists
+    let row: Option<(i64,)> = sqlx::query_as("PRAGMA table_info(module_activation)")
+        .fetch_optional(pool)
+        .await
+        .map_err(|_| SqlCreateError(String::from("Failed to fetch table info.")))?;
+
+    if row.is_none() {
+        // If the column does not exist, add it
+        sqlx::query(
+            "ALTER TABLE module_activation
+        ADD COLUMN game_module TEXT",
+        )
+        .execute(pool)
+        .await
+        .map_err(|_| SqlCreateError(String::from("Failed to add column.")))?;
+    }
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
             user_id TEXT PRIMARY KEY,

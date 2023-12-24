@@ -4,9 +4,7 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::anilist_struct::run::user::{
-    get_banner, get_color, get_completed, get_user_url, UserWrapper,
-};
+use crate::anilist_struct::run::user::{get_color, get_completed, get_user_url, UserWrapper};
 use crate::constant::{COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::level::load_localization_level;

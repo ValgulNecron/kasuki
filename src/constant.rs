@@ -2,6 +2,7 @@ use once_cell::sync::Lazy;
 use serenity::all::Colour;
 
 use crate::error_enum::AppError;
+use crate::game_struct::steam_game_id_struct::App;
 
 pub const DAYS: i64 = 3;
 pub const ACTIVITY_NAME: &str = "Let you get info from anilist.";
@@ -17,8 +18,6 @@ pub static COMMAND_SENDING_ERROR: Lazy<AppError> = Lazy::new(|| {
         "Error while sending the response of the command.",
     ))
 });
-pub static NO_AVATAR_ERROR: Lazy<AppError> =
-    Lazy::new(|| AppError::NoAvatarError(String::from("Error while getting the user avatar.")));
 pub static DIFFERED_COMMAND_SENDING_ERROR: Lazy<AppError> = Lazy::new(|| {
     AppError::DifferedCommandSendingError(String::from(
         "Error while sending the response of the command.",
@@ -28,6 +27,7 @@ pub static DIFFERED_OPTION_ERROR: Lazy<AppError> =
     Lazy::new(|| AppError::DifferedOptionError(String::from("The option contain no value")));
 pub static AUTOCOMPLETE_COUNT: u32 = 8;
 pub static OTHER_CRATE_LEVEL: &str = "warn";
-
 pub static UNKNOWN: &str = "Unknown";
 pub static VERSION: &str = "V2.1.0";
+pub static mut APPS: Vec<App> = Vec::new();
+pub static GAME_UPDATE: u32 = 1;
