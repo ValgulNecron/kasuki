@@ -65,10 +65,8 @@ pub async fn run(
         }
     };
 
-    let api_base_url = match env::var("AI_API_BASE_URL") {
-        Ok(x) => x,
-        Err(_) => "https://api.openai.com/v1/".to_string(),
-    };
+    let api_base_url =
+        env::var("AI_API_BASE_URL").unwrap_or_else(|_| "https://api.openai.com/v1/".to_string());
 
     let mut data = json!({
         "prompt": prompt,
