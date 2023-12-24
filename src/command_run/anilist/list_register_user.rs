@@ -1,11 +1,12 @@
+use image::{ImageBuffer, Rgba};
+use serenity::all::{CommandInteraction, Context, User};
+use text_to_png::TextRenderer;
+
 use crate::anilist_struct::run::user::UserWrapper;
 use crate::constant::OPTION_ERROR;
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::list_register_user::load_localization_list_user;
 use crate::sqls::general::data::get_registered_user;
-use image::{ImageBuffer, Rgba};
-use serenity::all::{CommandInteraction, Context, User};
-use text_to_png::TextRenderer;
 
 pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command.guild_id {

@@ -1,8 +1,10 @@
-use crate::constant::{APPS, GAME_UPDATE};
+use std::time::Duration;
+
 use serde::Deserialize;
 use serde_json::Value;
-use std::time::Duration;
 use tracing::debug;
+
+use crate::constant::{APPS, GAME_UPDATE};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct App {

@@ -1,4 +1,4 @@
- {
+{
   "name": "list_user",
   "desc": "Get the list of all registered users.",
   "dm_command": false,

@@ -28,7 +28,8 @@ something else, you can do it and open a pr afterward.
 
 ## I don’t know how to code in rust but still want to contribute
 
-1. You can add a new language by adding a translation in the file located in json and adding it to the choices in json/command/lang.json
+1. You can add a new language by adding a translation in the file located in json and adding it to the choices in
+   json/command/lang.json
 2. Contribute to this guide by making it clearer on how to use/ how it works.
 3. Or by opening an issue with enhancement or new feature you want to see.
 4. Or by contributing to the website for the bot.
@@ -87,6 +88,7 @@ docker compose up -d --pull always
 ```
 
 or you can build from the latest commit.
+
 
 ### or Rust
 
@@ -165,7 +167,8 @@ cargo build --release
     — Same as anime, but this one will be hard since
     a user can do update every second like every year. Will either have delay or be resource intensive.
   - [X] Add a "delay" option to delay notification.
-  - [X] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with a seiyuu and va role.
+  - [X] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
+    with a seiyuu and va role.
   - [ ] Get all the register users of the server.
     — Working on it after finishing anime activity.
   - [X] Add studio search.

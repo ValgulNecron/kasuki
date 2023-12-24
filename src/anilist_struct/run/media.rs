@@ -1,4 +1,3 @@
-use crate::common::get_nsfw::get_nsfw;
 use serde::Deserialize;
 use serde_json::json;
 use serenity::all::{
@@ -6,6 +5,7 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
+use crate::common::get_nsfw::get_nsfw;
 use crate::common::html_parser::convert_to_discord_markdown;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;

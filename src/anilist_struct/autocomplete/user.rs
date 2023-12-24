@@ -1,4 +1,3 @@
-use crate::constant::AUTOCOMPLETE_COUNT;
 use serde::Deserialize;
 use serde_json::json;
 
