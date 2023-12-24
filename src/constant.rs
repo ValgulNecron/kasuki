@@ -28,6 +28,6 @@ pub static DIFFERED_OPTION_ERROR: Lazy<AppError> =
 pub static AUTOCOMPLETE_COUNT: u32 = 20;
 pub static OTHER_CRATE_LEVEL: &str = "warn";
 pub static UNKNOWN: &str = "Unknown";
-pub static VERSION: &str = "V2.1.0";
+pub static VERSION: &str = "V2.1.1";
 pub static mut APPS: Vec<App> = Vec::new();
 pub static GAME_UPDATE: u32 = 1;
