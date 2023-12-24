@@ -4,9 +4,15 @@
     "desc": "The guild name is $name$. \n It was created on $date$. \n It has $number$ member(s) out of $max$"
   },
   "fr": {
+    "title": "Guilde",
+    "desc": "Le nom de la guilde est $name$. \n Elle a été créée le $date$. \n Elle a $number$ membre(s) sur $max$"
   },
   "jp": {
+    "title": "ギルド",
+    "desc": "ギルドの名前は$name$です。 \n 作成日は$date$です。 \n メンバー数は$max$人中$number$人です"
   },
   "de": {
+    "title": "Gilde",
+    "desc": "Der Gildenname ist $name$. \n Sie wurde am $date$ erstellt. \n Sie hat $number$ Mitglied(er) von $max$"
   }
 }

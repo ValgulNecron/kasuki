@@ -1,6 +1,6 @@
-{
-  "name": "guild",
-  "desc": "Get information on the guild.",
+ {
+  "name": "list_user",
+  "desc": "Get the list of all registered users.",
   "dm_command": false,
   "nsfw": false,
   "perm": false,
@@ -8,17 +8,23 @@
   "localised": [
     {
       "code": "en-US",
-      "name": "guild",
-      "desc": "Get information on the guild."
+      "name": "list_user",
+      "desc": "Get the list of all registered users."
     },
     {
       "code": "fr",
+      "name": "liste_utilisateurs",
+      "desc": "Obtenez la liste de tous les utilisateurs enregistrés."
     },
     {
       "code": "de",
+      "name": "benutzerliste",
+      "desc": "Erhalten Sie die Liste aller registrierten Benutzer."
     },
     {
       "code": "ja",
+      "name": "ユーザーリスト",
+      "desc": "登録されているすべてのユーザーのリストを取得します。"
     }
   ]
 }

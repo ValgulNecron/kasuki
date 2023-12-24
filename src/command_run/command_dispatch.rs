@@ -2,8 +2,8 @@ use serenity::all::{CommandInteraction, Context};
 
 use crate::command_run::ai::{image, transcript, translation};
 use crate::command_run::anilist::{
-    add_activity, anime, character, compare, level, ln, manga, random, register, search, seiyuu,
-    staff, studio, user, waifu,
+    add_activity, anime, character, compare, level, list_register_user, ln, manga, random,
+    register, search, seiyuu, staff, studio, user, waifu,
 };
 use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{
@@ -168,6 +168,13 @@ pub async fn command_dispatching(
         "level" => {
             if check_if_anilist_moule_is_on(&command).await? {
                 level::run(&command.data.options, &ctx, &command).await?
+            } else {
+                return Err(anilist_module_error);
+            }
+        }
+        "list_user" => {
+            if check_if_anilist_moule_is_on(&command).await? {
+                list_register_user::run(&ctx, &command).await?
             } else {
                 return Err(anilist_module_error);
             }

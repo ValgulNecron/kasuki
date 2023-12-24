@@ -3,7 +3,7 @@ pub mod anime;
 pub mod character;
 pub mod compare;
 pub mod level;
-mod list_register_user;
+pub mod list_register_user;
 pub mod ln;
 pub mod manga;
 pub mod random;
