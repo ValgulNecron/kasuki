@@ -75,12 +75,11 @@ pub async fn send_embed(
 
     let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
 
-    let builder_embed = CreateEmbed::new()
+    let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(get_color(user.clone()))
         .title(&user.name.unwrap_or(String::new()))
         .url(get_user_url(&user.id.clone().unwrap_or(0)))
-        .image(get_banner(&user.id.clone().unwrap_or(0)))
         .thumbnail(&user.avatar.large.clone().unwrap())
         .description(
             level_localised
@@ -91,6 +90,11 @@ pub async fn send_embed(
                 .replace("$actual$", actual.to_string().as_str())
                 .replace("$next$", next_xp.to_string().as_str()),
         );
+
+    match &user.banner_image {
+        Some(banner_image) => builder_embed = builder_embed.image(banner_image),
+        None => {}
+    }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 
