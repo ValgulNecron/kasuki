@@ -4,6 +4,7 @@ use std::time::Duration;
 use chrono::Utc;
 use serenity::all::{CreateEmbed, ExecuteWebhook, Http, Webhook};
 use tokio::time::sleep;
+use tracing::trace;
 
 use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrapper};
 use crate::constant::{COLOR, OPTION_ERROR};
@@ -14,6 +15,7 @@ use crate::sqls::general::data::{
 };
 
 pub async fn manage_activity() {
+    trace!("Started the activity management.");
     loop {
         tokio::spawn(async move { send_activity().await });
         sleep(Duration::from_secs(1)).await;
@@ -22,6 +24,7 @@ pub async fn manage_activity() {
 
 pub async fn send_activity() {
     let now = Utc::now().timestamp().to_string();
+    trace!("{:#?}", now);
     let rows = get_data_activity(now.clone()).await.unwrap();
     for row in rows {
         if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap() {
@@ -111,5 +114,6 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
 }
 
 pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+    trace!("removing {:#?} for {:#?}", row, guild_id);
     remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await
 }

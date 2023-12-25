@@ -47,7 +47,7 @@ impl EventHandler for Handler {
 
         info!("{:?}", &ctx.cache.guilds().len());
 
-        trace!("{:#?}", &ctx.cache.guilds());
+        debug!("{:#?}", &ctx.cache.guilds());
 
         let is_ok = env::var("REMOVE_OLD_COMMAND_ON_STARTUP")
             .unwrap_or("false".to_string())
@@ -60,7 +60,7 @@ impl EventHandler for Handler {
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command) = interaction.clone() {
-            info!(
+            debug!(
                 "Received command interaction: {}, Option: {:#?}, User: {}({})",
                 command.data.name, command.data.options, command.user.name, command.user.id
             );

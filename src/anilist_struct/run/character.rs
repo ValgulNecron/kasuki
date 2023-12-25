@@ -4,6 +4,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
+use tracing::log::trace;
 
 use crate::common::html_parser::convert_to_discord_markdown;
 use crate::common::make_anilist_request::make_request_anilist;
@@ -90,7 +91,9 @@ impl CharacterWrapper {
         }
         ";
         let json = json!({"query": query_id, "variables": {"name": value}});
+        trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
+        trace!("{:#?}", resp);
         serde_json::from_str(&resp)
             .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
     }
@@ -123,7 +126,9 @@ query ($name: String) {
 }
 ";
         let json = json!({"query": query_string, "variables": {"name": value}});
+        trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
+        trace!("{:#?}", resp);
         serde_json::from_str(&resp)
             .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
     }
@@ -138,6 +143,8 @@ pub async fn send_embed(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+
+    trace!("{:#?}", guild_id);
 
     let character = data.data.character.clone();
 
