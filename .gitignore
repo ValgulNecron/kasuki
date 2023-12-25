@@ -348,3 +348,6 @@ FodyWeavers.xsd
 *.log.*
 *.sig
 pkg/
+
+cache.db
+data.db
