@@ -5,6 +5,7 @@ use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
+use tracing::log::trace;
 
 use crate::common::make_anilist_request::make_request_anilist;
 
@@ -82,7 +83,9 @@ impl MediaPageWrapper {
         }});
 
         let res = make_request_anilist(json, true).await;
+        trace!("{:#?}", res);
         let data: MediaPageWrapper = serde_json::from_str(&res).unwrap();
+        trace!("{:#?}", data);
         data
     }
 

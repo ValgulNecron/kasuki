@@ -1,6 +1,7 @@
 use crate::constant::AUTOCOMPLETE_COUNT;
 use serde::Deserialize;
 use serde_json::json;
+use tracing::log::trace;
 
 use crate::common::make_anilist_request::make_request_anilist;
 
@@ -42,6 +43,9 @@ impl StudioPageWrapper {
         }});
 
         let res = make_request_anilist(json, true).await;
-        serde_json::from_str(&res).unwrap()
+        trace!("{:#?}", res);
+        let data: StudioPageWrapper = serde_json::from_str(&res).unwrap();
+        trace!("{:#?}", data);
+        data
     }
 }
