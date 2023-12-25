@@ -29,11 +29,7 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
         .clone()
         .format("%Y-%m-%d %H:%M:%S")
         .to_string();
-    let number_of_member = guild
-        .approximate_member_count
-        .clone()
-        .unwrap_or(0)
-        .to_string();
+    let number_of_member = guild.approximate_member_count.unwrap_or(0).to_string();
     let max_member = match guild.max_members {
         Some(max) => max.to_string(),
         None => String::from("Unknown"),
@@ -58,20 +54,16 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
             builder_embed = builder_embed.thumbnail(icon_url)
         }
         None => {
-            match guild.icon {
-                Some(hash) => {
-                    let icon_url =
-                        format!("https://cdn.discordapp.com/icons/{}/{}.png", guild.id, hash);
-                    builder_embed = builder_embed.thumbnail(icon_url)
-                }
-                None => {}
-            };
+            if let Some(hash) = guild.icon {
+                let icon_url =
+                    format!("https://cdn.discordapp.com/icons/{}/{}.png", guild.id, hash);
+                builder_embed = builder_embed.thumbnail(icon_url)
+            }
         }
     };
 
-    match guild.banner {
-        Some(banner) => builder_embed = builder_embed.image(banner),
-        None => {}
+    if let Some(banner) = guild.banner {
+        builder_embed = builder_embed.image(banner)
     }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);

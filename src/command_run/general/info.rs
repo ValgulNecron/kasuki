@@ -18,9 +18,9 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
         .timestamp(Timestamp::now())
         .color(COLOR)
         .description(
-            &info_localised
+            info_localised
                 .desc
-                .replace("$number$", &ctx.cache.guilds().len().to_string().as_str())
+                .replace("$number$", ctx.cache.guilds().len().to_string().as_str())
                 .replace("$version$", VERSION),
         )
         .title(&info_localised.title)

@@ -93,7 +93,7 @@ pub async fn run(
     match staff.date_of_death.year {
         Some(y) => {
             if day {
-                date.push_str("/")
+                date.push('/')
             }
             date.push_str(y.to_string().as_str())
         }

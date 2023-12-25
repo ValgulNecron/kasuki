@@ -24,7 +24,6 @@ pub async fn manage_activity() {
 
 pub async fn send_activity() {
     let now = Utc::now().timestamp().to_string();
-    trace!("{:#?}", now);
     let rows = get_data_activity(now.clone()).await.unwrap();
     for row in rows {
         if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap() {

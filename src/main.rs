@@ -47,7 +47,13 @@ impl EventHandler for Handler {
 
         info!("{:?}", &ctx.cache.guilds().len());
 
-        debug!("{:#?}", &ctx.cache.guilds());
+        for guild in ctx.cache.guilds() {
+            let partial_guild = guild.to_partial_guild(&ctx.http).await.unwrap();
+            debug!(
+                "guild id: {:#?} | guild name {:#?}",
+                &partial_guild.id, &partial_guild.name
+            );
+        }
 
         let is_ok = env::var("REMOVE_OLD_COMMAND_ON_STARTUP")
             .unwrap_or("false".to_string())
