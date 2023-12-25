@@ -71,10 +71,9 @@ impl EventHandler for Handler {
                 command.data.name, command.data.options, command.user.name, command.user.id
             );
             trace!("{:#?}", command);
-            match command_dispatching(ctx, command).await {
-                Err(e) => error_management::error_dispatch::command_dispatching(e).await,
-                Ok(_) => {}
-            };
+            if let Err(e) = command_dispatching(ctx, command).await {
+                error_management::error_dispatch::command_dispatching(e).await
+            }
 
             // check if the command was successfully done.
         } else if let Interaction::Autocomplete(command) = interaction.clone() {

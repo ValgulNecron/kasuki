@@ -72,32 +72,24 @@ pub async fn run(
     let mut date = String::new();
     let mut day = false;
     let mut month = false;
+    if let Some(m) = staff.date_of_death.month {
+        month = true;
+        date.push_str(m.to_string().as_str())
+    }
 
-    match staff.date_of_death.month {
-        Some(m) => {
-            month = true;
-            date.push_str(m.to_string().as_str())
+    if let Some(d) = staff.date_of_death.day {
+        day = true;
+        if month {
+            date.push_str("/")
         }
-        None => {}
+        date.push_str(d.to_string().as_str())
     }
-    match staff.date_of_death.day {
-        Some(d) => {
-            day = true;
-            if month {
-                date.push_str("/")
-            }
-            date.push_str(d.to_string().as_str())
+
+    if let Some(y) = staff.date_of_death.year {
+        if day {
+            date.push('/')
         }
-        None => {}
-    }
-    match staff.date_of_death.year {
-        Some(y) => {
-            if day {
-                date.push('/')
-            }
-            date.push_str(y.to_string().as_str())
-        }
-        None => {}
+        date.push_str(y.to_string().as_str())
     }
     let dod = staff_localised
         .date_of_death
