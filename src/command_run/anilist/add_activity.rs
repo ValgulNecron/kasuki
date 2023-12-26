@@ -32,7 +32,7 @@ pub async fn run(
         if option.name == "delay" {
             let resolved = &option.value;
             if let CommandDataOptionValue::Integer(delay_option) = resolved {
-                delay = delay_option.clone()
+                delay = *delay_option
             } else {
                 delay = 0;
             }
@@ -67,7 +67,7 @@ pub async fn run(
         MinimalAnimeWrapper::new_minimal_anime_by_search(anime.to_string()).await?
     };
     let media = data.data.media.clone();
-    let anime_id = media.id.clone();
+    let anime_id = media.id;
     let title = data.data.media.title.ok_or(DIFFERED_OPTION_ERROR.clone())?;
     let mut anime_name = get_name(title);
     let channel_id = command.channel_id;
@@ -78,7 +78,7 @@ pub async fn run(
             .title(&add_activity_localised.fail)
             .url(format!("https://anilist.co/anime/{}", media.id))
             .description(
-                &add_activity_localised
+                add_activity_localised
                     .fail_desc
                     .replace("$anime$", anime_name.as_str()),
             );
@@ -155,7 +155,7 @@ pub async fn run(
             .title(&add_activity_localised.success)
             .url(format!("https://anilist.co/anime/{}", media.id))
             .description(
-                &add_activity_localised
+                add_activity_localised
                     .success_desc
                     .replace("$anime$", anime_name.as_str()),
             );

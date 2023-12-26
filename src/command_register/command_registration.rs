@@ -34,7 +34,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
         permission = Permissions::from_bits(perm_bit).unwrap()
     }
 
-    let mut nsfw = command.nsfw.clone();
+    let mut nsfw = command.nsfw;
 
     if command.name.as_str() == "image" {
         let honor_nsfw = env::var("IMAGE_GENERATION_MODELS_ON").unwrap_or(String::from("fale"));
@@ -66,18 +66,17 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
     }
     trace!("{:?}", build);
     match Command::create_global_command(http, build).await {
-        Ok(res) => res,
+        Ok(res) => drop(res),
         Err(e) => {
             error!("{} for command {}", e, command.name);
-            return;
         }
-    };
+    }
 }
 
 async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
     let mut options_builds = Vec::new();
     for option in command.args.as_ref().unwrap() {
-        let command_type = option.command_type.clone().into();
+        let command_type = option.command_type.into();
         let mut options_build = CreateCommandOption::new(command_type, &option.name, &option.desc)
             .required(option.required);
         match &option.choices {

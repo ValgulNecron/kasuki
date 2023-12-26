@@ -56,77 +56,93 @@ pub async fn run(
 
     let user = data.data.user.clone();
     let user2 = data2.data.user.clone();
-    let username = user.name.clone().unwrap_or(String::new());
-    let username2 = user2.name.clone().unwrap_or(String::new());
+    let username = user.name.clone().unwrap_or_default();
+    let username2 = user2.name.clone().unwrap_or_default();
 
     let mut desc = String::new();
 
-    if &user.statistics.anime.count.unwrap_or(0) > &user2.statistics.anime.count.unwrap_or(0) {
-        desc.push_str(
-            compare_localised
-                .more_anime
-                .replace("$greater$", username.as_str())
-                .replace("$lesser$", username2.as_str())
-                .as_str(),
-        )
-    } else if user.statistics.anime.count.unwrap_or(0) < user2.statistics.anime.count.unwrap_or(0) {
-        desc.push_str(
-            compare_localised
-                .more_anime
-                .replace("$greater$", username2.as_str())
-                .replace("$lesser$", username.as_str())
-                .as_str(),
-        )
-    } else {
-        desc.push_str(
-            compare_localised
-                .same_anime
-                .replace("$2$", username2.as_str())
-                .replace("$1$", username.as_str())
-                .as_str(),
-        )
+    match user
+        .statistics
+        .anime
+        .count
+        .unwrap_or(0)
+        .cmp(&user2.statistics.anime.count.unwrap_or(0))
+    {
+        std::cmp::Ordering::Greater => {
+            desc.push_str(
+                compare_localised
+                    .more_anime
+                    .replace("$greater$", username.as_str())
+                    .replace("$lesser$", username2.as_str())
+                    .as_str(),
+            );
+        }
+        std::cmp::Ordering::Less => {
+            desc.push_str(
+                compare_localised
+                    .more_anime
+                    .replace("$greater$", username2.as_str())
+                    .replace("$lesser$", username.as_str())
+                    .as_str(),
+            );
+        }
+        std::cmp::Ordering::Equal => {
+            desc.push_str(
+                compare_localised
+                    .same_anime
+                    .replace("$2$", username2.as_str())
+                    .replace("$1$", username.as_str())
+                    .as_str(),
+            );
+        }
     }
 
-    if user.statistics.anime.minutes_watched.unwrap_or(0)
-        > user2.statistics.anime.minutes_watched.unwrap_or(0)
+    match user
+        .statistics
+        .anime
+        .minutes_watched
+        .unwrap_or(0)
+        .cmp(&user2.statistics.anime.minutes_watched.unwrap_or(0))
     {
-        desc.push_str(
-            compare_localised
-                .more_watch_time
-                .replace("$greater$", username.as_str())
-                .replace("$lesser$", username2.as_str())
-                .as_str(),
-        )
-    } else if &user.statistics.anime.minutes_watched.unwrap_or(0)
-        < &user2.statistics.anime.minutes_watched.unwrap_or(0)
-    {
-        desc.push_str(
-            compare_localised
-                .more_watch_time
-                .replace("$greater$", username2.as_str())
-                .replace("$lesser$", username.as_str())
-                .as_str(),
-        )
-    } else {
-        desc.push_str(
-            compare_localised
-                .same_watch_time
-                .replace("$2$", username2.as_str())
-                .replace("$1$", username.as_str())
-                .as_str(),
-        )
+        std::cmp::Ordering::Greater => {
+            desc.push_str(
+                compare_localised
+                    .more_watch_time
+                    .replace("$greater$", username.as_str())
+                    .replace("$lesser$", username2.as_str())
+                    .as_str(),
+            );
+        }
+        std::cmp::Ordering::Less => {
+            desc.push_str(
+                compare_localised
+                    .more_watch_time
+                    .replace("$greater$", username2.as_str())
+                    .replace("$lesser$", username.as_str())
+                    .as_str(),
+            );
+        }
+        std::cmp::Ordering::Equal => {
+            desc.push_str(
+                compare_localised
+                    .same_watch_time
+                    .replace("$2$", username2.as_str())
+                    .replace("$1$", username.as_str())
+                    .as_str(),
+            );
+        }
     }
 
     let tag = user.statistics.anime.tags[0]
         .tag
         .name
         .clone()
-        .unwrap_or(String::new());
+        .unwrap_or_default();
     let tag2 = user2.statistics.anime.tags[0]
         .tag
         .name
         .clone()
-        .unwrap_or(String::new());
+        .unwrap_or_default();
 
     let diff = tag != tag2;
 
@@ -154,11 +170,11 @@ pub async fn run(
     let genre = user.statistics.anime.genres[0]
         .genre
         .clone()
-        .unwrap_or(String::new());
+        .unwrap_or_default();
     let genre2 = user2.statistics.anime.genres[0]
         .genre
         .clone()
-        .unwrap_or(String::new());
+        .unwrap_or_default();
 
     let diff = genre != genre2;
 
@@ -183,72 +199,88 @@ pub async fn run(
         )
     }
 
-    if user.statistics.manga.count.unwrap_or(0) > user2.statistics.manga.count.unwrap_or(0) {
-        desc.push_str(
-            compare_localised
-                .more_manga
-                .replace("$greater$", username.as_str())
-                .replace("$lesser$", username2.as_str())
-                .as_str(),
-        )
-    } else if user.statistics.manga.count.unwrap_or(0) < user2.statistics.manga.count.unwrap_or(0) {
-        desc.push_str(
-            compare_localised
-                .more_manga
-                .replace("$greater$", username2.as_str())
-                .replace("$lesser$", username.as_str())
-                .as_str(),
-        )
-    } else {
-        desc.push_str(
-            compare_localised
-                .same_manga
-                .replace("$2$", username2.as_str())
-                .replace("$1$", username.as_str())
-                .as_str(),
-        )
+    match user
+        .statistics
+        .manga
+        .count
+        .unwrap_or(0)
+        .cmp(&user2.statistics.manga.count.unwrap_or(0))
+    {
+        std::cmp::Ordering::Greater => {
+            desc.push_str(
+                compare_localised
+                    .more_manga
+                    .replace("$greater$", username.as_str())
+                    .replace("$lesser$", username2.as_str())
+                    .as_str(),
+            );
+        }
+        std::cmp::Ordering::Less => {
+            desc.push_str(
+                compare_localised
+                    .more_manga
+                    .replace("$greater$", username2.as_str())
+                    .replace("$lesser$", username.as_str())
+                    .as_str(),
+            );
+        }
+        std::cmp::Ordering::Equal => {
+            desc.push_str(
+                compare_localised
+                    .same_manga
+                    .replace("$2$", username2.as_str())
+                    .replace("$1$", username.as_str())
+                    .as_str(),
+            );
+        }
     }
 
-    if user.statistics.manga.chapters_read.unwrap_or(0)
-        > user2.statistics.manga.chapters_read.unwrap_or(0)
+    match user
+        .statistics
+        .manga
+        .chapters_read
+        .unwrap_or(0)
+        .cmp(&user2.statistics.manga.chapters_read.unwrap_or(0))
     {
-        desc.push_str(
-            compare_localised
-                .more_manga_chapter
-                .replace("$greater$", username.as_str())
-                .replace("$lesser$", username2.as_str())
-                .as_str(),
-        )
-    } else if user.statistics.manga.chapters_read.unwrap_or(0)
-        < user2.statistics.manga.chapters_read.unwrap_or(0)
-    {
-        desc.push_str(
-            compare_localised
-                .more_manga_chapter
-                .replace("$greater$", username2.as_str())
-                .replace("$lesser$", username.as_str())
-                .as_str(),
-        )
-    } else {
-        desc.push_str(
-            compare_localised
-                .same_manga_chapter
-                .replace("$2$", username2.as_str())
-                .replace("$1$", username.as_str())
-                .as_str(),
-        )
+        std::cmp::Ordering::Greater => {
+            desc.push_str(
+                compare_localised
+                    .more_manga_chapter
+                    .replace("$greater$", username.as_str())
+                    .replace("$lesser$", username2.as_str())
+                    .as_str(),
+            );
+        }
+        std::cmp::Ordering::Less => {
+            desc.push_str(
+                compare_localised
+                    .more_manga_chapter
+                    .replace("$greater$", username2.as_str())
+                    .replace("$lesser$", username.as_str())
+                    .as_str(),
+            );
+        }
+        std::cmp::Ordering::Equal => {
+            desc.push_str(
+                compare_localised
+                    .same_manga_chapter
+                    .replace("$2$", username2.as_str())
+                    .replace("$1$", username.as_str())
+                    .as_str(),
+            );
+        }
     }
 
     let tag = user.statistics.manga.tags[0]
         .tag
         .name
         .clone()
-        .unwrap_or(String::new());
+        .unwrap_or_default();
     let tag2 = user2.statistics.manga.tags[0]
         .tag
         .name
         .clone()
-        .unwrap_or(String::new());
+        .unwrap_or_default();
 
     let diff = tag != tag2;
 
@@ -276,11 +308,11 @@ pub async fn run(
     let genre = user.statistics.manga.genres[0]
         .genre
         .clone()
-        .unwrap_or(String::new());
+        .unwrap_or_default();
     let genre2 = user2.statistics.manga.genres[0]
         .genre
         .clone()
-        .unwrap_or(String::new());
+        .unwrap_or_default();
 
     let diff = genre != genre2;
 

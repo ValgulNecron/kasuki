@@ -18,20 +18,15 @@ pub async fn run(
     trace!("{:?}", options);
     for option in options {
         if option.name.as_str() != "type" {
-            match option.value.as_str() {
-                Some(a) => {
-                    let value = &a.to_string();
+            if let Some(a) = option.value.as_str() {
+                let value = &a.to_string();
 
-                    let data: UserWrapper = if value.parse::<i32>().is_ok() {
-                        UserWrapper::new_user_by_id(value.parse().unwrap()).await?
-                    } else {
-                        UserWrapper::new_user_by_search(value).await?
-                    };
-
-                    return send_embed(ctx, command, data).await;
-                }
-
-                None => {}
+                let data: UserWrapper = if value.parse::<i32>().is_ok() {
+                    UserWrapper::new_user_by_id(value.parse().unwrap()).await?
+                } else {
+                    UserWrapper::new_user_by_search(value).await?
+                };
+                return send_embed(ctx, command, data).await;
             }
         }
     }
@@ -40,8 +35,12 @@ pub async fn run(
     trace!("{:?}", row);
     let (user, _): (Option<String>, Option<String>) = row;
     let user = user.ok_or(OPTION_ERROR.clone())?;
-    let data = UserWrapper::new_user_by_id((&user).parse::<i32>().unwrap()).await?;
-    return send_embed(ctx, command, data).await;
+    let data: UserWrapper = if user.parse::<i32>().is_ok() {
+        UserWrapper::new_user_by_id(user.parse().unwrap()).await?
+    } else {
+        UserWrapper::new_user_by_search(&user).await?
+    };
+    send_embed(ctx, command, data).await
 }
 
 pub async fn send_embed(
