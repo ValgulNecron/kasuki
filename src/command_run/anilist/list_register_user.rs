@@ -53,9 +53,7 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
         .join("\n");
 
     let renderer = TextRenderer::default();
-    let text_png = renderer
-        .render_text_to_png_data(&text, 64, "Black")
-        .unwrap();
+    let text_png = renderer.render_text_to_png_data(text, 64, "Black").unwrap();
 
     let img = ImageBuffer::from_fn(text_png.size.width, text_png.size.height, |x, y| {
         let pixel = &text_png.data[((y * text_png.size.width + x) * 4) as usize..];

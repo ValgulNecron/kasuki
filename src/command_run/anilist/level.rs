@@ -76,9 +76,9 @@ pub async fn send_embed(
     let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(get_color(user.clone()))
-        .title(&user.name.unwrap_or(String::new()))
-        .url(get_user_url(&user.id.clone().unwrap_or(0)))
-        .thumbnail(&user.avatar.large.clone().unwrap())
+        .title(user.name.unwrap_or(String::new()))
+        .url(get_user_url(user.id.clone().unwrap_or(0)))
+        .thumbnail(user.avatar.large.clone().unwrap())
         .description(
             level_localised
                 .desc

@@ -81,7 +81,7 @@ pub async fn embed(
     random_localised: RandomLocalised,
 ) -> Result<(), AppError> {
     let number = thread_rng().gen_range(1..=last_page);
-    return if random_type == "manga" {
+    if random_type == "manga" {
         let data = PageWrapper::new_manga_page(number).await?;
         let url = format!(
             "https://anilist.co/manga/{}",
@@ -97,7 +97,7 @@ pub async fn embed(
         follow_up_message(ctx, command, data, url, random_localised).await
     } else {
         Ok(())
-    };
+    }
 }
 
 pub async fn follow_up_message(

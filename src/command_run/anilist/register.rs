@@ -52,14 +52,14 @@ pub async fn run(
         .replace("$id$", user_id)
         .replace(
             "$anilist$",
-            user_data.name.clone().unwrap_or(String::new()).as_str(),
+            user_data.name.clone().unwrap_or_default().as_str(),
         );
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(get_color(user_data.clone()))
-        .title(user_data.name.unwrap_or(String::new()))
-        .url(get_user_url(&user_data.id.unwrap_or(0)))
+        .title(user_data.name.unwrap_or_default())
+        .url(get_user_url(user_data.id.unwrap_or(0)))
         .thumbnail(user_data.avatar.large.unwrap())
         .description(desc);
 

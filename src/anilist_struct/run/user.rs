@@ -269,7 +269,7 @@ pub async fn send_embed(
         .timestamp(Timestamp::now())
         .color(get_color(user.clone()))
         .title(user.name.unwrap_or(String::new()))
-        .url(get_user_url(&user.id.unwrap_or(0)))
+        .url(get_user_url(user.id.unwrap_or(0)))
         .fields(field)
         .image(get_banner(&user.id.unwrap_or(0)))
         .thumbnail(user.avatar.large.unwrap());
@@ -284,7 +284,7 @@ pub async fn send_embed(
         .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }
 
-pub fn get_user_url(user_id: &i32) -> String {
+pub fn get_user_url(user_id: i32) -> String {
     format!("https://anilist.co/user/{}", user_id)
 }
 
