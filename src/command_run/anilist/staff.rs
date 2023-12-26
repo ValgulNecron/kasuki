@@ -39,32 +39,26 @@ pub async fn run(
     let mut day = false;
     let mut month = false;
 
-    match staff.date_of_birth.month {
-        Some(m) => {
-            month = true;
-            date.push_str(m.to_string().as_str())
-        }
-        None => {}
+    if let Some(m) = staff.date_of_birth.month {
+        month = true;
+        date.push_str(m.to_string().as_str())
     }
-    match staff.date_of_birth.day {
-        Some(d) => {
-            day = true;
-            if month {
-                date.push_str("/")
-            }
-            date.push_str(d.to_string().as_str())
+
+    if let Some(d) = staff.date_of_birth.day {
+        day = true;
+        if month {
+            date.push('/')
         }
-        None => {}
+        date.push_str(d.to_string().as_str())
     }
-    match staff.date_of_birth.year {
-        Some(y) => {
-            if day {
-                date.push_str("/")
-            }
-            date.push_str(y.to_string().as_str())
+
+    if let Some(y) = staff.date_of_birth.year {
+        if day {
+            date.push('/')
         }
-        None => {}
+        date.push_str(y.to_string().as_str())
     }
+
     let dob = staff_localised
         .date_of_birth
         .replace("$date$", date.as_str());
@@ -80,7 +74,7 @@ pub async fn run(
     if let Some(d) = staff.date_of_death.day {
         day = true;
         if month {
-            date.push_str("/")
+            date.push('/')
         }
         date.push_str(d.to_string().as_str())
     }
