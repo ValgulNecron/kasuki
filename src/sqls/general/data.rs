@@ -111,20 +111,6 @@ pub async fn set_data_module_activation_status(
     }
 }
 
-pub async fn remove_data_module_activation_status(
-    server_id: String,
-    anime_id: String,
-) -> Result<(), AppError> {
-    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
-    if db_type == *"sqlite" {
-        remove_data_activity_status_sqlite(server_id, anime_id).await
-    } else if db_type == *"postgresql" {
-        Err(SqlInsertError(String::from("Error")))
-    } else {
-        remove_data_activity_status_sqlite(server_id, anime_id).await
-    }
-}
-
 pub async fn get_one_activity(
     anime_id: i32,
     server_id: String,

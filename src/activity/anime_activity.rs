@@ -65,7 +65,7 @@ pub async fn send_specific_activity(
     let embed = CreateEmbed::new()
         .color(COLOR)
         .description(
-            &localised_text
+            localised_text
                 .desc
                 .replace("$ep$", row.episode.unwrap_or(String::from("0")).as_str())
                 .replace("$anime$", row.name.unwrap_or(String::from("none")).as_str()),

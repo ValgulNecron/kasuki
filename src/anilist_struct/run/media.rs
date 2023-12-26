@@ -538,12 +538,7 @@ fn embed_title(data: &MediaWrapper) -> String {
 }
 
 fn embed_desc(data: &MediaWrapper) -> String {
-    let mut desc = data
-        .data
-        .media
-        .description
-        .clone()
-        .unwrap_or_else(|| "".to_string());
+    let mut desc = data.data.media.description.clone().unwrap_or_default();
     desc = convert_to_discord_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
     if lenght_diff <= 0 {
@@ -632,10 +627,10 @@ fn get_date(date: &StartEndDate) -> String {
     }
 }
 
-fn get_staff(staff: &Vec<Edge>, staff_string: &String) -> String {
+fn get_staff(staff: &Vec<Edge>, staff_string: &str) -> String {
     let mut staff_text = String::new();
     for s in staff {
-        let text = staff_string.clone();
+        let text = staff_string;
         let node = &s.node;
         let name = &node.name;
         let full = name.full.clone();

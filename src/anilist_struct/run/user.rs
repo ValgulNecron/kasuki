@@ -6,7 +6,7 @@ use serenity::all::{
 };
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::constant::COMMAND_SENDING_ERROR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::MediaGettingError;
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
@@ -240,35 +240,29 @@ pub async fn send_embed(
     let manga = user.statistics.manga.clone();
     let anime = user.statistics.anime.clone();
 
-    match user.statistics.manga.count {
-        Some(m) => {
-            if m > 0 {
-                field.push(get_manga_field(
-                    user.id.unwrap_or(0),
-                    user_localised.clone(),
-                    manga,
-                ))
-            }
+    if let Some(m) = user.statistics.manga.count {
+        if m > 0 {
+            field.push(get_manga_field(
+                user.id.unwrap_or(0),
+                user_localised.clone(),
+                manga,
+            ))
         }
-        _ => {}
     }
-    match user.statistics.anime.count {
-        Some(a) => {
-            if a > 0 {
-                field.push(get_anime_field(
-                    user.id.unwrap_or(0),
-                    user_localised.clone(),
-                    anime,
-                ))
-            }
+    if let Some(a) = user.statistics.anime.count {
+        if a > 0 {
+            field.push(get_anime_field(
+                user.id.unwrap_or(0),
+                user_localised.clone(),
+                anime,
+            ))
         }
-        _ => {}
     }
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(get_color(user.clone()))
-        .title(user.name.unwrap_or(String::new()))
+        .title(user.name.unwrap_or_default())
         .url(get_user_url(user.id.unwrap_or(0)))
         .fields(field)
         .image(get_banner(&user.id.unwrap_or(0)))
@@ -460,7 +454,7 @@ fn get_anime_time_watch(i: i32, localised1: UserLocalised) -> String {
 }
 
 pub fn get_color(user: User) -> Colour {
-    let mut color = COLOR;
+    let color;
     match user
         .options
         .profile_color

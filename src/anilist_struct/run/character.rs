@@ -156,33 +156,24 @@ pub async fn send_embed(
     let mut mo: bool = false;
     let mut da: bool = false;
 
-    match dob_data.month {
-        Some(m) => {
-            dob_string.push_str(format!("{:02}", m).as_str());
-            mo = true
-        }
-        None => {}
+    if let Some(m) = dob_data.month {
+        dob_string.push_str(format!("{:02}", m).as_str());
+        mo = true
     }
 
-    match dob_data.day {
-        Some(d) => {
-            if mo {
-                dob_string.push_str("/")
-            }
-            dob_string.push_str(format!("{:02}", d).as_str());
-            da = true
+    if let Some(d) = dob_data.day {
+        if mo {
+            dob_string.push('/')
         }
-        None => {}
+        dob_string.push_str(format!("{:02}", d).as_str());
+        da = true
     }
 
-    match dob_data.year {
-        Some(y) => {
-            if da {
-                dob_string.push_str("/")
-            }
-            dob_string.push_str(format!("{:04}", y).as_str());
+    if let Some(y) = dob_data.year {
+        if da {
+            dob_string.push('/')
         }
-        None => {}
+        dob_string.push_str(format!("{:04}", y).as_str());
     }
 
     let mut dob = String::new();
