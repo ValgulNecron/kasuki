@@ -1,10 +1,10 @@
 FROM rust:1.74.1-buster AS builder
 
+RUN USER=root cargo new --bin kasuki
+
 WORKDIR /kasuki
 
 COPY ./Cargo.toml ./Cargo.toml
-
-RUN USER=root cargo new --bin kasuki
 
 RUN cargo build --release
 

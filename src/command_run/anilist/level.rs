@@ -63,8 +63,8 @@ pub async fn send_embed(
 
     let manga_completed = get_completed(manga.statuses.clone());
     let anime_completed = get_completed(anime.statuses.clone());
-    let chap_read = manga.chapters_read.clone().unwrap_or(0);
-    let tw = anime.minutes_watched.clone().unwrap_or(0);
+    let chap_read = manga.chapters_read.unwrap_or(0);
+    let tw = anime.minutes_watched.unwrap_or(0);
 
     let xp =
         (2.0 * (manga_completed + anime_completed) as f64) + chap_read as f64 + (tw as f64 * 0.1);
@@ -76,8 +76,8 @@ pub async fn send_embed(
     let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(get_color(user.clone()))
-        .title(user.name.unwrap_or(String::new()))
-        .url(get_user_url(user.id.clone().unwrap_or(0)))
+        .title(user.name.unwrap_or_default())
+        .url(get_user_url(user.id.unwrap_or(0)))
         .thumbnail(user.avatar.large.clone().unwrap())
         .description(
             level_localised
