@@ -1,17 +1,15 @@
-FROM rust:1.74-buster AS builder
-
-RUN USER=root cargo new --bin kasuki
+FROM rust:1.74.1-buster AS builder
 
 WORKDIR /kasuki
 
 COPY ./Cargo.toml ./Cargo.toml
 
+RUN USER=root cargo new --bin kasuki
+
 RUN cargo build --release
-RUN rm src/*.rs
 
 COPY ./src ./src
 
-RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
 FROM debian:buster-slim AS bot
@@ -32,6 +30,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev libjpeg-dev \
     ca-certificates && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
+COPY --from=builder /kasuki/target/release/kasuki/kasuki.* /kasuki/.
 
 CMD ["./kasuki"]
