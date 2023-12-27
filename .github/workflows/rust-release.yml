@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Extract version
         id: extract
-        run:
+        run: |
           echo "::set-output name=version::$(grep -oP 'VERSION: \K\".*\"' version.rs)"
       - name: Setup Rust
         run: |
