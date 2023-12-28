@@ -1,13 +1,14 @@
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp, User, UserId,
 };
 use tracing::log::trace;
 
 use crate::anilist_struct::run::user::UserWrapper;
 use crate::constant::{
-    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR, PASS_LIMIT,
+    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, MEMBER_LIMIT, OPTION_ERROR,
+    PASS_LIMIT,
 };
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::list_register_user::load_localization_list_user;
@@ -38,9 +39,9 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
     let mut anilist_user = Vec::new();
     let mut last_id: Option<UserId> = None;
     let mut pass = 0;
-    while anilist_user.len() < 10 && pass < PASS_LIMIT {
+    while anilist_user.len() < MEMBER_LIMIT as usize && pass < PASS_LIMIT {
         let members = guild
-            .members(&ctx.http, Some(25u64), last_id)
+            .members(&ctx.http, Some(MEMBER_LIMIT), last_id)
             .await
             .map_err(|_| OPTION_ERROR.clone())?;
 
@@ -73,7 +74,7 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
             format!(
                 "[{}](<https://anilist.co/user/{}>)",
                 data.user.name,
-                data.anilist.data.user.name.clone().unwrap_or_default()
+                data.anilist.data.user.id.unwrap_or(0)
             )
         })
         .collect();
@@ -85,7 +86,12 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
         .title(list_user_localised.title)
         .description(joined_string);
 
-    let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
+    let mut builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
+
+    if anilist_user.len() == MEMBER_LIMIT as usize {
+        builder_message =
+            builder_message.button(CreateButton::new("next").label(list_user_localised.next))
+    }
 
     let _ = command
         .create_followup(&ctx.http, builder_message)
