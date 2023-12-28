@@ -25,7 +25,7 @@ use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     let mut value = String::new();
     for option_data in options {
@@ -41,7 +41,7 @@ pub async fn run(
         StaffImageWrapper::new_staff_by_search(&value).await?
     };
 
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -50,7 +50,7 @@ pub async fn run(
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
@@ -181,7 +181,7 @@ pub async fn run(
         .embed(builder_embed)
         .files(vec![attachement]);
 
-    command
+    command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;

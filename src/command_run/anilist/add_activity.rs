@@ -24,7 +24,7 @@ use crate::sqls::general::data::{get_one_activity, set_data_activity};
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     let mut delay = 0;
     let mut anime = String::new();
@@ -47,14 +47,14 @@ pub async fn run(
         }
     }
 
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
@@ -70,7 +70,7 @@ pub async fn run(
     let anime_id = media.id;
     let title = data.data.media.title.ok_or(DIFFERED_OPTION_ERROR.clone())?;
     let mut anime_name = get_name(title);
-    let channel_id = command.channel_id;
+    let channel_id = command_interaction.channel_id;
     if check_if_activity_exist(anime_id, guild_id.clone()).await {
         let builder_embed = CreateEmbed::new()
             .timestamp(Timestamp::now())
@@ -85,7 +85,7 @@ pub async fn run(
 
         let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
 
-        command
+        command_interaction
             .create_followup(&ctx.http, builder_message)
             .await
             .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
@@ -162,7 +162,7 @@ pub async fn run(
 
         let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
 
-        command
+        command_interaction
             .create_followup(&ctx.http, builder_message)
             .await
             .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;

@@ -19,9 +19,9 @@ use crate::sqls::general::cache::{get_database_random_cache, set_database_random
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -30,7 +30,7 @@ pub async fn run(
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
@@ -50,7 +50,7 @@ pub async fn run(
                     page_number,
                     random_type.to_string(),
                     ctx,
-                    command,
+                    command_interaction,
                     random_localised,
                 )
                 .await;
@@ -60,7 +60,7 @@ pub async fn run(
             page_number,
             random_type,
             ctx,
-            command,
+            command_interaction,
             previous_page,
             cached_response,
             random_localised,
@@ -77,7 +77,7 @@ pub async fn embed(
     last_page: i64,
     random_type: String,
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     random_localised: RandomLocalised,
 ) -> Result<(), AppError> {
     let number = thread_rng().gen_range(1..=last_page);
@@ -87,14 +87,14 @@ pub async fn embed(
             "https://anilist.co/manga/{}",
             data.data.page.media.clone()[0].id
         );
-        follow_up_message(ctx, command, data, url, random_localised).await
+        follow_up_message(ctx, command_interaction, data, url, random_localised).await
     } else if random_type == "anime" {
         let data = PageWrapper::new_anime_page(number).await?;
         let url = format!(
             "https://anilist.co/anime/{}",
             data.data.page.media.clone()[0].id
         );
-        follow_up_message(ctx, command, data, url, random_localised).await
+        follow_up_message(ctx, command_interaction, data, url, random_localised).await
     } else {
         Ok(())
     }
@@ -102,7 +102,7 @@ pub async fn embed(
 
 pub async fn follow_up_message(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     data: PageWrapper,
     url: String,
     random_localised: RandomLocalised,
@@ -142,7 +142,7 @@ pub async fn follow_up_message(
 
     let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
 
-    command
+    command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
@@ -153,7 +153,7 @@ pub async fn update_cache(
     mut page_number: i64,
     random_type: &String,
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     mut previous_page: i64,
     mut cached_response: String,
     random_localised: RandomLocalised,
@@ -193,7 +193,7 @@ pub async fn update_cache(
         previous_page,
         random_type.to_string(),
         ctx,
-        command,
+        command_interaction,
         random_localised,
     )
     .await

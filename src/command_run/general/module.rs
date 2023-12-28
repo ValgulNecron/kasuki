@@ -13,9 +13,9 @@ use crate::sqls::general::data::{
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -88,7 +88,7 @@ pub async fn run(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

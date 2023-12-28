@@ -1,6 +1,7 @@
 use std::env;
 use std::sync::Arc;
 
+use log::trace;
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::{async_trait, Client};
 use tracing::{debug, error, info, trace};
@@ -11,6 +12,7 @@ use crate::activity::anime_activity::manage_activity;
 use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::command_dispatching;
+use crate::components::components_dispatch::components_dispatching;
 use crate::constant::ACTIVITY_NAME;
 use crate::game_struct::steam_game_id_struct::get_game;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
@@ -22,6 +24,7 @@ mod command_autocomplete;
 mod command_register;
 mod command_run;
 mod common;
+mod components;
 mod constant;
 mod error_enum;
 mod error_management;
@@ -65,19 +68,24 @@ impl EventHandler for Handler {
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-        if let Interaction::Command(command) = interaction.clone() {
+        if let Interaction::Command(command_interaction) = interaction.clone() {
             debug!(
                 "Received command interaction: {}, Option: {:#?}, User: {}({})",
-                command.data.name, command.data.options, command.user.name, command.user.id
+                command_interaction.data.name,
+                command_interaction.data.options,
+                command_interaction.user.name,
+                command_interaction.user.id
             );
             trace!("{:#?}", command);
-            if let Err(e) = command_dispatching(ctx, command).await {
+            if let Err(e) = command_dispatching(ctx, command_interaction).await {
                 error_management::error_dispatch::command_dispatching(e).await
             }
-
-            // check if the command was successfully done.
-        } else if let Interaction::Autocomplete(command) = interaction.clone() {
-            autocomplete_dispatching(ctx, command).await;
+        } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
+            autocomplete_dispatching(ctx, autocomplete_interaction).await;
+        } else if let Interaction::Component(component_interaction) = interaction.clone() {
+            if let Err(e) = components_dispatching(ctx, component_interaction).await {
+                trace!("{:#?}", e);
+            }
         }
     }
 }

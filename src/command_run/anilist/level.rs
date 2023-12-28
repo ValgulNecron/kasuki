@@ -13,7 +13,7 @@ use crate::sqls::general::data::get_registered_user;
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     trace!("{:?}", options);
     for option in options {
@@ -26,11 +26,11 @@ pub async fn run(
                 } else {
                     UserWrapper::new_user_by_search(value).await?
                 };
-                return send_embed(ctx, command, data).await;
+                return send_embed(ctx, command_interaction, data).await;
             }
         }
     }
-    let user_id = &command.user.id.to_string();
+    let user_id = &command_interaction.user.id.to_string();
     let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
     trace!("{:?}", row);
     let (user, _): (Option<String>, Option<String>) = row;
@@ -40,15 +40,15 @@ pub async fn run(
     } else {
         UserWrapper::new_user_by_search(&user).await?
     };
-    send_embed(ctx, command, data).await
+    send_embed(ctx, command_interaction, data).await
 }
 
 pub async fn send_embed(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     data: UserWrapper,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -97,7 +97,7 @@ pub async fn send_embed(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

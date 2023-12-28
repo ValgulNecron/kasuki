@@ -6,7 +6,7 @@ use crate::error_enum::AppError;
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     let mut value = String::new();
     for option_data in options {
@@ -22,5 +22,5 @@ pub async fn run(
         MediaWrapper::new_anime_by_search(&value).await?
     };
 
-    send_embed(ctx, command, data).await
+    send_embed(ctx, command_interaction, data).await
 }

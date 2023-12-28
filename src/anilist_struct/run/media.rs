@@ -650,14 +650,14 @@ fn get_staff(staff: &Vec<Edge>, staff_string: &str) -> String {
 
 pub async fn send_embed(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     data: MediaWrapper,
 ) -> Result<(), AppError> {
-    if data.data.media.is_adult && !get_nsfw(command, ctx).await {
+    if data.data.media.is_adult && !get_nsfw(command_interaction, ctx).await {
         return Err(NotNSFWError(String::from("The channel is not nsfw.")));
     }
 
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -679,7 +679,7 @@ pub async fn send_embed(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

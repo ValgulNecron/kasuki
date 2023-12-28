@@ -25,7 +25,7 @@ use crate::lang_struct::ai::transcript::load_localization_transcript;
 pub async fn run(
     options: &[ResolvedOption<'_>],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     let mut prompt: String = String::new();
     let mut lang: String = String::new();
@@ -75,7 +75,7 @@ pub async fn run(
         .ok_or(OPTION_ERROR.clone())?;
     let content = attachement.proxy_url.clone();
 
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -88,7 +88,7 @@ pub async fn run(
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
@@ -188,7 +188,7 @@ pub async fn run(
 
     let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
 
-    command
+    command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;

@@ -13,7 +13,7 @@ use crate::sqls::general::data::set_registered_user;
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     let option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
 
@@ -32,7 +32,7 @@ pub async fn run(
         UserWrapper::new_user_by_search(value).await?
     };
 
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -41,8 +41,8 @@ pub async fn run(
 
     let user_data = data.data.user.clone();
 
-    let user_id = &command.user.id.to_string();
-    let username = &command.user.name;
+    let user_id = &command_interaction.user.id.to_string();
+    let username = &command_interaction.user.name;
 
     set_registered_user(user_id, &user_data.id.unwrap_or(0).to_string()).await?;
 
@@ -67,7 +67,7 @@ pub async fn run(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

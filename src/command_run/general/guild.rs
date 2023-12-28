@@ -7,15 +7,15 @@ use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::general::guild::load_localization_guild;
 
-pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
     let guild_localised = load_localization_guild(guild_id).await?;
 
-    let guild_id = command.guild_id.ok_or(OPTION_ERROR.clone())?;
+    let guild_id = command_interaction.guild_id.ok_or(OPTION_ERROR.clone())?;
 
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)
@@ -70,7 +70,7 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

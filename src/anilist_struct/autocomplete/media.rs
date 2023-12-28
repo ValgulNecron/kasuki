@@ -117,7 +117,7 @@ impl MediaPageWrapper {
 
 pub async fn send_auto_complete(
     ctx: Context,
-    command: CommandInteraction,
+    autocomplete_interaction: CommandInteraction,
     media: MediaPageWrapper,
 ) {
     let mut choices = Vec::new();
@@ -133,5 +133,7 @@ pub async fn send_auto_complete(
     let data = CreateAutocompleteResponse::new().set_choices(choices);
     let builder = CreateInteractionResponse::Autocomplete(data);
 
-    let _ = command.create_response(ctx.http, builder).await;
+    let _ = autocomplete_interaction
+        .create_response(ctx.http, builder)
+        .await;
 }

@@ -11,7 +11,7 @@ use crate::lang_struct::anilist::staff::load_localization_staff;
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     let mut value = String::new();
     for option_data in options {
@@ -27,7 +27,7 @@ pub async fn run(
         StaffWrapper::new_staff_by_search(&value).await?
     };
 
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -158,7 +158,7 @@ pub async fn run(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

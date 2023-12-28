@@ -14,15 +14,15 @@ use crate::error_enum::AppError;
 use crate::lang_struct::anilist::list_register_user::load_localization_list_user;
 use crate::sqls::general::data::get_registered_user;
 
-pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
     let list_user_localised = load_localization_list_user(guild_id).await?;
 
-    let guild_id = command.guild_id.ok_or(OPTION_ERROR.clone())?;
+    let guild_id = command_interaction.guild_id.ok_or(OPTION_ERROR.clone())?;
 
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)
@@ -31,7 +31,7 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
@@ -89,11 +89,12 @@ pub async fn run(ctx: &Context, command: &CommandInteraction) -> Result<(), AppE
     let mut builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
 
     if anilist_user.len() == MEMBER_LIMIT as usize {
-        builder_message =
-            builder_message.button(CreateButton::new("next").label(list_user_localised.next))
+        builder_message = builder_message.button(
+            CreateButton::new(format!("next_{}", last_id.unwrap())).label(list_user_localised.next),
+        )
     }
 
-    let _ = command
+    let _ = command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;

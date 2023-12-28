@@ -11,7 +11,7 @@ use crate::lang_struct::general::banner::load_localization_banner;
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     if let Some(option) = options.get(0) {
         let resolved = &option.value;
@@ -20,18 +20,18 @@ pub async fn run(
                 .to_user(&ctx.http)
                 .await
                 .map_err(|_| FailedToGetUser(String::from("Failed to get the user.")))?;
-            return banner_with_user(ctx, command, &user).await;
+            return banner_with_user(ctx, command_interaction, &user).await;
         }
     }
-    banner_without_user(ctx, command).await
+    banner_without_user(ctx, command_interaction).await
 }
 
 pub async fn no_banner(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     username: &str,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -47,7 +47,7 @@ pub async fn no_banner(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())
@@ -55,32 +55,32 @@ pub async fn no_banner(
 
 pub async fn banner_without_user(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let user = &command.user;
+    let user = &command_interaction.user;
 
-    banner_with_user(ctx, command, user).await
+    banner_with_user(ctx, command_interaction, user).await
 }
 
 pub async fn banner_with_user(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     user_data: &User,
 ) -> Result<(), AppError> {
     let user = user_data;
     let banner_url = match user.banner_url() {
         Some(banner) => banner,
-        None => return no_banner(ctx, command, &user.name).await,
+        None => return no_banner(ctx, command_interaction, &user.name).await,
     };
-    send_embed(ctx, command, banner_url).await
+    send_embed(ctx, command_interaction, banner_url).await
 }
 
 pub async fn send_embed(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     banner: String,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -96,7 +96,7 @@ pub async fn send_embed(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

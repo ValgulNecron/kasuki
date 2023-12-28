@@ -5,9 +5,9 @@ use serenity::all::{
 
 use crate::anilist_struct::autocomplete::user::UserPageWrapper;
 
-pub async fn autocomplete(ctx: Context, command: CommandInteraction) {
+pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let mut search = String::new();
-    for option in &command.data.options {
+    for option in &autocomplete_interaction.data.options {
         if option.name.as_str() != "type" {
             search = option.value.as_str().unwrap().to_string()
         }
@@ -25,5 +25,7 @@ pub async fn autocomplete(ctx: Context, command: CommandInteraction) {
     let data = CreateAutocompleteResponse::new().set_choices(choices);
     let builder = CreateInteractionResponse::Autocomplete(data);
 
-    let _ = command.create_response(ctx.http, builder).await;
+    let _ = autocomplete_interaction
+        .create_response(ctx.http, builder)
+        .await;
 }

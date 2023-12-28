@@ -136,10 +136,10 @@ query ($name: String) {
 
 pub async fn send_embed(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     data: CharacterWrapper,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -213,7 +213,7 @@ pub async fn send_embed(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

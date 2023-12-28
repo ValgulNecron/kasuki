@@ -15,25 +15,60 @@ use crate::sqls::general::data::get_data_module_activation_kill_switch_status;
 
 pub async fn command_dispatching(
     ctx: Context,
-    command: CommandInteraction,
+    command_interaction: CommandInteraction,
 ) -> Result<(), AppError> {
     let ai_module_error = AppError::ModuleOffError(String::from("AI module is off."));
     let anilist_module_error = AppError::ModuleOffError(String::from("Anilist module is off."));
-    match command.data.name.as_str() {
+    match command_interaction.data.name.as_str() {
         /*
 
         THIS IS THE GENERAL MODULE.
 
          */
-        "avatar" => avatar::run(&command.data.options, &ctx, &command).await?,
-        "banner" => banner::run(&command.data.options, &ctx, &command).await?,
-        "credit" => credit::run(&ctx, &command).await?,
-        "info" => info::run(&ctx, &command).await?,
-        "lang_struct" => lang::run(&command.data.options, &ctx, &command).await?,
-        "module" => module::run(&command.data.options, &ctx, &command).await?,
-        "ping" => ping::run(&ctx, &command).await?,
-        "profile" => profile::run(&command.data.options, &ctx, &command).await?,
-        "guild" => guild::run(&ctx, &command).await?,
+        "avatar" => {
+            avatar::run(
+                &command_interaction.data.options,
+                &ctx,
+                &command_interaction,
+            )
+            .await?
+        }
+        "banner" => {
+            banner::run(
+                &command_interaction.data.options,
+                &ctx,
+                &command_interaction,
+            )
+            .await?
+        }
+        "credit" => credit::run(&ctx, &command_interaction).await?,
+        "info" => info::run(&ctx, &command_interaction).await?,
+        "lang_struct" => {
+            lang::run(
+                &command_interaction.data.options,
+                &ctx,
+                &command_interaction,
+            )
+            .await?
+        }
+        "module" => {
+            module::run(
+                &command_interaction.data.options,
+                &ctx,
+                &command_interaction,
+            )
+            .await?
+        }
+        "ping" => ping::run(&ctx, &command_interaction).await?,
+        "profile" => {
+            profile::run(
+                &command_interaction.data.options,
+                &ctx,
+                &command_interaction,
+            )
+            .await?
+        }
+        "guild" => guild::run(&ctx, &command_interaction).await?,
 
         /*
 
@@ -41,22 +76,37 @@ pub async fn command_dispatching(
 
          */
         "image" => {
-            if check_if_ai_moule_is_on(&command).await? {
-                image::run(&command.data.options, &ctx, &command).await?
+            if check_if_ai_moule_is_on(&command_interaction).await? {
+                image::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(ai_module_error);
             }
         }
         "transcript" => {
-            if check_if_ai_moule_is_on(&command).await? {
-                transcript::run(&command.data.options(), &ctx, &command).await?
+            if check_if_ai_moule_is_on(&command_interaction).await? {
+                transcript::run(
+                    &command_interaction.data.options(),
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(ai_module_error);
             }
         }
         "translation" => {
-            if check_if_ai_moule_is_on(&command).await? {
-                translation::run(&command.data.options(), &ctx, &command).await?
+            if check_if_ai_moule_is_on(&command_interaction).await? {
+                translation::run(
+                    &command_interaction.data.options(),
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(ai_module_error);
             }
@@ -68,113 +118,183 @@ pub async fn command_dispatching(
 
          */
         "anime" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                anime::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                anime::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "ln" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                ln::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                ln::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "manga" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                manga::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                manga::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "add_activity" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                add_activity::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                add_activity::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "user" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                user::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                user::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "character" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                character::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                character::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "waifu" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                waifu::run(&ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                waifu::run(&ctx, &command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "compare" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                compare::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                compare::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "random" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                random::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                random::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "register" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                register::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                register::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "staff" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                staff::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                staff::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "studio" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                studio::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                studio::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "search" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                search::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                search::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "seiyuu" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                seiyuu::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                seiyuu::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "level" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                level::run(&command.data.options, &ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                level::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "list_user" => {
-            if check_if_anilist_moule_is_on(&command).await? {
-                list_register_user::run(&ctx, &command).await?
+            if check_if_anilist_moule_is_on(&command_interaction).await? {
+                list_register_user::run(&ctx, &command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -185,8 +305,10 @@ pub async fn command_dispatching(
     Ok(())
 }
 
-async fn check_if_ai_moule_is_on(command: &CommandInteraction) -> Result<bool, AppError> {
-    let guild_id = match command.guild_id {
+async fn check_if_ai_moule_is_on(
+    command_interaction: &CommandInteraction,
+) -> Result<bool, AppError> {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => return Ok(true),
     };
@@ -206,8 +328,10 @@ async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
     })
 }
 
-async fn check_if_anilist_moule_is_on(command: &CommandInteraction) -> Result<bool, AppError> {
-    let guild_id = match command.guild_id {
+async fn check_if_anilist_moule_is_on(
+    command_interaction: &CommandInteraction,
+) -> Result<bool, AppError> {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => return Ok(true),
     };
