@@ -31,9 +31,9 @@ jobs:
       - name: Build
         run: cargo build --verbose
       - name: Create Git tag
-        run: git tag v${{ steps.extract.outputs.version }}
+        run: git tag ${{ steps.extract.outputs.version }}
       - name: Push Git tag
-        run: git push origin v${{ steps.extract.outputs.version }}
+        run: git push origin ${{ steps.extract.outputs.version }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
