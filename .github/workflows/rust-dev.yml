@@ -36,9 +36,9 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_PERSONAL_ACCESS_TOKEN }}
         with:
-          tag_name: v${{ steps.extract.outputs.version }}
-          release_name: Release v${{ steps.extract.outputs.version }}
+          tag_name: ${{ steps.extract.outputs.version }}
+          release_name: Dev ${{ steps.extract.outputs.version }}
           draft: false
           prerelease: true
