@@ -1,9 +1,7 @@
-use std::env;
-use std::sync::Arc;
-
-use log::trace;
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::{async_trait, Client};
+use std::env;
+use std::sync::Arc;
 use tracing::{debug, error, info, trace};
 
 use struct_shard_manager::ShardManagerContainer;
@@ -76,7 +74,7 @@ impl EventHandler for Handler {
                 command_interaction.user.name,
                 command_interaction.user.id
             );
-            trace!("{:#?}", command);
+            trace!("{:#?}", command_interaction);
             if let Err(e) = command_dispatching(ctx, command_interaction).await {
                 error_management::error_dispatch::command_dispatching(e).await
             }

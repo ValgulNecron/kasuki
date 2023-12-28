@@ -1,7 +1,7 @@
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp, User, UserId,
+    CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, PartialGuild, Timestamp, User, UserId,
 };
 use tracing::log::trace;
 
@@ -11,7 +11,9 @@ use crate::constant::{
     PASS_LIMIT,
 };
 use crate::error_enum::AppError;
-use crate::lang_struct::anilist::list_register_user::load_localization_list_user;
+use crate::lang_struct::anilist::list_register_user::{
+    load_localization_list_user, ListUserLocalised,
+};
 use crate::sqls::general::data::get_registered_user;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -36,8 +38,39 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
 
+    let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) =
+        get_the_list(guild, ctx, &list_user_localised, None).await?;
+    trace!("{:#?}", builder_message);
+    trace!("{:#?}", len);
+    trace!("{:#?}", MEMBER_LIMIT);
+    trace!("{:#?}", last_id);
+    let mut response = CreateInteractionResponseFollowup::new().embed(builder_message);
+    if len == (MEMBER_LIMIT - 1) as usize {
+        response = response.button(
+            CreateButton::new(format!("next_{}", last_id.unwrap())).label(list_user_localised.next),
+        )
+    }
+
+    let _ = command_interaction
+        .create_followup(&ctx.http, response)
+        .await
+        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+    Ok(())
+}
+
+struct Data {
+    pub user: User,
+    pub anilist: UserWrapper,
+}
+
+pub async fn get_the_list(
+    guild: PartialGuild,
+    ctx: &Context,
+    list_user_localised: &ListUserLocalised,
+    last_id: Option<UserId>,
+) -> Result<(CreateEmbed, usize, Option<UserId>), AppError> {
     let mut anilist_user = Vec::new();
-    let mut last_id: Option<UserId> = None;
+    let mut last_id: Option<UserId> = last_id;
     let mut pass = 0;
     while anilist_user.len() < MEMBER_LIMIT as usize && pass < PASS_LIMIT {
         let members = guild
@@ -80,28 +113,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .collect();
     let joined_string = user_links.join("\n\n");
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(COLOR)
-        .title(list_user_localised.title)
-        .description(joined_string);
-
-    let mut builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
-
-    if anilist_user.len() == MEMBER_LIMIT as usize {
-        builder_message = builder_message.button(
-            CreateButton::new(format!("next_{}", last_id.unwrap())).label(list_user_localised.next),
-        )
-    }
-
-    let _ = command_interaction
-        .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
-    Ok(())
-}
-
-struct Data {
-    pub user: User,
-    pub anilist: UserWrapper,
+    Ok((
+        CreateEmbed::new()
+            .timestamp(Timestamp::now())
+            .color(COLOR)
+            .title(&list_user_localised.title)
+            .description(joined_string),
+        anilist_user.len(),
+        last_id,
+    ))
 }
