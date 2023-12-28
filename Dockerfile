@@ -7,6 +7,7 @@ WORKDIR /kasuki
 COPY ./Cargo.toml ./Cargo.toml
 
 RUN cargo build --release
+RUN rm src/*.rs
 
 COPY ./src ./src
 
