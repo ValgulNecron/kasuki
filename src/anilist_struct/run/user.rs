@@ -8,7 +8,7 @@ use serenity::all::{
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::constant::COMMAND_SENDING_ERROR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::MediaGettingError;
+use crate::error_enum::AppError::{MediaGettingError, UserGettingError};
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -157,7 +157,7 @@ options{
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+            .map_err(|_| UserGettingError(String::from("Error getting this user.")))
     }
 
     pub async fn new_user_by_search(search: &String) -> Result<UserWrapper, AppError> {
@@ -217,7 +217,7 @@ options{
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+            .map_err(|_| UserGettingError(String::from("Error getting this user.")))
     }
 }
 

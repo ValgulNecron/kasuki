@@ -13,7 +13,8 @@ use crate::error_enum::AppError::{
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ListUserLocalised {
     pub title: String,
-    pub desc: String,
+    pub next: String,
+    pub previous: String,
 }
 
 pub async fn load_localization_list_user(guild_id: String) -> Result<ListUserLocalised, AppError> {

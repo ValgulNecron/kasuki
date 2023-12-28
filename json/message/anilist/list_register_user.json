@@ -1,18 +1,22 @@
 {
   "en": {
-    "title": "Guild",
-    "desc": "The guild name is $name$. \n It was created on $date$. \n It has $number$ member(s) out of $max$"
+    "title": "List of registered users.",
+    "next": "Next page",
+    "previous": "Previous page"
   },
   "fr": {
-    "title": "Guilde",
-    "desc": "Le nom de la guilde est $name$. \n Elle a été créée le $date$. \n Elle a $number$ membre(s) sur $max$"
+    "title": "Liste des utilisateurs enregistrés.",
+    "next": "Page suivante",
+    "previous": "Page précédente"
   },
   "jp": {
-    "title": "ギルド",
-    "desc": "ギルドの名前は$name$です。 \n 作成日は$date$です。 \n メンバー数は$max$人中$number$人です"
+    "title": "登録ユーザーのリスト",
+    "next": "次のページ",
+    "previous": "前のページ"
   },
   "de": {
-    "title": "Gilde",
-    "desc": "Der Gildenname ist $name$. \n Sie wurde am $date$ erstellt. \n Sie hat $number$ Mitglied(er) von $max$"
+    "title": "Liste der registrierten Benutzer.",
+    "next": "Nächste Seite",
+    "previous": "Vorherige Seite"
   }
 }

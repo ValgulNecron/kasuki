@@ -138,7 +138,7 @@ async fn main() {
     };
 
     // Build our client.
-    let mut client = match Client::builder(token, GatewayIntents::empty())
+    let mut client = match Client::builder(token, GatewayIntents::GUILD_MEMBERS)
         .event_handler(Handler)
         .await
     {
