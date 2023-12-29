@@ -118,32 +118,26 @@ cargo build --release
 - General part:
   - [X] Change how the text is displayed to support localization.
   - [X] Find a name for the bot.
-  - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db. (change to PostgresSQL)
-    — will add a var variable that will either be "sqlite" or "postgresql" with an url var for PostgreSQL
-    — will need to do some change and move db logic to its own function.
+  - [x] Add a database for some stuff.
+  - [ ] Add more database choices like postgres and more when I have time.
   - [X] Banner. Show your or a specified user banner.
   - [X] Profil. Show a user profile and some info.
   - [X] Avatar. show you the profile picture of a user.
   - [X] Add support to turn on and off module.
   - [X] Create a parser because some description uses html and not markdown.
-    Will need to check to be sure all are done.
+  - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases are supported 
   - [ ] Poll feature with custom choice and a graph afterward for comparison.
   - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
     size.
-  - [ ] Better error handling.
-    Different error messages,
-    type and replies everytime not in certain condition.
-    — working on it.
-  - [ ] Localisation for response — Done except for some other "minor" stuff. Lazy to continue will need some help to
-    proofread the json file and continue to complete the not finished one.
+  - [X] Better error handling.
+  - [ ] Doing something with error else than logging it.
+  - [X] Localisation for response.
   - [X] Localisation for command.
   - [X] Rename function, structure, command name etc... so it makes more sense.
   - [ ] Add docs to every public function.
     (Run, Register and Autocomplete don’t need this.).
-    started and clearly not
-    finished.
   - [X] Logging
-  - [X] Updating to serenity 0.12 — Working on it.
+  - [X] Updating to serenity 0.12.
   - [X] Support for command in dm.
   - [X] Make an anilist forum post.
 
@@ -169,8 +163,7 @@ cargo build --release
   - [X] Add a "delay" option to delay notification.
   - [X] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
     with a seiyuu and va role.
-  - [ ] Get all the register users of the server.
-    — Working on it after finishing anime activity.
+  - [X] Get all the register users of the server.
   - [X] Add studio search.
   - [X] Add commands that give the best waifu.
 
