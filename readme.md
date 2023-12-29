@@ -143,7 +143,7 @@ cargo build --release
 
 - Anime submodule:
   - [X] Finish comparison function.
-  - [ ] Add affinity score to user comparaison.
+  - [X] Add affinity score to user comparaison.
   - [X] Add character search function.
   - [X] Add staff search function.
   - [X] Add search feature with a type.
