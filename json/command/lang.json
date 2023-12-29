@@ -1,5 +1,5 @@
 {
-  "name": "langage",
+  "name": "lang",
   "desc": "Change the language of the bot's response.",
   "dm_command": false,
   "nsfw": false,
@@ -29,23 +29,23 @@
       "localised_args": [
         {
           "code": "en-US",
-          "name": "lang",
-          "desc": "The language you want to set the response to."
+          "name": "lang_choice",
+          "desc": "Change the language of the bot's response."
         },
         {
           "code": "fr",
-          "name": "lang",
-          "desc": "The language you want to set the response to."
+          "name": "lang_choice",
+          "desc": "Change the language of the bot's response."
         },
         {
           "code": "de",
-          "name": "lang",
-          "desc": "The language you want to set the response to."
+          "name": "lang_choice",
+          "desc": "Change the language of the bot's response."
         },
         {
           "code": "ja",
-          "name": "lang",
-          "desc": "The language you want to set the response to."
+          "name": "lang_choice",
+          "desc": "Change the language of the bot's response."
         }
       ]
     }
@@ -53,23 +53,23 @@
   "localised": [
     {
       "code": "en-US",
-      "name": "lang_choice",
-      "desc": "Change the language of the bot's response."
+      "name": "lang",
+      "desc": "The language you want to set the response to."
     },
     {
       "code": "fr",
-      "name": "lang_choice",
-      "desc": "Change the language of the bot's response."
+      "name": "lang",
+      "desc": "The language you want to set the response to."
     },
     {
       "code": "de",
-      "name": "lang_choice",
-      "desc": "Change the language of the bot's response."
+      "name": "lang",
+      "desc": "The language you want to set the response to."
     },
     {
       "code": "ja",
-      "name": "lang_choice",
-      "desc": "Change the language of the bot's response."
+      "name": "lang",
+      "desc": "The language you want to set the response to."
     }
   ]
 }
