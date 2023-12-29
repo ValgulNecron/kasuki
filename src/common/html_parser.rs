@@ -25,7 +25,9 @@ pub fn convert_to_discord_markdown(value: String) -> String {
     result = convert_html_line_break_to_line_break(result);
     result = convert_bold(result);
     result = convert_spoiler(result);
-    convert_strikethrough(result)
+    result = convert_strikethrough(result);
+
+    result
 }
 
 /// Converts the HTML tags '<i>' and '<em>' (including their ending tags) in a given string to underscore, '_'
@@ -233,4 +235,26 @@ pub fn convert_strikethrough(value: String) -> String {
         .replace("</del>", "__")
         .replace("<strike>", "__")
         .replace("</strike>", "__")
+}
+
+pub fn convert_blockquote(value: String) -> String {
+    value
+        .replace("<blockquote>", "> ")
+        .replace("</blockquote>", "> ")
+}
+
+pub fn convert_h_header(value: String) -> String {
+    value
+        .replace("<h1>", "# ")
+        .replace("</h1>", " ")
+        .replace("<h2>", "## ")
+        .replace("</h2>", " ")
+        .replace("<h3>", "### ")
+        .replace("</h3>", " ")
+        .replace("<h4>", "#### ")
+        .replace("</h4>", " ")
+        .replace("<h5>", "##### ")
+        .replace("</h5>", " ")
+        .replace("<h6>", "###### ")
+        .replace("</h6>", " ")
 }
