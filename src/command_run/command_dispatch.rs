@@ -43,7 +43,7 @@ pub async fn command_dispatching(
         }
         "credit" => credit::run(&ctx, &command_interaction).await?,
         "info" => info::run(&ctx, &command_interaction).await?,
-        "lang_struct" => {
+        "lang" => {
             lang::run(
                 &command_interaction.data.options,
                 &ctx,
