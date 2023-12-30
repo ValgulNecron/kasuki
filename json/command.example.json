@@ -16,13 +16,16 @@
       "localised_args": [
         {
           "code": "en-US",
-          "name": "1st duplicate of the name and desc of the option in english after the other translation",
+          "name": "1st duplicate of the name and desc of the option in english after it the other translation",
           "desc": "same for description"
         }
       ],
       "choices": [
         {
-          "option_choice": "en"
+          "option_choice": "one choice"
+        },
+        {
+          "option_choice": "second choice"
         }
       ]
     }
@@ -30,7 +33,7 @@
   "localised": [
     {
       "code": "en-US",
-      "name": "1st duplicate of the name and desc of the command in english after the other translation",
+      "name": "1st duplicate of the name and desc of the command in english after it the other translation",
       "desc": "same for description"
     }
   ]
