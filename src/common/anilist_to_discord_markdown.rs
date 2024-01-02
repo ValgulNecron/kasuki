@@ -16,7 +16,7 @@ use regex::Regex;
 /// # Returns
 ///
 /// A `String` that represents the text in Discord-flavored markdown.
-pub fn convert_to_discord_markdown(value: String) -> String {
+pub fn convert_anilist_flavored_to_discord_flavored_markdown(value: String) -> String {
     let mut result;
     result = convert_italic(value);
     result = convert_html_entity_to_real_char(result);
