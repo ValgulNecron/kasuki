@@ -34,9 +34,9 @@ something else, you can do it and open a pr afterward.
 3. Or by opening an issue with enhancement or new feature you want to see.
 4. Or by contributing to the website for the bot.
 
-Please note that for embed you will need to use ISO-639-1 and if no ISO-639-1 exist or need to be more specific like the
-different "version" of chinese use ISO-639-3 and if still not like with a specific chinese written in pinyin, I used the
-ISO-639-3 code for mandarin chinese (cmn) and added a p for pinyin
+Please note that for embed you will need to use the country code.
+please also add the country code to the constant LANG_MAP in src/constant.rs and add the langage in full name with it.
+
 
 for the command json please follow the example,
 the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
@@ -125,7 +125,8 @@ cargo build --release
   - [X] Avatar. show you the profile picture of a user.
   - [X] Add support to turn on and off module.
   - [X] Create a parser because some description uses html and not markdown.
-  - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases are supported 
+  - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases are
+    supported
   - [ ] Poll feature with custom choice and a graph afterward for comparison.
   - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
     size.
