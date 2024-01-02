@@ -6,7 +6,7 @@ use serenity::all::{
 };
 use tracing::log::trace;
 
-use crate::common::html_parser::convert_to_discord_markdown;
+use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
@@ -191,7 +191,7 @@ pub async fn send_embed(
         .replace("$fav$", character.favourites.to_string().as_str())
         .replace("$desc$", character.description.as_str());
 
-    desc = convert_to_discord_markdown(desc);
+    desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
     if lenght_diff <= 0 {
         desc = trim(desc, lenght_diff)

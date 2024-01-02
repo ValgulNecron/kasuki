@@ -5,8 +5,8 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
+use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::get_nsfw::get_nsfw;
-use crate::common::html_parser::convert_to_discord_markdown;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, UNKNOWN};
@@ -539,7 +539,7 @@ fn embed_title(data: &MediaWrapper) -> String {
 
 fn embed_desc(data: &MediaWrapper) -> String {
     let mut desc = data.data.media.description.clone().unwrap_or_default();
-    desc = convert_to_discord_markdown(desc);
+    desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
     if lenght_diff <= 0 {
         desc = trim(desc, lenght_diff)
@@ -594,7 +594,7 @@ fn media_info(data: &MediaWrapper, media_localised: &MediaLocalised) -> String {
         embed_desc(data),
         get_info(&data.data.media, media_localised)
     );
-    desc = convert_to_discord_markdown(desc);
+    desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
     if lenght_diff <= 0 {
         desc = trim(desc, lenght_diff)

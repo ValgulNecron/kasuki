@@ -9,7 +9,7 @@ use serenity::all::{
 use crate::anilist_struct::run::random::PageWrapper;
 use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper;
-use crate::common::html_parser::convert_to_discord_markdown;
+use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
@@ -117,7 +117,7 @@ pub async fn follow_up_message(
         .collect::<Vec<String>>()
         .join("/");
     let mut desc = media.description;
-    desc = convert_to_discord_markdown(desc);
+    desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let length_diff = 4096 - desc.len() as i32;
     if length_diff <= 0 {
         trim(desc.clone(), length_diff);
