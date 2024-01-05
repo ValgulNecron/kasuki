@@ -41,35 +41,25 @@ pub async fn run(
         }
     }
 
-    let desc;
+    let row = get_data_module_activation_status(&guild_id).await?;
+    let (_, ai_module, anilist_module, game_module): (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+    ) = row;
+    let mut ai_value = ai_module.unwrap_or(false);
+    let mut anilist_value = anilist_module.unwrap_or(false);
+    let mut game_value = game_module.unwrap_or(false);
     match module.as_str() {
         "ANIME" => {
-            let row = get_data_module_activation_status(&guild_id).await?;
-            let (_, ai_module, _): (Option<String>, Option<bool>, Option<bool>) = row;
-
-            let ai_value = ai_module.unwrap_or(false);
-
-            set_data_module_activation_status(&guild_id, state, ai_value).await?;
-
-            desc = if state {
-                &module_localised.on
-            } else {
-                &module_localised.off
-            };
+            anilist_value = state;
         }
         "AI" => {
-            let row = get_data_module_activation_status(&guild_id).await?;
-            let (_, _, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
-
-            let anilist_value = anilist_module.unwrap_or(false);
-
-            set_data_module_activation_status(&guild_id, anilist_value, state).await?;
-
-            desc = if state {
-                &module_localised.on
-            } else {
-                &module_localised.off
-            };
+            ai_value = state;
+        }
+        "GAME" => {
+            game_value = state;
         }
         _ => {
             return Err(AppError::ModuleError(String::from(
@@ -77,6 +67,12 @@ pub async fn run(
             )));
         }
     }
+    set_data_module_activation_status(&guild_id, anilist_value, ai_value, game_value).await?;
+    let desc = if state {
+        &module_localised.on
+    } else {
+        &module_localised.off
+    };
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -95,13 +91,19 @@ pub async fn run(
 }
 
 pub async fn check_activation_status(module: &str, guild_id: String) -> Result<bool, AppError> {
-    let row: (Option<String>, Option<bool>, Option<bool>) =
+    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>) =
         get_data_module_activation_status(&guild_id).await?;
 
-    let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
+    let (_, ai_module, anilist_module, game_module): (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+    ) = row;
     Ok(match module {
         "ANILIST" => anilist_module.unwrap_or(true),
         "AI" => ai_module.unwrap_or(true),
+        "GAME" => game_module.unwrap_or(true),
         _ => false,
     })
 }

@@ -23,6 +23,9 @@
         },
         {
           "option_choice": "ANILIST"
+        },
+        {
+          "option_choice": "GAME"
         }
       ],
       "localised_args": [

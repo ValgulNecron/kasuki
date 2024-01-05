@@ -402,7 +402,7 @@ pub async fn run(
 }
 
 fn get_affinity(s1: Statistics, s2: Statistics) -> f64 {
-    let mut affinity: f64 = 0.0;
+    let mut affinity: f64;
 
     affinity = jaccard_index(&tag_string(&s1.anime.tags), &tag_string(&s2.anime.tags));
 

@@ -39,4 +39,6 @@ pub enum AppError {
     NotAValidTypeError(String),
     DifferedCreatingImageError(String),
     NotNSFWError(String),
+    NotAValidUrlError(String),
+    NotAValidGameError(String),
 }

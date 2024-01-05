@@ -16,18 +16,16 @@ use regex::Regex;
 /// # Returns
 ///
 /// A `String` that represents the text in Discord-flavored markdown.
-pub fn convert_anilist_flavored_to_discord_flavored_markdown(value: String) -> String {
+pub fn convert_steam_to_discord_flavored_markdown(value: String) -> String {
     let mut result = value;
-    result = convert_italic(result);
     result = convert_html_entity_to_real_char(result);
     result = convert_link_to_discord_markdown(result);
-    result = add_anti_slash(result);
     result = convert_html_line_break_to_line_break(result);
     result = convert_bold(result);
-    result = convert_spoiler(result);
     result = convert_strikethrough(result);
     result = convert_blockquote(result);
     result = convert_h_header(result);
+    result = convert_italic(result);
 
     result
 }
@@ -107,29 +105,6 @@ pub fn convert_link_to_discord_markdown(value: String) -> String {
     re.replace_all(value.as_str(), "[$2]($1)").to_string()
 }
 
-/// This function replaces a single backquote (`) within a given string with a backslash (\) followed by a backquote (`).
-///
-/// # Arguments
-///
-/// * `value` - A `String` that would be processed. It should contain backquote(s) (`) if you expect any change in the string.
-///
-/// # Returns
-///
-/// A `String` that is the result of replacing all the occurrences of single backquote (`) with a backslash followed by a backquote (`\``).
-///
-/// # Examples
-///
-/// ```
-/// let input = String::from("Hello`World");
-/// let result = add_anti_slash(input);
-/// assert_eq!(result, String::from("Hello\\`World"));
-/// ```
-///
-///
-pub fn add_anti_slash(value: String) -> String {
-    value.replace('`', "\\`")
-}
-
 /// # Convert HTML line breaks to regular line breaks
 ///
 /// This function takes a `String` as an argument, where it
@@ -157,29 +132,6 @@ pub fn convert_html_line_break_to_line_break(value: String) -> String {
     value.replace("<br>", "\n")
 }
 
-/// This function converts the placeholders of a spoiler tag in a string.
-///
-/// The original format of a spoiler tag is "~![spoiler_content]!~".
-/// The converted format will be "||[spoiler_content]||".
-///
-/// Example:
-/// ```
-/// let original_string = "~!This is a spoiler!~";
-/// let converted_string = convert_spoiler(original_string.to_string());
-/// assert_eq!(converted_string, "||This is a spoiler||");
-/// ```
-///
-/// # Parameters
-///
-/// - `value`: The original string that contains spoiler tags.
-///
-/// # Returns
-///
-/// A new String where the spoiler tags have been transformed.
-pub fn convert_spoiler(value: String) -> String {
-    value.replace("~!", "||").replace("!~", "||")
-}
-
 /// Converts the provided string's bold style from various formats (__, <strong>, <b>)
 /// to the Markdown representation (**).
 ///
@@ -203,7 +155,6 @@ pub fn convert_spoiler(value: String) -> String {
 /// ```
 pub fn convert_bold(value: String) -> String {
     value
-        .replace("__", "**")
         .replace("<strong>", "**")
         .replace("</strong>", "**")
         .replace("<b>", "**")
@@ -232,7 +183,6 @@ pub fn convert_bold(value: String) -> String {
 /// ```
 pub fn convert_strikethrough(value: String) -> String {
     value
-        .replace("~~", "__")
         .replace("<del>", "__")
         .replace("</del>", "__")
         .replace("<strike>", "__")

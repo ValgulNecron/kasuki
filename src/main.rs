@@ -56,11 +56,19 @@ impl EventHandler for Handler {
             );
         }
 
-        let is_ok = env::var("REMOVE_OLD_COMMAND_ON_STARTUP")
+        let my_path = ".env";
+        let path = std::path::Path::new(my_path);
+        let _ = dotenv::from_path(path);
+
+        trace!("{:#?}", env::var("REMOVE_OLD_COMMAND"));
+
+        let is_ok = env::var("REMOVE_OLD_COMMAND")
             .unwrap_or("false".to_string())
             .to_lowercase()
             .as_str()
             == "true";
+
+        trace!("{}", is_ok);
 
         creates_commands(&ctx.http, is_ok).await;
     }
@@ -99,9 +107,10 @@ async fn main() {
     }
 
     // Configure the client with your Discord bot token in the environment.
-    let my_path = "./.env";
+    let my_path = ".env";
     let path = std::path::Path::new(my_path);
     let _ = dotenv::from_path(path);
+
     let env = env::var("RUST_LOG")
         .unwrap_or("info".to_string())
         .to_lowercase();
@@ -120,6 +129,15 @@ async fn main() {
             return;
         }
     };
+
+    trace!("{:#?}", env::var("DISCORD_TOKEN"));
+    trace!("{:#?}", env::var("AI_API_TOKEN"));
+    trace!("{:#?}", env::var("AI_API_BASE_URL"));
+    trace!("{:#?}", env::var("IMAGE_GENERATION_MODELS_ON"));
+    trace!("{:#?}", env::var("IMAGE_GENERATION_MODELS"));
+    trace!("{:#?}", env::var("RUST_LOG"));
+    trace!("{:#?}", env::var("NSFW"));
+    trace!("{:#?}", env::var("REMOVE_OLD_COMMAND"));
 
     tokio::spawn(async move {
         info!("Launching the activity management thread!");

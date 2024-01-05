@@ -37,7 +37,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
     let mut nsfw = command.nsfw;
 
     if command.name.as_str() == "image" {
-        let honor_nsfw = env::var("IMAGE_GENERATION_MODELS_ON").unwrap_or(String::from("fale"));
+        let honor_nsfw = env::var("IMAGE_GENERATION_MODELS_ON").unwrap_or(String::from("false"));
         let is_ok = honor_nsfw.to_lowercase() == "true";
         nsfw = is_ok
     }

@@ -1,0 +1,34 @@
+{
+  "en": {
+    "field1": "Price",
+    "field2": "Release date",
+    "field3": "Developers",
+    "field4": "Publishers",
+    "field5": "Categories",
+    "free": "Free"
+  },
+  "fr": {
+    "field1": "Prix",
+    "field2": "Date de sortie",
+    "field3": "Développeurs",
+    "field4": "Éditeurs",
+    "field5": "Catégories",
+    "free": "Gratuit"
+  },
+  "de": {
+    "field1": "Preis",
+    "field2": "Veröffentlichungsdatum",
+    "field3": "Entwickler",
+    "field4": "Herausgeber",
+    "field5": "Kategorien",
+    "free": "Kostenlos"
+  },
+  "jp": {
+    "field1": "価格",
+    "field2": "リリース日",
+    "field3": "開発者",
+    "field4": "パブリッシャー",
+    "field5": "カテゴリ",
+    "free": "無料"
+  }
+}

@@ -16,17 +16,18 @@ pub struct App {
 pub async fn get_game() {
     loop {
         debug!("Started the process");
-        let url =
-            "https://api.steampowered.com/ISteamApps/GetAppList/v0002/?key=STEAMKEY&format=json";
+        let url = "https://api.steampowered.com/ISteamApps/GetAppList/v0002/?format=json";
         let response = reqwest::get(url).await.unwrap();
 
         let body = response.text().await.unwrap();
         let json: Value = serde_json::from_str(&body).unwrap();
 
-        let mut apps: Vec<App> = serde_json::from_value(json["applist"]["apps"].clone()).unwrap();
+        let apps: Vec<App> = serde_json::from_value(json["applist"]["apps"].clone()).unwrap();
         unsafe {
             APPS.clear();
-            APPS.append(&mut apps);
+            for app in apps {
+                APPS.insert(app.name, app.app_id);
+            }
         }
 
         debug!("waiting for {} day(s)", GAME_UPDATE);

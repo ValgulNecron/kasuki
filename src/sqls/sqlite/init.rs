@@ -121,29 +121,14 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         "CREATE TABLE IF NOT EXISTS module_activation (
        guild_id TEXT PRIMARY KEY,
        ai_module INTEGER,
-       anilist_module INTEGER
+       anilist_module INTEGER,
+        game_module INTEGER
    )",
     )
     .execute(pool)
     .await
     .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
 
-    // Check if the column exists
-    let row: Option<(i64,)> = sqlx::query_as("PRAGMA table_info(module_activation)")
-        .fetch_optional(pool)
-        .await
-        .map_err(|_| SqlCreateError(String::from("Failed to fetch table info.")))?;
-
-    if row.is_none() {
-        // If the column does not exist, add it
-        sqlx::query(
-            "ALTER TABLE module_activation
-        ADD COLUMN game_module TEXT",
-        )
-        .execute(pool)
-        .await
-        .map_err(|_| SqlCreateError(String::from("Failed to add column.")))?;
-    }
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
             user_id TEXT PRIMARY KEY,
@@ -158,7 +143,8 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
             id TEXT PRIMARY KEY,
             ai_module INTEGER,
-            anilist_module INTEGER
+            anilist_module INTEGER,
+game_module INTEGER
         )",
     )
     .execute(pool)
@@ -166,9 +152,10 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
 
     sqlx::query(
-        "INSERT OR REPLACE INTO global_kill_switch (id, anilist_module, ai_module) VALUES (?, ?, ?)",
+        "INSERT OR REPLACE INTO global_kill_switch (id, anilist_module, ai_module, game_module) VALUES (?, ?, ?, ?)",
     )
         .bind("1")
+        .bind(1)
         .bind(1)
         .bind(1)
         .execute(pool)
