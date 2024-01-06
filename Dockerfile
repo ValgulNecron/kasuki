@@ -30,8 +30,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev libjpeg-dev \
     ca-certificates && rm -rf /var/lib/apt/lists/*
 
-COPY json /kasuki/json
-
 COPY --from=builder /kasuki/target/release/kasuki/ /kasuki/.
+
+COPY json /kasuki/json
 
 CMD ["./kasuki"]
