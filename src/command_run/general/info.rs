@@ -40,9 +40,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .style(ButtonStyle::Primary)
         .label(&info_localised.button_official_discord);
     buttons.push(button);
-    let button = CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot")
+    components.push(CreateActionRow::Buttons(buttons.clone()));
+    buttons.clear();
+    let button = CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=395677117760&scope=bot")
         .style(ButtonStyle::Primary)
         .label(&info_localised.button_add_the_bot);
+    buttons.push(button);
+    let button = CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=1122304053620260924&permissions=395677117760&scope=bot")
+        .style(ButtonStyle::Primary)
+        .label(&info_localised.button_add_the_beta_bot);
     buttons.push(button);
     components.push(CreateActionRow::Buttons(buttons));
 
