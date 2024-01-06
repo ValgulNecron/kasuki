@@ -98,14 +98,7 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-    match init_sql_database().await {
-        Ok(_) => {}
-        Err(e) => {
-            error!("{:?}", e);
-            return;
-        }
-    }
-
+    println!("Program starting please wait.");
     // Configure the client with your Discord bot token in the environment.
     let my_path = ".env";
     let path = std::path::Path::new(my_path);
@@ -130,14 +123,13 @@ async fn main() {
         }
     };
 
-    trace!("{:#?}", env::var("DISCORD_TOKEN"));
-    trace!("{:#?}", env::var("AI_API_TOKEN"));
-    trace!("{:#?}", env::var("AI_API_BASE_URL"));
-    trace!("{:#?}", env::var("IMAGE_GENERATION_MODELS_ON"));
-    trace!("{:#?}", env::var("IMAGE_GENERATION_MODELS"));
-    trace!("{:#?}", env::var("RUST_LOG"));
-    trace!("{:#?}", env::var("NSFW"));
-    trace!("{:#?}", env::var("REMOVE_OLD_COMMAND"));
+    match init_sql_database().await {
+        Ok(_) => {}
+        Err(e) => {
+            error!("{:?}", e);
+            return;
+        }
+    }
 
     tokio::spawn(async move {
         info!("Launching the activity management thread!");
