@@ -1,9 +1,17 @@
-FROM rust:1.74.1-buster AS builder
+FROM rust:1.75.0-buster AS builder
+
+RUN USER=root cargo new --bin kasuki
 
 WORKDIR /kasuki
 
-COPY ./ ./
+COPY ./Cargo.toml ./Cargo.toml
 
+RUN cargo build --release
+RUN rm src/*.rs
+
+COPY ./src ./src
+
+RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
 FROM debian:buster-slim AS bot
