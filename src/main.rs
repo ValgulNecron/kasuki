@@ -98,7 +98,7 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-    println!("Program starting please wait.");
+    println!("Bot starting please wait.");
     // Configure the client with your Discord bot token in the environment.
     let my_path = ".env";
     let path = std::path::Path::new(my_path);
