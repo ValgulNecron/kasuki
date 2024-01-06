@@ -6,8 +6,6 @@ COPY ./ ./
 
 RUN cargo build --release
 
-RUN cargo build --release
-
 FROM debian:buster-slim AS bot
 
 LABEL maintainer="valgul"
