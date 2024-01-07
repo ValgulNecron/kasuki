@@ -15,7 +15,11 @@ pub struct SteamGameInfoLocalised {
     pub field3: String,
     pub field4: String,
     pub field5: String,
+    pub field6: String,
+    pub field7: String,
     pub free: String,
+    pub coming_soon: String,
+    pub tba: String,
 }
 
 pub async fn load_localization_steam_game_info(

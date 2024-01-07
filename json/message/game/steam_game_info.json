@@ -4,8 +4,12 @@
     "field2": "Release date",
     "field3": "Developers",
     "field4": "Publishers",
-    "field5": "Categories",
-    "free": "Free"
+    "field5": "App type",
+    "field6": "Languages",
+    "field7": "Categories",
+    "free": "Free",
+    "coming_soon": "Coming soon",
+    "tba": "TBA"
   },
   "fr": {
     "field1": "Prix",
@@ -13,7 +17,12 @@
     "field3": "Développeurs",
     "field4": "Éditeurs",
     "field5": "Catégories",
-    "free": "Gratuit"
+    "field6": "Type d'application",
+    "field7": "Langues",
+    "field8": "Avis",
+    "free": "Gratuit",
+    "coming_soon": "Bientôt disponible",
+    "tba": "À annoncer"
   },
   "de": {
     "field1": "Preis",
@@ -21,7 +30,12 @@
     "field3": "Entwickler",
     "field4": "Herausgeber",
     "field5": "Kategorien",
-    "free": "Kostenlos"
+    "field6": "App-Typ",
+    "field7": "Sprachen",
+    "field8": "Bewertungen",
+    "free": "Kostenlos",
+    "coming_soon": "Demnächst verfügbar",
+    "tba": "TBA"
   },
   "jp": {
     "field1": "価格",
@@ -29,6 +43,11 @@
     "field3": "開発者",
     "field4": "パブリッシャー",
     "field5": "カテゴリ",
-    "free": "無料"
+    "field6": "アプリタイプ",
+    "field7": "言語",
+    "field8": "レビュー",
+    "free": "無料",
+    "coming_soon": "近日公開",
+    "tba": "TBA"
   }
 }

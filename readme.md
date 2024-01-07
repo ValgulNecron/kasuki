@@ -176,9 +176,9 @@ cargo build --release
     — Not a priority.
 
 - Games module:
-  - [ ] get game price from different platform (ubi, steam, epic, ea, etc....)
-    Set "server" curency.
-    Get game price
+  - [ ] get game info from different platform (ubi, steam, epic, ea, etc....)
+    Get the currency and language from the server language setting.
+    Steam done. 
   - [ ] get player stat
   - [ ] get free promotion notification
 
