@@ -70,7 +70,7 @@ async fn send_embed(
         match game.price_overview {
             Some(price) => (
                 steam_game_info_localised.field1,
-                price.final_formatted.unwrap(),
+                convert_steam_to_discord_flavored_markdown(price.final_formatted.unwrap()),
                 true,
             ),
             None => (
@@ -84,7 +84,11 @@ async fn send_embed(
 
     let field2 = if game.release_date.clone().unwrap().coming_soon {
         match game.release_date.unwrap().date {
-            Some(a) => (steam_game_info_localised.field2, a, true),
+            Some(date) => (
+                steam_game_info_localised.field2,
+                convert_steam_to_discord_flavored_markdown(date),
+                true,
+            ),
             None => (
                 steam_game_info_localised.field2,
                 steam_game_info_localised.coming_soon,
@@ -94,39 +98,56 @@ async fn send_embed(
     } else {
         (
             steam_game_info_localised.field2,
-            game.release_date.unwrap().date.unwrap(),
+            convert_steam_to_discord_flavored_markdown(game.release_date.unwrap().date.unwrap()),
             true,
         )
     };
     fields.push(field2);
 
     match game.developers {
-        Some(b) => fields.push((steam_game_info_localised.field3, b.join(", "), true)),
+        Some(dev) => fields.push((
+            steam_game_info_localised.field3,
+            convert_steam_to_discord_flavored_markdown(dev.join(", ")),
+            true,
+        )),
         None => {}
     }
 
     match game.publishers {
-        Some(c) => fields.push((steam_game_info_localised.field4, c.join(", "), true)),
+        Some(publishers) => fields.push((
+            steam_game_info_localised.field4,
+            convert_steam_to_discord_flavored_markdown(publishers.join(", ")),
+            true,
+        )),
         None => {}
     }
 
     match game.app_type {
-        Some(d) => fields.push((steam_game_info_localised.field5, d, true)),
+        Some(app_type) => fields.push((
+            steam_game_info_localised.field5,
+            convert_steam_to_discord_flavored_markdown(app_type),
+            true,
+        )),
         None => {}
     }
 
     match game.supported_languages {
-        Some(e) => fields.push((steam_game_info_localised.field6, e, false)),
+        Some(game_lang) => fields.push((
+            steam_game_info_localised.field6,
+            convert_steam_to_discord_flavored_markdown(game_lang),
+            false,
+        )),
         None => {}
     }
 
     match game.categories {
-        Some(f) => {
-            let descriptions: Vec<String> = f
+        Some(categories) => {
+            let descriptions: Vec<String> = categories
                 .into_iter()
                 .filter_map(|category| category.description)
                 .collect();
-            let joined_descriptions = descriptions.join(", ");
+            let joined_descriptions =
+                convert_steam_to_discord_flavored_markdown(descriptions.join(", "));
             fields.push((steam_game_info_localised.field7, joined_descriptions, false))
         }
         None => {}
