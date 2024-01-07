@@ -37,7 +37,6 @@ something else, you can do it and open a pr afterward.
 Please note that for embed you will need to use the country code.
 please also add the country code to the constant LANG_MAP in src/constant.rs and add the langage in full name with it.
 
-
 for the command json please follow the example,
 the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
 
@@ -178,7 +177,7 @@ cargo build --release
 - Games module:
   - [ ] get game info from different platform (ubi, steam, epic, ea, etc....)
     Get the currency and language from the server language setting.
-    Steam done. 
+    Steam done.
   - [ ] get player stat
   - [ ] get free promotion notification
 
@@ -193,9 +192,12 @@ for those of you who prefer web dev.\
 
 - Thanks Srayeals for the badge I use as the bot
   pfp. ([https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals)) \
-  for the bot pfp [https://anilist.co/forum/thread/20292/comment/2206321](https://anilist.co/forum/thread/20292/comment/2206321) [Valedstorm Olivia](https://i.imgur.com/vERcUNo.png) \
-  for the beta bot [https://srayealsbadges.carrd.co/#h](https://srayealsbadges.carrd.co/#h) [Neptune](https://srayealsbadges.carrd.co/assets/images/gallery77/7846fb0b_original.png?v=0ff4ab06) \
-  for the dev bot (private only on my server) [https://srayealsbadges.carrd.co/#s](https://srayealsbadges.carrd.co/#s) [Krul tepes](https://srayealsbadges.carrd.co/assets/images/gallery121/67449fb5_original.png?v=0ff4ab06)
+  for the bot
+  pfp [https://anilist.co/forum/thread/20292/comment/2206321](https://anilist.co/forum/thread/20292/comment/2206321) [Valedstorm Olivia](https://i.imgur.com/vERcUNo.png) \
+  for the beta
+  bot [https://srayealsbadges.carrd.co/#h](https://srayealsbadges.carrd.co/#h) [Neptune](https://srayealsbadges.carrd.co/assets/images/gallery77/7846fb0b_original.png?v=0ff4ab06) \
+  for the dev bot (private only on my
+  server) [https://srayealsbadges.carrd.co/#s](https://srayealsbadges.carrd.co/#s) [Krul tepes](https://srayealsbadges.carrd.co/assets/images/gallery121/67449fb5_original.png?v=0ff4ab06)
 - Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
   anymore. (and now it seems to work again.))
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation

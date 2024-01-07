@@ -148,10 +148,10 @@ pub async fn get_data_module_activation_status_sqlite(
     let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
         "SELECT guild_id, ai_module, anilist_module, game_module FROM module_activation WHERE guild = ?",
     )
-    .bind(guild_id)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None, None, None));
+        .bind(guild_id)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None, None, None));
     pool.close().await;
     Ok(row)
 }
