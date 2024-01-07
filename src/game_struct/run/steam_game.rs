@@ -1,8 +1,8 @@
+use crate::common::fuzzy_search::fuzzy_search;
 use crate::constant::{APPS, LANG_MAP};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{NotAValidGameError, NotAValidUrlError};
 use crate::sqls::general::data::get_data_guild_langage;
-use fuzzy_match::fuzzy_match;
 use serde::{Deserialize, Serialize};
 use serde_with::formats::PreferOne;
 use serde_with::serde_as;
@@ -224,45 +224,63 @@ impl SteamGameWrapper {
         search: &str,
         guild_id: String,
     ) -> Result<SteamGameWrapper, AppError> {
-        let lang = get_data_guild_langage(guild_id)
-            .await?
-            .0
-            .unwrap_or(String::from("en"));
-        let full_lang = LANG_MAP.get(lang.as_str()).unwrap_or(&"english");
         let mut choices: Vec<(&String, &u128)> = Vec::new();
         unsafe {
             choices = APPS.iter().collect();
         }
 
-        let choices: Vec<(&str, &u128)> = choices
-            .into_iter()
-            .map(|(s, id)| (s.as_str(), id))
-            .collect();
+        let choices: Vec<String> = choices.into_iter().map(|(s, _)| (s.clone())).collect();
 
-        let appid: Option<u128>;
-        match fuzzy_match(search, choices) {
-            Some(app_id) => appid = Some(*app_id),
-            None => appid = None,
+        let threshold = 1;
+        trace!("Started the search");
+        let results = fuzzy_search(&choices, search, threshold);
+        trace!("{:#?}", results);
+
+        let mut appid = 0u128;
+        unsafe {
+            if results.len() == 0 {
+                return Err(NotAValidGameError(String::from("Bad game")));
+            }
+            for name in results {
+                appid = *(APPS.get(&name).clone().unwrap());
+                if search.to_lowercase() == name.to_lowercase() {
+                    break;
+                }
+            }
         }
 
+        let client = reqwest::Client::builder()
+            .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
+            .build()
+            .map_err(|_| NotAValidUrlError(String::from("Bad url")))?;
+        let lang = get_data_guild_langage(guild_id)
+            .await?
+            .0
+            .unwrap_or(String::from("en"))
+            .to_uppercase();
+        let full_lang = LANG_MAP
+            .get(lang.to_lowercase().as_str())
+            .unwrap_or(&"english");
         let url = format!(
             "https://store.steampowered.com/api/appdetails/?cc={}&l={}&appids={}",
-            lang,
-            full_lang,
-            appid.unwrap_or(1)
+            lang, full_lang, appid
         );
 
-        let response = reqwest::get(&url)
+        trace!("{}", url);
+
+        let response = client
+            .get(&url)
+            .send()
             .await
             .map_err(|_| NotAValidUrlError(String::from("Bad url")))?;
-        let game_wrapper: HashMap<String, SteamGameWrapper> = response
-            .json()
+        let text = response
+            .text()
             .await
             .map_err(|_| NotAValidGameError(String::from("Bad game")))?;
-
-        Ok(game_wrapper
-            .get(&appid.unwrap_or(1).to_string())
-            .unwrap()
-            .clone())
+        let game_wrapper: HashMap<String, SteamGameWrapper> =
+            serde_json::from_str(text.as_str())
+                .map_err(|_| NotAValidGameError(String::from("Bad game")))?;
+        trace!("Finished.");
+        Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }
 }

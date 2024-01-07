@@ -2,11 +2,15 @@ use crate::common::steam_to_discord_markdown::convert_steam_to_discord_flavored_
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::game_struct::run::steam_game::SteamGameWrapper;
-use crate::lang_struct::game::steam_game_info::load_localization_steam_game_info;
+use crate::lang_struct::game::steam_game_info::{
+    load_localization_steam_game_info, SteamGameInfoLocalised,
+};
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
+use tracing::trace;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -17,6 +21,16 @@ pub async fn run(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+
+    let steam_game_info_localised = load_localization_steam_game_info(guild_id.clone()).await?;
+
+    let builder_message = Defer(CreateInteractionResponseMessage::new());
+
+    command_interaction
+        .create_response(&ctx.http, builder_message)
+        .await
+        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+
     for option in options {
         if option.name.as_str() != "type" {
             if let Some(a) = option.value.as_str() {
@@ -27,7 +41,7 @@ pub async fn run(
                 } else {
                     SteamGameWrapper::new_steam_game_by_search(value, guild_id).await?
                 };
-                return send_embed(ctx, command_interaction, data).await;
+                return send_embed(ctx, command_interaction, data, steam_game_info_localised).await;
             }
         }
     }
@@ -39,14 +53,9 @@ async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     data: SteamGameWrapper,
+    steam_game_info_localised: SteamGameInfoLocalised,
 ) -> Result<(), AppError> {
-    let guild_id = match command_interaction.guild_id {
-        Some(id) => id.to_string(),
-        None => String::from("0"),
-    };
-
-    let steam_game_info_localised = load_localization_steam_game_info(guild_id).await?;
-
+    trace!("Sending embed.");
     let game = data.data;
 
     let mut fields = Vec::new();
@@ -136,12 +145,12 @@ async fn send_embed(
             game.steam_appid.unwrap()
         ))
         .image(game.header_image.unwrap());
-    let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
+    let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
 
-    let builder = CreateInteractionResponse::Message(builder_message);
-
-    command_interaction
-        .create_response(&ctx.http, builder)
+    let _ = command_interaction
+        .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+
+    Ok(())
 }
