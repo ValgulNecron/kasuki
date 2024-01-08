@@ -8,6 +8,7 @@ use serde_with::formats::PreferOne;
 use serde_with::serde_as;
 use serde_with::OneOrMany;
 use std::collections::HashMap;
+use rust_fuzzy_search::{fuzzy_search_best_n, fuzzy_search_sorted};
 use tracing::trace;
 
 #[serde_as]
@@ -229,25 +230,21 @@ impl SteamGameWrapper {
             choices = APPS.iter().collect();
         }
 
-        let choices: Vec<String> = choices.into_iter().map(|(s, _)| (s.clone())).collect();
-
-        let threshold = 2;
-        trace!("Started the search");
-        let results = fuzzy_search(&choices, search, threshold);
-        trace!("{:#?}", results);
+        let choices: Vec<&str> = choices.into_iter().map(|(s, _)| s.as_str()).collect();
+        let results : Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
 
         let mut appid = 0u128;
         unsafe {
             if results.len() == 0 {
                 return Err(NotAValidGameError(String::from("Bad game")));
             }
-            for name in results {
+            for (name, _)in results {
                 if appid == 0u128 {
-                    appid = *(APPS.get(&name).clone().unwrap());
+                    appid = *(APPS.get(name).clone().unwrap());
                 }
 
                 if search.to_lowercase() == name.to_lowercase() {
-                    appid = *(APPS.get(&name).clone().unwrap());
+                    appid = *(APPS.get(name).clone().unwrap());
                     break;
                 }
             }

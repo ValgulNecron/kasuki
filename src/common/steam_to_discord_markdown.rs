@@ -18,6 +18,7 @@ use regex::Regex;
 /// A `String` that represents the text in Discord-flavored markdown.
 pub fn convert_steam_to_discord_flavored_markdown(value: String) -> String {
     let mut result = value;
+    result = add_antislash(result);
     result = convert_html_entity_to_real_char(result);
     result = convert_link_to_discord_markdown(result);
     result = convert_html_line_break_to_line_break(result);
@@ -28,6 +29,10 @@ pub fn convert_steam_to_discord_flavored_markdown(value: String) -> String {
     result = convert_italic(result);
 
     result
+}
+
+pub fn add_antislash(value: String) -> String {
+    value.replace("*", "\\*")
 }
 
 /// Converts the HTML tags '<i>' and '<em>' (including their ending tags) in a given string to underscore, '_'

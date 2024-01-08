@@ -30,6 +30,7 @@ tracing-subscriber = { version = "0.3.18", features = ["default", "env-filter"] 
 tracing-core = "0.1.32"
 log = "0.4.20"
 serde_with = { version = "3.4.0", features = ["macros"] }
+rust-fuzzy-search = "0.1.1"
 
 [profile.dev]
 codegen-units = 512
