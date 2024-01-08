@@ -7,6 +7,7 @@ use serde_with::formats::PreferOne;
 use serde_with::serde_as;
 use serde_with::OneOrMany;
 use std::collections::HashMap;
+use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use tracing::trace;
 
@@ -24,7 +25,7 @@ pub struct Data {
     pub app_type: Option<String>,
     pub name: Option<String>,
     pub steam_appid: Option<u32>,
-    pub required_age: Option<String>,
+    pub required_age: Option<u32>,
     pub is_free: Option<bool>,
     pub detailed_description: Option<String>,
     pub about_the_game: Option<String>,
@@ -273,10 +274,26 @@ impl SteamGameWrapper {
             .send()
             .await
             .map_err(|_| NotAValidUrlError(String::from("Bad url")))?;
-        let text = response
+        let mut text = response
             .text()
             .await
             .map_err(|_| NotAValidGameError(String::from("Bad game 1")))?;
+
+             let re = Regex::new(r#""required_age":"(\d+)""#).unwrap();
+
+             if let Some(cap) = re.captures(&text) {
+               if let Some(number) = cap.get(1) {
+                   let number_str = number.as_str();
+                   let number: u32 = number_str.parse().expect("Not a number!");
+                   let base = format!("\"required_age\":\"{}\"", number);
+                   let new = format!("\"required_age\":{}", number);
+                   text = text.replace(&base, &*new);
+                   trace!("{}", number); // Output: 18
+               }
+             }
+
+
+
         let game_wrapper: HashMap<String, SteamGameWrapper> = match
             serde_json::from_str(text.as_str())
         {
