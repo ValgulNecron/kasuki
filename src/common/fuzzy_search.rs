@@ -34,7 +34,9 @@ fn levenshtein_distance(a: &str, b: &str) -> usize {
 
 pub fn fuzzy_search(vec: &Vec<String>, term: &str, threshold: usize) -> Vec<String> {
     vec.iter()
-        .filter(|s| levenshtein_distance(s, term) <= threshold)
+        .filter(|s| {
+            levenshtein_distance(s, term) <= threshold
+        })
         .cloned()
         .collect()
 }

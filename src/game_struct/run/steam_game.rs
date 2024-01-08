@@ -231,7 +231,7 @@ impl SteamGameWrapper {
 
         let choices: Vec<String> = choices.into_iter().map(|(s, _)| (s.clone())).collect();
 
-        let threshold = 1;
+        let threshold = 2;
         trace!("Started the search");
         let results = fuzzy_search(&choices, search, threshold);
         trace!("{:#?}", results);
@@ -242,8 +242,12 @@ impl SteamGameWrapper {
                 return Err(NotAValidGameError(String::from("Bad game")));
             }
             for name in results {
-                appid = *(APPS.get(&name).clone().unwrap());
+                if appid == 0u128 {
+                    appid = *(APPS.get(&name).clone().unwrap());
+                }
+
                 if search.to_lowercase() == name.to_lowercase() {
+                    appid = *(APPS.get(&name).clone().unwrap());
                     break;
                 }
             }
