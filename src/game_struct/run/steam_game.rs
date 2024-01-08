@@ -1,4 +1,3 @@
-use crate::common::fuzzy_search::fuzzy_search;
 use crate::constant::{APPS, LANG_MAP};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{NotAValidGameError, NotAValidUrlError};
@@ -8,7 +7,7 @@ use serde_with::formats::PreferOne;
 use serde_with::serde_as;
 use serde_with::OneOrMany;
 use std::collections::HashMap;
-use rust_fuzzy_search::{fuzzy_search_best_n, fuzzy_search_sorted};
+use rust_fuzzy_search::fuzzy_search_sorted;
 use tracing::trace;
 
 #[serde_as]
