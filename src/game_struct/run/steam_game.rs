@@ -23,8 +23,8 @@ pub struct Data {
     #[serde(rename = "type")]
     pub app_type: Option<String>,
     pub name: Option<String>,
-    pub steam_appid: Option<u128>,
-    pub required_age: Option<u32>,
+    pub steam_appid: Option<u32>,
+    pub required_age: Option<String>,
     pub is_free: Option<bool>,
     pub detailed_description: Option<String>,
     pub about_the_game: Option<String>,
@@ -212,10 +212,10 @@ impl SteamGameWrapper {
         let text = response
             .text()
             .await
-            .map_err(|_| NotAValidGameError(String::from("Bad game")))?;
+            .map_err(|_| NotAValidGameError(String::from("Bad game 1")))?;
         let game_wrapper: HashMap<String, SteamGameWrapper> =
             serde_json::from_str(text.as_str())
-                .map_err(|_| NotAValidGameError(String::from("Bad game")))?;
+                .map_err(|_| NotAValidGameError(String::from("Bad game 2")))?;
 
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }
@@ -276,11 +276,18 @@ impl SteamGameWrapper {
         let text = response
             .text()
             .await
-            .map_err(|_| NotAValidGameError(String::from("Bad game")))?;
-        let game_wrapper: HashMap<String, SteamGameWrapper> =
+            .map_err(|_| NotAValidGameError(String::from("Bad game 1")))?;
+        let game_wrapper: HashMap<String, SteamGameWrapper> = match
             serde_json::from_str(text.as_str())
-                .map_err(|_| NotAValidGameError(String::from("Bad game")))?;
-        trace!("Finished.");
+        {
+            Ok(a) => a,
+            Err(e) => {
+                trace!("{:#?}", e);
+                return Err(NotAValidGameError(String::from("Bad game 2")))
+            }
+        };
+                // .map_err(|_| )?;
+
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }
 }
