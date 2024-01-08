@@ -2,13 +2,13 @@ use crate::constant::{APPS, LANG_MAP};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{NotAValidGameError, NotAValidUrlError};
 use crate::sqls::general::data::get_data_guild_langage;
+use regex::Regex;
+use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
 use serde_with::formats::PreferOne;
 use serde_with::serde_as;
 use serde_with::OneOrMany;
 use std::collections::HashMap;
-use regex::Regex;
-use rust_fuzzy_search::fuzzy_search_sorted;
 use tracing::trace;
 
 #[serde_as]
@@ -231,14 +231,14 @@ impl SteamGameWrapper {
         }
 
         let choices: Vec<&str> = choices.into_iter().map(|(s, _)| s.as_str()).collect();
-        let results : Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
+        let results: Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
 
         let mut appid = 0u128;
         unsafe {
             if results.len() == 0 {
                 return Err(NotAValidGameError(String::from("Bad game")));
             }
-            for (name, _)in results {
+            for (name, _) in results {
                 if appid == 0u128 {
                     appid = *(APPS.get(name).clone().unwrap());
                 }
@@ -279,31 +279,28 @@ impl SteamGameWrapper {
             .await
             .map_err(|_| NotAValidGameError(String::from("Bad game 1")))?;
 
-             let re = Regex::new(r#""required_age":"(\d+)""#).unwrap();
+        let re = Regex::new(r#""required_age":"(\d+)""#).unwrap();
 
-             if let Some(cap) = re.captures(&text) {
-               if let Some(number) = cap.get(1) {
-                   let number_str = number.as_str();
-                   let number: u32 = number_str.parse().expect("Not a number!");
-                   let base = format!("\"required_age\":\"{}\"", number);
-                   let new = format!("\"required_age\":{}", number);
-                   text = text.replace(&base, &*new);
-                   trace!("{}", number); // Output: 18
-               }
-             }
-
-
-
-        let game_wrapper: HashMap<String, SteamGameWrapper> = match
-            serde_json::from_str(text.as_str())
-        {
-            Ok(a) => a,
-            Err(e) => {
-                trace!("{:#?}", e);
-                return Err(NotAValidGameError(String::from("Bad game 2")))
+        if let Some(cap) = re.captures(&text) {
+            if let Some(number) = cap.get(1) {
+                let number_str = number.as_str();
+                let number: u32 = number_str.parse().expect("Not a number!");
+                let base = format!("\"required_age\":\"{}\"", number);
+                let new = format!("\"required_age\":{}", number);
+                text = text.replace(&base, &*new);
+                trace!("{}", number); // Output: 18
             }
-        };
-                // .map_err(|_| )?;
+        }
+
+        let game_wrapper: HashMap<String, SteamGameWrapper> =
+            match serde_json::from_str(text.as_str()) {
+                Ok(a) => a,
+                Err(e) => {
+                    trace!("{:#?}", e);
+                    return Err(NotAValidGameError(String::from("Bad game 2")));
+                }
+            };
+        // .map_err(|_| )?;
 
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }
