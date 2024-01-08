@@ -144,7 +144,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             id TEXT PRIMARY KEY,
             ai_module INTEGER,
             anilist_module INTEGER,
-game_module INTEGER
+            game_module INTEGER
         )",
     )
     .execute(pool)
@@ -160,6 +160,17 @@ game_module INTEGER
         .bind(1)
         .execute(pool)
         .await.map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS user_color (
+    user_id TEXT PRIMARY KEY, 
+    color TEXT NOT NULL,
+    pfp_url TEXT NOT NULL
+     )",
+    )
+    .execute(pool)
+    .await
+    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
 
     Ok(())
 }

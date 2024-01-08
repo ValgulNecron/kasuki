@@ -41,4 +41,8 @@ pub enum AppError {
     NotNSFWError(String),
     NotAValidUrlError(String),
     NotAValidGameError(String),
+    ErrorGettingUserList(String),
+    CreatingImageError(String),
+    DecodingImageError(String),
+    FailedToGetImage(String),
 }

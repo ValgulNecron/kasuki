@@ -266,3 +266,37 @@ pub async fn set_registered_user_sqlite(
 
     Ok(row)
 }
+
+pub async fn set_user_approximated_color_sqlite(
+    user_id: &String,
+    color: &String,
+    pfp_url: &String,
+) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let _ =
+        sqlx::query("INSERT OR REPLACE INTO user_color (user_id, color, pfp_url) VALUES (?, ?, ?)")
+            .bind(user_id)
+            .bind(color)
+            .bind(pfp_url)
+            .execute(&pool)
+            .await
+            .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+    pool.close().await;
+
+    Ok(())
+}
+
+pub async fn get_user_approximated_color_sqlite(
+    user_id: &String,
+) -> Result<(Option<String>, Option<String>, Option<String>), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let row: (Option<String>, Option<String>, Option<String>) =
+        sqlx::query_as("SELECT user_id, color, pfp_url FROM user_color WHERE user_id = ?")
+            .bind(user_id)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((None, None, None));
+    pool.close().await;
+
+    Ok(row)
+}

@@ -1,0 +1,30 @@
+{
+  "name": "guild_image",
+  "desc": "Generate an image using the guild server image and the user pfp.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 0,
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "guild_image",
+      "desc": "Generate an image using the guild server image and the user pfp."
+    },
+    {
+      "code": "fr",
+      "name": "image_guilde",
+      "desc": "Génère une image en utilisant l'image du serveur de guilde et le pfp de l'utilisateur."
+    },
+    {
+      "code": "de",
+      "name": "gildenbild",
+      "desc": "Generieren Sie ein Bild mit dem Gilden-Serverbild und dem Benutzer-Pfp."
+    },
+    {
+      "code": "ja",
+      "name": "ギルド画像",
+      "desc": "ギルドサーバー画像とユーザーpfpを使用して画像を生成します。"
+    }
+  ]
+}

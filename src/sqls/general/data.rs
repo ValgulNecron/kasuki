@@ -6,10 +6,10 @@ use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
 use crate::sqls::sqlite::data::{
     get_data_activity_sqlite, get_data_guild_langage_sqlite,
     get_data_module_activation_kill_switch_status_sqlite, get_data_module_activation_status_sqlite,
-    get_one_activity_sqlite, get_registered_user_sqlite, remove_data_activity_status_sqlite,
-    set_data_activity_sqlite, set_data_guild_langage_sqlite,
+    get_one_activity_sqlite, get_registered_user_sqlite, get_user_approximated_color_sqlite,
+    remove_data_activity_status_sqlite, set_data_activity_sqlite, set_data_guild_langage_sqlite,
     set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
-    set_registered_user_sqlite,
+    set_registered_user_sqlite, set_user_approximated_color_sqlite,
 };
 
 pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<(), AppError> {
@@ -186,5 +186,33 @@ pub async fn remove_data_activity_status(
         Ok(())
     } else {
         remove_data_activity_status_sqlite(server_id, anime_id).await
+    }
+}
+
+pub async fn set_user_approximated_color(
+    user_id: &String,
+    color: &String,
+    pfp_url: &String,
+) -> Result<(), AppError> {
+    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
+    if db_type == *"sqlite" {
+        set_user_approximated_color_sqlite(user_id, color, pfp_url).await
+    } else if db_type == *"postgresql" {
+        Ok(())
+    } else {
+        set_user_approximated_color_sqlite(user_id, color, pfp_url).await
+    }
+}
+
+pub async fn get_user_approximated_color(
+    user_id: &String,
+) -> Result<(Option<String>, Option<String>, Option<String>), AppError> {
+    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
+    if db_type == *"sqlite" {
+        get_user_approximated_color_sqlite(user_id).await
+    } else if db_type == *"postgresql" {
+        Ok((None, None, None))
+    } else {
+        get_user_approximated_color_sqlite(user_id).await
     }
 }

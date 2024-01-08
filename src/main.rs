@@ -1,7 +1,11 @@
-use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
+use serenity::all::{
+    ActivityData, Context, EventHandler, GatewayIntents, Interaction, Member, Ready, UserId,
+};
 use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;
+use std::time::Duration;
+use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
 use struct_shard_manager::ShardManagerContainer;
@@ -10,6 +14,7 @@ use crate::activity::anime_activity::manage_activity;
 use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::command_dispatching;
+use crate::common::calculate_user_color::calculate_users_color;
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::ACTIVITY_NAME;
 use crate::game_struct::steam_game_id_struct::get_game;
@@ -37,6 +42,37 @@ struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
+        let guilds = ctx.cache.guilds();
+        let ctx_clone = ctx.clone();
+        tokio::spawn(async move {
+            loop {
+                let mut members: Vec<Member> = Vec::new();
+                for guild in &guilds {
+                    let mut i = 0;
+                    while members.len() == (1000 * i) {
+                        let mut members_temp = if i == 0 {
+                            guild
+                                .members(&ctx_clone.http, Some(1000), None)
+                                .await
+                                .unwrap()
+                        } else {
+                            let user: UserId = members.last().unwrap().user.id.clone();
+                            guild
+                                .members(&ctx_clone.http, Some(1000), Some(user))
+                                .await
+                                .unwrap()
+                        };
+                        members.append(&mut members_temp);
+                        i += 1
+                    }
+                }
+                match calculate_users_color(members.into_iter().collect()).await {
+                    Ok(_) => {}
+                    Err(e) => error!("{:?}", e),
+                };
+                sleep(Duration::from_secs(60)).await;
+            }
+        });
         // Add activity to the bot as the type in activity_type and with ACTIVITY_NAME as name
         let activity_type = Some(ActivityData::custom(ACTIVITY_NAME));
         ctx.set_activity(activity_type);
@@ -154,7 +190,8 @@ async fn main() {
     };
 
     // Build our client.
-    let mut client = match Client::builder(token, GatewayIntents::GUILD_MEMBERS)
+    let gateway_intent = GatewayIntents::GUILD_MEMBERS;
+    let mut client = match Client::builder(token, gateway_intent)
         .event_handler(Handler)
         .await
     {
