@@ -1,11 +1,15 @@
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CreatingImageError, DecodingImageError, FailedToGetImage};
 use crate::sqls::general::data::{get_user_approximated_color, set_user_approximated_color};
+use base64::engine::general_purpose;
+use base64::Engine;
 use image::io::Reader as ImageReader;
-use image::GenericImageView;
+use image::{GenericImageView, ImageOutputFormat};
 use log::trace;
 use serenity::all::Member;
 use std::io::Cursor;
+use std::time::Duration;
+use tokio::time::sleep;
 
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
     for member in members {
@@ -14,40 +18,49 @@ pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError>
 
         let id = member.user.id.to_string();
 
-        let (_, _, pfp_url_old): (Option<String>, Option<String>, Option<String>) =
-            get_user_approximated_color(&id).await?;
+        let (_, _, pfp_url_old, _): (
+            Option<String>,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+        ) = get_user_approximated_color(&id).await?;
         if pfp_url != pfp_url_old.unwrap_or(String::new()) {
-            let average_color = calculate_user_color(member).await?;
-            set_user_approximated_color(&id, &average_color, &pfp_url).await?
+            let (average_color, image): (String, String) = calculate_user_color(member).await?;
+            set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?;
         }
+        sleep(Duration::from_millis(100)).await;
     }
     Ok(())
 }
 
 pub async fn return_average_user_color(
     members: Vec<Member>,
-) -> Result<Vec<(String, String)>, AppError> {
+) -> Result<Vec<(String, String, String)>, AppError> {
     let mut average_colors = Vec::new();
     for member in members {
         let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://imgs.search.brave.com/FhPP6x9omGE50_uLbcuizNYwrBLp3bQZ8ii9Eel44aQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9h/YnN0cmFjdC1zdXJm/YWNlLXRleHR1cmVz/LXdoaXRlLWNvbmNy/ZXRlLXN0b25lLXdh/bGxfNzQxOTAtODE4/OS5qcGc_c2l6ZT02/MjYmZXh0PWpwZw"))
             .replace("?size=1024", "?size=32");
         let id = member.user.id.to_string();
 
-        let (_, color, pfp_url_old): (Option<String>, Option<String>, Option<String>) =
-            get_user_approximated_color(&id).await?;
+        let (_, color, pfp_url_old, image_old): (
+            Option<String>,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+        ) = get_user_approximated_color(&id).await?;
         if pfp_url != pfp_url_old.clone().unwrap_or(String::new()) {
-            let average_color = calculate_user_color(member).await?;
-            set_user_approximated_color(&id, &average_color, &pfp_url).await?;
-            average_colors.push((average_color, pfp_url));
+            let (average_color, image): (String, String) = calculate_user_color(member).await?;
+            set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?;
+            average_colors.push((average_color, pfp_url, image));
         } else {
-            average_colors.push((color.unwrap(), pfp_url_old.unwrap()));
+            average_colors.push((color.unwrap(), pfp_url_old.unwrap(), image_old.unwrap()))
         }
     }
 
     Ok(average_colors)
 }
 
-async fn calculate_user_color(member: Member) -> Result<String, AppError> {
+async fn calculate_user_color(member: Member) -> Result<(String, String), AppError> {
     let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://imgs.search.brave.com/FhPP6x9omGE50_uLbcuizNYwrBLp3bQZ8ii9Eel44aQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9h/YnN0cmFjdC1zdXJm/YWNlLXRleHR1cmVz/LXdoaXRlLWNvbmNy/ZXRlLXN0b25lLXdh/bGxfNzQxOTAtODE4/OS5qcGc_c2l6ZT02/MjYmZXh0PWpwZw"));
 
     // Fetch the image data
@@ -91,6 +104,11 @@ async fn calculate_user_color(member: Member) -> Result<String, AppError> {
     let average_color = format!("#{:02x}{:02x}{:02x}", r_avg, g_avg, b_avg);
     trace!("{}", average_color);
 
+    let mut image_data: Vec<u8> = Vec::new();
+    img.write_to(&mut Cursor::new(&mut image_data), ImageOutputFormat::Png)
+        .unwrap();
+    let res_base64 = general_purpose::STANDARD.encode(&image_data);
+    let image = format!("data:image/png;base64,{}", res_base64);
     // Return the average color
-    Ok(average_color)
+    Ok((average_color, image))
 }

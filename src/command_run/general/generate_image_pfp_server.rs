@@ -75,6 +75,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let dim = 128 * 32 + 128;
 
+    let color_vec = create_color_vector(average_colors.clone());
+
     let mut combined_image = DynamicImage::new_rgba16(dim, dim);
     trace!("Started creation");
     for y in 0..img.height() {
@@ -86,21 +88,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             let b = pixel[2];
             let hex = format!("#{:02x}{:02x}{:02x}", r, g, b);
             let color_target = Color { r, g, b, hex };
-            let closest_color =
-                find_closest_color(&create_color_vector(average_colors.clone()), &color_target)
-                    .unwrap();
-            let response = reqwest::get(&closest_color.url)
-                .await
-                .map_err(|_| FailedToGetImage(String::from("Failed to download image.")))?
-                .bytes()
-                .await
-                .map_err(|_| FailedToGetImage(String::from("Failed to get bytes image.")))?;
-            let img = ImageReader::new(Cursor::new(response))
-                .with_guessed_format()
-                .map_err(|_| CreatingImageError(String::from("Failed to load image.")))?
-                .decode()
-                .map_err(|_| DecodingImageError(String::from("Failed to decode image.")))?;
-            combined_image.copy_from(&img, x * 32, y * 32).unwrap();
+            let closest_color = find_closest_color(&color_vec, &color_target).unwrap();
+
+            combined_image
+                .copy_from(&closest_color.image, x * 32, y * 32)
+                .unwrap();
         }
     }
     trace!("Created image");
@@ -155,18 +147,30 @@ struct ColorWithUrl {
     b: u8,
     hex: String,
     url: String,
+    image: DynamicImage,
 }
 
-fn create_color_vector(tuples: Vec<(String, String)>) -> Vec<ColorWithUrl> {
+fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
-        .filter_map(|(hex, url)| {
+        .filter_map(|(hex, url, image)| {
             let r = hex[1..3].parse::<u8>();
             let g = hex[3..5].parse::<u8>();
             let b = hex[5..7].parse::<u8>();
 
+            let input = image.trim_start_matches("data:image/png;base64,");
+            let decoded = base64::decode(input)?;
+            let img = image::load_from_memory(&decoded)?;
+
             match (r, g, b) {
-                (Ok(r), Ok(g), Ok(b)) => Some(ColorWithUrl { r, g, b, hex, url }),
+                (Ok(r), Ok(g), Ok(b)) => Some(ColorWithUrl {
+                    r,
+                    g,
+                    b,
+                    hex,
+                    url,
+                    image: img,
+                }),
                 _ => None,
             }
         })

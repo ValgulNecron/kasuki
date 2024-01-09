@@ -193,25 +193,34 @@ pub async fn set_user_approximated_color(
     user_id: &String,
     color: &String,
     pfp_url: &String,
+    image: &String,
 ) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
-        set_user_approximated_color_sqlite(user_id, color, pfp_url).await
+        set_user_approximated_color_sqlite(user_id, color, pfp_url, image).await
     } else if db_type == *"postgresql" {
         Ok(())
     } else {
-        set_user_approximated_color_sqlite(user_id, color, pfp_url).await
+        set_user_approximated_color_sqlite(user_id, color, pfp_url, image).await
     }
 }
 
 pub async fn get_user_approximated_color(
     user_id: &String,
-) -> Result<(Option<String>, Option<String>, Option<String>), AppError> {
+) -> Result<
+    (
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    ),
+    AppError,
+> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_user_approximated_color_sqlite(user_id).await
     } else if db_type == *"postgresql" {
-        Ok((None, None, None))
+        Ok((None, None, None, None))
     } else {
         get_user_approximated_color_sqlite(user_id).await
     }

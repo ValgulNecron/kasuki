@@ -165,7 +165,8 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         "CREATE TABLE IF NOT EXISTS user_color (
     user_id TEXT PRIMARY KEY, 
     color TEXT NOT NULL,
-    pfp_url TEXT NOT NULL
+    pfp_url TEXT NOT NULL,
+    image TEXT NOT NULL
      )",
     )
     .execute(pool)
