@@ -5,6 +5,8 @@ use crate::error_enum::AppError::{
     CreatingImageError, DecodingImageError, DifferedWritingFile, FailedToGetImage,
 };
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
+use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::engine::Engine as _;
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, GenericImage, GenericImageView};
 use log::trace;
@@ -14,6 +16,9 @@ use serenity::all::{
     CreateInteractionResponseMessage, Member, Timestamp, UserId,
 };
 use std::io::Cursor;
+use std::sync::{Arc, Mutex};
+use std::thread;
+use image::imageops::FilterType;
 use uuid::Uuid;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -73,35 +78,51 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .decode()
         .map_err(|_| DecodingImageError(String::from("Failed to decode image.")))?;
 
-    let dim = 128 * 32 + 128;
+    let dim = 128 * 32;
 
     let color_vec = create_color_vector(average_colors.clone());
-
-    let mut combined_image = DynamicImage::new_rgba16(dim, dim);
+    let mut handles = vec![];
+    let combined_image = Arc::new(Mutex::new(DynamicImage::new_rgba16(dim, dim)));
     trace!("Started creation");
     for y in 0..img.height() {
-        trace!("{}", y);
         for x in 0..img.width() {
             let pixel = img.get_pixel(x, y);
-            let r = pixel[0];
-            let g = pixel[1];
-            let b = pixel[2];
-            let hex = format!("#{:02x}{:02x}{:02x}", r, g, b);
-            let color_target = Color { r, g, b, hex };
-            let closest_color = find_closest_color(&color_vec, &color_target).unwrap();
+            let color_vec_moved = color_vec.clone();
+            let combined_image_clone = Arc::clone(&combined_image); // Clone the Arc
 
-            combined_image
-                .copy_from(&closest_color.image, x * 32, y * 32)
-                .unwrap();
+            let handle = thread::spawn(move || {
+                let combined_image = combined_image_clone;
+                let r = pixel[0];
+                let g = pixel[1];
+                let b = pixel[2];
+                let hex = format!("#{:02x}{:02x}{:02x}", r, g, b);
+                let color_target = Color { r, g, b, hex };
+                let closest_color = find_closest_color(&color_vec_moved, &color_target).unwrap();
+
+                combined_image
+                    .lock()
+                    .unwrap()
+                    .copy_from(&closest_color.image, x * 32, y * 32)
+                    .unwrap();
+            });
+
+            handles.push(handle);
         }
     }
+    for handle in handles {
+        handle.join().unwrap();
+    }
     trace!("Created image");
+    let image = combined_image.lock().unwrap().clone();
+
+    let resized_img =
+        image::imageops::resize(&image, 1024, 1024, FilterType::CatmullRom);
 
     let combined_uuid = Uuid::new_v4();
-    combined_image
-        .save(format!("{}.png", combined_uuid))
-        .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
     let image_path = &format!("{}.png", combined_uuid);
+    resized_img
+        .save(&image_path)
+        .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
     trace!("Saved image");
 
     let builder_embed = CreateEmbed::new()
@@ -159,8 +180,8 @@ fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUr
             let b = hex[5..7].parse::<u8>();
 
             let input = image.trim_start_matches("data:image/png;base64,");
-            let decoded = base64::decode(input)?;
-            let img = image::load_from_memory(&decoded)?;
+            let decoded = BASE64.decode(input).unwrap();
+            let img = image::load_from_memory(&decoded).unwrap();
 
             match (r, g, b) {
                 (Ok(r), Ok(g), Ok(b)) => Some(ColorWithUrl {

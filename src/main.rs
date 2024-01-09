@@ -16,7 +16,7 @@ use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::command_dispatching;
 use crate::common::calculate_user_color::calculate_users_color;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::ACTIVITY_NAME;
+use crate::constant::{ACTIVITY_NAME, USER_COLOR_UPDATE_TIME};
 use crate::game_struct::steam_game_id_struct::get_game;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::sqls::general::sql::init_sql_database;
@@ -70,7 +70,7 @@ impl EventHandler for Handler {
                     Ok(_) => {}
                     Err(e) => error!("{:?}", e),
                 };
-                sleep(Duration::from_secs(60)).await;
+                sleep(Duration::from_secs((USER_COLOR_UPDATE_TIME * 60) as u64)).await;
             }
         });
         // Add activity to the bot as the type in activity_type and with ACTIVITY_NAME as name

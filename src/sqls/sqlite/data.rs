@@ -275,7 +275,7 @@ pub async fn set_user_approximated_color_sqlite(
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let _ = sqlx::query(
-        "INSERT OR REPLACE INTO user_color (user_id, color, pfp_url, image) VALUES (?, ?, ?)",
+        "INSERT OR REPLACE INTO user_color (user_id, color, pfp_url, image) VALUES (?, ?, ?, ?)",
     )
     .bind(user_id)
     .bind(color)

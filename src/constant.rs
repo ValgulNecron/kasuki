@@ -45,3 +45,5 @@ pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
     .cloned()
     .collect()
 });
+// in minute
+pub static USER_COLOR_UPDATE_TIME: u32 = 30;
