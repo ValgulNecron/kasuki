@@ -7,8 +7,10 @@ use crate::error_enum::AppError::{
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
+use image::codecs::png::PngEncoder;
+use image::imageops::FilterType;
 use image::io::Reader as ImageReader;
-use image::{DynamicImage, GenericImage, GenericImageView};
+use image::{DynamicImage, GenericImage, GenericImageView, ImageEncoder};
 use log::trace;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -17,8 +19,8 @@ use serenity::all::{
 };
 use std::io::Cursor;
 use std::sync::{Arc, Mutex};
-use std::thread;
-use image::imageops::FilterType;
+use std::{fs, thread};
+use tracing::{debug, error};
 use uuid::Uuid;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -114,14 +116,26 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     }
     trace!("Created image");
     let image = combined_image.lock().unwrap().clone();
-
-    let resized_img =
-        image::imageops::resize(&image, 1024, 1024, FilterType::CatmullRom);
+    let image = image::imageops::resize(
+        &image,
+        (4096.0 * 0.6) as u32,
+        (4096.0 * 0.6) as u32,
+        FilterType::CatmullRom,
+    );
+    let mut image_data: Vec<u8> = Vec::new();
+    let encoder = PngEncoder::new(&mut image_data);
+    encoder
+        .write_image(
+            image.as_raw(),
+            image.width(),
+            image.height(),
+            image::ColorType::Rgba8,
+        )
+        .unwrap();
 
     let combined_uuid = Uuid::new_v4();
     let image_path = &format!("{}.png", combined_uuid);
-    resized_img
-        .save(&image_path)
+    fs::write(image_path, image_data)
         .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
     trace!("Saved image");
 
@@ -144,6 +158,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .await
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
     trace!("Done");
+    match fs::remove_file(image_path) {
+        Ok(_) => debug!("File {} has been removed successfully", combined_uuid),
+        Err(e) => error!("Failed to remove file {}: {}", combined_uuid, e),
+    }
     Ok(())
 }
 
