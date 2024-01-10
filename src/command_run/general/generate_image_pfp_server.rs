@@ -12,6 +12,7 @@ use image::imageops::FilterType;
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageEncoder};
 use log::trace;
+use palette::{IntoColor, Lab, Srgb};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
@@ -19,7 +20,7 @@ use serenity::all::{
 };
 use std::io::Cursor;
 use std::sync::{Arc, Mutex};
-use std::{f64, fs, thread};
+use std::{fs, thread};
 use tracing::{debug, error};
 use uuid::Uuid;
 
@@ -99,7 +100,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 let g = pixel[1];
                 let b = pixel[2];
                 let hex = format!("#{:02x}{:02x}{:02x}", r, g, b);
-                let color_target = Color { r, g, b, hex };
+                let r_normalized = r as f32 / 255.0;
+                let g_normalized = g as f32 / 255.0;
+                let b_normalized = b as f32 / 255.0;
+                let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
+                let lab_color: Lab = rgb_color.into_color();
+                let color_target = Color {
+                    cielab: lab_color,
+                    hex,
+                };
                 let closest_color = find_closest_color(&color_vec_moved, &color_target).unwrap();
                 vec_image.lock().unwrap().push((x, y, closest_color.image));
             });
@@ -165,29 +174,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     Ok(())
 }
 
-fn color_distance(color1: &ColorWithUrl, color2: &Color) -> f64 {
-    let r = (color1.r as i32 - color2.r as i32) as f32 * 0.299;
-    let r = r * r;
-    let g = (color1.g as i32 - color2.g as i32) as f32 * 0.587;
-    let g = g * g;
-    let b = (color1.b as i32 - color2.b as i32) as f32 * 0.114;
-    let b = b * b;
-    (r + g + b) as f64
-}
-
 #[derive(Clone, Debug)]
 struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
+    cielab: Lab,
     hex: String,
 }
 
 #[derive(Clone, Debug)]
 struct ColorWithUrl {
-    r: u8,
-    g: u8,
-    b: u8,
+    cielab: Lab,
     hex: String,
     url: String,
     image: DynamicImage,
@@ -206,14 +201,19 @@ fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUr
             let img = image::load_from_memory(&decoded).unwrap();
 
             match (r, g, b) {
-                (Ok(r), Ok(g), Ok(b)) => Some(ColorWithUrl {
-                    r,
-                    g,
-                    b,
-                    hex,
-                    url,
-                    image: img,
-                }),
+                (Ok(r), Ok(g), Ok(b)) => {
+                    let r_normalized = r as f32 / 255.0;
+                    let g_normalized = g as f32 / 255.0;
+                    let b_normalized = b as f32 / 255.0;
+                    let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
+                    let lab_color: Lab = rgb_color.into_color();
+                    Some(ColorWithUrl {
+                        cielab: lab_color,
+                        hex,
+                        url,
+                        image: img,
+                    })
+                }
                 _ => None,
             }
         })
@@ -221,18 +221,18 @@ fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUr
 }
 
 fn find_closest_color(colors: &Vec<ColorWithUrl>, target: &Color) -> Option<ColorWithUrl> {
-    let mut min_distance = f64::MAX;
-    let mut closest_color = None;
-    for color in colors {
-        let distance = color_distance(color, target);
-        if distance < min_distance {
-            min_distance = distance;
-            closest_color = Some(color);
-        }
-    }
-    trace!("Found closest color");
-    trace!("Color: {:?}", closest_color);
-    trace!("Distance: {:?}", min_distance);
-    trace!("Target: {:?}", target);
-    closest_color.cloned()
+    let a = colors.iter().min_by(|&a, &b| {
+        let delta_l = (a.cielab.l - target.cielab.l).abs();
+        let delta_a = (a.cielab.a - target.cielab.a).abs();
+        let delta_b = (a.cielab.b - target.cielab.b).abs();
+        let delta_e_a = (delta_l.powi(2) + delta_a.powi(2) + delta_b.powi(2)).sqrt();
+
+        let delta_l = (b.cielab.l - target.cielab.l).abs();
+        let delta_a = (b.cielab.a - target.cielab.a).abs();
+        let delta_b = (b.cielab.b - target.cielab.b).abs();
+        let delta_e_b = (delta_l.powi(2) + delta_a.powi(2) + delta_b.powi(2)).sqrt();
+
+        delta_e_a.partial_cmp(&delta_e_b).unwrap()
+    });
+    a.cloned()
 }
