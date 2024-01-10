@@ -7,6 +7,8 @@ use crate::error_enum::AppError::{
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
+use image::codecs::png::PngEncoder;
+use image::imageops::FilterType;
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageEncoder};
 use log::trace;
@@ -18,8 +20,6 @@ use serenity::all::{
 use std::io::Cursor;
 use std::sync::{Arc, Mutex};
 use std::{f64, fs, thread};
-use image::codecs::png::PngEncoder;
-use image::imageops::FilterType;
 use tracing::{debug, error};
 use uuid::Uuid;
 
@@ -112,21 +112,25 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     }
     let vec_image = vec_image.lock().unwrap().clone();
     for (x, y, image) in vec_image {
-         combined_image
-            .copy_from(&image, x * 64, y * 64)
-            .unwrap();
+        combined_image.copy_from(&image, x * 64, y * 64).unwrap();
     }
     let image = combined_image.clone();
-    let image =
-        image::imageops::resize(&image, (4096.0 * 0.6) as u32, (4096.0 * 0.6) as u32, FilterType::CatmullRom);
+    let image = image::imageops::resize(
+        &image,
+        (4096.0 * 0.6) as u32,
+        (4096.0 * 0.6) as u32,
+        FilterType::CatmullRom,
+    );
     let mut image_data: Vec<u8> = Vec::new();
     let encoder = PngEncoder::new(&mut image_data);
-        encoder.write_image(
-          image.as_raw(),
-          image.width(),
-          image.height(),
-          image::ColorType::Rgba8,
-      ).unwrap();
+    encoder
+        .write_image(
+            image.as_raw(),
+            image.width(),
+            image.height(),
+            image::ColorType::Rgba8,
+        )
+        .unwrap();
     trace!("Created image");
 
     let combined_uuid = Uuid::new_v4();
@@ -155,9 +159,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
     trace!("Done");
     match fs::remove_file(image_path) {
-            Ok(_) => debug!("File {} has been removed successfully", combined_uuid),
-            Err(e) => error!("Failed to remove file {}: {}", combined_uuid, e),
-        }
+        Ok(_) => debug!("File {} has been removed successfully", combined_uuid),
+        Err(e) => error!("Failed to remove file {}: {}", combined_uuid, e),
+    }
     Ok(())
 }
 
