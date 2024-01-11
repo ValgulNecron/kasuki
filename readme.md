@@ -175,7 +175,7 @@ cargo build --release
     — Not a priority.
 
 - Games module:
-  - [ ] get game info from different platform (ubi, steam, epic, ea, etc....)
+  - [X] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found), etc....)
     Get the currency and language from the server language setting.
     Steam done.
   - [ ] get player stat
