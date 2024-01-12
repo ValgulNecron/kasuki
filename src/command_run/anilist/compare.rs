@@ -77,33 +77,27 @@ pub async fn run(
         .unwrap_or(0)
         .cmp(&user2.statistics.anime.count.unwrap_or(0))
     {
-        std::cmp::Ordering::Greater => {
-            desc.push_str(
-                compare_localised
-                    .more_anime
-                    .replace("$greater$", username.as_str())
-                    .replace("$lesser$", username2.as_str())
-                    .as_str(),
-            )
-        }
-        std::cmp::Ordering::Less => {
-            desc.push_str(
-                compare_localised
-                    .more_anime
-                    .replace("$greater$", username2.as_str())
-                    .replace("$lesser$", username.as_str())
-                    .as_str(),
-            )
-        }
-        std::cmp::Ordering::Equal => {
-            desc.push_str(
-                compare_localised
-                    .same_anime
-                    .replace("$2$", username2.as_str())
-                    .replace("$1$", username.as_str())
-                    .as_str(),
-            )
-        }
+        std::cmp::Ordering::Greater => desc.push_str(
+            compare_localised
+                .more_anime
+                .replace("$greater$", username.as_str())
+                .replace("$lesser$", username2.as_str())
+                .as_str(),
+        ),
+        std::cmp::Ordering::Less => desc.push_str(
+            compare_localised
+                .more_anime
+                .replace("$greater$", username2.as_str())
+                .replace("$lesser$", username.as_str())
+                .as_str(),
+        ),
+        std::cmp::Ordering::Equal => desc.push_str(
+            compare_localised
+                .same_anime
+                .replace("$2$", username2.as_str())
+                .replace("$1$", username.as_str())
+                .as_str(),
+        ),
     }
 
     match user
@@ -113,44 +107,58 @@ pub async fn run(
         .unwrap_or(0)
         .cmp(&user2.statistics.anime.minutes_watched.unwrap_or(0))
     {
-        std::cmp::Ordering::Greater => {
-            desc.push_str(
-                compare_localised
-                    .more_watch_time
-                    .replace("$greater$", username.as_str())
-                    .replace("$lesser$", username2.as_str())
-                    .as_str(),
-            )
-        }
-        std::cmp::Ordering::Less => {
-            desc.push_str(
-                compare_localised
-                    .more_watch_time
-                    .replace("$greater$", username2.as_str())
-                    .replace("$lesser$", username.as_str())
-                    .as_str(),
-            )
-        }
-        std::cmp::Ordering::Equal => {
-            desc.push_str(
-                compare_localised
-                    .same_watch_time
-                    .replace("$2$", username2.as_str())
-                    .replace("$1$", username.as_str())
-                    .as_str(),
-            )
-        }
+        std::cmp::Ordering::Greater => desc.push_str(
+            compare_localised
+                .more_watch_time
+                .replace("$greater$", username.as_str())
+                .replace("$lesser$", username2.as_str())
+                .as_str(),
+        ),
+        std::cmp::Ordering::Less => desc.push_str(
+            compare_localised
+                .more_watch_time
+                .replace("$greater$", username2.as_str())
+                .replace("$lesser$", username.as_str())
+                .as_str(),
+        ),
+        std::cmp::Ordering::Equal => desc.push_str(
+            compare_localised
+                .same_watch_time
+                .replace("$2$", username2.as_str())
+                .replace("$1$", username.as_str())
+                .as_str(),
+        ),
     }
 
     let tag = get_tag(&user.statistics.anime.tags);
     let tag2 = get_tag(&user2.statistics.anime.tags);
 
-    desc.push_str(diff(&tag, &tag2, &compare_localised.tag_anime, &compare_localised.same_tag_anime, &username, &username2).as_str());
+    desc.push_str(
+        diff(
+            &tag,
+            &tag2,
+            &compare_localised.tag_anime,
+            &compare_localised.same_tag_anime,
+            &username,
+            &username2,
+        )
+        .as_str(),
+    );
 
     let genre = get_genre(&user.statistics.anime.genres);
     let genre2 = get_genre(&user2.statistics.anime.genres);
 
-    desc.push_str(diff(&genre, &genre2, &compare_localised.genre_anime, &compare_localised.same_genre_anime, &username, &username2).as_str());
+    desc.push_str(
+        diff(
+            &genre,
+            &genre2,
+            &compare_localised.genre_anime,
+            &compare_localised.same_genre_anime,
+            &username,
+            &username2,
+        )
+        .as_str(),
+    );
 
     match user
         .statistics
@@ -227,12 +235,32 @@ pub async fn run(
     let tag = get_tag(&user.statistics.manga.tags);
     let tag2 = get_tag(&user2.statistics.manga.tags);
 
-    desc.push_str(diff(&tag, &tag2, &compare_localised.tag_manga, &compare_localised.same_genre_manga, &username, &username2).as_str());
+    desc.push_str(
+        diff(
+            &tag,
+            &tag2,
+            &compare_localised.tag_manga,
+            &compare_localised.same_genre_manga,
+            &username,
+            &username2,
+        )
+        .as_str(),
+    );
 
     let genre = get_genre(&user.statistics.manga.genres);
     let genre2 = get_genre(&user2.statistics.manga.genres);
 
-    desc.push_str(diff(&genre, &genre2, &compare_localised.genre_manga, &compare_localised.same_genre_manga, &username, &username2).as_str());
+    desc.push_str(
+        diff(
+            &genre,
+            &genre2,
+            &compare_localised.genre_manga,
+            &compare_localised.same_genre_manga,
+            &username,
+            &username2,
+        )
+        .as_str(),
+    );
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -409,41 +437,40 @@ fn genre_string(vec: &Vec<Genre>) -> Vec<String> {
         .collect()
 }
 
-fn get_tag (tags: &Vec<Tag>) -> String {
+fn get_tag(tags: &Vec<Tag>) -> String {
     if tags.len() > 1 {
-        tags[0]
-            .tag
-            .name
-            .clone()
-            .unwrap_or_default()
+        tags[0].tag.name.clone().unwrap_or_default()
     } else {
         String::new()
     }
 }
 
-fn get_genre (genres: &Vec<Genre>) -> String {
+fn get_genre(genres: &Vec<Genre>) -> String {
     if genres.len() > 1 {
-        genres[0]
-            .genre
-            .clone()
-            .unwrap_or_default()
+        genres[0].genre.clone().unwrap_or_default()
     } else {
         String::new()
     }
 }
-fn diff(a1: &String, a2: &String, same: &String, diff_text: &String, username: &String, username2: &String) -> String {
+fn diff(
+    a1: &String,
+    a2: &String,
+    same: &String,
+    diff_text: &String,
+    username: &String,
+    username2: &String,
+) -> String {
     let diff = a1 != a2;
 
     if diff {
-            diff_text
-                .replace("$1$", username.as_str())
-                .replace("$2$", username2.as_str())
-                .replace("$1a$", a1.as_str())
-                .replace("$2a$", a2.as_str())
+        diff_text
+            .replace("$1$", username.as_str())
+            .replace("$2$", username2.as_str())
+            .replace("$1a$", a1.as_str())
+            .replace("$2a$", a2.as_str())
     } else {
-        same
-                .replace("$1$", username.as_str())
-                .replace("$2$", username2.as_str())
-                .replace("$1a$", a1.as_str())
+        same.replace("$1$", username.as_str())
+            .replace("$2$", username2.as_str())
+            .replace("$1a$", a1.as_str())
     }
 }

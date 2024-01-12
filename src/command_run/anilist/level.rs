@@ -160,7 +160,7 @@ fn get_level(xp: f64) -> (u32, f64, f64) {
         if xp >= required_xp {
             let level_progress = xp - required_xp;
             let level_progress_total = next_level_required_xp - required_xp;
-            return (level, level_progress, level_progress_total)
+            return (level, level_progress, level_progress_total);
         }
     }
     (0, 0.0, 20.0)

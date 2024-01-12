@@ -1,6 +1,6 @@
 use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
+    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
 };
 
 use crate::anilist_struct::run::user::{get_color, get_user_url, UserWrapper};

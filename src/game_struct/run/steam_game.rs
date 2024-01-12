@@ -234,7 +234,7 @@ impl SteamGameWrapper {
         let mut appid = 0u128;
         unsafe {
             if results.len() == 0 {
-                return Err(NotAValidGameError(String::from("Bad game")))
+                return Err(NotAValidGameError(String::from("Bad game")));
             }
             for (name, _) in results {
                 if appid == 0u128 {
@@ -243,7 +243,7 @@ impl SteamGameWrapper {
 
                 if search.to_lowercase() == name.to_lowercase() {
                     appid = APPS.get(name).clone().unwrap().clone();
-                    break
+                    break;
                 }
             }
         }

@@ -94,7 +94,7 @@ pub async fn run(
             Ok(f) => f,
             Err(e) => {
                 error!("{}", e);
-                continue
+                continue;
             }
         };
 
@@ -103,7 +103,7 @@ pub async fn run(
             Ok(f) => f,
             Err(e) => {
                 error!("{}", e);
-                continue
+                continue;
             }
         };
 

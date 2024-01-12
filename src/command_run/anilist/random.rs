@@ -53,7 +53,7 @@ pub async fn run(
                     command_interaction,
                     random_localised,
                 )
-                .await
+                .await;
             }
         }
         update_cache(
@@ -166,7 +166,7 @@ pub async fn update_cache(
             let has_next_page = data.has_next_page();
 
             if !has_next_page {
-                break
+                break;
             }
             cached_response = res.to_string();
             previous_page = page_number;
@@ -179,7 +179,7 @@ pub async fn update_cache(
             let has_next_page = data.has_next_page();
 
             if !has_next_page {
-                break
+                break;
             }
             cached_response = res.to_string();
             previous_page = page_number;
