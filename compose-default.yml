@@ -12,10 +12,15 @@ services:
     tty: true
     environment:
       - DISCORD_TOKEN=your_discord_token_here
-      - AI_API_TOKEN=your_token_here_for_the_ai_part
-      - AI_API_BASE_URL=the_url_for_the_request_open_ai_or_any_openai_proxy_one_do_not_forget_to_end_with_a_/_the_url
-      - IMAGE_GENERATION_MODELS_ON=True # true if you use have a proxy server on which you added another model
+      - AI_API_TOKEN=your_token_here_for_the_ai_part # used for transcription with whisper-1 and for translation with gpt-3.5-turbo-16k (will add feature to change later)
+      - AI_API_BASE_URL=the_url_for_the_request_open_ai_or_any_openai_proxy_one_do_not_forget_to_end_with_a_/_the_url # the url to get the models above
+      - AI_IMAGE_API_TOKEN="Your token here for the ai part" # token for the image generation can be the same or different from the one above
+      - AI_IMAGE_API_BASE_URL="The url for the request open ai or any openai proxy one do not forget to end with a / the url" # url of the api can be the same or different as the one above.
+      - IMAGE_GENERATION_MODELS_ON=True # true if you use have a proxy server on which you added another model for image gen.
       - IMAGE_GENERATION_MODELS=model_name # the name of the model you want only used if IMAGE_GENERATION_MODELS_ON is True
+      - IMAGE_QUALITY="hd" # dall-e-3
+      - IMAGE_SIZE="1024x1024" # depend on models
+      - IMAGE_STYLE="vivid" #  dall-e-3
       - RUST_LOG="info" # trace, debug, info, warn or error
       - NSFW=True # if the bot should honor the nsfw for image if set to true it will if false it will not. (turn it off if you are 100% the model you use for image can't generate nsfw)
       - TERM=xterm-256color

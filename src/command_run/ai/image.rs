@@ -56,7 +56,7 @@ pub async fn run(
     let filename_str = filename.as_str();
 
     let prompt = desc;
-    let api_key = match env::var("AI_API_TOKEN") {
+    let api_key = match env::var("AI_IMAGE_API_TOKEN") {
         Ok(x) => x,
         Err(_) => {
             return Err(DifferedTokenError(String::from(
@@ -65,33 +65,118 @@ pub async fn run(
         }
     };
 
-    let api_base_url =
-        env::var("AI_API_BASE_URL").unwrap_or_else(|_| "https://api.openai.com/v1/".to_string());
+    let api_base_url = env::var("AI_IMAGE_API_BASE_URL")
+        .unwrap_or_else(|_| "https://api.openai.com/v1/".to_string());
 
     let mut data = json!({
+        "model": "dall-e-3",
         "prompt": prompt,
         "n": 1,
         "size": "1024x1024",
         "response_format": "url"
     });
     if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
-        let is_ok = image_generation_mode.to_lowercase() == "true";
-        if is_ok {
-            let model = match env::var("IMAGE_GENERATION_MODELS") {
-                Ok(data) => data,
-                Err(_) => {
-                    return Err(DifferedImageModelError(String::from(
-                        "Please specify the models you want to use",
-                    )));
-                }
-            };
-            data = json!({
-                "prompt": prompt,
-                "n": 1,
-                "size": "1024x1024",
-                "model": model,
-                "response_format": "url"
-            })
+        let is_ok_image = image_generation_mode.to_lowercase() == "true";
+        let quality = match env::var("IMAGE_QUALITY") {
+            Ok(quality) => Some(quality),
+            Err(_) => None,
+        };
+        let style = match env::var("IMAGE_STYLE") {
+            Ok(style) => Some(style),
+            Err(_) => None,
+        };
+
+        let model = match env::var("IMAGE_GENERATION_MODELS") {
+            Ok(data) => data,
+            Err(_) => {
+                return Err(DifferedImageModelError(String::from(
+                    "Please specify the models you want to use",
+                )));
+            }
+        };
+
+        let size = env::var("IMAGE_GENERATION_MODELS_ON").unwrap_or(String::from("1024x1024"));
+        match (is_ok_image, quality, style) {
+            (true, Some(quality), Some(style)) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "model": model,
+                    "quality": quality,
+                    "style": style,
+                    "response_format": "url"
+                })
+            }
+            (true, None, Some(style)) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "model": model,
+                    "style": style,
+                    "response_format": "url"
+                })
+            }
+            (true, Some(quality), None) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "model": model,
+                    "quality": quality,
+                    "response_format": "url"
+                })
+            }
+            (true, None, None) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "model": model,
+                    "response_format": "url"
+                })
+            }
+            (false, Some(quality), Some(style)) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "model": "dall-e-3",
+                    "quality": quality,
+                    "style": style,
+                    "response_format": "url"
+                })
+            }
+            (false, None, Some(style)) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "model": "dall-e-3",
+                    "style": style,
+                    "response_format": "url"
+                })
+            }
+            (false, Some(quality), None) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "model": "dall-e-3",
+                    "quality": quality,
+                    "response_format": "url"
+                })
+            }
+            (false, None, None) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                    "model": "dall-e-3",
+                    "response_format": "url"
+                })
+            }
         }
     }
 
