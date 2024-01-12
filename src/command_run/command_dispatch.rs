@@ -2,8 +2,8 @@ use serenity::all::{CommandInteraction, Context};
 
 use crate::command_run::ai::{image, transcript, translation};
 use crate::command_run::anilist::{
-    add_activity, anime, character, compare, level, list_register_user, ln, manga, random,
-    register, search, seiyuu, staff, studio, user, waifu,
+    add_activity, anime, character, compare, level, list_all_activity, list_register_user, ln,
+    manga, random, register, search, seiyuu, staff, studio, user, waifu,
 };
 use crate::command_run::game::steam_game_info;
 use crate::command_run::general::module::check_activation_status;
@@ -71,6 +71,7 @@ pub async fn command_dispatching(
         }
         "guild" => guild::run(&ctx, &command_interaction).await?,
         "guild_image" => generate_image_pfp_server::run(&ctx, &command_interaction).await?,
+        "list_activity" => list_all_activity::run(&ctx, &command_interaction).await?,
 
         /*
 

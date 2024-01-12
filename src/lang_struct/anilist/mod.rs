@@ -2,6 +2,7 @@ pub mod add_activity;
 pub mod character;
 pub mod compare;
 pub mod level;
+pub mod list_all_activity;
 pub mod list_register_user;
 pub mod media;
 pub mod random;

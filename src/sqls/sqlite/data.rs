@@ -1,9 +1,12 @@
 use chrono::Utc;
+use sqlx::sqlite::SqliteRow;
+use sqlx::Row;
+use tracing::error;
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::SqlInsertError;
+use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
 use crate::sqls::sqlite::pool::get_sqlite_pool;
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
@@ -314,4 +317,73 @@ pub async fn get_user_approximated_color_sqlite(
     pool.close().await;
 
     Ok(row)
+}
+
+pub async fn get_all_server_activity_sqlite(
+    server_id: &String,
+) -> Result<
+    Vec<(
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<u32>,
+    )>,
+    AppError,
+> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let rows: Vec<SqliteRow> = match sqlx::query(
+        "SELECT
+       anime_id,
+       timestamp,
+       server_id,
+       webhook,
+       episode,
+       name,
+       delays
+       FROM activity_data WHERE server_id = ?
+   ",
+    )
+    .bind(server_id)
+    .fetch_all(&pool)
+    .await
+    {
+        Ok(rows) => rows,
+        Err(e) => {
+            error!("Failed to select from the table: {}", e);
+            return Err(SqlSelectError(String::from(
+                "Failed to select from the table.",
+            )));
+        }
+    };
+    //.map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
+
+    let list: Vec<(
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<u32>,
+    )> = rows
+        .into_iter()
+        .map(|row| {
+            let anime_id: Option<String> = row.get(0);
+            let timestamp: Option<String> = row.get(1);
+            let server_id: Option<String> = row.get(2);
+            let webhook: Option<String> = row.get(3);
+            let episode: Option<String> = row.get(4);
+            let name: Option<String> = row.get(5);
+            let delays: Option<u32> = row.get(6);
+            (
+                anime_id, timestamp, server_id, webhook, episode, name, delays,
+            )
+        })
+        .collect();
+
+    pool.close().await;
+    Ok(list)
 }

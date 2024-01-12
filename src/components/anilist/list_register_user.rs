@@ -1,5 +1,5 @@
 use crate::command_run::anilist::list_register_user::get_the_list;
-use crate::constant::{DIFFERED_COMMAND_SENDING_ERROR, MEMBER_LIMIT, OPTION_ERROR};
+use crate::constant::{DIFFERED_COMMAND_SENDING_ERROR, MEMBER_LIST_LIMIT, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::list_register_user::load_localization_list_user;
 use serenity::all::{
@@ -26,20 +26,31 @@ pub async fn update(
         .await
         .map_err(|_| OPTION_ERROR.clone())?;
 
-    let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) = get_the_list(
-        guild,
-        ctx,
-        &list_user_localised,
-        Some(user_id.parse().unwrap()),
-    )
-    .await?;
+    let id = if user_id == "0" {
+        None
+    } else {
+        Some(user_id.parse().unwrap())
+    };
+
+    let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) =
+        get_the_list(guild, ctx, &list_user_localised, id).await?;
 
     let mut response = EditMessage::new().embed(builder_message);
-    if len == MEMBER_LIMIT as usize {
+    if user_id != "0" {
         response = response.button(
-            CreateButton::new(format!("next_{}", last_id.unwrap())).label(list_user_localised.next),
+            CreateButton::new(format!("next_user_{}", last_id.unwrap()))
+                .label(&list_user_localised.previous),
+        );
+    }
+    if len >= MEMBER_LIST_LIMIT as usize {
+        response = response.button(
+            CreateButton::new(format!("next_user_{}", last_id.unwrap()))
+                .label(list_user_localised.next),
         )
     }
+
+    response = response
+        .button(CreateButton::new(format!("next_user_{}", 0)).label(list_user_localised.previous));
 
     let mut message = component_interaction.message.clone();
 

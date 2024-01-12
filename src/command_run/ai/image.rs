@@ -101,7 +101,7 @@ pub async fn run(
                 data = json!({
                     "prompt": prompt,
                     "n": 1,
-                    "size": "1024x1024",
+                    "size": size,
                     "model": model,
                     "quality": quality,
                     "style": style,
@@ -112,7 +112,7 @@ pub async fn run(
                 data = json!({
                     "prompt": prompt,
                     "n": 1,
-                    "size": "1024x1024",
+                    "size": size,
                     "model": model,
                     "style": style,
                     "response_format": "url"
@@ -122,7 +122,7 @@ pub async fn run(
                 data = json!({
                     "prompt": prompt,
                     "n": 1,
-                    "size": "1024x1024",
+                    "size": size,
                     "model": model,
                     "quality": quality,
                     "response_format": "url"
@@ -132,7 +132,7 @@ pub async fn run(
                 data = json!({
                     "prompt": prompt,
                     "n": 1,
-                    "size": "1024x1024",
+                    "size": size,
                     "model": model,
                     "response_format": "url"
                 })
@@ -141,7 +141,7 @@ pub async fn run(
                 data = json!({
                     "prompt": prompt,
                     "n": 1,
-                    "size": "1024x1024",
+                    "size": size,
                     "model": "dall-e-3",
                     "quality": quality,
                     "style": style,
@@ -152,7 +152,7 @@ pub async fn run(
                 data = json!({
                     "prompt": prompt,
                     "n": 1,
-                    "size": "1024x1024",
+                    "size": size,
                     "model": "dall-e-3",
                     "style": style,
                     "response_format": "url"
@@ -162,7 +162,7 @@ pub async fn run(
                 data = json!({
                     "prompt": prompt,
                     "n": 1,
-                    "size": "1024x1024",
+                    "size": size,
                     "model": "dall-e-3",
                     "quality": quality,
                     "response_format": "url"
@@ -172,7 +172,7 @@ pub async fn run(
                 data = json!({
                     "prompt": prompt,
                     "n": 1,
-                    "size": "1024x1024",
+                    "size": size,
                     "model": "dall-e-3",
                     "response_format": "url"
                 })

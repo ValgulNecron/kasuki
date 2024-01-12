@@ -7,7 +7,7 @@ use tracing::log::trace;
 
 use crate::anilist_struct::run::user::UserWrapper;
 use crate::constant::{
-    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, MEMBER_LIMIT, OPTION_ERROR,
+    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, MEMBER_LIST_LIMIT, OPTION_ERROR,
     PASS_LIMIT,
 };
 use crate::error_enum::AppError;
@@ -42,12 +42,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         get_the_list(guild, ctx, &list_user_localised, None).await?;
     trace!("{:#?}", builder_message);
     trace!("{:#?}", len);
-    trace!("{:#?}", MEMBER_LIMIT);
+    trace!("{:#?}", MEMBER_LIST_LIMIT);
     trace!("{:#?}", last_id);
     let mut response = CreateInteractionResponseFollowup::new().embed(builder_message);
-    if len == (MEMBER_LIMIT - 1) as usize {
+    if len >= (MEMBER_LIST_LIMIT + 1) as usize {
         response = response.button(
-            CreateButton::new(format!("next_{}", last_id.unwrap())).label(list_user_localised.next),
+            CreateButton::new(format!("next_user_{}", last_id.unwrap()))
+                .label(&list_user_localised.next),
         )
     }
 
@@ -72,9 +73,9 @@ pub async fn get_the_list(
     let mut anilist_user = Vec::new();
     let mut last_id: Option<UserId> = last_id;
     let mut pass = 0;
-    while anilist_user.len() < MEMBER_LIMIT as usize && pass < PASS_LIMIT {
+    while anilist_user.len() < MEMBER_LIST_LIMIT as usize && pass < PASS_LIMIT {
         let members = guild
-            .members(&ctx.http, Some(MEMBER_LIMIT), last_id)
+            .members(&ctx.http, Some(MEMBER_LIST_LIMIT), last_id)
             .await
             .map_err(|_| OPTION_ERROR.clone())?;
 

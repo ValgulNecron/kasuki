@@ -4,7 +4,7 @@ use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
 use crate::sqls::sqlite::data::{
-    get_data_activity_sqlite, get_data_guild_langage_sqlite,
+    get_all_server_activity_sqlite, get_data_activity_sqlite, get_data_guild_langage_sqlite,
     get_data_module_activation_kill_switch_status_sqlite, get_data_module_activation_status_sqlite,
     get_one_activity_sqlite, get_registered_user_sqlite, get_user_approximated_color_sqlite,
     remove_data_activity_status_sqlite, set_data_activity_sqlite, set_data_guild_langage_sqlite,
@@ -223,5 +223,29 @@ pub async fn get_user_approximated_color(
         Ok((None, None, None, None))
     } else {
         get_user_approximated_color_sqlite(user_id).await
+    }
+}
+
+pub async fn get_all_server_activity(
+    server_id: &String,
+) -> Result<
+    Vec<(
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<u32>,
+    )>,
+    AppError,
+> {
+    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
+    if db_type == *"sqlite" {
+        get_all_server_activity_sqlite(server_id).await
+    } else if db_type == *"postgresql" {
+        Ok(Vec::new())
+    } else {
+        get_all_server_activity_sqlite(server_id).await
     }
 }

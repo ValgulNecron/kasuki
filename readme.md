@@ -152,7 +152,7 @@ cargo build --release
   - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance.
   - [X] Add caching to all requests.
   - [X] Send anime release to a channel.
-  - [ ] List all activity.
+  - [X] List all activity.
   - [ ] Delete an activity.
   - [ ] Try to do the same for manga.
     with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263).
