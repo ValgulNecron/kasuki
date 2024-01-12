@@ -34,7 +34,7 @@ pub async fn run(
             if let CommandDataOptionValue::Integer(delay_option) = resolved {
                 delay = *delay_option
             } else {
-                delay = 0;
+                delay = 0
             }
         }
         if option.name == "anime_name" {

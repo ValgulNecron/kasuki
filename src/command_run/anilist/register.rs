@@ -1,12 +1,13 @@
 use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
+    CommandDataOption, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 
 use crate::anilist_struct::run::user::{get_color, get_user_url, UserWrapper};
-use crate::constant::{COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::command_run::anilist::user::get_user_data;
+use crate::common::get_option_value::get_option;
+use crate::constant::COMMAND_SENDING_ERROR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::NoCommandOption;
 use crate::lang_struct::anilist::register::load_localization_register;
 use crate::sqls::general::data::set_registered_user;
 
@@ -15,22 +16,9 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
+    let value = get_option(options);
 
-    let value = match option {
-        CommandDataOptionValue::String(lang) => lang,
-        _ => {
-            return Err(NoCommandOption(String::from(
-                "The command contain no option.",
-            )));
-        }
-    };
-
-    let data: UserWrapper = if value.parse::<i32>().is_ok() {
-        UserWrapper::new_user_by_id(value.parse().unwrap()).await?
-    } else {
-        UserWrapper::new_user_by_search(value).await?
-    };
+    let data: UserWrapper = get_user_data(&value).await?;
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

@@ -4,7 +4,7 @@ use crate::sqls::general::data::{get_user_approximated_color, set_user_approxima
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::io::Reader as ImageReader;
-use image::{GenericImageView, ImageOutputFormat};
+use image::{DynamicImage, GenericImageView, ImageOutputFormat};
 use log::trace;
 use serenity::all::Member;
 use std::io::Cursor;
@@ -26,9 +26,9 @@ pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError>
         ) = get_user_approximated_color(&id).await?;
         if pfp_url != pfp_url_old.unwrap_or(String::new()) {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
-            set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?;
+            set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?
         }
-        sleep(Duration::from_millis(100)).await;
+        sleep(Duration::from_millis(100)).await
     }
     Ok(())
 }
@@ -51,7 +51,7 @@ pub async fn return_average_user_color(
         if pfp_url != pfp_url_old.clone().unwrap_or(String::new()) {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
             set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?;
-            average_colors.push((average_color, pfp_url, image));
+            average_colors.push((average_color, pfp_url, image))
         } else {
             average_colors.push((color.unwrap(), pfp_url_old.unwrap(), image_old.unwrap()))
         }
@@ -64,20 +64,7 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
     let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://imgs.search.brave.com/FhPP6x9omGE50_uLbcuizNYwrBLp3bQZ8ii9Eel44aQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9h/YnN0cmFjdC1zdXJm/YWNlLXRleHR1cmVz/LXdoaXRlLWNvbmNy/ZXRlLXN0b25lLXdh/bGxfNzQxOTAtODE4/OS5qcGc_c2l6ZT02/MjYmZXh0PWpwZw"))
     .replace("?size=1024", "?size=64");
 
-    // Fetch the image data
-    let resp = reqwest::get(pfp_url)
-        .await
-        .map_err(|_| FailedToGetImage(String::from("Failed to download image.")))?
-        .bytes()
-        .await
-        .map_err(|_| FailedToGetImage(String::from("Failed to get bytes image.")))?;
-
-    // Decode the image data
-    let img = ImageReader::new(Cursor::new(resp))
-        .with_guessed_format()
-        .map_err(|_| CreatingImageError(String::from("Failed to load image.")))?
-        .decode()
-        .map_err(|_| DecodingImageError(String::from("Failed to decode image.")))?;
+    let img = get_image_from_url(pfp_url).await?;
 
     // Create variables to hold the sum of each color channel
     let mut r_total: u32 = 0;
@@ -112,4 +99,23 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
     let image = format!("data:image/png;base64,{}", res_base64);
     // Return the average color
     Ok((average_color, image))
+}
+
+pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
+    // Fetch the image data
+    let resp = reqwest::get(url)
+        .await
+        .map_err(|_| FailedToGetImage(String::from("Failed to download image.")))?
+        .bytes()
+        .await
+        .map_err(|_| FailedToGetImage(String::from("Failed to get bytes image.")))?;
+
+    // Decode the image data
+    let img = ImageReader::new(Cursor::new(resp))
+        .with_guessed_format()
+        .map_err(|_| CreatingImageError(String::from("Failed to load image.")))?
+        .decode()
+        .map_err(|_| DecodingImageError(String::from("Failed to decode image.")))?;
+
+    Ok(img)
 }

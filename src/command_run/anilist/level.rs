@@ -5,6 +5,7 @@ use serenity::all::{
 use tracing::trace;
 
 use crate::anilist_struct::run::user::{get_color, get_completed, get_user_url, UserWrapper};
+use crate::command_run::anilist::user::get_user_data;
 use crate::constant::{COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::level::load_localization_level;
@@ -21,11 +22,8 @@ pub async fn run(
             if let Some(a) = option.value.as_str() {
                 let value = &a.to_string();
 
-                let data: UserWrapper = if value.parse::<i32>().is_ok() {
-                    UserWrapper::new_user_by_id(value.parse().unwrap()).await?
-                } else {
-                    UserWrapper::new_user_by_search(value).await?
-                };
+                let data: UserWrapper = get_user_data(value).await?;
+
                 return send_embed(ctx, command_interaction, data).await;
             }
         }
@@ -162,7 +160,7 @@ fn get_level(xp: f64) -> (u32, f64, f64) {
         if xp >= required_xp {
             let level_progress = xp - required_xp;
             let level_progress_total = next_level_required_xp - required_xp;
-            return (level, level_progress, level_progress_total);
+            return (level, level_progress, level_progress_total)
         }
     }
     (0, 0.0, 20.0)

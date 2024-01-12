@@ -149,12 +149,12 @@ impl field::Visit for MessageVisitor {
     }
 }
 
-fn get_directive(filter: &str) -> Result<Directive, AppError>{
+fn get_directive(filter: &str) -> Result<Directive, AppError> {
     let directive = match Directive::from_str(filter) {
         Ok(d) => d,
         Err(e) => {
             eprintln!("{}", e);
-            return Err(SetLoggerError(String::from("Error creating the Logger")))
+            return Err(SetLoggerError(String::from("Error creating the Logger")));
         }
     };
     Ok(directive)

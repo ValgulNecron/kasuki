@@ -163,7 +163,7 @@ fn create_sqlite_file(path: &str) -> Result<(), AppError> {
                 println!("Failed to create the file {} : {}", path, e);
                 return Err(FailedToCreateAFile(String::from(
                     "Failed to create db file.",
-                )))
+                )));
             }
         }
     }

@@ -28,7 +28,7 @@ pub async fn run(
             if let CommandDataOptionValue::String(module_option) = resolved {
                 module = module_option.clone()
             } else {
-                module = "".to_string();
+                module = "".to_string()
             }
         }
         if option.name == "state" {
@@ -52,19 +52,13 @@ pub async fn run(
     let mut anilist_value = anilist_module.unwrap_or(false);
     let mut game_value = game_module.unwrap_or(false);
     match module.as_str() {
-        "ANIME" => {
-            anilist_value = state;
-        }
-        "AI" => {
-            ai_value = state;
-        }
-        "GAME" => {
-            game_value = state;
-        }
+        "ANIME" => anilist_value = state,
+        "AI" => ai_value = state,
+        "GAME" => game_value = state,
         _ => {
             return Err(AppError::ModuleError(String::from(
                 "This module does not exist.",
-            )));
+            )))
         }
     }
     set_data_module_activation_status(&guild_id, anilist_value, ai_value, game_value).await?;

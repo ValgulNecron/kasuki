@@ -155,7 +155,7 @@ async fn main() {
         Ok(_) => {}
         Err(e) => {
             eprintln!("{:?}", e);
-            return
+            return;
         }
     };
 
@@ -163,7 +163,7 @@ async fn main() {
         Ok(_) => {}
         Err(e) => {
             error!("{:?}", e);
-            return
+            return;
         }
     }
 
@@ -185,7 +185,7 @@ async fn main() {
         }
         Err(_) => {
             error!("Env variable not set exiting.");
-            return
+            return;
         }
     };
 
@@ -201,7 +201,7 @@ async fn main() {
         }
         Err(e) => {
             error!("Error while creating client: {}", e);
-            return
+            return;
         }
     };
 

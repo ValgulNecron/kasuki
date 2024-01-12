@@ -8,6 +8,7 @@ use tracing::trace;
 use crate::anilist_struct::run::user::{
     Anime, Genre, Manga, Statistics, Statuses, Tag, UserWrapper,
 };
+use crate::command_run::anilist::user::get_user_data;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NoCommandOption;
@@ -40,17 +41,10 @@ pub async fn run(
         }
     };
 
-    let data: UserWrapper = if value.parse::<i32>().is_ok() {
-        UserWrapper::new_user_by_id(value.parse().unwrap()).await?
-    } else {
-        UserWrapper::new_user_by_search(value).await?
-    };
+    let data: UserWrapper = get_user_data(value).await?;
 
-    let data2: UserWrapper = if value2.parse::<i32>().is_ok() {
-        UserWrapper::new_user_by_id(value2.parse().unwrap()).await?
-    } else {
-        UserWrapper::new_user_by_search(value2).await?
-    };
+    let data2: UserWrapper = get_user_data(value2).await?;
+
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -90,7 +84,7 @@ pub async fn run(
                     .replace("$greater$", username.as_str())
                     .replace("$lesser$", username2.as_str())
                     .as_str(),
-            );
+            )
         }
         std::cmp::Ordering::Less => {
             desc.push_str(
@@ -99,7 +93,7 @@ pub async fn run(
                     .replace("$greater$", username2.as_str())
                     .replace("$lesser$", username.as_str())
                     .as_str(),
-            );
+            )
         }
         std::cmp::Ordering::Equal => {
             desc.push_str(
@@ -108,7 +102,7 @@ pub async fn run(
                     .replace("$2$", username2.as_str())
                     .replace("$1$", username.as_str())
                     .as_str(),
-            );
+            )
         }
     }
 
@@ -126,7 +120,7 @@ pub async fn run(
                     .replace("$greater$", username.as_str())
                     .replace("$lesser$", username2.as_str())
                     .as_str(),
-            );
+            )
         }
         std::cmp::Ordering::Less => {
             desc.push_str(
@@ -135,7 +129,7 @@ pub async fn run(
                     .replace("$greater$", username2.as_str())
                     .replace("$lesser$", username.as_str())
                     .as_str(),
-            );
+            )
         }
         std::cmp::Ordering::Equal => {
             desc.push_str(
@@ -144,93 +138,19 @@ pub async fn run(
                     .replace("$2$", username2.as_str())
                     .replace("$1$", username.as_str())
                     .as_str(),
-            );
+            )
         }
     }
 
-    let tag = if user.statistics.anime.tags.len() > 1 {
-        user.statistics.anime.tags[0]
-            .tag
-            .name
-            .clone()
-            .unwrap_or_default()
-    } else {
-        String::new()
-    };
-    let tag2 = if user2.statistics.anime.tags.len() > 1 {
-        user2.statistics.anime.tags[0]
-            .tag
-            .name
-            .clone()
-            .unwrap_or_default()
-    } else {
-        String::new()
-    };
+    let tag = get_tag(&user.statistics.anime.tags);
+    let tag2 = get_tag(&user2.statistics.anime.tags);
 
-    let diff = tag != tag2;
+    desc.push_str(diff(&tag, &tag2, &compare_localised.tag_anime, &compare_localised.same_tag_anime, &username, &username2).as_str());
 
-    if diff {
-        desc.push_str(
-            compare_localised
-                .tag_anime
-                .replace("$1$", username.as_str())
-                .replace("$2$", username2.as_str())
-                .replace("$1a$", tag.as_str())
-                .replace("$2a$", tag2.as_str())
-                .as_str(),
-        )
-    } else {
-        desc.push_str(
-            compare_localised
-                .same_tag_anime
-                .replace("$1$", username.as_str())
-                .replace("$2$", username2.as_str())
-                .replace("$1a$", tag.as_str())
-                .as_str(),
-        )
-    }
+    let genre = get_genre(&user.statistics.anime.genres);
+    let genre2 = get_genre(&user2.statistics.anime.genres);
 
-    let genre = if user.statistics.anime.genres.len() > 1 {
-        user.statistics.anime.tags[0]
-            .tag
-            .name
-            .clone()
-            .unwrap_or_default()
-    } else {
-        String::new()
-    };
-    let genre2 = if user2.statistics.anime.genres.len() > 1 {
-        user2.statistics.anime.tags[0]
-            .tag
-            .name
-            .clone()
-            .unwrap_or_default()
-    } else {
-        String::new()
-    };
-
-    let diff = genre != genre2;
-
-    if diff {
-        desc.push_str(
-            compare_localised
-                .genre_anime
-                .replace("$1$", username.as_str())
-                .replace("$2$", username2.as_str())
-                .replace("$1a$", genre.as_str())
-                .replace("$2a$", genre2.as_str())
-                .as_str(),
-        )
-    } else {
-        desc.push_str(
-            compare_localised
-                .same_tag_anime
-                .replace("$1$", username.as_str())
-                .replace("$2$", username2.as_str())
-                .replace("$1a$", genre.as_str())
-                .as_str(),
-        )
-    }
+    desc.push_str(diff(&genre, &genre2, &compare_localised.genre_anime, &compare_localised.same_genre_anime, &username, &username2).as_str());
 
     match user
         .statistics
@@ -304,87 +224,15 @@ pub async fn run(
         }
     }
 
-    let tag = if user.statistics.manga.tags.len() > 1 {
-        user.statistics.manga.tags[0]
-            .tag
-            .name
-            .clone()
-            .unwrap_or_default()
-    } else {
-        String::new()
-    };
-    let tag2 = if user2.statistics.manga.tags.len() > 1 {
-        user2.statistics.manga.tags[0]
-            .tag
-            .name
-            .clone()
-            .unwrap_or_default()
-    } else {
-        String::new()
-    };
+    let tag = get_tag(&user.statistics.manga.tags);
+    let tag2 = get_tag(&user2.statistics.manga.tags);
 
-    let diff = tag != tag2;
+    desc.push_str(diff(&tag, &tag2, &compare_localised.tag_manga, &compare_localised.same_genre_manga, &username, &username2).as_str());
 
-    if diff {
-        desc.push_str(
-            compare_localised
-                .tag_manga
-                .replace("$1$", username.as_str())
-                .replace("$2$", username2.as_str())
-                .replace("$1a$", tag.as_str())
-                .replace("$2a$", tag2.as_str())
-                .as_str(),
-        )
-    } else {
-        desc.push_str(
-            compare_localised
-                .same_tag_manga
-                .replace("$1$", username.as_str())
-                .replace("$2$", username2.as_str())
-                .replace("$1a$", tag.as_str())
-                .as_str(),
-        )
-    }
+    let genre = get_genre(&user.statistics.manga.genres);
+    let genre2 = get_genre(&user2.statistics.manga.genres);
 
-    let genre = if user.statistics.manga.genres.len() > 1 {
-        user.statistics.manga.genres[0]
-            .genre
-            .clone()
-            .unwrap_or_default()
-    } else {
-        String::new()
-    };
-    let genre2 = if user2.statistics.manga.genres.len() > 1 {
-        user2.statistics.manga.genres[0]
-            .genre
-            .clone()
-            .unwrap_or_default()
-    } else {
-        String::new()
-    };
-
-    let diff = genre != genre2;
-
-    if diff {
-        desc.push_str(
-            compare_localised
-                .genre_manga
-                .replace("$1$", username.as_str())
-                .replace("$2$", username2.as_str())
-                .replace("$1a$", genre.as_str())
-                .replace("$2a$", genre2.as_str())
-                .as_str(),
-        )
-    } else {
-        desc.push_str(
-            compare_localised
-                .same_tag_manga
-                .replace("$1$", username.as_str())
-                .replace("$2$", username2.as_str())
-                .replace("$1a$", genre.as_str())
-                .as_str(),
-        )
-    }
+    desc.push_str(diff(&genre, &genre2, &compare_localised.genre_manga, &compare_localised.same_genre_manga, &username, &username2).as_str());
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -559,4 +407,43 @@ fn genre_string(vec: &Vec<Genre>) -> Vec<String> {
     vec.into_iter()
         .map(|genre| genre.genre.clone().unwrap())
         .collect()
+}
+
+fn get_tag (tags: &Vec<Tag>) -> String {
+    if tags.len() > 1 {
+        tags[0]
+            .tag
+            .name
+            .clone()
+            .unwrap_or_default()
+    } else {
+        String::new()
+    }
+}
+
+fn get_genre (genres: &Vec<Genre>) -> String {
+    if genres.len() > 1 {
+        genres[0]
+            .genre
+            .clone()
+            .unwrap_or_default()
+    } else {
+        String::new()
+    }
+}
+fn diff(a1: &String, a2: &String, same: &String, diff_text: &String, username: &String, username2: &String) -> String {
+    let diff = a1 != a2;
+
+    if diff {
+            diff_text
+                .replace("$1$", username.as_str())
+                .replace("$2$", username2.as_str())
+                .replace("$1a$", a1.as_str())
+                .replace("$2a$", a2.as_str())
+    } else {
+        same
+                .replace("$1$", username.as_str())
+                .replace("$2$", username2.as_str())
+                .replace("$1a$", a1.as_str())
+    }
 }

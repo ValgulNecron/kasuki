@@ -4,6 +4,7 @@ use serenity::all::{
 };
 
 use crate::anilist_struct::run::studio::StudioWrapper;
+use crate::common::get_option_value::get_option;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::studio::load_localization_studio;
@@ -13,14 +14,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let mut value = String::new();
-    for option_data in options {
-        if option_data.name.as_str() != "type" {
-            let option_value = option_data.value.as_str().unwrap();
-            value = option_value.to_string().clone()
-        }
-    }
-
+    let value = get_option(options);
     let data: StudioWrapper = if value.parse::<i32>().is_ok() {
         StudioWrapper::new_studio_by_id(value.parse().unwrap()).await?
     } else {
@@ -42,7 +36,7 @@ pub async fn run(
         let en = title.user_preferred;
         let text = format!("[{}/{}]({})", rj, en, m.site_url);
         content.push_str(text.as_str());
-        content.push('\n');
+        content.push('\n')
     }
 
     let desc = studio_localised
