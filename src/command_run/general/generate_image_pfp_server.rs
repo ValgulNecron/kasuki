@@ -86,7 +86,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let color_vec = create_color_vector(average_colors.clone());
     let mut handles = vec![];
     let mut combined_image = DynamicImage::new_rgba16(dim, dim);
-    let mut vec_image = Arc::new(Mutex::new(Vec::new()));
+    let vec_image = Arc::new(Mutex::new(Vec::new()));
     trace!("Started creation");
     for y in 0..img.height() {
         for x in 0..img.width() {
@@ -99,7 +99,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 let r = pixel[0];
                 let g = pixel[1];
                 let b = pixel[2];
-                let hex = format!("#{:02x}{:02x}{:02x}", r, g, b);
                 let r_normalized = r as f32 / 255.0;
                 let g_normalized = g as f32 / 255.0;
                 let b_normalized = b as f32 / 255.0;
@@ -107,7 +106,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 let lab_color: Lab = rgb_color.into_color();
                 let color_target = Color {
                     cielab: lab_color,
-                    hex,
                 };
                 let closest_color = find_closest_color(&color_vec_moved, &color_target).unwrap();
                 vec_image.lock().unwrap().push((x, y, closest_color.image));
@@ -177,21 +175,18 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 #[derive(Clone, Debug)]
 struct Color {
     cielab: Lab,
-    hex: String,
 }
 
 #[derive(Clone, Debug)]
 struct ColorWithUrl {
     cielab: Lab,
-    hex: String,
-    url: String,
     image: DynamicImage,
 }
 
 fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
-        .filter_map(|(hex, url, image)| {
+        .filter_map(|(hex, _, image)| {
             let r = hex[1..3].parse::<u8>();
             let g = hex[3..5].parse::<u8>();
             let b = hex[5..7].parse::<u8>();
@@ -209,8 +204,6 @@ fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUr
                     let lab_color: Lab = rgb_color.into_color();
                     Some(ColorWithUrl {
                         cielab: lab_color,
-                        hex,
-                        url,
                         image: img,
                     })
                 }

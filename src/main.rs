@@ -56,7 +56,7 @@ impl EventHandler for Handler {
                                 .await
                                 .unwrap()
                         } else {
-                            let user: UserId = members.last().unwrap().user.id.clone();
+                            let user: UserId = members.last().unwrap().user.id;
                             guild
                                 .members(&ctx_clone.http, Some(1000), Some(user))
                                 .await
@@ -89,7 +89,7 @@ impl EventHandler for Handler {
             debug!(
                 "guild id: {:#?} | guild name {:#?}",
                 &partial_guild.id, &partial_guild.name
-            );
+            )
         }
 
         let my_path = ".env";
@@ -123,10 +123,10 @@ impl EventHandler for Handler {
                 error_management::error_dispatch::command_dispatching(e).await
             }
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
-            autocomplete_dispatching(ctx, autocomplete_interaction).await;
+            autocomplete_dispatching(ctx, autocomplete_interaction).await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
             if let Err(e) = components_dispatching(ctx, component_interaction).await {
-                trace!("{:#?}", e);
+                trace!("{:#?}", e)
             }
         }
     }
@@ -155,7 +155,7 @@ async fn main() {
         Ok(_) => {}
         Err(e) => {
             eprintln!("{:?}", e);
-            return;
+            return
         }
     };
 
@@ -163,7 +163,7 @@ async fn main() {
         Ok(_) => {}
         Err(e) => {
             error!("{:?}", e);
-            return;
+            return
         }
     }
 
@@ -185,7 +185,7 @@ async fn main() {
         }
         Err(_) => {
             error!("Env variable not set exiting.");
-            return;
+            return
         }
     };
 
@@ -201,7 +201,7 @@ async fn main() {
         }
         Err(e) => {
             error!("Error while creating client: {}", e);
-            return;
+            return
         }
     };
 
@@ -210,10 +210,10 @@ async fn main() {
 
         let shard_manager = &client.shard_manager;
 
-        data.insert::<ShardManagerContainer>(Arc::clone(shard_manager));
+        data.insert::<ShardManagerContainer>(Arc::clone(shard_manager))
     }
 
     if let Err(why) = client.start_autosharded().await {
-        error!("Client error: {:?}", why);
+        error!("Client error: {:?}", why)
     }
 }

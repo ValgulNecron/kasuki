@@ -14,30 +14,8 @@ use crate::sqls::sqlite::pool::get_sqlite_pool;
 /// It then initializes the database by creating necessary tables and indices.
 /// This function uses two separate SQLite databases: one for data and one for cache.
 pub async fn init_sqlite() -> Result<(), AppError> {
-    let p = Path::new(DATA_SQLITE_DB);
-    if !p.exists() {
-        match File::create(p) {
-            Ok(_) => {}
-            Err(e) => {
-                println!("Failed to create the file {} : {}", DATA_SQLITE_DB, e);
-                return Err(FailedToCreateAFile(String::from(
-                    "Failed to create db file.",
-                )));
-            }
-        }
-    }
-    let p = Path::new(CACHE_SQLITE_DB);
-    if !p.exists() {
-        match File::create(p) {
-            Ok(_) => {}
-            Err(e) => {
-                println!("Failed to create the file {} : {}", CACHE_SQLITE_DB, e);
-                return Err(FailedToCreateAFile(String::from(
-                    "Failed to create db file.",
-                )));
-            }
-        }
-    }
+    create_sqlite_file(DATA_SQLITE_DB)?;
+    create_sqlite_file(CACHE_SQLITE_DB)?;
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
     init_sqlite_cache(&pool).await?;
     pool.close().await;
@@ -173,5 +151,21 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .await
     .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
 
+    Ok(())
+}
+
+fn create_sqlite_file(path: &str) -> Result<(), AppError> {
+    let p = Path::new(path);
+    if !p.exists() {
+        match File::create(p) {
+            Ok(_) => {}
+            Err(e) => {
+                println!("Failed to create the file {} : {}", path, e);
+                return Err(FailedToCreateAFile(String::from(
+                    "Failed to create db file.",
+                )))
+            }
+        }
+    }
     Ok(())
 }

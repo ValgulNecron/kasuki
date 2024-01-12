@@ -1,4 +1,4 @@
-FROM rust:1.75.0-buster AS builder
+FROM rust:slim-bookworm AS builder
 
 RUN USER=root cargo new --bin kasuki
 
@@ -14,7 +14,7 @@ COPY ./src ./src
 RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
-FROM debian:buster-slim AS bot
+FROM debian:trixie-slim AS bot
 
 LABEL maintainer="valgul"
 LABEL author="valgul"

@@ -519,8 +519,8 @@ fn other_affinity_manga(manga: Manga, manga0: Manga) -> f64 {
 }
 
 fn jaccard_index(a: &Vec<String>, b: &Vec<String>) -> f64 {
-    let set_a: HashSet<_> = a.into_iter().collect();
-    let set_b: HashSet<_> = b.into_iter().collect();
+    let set_a: HashSet<_> = a.iter().collect();
+    let set_b: HashSet<_> = b.iter().collect();
 
     let intersection = set_a.intersection(&set_b).count();
     let union = set_a.union(&set_b).count();
