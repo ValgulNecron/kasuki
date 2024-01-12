@@ -98,7 +98,7 @@ pub async fn get_the_list(
             };
             anilist_user.push(data)
         }
-        pass += 1;
+        pass += 1
     }
 
     let user_links: Vec<String> = anilist_user

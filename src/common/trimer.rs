@@ -20,7 +20,7 @@ pub fn trim(desc: String, lenght_diff: i32) -> String {
         let count = desc_trim.matches("||").count();
         if count % 2 != 0 {
             let trim_length = desc.len() - ((-lenght_diff) as usize + 5);
-            desc_trim = format!("{}||...", &desc[..trim_length]);
+            desc_trim = format!("{}||...", &desc[..trim_length])
         }
         desc_trim.clone()
     } else {
@@ -67,7 +67,7 @@ mod tests {
         let desc = String::from("Hello, world!");
         let length_diff = 13;
         let result = trim(desc, length_diff);
-        assert_eq!(result, "Hello, world!");
+        assert_eq!(result, "Hello, world!")
     }
 
     #[test]
@@ -80,6 +80,6 @@ mod tests {
         let desc = String::from("Hello, world!");
         let length_diff = 13 - desc.len() as i32;
         let result = trim_webhook(desc, length_diff);
-        assert_eq!(result, "Hello, world!");
+        assert_eq!(result, "Hello, world!")
     }
 }

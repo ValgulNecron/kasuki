@@ -225,10 +225,8 @@ impl SteamGameWrapper {
         search: &str,
         guild_id: String,
     ) -> Result<SteamGameWrapper, AppError> {
-        let mut choices: Vec<(&String, &u128)> = Vec::new();
-        unsafe {
-            choices = APPS.iter().collect();
-        }
+        let mut choices: Vec<(&String, &u128)>;
+        unsafe { choices = APPS.iter().collect() }
 
         let choices: Vec<&str> = choices.into_iter().map(|(s, _)| s.as_str()).collect();
         let results: Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
@@ -240,11 +238,11 @@ impl SteamGameWrapper {
             }
             for (name, _) in results {
                 if appid == 0u128 {
-                    appid = *(APPS.get(name).clone().unwrap());
+                    appid = APPS.get(name).clone().unwrap().clone()
                 }
 
                 if search.to_lowercase() == name.to_lowercase() {
-                    appid = *(APPS.get(name).clone().unwrap());
+                    appid = APPS.get(name).clone().unwrap().clone();
                     break;
                 }
             }
@@ -287,8 +285,8 @@ impl SteamGameWrapper {
                 let number: u32 = number_str.parse().expect("Not a number!");
                 let base = format!("\"required_age\":\"{}\"", number);
                 let new = format!("\"required_age\":{}", number);
-                text = text.replace(&base, &*new);
-                trace!("{}", number); // Output: 18
+                text = text.replace(&base, &new);
+                trace!("{}", number) // Output: 18
             }
         }
 

@@ -66,7 +66,7 @@ pub async fn send_embed(
         Some(public_flag) => {
             let mut user_flags = Vec::new();
             for (flag, _) in public_flag.iter_names() {
-                user_flags.push(flag);
+                user_flags.push(flag)
             }
             user_flags.join(" / ")
         }

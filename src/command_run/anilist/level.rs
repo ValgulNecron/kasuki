@@ -5,6 +5,7 @@ use serenity::all::{
 use tracing::trace;
 
 use crate::anilist_struct::run::user::{get_color, get_completed, get_user_url, UserWrapper};
+use crate::command_run::anilist::user::get_user_data;
 use crate::constant::{COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::level::load_localization_level;
@@ -21,11 +22,8 @@ pub async fn run(
             if let Some(a) = option.value.as_str() {
                 let value = &a.to_string();
 
-                let data: UserWrapper = if value.parse::<i32>().is_ok() {
-                    UserWrapper::new_user_by_id(value.parse().unwrap()).await?
-                } else {
-                    UserWrapper::new_user_by_search(value).await?
-                };
+                let data: UserWrapper = get_user_data(value).await?;
+
                 return send_embed(ctx, command_interaction, data).await;
             }
         }

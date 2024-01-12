@@ -101,9 +101,9 @@ pub fn convert_html_entity_to_real_char(value: String) -> String {
 /// # Examples
 ///
 /// ```
-/// let input = String::from("<a href=\"http://example.com\">Example</a>");
+/// let input = String::from("<a href=\"https://example.com\">Example</a>");
 /// let output = convert_link_to_discord_markdown(input);
-/// assert_eq!(output, "[Example](http://example.com)");
+/// assert_eq!(output, "[Example](https://example.com)");
 /// ```
 pub fn convert_link_to_discord_markdown(value: String) -> String {
     let re = Regex::new(r#"<a\s+href="([^"]+)">([^<]+)</a>"#).unwrap();
@@ -225,69 +225,69 @@ mod tests {
     fn test_add_antislash() {
         let value = String::from("Hello * World");
         let result = add_antislash(value);
-        assert_eq!(result, "Hello \\* World");
+        assert_eq!(result, "Hello \\* World")
     }
 
     #[test]
     fn test_convert_italic() {
         let value = String::from("<i>Hello</i> <em>World</em>");
         let result = convert_italic(value);
-        assert_eq!(result, "_Hello_ _World_");
+        assert_eq!(result, "_Hello_ _World_")
     }
 
     #[test]
     fn test_convert_html_entity_to_real_char() {
         let value = String::from("Hello &mdash; World");
         let result = convert_html_entity_to_real_char(value);
-        assert_eq!(result, "Hello — World");
+        assert_eq!(result, "Hello — World")
     }
 
     #[test]
     fn test_convert_link_to_discord_markdown() {
-        let value = String::from("<a href=\"http://example.com\">Example</a>");
+        let value = String::from("<a href=\"https://example.com\">Example</a>");
         let result = convert_link_to_discord_markdown(value);
-        assert_eq!(result, "[Example](http://example.com)");
+        assert_eq!(result, "[Example](https://example.com)")
     }
 
     #[test]
     fn test_convert_html_line_break_to_line_break() {
         let value = String::from("Hello<br>World");
         let result = convert_html_line_break_to_line_break(value);
-        assert_eq!(result, "Hello\nWorld");
+        assert_eq!(result, "Hello\nWorld")
     }
 
     #[test]
     fn test_convert_bold() {
         let value = String::from("<b>Hello</b>, <strong>World!</strong>");
         let result = convert_bold(value);
-        assert_eq!(result, "**Hello**, **World!**");
+        assert_eq!(result, "**Hello**, **World!**")
     }
 
     #[test]
     fn test_convert_strikethrough() {
         let value = String::from("This is a ~~test~~.");
         let result = convert_strikethrough(value);
-        assert_eq!(result, "This is a __test__.");
+        assert_eq!(result, "This is a __test__.")
     }
 
     #[test]
     fn test_convert_quote() {
         let value = String::from("<blockquote>Hello</blockquote>");
         let result = convert_blockquote(value);
-        assert_eq!(result, "> Hello");
+        assert_eq!(result, "> Hello")
     }
 
     #[test]
     fn test_convert_h_header() {
         let value = String::from("<h1>Hello</h1>");
         let result = convert_h_header(value);
-        assert_eq!(result, "# Hello");
+        assert_eq!(result, "# Hello")
     }
 
     #[test]
     fn test_convert_steam_to_discord_flavored_markdown() {
-        let value = String::from("<i>Hello</i> <em>World</em> <b>Bold</b> <strong>Strong</strong> <del>Del</del> <strike>Strike</strike> <blockquote>Quote</blockquote> <h1>Header1</h1> <a href=\"http://example.com\">Link</a>");
+        let value = String::from("<i>Hello</i> <em>World</em> <b>Bold</b> <strong>Strong</strong> <del>Del</del> <strike>Strike</strike> <blockquote>Quote</blockquote> <h1>Header1</h1> <a href=\"https://example.com\">Link</a>");
         let result = convert_steam_to_discord_flavored_markdown(value);
-        assert_eq!(result, "_Hello_ _World_ **Bold** **Strong** __Del__ __Strike__ > Quote # Header1 [Link](http://example.com)");
+        assert_eq!(result, "_Hello_ _World_ **Bold** **Strong** __Del__ __Strike__ > Quote # Header1 [Link](https://example.com)")
     }
 }

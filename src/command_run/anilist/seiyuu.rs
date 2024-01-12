@@ -14,6 +14,7 @@ use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
+use crate::common::get_option_value::get_option;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
@@ -27,13 +28,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let mut value = String::new();
-    for option_data in options {
-        if option_data.name.as_str() != "type" {
-            let option_value = option_data.value.as_str().unwrap();
-            value = option_value.to_string().clone()
-        }
-    }
+    let value = get_option(options);
 
     let data = if value.parse::<i32>().is_ok() {
         StaffImageWrapper::new_staff_by_id(value.parse().unwrap()).await?
@@ -58,7 +53,7 @@ pub async fn run(
     let mut uuids: Vec<Uuid> = Vec::new();
     for _ in 0..5 {
         let uuid = Uuid::new_v4();
-        uuids.push(uuid);
+        uuids.push(uuid)
     }
 
     let url = get_staff_image(data.clone());
@@ -157,7 +152,7 @@ pub async fn run(
                 DifferedCreatingImageError(String::from(
                     "Failed to create the image from the file.",
                 ))
-            })?;
+            })?
     }
 
     let combined_uuid = Uuid::new_v4();

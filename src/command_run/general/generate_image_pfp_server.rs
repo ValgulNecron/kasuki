@@ -1,15 +1,12 @@
-use crate::common::calculate_user_color::return_average_user_color;
+use crate::common::calculate_user_color::{get_image_from_url, return_average_user_color};
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    CreatingImageError, DecodingImageError, DifferedWritingFile, FailedToGetImage,
-};
+use crate::error_enum::AppError::DifferedWritingFile;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use image::codecs::png::PngEncoder;
 use image::imageops::FilterType;
-use image::io::Reader as ImageReader;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageEncoder};
 use log::trace;
 use palette::{IntoColor, Lab, Srgb};
@@ -18,7 +15,6 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Member, Timestamp, UserId,
 };
-use std::io::Cursor;
 use std::sync::{Arc, Mutex};
 use std::{fs, thread};
 use tracing::{debug, error};
@@ -66,27 +62,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let guild_pfp = guild.icon_url().unwrap_or(String::from("https://imgs.search.brave.com/FhPP6x9omGE50_uLbcuizNYwrBLp3bQZ8ii9Eel44aQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9h/YnN0cmFjdC1zdXJm/YWNlLXRleHR1cmVz/LXdoaXRlLWNvbmNy/ZXRlLXN0b25lLXdh/bGxfNzQxOTAtODE4/OS5qcGc_c2l6ZT02/MjYmZXh0PWpwZw"))
         .replace("?size=1024", "?size=128");
-    // Fetch the image data
-    let resp = reqwest::get(guild_pfp)
-        .await
-        .map_err(|_| FailedToGetImage(String::from("Failed to download image.")))?
-        .bytes()
-        .await
-        .map_err(|_| FailedToGetImage(String::from("Failed to get bytes image.")))?;
 
-    // Decode the image data
-    let img = ImageReader::new(Cursor::new(resp))
-        .with_guessed_format()
-        .map_err(|_| CreatingImageError(String::from("Failed to load image.")))?
-        .decode()
-        .map_err(|_| DecodingImageError(String::from("Failed to decode image.")))?;
+    let img = get_image_from_url(guild_pfp).await?;
 
     let dim = 128 * 64;
 
     let color_vec = create_color_vector(average_colors.clone());
     let mut handles = vec![];
     let mut combined_image = DynamicImage::new_rgba16(dim, dim);
-    let mut vec_image = Arc::new(Mutex::new(Vec::new()));
+    let vec_image = Arc::new(Mutex::new(Vec::new()));
     trace!("Started creation");
     for y in 0..img.height() {
         for x in 0..img.width() {
@@ -99,29 +83,25 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 let r = pixel[0];
                 let g = pixel[1];
                 let b = pixel[2];
-                let hex = format!("#{:02x}{:02x}{:02x}", r, g, b);
                 let r_normalized = r as f32 / 255.0;
                 let g_normalized = g as f32 / 255.0;
                 let b_normalized = b as f32 / 255.0;
                 let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
                 let lab_color: Lab = rgb_color.into_color();
-                let color_target = Color {
-                    cielab: lab_color,
-                    hex,
-                };
+                let color_target = Color { cielab: lab_color };
                 let closest_color = find_closest_color(&color_vec_moved, &color_target).unwrap();
                 vec_image.lock().unwrap().push((x, y, closest_color.image));
             });
 
-            handles.push(handle);
+            handles.push(handle)
         }
     }
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().unwrap()
     }
     let vec_image = vec_image.lock().unwrap().clone();
     for (x, y, image) in vec_image {
-        combined_image.copy_from(&image, x * 64, y * 64).unwrap();
+        combined_image.copy_from(&image, x * 64, y * 64).unwrap()
     }
     let image = combined_image.clone();
     let image = image::imageops::resize(
@@ -177,21 +157,18 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 #[derive(Clone, Debug)]
 struct Color {
     cielab: Lab,
-    hex: String,
 }
 
 #[derive(Clone, Debug)]
 struct ColorWithUrl {
     cielab: Lab,
-    hex: String,
-    url: String,
     image: DynamicImage,
 }
 
 fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
-        .filter_map(|(hex, url, image)| {
+        .filter_map(|(hex, _, image)| {
             let r = hex[1..3].parse::<u8>();
             let g = hex[3..5].parse::<u8>();
             let b = hex[5..7].parse::<u8>();
@@ -209,8 +186,6 @@ fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUr
                     let lab_color: Lab = rgb_color.into_color();
                     Some(ColorWithUrl {
                         cielab: lab_color,
-                        hex,
-                        url,
                         image: img,
                     })
                 }

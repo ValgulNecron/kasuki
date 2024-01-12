@@ -120,7 +120,7 @@ pub async fn follow_up_message(
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let length_diff = 4096 - desc.len() as i32;
     if length_diff <= 0 {
-        trim(desc.clone(), length_diff);
+        desc = trim(desc.clone(), length_diff);
     }
     let rj = media.title.native;
     let user_pref = media.title.user_preferred;
@@ -171,7 +171,7 @@ pub async fn update_cache(
             cached_response = res.to_string();
             previous_page = page_number;
 
-            page_number += 1;
+            page_number += 1
         }
     } else if random_type.as_str() == "anime" {
         loop {
@@ -184,7 +184,7 @@ pub async fn update_cache(
             cached_response = res.to_string();
             previous_page = page_number;
 
-            page_number += 1;
+            page_number += 1
         }
     }
 

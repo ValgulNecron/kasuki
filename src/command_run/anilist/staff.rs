@@ -4,6 +4,7 @@ use serenity::all::{
 };
 
 use crate::anilist_struct::run::staff::StaffWrapper;
+use crate::common::get_option_value::get_option;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::staff::load_localization_staff;
@@ -13,13 +14,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let mut value = String::new();
-    for option_data in options {
-        if option_data.name.as_str() != "type" {
-            let option_value = option_data.value.as_str().unwrap();
-            value = option_value.to_string().clone()
-        }
-    }
+    let value = get_option(options);
 
     let data: StaffWrapper = if value.parse::<i32>().is_ok() {
         StaffWrapper::new_staff_by_id(value.parse().unwrap()).await?
@@ -116,12 +111,7 @@ pub async fn run(
         .filter_map(|x| {
             let full = x.name.full.as_deref();
             let native = x.name.native.as_deref();
-            match (full, native) {
-                (Some(full), Some(native)) => Some(format!("{}/{}", full, native)),
-                (Some(full), None) => Some(full.to_string()),
-                (None, Some(native)) => Some(native.to_string()),
-                (None, None) => None,
-            }
+            get_full_name(full, native)
         })
         .take(5)
         .collect::<Vec<String>>()
@@ -134,12 +124,7 @@ pub async fn run(
         .filter_map(|x| {
             let romaji = x.node.title.romaji.as_deref();
             let english = x.node.title.english.as_deref();
-            match (romaji, english) {
-                (Some(romaji), Some(english)) => Some(format!("{}/{}", romaji, english)),
-                (Some(romaji), None) => Some(romaji.to_string()),
-                (None, Some(english)) => Some(english.to_string()),
-                (None, None) => None,
-            }
+            get_full_name(romaji, english)
         })
         .take(5)
         .collect::<Vec<String>>()
@@ -162,4 +147,13 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())
+}
+
+fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {
+    match (a, b) {
+        (Some(a), Some(b)) => Some(format!("{}/{}", a, b)),
+        (Some(a), None) => Some(a.to_string()),
+        (None, Some(b)) => Some(b.to_string()),
+        (None, None) => None,
+    }
 }
