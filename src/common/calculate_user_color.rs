@@ -62,7 +62,7 @@ pub async fn return_average_user_color(
 
 async fn calculate_user_color(member: Member) -> Result<(String, String), AppError> {
     let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://imgs.search.brave.com/FhPP6x9omGE50_uLbcuizNYwrBLp3bQZ8ii9Eel44aQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9h/YnN0cmFjdC1zdXJm/YWNlLXRleHR1cmVz/LXdoaXRlLWNvbmNy/ZXRlLXN0b25lLXdh/bGxfNzQxOTAtODE4/OS5qcGc_c2l6ZT02/MjYmZXh0PWpwZw"))
-    .replace("?size=1024", "?size=64");
+        .replace("?size=1024", "?size=64");
 
     let img = get_image_from_url(pfp_url).await?;
 

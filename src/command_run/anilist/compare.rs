@@ -452,6 +452,7 @@ fn get_genre(genres: &Vec<Genre>) -> String {
         String::new()
     }
 }
+
 fn diff(
     a1: &String,
     a2: &String,

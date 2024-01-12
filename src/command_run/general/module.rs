@@ -58,7 +58,7 @@ pub async fn run(
         _ => {
             return Err(AppError::ModuleError(String::from(
                 "This module does not exist.",
-            )))
+            )));
         }
     }
     set_data_module_activation_status(&guild_id, anilist_value, ai_value, game_value).await?;
