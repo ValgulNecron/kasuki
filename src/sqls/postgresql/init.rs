@@ -4,10 +4,10 @@ use crate::sqls::sqlite::pool::get_sqlite_pool;
 
 pub async fn init_sqlite() -> Result<(), AppError> {
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
-    crate::sqls::sqlite::init::init_sqlite_cache(&pool).await?;
+    init_postgres_cache(&pool).await?;
     pool.close().await;
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    crate::sqls::sqlite::init::init_sqlite_data(&pool).await?;
+    init_postgres_data(&pool).await?;
     pool.close().await;
     Ok(())
 }
