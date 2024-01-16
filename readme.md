@@ -149,7 +149,7 @@ cargo build --release
   - [X] Add search feature with a type.
   - [X] Bind anilist account to discord for /user.
   - [X] Random /random {anime, manga}.
-  - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance.
+  - [ ] Rework the xp in level.rs to something easier. — Too lazy to balance.
   - [X] Add caching to all requests.
   - [X] Send anime release to a channel.
   - [X] List all activity.
