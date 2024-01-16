@@ -2,7 +2,7 @@ use std::env;
 use std::time::Duration;
 
 use chrono::Utc;
-use serenity::all::{CreateEmbed, ExecuteWebhook, Http, Webhook};
+use serenity::all::{Context, CreateEmbed, ExecuteWebhook, Http, Webhook};
 use tokio::time::sleep;
 use tracing::trace;
 
@@ -14,15 +14,15 @@ use crate::sqls::general::data::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
 
-pub async fn manage_activity() {
+pub async fn manage_activity(ctx: Context) {
     trace!("Started the activity management.");
     loop {
-        tokio::spawn(async move { send_activity().await });
+        tokio::spawn(async move { send_activity(&ctx).await });
         sleep(Duration::from_secs(1)).await;
     }
 }
 
-pub async fn send_activity() {
+pub async fn send_activity(ctx: &Context) {
     let now = Utc::now().timestamp().to_string();
     let rows = get_data_activity(now.clone()).await.unwrap();
     for row in rows {
@@ -33,12 +33,12 @@ pub async fn send_activity() {
             if row.delays.unwrap() != 0 {
                 tokio::spawn(async move {
                     tokio::time::sleep(Duration::from_secs((row2.delays.unwrap()) as u64)).await;
-                    send_specific_activity(row, guild_id.unwrap(), row2)
+                    send_specific_activity(row, guild_id.unwrap(), row2, ctx)
                         .await
                         .unwrap()
                 });
             } else {
-                send_specific_activity(row, guild_id.unwrap(), row2)
+                send_specific_activity(row, guild_id.unwrap(), row2, ctx)
                     .await
                     .unwrap()
             }
@@ -50,18 +50,13 @@ pub async fn send_specific_activity(
     row: ActivityData,
     guild_id: String,
     row2: ActivityData,
+    ctx: &Context,
 ) -> Result<(), AppError> {
     let localised_text = load_localization_send_activity(guild_id.clone())
         .await
         .unwrap();
-    let my_path = "./.env";
-    let path = std::path::Path::new(my_path);
-    let _ = dotenv::from_path(path);
-    let token = env::var("DISCORD_TOKEN").expect("discord token");
-    let http = Http::new(token.as_str());
-    let webhook = Webhook::from_url(&http, row.webhook.clone().unwrap().as_ref())
-        .await
-        .unwrap();
+    let webhook_url = row.webhook.clone().unwrap();
+    let webhook = Webhook::from_url(&ctx.http, webhook_url.as_str()).await.unwrap();
     let embed = CreateEmbed::new()
         .color(COLOR)
         .description(
@@ -79,14 +74,14 @@ pub async fn send_specific_activity(
     let builder_message = ExecuteWebhook::new().embed(embed);
 
     webhook
-        .execute(&http, false, builder_message)
+        .execute(&ctx.http, false, builder_message)
         .await
         .unwrap();
-    tokio::spawn(async move { update_info(row2, guild_id).await });
+    tokio::spawn(async move { update_info(row2, guild_id, ctx, webhook_url).await });
     Ok(())
 }
 
-pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+pub async fn update_info(row: ActivityData, guild_id: String, ctx: &Context, webhook_url: String) -> Result<(), AppError> {
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().ok_or(OPTION_ERROR.clone())?,
     )
@@ -94,7 +89,7 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
     let media = data.data.media;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
-        None => return remove_activity(row, guild_id).await,
+        None => return remove_activity(row, guild_id, ctx, webhook_url).await,
     };
     let title = media.title.ok_or(OPTION_ERROR.clone())?;
     let rj = title.romaji;
@@ -112,7 +107,9 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
     .await
 }
 
-pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+pub async fn remove_activity(row: ActivityData, guild_id: String, ctx: &Context, webhook_url: String) -> Result<(), AppError> {
     trace!("removing {:#?} for {:#?}", row, guild_id);
+    let webhook = Webhook::from_url(&ctx.http, webhook_url.as_str()).await.unwrap();
+    ctx.http.delete_webhook(webhook.id, Option::from("no more episode of the show.")).await.unwrap();
     remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await
 }

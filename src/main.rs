@@ -73,7 +73,13 @@ impl EventHandler for Handler {
                 sleep(Duration::from_secs((USER_COLOR_UPDATE_TIME * 60) as u64)).await;
             }
         });
-        // Add activity to the bot as the type in activity_type and with ACTIVITY_NAME as name
+
+        let ctx_clone = ctx.clone();
+        tokio::spawn(async move {
+            info!("Launching the activity management thread!");
+            manage_activity(ctx_clone).await
+        });
+
         let activity_type = Some(ActivityData::custom(ACTIVITY_NAME));
         ctx.set_activity(activity_type);
 
@@ -166,11 +172,6 @@ async fn main() {
             return;
         }
     }
-
-    tokio::spawn(async move {
-        info!("Launching the activity management thread!");
-        manage_activity().await
-    });
 
     tokio::spawn(async move {
         info!("Launching the game management thread!");
