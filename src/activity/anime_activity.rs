@@ -1,8 +1,7 @@
-use std::env;
 use std::time::Duration;
 
 use chrono::Utc;
-use serenity::all::{Context, CreateEmbed, ExecuteWebhook, Http, Webhook};
+use serenity::all::{Context, CreateEmbed, ExecuteWebhook, Webhook};
 use tokio::time::sleep;
 use tracing::trace;
 
