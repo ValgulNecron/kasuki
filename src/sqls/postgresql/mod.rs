@@ -1,2 +1,2 @@
 pub mod init;
-mod pool;
+pub mod pool;

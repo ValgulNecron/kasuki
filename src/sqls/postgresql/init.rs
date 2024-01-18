@@ -3,7 +3,7 @@ use crate::error_enum::AppError::SqlCreateError;
 use crate::sqls::postgresql::pool::get_postgresql_pool;
 use sqlx::{Pool, Postgres};
 
-pub async fn init_sqlite() -> Result<(), AppError> {
+pub async fn init_postgres() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     init_postgres_cache(&pool).await?;
     pool.close().await;
