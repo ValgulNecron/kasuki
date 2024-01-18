@@ -16,6 +16,7 @@ use crate::sqls::general::data::{
 pub async fn manage_activity(ctx: Context) {
     trace!("Started the activity management.");
     loop {
+        let ctx = ctx.clone();
         tokio::spawn(async move { send_activity(&ctx).await });
         sleep(Duration::from_secs(1)).await;
     }
@@ -30,9 +31,10 @@ pub async fn send_activity(ctx: &Context) {
             let row2 = row.clone();
             let guild_id = row.server_id.clone();
             if row.delays.unwrap() != 0 {
+                let ctx = ctx.clone();
                 tokio::spawn(async move {
                     tokio::time::sleep(Duration::from_secs((row2.delays.unwrap()) as u64)).await;
-                    send_specific_activity(row, guild_id.unwrap(), row2, ctx)
+                    send_specific_activity(row, guild_id.unwrap(), row2, &ctx)
                         .await
                         .unwrap()
                 });
@@ -78,7 +80,9 @@ pub async fn send_specific_activity(
         .execute(&ctx.http, false, builder_message)
         .await
         .unwrap();
-    tokio::spawn(async move { update_info(row2, guild_id, ctx, webhook_url).await });
+    let ctx_clone = ctx.clone();
+
+    tokio::spawn(async move { update_info(row2, guild_id, &ctx_clone, webhook_url).await });
     Ok(())
 }
 

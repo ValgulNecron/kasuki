@@ -13,7 +13,6 @@ use serenity::all::{
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
 use std::fs;
-use tracing::trace;
 use uuid::Uuid;
 
 pub async fn run(

@@ -16,7 +16,7 @@ pub async fn init_postgres() -> Result<(), AppError> {
 async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
     // Check if the database exists
     let exists: (bool,) =
-        sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = ?)")
+        sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)")
             .bind("CACHE")
             .fetch_one(pool)
             .await
@@ -58,7 +58,7 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
 async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     // Check if the database exists
     let exists: (bool,) =
-        sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = ?)")
+        sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)")
             .bind("DATA")
             .fetch_one(pool)
             .await
