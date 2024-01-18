@@ -56,7 +56,9 @@ pub async fn send_specific_activity(
         .await
         .unwrap();
     let webhook_url = row.webhook.clone().unwrap();
-    let webhook = Webhook::from_url(&ctx.http, webhook_url.as_str()).await.unwrap();
+    let webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
+        .await
+        .unwrap();
     let embed = CreateEmbed::new()
         .color(COLOR)
         .description(
@@ -81,7 +83,12 @@ pub async fn send_specific_activity(
     Ok(())
 }
 
-pub async fn update_info(row: ActivityData, guild_id: String, ctx: &Context, webhook_url: String) -> Result<(), AppError> {
+pub async fn update_info(
+    row: ActivityData,
+    guild_id: String,
+    ctx: &Context,
+    webhook_url: String,
+) -> Result<(), AppError> {
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().ok_or(OPTION_ERROR.clone())?,
     )
@@ -107,9 +114,19 @@ pub async fn update_info(row: ActivityData, guild_id: String, ctx: &Context, web
     .await
 }
 
-pub async fn remove_activity(row: ActivityData, guild_id: String, ctx: &Context, webhook_url: String) -> Result<(), AppError> {
+pub async fn remove_activity(
+    row: ActivityData,
+    guild_id: String,
+    ctx: &Context,
+    webhook_url: String,
+) -> Result<(), AppError> {
     trace!("removing {:#?} for {:#?}", row, guild_id);
-    let webhook = Webhook::from_url(&ctx.http, webhook_url.as_str()).await.unwrap();
-    ctx.http.delete_webhook(webhook.id, Option::from("no more episode of the show.")).await.unwrap();
+    let webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
+        .await
+        .unwrap();
+    ctx.http
+        .delete_webhook(webhook.id, Option::from("no more episode of the show."))
+        .await
+        .unwrap();
     remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await
 }

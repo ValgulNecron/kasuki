@@ -109,6 +109,11 @@ cargo run --release
 cargo build --release
 ```
 
+You can if you wan't use a postgres database and not a sqlite one the user will need to be able to create a database
+(cache and data).
+Create table inside both database
+and select, insert, delete on them.
+
 # TODO
 
 
@@ -117,8 +122,9 @@ cargo build --release
 - General part:
   - [X] Change how the text is displayed to support localization.
   - [X] Find a name for the bot.
-  - [x] Add a database for some stuff.
-  - [ ] Add more database choices like postgres and more when I have time.
+  - [x] Add a sqlite database.
+  - [ ] Add postgres database choices.
+  - [ ] Add more database choices when I have time.
   - [X] Banner. Show your or a specified user banner.
   - [X] Profil. Show a user profile and some info.
   - [X] Avatar. show you the profile picture of a user.
