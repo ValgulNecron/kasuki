@@ -6,6 +6,7 @@ use sqlx::{Pool, Sqlite};
 use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{FailedToCreateAFile, SqlCreateError};
+use crate::sqls::sqlite::migration::migration_dispatch::migrate_sqlite;
 use crate::sqls::sqlite::pool::get_sqlite_pool;
 
 /// Initializes SQLite database.
@@ -22,6 +23,7 @@ pub async fn init_sqlite() -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     init_sqlite_data(&pool).await?;
     pool.close().await;
+    migrate_sqlite().await?;
     Ok(())
 }
 

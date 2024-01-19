@@ -1,4 +1,5 @@
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::SqlInsertError;
 use crate::sqls::postgresql::pool::get_postgresql_pool;
 
 pub async fn get_database_random_cache_postgresql(
@@ -16,4 +17,23 @@ pub async fn get_database_random_cache_postgresql(
 
     pool.close().await;
     Ok(row)
+}
+
+pub async fn set_database_random_cache_postgres(
+   random_type: &str,
+   cached_response: &str,
+   now: i64,
+   previous_page: i64,
+) -> Result<(), AppError> {
+   let pool = get_postgresql_pool().await?;
+   sqlx::query("INSERT INTO cache_stats (key, response, last_updated, last_page) VALUES ($1, $2, $3, $4) ON CONFLICT (key) DO UPDATE SET response = EXCLUDED.response, last_updated = EXCLUDED.last_updated, last_page = EXCLUDED.last_page")
+       .bind(random_type)
+       .bind(cached_response)
+       .bind(now)
+       .bind(previous_page)
+       .execute(&pool)
+       .await
+       .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+   pool.close().await;
+   Ok(())
 }
