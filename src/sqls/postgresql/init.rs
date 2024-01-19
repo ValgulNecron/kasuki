@@ -1,8 +1,8 @@
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::SqlCreateError;
+use crate::sqls::postgresql::migration::migration_dispatch::migrate_postgres;
 use crate::sqls::postgresql::pool::get_postgresql_pool;
 use sqlx::{Pool, Postgres};
-use crate::sqls::postgresql::migration::migration_dispatch::migrate_postgres;
 
 pub async fn init_postgres() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
