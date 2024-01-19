@@ -225,7 +225,7 @@ impl SteamGameWrapper {
         search: &str,
         guild_id: String,
     ) -> Result<SteamGameWrapper, AppError> {
-        let mut choices: Vec<(&String, &u128)>;
+        let choices: Vec<(&String, &u128)>;
         unsafe { choices = APPS.iter().collect() }
 
         let choices: Vec<&str> = choices.into_iter().map(|(s, _)| s.as_str()).collect();
