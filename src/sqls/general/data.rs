@@ -2,7 +2,6 @@ use std::env;
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
 use crate::sqls::postgresql::data::{
     get_all_server_activity_postgresql, get_data_activity_postgresql,
     get_data_guild_language_postgresql, get_data_module_activation_kill_switch_status_postgresql,
@@ -121,6 +120,7 @@ pub async fn set_data_module_activation_status(
             .await
     } else if db_type == *"postgresql" {
         set_data_module_activation_status_postgresql(guild_id, anilist_value, ai_value, game_value)
+            .await
     } else {
         set_data_module_activation_status_sqlite(guild_id, anilist_value, ai_value, game_value)
             .await

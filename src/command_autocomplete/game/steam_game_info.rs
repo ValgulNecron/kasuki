@@ -4,7 +4,6 @@ use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-use tracing::trace;
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let mut search = String::new();

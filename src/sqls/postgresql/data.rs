@@ -330,7 +330,8 @@ pub async fn get_all_server_activity_postgresql(
             let webhook: Option<String> = row.get(3);
             let episode: Option<String> = row.get(4);
             let name: Option<String> = row.get(5);
-            let delays: Option<u32> = row.get(6);
+            let delays: Option<String> = row.get(6);
+            let delays: Option<u32> = delays.and_then(|s| s.parse().ok());
             (
                 anime_id, timestamp, server_id, webhook, episode, name, delays,
             )
