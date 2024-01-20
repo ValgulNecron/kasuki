@@ -7,6 +7,7 @@ use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateAttachment,
     CreateEmbed, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
+use tracing::trace;
 use uuid::Uuid;
 
 use crate::constant::{
@@ -95,7 +96,7 @@ pub async fn run(
             }
         };
 
-        let size = env::var("IMAGE_GENERATION_MODELS_ON").unwrap_or(String::from("1024x1024"));
+        let size = env::var("IMAGE_SIZE").unwrap_or(String::from("1024x1024"));
         match (is_ok_image, quality, style) {
             (true, Some(quality), Some(style)) => {
                 data = json!({
@@ -179,6 +180,7 @@ pub async fn run(
             }
         }
     }
+    trace!("{:#?}", data);
 
     let api_url = format!("{}images/generations", api_base_url);
     let client = reqwest::Client::new();
@@ -211,6 +213,7 @@ pub async fn run(
         .map_err(|_| {
             DifferedResponseError(String::from("Failed to get the response from the server."))
         })?;
+    trace!("{:#?}", res);
 
     let url_string = res
         .get("data")

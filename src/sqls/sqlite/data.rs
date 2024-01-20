@@ -74,7 +74,7 @@ pub async fn get_data_guild_langage_sqlite(
 /// * `guild_id` - The ID of the guild.
 /// * `lang_struct` - The language to set for the guild.
 pub async fn set_data_guild_langage_sqlite(
-    guild_id: &&String,
+    guild_id: &String,
     lang: &String,
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
@@ -255,19 +255,17 @@ pub async fn get_registered_user_sqlite(
 pub async fn set_registered_user_sqlite(
     user_id: &String,
     username: &String,
-) -> Result<(Option<String>, Option<String>), AppError> {
+) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>) = sqlx::query_as(
-        "INSERT OR REPLACE INTO registered_user (user_id, anilist_id) VALUES (?, ?)",
-    )
-    .bind(user_id)
-    .bind(username)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None));
+    sqlx::query_as("INSERT OR REPLACE INTO registered_user (user_id, anilist_id) VALUES (?, ?)")
+        .bind(user_id)
+        .bind(username)
+        .fetch_one(&pool)
+        .await
+        .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
     pool.close().await;
 
-    Ok(row)
+    Ok(())
 }
 
 pub async fn set_user_approximated_color_sqlite(

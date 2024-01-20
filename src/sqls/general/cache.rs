@@ -3,6 +3,10 @@ use std::env;
 use serde_json::Value;
 
 use crate::error_enum::AppError;
+use crate::sqls::postgresql::cache::{
+    get_database_cache_postgresql, get_database_random_cache_postgresql,
+    set_database_cache_postgresql, set_database_random_cache_postgres,
+};
 use crate::sqls::sqlite::cache::{
     get_database_cache_sqlite, get_database_random_cache_sqlite, set_database_cache_sqlite,
     set_database_random_cache_sqlite,
@@ -15,7 +19,7 @@ pub async fn get_database_random_cache(
     if db_type == *"sqlite" {
         get_database_random_cache_sqlite(random_type).await
     } else if db_type == *"postgresql" {
-        Ok((None, None, None))
+        get_database_random_cache_postgresql(random_type).await
     } else {
         get_database_random_cache_sqlite(random_type).await
     }
@@ -31,7 +35,7 @@ pub async fn set_database_random_cache(
     if db_type == *"sqlite" {
         set_database_random_cache_sqlite(random_type, cached_response, now, previous_page).await
     } else if db_type == *"postgresql" {
-        Ok(())
+        set_database_random_cache_postgres(random_type, cached_response, now, previous_page).await
     } else {
         set_database_random_cache_sqlite(random_type, cached_response, now, previous_page).await
     }
@@ -44,7 +48,7 @@ pub async fn get_database_cache(
     if db_type == *"sqlite" {
         get_database_cache_sqlite(json).await
     } else if db_type == *"postgresql" {
-        Ok((None, None, None))
+        get_database_cache_postgresql(json).await
     } else {
         get_database_cache_sqlite(json).await
     }
@@ -55,7 +59,7 @@ pub async fn set_database_cache(json: Value, resp: String) -> Result<(), AppErro
     if db_type == *"sqlite" {
         set_database_cache_sqlite(json, resp).await
     } else if db_type == *"postgresql" {
-        Ok(())
+        set_database_cache_postgresql(json, resp).await
     } else {
         set_database_cache_sqlite(json, resp).await
     }

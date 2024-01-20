@@ -124,7 +124,7 @@ and select, insert, delete on them.
   - [X] Change how the text is displayed to support localization.
   - [X] Find a name for the bot.
   - [x] Add a sqlite database.
-  - [ ] Add postgres database choices.
+  - [X] Add postgres database choices.
   - [ ] Add more database choices when I have time.
   - [X] Banner. Show your or a specified user banner.
   - [X] Profil. Show a user profile and some info.
