@@ -2,9 +2,9 @@ use serenity::all::{CommandInteraction, Context};
 
 use crate::command_run::ai::{image, transcript, translation};
 use crate::command_run::anilist::{
-    add_activity, anime, character, compare, level, list_all_activity, list_register_user, ln,
-    manga, random, random_image, random_nsfw_image, register, search, seiyuu, staff, studio, user,
-    waifu,
+    add_activity, anime, character, compare, delete_activity, level, list_all_activity,
+    list_register_user, ln, manga, random, random_image, random_nsfw_image, register, search,
+    seiyuu, staff, studio, user, waifu,
 };
 use crate::command_run::game::steam_game_info;
 use crate::command_run::general::module::check_activation_status;
@@ -318,6 +318,18 @@ pub async fn command_dispatching(
         "random_nsfw_image" => {
             if check_if_moule_is_on(&command_interaction, "ANILIST").await? {
                 random_nsfw_image::run(
+                    &command_interaction.data.options,
+                    &ctx,
+                    &command_interaction,
+                )
+                .await?
+            } else {
+                return Err(anilist_module_error);
+            }
+        }
+        "delete_activity" => {
+            if check_if_moule_is_on(&command_interaction, "ANILIST").await? {
+                delete_activity::run(
                     &command_interaction.data.options,
                     &ctx,
                     &command_interaction,

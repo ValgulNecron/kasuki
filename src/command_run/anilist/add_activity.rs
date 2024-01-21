@@ -166,7 +166,6 @@ pub async fn run(
             .create_followup(&ctx.http, builder_message)
             .await
             .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
-
         Ok(())
     }
 }
@@ -183,7 +182,7 @@ async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
     !(row.0.is_none() && row.1.is_none() && row.2.is_none() && row.3.is_none())
 }
 
-fn get_name(title: Title) -> String {
+pub fn get_name(title: Title) -> String {
     let en = title.english.clone();
     let rj = title.romaji.clone();
     let en = en.unwrap_or(String::from(""));

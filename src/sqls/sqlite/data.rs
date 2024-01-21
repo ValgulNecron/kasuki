@@ -385,3 +385,26 @@ pub async fn get_all_server_activity_sqlite(
     pool.close().await;
     Ok(list)
 }
+
+pub async fn get_data_activity_with_server_and_anime_id_sqlite(
+    anime_id: &String,
+    server_id: &String,
+) -> Result<Option<String>, AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let row = sqlx::query(
+        "SELECT
+       webhook
+       FROM activity_data WHERE server_id = ? and anime_id = ?
+   ",
+    )
+    .bind(server_id)
+    .bind(anime_id)
+    .fetch_one(&pool)
+    .await;
+    pool.close().await;
+    let webhook: Option<String> = match row {
+        Ok(row) => row.get(0),
+        Err(_) => None,
+    };
+    Ok(webhook)
+}
