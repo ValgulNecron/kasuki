@@ -19,14 +19,16 @@ use regex::Regex;
 pub fn convert_anilist_flavored_to_discord_flavored_markdown(value: String) -> String {
     let mut result = value;
     result = convert_italic(result);
+    result = convert_bold(result);
+    result = convert_strikethrough(result);
+    result = remove_p_align(result);
+    result = convert_blockquote(result);
+
     result = convert_html_entity_to_real_char(result);
     result = convert_link_to_discord_markdown(result);
     result = add_anti_slash(result);
     result = convert_html_line_break_to_line_break(result);
-    result = convert_bold(result);
     result = convert_spoiler(result);
-    result = convert_strikethrough(result);
-    result = convert_blockquote(result);
     result = convert_h_header(result);
 
     result
@@ -203,7 +205,6 @@ pub fn convert_spoiler(value: String) -> String {
 /// ```
 pub fn convert_bold(value: String) -> String {
     value
-        .replace("__", "**")
         .replace("<strong>", "**")
         .replace("</strong>", "**")
         .replace("<b>", "**")
@@ -232,11 +233,10 @@ pub fn convert_bold(value: String) -> String {
 /// ```
 pub fn convert_strikethrough(value: String) -> String {
     value
-        .replace("~~", "__")
-        .replace("<del>", "__")
-        .replace("</del>", "__")
-        .replace("<strike>", "__")
-        .replace("</strike>", "__")
+        .replace("<del>", "~~")
+        .replace("</del>", "~~")
+        .replace("<strike>", "~~")
+        .replace("</strike>", "~~")
 }
 
 pub fn convert_blockquote(value: String) -> String {
@@ -259,4 +259,13 @@ pub fn convert_h_header(value: String) -> String {
         .replace("</h5>", " ")
         .replace("<h6>", "###### ")
         .replace("</h6>", " ")
+}
+
+pub fn remove_p_align(value: String) -> String {
+    value
+        .replace("<p align=\"left\">", "")
+        .replace("<p align=\"center\">", "")
+        .replace("<p align=\"right\">", "")
+        .replace("<p align=\"justify\">", "")
+        .replace("</p>", "")
 }
