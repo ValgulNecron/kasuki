@@ -365,3 +365,26 @@ pub async fn get_data_activity_with_server_and_anime_id_postgresql(
     };
     Ok(webhook)
 }
+
+pub async fn get_data_all_activity_by_server_postgresql(
+    server_id: &String,
+) -> Result<Option<Vec<(String, String)>>, AppError> {
+    let pool = get_postgresql_pool().await?;
+    let rows = sqlx::query_as(
+        "SELECT
+       anime_id, name
+       FROM activity_data WHERE server_id = $1
+   ",
+    )
+    .bind(server_id)
+    .fetch_all(&pool)
+    .await;
+    pool.close().await;
+
+    let rows: Option<Vec<(String, String)>> = match rows {
+        Ok(rows) => Some(rows),
+        Err(_) => None,
+    };
+
+    Ok(rows)
+}
