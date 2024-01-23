@@ -1,5 +1,4 @@
 use chrono::Utc;
-use serenity::futures::TryFutureExt;
 use sqlx::sqlite::SqliteRow;
 use sqlx::Row;
 use tracing::{error, trace};

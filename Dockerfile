@@ -39,6 +39,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=builder /kasuki/target/release/kasuki/ /kasuki/
 
-COPY ./json /kasuki/json
+COPY json /kasuki/json
 
 CMD ["./kasuki"]

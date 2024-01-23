@@ -19,6 +19,7 @@ use crate::error_enum::AppError::{
     DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError,
     DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption,
 };
+use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 
 pub async fn run(
@@ -43,7 +44,7 @@ pub async fn run(
         }
     };
 
-    let image_localised = load_localization_image(guild_id).await?;
+    let image_localised = load_localization_image(guild_id.clone()).await?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
@@ -255,6 +256,14 @@ pub async fn run(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+
+    image_saver(
+        guild_id,
+        command_interaction.user.id.to_string(),
+        filename.clone(),
+        bytes.to_vec(),
+    )
+    .await?;
 
     let _ = fs::remove_file(filename_str);
 

@@ -2,6 +2,7 @@ use crate::common::calculate_user_color::{get_image_from_url, return_average_use
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::DifferedWritingFile;
+use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
@@ -26,7 +27,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         None => String::from("0"),
     };
 
-    let pfp_server_image_localised_text = load_localization_pfp_server_image(guild_id).await?;
+    let pfp_server_image_localised_text =
+        load_localization_pfp_server_image(guild_id.clone()).await?;
 
     let guild = command_interaction
         .guild_id
@@ -124,7 +126,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let combined_uuid = Uuid::new_v4();
     let image_path = &format!("{}.png", combined_uuid);
-    fs::write(image_path, image_data)
+    fs::write(image_path, image_data.clone())
         .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
     trace!("Saved image");
 
@@ -147,6 +149,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .await
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
     trace!("Done");
+
+    image_saver(
+        guild_id,
+        command_interaction.user.id.to_string(),
+        image_path.clone(),
+        image_data,
+    )
+    .await?;
+
     match fs::remove_file(image_path) {
         Ok(_) => debug!("File {} has been removed successfully", combined_uuid),
         Err(e) => error!("Failed to remove file {}: {}", combined_uuid, e),

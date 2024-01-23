@@ -32,6 +32,7 @@ mod constant;
 mod error_enum;
 mod error_management;
 mod game_struct;
+mod image_saver;
 mod lang_struct;
 mod logger;
 mod sqls;

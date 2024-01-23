@@ -26,6 +26,9 @@ services:
       - TERM=xterm-256color
       - REMOVE_OLD_COMMAND=True # if the bot should remove the old command when it start. recommended to set it for the 1st launch or when updating to a breaking change version
       - DB_TYPE="sqlite"
+      - SAVE_IMAGE="local/remote/false"
+      - SAVE_SERVER="imgur/catbox"
+      - TOKEN="catbox userhash / imgur client id"
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db

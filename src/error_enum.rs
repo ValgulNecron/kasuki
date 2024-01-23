@@ -45,4 +45,7 @@ pub enum AppError {
     CreatingImageError(String),
     DecodingImageError(String),
     FailedToGetImage(String),
+    FailedToCreateFolder(String),
+    FailedToUploadImage(String),
+    FailedToWriteFile(String),
 }
