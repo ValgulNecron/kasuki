@@ -387,6 +387,31 @@ pub async fn get_all_server_activity_sqlite(
     Ok(list)
 }
 
+pub async fn get_all_user_approximated_color_sqlite(
+) -> Result<
+    Vec<(
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    )>,
+    AppError,
+> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let row: Vec<(
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    )> = sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color")
+        .fetch_all(&pool)
+        .await
+        .unwrap_or(vec![(None, None, None, None)]);
+    pool.close().await;
+
+    Ok(row)
+}
+
 pub async fn get_data_activity_with_server_and_anime_id_sqlite(
     anime_id: &String,
     server_id: &String,

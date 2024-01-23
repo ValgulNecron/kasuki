@@ -8,3 +8,4 @@ pub mod lang;
 pub mod module;
 pub mod ping;
 pub mod profile;
+pub mod generate_image_pfp_server_global;
