@@ -9,7 +9,6 @@ use base64::engine::Engine as _;
 use image::codecs::png::PngEncoder;
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageEncoder};
-use log::trace;
 use palette::{IntoColor, Lab, Srgb};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -18,7 +17,7 @@ use serenity::all::{
 };
 use std::sync::{Arc, Mutex};
 use std::{fs, thread};
-use tracing::{debug, error};
+use tracing::{debug, error, trace};
 use uuid::Uuid;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -64,7 +63,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let guild_pfp = guild.icon_url().unwrap_or(String::from("https://imgs.search.brave.com/FhPP6x9omGE50_uLbcuizNYwrBLp3bQZ8ii9Eel44aQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9h/YnN0cmFjdC1zdXJm/YWNlLXRleHR1cmVz/LXdoaXRlLWNvbmNy/ZXRlLXN0b25lLXdh/bGxfNzQxOTAtODE4/OS5qcGc_c2l6ZT02/MjYmZXh0PWpwZw"))
         .replace("?size=1024", "?size=128");
-
+    trace!(guild_pfp);
     let img = get_image_from_url(guild_pfp).await?;
 
     let dim = 128 * 64;
