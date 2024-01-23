@@ -1,11 +1,7 @@
-use serenity::all::{
-    ActivityData, Context, EventHandler, GatewayIntents, Interaction, Member, Ready, UserId,
-};
+use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;
-use std::time::Duration;
-use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
 use struct_shard_manager::ShardManagerContainer;
@@ -14,9 +10,9 @@ use crate::activity::anime_activity::manage_activity;
 use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::command_dispatching;
-use crate::common::calculate_user_color::calculate_users_color;
+use crate::common::calculate_user_color::color_management;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{ACTIVITY_NAME, USER_COLOR_UPDATE_TIME};
+use crate::constant::ACTIVITY_NAME;
 use crate::game_struct::steam_game_id_struct::get_game;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::sqls::general::sql::init_sql_database;
@@ -46,33 +42,8 @@ impl EventHandler for Handler {
         let guilds = ctx.cache.guilds();
         let ctx_clone = ctx.clone();
         tokio::spawn(async move {
-            loop {
-                let mut members: Vec<Member> = Vec::new();
-                for guild in &guilds {
-                    let mut i = 0;
-                    while members.len() == (1000 * i) {
-                        let mut members_temp = if i == 0 {
-                            guild
-                                .members(&ctx_clone.http, Some(1000), None)
-                                .await
-                                .unwrap()
-                        } else {
-                            let user: UserId = members.last().unwrap().user.id;
-                            guild
-                                .members(&ctx_clone.http, Some(1000), Some(user))
-                                .await
-                                .unwrap()
-                        };
-                        members.append(&mut members_temp);
-                        i += 1
-                    }
-                }
-                match calculate_users_color(members.into_iter().collect()).await {
-                    Ok(_) => {}
-                    Err(e) => error!("{:?}", e),
-                };
-                sleep(Duration::from_secs((USER_COLOR_UPDATE_TIME * 60) as u64)).await;
-            }
+            info!("Launching the user color management thread!");
+            color_management(guilds, ctx_clone).await;
         });
 
         let ctx_clone = ctx.clone();
@@ -89,13 +60,15 @@ impl EventHandler for Handler {
             ready.shard, ready.user.name
         );
 
-        info!("{:?}", &ctx.cache.guilds().len());
+        let server_number = &ctx.cache.guilds().len();
+        info!(server_number);
 
         for guild in ctx.cache.guilds() {
             let partial_guild = guild.to_partial_guild(&ctx.http).await.unwrap();
             debug!(
-                "guild id: {:#?} | guild name {:#?}",
-                &partial_guild.id, &partial_guild.name
+                "guild name {} (guild id: {})",
+                &partial_guild.name,
+                &partial_guild.id.to_string()
             )
         }
 
@@ -103,23 +76,27 @@ impl EventHandler for Handler {
         let path = std::path::Path::new(my_path);
         let _ = dotenv::from_path(path);
 
-        trace!("{:#?}", env::var("REMOVE_OLD_COMMAND"));
-
-        let is_ok = env::var("REMOVE_OLD_COMMAND")
+        let remove_old_commmand = env::var("REMOVE_OLD_COMMAND")
             .unwrap_or("false".to_string())
             .to_lowercase()
             .as_str()
             == "true";
 
-        trace!("{}", is_ok);
+        trace!(remove_old_commmand);
 
-        creates_commands(&ctx.http, is_ok).await;
+        creates_commands(&ctx.http, remove_old_commmand).await;
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
+            info!(
+                "Received {} from {} in {}",
+                command_interaction.data.name,
+                command_interaction.user.name,
+                command_interaction.guild_id.unwrap().to_string()
+            );
             debug!(
-                "Received command interaction: {}, Option: {:#?}, User: {}({})",
+                "Received command interaction: {}, Option: {:?}, User: {}({})",
                 command_interaction.data.name,
                 command_interaction.data.options,
                 command_interaction.user.name,
@@ -133,7 +110,7 @@ impl EventHandler for Handler {
             autocomplete_dispatching(ctx, autocomplete_interaction).await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
             if let Err(e) = components_dispatching(ctx, component_interaction).await {
-                trace!("{:#?}", e)
+                trace!("{:?}", e)
             }
         }
     }
@@ -153,7 +130,10 @@ async fn main() {
     let log = env.as_str();
     match create_log_directory() {
         Ok(_) => {}
-        Err(_) => return,
+        Err(e) => {
+            eprintln!("{:?}", e);
+            return;
+        }
     };
 
     let _ = remove_old_logs().is_ok();
@@ -183,6 +163,7 @@ async fn main() {
     let token = match env::var("DISCORD_TOKEN") {
         Ok(token) => {
             debug!("Successfully got the token from env.");
+            trace!(token);
             token
         }
         Err(_) => {

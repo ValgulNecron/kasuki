@@ -1,3 +1,4 @@
+use crate::constant::USER_COLOR_UPDATE_TIME;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CreatingImageError, DecodingImageError, FailedToGetImage};
 use crate::sqls::general::data::{get_user_approximated_color, set_user_approximated_color};
@@ -6,10 +7,11 @@ use base64::Engine;
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, GenericImageView, ImageOutputFormat};
 use log::trace;
-use serenity::all::Member;
+use serenity::all::{Context, GuildId, Member, UserId};
 use std::io::Cursor;
 use std::time::Duration;
 use tokio::time::sleep;
+use tracing::error;
 
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
     for member in members {
@@ -118,4 +120,34 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
         .map_err(|_| DecodingImageError(String::from("Failed to decode image.")))?;
 
     Ok(img)
+}
+
+pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
+    loop {
+        let mut members: Vec<Member> = Vec::new();
+        for guild in &guilds {
+            let mut i = 0;
+            while members.len() == (1000 * i) {
+                let mut members_temp = if i == 0 {
+                    guild
+                        .members(&ctx_clone.http, Some(1000), None)
+                        .await
+                        .unwrap()
+                } else {
+                    let user: UserId = members.last().unwrap().user.id;
+                    guild
+                        .members(&ctx_clone.http, Some(1000), Some(user))
+                        .await
+                        .unwrap()
+                };
+                members.append(&mut members_temp);
+                i += 1
+            }
+        }
+        match calculate_users_color(members.into_iter().collect()).await {
+            Ok(_) => {}
+            Err(e) => error!("{:?}", e),
+        };
+        sleep(Duration::from_secs((USER_COLOR_UPDATE_TIME * 60) as u64)).await;
+    }
 }

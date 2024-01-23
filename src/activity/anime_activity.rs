@@ -1,7 +1,7 @@
-use std::io::{Cursor, Read};
-use std::time::Duration;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
+use std::io::{Cursor, Read};
+use std::time::Duration;
 
 use chrono::Utc;
 use serenity::all::{Context, CreateAttachment, CreateEmbed, EditWebhook, ExecuteWebhook, Webhook};
@@ -73,7 +73,9 @@ pub async fn send_specific_activity(
         .read_to_end(&mut decoded_bytes)
         .expect("Failed to decode base64");
     let attachement = CreateAttachment::bytes(decoded_bytes, "avatar");
-    let edit_webhook = EditWebhook::new().name(row.name.clone().unwrap()).avatar(&attachement);
+    let edit_webhook = EditWebhook::new()
+        .name(row.name.clone().unwrap())
+        .avatar(&attachement);
     webhook.edit(&ctx.http, edit_webhook).await.unwrap();
 
     let embed = CreateEmbed::new()
@@ -101,10 +103,7 @@ pub async fn send_specific_activity(
     Ok(())
 }
 
-pub async fn update_info(
-    row: ActivityData,
-    guild_id: String,
-) -> Result<(), AppError> {
+pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().ok_or(OPTION_ERROR.clone())?,
     )
@@ -131,10 +130,7 @@ pub async fn update_info(
     .await
 }
 
-pub async fn remove_activity(
-    row: ActivityData,
-    guild_id: String,
-) -> Result<(), AppError> {
-    trace!("removing {:#?} for {:#?}", row, guild_id);
+pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+    trace!("removing {:#?} for {}", row, guild_id);
     remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await
 }

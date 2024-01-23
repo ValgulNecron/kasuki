@@ -13,7 +13,7 @@ use serenity::all::{
     CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, EditWebhook, Timestamp,
 };
-use tracing::trace;
+use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
 use crate::common::trimer::trim_webhook;
@@ -75,6 +75,7 @@ pub async fn run(
     let title = data.data.media.title.ok_or(DIFFERED_OPTION_ERROR.clone())?;
     let mut anime_name = get_name(title);
     let channel_id = command_interaction.channel_id;
+
     if check_if_activity_exist(anime_id, guild_id.clone()).await {
         let builder_embed = CreateEmbed::new()
             .timestamp(Timestamp::now())
@@ -94,7 +95,7 @@ pub async fn run(
             .await
             .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
 
-        Ok(())
+        return Ok(());
     } else {
         if anime_name.len() >= 50 {
             anime_name = trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
@@ -158,20 +159,16 @@ pub async fn run(
             .create_followup(&ctx.http, builder_message)
             .await
             .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
-        Ok(())
+        return Ok(());
     }
 }
 
 async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
-    let row: (
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-    ) = get_one_activity(anime_id, server_id)
-        .await
-        .unwrap_or((None, None, None, None));
-    !(row.0.is_none() && row.1.is_none() && row.2.is_none() && row.3.is_none())
+    let row: (Option<String>, Option<String>, Option<String>) =
+        get_one_activity(anime_id, server_id)
+            .await
+            .unwrap_or((None, None, None));
+    !(row.0.is_none() && row.1.is_none() && row.2.is_none())
 }
 
 pub fn get_name(title: Title) -> String {
@@ -215,13 +212,14 @@ async fn get_webhook(
         "name": anime_name
     });
 
-    let bot_id = ctx
-        .http
-        .get_current_application_info()
-        .await
-        .unwrap()
-        .id
-        .to_string();
+    let bot_id = match ctx.http.get_current_application_info().await {
+        Ok(id) => id.id.to_string(),
+        Err(e) => {
+            error!("{}", e);
+            String::new()
+        }
+    };
+
     trace!(bot_id);
     let mut webhook_return = String::new();
 

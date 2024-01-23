@@ -216,24 +216,16 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
 pub async fn get_one_activity_sqlite(
     server_id: String,
     anime_id: i32,
-) -> Result<
-    (
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-    ),
-    AppError,
-> {
+) -> Result<(Option<String>, Option<String>, Option<String>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>, Option<String>, Option<String>) = sqlx::query_as(
-        "SELECT anime_id, timestamp, server_id, webhook FROM activity_data WHERE anime_id = ? AND server_id = ?",
+    let row: (Option<String>, Option<String>, Option<String>) = sqlx::query_as(
+        "SELECT anime_id, timestamp, server_id FROM activity_data WHERE anime_id = ? AND server_id = ?",
     )
         .bind(anime_id)
         .bind(server_id)
         .fetch_one(&pool)
         .await
-        .unwrap_or((None, None, None, None));
+        .unwrap_or((None, None, None));
 
     pool.close().await;
 

@@ -135,15 +135,7 @@ pub async fn set_data_module_activation_status(
 pub async fn get_one_activity(
     anime_id: i32,
     server_id: String,
-) -> Result<
-    (
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-    ),
-    AppError,
-> {
+) -> Result<(Option<String>, Option<String>, Option<String>), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_one_activity_sqlite(server_id, anime_id).await
