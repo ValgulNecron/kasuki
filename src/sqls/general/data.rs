@@ -14,8 +14,16 @@ use crate::sqls::postgresql::data::{
     set_data_ping_history_postgresql, set_registered_user_postgresql,
     set_user_approximated_color_postgresql,
 };
-use crate::sqls::sqlite::data::{get_all_server_activity_sqlite, get_all_user_approximated_color_sqlite, get_data_activity_sqlite, get_data_activity_with_server_and_anime_id_sqlite, get_data_all_activity_by_server_sqlite, get_data_guild_langage_sqlite, get_data_module_activation_kill_switch_status_sqlite, get_data_module_activation_status_sqlite, get_one_activity_sqlite, get_registered_user_sqlite, get_user_approximated_color_sqlite, remove_data_activity_status_sqlite, set_data_activity_sqlite, set_data_guild_langage_sqlite, set_data_module_activation_status_sqlite, set_data_ping_history_sqlite, set_registered_user_sqlite, set_user_approximated_color_sqlite};
-use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
+use crate::sqls::sqlite::data::{
+    get_all_server_activity_sqlite, get_all_user_approximated_color_sqlite,
+    get_data_activity_sqlite, get_data_activity_with_server_and_anime_id_sqlite,
+    get_data_all_activity_by_server_sqlite, get_data_guild_langage_sqlite,
+    get_data_module_activation_kill_switch_status_sqlite, get_data_module_activation_status_sqlite,
+    get_one_activity_sqlite, get_registered_user_sqlite, get_user_approximated_color_sqlite,
+    remove_data_activity_status_sqlite, set_data_activity_sqlite, set_data_guild_langage_sqlite,
+    set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
+    set_registered_user_sqlite, set_user_approximated_color_sqlite,
+};
 
 pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
@@ -71,21 +79,22 @@ pub async fn set_data_activity(
     episode: i32,
     name: String,
     delays: i64,
+    image: String,
 ) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_data_activity_sqlite(
-            anime_id, timestamp, guild_id, webhook, episode, name, delays,
+            anime_id, timestamp, guild_id, webhook, episode, name, delays, image,
         )
         .await
     } else if db_type == *"postgresql" {
         set_data_activity_postgresql(
-            anime_id, timestamp, guild_id, webhook, episode, name, delays,
+            anime_id, timestamp, guild_id, webhook, episode, name, delays, image,
         )
         .await
     } else {
         set_data_activity_sqlite(
-            anime_id, timestamp, guild_id, webhook, episode, name, delays,
+            anime_id, timestamp, guild_id, webhook, episode, name, delays, image,
         )
         .await
     }
@@ -283,8 +292,7 @@ pub async fn get_data_all_activity_by_server(
     }
 }
 
-pub async fn get_all_user_approximated_color(
-) -> Result<
+pub async fn get_all_user_approximated_color() -> Result<
     Vec<(
         Option<String>,
         Option<String>,

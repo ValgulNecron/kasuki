@@ -1,17 +1,15 @@
 use crate::anilist_struct::run::minimal_anime::MinimalAnimeWrapper;
 use crate::command_run::anilist::add_activity::get_name;
 use crate::constant::{
-    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
+    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR,
 };
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::delete_activity::load_localization_delete_activity;
-use crate::sqls::general::data::{
-    get_data_activity_with_server_and_anime_id, remove_data_activity_status,
-};
+use crate::sqls::general::data::remove_data_activity_status;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp, Webhook,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
 
 pub async fn run(
@@ -57,7 +55,7 @@ pub async fn run(
             .id
     };
 
-    remove_activity(&guild_id, ctx, &anime_id).await?;
+    remove_activity(&guild_id, &anime_id).await?;
 
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(anime_id.to_string()).await?;
     let media = data.data.media;
@@ -85,20 +83,7 @@ pub async fn run(
 
 pub async fn remove_activity(
     guild_id: &String,
-    ctx: &Context,
     anime_id: &i32,
 ) -> Result<(), AppError> {
-    let webhook_url =
-        match get_data_activity_with_server_and_anime_id(&anime_id.to_string(), &guild_id).await? {
-            Some(url) => url,
-            None => return Err(DIFFERED_OPTION_ERROR.clone()),
-        };
-    let webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
-        .await
-        .unwrap();
-    ctx.http
-        .delete_webhook(webhook.id, Option::from("no more episode of the show."))
-        .await
-        .unwrap();
     remove_data_activity_status(guild_id.clone(), anime_id.to_string()).await
 }

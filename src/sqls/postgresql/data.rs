@@ -60,7 +60,7 @@ pub async fn set_data_guild_language_postgresql(
 pub async fn get_data_activity_postgresql(now: String) -> Result<Vec<ActivityData>, AppError> {
     let pool = get_postgresql_pool().await?;
     let rows: Vec<ActivityData> = sqlx::query_as(
-        "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays FROM DATA.activity_data WHERE timestamp = $1",
+        "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays, image FROM DATA.activity_data WHERE timestamp = $1",
     )
         .bind(now)
         .fetch_all(&pool)
@@ -77,10 +77,11 @@ pub async fn set_data_activity_postgresql(
     episode: i32,
     name: String,
     delays: i64,
+    image: String,
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
-        "INSERT INTO DATA.activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (anime_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, server_id = EXCLUDED.server_id, webhook = EXCLUDED.webhook, episode = EXCLUDED.episode, name = EXCLUDED.name, delays = EXCLUDED.delays",
+        "INSERT INTO DATA.activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (anime_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, server_id = EXCLUDED.server_id, webhook = EXCLUDED.webhook, episode = EXCLUDED.episode, name = EXCLUDED.name, delays = EXCLUDED.delays",
     )
         .bind(anime_id)
         .bind(timestamp)
@@ -89,6 +90,7 @@ pub async fn set_data_activity_postgresql(
         .bind(episode)
         .bind(name)
         .bind(delays)
+        .bind(image)
         .execute(&pool)
         .await.map_err(|_| SqlInsertError(String::from("Failed to insert into the table.")))?;
     pool.close().await;

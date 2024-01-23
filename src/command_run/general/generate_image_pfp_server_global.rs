@@ -3,6 +3,7 @@ use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERR
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::DifferedWritingFile;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
+use crate::sqls::general::data::get_all_user_approximated_color;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use image::codecs::png::PngEncoder;
@@ -19,7 +20,6 @@ use std::sync::{Arc, Mutex};
 use std::{fs, thread};
 use tracing::{debug, error};
 use uuid::Uuid;
-use crate::sqls::general::data::get_all_user_approximated_color;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -150,7 +150,14 @@ struct ColorWithUrl {
     image: DynamicImage,
 }
 
-fn create_color_vector(tuples: Vec<(Option<String>, Option<String>, Option<String>, Option<String>)>) -> Vec<ColorWithUrl> {
+fn create_color_vector(
+    tuples: Vec<(
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    )>,
+) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
         .filter_map(|(hex, _, _, image)| {

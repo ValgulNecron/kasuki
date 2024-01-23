@@ -5,7 +5,7 @@ use serenity::all::{
 };
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let mut search = String::new();
+    let mut search;
     for option in &autocomplete_interaction.data.options {
         if option.name.as_str() != "type" {
             search = option.value.as_str().unwrap().to_string()

@@ -105,6 +105,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         episode TEXT,
         name TEXT,
         delays BIGINT DEFAULT 0,
+        image TEXT,
         PRIMARY KEY (anime_id, server_id)
     )",
     )

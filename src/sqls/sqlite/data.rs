@@ -2,7 +2,7 @@ use chrono::Utc;
 use serenity::futures::TryFutureExt;
 use sqlx::sqlite::SqliteRow;
 use sqlx::Row;
-use tracing::error;
+use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
@@ -98,7 +98,7 @@ pub async fn set_data_guild_langage_sqlite(
 pub async fn get_data_activity_sqlite(now: String) -> Result<Vec<ActivityData>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let rows: Vec<ActivityData> = sqlx::query_as(
-        "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays FROM activity_data WHERE timestamp = ?",
+        "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays, image FROM activity_data WHERE timestamp = ?",
     )
         .bind(now)
         .fetch_all(&pool)
@@ -127,10 +127,12 @@ pub async fn set_data_activity_sqlite(
     episode: i32,
     name: String,
     delays: i64,
+    image: String,
 ) -> Result<(), AppError> {
+    trace!(anime_id, timestamp, guild_id, webhook, episode, name, delays, image);
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     sqlx::query(
-        "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
     )
         .bind(anime_id)
         .bind(timestamp)
@@ -139,6 +141,7 @@ pub async fn set_data_activity_sqlite(
         .bind(episode)
         .bind(name)
         .bind(delays)
+        .bind(image)
         .execute(&pool)
         .await.map_err(|_| SqlInsertError(String::from("Failed to insert into the table.")))?;
     pool.close().await;
@@ -387,8 +390,7 @@ pub async fn get_all_server_activity_sqlite(
     Ok(list)
 }
 
-pub async fn get_all_user_approximated_color_sqlite(
-) -> Result<
+pub async fn get_all_user_approximated_color_sqlite() -> Result<
     Vec<(
         Option<String>,
         Option<String>,

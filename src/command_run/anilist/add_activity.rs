@@ -1,5 +1,7 @@
-use std::io::Cursor;
+use std::io::{Cursor, Read};
 
+use base64::engine::general_purpose::STANDARD;
+use base64::read::DecoderReader;
 use base64::{engine::general_purpose, Engine as _};
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
@@ -7,9 +9,11 @@ use reqwest::get;
 use serde_json::json;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
+    ChannelId, CommandDataOption, CommandDataOptionValue, CommandInteraction, Context,
+    CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, EditWebhook, Timestamp,
 };
+use tracing::trace;
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
 use crate::common::trimer::trim_webhook;
@@ -116,27 +120,14 @@ pub async fn run(
             .expect("Failed to encode image");
         let base64 = general_purpose::STANDARD.encode(buf.into_inner());
         let image = format!("data:image/jpeg;base64,{}", base64);
-        let map = json!({
-            "avatar": image,
-            "name": anime_name
-        });
 
         let next_airing = match media.next_airing_episode.clone() {
             Some(na) => na,
             None => return Err(DifferedNotAiringError(String::from("Not airing"))),
         };
 
-        let webhook = ctx
-            .http
-            .create_webhook(channel_id, &map, None)
-            .await
-            .map_err(|_| {
-                CreatingWebhookDifferedError(String::from("Error when creating the webhook."))
-            })?
-            .url()
-            .map_err(|_| {
-                CreatingWebhookDifferedError(String::from("Error when getting the webhook url."))
-            })?;
+        let webhook =
+            get_webhook(ctx, channel_id, image, base64.clone(), anime_name.clone()).await?;
 
         set_data_activity(
             anime_id,
@@ -146,6 +137,7 @@ pub async fn run(
             next_airing.episode.unwrap_or(0),
             anime_name.clone(),
             delay,
+            base64,
         )
         .await?;
 
@@ -209,4 +201,104 @@ pub fn get_name(title: Title) -> String {
     }
 
     title
+}
+
+async fn get_webhook(
+    ctx: &Context,
+    channel_id: ChannelId,
+    image: String,
+    base64: String,
+    anime_name: String,
+) -> Result<String, AppError> {
+    let map = json!({
+        "avatar": image,
+        "name": anime_name
+    });
+
+    let bot_id = ctx
+        .http
+        .get_current_application_info()
+        .await
+        .unwrap()
+        .id
+        .to_string();
+    trace!(bot_id);
+    let mut webhook_return = String::new();
+
+    let webhooks = match ctx.http.get_channel_webhooks(channel_id).await {
+        Ok(vec) => vec,
+        Err(_) => {
+            let webhook = ctx
+                .http
+                .create_webhook(channel_id, &map, None)
+                .await
+                .map_err(|_| {
+                    CreatingWebhookDifferedError(String::from("Error when creating the webhook."))
+                })?;
+            webhook_return = webhook.url().map_err(|_| {
+                CreatingWebhookDifferedError(String::from("Error when getting the webhook url."))
+            })?;
+
+            return Ok(webhook_return);
+        }
+    };
+    if webhooks.len() <= 0 {
+        let webhook = ctx
+            .http
+            .create_webhook(channel_id, &map, None)
+            .await
+            .map_err(|_| {
+                CreatingWebhookDifferedError(String::from("Error when creating the webhook."))
+            })?;
+        webhook_return = webhook.url().map_err(|_| {
+            CreatingWebhookDifferedError(String::from("Error when getting the webhook url."))
+        })?;
+
+        return Ok(webhook_return);
+    }
+    for webhook in webhooks {
+        trace!("{:#?}", webhook);
+        let webhook_user_id = webhook.user.clone().unwrap().id.to_string();
+        trace!(webhook_user_id);
+        if webhook_user_id == bot_id {
+            webhook_return = webhook.url().map_err(|_| {
+                CreatingWebhookDifferedError(String::from("Error when getting the webhook url."))
+            })?;
+        } else {
+            if webhook_return != String::new() {
+                let webhook = ctx
+                    .http
+                    .create_webhook(channel_id, &map, None)
+                    .await
+                    .map_err(|_| {
+                        CreatingWebhookDifferedError(String::from(
+                            "Error when creating the webhook.",
+                        ))
+                    })?;
+                webhook_return = webhook.url().map_err(|_| {
+                    CreatingWebhookDifferedError(String::from(
+                        "Error when getting the webhook url.",
+                    ))
+                })?;
+            }
+        }
+    }
+    let cursor = Cursor::new(base64);
+    let mut decoder = DecoderReader::new(cursor, &STANDARD);
+
+    // Read the decoded bytes into a Vec
+    let mut decoded_bytes = Vec::new();
+    decoder
+        .read_to_end(&mut decoded_bytes)
+        .expect("Failed to decode base64");
+    let mut webhook = ctx
+        .http
+        .get_webhook_from_url(webhook_return.as_str())
+        .await
+        .unwrap();
+    let attachement = CreateAttachment::bytes(decoded_bytes, "avatar");
+    let edit_webhook = EditWebhook::new().name(anime_name).avatar(&attachement);
+    webhook.edit(&ctx.http, edit_webhook).await.unwrap();
+
+    Ok(webhook_return)
 }

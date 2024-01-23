@@ -1,7 +1,10 @@
+use std::io::{Cursor, Read};
 use std::time::Duration;
+use base64::engine::general_purpose::STANDARD;
+use base64::read::DecoderReader;
 
 use chrono::Utc;
-use serenity::all::{Context, CreateEmbed, ExecuteWebhook, Webhook};
+use serenity::all::{Context, CreateAttachment, CreateEmbed, EditWebhook, ExecuteWebhook, Webhook};
 use tokio::time::sleep;
 use tracing::trace;
 
@@ -57,9 +60,22 @@ pub async fn send_specific_activity(
         .await
         .unwrap();
     let webhook_url = row.webhook.clone().unwrap();
-    let webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
+    let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
         .await
         .unwrap();
+
+    let cursor = Cursor::new(row.image.unwrap());
+    let mut decoder = DecoderReader::new(cursor, &STANDARD);
+
+    // Read the decoded bytes into a Vec
+    let mut decoded_bytes = Vec::new();
+    decoder
+        .read_to_end(&mut decoded_bytes)
+        .expect("Failed to decode base64");
+    let attachement = CreateAttachment::bytes(decoded_bytes, "avatar");
+    let edit_webhook = EditWebhook::new().name(row.name.clone().unwrap()).avatar(&attachement);
+    webhook.edit(&ctx.http, edit_webhook).await.unwrap();
+
     let embed = CreateEmbed::new()
         .color(COLOR)
         .description(
@@ -80,17 +96,14 @@ pub async fn send_specific_activity(
         .execute(&ctx.http, false, builder_message)
         .await
         .unwrap();
-    let ctx_clone = ctx.clone();
 
-    tokio::spawn(async move { update_info(row2, guild_id, &ctx_clone, webhook_url).await });
+    tokio::spawn(async move { update_info(row2, guild_id).await });
     Ok(())
 }
 
 pub async fn update_info(
     row: ActivityData,
     guild_id: String,
-    ctx: &Context,
-    webhook_url: String,
 ) -> Result<(), AppError> {
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().ok_or(OPTION_ERROR.clone())?,
@@ -99,7 +112,7 @@ pub async fn update_info(
     let media = data.data.media;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
-        None => return remove_activity(row, guild_id, ctx, webhook_url).await,
+        None => return remove_activity(row, guild_id).await,
     };
     let title = media.title.ok_or(OPTION_ERROR.clone())?;
     let rj = title.romaji;
@@ -113,6 +126,7 @@ pub async fn update_info(
         next_airing.episode.unwrap(),
         name.clone(),
         row.delays.unwrap_or(0) as i64,
+        row.image.unwrap_or_default(),
     )
     .await
 }
@@ -120,16 +134,7 @@ pub async fn update_info(
 pub async fn remove_activity(
     row: ActivityData,
     guild_id: String,
-    ctx: &Context,
-    webhook_url: String,
 ) -> Result<(), AppError> {
     trace!("removing {:#?} for {:#?}", row, guild_id);
-    let webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
-        .await
-        .unwrap();
-    ctx.http
-        .delete_webhook(webhook.id, Option::from("no more episode of the show."))
-        .await
-        .unwrap();
     remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await
 }

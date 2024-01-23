@@ -8,7 +8,10 @@ use crate::command_run::anilist::{
 };
 use crate::command_run::game::steam_game_info;
 use crate::command_run::general::module::check_activation_status;
-use crate::command_run::general::{avatar, banner, credit, generate_image_pfp_server, generate_image_pfp_server_global, guild, info, lang, module, ping, profile};
+use crate::command_run::general::{
+    avatar, banner, credit, generate_image_pfp_server, generate_image_pfp_server_global, guild,
+    info, lang, module, ping, profile,
+};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::UnknownCommandError;
 use crate::sqls::general::data::get_data_module_activation_kill_switch_status;
@@ -71,7 +74,9 @@ pub async fn command_dispatching(
         "guild" => guild::run(&ctx, &command_interaction).await?,
         "guild_image" => generate_image_pfp_server::run(&ctx, &command_interaction).await?,
         "list_activity" => list_all_activity::run(&ctx, &command_interaction).await?,
-        "guild_image_g" => generate_image_pfp_server_global::run(&ctx, &command_interaction).await?,
+        "guild_image_g" => {
+            generate_image_pfp_server_global::run(&ctx, &command_interaction).await?
+        }
 
         /*
 

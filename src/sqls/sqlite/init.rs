@@ -90,6 +90,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         episode TEXT,
         name TEXT,
         delays INTEGER DEFAULT 0,
+        image TEXT,
         PRIMARY KEY (anime_id, server_id)
     )",
     )
