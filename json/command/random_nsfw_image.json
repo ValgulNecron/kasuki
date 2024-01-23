@@ -2,7 +2,7 @@
   "name": "random_nsfw_image",
   "desc": "Get a random nsfw anime image.",
   "dm_command": false,
-  "nsfw": false,
+  "nsfw": true,
   "perm": false,
   "arg_num": 1,
   "args": [
