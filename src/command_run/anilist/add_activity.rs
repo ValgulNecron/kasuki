@@ -259,11 +259,16 @@ async fn get_webhook(
         let webhook_user_id = webhook.user.clone().unwrap().id.to_string();
         trace!(webhook_user_id);
         if webhook_user_id == bot_id {
+            trace!("Getting webhook");
             webhook_return = webhook.url().map_err(|_| {
                 CreatingWebhookDifferedError(String::from("Error when getting the webhook url."))
             })?;
         } else {
-            if webhook_return != String::new() {
+            trace!(webhook_return);
+            let is_ok = webhook_return == String::new();
+            trace!(is_ok);
+            if is_ok {
+                trace!("Creating webhook");
                 let webhook = ctx
                     .http
                     .create_webhook(channel_id, &map, None)
@@ -281,6 +286,8 @@ async fn get_webhook(
             }
         }
     }
+    trace!("Done");
+    trace!(webhook_return);
     let cursor = Cursor::new(base64);
     let mut decoder = DecoderReader::new(cursor, &STANDARD);
 
