@@ -5,9 +5,10 @@ use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
+use crate::database::sqlite::pool::get_sqlite_pool;
+use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
-use crate::database::sqlite::pool::get_sqlite_pool;
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
 ///
@@ -381,25 +382,18 @@ pub async fn get_all_server_activity_sqlite(
     Ok(list)
 }
 
-pub async fn get_all_user_approximated_color_sqlite() -> Result<
-    Vec<(
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-    )>,
-    AppError,
-> {
+pub async fn get_all_user_approximated_color_sqlite() -> Result<Vec<UserColor>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: Vec<(
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-    )> = sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color")
-        .fetch_all(&pool)
-        .await
-        .unwrap_or(vec![(None, None, None, None)]);
+    let row: Vec<UserColor> =
+        sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color")
+            .fetch_all(&pool)
+            .await
+            .unwrap_or(vec![UserColor {
+                user_id: None,
+                color: None,
+                pfp_url: None,
+                image: None,
+            }]);
     pool.close().await;
 
     Ok(row)

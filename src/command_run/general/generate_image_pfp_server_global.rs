@@ -1,10 +1,11 @@
 use crate::common::calculate_user_color::get_image_from_url;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::database::dispatcher::data_dispatch::get_all_user_approximated_color;
+use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::DifferedWritingFile;
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
-use crate::database::dispatcher::data_dispatch::get_all_user_approximated_color;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use image::codecs::png::PngEncoder;
@@ -161,17 +162,12 @@ struct ColorWithUrl {
     image: DynamicImage,
 }
 
-fn create_color_vector(
-    tuples: Vec<(
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-    )>,
-) -> Vec<ColorWithUrl> {
+fn create_color_vector(tuples: Vec<UserColor>) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
-        .filter_map(|(hex, _, _, image)| {
+        .filter_map(|user_color| {
+            let hex = user_color.color;
+            let image = user_color.image;
             let hex = hex.unwrap_or_default();
             let r = hex[1..3].parse::<u8>();
             let g = hex[3..5].parse::<u8>();

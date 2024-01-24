@@ -1,7 +1,8 @@
 use crate::anilist_struct::run::minimal_anime::ActivityData;
+use crate::database::postgresql::pool::get_postgresql_pool;
+use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
-use crate::database::postgresql::pool::get_postgresql_pool;
 use chrono::Utc;
 use sqlx::postgres::PgRow;
 use sqlx::Row;
@@ -381,4 +382,21 @@ pub async fn get_data_all_activity_by_server_postgresql(
     };
 
     Ok(rows)
+}
+
+pub async fn get_all_user_approximated_color_postgres() -> Result<Vec<UserColor>, AppError> {
+    let pool = get_postgresql_pool().await?;
+    let row: Vec<UserColor> =
+        sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color")
+            .fetch_all(&pool)
+            .await
+            .unwrap_or(vec![UserColor {
+                user_id: None,
+                color: None,
+                pfp_url: None,
+                image: None,
+            }]);
+    pool.close().await;
+
+    Ok(row)
 }

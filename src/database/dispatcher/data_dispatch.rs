@@ -1,10 +1,9 @@
 use std::env;
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
-use crate::error_enum::AppError;
 use crate::database::postgresql::data::{
-    get_all_server_activity_postgresql, get_data_activity_postgresql,
-    get_data_activity_with_server_and_anime_id_postgresql,
+    get_all_server_activity_postgresql, get_all_user_approximated_color_postgres,
+    get_data_activity_postgresql, get_data_activity_with_server_and_anime_id_postgresql,
     get_data_all_activity_by_server_postgresql, get_data_guild_language_postgresql,
     get_data_module_activation_kill_switch_status_postgresql,
     get_data_module_activation_status_postgresql, get_one_activity_postgresql,
@@ -24,6 +23,8 @@ use crate::database::sqlite::data::{
     set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
     set_registered_user_sqlite, set_user_approximated_color_sqlite,
 };
+use crate::database_struct::user_color_struct::UserColor;
+use crate::error_enum::AppError;
 
 pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
@@ -284,20 +285,12 @@ pub async fn get_data_all_activity_by_server(
     }
 }
 
-pub async fn get_all_user_approximated_color() -> Result<
-    Vec<(
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-    )>,
-    AppError,
-> {
+pub async fn get_all_user_approximated_color() -> Result<Vec<UserColor>, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_all_user_approximated_color_sqlite().await
     } else if db_type == *"postgresql" {
-        Ok(Vec::new())
+        get_all_user_approximated_color_postgres().await
     } else {
         get_all_user_approximated_color_sqlite().await
     }

@@ -13,9 +13,9 @@ use crate::command_run::command_dispatch::command_dispatching;
 use crate::common::calculate_user_color::color_management;
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::ACTIVITY_NAME;
+use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::game_struct::steam_game_id_struct::get_game;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
-use crate::database::dispatcher::init_dispatch::init_sql_database;
 
 mod activity;
 mod anilist_struct;
@@ -25,13 +25,14 @@ mod command_run;
 mod common;
 mod components;
 mod constant;
+mod database;
+mod database_struct;
 mod error_enum;
 mod error_management;
 mod game_struct;
 mod image_saver;
 mod lang_struct;
 mod logger;
-mod database;
 pub mod struct_shard_manager;
 
 struct Handler;
