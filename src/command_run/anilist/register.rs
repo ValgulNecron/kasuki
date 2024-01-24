@@ -9,7 +9,7 @@ use crate::common::get_option_value::get_option;
 use crate::constant::COMMAND_SENDING_ERROR;
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::register::load_localization_register;
-use crate::sqls::general::data::set_registered_user;
+use crate::database::general::data::set_registered_user;
 
 pub async fn run(
     options: &[CommandDataOption],

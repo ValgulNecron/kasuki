@@ -23,7 +23,7 @@ use crate::constant::{
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CreatingWebhookDifferedError, DifferedNotAiringError};
 use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
-use crate::sqls::general::data::{get_one_activity, set_data_activity};
+use crate::database::general::data::{get_one_activity, set_data_activity};
 
 pub async fn run(
     options: &[CommandDataOption],

@@ -1,8 +1,8 @@
 use std::env;
 
 use crate::error_enum::AppError;
-use crate::sqls::postgresql::init::init_postgres;
-use crate::sqls::sqlite::init::init_sqlite;
+use crate::database::postgresql::init::init_postgres;
+use crate::database::sqlite::init::init_sqlite;
 
 /// Asynchronously establish a connection pool to a SQLite database.
 ///

@@ -1,4 +1,4 @@
-use crate::sqls::general::data::get_data_guild_langage;
+use crate::database::general::data::get_data_guild_langage;
 
 pub async fn get_guild_langage(guild_id: String) -> String {
     if guild_id == *"0" {

@@ -2,7 +2,7 @@ use std::env;
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::error_enum::AppError;
-use crate::sqls::postgresql::data::{
+use crate::database::postgresql::data::{
     get_all_server_activity_postgresql, get_data_activity_postgresql,
     get_data_activity_with_server_and_anime_id_postgresql,
     get_data_all_activity_by_server_postgresql, get_data_guild_language_postgresql,
@@ -14,7 +14,7 @@ use crate::sqls::postgresql::data::{
     set_data_ping_history_postgresql, set_registered_user_postgresql,
     set_user_approximated_color_postgresql,
 };
-use crate::sqls::sqlite::data::{
+use crate::database::sqlite::data::{
     get_all_server_activity_sqlite, get_all_user_approximated_color_sqlite,
     get_data_activity_sqlite, get_data_activity_with_server_and_anime_id_sqlite,
     get_data_all_activity_by_server_sqlite, get_data_guild_langage_sqlite,

@@ -4,7 +4,7 @@ use tracing::trace;
 use crate::anilist_struct::run::user::{send_embed, UserWrapper};
 use crate::constant::OPTION_ERROR;
 use crate::error_enum::AppError;
-use crate::sqls::general::data::get_registered_user;
+use crate::database::general::data::get_registered_user;
 
 pub async fn run(
     options: &[CommandDataOption],

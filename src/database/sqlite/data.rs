@@ -7,7 +7,7 @@ use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
-use crate::sqls::sqlite::pool::get_sqlite_pool;
+use crate::database::sqlite::pool::get_sqlite_pool;
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
 ///

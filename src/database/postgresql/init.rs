@@ -1,39 +1,43 @@
-use std::fs::File;
-use std::path::Path;
-
-use sqlx::{Pool, Sqlite};
-
-use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{FailedToCreateAFile, SqlCreateError};
-use crate::sqls::sqlite::migration::migration_dispatch::migrate_sqlite;
-use crate::sqls::sqlite::pool::get_sqlite_pool;
+use crate::error_enum::AppError::SqlCreateError;
+use crate::database::postgresql::migration::migration_dispatch::migrate_postgres;
+use crate::database::postgresql::pool::get_postgresql_pool;
+use sqlx::{Pool, Postgres};
 
-/// Initializes SQLite database.
-///
-/// This function checks if the SQLite database files exist and creates them if they don't.
-/// It then initializes the database by creating necessary tables and indices.
-/// This function uses two separate SQLite databases: one for data and one for cache.
-pub async fn init_sqlite() -> Result<(), AppError> {
-    create_sqlite_file(DATA_SQLITE_DB)?;
-    create_sqlite_file(CACHE_SQLITE_DB)?;
-    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
-    init_sqlite_cache(&pool).await?;
+pub async fn init_postgres() -> Result<(), AppError> {
+    let pool = get_postgresql_pool().await?;
+    init_postgres_cache(&pool).await?;
     pool.close().await;
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    init_sqlite_data(&pool).await?;
+    let pool = get_postgresql_pool().await?;
+    init_postgres_data(&pool).await?;
     pool.close().await;
-    migrate_sqlite().await?;
+    migrate_postgres().await?;
     Ok(())
 }
 
-async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
+async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
+    // Check if the database exists
+    let exists: (bool,) =
+        sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)")
+            .bind("CACHE")
+            .fetch_one(pool)
+            .await
+            .map_err(|_| SqlCreateError(String::from("Failed to check if the database exists.")))?;
+
+    // If the database does not exist, create it
+    if !exists.0 {
+        sqlx::query("CREATE DATABASE CACHE")
+            .execute(pool)
+            .await
+            .map_err(|_| SqlCreateError(String::from("Failed to create the database.")))?;
+    }
+
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS request_cache (
-            json TEXT PRIMARY KEY,
-            response TEXT NOT NULL,
-            last_updated INTEGER NOT NULL
-        )",
+           json TEXT PRIMARY KEY,
+           response TEXT NOT NULL,
+           last_updated BIGINT NOT NULL
+       )",
     )
     .execute(pool)
     .await
@@ -41,11 +45,11 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS cache_stats (
-            key TEXT PRIMARY KEY,
-            response TEXT NOT NULL,
-            last_updated INTEGER NOT NULL,
-            last_page INTEGER NOT NULL
-        )",
+           key TEXT PRIMARY KEY,
+           response TEXT NOT NULL,
+           last_updated BIGINT NOT NULL,
+           last_page BIGINT NOT NULL
+       )",
     )
     .execute(pool)
     .await
@@ -53,12 +57,23 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     Ok(())
 }
 
-/// Initializes the SQLite tables and data.
-///
-/// # Arguments
-///
-/// * `_pool` - A reference to the SQLite connection pool.
-async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
+async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
+    // Check if the database exists
+    let exists: (bool,) =
+        sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)")
+            .bind("DATA")
+            .fetch_one(pool)
+            .await
+            .map_err(|_| SqlCreateError(String::from("Failed to check if the database exists.")))?;
+
+    // If the database does not exist, create it
+    if !exists.0 {
+        sqlx::query("CREATE DATABASE DATA")
+            .execute(pool)
+            .await
+            .map_err(|_| SqlCreateError(String::from("Failed to create the database.")))?;
+    }
+
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS ping_history (
                     shard_id TEXT,
@@ -89,7 +104,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         webhook TEXT,
         episode TEXT,
         name TEXT,
-        delays INTEGER DEFAULT 0,
+        delays BIGINT DEFAULT 0,
         image TEXT,
         PRIMARY KEY (anime_id, server_id)
     )",
@@ -101,9 +116,9 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
        guild_id TEXT PRIMARY KEY,
-       ai_module INTEGER,
-       anilist_module INTEGER,
-        game_module INTEGER
+       ai_module BIGINT,
+       anilist_module BIGINT,
+        game_module BIGINT
    )",
     )
     .execute(pool)
@@ -123,9 +138,9 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
             id TEXT PRIMARY KEY,
-            ai_module INTEGER,
-            anilist_module INTEGER,
-            game_module INTEGER
+            ai_module BIGINT,
+            anilist_module BIGINT,
+            game_module BIGINT
         )",
     )
     .execute(pool)
@@ -133,7 +148,8 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
 
     sqlx::query(
-        "INSERT OR REPLACE INTO global_kill_switch (id, anilist_module, ai_module, game_module) VALUES (?, ?, ?, ?)",
+        "INSERT INTO global_kill_switch (id, anilist_module, ai_module, game_module) VALUES ($1, $2, $3, $4)
+    ON CONFLICT (id) DO UPDATE SET anilist_module = excluded.anilist_module, ai_module = excluded.ai_module, game_module = excluded.game_module",
     )
         .bind("1")
         .bind(1)
@@ -144,7 +160,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_color (
-    user_id TEXT PRIMARY KEY, 
+    user_id TEXT PRIMARY KEY,
     color TEXT NOT NULL,
     pfp_url TEXT NOT NULL,
     image TEXT NOT NULL
@@ -154,21 +170,5 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .await
     .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
 
-    Ok(())
-}
-
-fn create_sqlite_file(path: &str) -> Result<(), AppError> {
-    let p = Path::new(path);
-    if !p.exists() {
-        match File::create(p) {
-            Ok(_) => {}
-            Err(e) => {
-                println!("Failed to create the file {} : {}", path, e);
-                return Err(FailedToCreateAFile(String::from(
-                    "Failed to create db file.",
-                )));
-            }
-        }
-    }
     Ok(())
 }

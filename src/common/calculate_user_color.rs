@@ -1,7 +1,7 @@
 use crate::constant::USER_COLOR_UPDATE_TIME;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CreatingImageError, DecodingImageError, FailedToGetImage};
-use crate::sqls::general::data::{get_user_approximated_color, set_user_approximated_color};
+use crate::database::general::data::{get_user_approximated_color, set_user_approximated_color};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::io::Reader as ImageReader;

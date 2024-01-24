@@ -15,7 +15,7 @@ use crate::components::components_dispatch::components_dispatching;
 use crate::constant::ACTIVITY_NAME;
 use crate::game_struct::steam_game_id_struct::get_game;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
-use crate::sqls::general::sql::init_sql_database;
+use crate::database::general::sql::init_sql_database;
 
 mod activity;
 mod anilist_struct;
@@ -31,7 +31,7 @@ mod game_struct;
 mod image_saver;
 mod lang_struct;
 mod logger;
-mod sqls;
+mod database;
 pub mod struct_shard_manager;
 
 struct Handler;

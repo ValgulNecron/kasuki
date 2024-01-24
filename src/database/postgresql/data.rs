@@ -1,7 +1,7 @@
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
-use crate::sqls::postgresql::pool::get_postgresql_pool;
+use crate::database::postgresql::pool::get_postgresql_pool;
 use chrono::Utc;
 use sqlx::postgres::PgRow;
 use sqlx::Row;
