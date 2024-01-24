@@ -132,7 +132,7 @@ pub async fn set_data_activity_sqlite(
     trace!(anime_id, timestamp, guild_id, webhook, episode, name, delays, image);
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     sqlx::query(
-        "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
+        "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )
         .bind(anime_id)
         .bind(timestamp)
