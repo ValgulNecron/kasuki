@@ -10,11 +10,11 @@ use tracing::trace;
 
 use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrapper};
 use crate::constant::{COLOR, OPTION_ERROR};
-use crate::error_enum::AppError;
-use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
+use crate::error_enum::AppError;
+use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
 pub async fn manage_activity(ctx: Context) {
     trace!("Started the activity management.");
@@ -64,7 +64,10 @@ pub async fn send_specific_activity(
         .await
         .unwrap();
 
-    let cursor = Cursor::new(row.image.unwrap());
+    let image = row.image.unwrap_or_default();
+    trace!(image);
+
+    let cursor = Cursor::new(image);
     let mut decoder = DecoderReader::new(cursor, &STANDARD);
 
     // Read the decoded bytes into a Vec
