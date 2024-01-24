@@ -3,7 +3,7 @@ use crate::constant::{
 };
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
-use crate::database::general::data::get_all_server_activity;
+use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup,

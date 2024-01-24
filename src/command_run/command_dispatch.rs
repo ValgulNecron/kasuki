@@ -14,7 +14,7 @@ use crate::command_run::general::{
 };
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::UnknownCommandError;
-use crate::database::general::data::get_data_module_activation_kill_switch_status;
+use crate::database::dispatcher::data_dispatch::get_data_module_activation_kill_switch_status;
 
 pub async fn command_dispatching(
     ctx: Context,

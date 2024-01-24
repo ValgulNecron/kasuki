@@ -12,7 +12,7 @@ use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrappe
 use crate::constant::{COLOR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
-use crate::database::general::data::{
+use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
 

@@ -1,5 +1,5 @@
 use crate::constant::AUTOCOMPLETE_COUNT;
-use crate::database::general::data::get_data_all_activity_by_server;
+use crate::database::dispatcher::data_dispatch::get_data_all_activity_by_server;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,

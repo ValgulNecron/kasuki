@@ -14,7 +14,7 @@ use crate::common::trimer::trim;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::random::{load_localization_random, RandomLocalised};
-use crate::database::general::cache::{get_database_random_cache, set_database_random_cache};
+use crate::database::dispatcher::cache_dispatch::{get_database_random_cache, set_database_random_cache};
 
 pub async fn run(
     options: &[CommandDataOption],

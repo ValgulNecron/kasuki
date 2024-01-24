@@ -3,7 +3,7 @@ use crate::command_run::anilist::add_activity::get_name;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::delete_activity::load_localization_delete_activity;
-use crate::database::general::data::remove_data_activity_status;
+use crate::database::dispatcher::data_dispatch::remove_data_activity_status;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,

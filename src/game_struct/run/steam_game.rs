@@ -1,7 +1,7 @@
 use crate::constant::{APPS, LANG_MAP};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{NotAValidGameError, NotAValidUrlError};
-use crate::database::general::data::get_data_guild_langage;
+use crate::database::dispatcher::data_dispatch::get_data_guild_langage;
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};

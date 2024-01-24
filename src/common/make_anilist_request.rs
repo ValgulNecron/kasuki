@@ -3,7 +3,7 @@ use reqwest::Client;
 use serde_json::Value;
 
 use crate::constant::DAYS;
-use crate::database::general::cache::{get_database_cache, set_database_cache};
+use crate::database::dispatcher::cache_dispatch::{get_database_cache, set_database_cache};
 
 pub async fn make_request_anilist(json: Value, always_update: bool) -> String {
     if always_update {

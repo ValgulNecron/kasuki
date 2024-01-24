@@ -1,3 +1,3 @@
-pub mod general;
+pub mod dispatcher;
 pub mod postgresql;
 pub mod sqlite;

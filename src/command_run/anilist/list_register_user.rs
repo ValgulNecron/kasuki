@@ -14,7 +14,7 @@ use crate::error_enum::AppError;
 use crate::lang_struct::anilist::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };
-use crate::database::general::data::get_registered_user;
+use crate::database::dispatcher::data_dispatch::get_registered_user;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
