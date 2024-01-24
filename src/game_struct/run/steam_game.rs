@@ -1,7 +1,7 @@
 use crate::constant::{APPS, LANG_MAP};
+use crate::database::dispatcher::data_dispatch::get_data_guild_langage;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{NotAValidGameError, NotAValidUrlError};
-use crate::database::dispatcher::data_dispatch::get_data_guild_langage;
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
@@ -231,18 +231,18 @@ impl SteamGameWrapper {
         let choices: Vec<&str> = choices.into_iter().map(|(s, _)| s.as_str()).collect();
         let results: Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
 
-        let mut appid = 0u128;
+        let mut appid = &0u128;
         unsafe {
-            if results.len() == 0 {
+            if results.is_empty() {
                 return Err(NotAValidGameError(String::from("Bad game")));
             }
             for (name, _) in results {
-                if appid == 0u128 {
-                    appid = APPS.get(name).clone().unwrap().clone()
+                if appid == &0u128 {
+                    appid = APPS.get(name).unwrap()
                 }
 
                 if search.to_lowercase() == name.to_lowercase() {
-                    appid = APPS.get(name).clone().unwrap().clone();
+                    appid = APPS.get(name).unwrap();
                     break;
                 }
             }

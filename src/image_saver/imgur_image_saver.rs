@@ -13,7 +13,7 @@ pub async fn upload_image_imgur(image_data: Vec<u8>) -> Result<(), AppError> {
         }
     };
     let upload_info = imgur::Handle::new(token)
-        .upload(&*image_data)
+        .upload(&image_data)
         .map_err(|_| FailedToUploadImage("Failed to upload image to imgur.com".to_string()))?;
     debug!(
         "Image uploaded to imgur.com: {}",
