@@ -140,7 +140,7 @@ and select, insert, delete on them.
   - [ ] Doing something with error else than logging it.
   - [X] Localisation for response.
   - [X] Localisation for command.
-  - [X] Rename function, structure, command name etc... so it makes more sense.
+  - [ ] Rename for better clarity.
   - [ ] Add docs to every public function.
     (Run, Register and Autocomplete don’t need this.).
   - [X] Logging
