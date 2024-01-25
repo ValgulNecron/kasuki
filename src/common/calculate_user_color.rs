@@ -1,17 +1,18 @@
 use crate::constant::USER_COLOR_UPDATE_TIME;
+use crate::database::dispatcher::data_dispatch::{
+    get_user_approximated_color, set_user_approximated_color,
+};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CreatingImageError, DecodingImageError, FailedToGetImage};
-use crate::database::dispatcher::data_dispatch::{get_user_approximated_color, set_user_approximated_color};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, GenericImageView, ImageOutputFormat};
-use log::trace;
 use serenity::all::{Context, GuildId, Member, UserId};
 use std::io::Cursor;
 use std::time::Duration;
 use tokio::time::sleep;
-use tracing::error;
+use tracing::{error, trace};
 
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
     for member in members {
@@ -125,10 +126,15 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
 pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
     loop {
         let mut members: Vec<Member> = Vec::new();
+        let guild_len = guilds.len();
+        trace!(guild_len);
         for guild in &guilds {
+            let guild_id = guild.to_string();
+            trace!(guild_id);
             let mut i = 0;
-            while members.len() == (1000 * i) {
-                let mut members_temp = if i == 0 {
+            let mut members_temp_out = Vec::new();
+            while members_temp_out.len() == (1000 * i) {
+                let mut members_temp_in = if i == 0 {
                     guild
                         .members(&ctx_clone.http, Some(1000), None)
                         .await
@@ -140,9 +146,14 @@ pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
                         .await
                         .unwrap()
                 };
-                members.append(&mut members_temp);
-                i += 1
+                i += 1;
+                members_temp_out.append(&mut members_temp_in);
             }
+            let server_member_len = members_temp_out.len();
+            trace!(server_member_len);
+            members.append(&mut members_temp_out);
+            let members_len = members.len();
+            trace!(members_len);
         }
         match calculate_users_color(members.into_iter().collect()).await {
             Ok(_) => {}

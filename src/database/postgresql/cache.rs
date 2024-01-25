@@ -1,6 +1,6 @@
+use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::SqlInsertError;
-use crate::database::postgresql::pool::get_postgresql_pool;
 use chrono::Utc;
 use serde_json::Value;
 

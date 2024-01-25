@@ -12,9 +12,11 @@ use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper
 use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::database::dispatcher::cache_dispatch::{
+    get_database_random_cache, set_database_random_cache,
+};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::random::{load_localization_random, RandomLocalised};
-use crate::database::dispatcher::cache_dispatch::{get_database_random_cache, set_database_random_cache};
 
 pub async fn run(
     options: &[CommandDataOption],

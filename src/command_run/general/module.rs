@@ -4,11 +4,11 @@ use serenity::all::{
 };
 
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
-use crate::error_enum::AppError;
-use crate::lang_struct::general::module::load_localization_module_activation;
 use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
 };
+use crate::error_enum::AppError;
+use crate::lang_struct::general::module::load_localization_module_activation;
 
 pub async fn run(
     options: &[CommandDataOption],

@@ -20,10 +20,10 @@ use crate::common::trimer::trim_webhook;
 use crate::constant::{
     COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
 };
+use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CreatingWebhookDifferedError, DifferedNotAiringError};
 use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
-use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
 
 pub async fn run(
     options: &[CommandDataOption],

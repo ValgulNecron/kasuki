@@ -2,7 +2,6 @@ use std::env;
 
 use serde_json::Value;
 
-use crate::error_enum::AppError;
 use crate::database::postgresql::cache::{
     get_database_cache_postgresql, get_database_random_cache_postgresql,
     set_database_cache_postgresql, set_database_random_cache_postgres,
@@ -11,6 +10,7 @@ use crate::database::sqlite::cache::{
     get_database_cache_sqlite, get_database_random_cache_sqlite, set_database_cache_sqlite,
     set_database_random_cache_sqlite,
 };
+use crate::error_enum::AppError;
 
 pub async fn get_database_random_cache(
     random_type: &str,

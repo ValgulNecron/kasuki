@@ -4,10 +4,10 @@ use std::path::Path;
 use sqlx::{Pool, Sqlite};
 
 use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::{FailedToCreateAFile, SqlCreateError};
 use crate::database::sqlite::migration::migration_dispatch::migrate_sqlite;
 use crate::database::sqlite::pool::get_sqlite_pool;
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::{FailedToCreateAFile, SqlCreateError};
 
 /// Initializes SQLite database.
 ///

@@ -1,7 +1,7 @@
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::SqlCreateError;
 use crate::database::postgresql::migration::migration_dispatch::migrate_postgres;
 use crate::database::postgresql::pool::get_postgresql_pool;
+use crate::error_enum::AppError;
+use crate::error_enum::AppError::SqlCreateError;
 use sqlx::{Pool, Postgres};
 
 pub async fn init_postgres() -> Result<(), AppError> {

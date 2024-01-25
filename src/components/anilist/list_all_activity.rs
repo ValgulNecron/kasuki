@@ -1,7 +1,7 @@
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
-use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, Timestamp,
 };

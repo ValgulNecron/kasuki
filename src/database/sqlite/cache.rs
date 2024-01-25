@@ -2,9 +2,9 @@ use chrono::Utc;
 use serde_json::Value;
 
 use crate::constant::CACHE_SQLITE_DB;
+use crate::database::sqlite::pool::get_sqlite_pool;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::SqlInsertError;
-use crate::database::sqlite::pool::get_sqlite_pool;
 
 /// Retrieves the cache statistics for a given random type from a SQLite database using a connection pool.
 /// The cache statistics include the response, last updated timestamp, and last page.
