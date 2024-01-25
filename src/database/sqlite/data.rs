@@ -286,18 +286,14 @@ pub async fn set_user_approximated_color_sqlite(
     Ok(())
 }
 
-pub async fn get_user_approximated_color_sqlite(
-    user_id: &String,
-) -> Result<
-    UserColor,
-    AppError,
-> {
+pub async fn get_user_approximated_color_sqlite(user_id: &String) -> Result<UserColor, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: UserColor = sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color WHERE user_id = ?")
-        .bind(user_id)
-        .fetch_one(&pool)
-        .await
-        .unwrap_or(UserColor {
+    let row: UserColor =
+        sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color WHERE user_id = ?")
+            .bind(user_id)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or(UserColor {
                 user_id: None,
                 color: None,
                 pfp_url: None,

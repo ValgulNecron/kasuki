@@ -9,7 +9,7 @@ pub async fn upload_image_imgur(image_data: Vec<u8>) -> Result<(), AppError> {
         Err(_) => {
             return Err(FailedToUploadImage(
                 "Failed to get the token for imgur.com".to_string(),
-            ))
+            ));
         }
     };
     let upload_info = imgur::Handle::new(token)

@@ -48,4 +48,5 @@ pub enum AppError {
     FailedToCreateFolder(String),
     FailedToUploadImage(String),
     FailedToWriteFile(String),
+    FailedToUpdateDatabase(String),
 }

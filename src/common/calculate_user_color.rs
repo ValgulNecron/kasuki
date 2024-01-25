@@ -2,6 +2,7 @@ use crate::constant::USER_COLOR_UPDATE_TIME;
 use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
+use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CreatingImageError, DecodingImageError, FailedToGetImage};
 use base64::engine::general_purpose;
@@ -13,7 +14,6 @@ use std::io::Cursor;
 use std::time::Duration;
 use tokio::time::sleep;
 use tracing::{debug, error};
-use crate::database_struct::user_color_struct::UserColor;
 
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
     for member in members {
@@ -22,7 +22,7 @@ pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError>
 
         let id = member.user.id.to_string();
 
-         let user_color: UserColor = get_user_approximated_color(&id).await?;
+        let user_color: UserColor = get_user_approximated_color(&id).await?;
         let color = user_color.color.clone();
         let pfp_url_old = user_color.pfp_url.clone();
         let image_old = user_color.image;

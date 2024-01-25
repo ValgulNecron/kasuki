@@ -241,10 +241,7 @@ pub async fn set_user_approximated_color_postgresql(
 
 pub async fn get_user_approximated_color_postgresql(
     user_id: &String,
-) -> Result<
-    UserColor,
-    AppError,
-> {
+) -> Result<UserColor, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: UserColor = sqlx::query_as(
         "SELECT user_id, color, pfp_url, image FROM DATA.user_color WHERE user_id = $1",
@@ -253,11 +250,11 @@ pub async fn get_user_approximated_color_postgresql(
     .fetch_one(&pool)
     .await
     .unwrap_or(UserColor {
-                user_id: None,
-                color: None,
-                pfp_url: None,
-                image: None,
-            });
+        user_id: None,
+        color: None,
+        pfp_url: None,
+        image: None,
+    });
     pool.close().await;
 
     Ok(row)
@@ -340,7 +337,7 @@ pub async fn get_data_activity_with_server_and_anime_id_postgresql(
     let row: Option<PgRow> = sqlx::query(
         "SELECT
        webhook
-       FROM activity_data WHERE server_id = $1 and anime_id = $2
+       FROM DATA.activity_data WHERE server_id = $1 and anime_id = $2
    ",
     )
     .bind(server_id)
@@ -363,7 +360,7 @@ pub async fn get_data_all_activity_by_server_postgresql(
     let rows = sqlx::query_as(
         "SELECT
        anime_id, name
-       FROM activity_data WHERE server_id = $1
+       FROM DATA.activity_data WHERE server_id = $1
    ",
     )
     .bind(server_id)
@@ -382,7 +379,7 @@ pub async fn get_data_all_activity_by_server_postgresql(
 pub async fn get_all_user_approximated_color_postgres() -> Result<Vec<UserColor>, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: Vec<UserColor> =
-        sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color")
+        sqlx::query_as("SELECT user_id, color, pfp_url, image FROM DATA.user_color")
             .fetch_all(&pool)
             .await
             .unwrap_or(vec![UserColor {
