@@ -126,27 +126,9 @@ pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
         for guild in &guilds {
             let guild_id = guild.to_string();
             debug!(guild_id);
-            let mut i = 0;
-            let mut members_temp_out = Vec::new();
-            while members_temp_out.len() == (1000 * i) {
-                let mut members_temp_in = if i == 0 {
-                    guild
-                        .members(&ctx_clone.http, Some(1000), None)
-                        .await
-                        .unwrap()
-                } else {
-                    let user: UserId = members.last().unwrap().user.id;
-                    guild
-                        .members(&ctx_clone.http, Some(1000), Some(user))
-                        .await
-                        .unwrap()
-                };
-                i += 1;
-                members_temp_out.append(&mut members_temp_in);
-            }
+            let members_temp_out = get_member(&ctx_clone, guild).await;
             let server_member_len = members_temp_out.len();
             debug!(server_member_len);
-            members.append(&mut members_temp_out);
             let members_len = members.len();
             debug!(members_len);
         }
@@ -156,4 +138,26 @@ pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
         };
         sleep(Duration::from_secs((USER_COLOR_UPDATE_TIME * 60) as u64)).await;
     }
+}
+
+pub async fn get_member(ctx_clone: &Context, guild: &GuildId) -> Vec<Member> {
+    let mut i = 0;
+    let mut members_temp_out = Vec::new();
+    while members_temp_out.len() == (1000 * i) {
+        let mut members_temp_in = if i == 0 {
+            guild
+                .members(&ctx_clone.http, Some(1000), None)
+                .await
+                .unwrap()
+        } else {
+            let user: UserId = members_temp_out.last().unwrap().user.id;
+            guild
+                .members(&ctx_clone.http, Some(1000), Some(user))
+                .await
+                .unwrap()
+        };
+        i += 1;
+        members_temp_out.append(&mut members_temp_in);
+    }
+    members_temp_out
 }

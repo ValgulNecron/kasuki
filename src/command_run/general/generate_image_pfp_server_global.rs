@@ -1,5 +1,5 @@
 use crate::command_run::general::generate_image_pfp_server::{
-    find_closest_color, Color, ColorWithUrl,
+    find_closest_color, get_color_with_url, Color, ColorWithUrl,
 };
 use crate::common::calculate_user_color::get_image_from_url;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
@@ -81,7 +81,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 let lab_color: Lab = rgb_color.into_color();
                 let color_target = Color { cielab: lab_color };
                 let arr: &[ColorWithUrl] = &color_vec_moved;
-                let closest_color = find_closest_color(&arr, &color_target).unwrap();
+                let closest_color = find_closest_color(arr, &color_target).unwrap();
                 vec_image.lock().unwrap().push((x, y, closest_color.image));
             });
 
@@ -171,20 +171,7 @@ fn create_color_vector(tuples: Vec<UserColor>) -> Vec<ColorWithUrl> {
             let decoded = BASE64.decode(input).unwrap();
             let img = image::load_from_memory(&decoded).unwrap();
 
-            match (r, g, b) {
-                (Ok(r), Ok(g), Ok(b)) => {
-                    let r_normalized = r as f32 / 255.0;
-                    let g_normalized = g as f32 / 255.0;
-                    let b_normalized = b as f32 / 255.0;
-                    let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
-                    let lab_color: Lab = rgb_color.into_color();
-                    Some(ColorWithUrl {
-                        cielab: lab_color,
-                        image: img,
-                    })
-                }
-                _ => None,
-            }
+            get_color_with_url(img, r, g, b)
         })
         .collect()
 }

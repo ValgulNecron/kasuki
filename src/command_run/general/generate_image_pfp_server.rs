@@ -1,4 +1,6 @@
-use crate::common::calculate_user_color::{get_image_from_url, return_average_user_color};
+use crate::common::calculate_user_color::{
+    get_image_from_url, get_member, return_average_user_color,
+};
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::DifferedWritingFile;
@@ -15,6 +17,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Member, Timestamp, UserId,
 };
+use std::num::ParseIntError;
 use std::sync::{Arc, Mutex};
 use std::{fs, thread};
 use tracing::{debug, error, trace};
@@ -43,21 +46,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
 
-    let mut i = 0;
-    let mut members: Vec<Member> = Vec::new();
-    while members.len() == (1000 * i) {
-        let mut members_temp = if i == 0 {
-            guild.members(&ctx.http, Some(1000), None).await.unwrap()
-        } else {
-            let user: UserId = members.last().unwrap().user.id.clone();
-            guild
-                .members(&ctx.http, Some(1000), Some(user))
-                .await
-                .unwrap()
-        };
-        members.append(&mut members_temp);
-        i += 1
-    }
+    let members: Vec<Member> = get_member(ctx, &guild.id).await;
 
     let average_colors = return_average_user_color(members).await?;
 
@@ -187,20 +176,7 @@ fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUr
             let decoded = BASE64.decode(input).unwrap();
             let img = image::load_from_memory(&decoded).unwrap();
 
-            match (r, g, b) {
-                (Ok(r), Ok(g), Ok(b)) => {
-                    let r_normalized = r as f32 / 255.0;
-                    let g_normalized = g as f32 / 255.0;
-                    let b_normalized = b as f32 / 255.0;
-                    let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
-                    let lab_color: Lab = rgb_color.into_color();
-                    Some(ColorWithUrl {
-                        cielab: lab_color,
-                        image: img,
-                    })
-                }
-                _ => None,
-            }
+            get_color_with_url(img, r, g, b)
         })
         .collect()
 }
@@ -220,4 +196,26 @@ pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<Col
         delta_e_a.partial_cmp(&delta_e_b).unwrap()
     });
     a.cloned()
+}
+
+pub fn get_color_with_url(
+    img: DynamicImage,
+    r: Result<u8, ParseIntError>,
+    g: Result<u8, ParseIntError>,
+    b: Result<u8, ParseIntError>,
+) -> Option<ColorWithUrl> {
+    match (r, g, b) {
+        (Ok(r), Ok(g), Ok(b)) => {
+            let r_normalized = r as f32 / 255.0;
+            let g_normalized = g as f32 / 255.0;
+            let b_normalized = b as f32 / 255.0;
+            let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
+            let lab_color: Lab = rgb_color.into_color();
+            Some(ColorWithUrl {
+                cielab: lab_color,
+                image: img,
+            })
+        }
+        _ => None,
+    }
 }
