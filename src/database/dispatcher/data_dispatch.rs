@@ -23,7 +23,7 @@ use crate::database::sqlite::data::{
     set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
     set_registered_user_sqlite, set_user_approximated_color_sqlite,
 };
-use crate::database_struct::server_activity_struct::ServerActivity;
+use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 
@@ -73,32 +73,14 @@ pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, AppErro
     }
 }
 
-pub async fn set_data_activity(
-    anime_id: i32,
-    timestamp: i64,
-    guild_id: String,
-    webhook: String,
-    episode: i32,
-    name: String,
-    delays: i64,
-    image: String,
-) -> Result<(), AppError> {
+pub async fn set_data_activity(server_activity_full: ServerActivityFull) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
-        set_data_activity_sqlite(
-            anime_id, timestamp, guild_id, webhook, episode, name, delays, image,
-        )
-        .await
+        set_data_activity_sqlite(server_activity_full).await
     } else if db_type == *"postgresql" {
-        set_data_activity_postgresql(
-            anime_id, timestamp, guild_id, webhook, episode, name, delays, image,
-        )
-        .await
+        set_data_activity_postgresql(server_activity_full).await
     } else {
-        set_data_activity_sqlite(
-            anime_id, timestamp, guild_id, webhook, episode, name, delays, image,
-        )
-        .await
+        set_data_activity_sqlite(server_activity_full).await
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::database::postgresql::pool::get_postgresql_pool;
-use crate::database_struct::server_activity_struct::ServerActivity;
+use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
@@ -72,27 +72,20 @@ pub async fn get_data_activity_postgresql(now: String) -> Result<Vec<ActivityDat
 }
 
 pub async fn set_data_activity_postgresql(
-    anime_id: i32,
-    timestamp: i64,
-    guild_id: String,
-    webhook: String,
-    episode: i32,
-    name: String,
-    delays: i64,
-    image: String,
+    server_activity_full: ServerActivityFull,
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
         "INSERT INTO DATA.activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (anime_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, server_id = EXCLUDED.server_id, webhook = EXCLUDED.webhook, episode = EXCLUDED.episode, name = EXCLUDED.name, delays = EXCLUDED.delays",
     )
-        .bind(anime_id)
-        .bind(timestamp)
-        .bind(guild_id)
-        .bind(webhook)
-        .bind(episode)
-        .bind(name)
-        .bind(delays)
-        .bind(image)
+        .bind(server_activity_full.anime_id)
+        .bind(server_activity_full.timestamp)
+        .bind(server_activity_full.guild_id)
+        .bind(server_activity_full.webhook)
+        .bind(server_activity_full.episode)
+        .bind(server_activity_full.name)
+        .bind(server_activity_full.delays)
+        .bind(server_activity_full.image)
         .execute(&pool)
         .await.map_err(|_| SqlInsertError(String::from("Failed to insert into the table.")))?;
     pool.close().await;

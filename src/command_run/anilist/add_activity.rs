@@ -21,6 +21,7 @@ use crate::constant::{
     COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
 };
 use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
+use crate::database_struct::server_activity_struct::ServerActivityFull;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CreatingWebhookDifferedError, DifferedNotAiringError};
 use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
@@ -130,16 +131,16 @@ pub async fn run(
         let webhook =
             get_webhook(ctx, channel_id, image, base64.clone(), anime_name.clone()).await?;
 
-        set_data_activity(
+        set_data_activity(ServerActivityFull {
             anime_id,
-            next_airing.airing_at.unwrap_or(0),
+            timestamp: next_airing.airing_at.unwrap_or(0),
             guild_id,
             webhook,
-            next_airing.episode.unwrap_or(0),
-            anime_name.clone(),
-            delay,
-            base64,
-        )
+            episode: next_airing.episode.unwrap_or(0),
+            name: anime_name.clone(),
+            delays: delay,
+            image: base64,
+        })
         .await?;
 
         let builder_embed = CreateEmbed::new()

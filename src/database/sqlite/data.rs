@@ -1,12 +1,12 @@
 use chrono::Utc;
 use sqlx::sqlite::SqliteRow;
 use sqlx::Row;
-use tracing::{error, trace};
+use tracing::error;
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
 use crate::database::sqlite::pool::get_sqlite_pool;
-use crate::database_struct::server_activity_struct::ServerActivity;
+use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
@@ -121,28 +121,20 @@ pub async fn get_data_activity_sqlite(now: String) -> Result<Vec<ActivityData>, 
 /// * `delays` - The delays.
 ///
 pub async fn set_data_activity_sqlite(
-    anime_id: i32,
-    timestamp: i64,
-    guild_id: String,
-    webhook: String,
-    episode: i32,
-    name: String,
-    delays: i64,
-    image: String,
+    server_activity_full: ServerActivityFull,
 ) -> Result<(), AppError> {
-    trace!(anime_id, timestamp, guild_id, webhook, episode, name, delays, image);
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     sqlx::query(
         "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )
-        .bind(anime_id)
-        .bind(timestamp)
-        .bind(guild_id)
-        .bind(webhook)
-        .bind(episode)
-        .bind(name)
-        .bind(delays)
-        .bind(image)
+        .bind(server_activity_full.anime_id)
+        .bind(server_activity_full.timestamp)
+        .bind(server_activity_full.guild_id)
+        .bind(server_activity_full.webhook)
+        .bind(server_activity_full.episode)
+        .bind(server_activity_full.name)
+        .bind(server_activity_full.delays)
+        .bind(server_activity_full.image)
         .execute(&pool)
         .await.map_err(|_| SqlInsertError(String::from("Failed to insert into the table.")))?;
     pool.close().await;

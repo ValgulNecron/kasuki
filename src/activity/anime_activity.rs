@@ -13,6 +13,7 @@ use crate::constant::{COLOR, OPTION_ERROR};
 use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
+use crate::database_struct::server_activity_struct::ServerActivityFull;
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
@@ -120,16 +121,16 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
     let rj = title.romaji;
     let en = title.english;
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
-    set_data_activity(
-        media.id,
-        next_airing.airing_at.unwrap(),
+    set_data_activity(ServerActivityFull {
+        anime_id: media.id,
+        timestamp: next_airing.airing_at.unwrap(),
         guild_id,
-        row.webhook.unwrap(),
-        next_airing.episode.unwrap(),
-        name.clone(),
-        row.delays.unwrap_or(0) as i64,
-        row.image.unwrap_or_default(),
-    )
+        webhook: row.webhook.unwrap(),
+        episode: next_airing.episode.unwrap(),
+        name,
+        delays: row.delays.unwrap_or(0) as i64,
+        image: row.image.unwrap_or_default(),
+    })
     .await
 }
 

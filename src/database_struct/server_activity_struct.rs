@@ -7,3 +7,14 @@ pub struct ServerActivity {
     pub name: Option<String>,
     pub delays: Option<u32>,
 }
+
+pub struct ServerActivityFull {
+    pub anime_id: i32,
+    pub timestamp: i64,
+    pub guild_id: String,
+    pub webhook: String,
+    pub episode: i32,
+    pub name: String,
+    pub delays: i64,
+    pub image: String,
+}
