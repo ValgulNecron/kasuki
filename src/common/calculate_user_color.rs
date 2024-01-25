@@ -120,7 +120,7 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
 
 pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
     loop {
-        let mut members: Vec<Member> = Vec::new();
+        let members: Vec<Member> = Vec::new();
         let guild_len = guilds.len();
         debug!(guild_len);
         for guild in &guilds {

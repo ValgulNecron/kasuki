@@ -15,7 +15,7 @@ use palette::{IntoColor, Lab, Srgb};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, Member, Timestamp, UserId,
+    CreateInteractionResponseMessage, Member, Timestamp,
 };
 use std::num::ParseIntError;
 use std::sync::{Arc, Mutex};
