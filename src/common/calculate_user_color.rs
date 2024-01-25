@@ -142,7 +142,7 @@ pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
 
 pub async fn get_member(ctx_clone: &Context, guild: &GuildId) -> Vec<Member> {
     let mut i = 0;
-    let mut members_temp_out = Vec::new();
+    let mut members_temp_out: Vec<Member> = Vec::new();
     while members_temp_out.len() == (1000 * i) {
         let mut members_temp_in = if i == 0 {
             guild
