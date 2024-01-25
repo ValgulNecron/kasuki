@@ -12,7 +12,8 @@ use serenity::all::{Context, GuildId, Member, UserId};
 use std::io::Cursor;
 use std::time::Duration;
 use tokio::time::sleep;
-use tracing::{debug, error, trace};
+use tracing::{debug, error};
+use crate::database_struct::user_color_struct::UserColor;
 
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
     for member in members {
@@ -21,12 +22,10 @@ pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError>
 
         let id = member.user.id.to_string();
 
-        let (_, _, pfp_url_old, _): (
-            Option<String>,
-            Option<String>,
-            Option<String>,
-            Option<String>,
-        ) = get_user_approximated_color(&id).await?;
+         let user_color: UserColor = get_user_approximated_color(&id).await?;
+        let color = user_color.color.clone();
+        let pfp_url_old = user_color.pfp_url.clone();
+        let image_old = user_color.image;
         if pfp_url != pfp_url_old.unwrap_or(String::new()) {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
             set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?
@@ -45,12 +44,10 @@ pub async fn return_average_user_color(
             .replace("?size=1024", "?size=64");
         let id = member.user.id.to_string();
 
-        let (_, color, pfp_url_old, image_old): (
-            Option<String>,
-            Option<String>,
-            Option<String>,
-            Option<String>,
-        ) = get_user_approximated_color(&id).await?;
+        let user_color: UserColor = get_user_approximated_color(&id).await?;
+        let color = user_color.color.clone();
+        let pfp_url_old = user_color.pfp_url.clone();
+        let image_old = user_color.image;
         if pfp_url != pfp_url_old.clone().unwrap_or(String::new()) {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
             set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?;

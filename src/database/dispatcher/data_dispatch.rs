@@ -216,12 +216,7 @@ pub async fn set_user_approximated_color(
 pub async fn get_user_approximated_color(
     user_id: &String,
 ) -> Result<
-    (
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-    ),
+    UserColor,
     AppError,
 > {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
