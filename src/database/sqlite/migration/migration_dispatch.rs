@@ -13,18 +13,15 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
 
     // Check if the "image" column exists in the "activity_data" table
-    let row: (i64, String, String, i64, i64, i64) = sqlx::query_as(
-        r#"
-        SELECT COUNT(*) FROM pragma_table_info('activity_data')
-        WHERE name='image'
-        "#,
+    let row: u32 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM pragma_table_info('activity_data') WHERE name='image'",
     )
     .fetch_one(&pool)
     .await
     .map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
 
     // If the "image" column doesn't exist, add it
-    if row.0 == 0 {
+    if row == 0 {
         sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT")
             .execute(&pool)
             .await
