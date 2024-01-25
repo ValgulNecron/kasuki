@@ -1,3 +1,6 @@
+use crate::command_run::general::generate_image_pfp_server::{
+    find_closest_color, Color, ColorWithUrl,
+};
 use crate::common::calculate_user_color::get_image_from_url;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::database::dispatcher::data_dispatch::get_all_user_approximated_color;
@@ -77,7 +80,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
                 let lab_color: Lab = rgb_color.into_color();
                 let color_target = Color { cielab: lab_color };
-                let closest_color = find_closest_color(&color_vec_moved, &color_target).unwrap();
+                let arr: &[ColorWithUrl] = &color_vec_moved;
+                let closest_color = find_closest_color(&arr, &color_target).unwrap();
                 vec_image.lock().unwrap().push((x, y, closest_color.image));
             });
 
@@ -151,17 +155,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     Ok(())
 }
 
-#[derive(Clone, Debug)]
-struct Color {
-    cielab: Lab,
-}
-
-#[derive(Clone, Debug)]
-struct ColorWithUrl {
-    cielab: Lab,
-    image: DynamicImage,
-}
-
 fn create_color_vector(tuples: Vec<UserColor>) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
@@ -194,21 +187,4 @@ fn create_color_vector(tuples: Vec<UserColor>) -> Vec<ColorWithUrl> {
             }
         })
         .collect()
-}
-
-fn find_closest_color(colors: &Vec<ColorWithUrl>, target: &Color) -> Option<ColorWithUrl> {
-    let a = colors.iter().min_by(|&a, &b| {
-        let delta_l = (a.cielab.l - target.cielab.l).abs();
-        let delta_a = (a.cielab.a - target.cielab.a).abs();
-        let delta_b = (a.cielab.b - target.cielab.b).abs();
-        let delta_e_a = (delta_l.powi(2) + delta_a.powi(2) + delta_b.powi(2)).sqrt();
-
-        let delta_l = (b.cielab.l - target.cielab.l).abs();
-        let delta_a = (b.cielab.a - target.cielab.a).abs();
-        let delta_b = (b.cielab.b - target.cielab.b).abs();
-        let delta_e_b = (delta_l.powi(2) + delta_a.powi(2) + delta_b.powi(2)).sqrt();
-
-        delta_e_a.partial_cmp(&delta_e_b).unwrap()
-    });
-    a.cloned()
 }

@@ -14,7 +14,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let lang = options.get(0).ok_or(OPTION_ERROR.clone())?;
+    let lang = options.first().ok_or(OPTION_ERROR.clone())?;
     let lang = lang.value.clone();
 
     let lang = match lang {

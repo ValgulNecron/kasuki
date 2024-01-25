@@ -165,14 +165,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 }
 
 #[derive(Clone, Debug)]
-struct Color {
-    cielab: Lab,
+pub struct Color {
+    pub cielab: Lab,
 }
 
 #[derive(Clone, Debug)]
-struct ColorWithUrl {
-    cielab: Lab,
-    image: DynamicImage,
+pub struct ColorWithUrl {
+    pub cielab: Lab,
+    pub image: DynamicImage,
 }
 
 fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUrl> {
@@ -205,7 +205,7 @@ fn create_color_vector(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUr
         .collect()
 }
 
-fn find_closest_color(colors: &Vec<ColorWithUrl>, target: &Color) -> Option<ColorWithUrl> {
+pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<ColorWithUrl> {
     let a = colors.iter().min_by(|&a, &b| {
         let delta_l = (a.cielab.l - target.cielab.l).abs();
         let delta_a = (a.cielab.a - target.cielab.a).abs();

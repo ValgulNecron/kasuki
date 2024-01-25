@@ -32,7 +32,7 @@ pub fn convert_steam_to_discord_flavored_markdown(value: String) -> String {
 }
 
 pub fn add_antislash(value: String) -> String {
-    value.replace("*", "\\*")
+    value.replace('*', "\\*")
 }
 
 /// Converts the HTML tags '<i>' and '<em>' (including their ending tags) in a given string to underscore, '_'
