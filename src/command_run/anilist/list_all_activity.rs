@@ -34,7 +34,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let activity: Vec<String> = list
         .into_iter()
-        .map(|(anime_id, _, _, _, _, name, _)| {
+        .map(|activity| {
+            let anime_id = activity.anime_id;
+            let name = activity.name;
             format!(
                 "[{}](https://anilist.co/anime/{})",
                 name.unwrap_or_default(),

@@ -6,6 +6,7 @@ use tracing::{error, trace};
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
 use crate::database::sqlite::pool::get_sqlite_pool;
+use crate::database_struct::server_activity_struct::ServerActivity;
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
@@ -306,18 +307,7 @@ pub async fn get_user_approximated_color_sqlite(user_id: &String) -> Result<User
 
 pub async fn get_all_server_activity_sqlite(
     server_id: &String,
-) -> Result<
-    Vec<(
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<u32>,
-    )>,
-    AppError,
-> {
+) -> Result<Vec<ServerActivity>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let rows: Vec<SqliteRow> = match sqlx::query(
         "SELECT
@@ -345,15 +335,7 @@ pub async fn get_all_server_activity_sqlite(
     };
     //.map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
 
-    let list: Vec<(
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<u32>,
-    )> = rows
+    let list: Vec<ServerActivity> = rows
         .into_iter()
         .map(|row| {
             let anime_id: Option<String> = row.get(0);
@@ -363,9 +345,15 @@ pub async fn get_all_server_activity_sqlite(
             let episode: Option<String> = row.get(4);
             let name: Option<String> = row.get(5);
             let delays: Option<u32> = row.get(6);
-            (
-                anime_id, timestamp, server_id, webhook, episode, name, delays,
-            )
+            ServerActivity {
+                anime_id,
+                timestamp,
+                server_id,
+                webhook,
+                episode,
+                name,
+                delays,
+            }
         })
         .collect();
 

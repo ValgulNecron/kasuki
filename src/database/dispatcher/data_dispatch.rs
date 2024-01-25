@@ -23,6 +23,7 @@ use crate::database::sqlite::data::{
     set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
     set_registered_user_sqlite, set_user_approximated_color_sqlite,
 };
+use crate::database_struct::server_activity_struct::ServerActivity;
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 
@@ -224,20 +225,7 @@ pub async fn get_user_approximated_color(user_id: &String) -> Result<UserColor, 
     }
 }
 
-pub async fn get_all_server_activity(
-    server_id: &String,
-) -> Result<
-    Vec<(
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<u32>,
-    )>,
-    AppError,
-> {
+pub async fn get_all_server_activity(server_id: &String) -> Result<Vec<ServerActivity>, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_all_server_activity_sqlite(server_id).await

@@ -101,6 +101,8 @@ impl EventHandler for Handler {
             trace!("{:?}", command_interaction.user);
             trace!("{:?}", command_interaction.data);
             trace!("{:?}", command_interaction.guild_id);
+            let command_version = command_interaction.version;
+            trace!(command_version);
             if let Err(e) = command_dispatching(ctx, command_interaction).await {
                 error_dispatch::command_dispatching(e).await
             }
