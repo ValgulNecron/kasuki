@@ -2,6 +2,8 @@ use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interac
 use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;
+use std::time::Duration;
+use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
 use struct_shard_manager::ShardManagerContainer;
@@ -14,6 +16,7 @@ use crate::common::calculate_user_color::color_management;
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::ACTIVITY_NAME;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
+use crate::error_management::error_dispatch;
 use crate::game_struct::steam_game_id_struct::get_game;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 
@@ -40,17 +43,9 @@ struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
-        let guilds = ctx.cache.guilds();
         let ctx_clone = ctx.clone();
         tokio::spawn(async move {
-            info!("Launching the user color management thread!");
-            color_management(guilds, ctx_clone).await;
-        });
-
-        let ctx_clone = ctx.clone();
-        tokio::spawn(async move {
-            info!("Launching the activity management thread!");
-            manage_activity(ctx_clone).await
+            thread_management_launcher(ctx_clone).await;
         });
 
         let activity_type = Some(ActivityData::custom(ACTIVITY_NAME));
@@ -103,9 +98,11 @@ impl EventHandler for Handler {
                 command_interaction.user.name,
                 command_interaction.user.id
             );
-            trace!("{:#?}", command_interaction);
+            trace!("{:?}", command_interaction.user);
+            trace!("{:?}", command_interaction.data);
+            trace!("{:?}", command_interaction.guild_id);
             if let Err(e) = command_dispatching(ctx, command_interaction).await {
-                error_management::error_dispatch::command_dispatching(e).await
+                error_dispatch::command_dispatching(e).await
             }
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
             autocomplete_dispatching(ctx, autocomplete_interaction).await
@@ -155,11 +152,6 @@ async fn main() {
         }
     }
 
-    tokio::spawn(async move {
-        info!("Launching the game management thread!");
-        get_game().await
-    });
-
     info!("starting the bot.");
     let token = match env::var("DISCORD_TOKEN") {
         Ok(token) => {
@@ -200,4 +192,28 @@ async fn main() {
     if let Err(why) = client.start_autosharded().await {
         error!("Client error: {:?}", why)
     }
+}
+
+async fn thread_management_launcher(ctx: Context) {
+    info!("Waiting 30second before launching the different thread.");
+    sleep(Duration::from_secs(30)).await;
+    tokio::spawn(async move {
+        info!("Launching the game management thread!");
+        get_game().await
+    });
+
+    sleep(Duration::from_secs(5)).await;
+    let ctx_clone = ctx.clone();
+    tokio::spawn(async move {
+        info!("Launching the activity management thread!");
+        manage_activity(ctx_clone).await
+    });
+
+    sleep(Duration::from_secs(5)).await;
+    let guilds = ctx.cache.guilds();
+    let ctx_clone = ctx.clone();
+    tokio::spawn(async move {
+        info!("Launching the user color management thread!");
+        color_management(guilds, ctx_clone).await;
+    });
 }

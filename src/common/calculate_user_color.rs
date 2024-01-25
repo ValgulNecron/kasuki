@@ -12,7 +12,7 @@ use serenity::all::{Context, GuildId, Member, UserId};
 use std::io::Cursor;
 use std::time::Duration;
 use tokio::time::sleep;
-use tracing::{error, trace};
+use tracing::{debug, error, trace};
 
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
     for member in members {
@@ -93,7 +93,7 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
     let b_avg = b_total / num_pixels;
 
     let average_color = format!("#{:02x}{:02x}{:02x}", r_avg, g_avg, b_avg);
-    trace!("{}", average_color);
+    debug!("{}", average_color);
 
     let mut image_data: Vec<u8> = Vec::new();
     img.write_to(&mut Cursor::new(&mut image_data), ImageOutputFormat::Png)
@@ -127,10 +127,10 @@ pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
     loop {
         let mut members: Vec<Member> = Vec::new();
         let guild_len = guilds.len();
-        trace!(guild_len);
+        debug!(guild_len);
         for guild in &guilds {
             let guild_id = guild.to_string();
-            trace!(guild_id);
+            debug!(guild_id);
             let mut i = 0;
             let mut members_temp_out = Vec::new();
             while members_temp_out.len() == (1000 * i) {
@@ -150,10 +150,10 @@ pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
                 members_temp_out.append(&mut members_temp_in);
             }
             let server_member_len = members_temp_out.len();
-            trace!(server_member_len);
+            debug!(server_member_len);
             members.append(&mut members_temp_out);
             let members_len = members.len();
-            trace!(members_len);
+            debug!(members_len);
         }
         match calculate_users_color(members.into_iter().collect()).await {
             Ok(_) => {}

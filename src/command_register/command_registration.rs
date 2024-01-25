@@ -17,6 +17,7 @@ pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
         }
         Ok(c) => c,
     };
+
     for command in commands {
         create_command(&command, http).await;
     }
@@ -47,6 +48,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
         .dm_permission(command.dm_command)
         .nsfw(nsfw)
         .default_member_permissions(permission);
+    trace!("{:?}", build);
     match &command.localised {
         Some(localiseds) => {
             for localised in localiseds {
@@ -64,7 +66,6 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
             build = build.add_option(option);
         }
     }
-    trace!("{:?}", build);
     match Command::create_global_command(http, build).await {
         Ok(res) => drop(res),
         Err(e) => {
@@ -99,6 +100,7 @@ async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
             None => {}
         }
         options_build = options_build.set_autocomplete(option.autocomplete);
+        trace!("{:?}", options_build);
 
         options_builds.push(options_build)
     }
