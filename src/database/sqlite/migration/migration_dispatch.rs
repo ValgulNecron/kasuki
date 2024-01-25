@@ -21,18 +21,14 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     )
     .fetch_one(&pool)
     .await
-    .map_err(SqlSelectError(String::from(
-        "Failed to select from the table.",
-    )))?;
+    .map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
 
     // If the "image" column doesn't exist, add it
     if row.0 == 0 {
         sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT")
             .execute(&pool)
             .await
-            .map_err(FailedToUpdateDatabase(String::from(
-                "Failed to update the table.",
-            )))?;
+            .map_err(|_| FailedToUpdateDatabase(String::from("Failed to update the table.")))?;
     }
 
     pool.close().await;

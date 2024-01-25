@@ -23,9 +23,7 @@ pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError>
         let id = member.user.id.to_string();
 
         let user_color: UserColor = get_user_approximated_color(&id).await?;
-        let color = user_color.color.clone();
         let pfp_url_old = user_color.pfp_url.clone();
-        let image_old = user_color.image;
         if pfp_url != pfp_url_old.unwrap_or(String::new()) {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
             set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?
