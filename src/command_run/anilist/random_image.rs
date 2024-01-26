@@ -72,7 +72,7 @@ async fn send_embed(
     })?;
 
     let uuid_name = Uuid::new_v4();
-    let filename = format!("{}.png", uuid_name);
+    let filename = format!("{}.gif", uuid_name);
     let filename_str = filename.as_str();
 
     fs::write(&filename, &bytes)
