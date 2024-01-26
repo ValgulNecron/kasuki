@@ -79,6 +79,6 @@ pub async fn run(
     Ok(())
 }
 
-pub async fn remove_activity(guild_id: &String, anime_id: &i32) -> Result<(), AppError> {
-    remove_data_activity_status(guild_id.clone(), anime_id.to_string()).await
+pub async fn remove_activity(guild_id: &str, anime_id: &i32) -> Result<(), AppError> {
+    remove_data_activity_status(guild_id.to_owned(), anime_id.to_string()).await
 }

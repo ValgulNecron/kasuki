@@ -32,7 +32,7 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let lang = options.get(0).ok_or(OPTION_ERROR.clone())?;
+    let lang = options.first().ok_or(OPTION_ERROR.clone())?;
     let lang = lang.value.clone();
 
     let desc = match lang {

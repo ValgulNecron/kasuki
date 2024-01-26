@@ -104,14 +104,11 @@ async fn send_embed(
     };
     fields.push(field2);
 
-    match game.developers {
-        Some(dev) => fields.push((
-            steam_game_info_localised.field3,
-            convert_steam_to_discord_flavored_markdown(dev.join(", ")),
-            true,
-        )),
-        None => {}
-    }
+    if let Some(dev) = game.developers { fields.push((
+         steam_game_info_localised.field3,
+         convert_steam_to_discord_flavored_markdown(dev.join(", ")),
+         true,
+     )) }
 
     if let Some(publishers) = game.publishers { fields.push((
          steam_game_info_localised.field4,

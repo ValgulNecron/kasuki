@@ -19,7 +19,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
+    let option = & options.first().ok_or(OPTION_ERROR.clone())?.value;
 
     let value = match option {
         CommandDataOptionValue::String(lang) => lang,
@@ -394,7 +394,7 @@ fn other_affinity_manga(manga: Manga, manga0: Manga) -> f64 {
     affinity / 20.0
 }
 
-fn jaccard_index(a: &Vec<String>, b: &Vec<String>) -> f64 {
+fn jaccard_index(a: &[String], b: &[String]) -> f64 {
     let set_a: HashSet<_> = a.iter().collect();
     let set_b: HashSet<_> = b.iter().collect();
 
@@ -425,19 +425,19 @@ fn get_number_by_status(s: Vec<Statuses>) -> (i32, i32, i32, i32, i32, i32) {
     (current, planning, completed, dropped, paused, repeating)
 }
 
-fn tag_string(vec: &Vec<Tag>) -> Vec<String> {
-    vec.into_iter()
+fn tag_string(vec: &[Tag]) -> Vec<String> {
+    vec.iter()
         .map(|tag| tag.tag.name.clone().unwrap())
         .collect()
 }
 
-fn genre_string(vec: &Vec<Genre>) -> Vec<String> {
-    vec.into_iter()
+fn genre_string(vec: &[Genre]) -> Vec<String> {
+    vec.iter()
         .map(|genre| genre.genre.clone().unwrap())
         .collect()
 }
 
-fn get_tag(tags: &Vec<Tag>) -> String {
+fn get_tag(tags: &[Tag]) -> String {
     if tags.len() > 1 {
         tags[0].tag.name.clone().unwrap_or_default()
     } else {
@@ -445,7 +445,7 @@ fn get_tag(tags: &Vec<Tag>) -> String {
     }
 }
 
-fn get_genre(genres: &Vec<Genre>) -> String {
+fn get_genre(genres: &[Genre]) -> String {
     if genres.len() > 1 {
         genres[0].genre.clone().unwrap_or_default()
     } else {
@@ -454,24 +454,24 @@ fn get_genre(genres: &Vec<Genre>) -> String {
 }
 
 fn diff(
-    a1: &String,
-    a2: &String,
-    same: &String,
-    diff_text: &String,
-    username: &String,
-    username2: &String,
+    a1: &str,
+    a2: &str,
+    same: &str,
+    diff_text: &str,
+    username: &str,
+    username2: &str,
 ) -> String {
     let diff = a1 != a2;
 
     if diff {
         diff_text
-            .replace("$1$", username.as_str())
-            .replace("$2$", username2.as_str())
-            .replace("$1a$", a1.as_str())
-            .replace("$2a$", a2.as_str())
+            .replace("$1$", username)
+            .replace("$2$", username2)
+            .replace("$1a$", a1)
+            .replace("$2a$", a2)
     } else {
-        same.replace("$1$", username.as_str())
-            .replace("$2$", username2.as_str())
-            .replace("$1a$", a1.as_str())
+        same.replace("$1$", username)
+            .replace("$2$", username2)
+            .replace("$1a$", a1)
     }
 }

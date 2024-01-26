@@ -36,7 +36,7 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
-    let option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
+    let option = &options.first().ok_or(OPTION_ERROR.clone())?.value;
     if let CommandDataOptionValue::String(random_type) = option {
         let row: (Option<String>, Option<i64>, Option<i64>) =
             get_database_random_cache(random_type).await?;

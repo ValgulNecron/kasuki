@@ -160,7 +160,7 @@ pub async fn run(
             .create_followup(&ctx.http, builder_message)
             .await
             .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -241,7 +241,7 @@ async fn get_webhook(
             return Ok(webhook_return);
         }
     };
-    if webhooks.len() <= 0 {
+    if webhooks.is_empty() {
         let webhook = ctx
             .http
             .create_webhook(channel_id, &map, None)
