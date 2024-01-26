@@ -22,7 +22,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
 
     // If the "image" column doesn't exist, add it
     if row == 0 {
-        sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT")
+        sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT DEFAULT ''")
             .execute(&pool)
             .await
             .map_err(|_| FailedToUpdateDatabase(String::from("Failed to update the table.")))?;
