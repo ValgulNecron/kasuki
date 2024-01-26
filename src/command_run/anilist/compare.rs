@@ -19,7 +19,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let option = & options.first().ok_or(OPTION_ERROR.clone())?.value;
+    let option = &options.first().ok_or(OPTION_ERROR.clone())?.value;
 
     let value = match option {
         CommandDataOptionValue::String(lang) => lang,

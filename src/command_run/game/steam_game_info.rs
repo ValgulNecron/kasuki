@@ -104,29 +104,37 @@ async fn send_embed(
     };
     fields.push(field2);
 
-    if let Some(dev) = game.developers { fields.push((
-         steam_game_info_localised.field3,
-         convert_steam_to_discord_flavored_markdown(dev.join(", ")),
-         true,
-     )) }
+    if let Some(dev) = game.developers {
+        fields.push((
+            steam_game_info_localised.field3,
+            convert_steam_to_discord_flavored_markdown(dev.join(", ")),
+            true,
+        ))
+    }
 
-    if let Some(publishers) = game.publishers { fields.push((
-         steam_game_info_localised.field4,
-         convert_steam_to_discord_flavored_markdown(publishers.join(", ")),
-         true,
-     )) }
+    if let Some(publishers) = game.publishers {
+        fields.push((
+            steam_game_info_localised.field4,
+            convert_steam_to_discord_flavored_markdown(publishers.join(", ")),
+            true,
+        ))
+    }
 
-    if let Some(app_type) = game.app_type { fields.push((
-         steam_game_info_localised.field5,
-         convert_steam_to_discord_flavored_markdown(app_type),
-         true,
-     )) }
+    if let Some(app_type) = game.app_type {
+        fields.push((
+            steam_game_info_localised.field5,
+            convert_steam_to_discord_flavored_markdown(app_type),
+            true,
+        ))
+    }
 
-    if let Some(game_lang) = game.supported_languages { fields.push((
-         steam_game_info_localised.field6,
-         convert_steam_to_discord_flavored_markdown(game_lang),
-         false,
-     )) }
+    if let Some(game_lang) = game.supported_languages {
+        fields.push((
+            steam_game_info_localised.field6,
+            convert_steam_to_discord_flavored_markdown(game_lang),
+            false,
+        ))
+    }
 
     if let Some(categories) = game.categories {
         let descriptions: Vec<String> = categories
