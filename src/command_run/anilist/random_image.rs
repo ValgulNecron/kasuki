@@ -25,7 +25,7 @@ pub async fn run(
         if option.name.as_str() == "image_type" {
             image_type = match option.value.as_str() {
                 Some(image_type) => image_type.to_string(),
-                None => String::from("megumin"),
+                None => String::from("neko"),
             };
         }
     }
