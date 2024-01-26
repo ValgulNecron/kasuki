@@ -160,7 +160,7 @@ and select, insert, delete on them.
   - [X] Add caching to all requests.
   - [X] Send anime release to a channel.
   - [X] List all activity.
-  - [ ] Delete an activity.
+  - [X] Delete an activity.
   - [ ] Try to do the same for manga.
     with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263).
     — Did some digging seem possible.
