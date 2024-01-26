@@ -140,17 +140,14 @@ async fn send_embed(
         None => {}
     }
 
-    match game.categories {
-        Some(categories) => {
-            let descriptions: Vec<String> = categories
-                .into_iter()
-                .filter_map(|category| category.description)
-                .collect();
-            let joined_descriptions =
-                convert_steam_to_discord_flavored_markdown(descriptions.join(", "));
-            fields.push((steam_game_info_localised.field7, joined_descriptions, false))
-        }
-        None => {}
+    if let Some(categories) = game.categories {
+        let descriptions: Vec<String> = categories
+            .into_iter()
+            .filter_map(|category| category.description)
+            .collect();
+        let joined_descriptions =
+            convert_steam_to_discord_flavored_markdown(descriptions.join(", "));
+        fields.push((steam_game_info_localised.field7, joined_descriptions, false))
     }
 
     let builder_embed = CreateEmbed::new()
@@ -158,7 +155,7 @@ async fn send_embed(
         .color(COLOR)
         .title(game.name.unwrap())
         .description(convert_steam_to_discord_flavored_markdown(
-            game.short_description.unwrap_or(String::new()),
+            game.short_description.unwrap_or_default(),
         ))
         .fields(fields)
         .url(format!(

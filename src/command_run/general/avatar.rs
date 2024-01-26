@@ -13,7 +13,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    if let Some(option) = options.get(0) {
+    if let Some(option) = options.first() {
         let resolved = &option.value;
         if let CommandDataOptionValue::User(user, ..) = resolved {
             let user = user
