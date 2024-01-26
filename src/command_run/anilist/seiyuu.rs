@@ -14,6 +14,7 @@ use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
+use crate::common::get_option_value::get_option;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{
@@ -25,15 +26,9 @@ use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let mut value = String::new();
-    for option_data in options {
-        if option_data.name.as_str() != "type" {
-            let option_value = option_data.value.as_str().clone().unwrap();
-            value = option_value.to_string().clone()
-        }
-    }
+    let value = get_option(options);
 
     let data = if value.parse::<i32>().is_ok() {
         StaffImageWrapper::new_staff_by_id(value.parse().unwrap()).await?
@@ -41,7 +36,7 @@ pub async fn run(
         StaffImageWrapper::new_staff_by_search(&value).await?
     };
 
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -50,7 +45,7 @@ pub async fn run(
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
@@ -58,7 +53,7 @@ pub async fn run(
     let mut uuids: Vec<Uuid> = Vec::new();
     for _ in 0..5 {
         let uuid = Uuid::new_v4();
-        uuids.push(uuid);
+        uuids.push(uuid)
     }
 
     let url = get_staff_image(data.clone());
@@ -157,7 +152,7 @@ pub async fn run(
                 DifferedCreatingImageError(String::from(
                     "Failed to create the image from the file.",
                 ))
-            })?;
+            })?
     }
 
     let combined_uuid = Uuid::new_v4();
@@ -181,7 +176,7 @@ pub async fn run(
         .embed(builder_embed)
         .files(vec![attachement]);
 
-    command
+    command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;

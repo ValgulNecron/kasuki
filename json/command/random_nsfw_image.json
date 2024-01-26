@@ -1,0 +1,75 @@
+{
+  "name": "random_nsfw_image",
+  "desc": "Get a random nsfw anime image.",
+  "dm_command": false,
+  "nsfw": true,
+  "perm": false,
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "image_type",
+      "desc": "The type of the random image you want.",
+      "required": true,
+      "autocomplete": false,
+      "command_type": "String",
+      "choices": [
+        {
+          "option_choice": "waifu"
+        },
+        {
+          "option_choice": "neko"
+        },
+        {
+          "option_choice": "trap"
+        },
+        {
+          "option_choice": "blowjob"
+        }
+      ],
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "image_type",
+          "desc": "The type of the random image you want."
+        },
+        {
+          "code": "fr",
+          "name": "type_image",
+          "desc": "Le type de l'image nsfw aléatoire que vous souhaitez."
+        },
+        {
+          "code": "de",
+          "name": "bildtyp",
+          "desc": "Die Art des zufälligen nsfw-Bildes, das Sie möchten."
+        },
+        {
+          "code": "ja",
+          "name": "imeji_taipu",
+          "desc": "欲しいランダムな nsfw 画像の種類。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "random_nsfw_image",
+      "desc": "Get a random nsfw anime image."
+    },
+    {
+      "code": "fr",
+      "name": "image_aleatoire_nsfw",
+      "desc": "Obtenez une image nsfw anime aléatoire."
+    },
+    {
+      "code": "de",
+      "name": "zufalliges_nsfw_bild",
+      "desc": "Erhalte ein zufälliges nsfw Anime-Bild."
+    },
+    {
+      "code": "ja",
+      "name": "random_nsfw_naime_imeji",
+      "desc": "ランダムな nsfw アニメ画像を取得します。"
+    }
+  ]
+}

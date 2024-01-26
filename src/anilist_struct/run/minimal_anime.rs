@@ -119,4 +119,5 @@ pub struct ActivityData {
     pub episode: Option<String>,
     pub name: Option<String>,
     pub delays: Option<i32>,
+    pub image: Option<String>,
 }

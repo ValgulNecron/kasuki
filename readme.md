@@ -23,22 +23,22 @@ when I have ideas or want to test things.
 
 
 Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
-something else, just do it and open a pr afterward.
+something else, you can do it and open a pr afterward.
 
 
-## I don't know how to code in rust but still want to contribute
+## I don’t know how to code in rust but still want to contribute
 
-1. You can add new langage by adding a translation in the file located in lang_file and adding it to
-   lang_file/available_lang.json
+1. You can add a new language by adding a translation in the file located in json and adding it to the choices in
+   json/command/lang.json
 2. Contribute to this guide by making it clearer on how to use/ how it works.
 3. Or by opening an issue with enhancement or new feature you want to see.
+4. Or by contributing to the website for the bot.
 
-Please note that for embed you will need to use ISO-639-1 and if no ISO-639-1 exist or need to be more specific like the
-different "version" of chinese use ISO-639-3 and if still not like with a specific chinese written in pinyin, I used the
-ISO-639-3 code for mandarin chinese (cmn) and added a p for pinyin
+Please note that for embed you will need to use the country code.
+please also add the country code to the constant LANG_MAP in src/constant.rs and add the langage in full name with it.
 
-if working on command_register please use the same structure,
-but the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
+for the command json please follow the example,
+the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
 
 
 # How to use
@@ -73,7 +73,7 @@ windows: windows 10 and 11
 git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 ```
 
-- edit compose-default.yml file and add your discord bot token.
+- edit compose-default.yml file and add your discord bot token and edit the other env var.
   (not sure if it works or needs to be renamed to
   compose.yml or docker-compose.yml)
 - run docker compose.
@@ -82,13 +82,11 @@ git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 docker compose up -d
 ```
 
-Please remember that after a pull you will need to rebuild
-
 ```bash
-docker compose up -d --build 
+docker compose up -d --pull always
 ```
 
-you can also use the image valgul/kasuki instead of building the bot locally.
+or you can build from the latest commit.
 
 
 ### or Rust
@@ -107,6 +105,16 @@ git clone https://github.com/ValgulNecron/DIscordAnilistBotRS.git
 cargo run --release
 ```
 
+```bash
+cargo build --release
+```
+
+You can if you wan't use a postgres database and not a sqlite one the user will need to be able to create a database
+(cache and data).
+Create table inside both database
+and select, insert, delete on them.
+
+
 # TODO
 
 
@@ -115,48 +123,44 @@ cargo run --release
 - General part:
   - [X] Change how the text is displayed to support localization.
   - [X] Find a name for the bot.
-  - [x] Add a bdd for some stuff prob sqlite but not sure. — Added sqlite db. (change to PostgresSQL)
-    — will add a var variable that will either be "sqlite" or "postgresql" with an url var for PostgreSQL
-    — will need to do some change and move db logic to its own function.
+  - [x] Add a sqlite database.
+  - [X] Add postgres database choices.
+  - [ ] Add more database choices when I have time.
   - [X] Banner. Show your or a specified user banner.
   - [X] Profil. Show a user profile and some info.
   - [X] Avatar. show you the profile picture of a user.
   - [X] Add support to turn on and off module.
   - [X] Create a parser because some description uses html and not markdown.
-    Will need to check to be sure all are done.
+  - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases are
+    supported
   - [ ] Poll feature with custom choice and a graph afterward for comparison.
   - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
     size.
-  - [ ] Better error handling.
-    Different error messages,
-    type and replies everytime not in certain condition.
-    — working on it.
-  - [ ] Localisation for response — Done except for some other "minor" stuff. Lazy to continue will need some help to
-    proofread the json file and continue to complete the not finished one.
+  - [X] Better error handling.
+  - [ ] Doing something with error else than logging it.
+  - [X] Localisation for response.
   - [X] Localisation for command.
-  - [X] Rename function, structure, command name etc... so it makes more sense.
+  - [ ] Rename for better clarity.
   - [ ] Add docs to every public function.
     (Run, Register and Autocomplete don’t need this.).
-    started and clearly not
-    finished.
   - [X] Logging
-  - [X] Updating to serenity 0.12 — Working on it.
+  - [X] Updating to serenity 0.12.
   - [X] Support for command in dm.
   - [X] Make an anilist forum post.
 
 - Anime submodule:
   - [X] Finish comparison function.
-  - [ ] Add affinity score to user comparaison.
+  - [X] Add affinity score to user comparaison.
   - [X] Add character search function.
   - [X] Add staff search function.
   - [X] Add search feature with a type.
   - [X] Bind anilist account to discord for /user.
   - [X] Random /random {anime, manga}.
-  - [ ] Rework the xp in struct_level to something easier. — Too lazy to balance.
+  - [ ] Rework the xp in level.rs to something easier. — Too lazy to balance.
   - [X] Add caching to all requests.
   - [X] Send anime release to a channel.
-  - [ ] List all activity.
-  - [ ] Delete an activity.
+  - [X] List all activity.
+  - [X] Delete an activity.
   - [ ] Try to do the same for manga.
     with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263).
     — Did some digging seem possible.
@@ -164,9 +168,9 @@ cargo run --release
     — Same as anime, but this one will be hard since
     a user can do update every second like every year. Will either have delay or be resource intensive.
   - [X] Add a "delay" option to delay notification.
-  - [X] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image with a seiyuu and va role.
-  - [ ] Get all the register users of the server.
-    — Working on it after finishing anime activity.
+  - [X] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
+    with a seiyuu and va role.
+  - [X] Get all the register users of the server.
   - [X] Add studio search.
   - [X] Add commands that give the best waifu.
 
@@ -177,13 +181,11 @@ cargo run --release
   - [ ] Ask a question and reply the response.
     — Not a priority.
 
-- Moderation submodule:
-  - [ ] General moderation stuff
-
 - Games module:
-  - [ ] get game price from different platform (ubi, steam, epic, ea, etc....)
-    Set "server" curency.
-    Get game price
+  - [X] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found),
+    etc....)
+    Get the currency and language from the server language setting.
+    Steam done.
   - [ ] get player stat
   - [ ] get free promotion notification
 
@@ -197,11 +199,18 @@ for those of you who prefer web dev.\
 # Credit
 
 - Thanks Srayeals for the badge I use as the bot
-  pfp. ([https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals))
+  pfp. ([https://anilist.co/forum/thread/20292](https://anilist.co/forum/thread/20292), [https://anilist.co/user/Srayeals](https://anilist.co/user/Srayeals)) \
+  for the bot
+  pfp [https://anilist.co/forum/thread/20292/comment/2206321](https://anilist.co/forum/thread/20292/comment/2206321) [Valedstorm Olivia](https://i.imgur.com/vERcUNo.png) \
+  for the beta
+  bot [https://srayealsbadges.carrd.co/#h](https://srayealsbadges.carrd.co/#h) [Neptune](https://srayealsbadges.carrd.co/assets/images/gallery77/7846fb0b_original.png?v=0ff4ab06) \
+  for the dev bot (private only on my
+  server) [https://srayealsbadges.carrd.co/#s](https://srayealsbadges.carrd.co/#s) [Krul tepes](https://srayealsbadges.carrd.co/assets/images/gallery121/67449fb5_original.png?v=0ff4ab06)
 - Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work
   anymore. (and now it seems to work again.))
 - [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) For seiyuu and va role image generation
   idea.
+  seem like the post was removed.
 - [https://github.com/Skittyblock/AniBot](https://github.com/Skittyblock/AniBot) For auto-complete on command, did not
   even know it existed before.
 

@@ -1,6 +1,12 @@
-FROM rust:1.74-buster AS builder
+FROM rust:slim-bookworm AS builder
 
 RUN USER=root cargo new --bin kasuki
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl-dev libsqlite3-dev \
+    libpng-dev libjpeg-dev \
+    ca-certificates pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /kasuki
 
@@ -14,7 +20,7 @@ COPY ./src ./src
 RUN rm ./target/release/deps/kasuki*
 RUN cargo build --release
 
-FROM debian:buster-slim AS bot
+FROM debian:trixie-slim AS bot
 
 LABEL maintainer="valgul"
 LABEL author="valgul"
@@ -25,13 +31,14 @@ HEALTHCHECK CMD ps aux | grep kasuki || exit 1
 
 WORKDIR /kasuki/
 
-COPY json /kasuki/json
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
-    ca-certificates && rm -rf /var/lib/apt/lists/*
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /kasuki/target/release/kasuki /kasuki/.
+COPY --from=builder /kasuki/target/release/kasuki/ /kasuki/
+
+COPY json /kasuki/json
 
 CMD ["./kasuki"]

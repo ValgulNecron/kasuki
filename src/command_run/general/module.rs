@@ -4,18 +4,18 @@ use serenity::all::{
 };
 
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
-use crate::error_enum::AppError;
-use crate::lang_struct::general::module::load_localization_module_activation;
-use crate::sqls::general::data::{
+use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
 };
+use crate::error_enum::AppError;
+use crate::lang_struct::general::module::load_localization_module_activation;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -28,7 +28,7 @@ pub async fn run(
             if let CommandDataOptionValue::String(module_option) = resolved {
                 module = module_option.clone()
             } else {
-                module = "".to_string();
+                module = "".to_string()
             }
         }
         if option.name == "state" {
@@ -41,42 +41,32 @@ pub async fn run(
         }
     }
 
-    let desc;
+    let row = get_data_module_activation_status(&guild_id).await?;
+    let (_, ai_module, anilist_module, game_module): (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+    ) = row;
+    let mut ai_value = ai_module.unwrap_or(false);
+    let mut anilist_value = anilist_module.unwrap_or(false);
+    let mut game_value = game_module.unwrap_or(false);
     match module.as_str() {
-        "ANIME" => {
-            let row = get_data_module_activation_status(&guild_id).await?;
-            let (_, ai_module, _): (Option<String>, Option<bool>, Option<bool>) = row;
-
-            let ai_value = ai_module.unwrap_or(false);
-
-            set_data_module_activation_status(&guild_id, state, ai_value).await?;
-
-            desc = if state {
-                &module_localised.on
-            } else {
-                &module_localised.off
-            };
-        }
-        "AI" => {
-            let row = get_data_module_activation_status(&guild_id).await?;
-            let (_, _, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
-
-            let anilist_value = anilist_module.unwrap_or(false);
-
-            set_data_module_activation_status(&guild_id, anilist_value, state).await?;
-
-            desc = if state {
-                &module_localised.on
-            } else {
-                &module_localised.off
-            };
-        }
+        "ANIME" => anilist_value = state,
+        "AI" => ai_value = state,
+        "GAME" => game_value = state,
         _ => {
             return Err(AppError::ModuleError(String::from(
                 "This module does not exist.",
             )));
         }
     }
+    set_data_module_activation_status(&guild_id, anilist_value, ai_value, game_value).await?;
+    let desc = if state {
+        &module_localised.on
+    } else {
+        &module_localised.off
+    };
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -88,20 +78,26 @@ pub async fn run(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }
 
 pub async fn check_activation_status(module: &str, guild_id: String) -> Result<bool, AppError> {
-    let row: (Option<String>, Option<bool>, Option<bool>) =
+    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>) =
         get_data_module_activation_status(&guild_id).await?;
 
-    let (_, ai_module, anilist_module): (Option<String>, Option<bool>, Option<bool>) = row;
+    let (_, ai_module, anilist_module, game_module): (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+    ) = row;
     Ok(match module {
         "ANILIST" => anilist_module.unwrap_or(true),
         "AI" => ai_module.unwrap_or(true),
+        "GAME" => game_module.unwrap_or(true),
         _ => false,
     })
 }

@@ -13,6 +13,7 @@ use crate::error_enum::AppError::{
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CompareLocalised {
+    pub affinity: String,
     pub more_anime: String,
     pub same_anime: String,
     pub more_watch_time: String,

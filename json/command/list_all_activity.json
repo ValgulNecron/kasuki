@@ -1,0 +1,30 @@
+{
+  "name": "list_activity",
+  "desc": "Get the list of all registered activity.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 0,
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "list_activity",
+      "desc": "Get the list of all registered activity."
+    },
+    {
+      "code": "fr",
+      "name": "liste_activite",
+      "desc": "Obtenir la liste de toutes les activités enregistrées."
+    },
+    {
+      "code": "de",
+      "name": "aktivitat_liste",
+      "desc": "Erhalten Sie die Liste aller registrierten Aktivitäten."
+    },
+    {
+      "code": "ja",
+      "name": "regisutaredo_katsudo_no_rireki",
+      "desc": "登録されたすべてのアクティビティのリストを取得します。"
+    }
+  ]
+}

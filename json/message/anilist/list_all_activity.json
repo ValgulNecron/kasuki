@@ -1,0 +1,22 @@
+{
+  "en": {
+    "title": "List of all activity.",
+    "next": "Next page",
+    "previous": "Previous page"
+  },
+  "fr": {
+    "title": "Liste des utilisateurs inscrits.",
+    "next": "Page suivante",
+    "previous": "Page précédente"
+  },
+  "jp": {
+    "title": "登録ユーザーのリスト",
+    "next": "次のページ",
+    "previous": "前のページ"
+  },
+  "de": {
+    "title": "Liste aller Aktivitäten.",
+    "next": "Nächste Seite",
+    "previous": "Vorherige Seite"
+  }
+}

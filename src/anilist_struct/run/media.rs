@@ -5,12 +5,13 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::common::html_parser::convert_to_discord_markdown;
+use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
+use crate::common::get_nsfw::get_nsfw;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, UNKNOWN};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::MediaGettingError;
+use crate::error_enum::AppError::{MediaGettingError, NotNSFWError};
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -537,13 +538,8 @@ fn embed_title(data: &MediaWrapper) -> String {
 }
 
 fn embed_desc(data: &MediaWrapper) -> String {
-    let mut desc = data
-        .data
-        .media
-        .description
-        .clone()
-        .unwrap_or_else(|| "".to_string());
-    desc = convert_to_discord_markdown(desc);
+    let mut desc = data.data.media.description.clone().unwrap_or_default();
+    desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
     if lenght_diff <= 0 {
         desc = trim(desc, lenght_diff)
@@ -598,7 +594,7 @@ fn media_info(data: &MediaWrapper, media_localised: &MediaLocalised) -> String {
         embed_desc(data),
         get_info(&data.data.media, media_localised)
     );
-    desc = convert_to_discord_markdown(desc);
+    desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
     if lenght_diff <= 0 {
         desc = trim(desc, lenght_diff)
@@ -631,10 +627,10 @@ fn get_date(date: &StartEndDate) -> String {
     }
 }
 
-fn get_staff(staff: &Vec<Edge>, staff_string: &String) -> String {
+fn get_staff(staff: &Vec<Edge>, staff_string: &str) -> String {
     let mut staff_text = String::new();
     for s in staff {
-        let text = staff_string.clone();
+        let text = staff_string;
         let node = &s.node;
         let name = &node.name;
         let full = name.full.clone();
@@ -654,10 +650,14 @@ fn get_staff(staff: &Vec<Edge>, staff_string: &String) -> String {
 
 pub async fn send_embed(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     data: MediaWrapper,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    if data.data.media.is_adult && !get_nsfw(command_interaction, ctx).await {
+        return Err(NotNSFWError(String::from("The channel is not nsfw.")));
+    }
+
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -679,7 +679,7 @@ pub async fn send_embed(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

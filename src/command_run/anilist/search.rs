@@ -7,7 +7,7 @@ use crate::error_enum::AppError::NotAValidTypeError;
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     let mut search_type = String::new();
 
@@ -17,13 +17,13 @@ pub async fn run(
         }
     }
     match search_type.as_str() {
-        "anime" => anime::run(options, ctx, command).await,
-        "character" => character::run(options, ctx, command).await,
-        "ln" => ln::run(options, ctx, command).await,
-        "manga" => manga::run(options, ctx, command).await,
-        "staff" => staff::run(options, ctx, command).await,
-        "user" => user::run(options, ctx, command).await,
-        "studio" => studio::run(options, ctx, command).await,
+        "anime" => anime::run(options, ctx, command_interaction).await,
+        "character" => character::run(options, ctx, command_interaction).await,
+        "ln" => ln::run(options, ctx, command_interaction).await,
+        "manga" => manga::run(options, ctx, command_interaction).await,
+        "staff" => staff::run(options, ctx, command_interaction).await,
+        "user" => user::run(options, ctx, command_interaction).await,
+        "studio" => studio::run(options, ctx, command_interaction).await,
         _ => Err(NotAValidTypeError(String::from("Invalid type"))),
     }
 }

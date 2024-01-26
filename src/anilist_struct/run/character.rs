@@ -4,8 +4,9 @@ use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
+use tracing::log::trace;
 
-use crate::common::html_parser::convert_to_discord_markdown;
+use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
@@ -90,7 +91,9 @@ impl CharacterWrapper {
         }
         ";
         let json = json!({"query": query_id, "variables": {"name": value}});
+        trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
+        trace!("{:#?}", resp);
         serde_json::from_str(&resp)
             .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
     }
@@ -123,7 +126,9 @@ query ($name: String) {
 }
 ";
         let json = json!({"query": query_string, "variables": {"name": value}});
+        trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
+        trace!("{:#?}", resp);
         serde_json::from_str(&resp)
             .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
     }
@@ -131,13 +136,15 @@ query ($name: String) {
 
 pub async fn send_embed(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     data: CharacterWrapper,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+
+    trace!("{:#?}", guild_id);
 
     let character = data.data.character.clone();
 
@@ -149,33 +156,24 @@ pub async fn send_embed(
     let mut mo: bool = false;
     let mut da: bool = false;
 
-    match dob_data.month {
-        Some(m) => {
-            dob_string.push_str(format!("{:02}", m).as_str());
-            mo = true
-        }
-        None => {}
+    if let Some(m) = dob_data.month {
+        dob_string.push_str(format!("{:02}", m).as_str());
+        mo = true
     }
 
-    match dob_data.day {
-        Some(d) => {
-            if mo {
-                dob_string.push_str("/")
-            }
-            dob_string.push_str(format!("{:02}", d).as_str());
-            da = true
+    if let Some(d) = dob_data.day {
+        if mo {
+            dob_string.push('/')
         }
-        None => {}
+        dob_string.push_str(format!("{:02}", d).as_str());
+        da = true
     }
 
-    match dob_data.year {
-        Some(y) => {
-            if da {
-                dob_string.push_str("/")
-            }
-            dob_string.push_str(format!("{:04}", y).as_str());
+    if let Some(y) = dob_data.year {
+        if da {
+            dob_string.push('/')
         }
-        None => {}
+        dob_string.push_str(format!("{:04}", y).as_str());
     }
 
     let mut dob = String::new();
@@ -193,7 +191,7 @@ pub async fn send_embed(
         .replace("$fav$", character.favourites.to_string().as_str())
         .replace("$desc$", character.description.as_str());
 
-    desc = convert_to_discord_markdown(desc);
+    desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
     if lenght_diff <= 0 {
         desc = trim(desc, lenght_diff)
@@ -215,7 +213,7 @@ pub async fn send_embed(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

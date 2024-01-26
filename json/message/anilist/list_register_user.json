@@ -1,0 +1,22 @@
+{
+  "en": {
+    "title": "List of registered users.",
+    "next": "Next page",
+    "previous": "Previous page"
+  },
+  "fr": {
+    "title": "Liste des utilisateurs enregistrés.",
+    "next": "Page suivante",
+    "previous": "Page précédente"
+  },
+  "jp": {
+    "title": "登録ユーザーのリスト",
+    "next": "次のページ",
+    "previous": "前のページ"
+  },
+  "de": {
+    "title": "Liste der registrierten Benutzer.",
+    "next": "Nächste Seite",
+    "previous": "Vorherige Seite"
+  }
+}

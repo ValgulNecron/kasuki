@@ -38,20 +38,8 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
         _ => "kasuki=info",
     };
 
-    let crate_log = match Directive::from_str(OTHER_CRATE_LEVEL) {
-        Ok(d) => d,
-        Err(e) => {
-            eprintln!("{}", e);
-            return Err(SetLoggerError(String::from("Error creating the Logger")));
-        }
-    };
-    let kasuki_log = match Directive::from_str(kasuki_filter) {
-        Ok(d) => d,
-        Err(e) => {
-            eprintln!("{}", e);
-            return Err(SetLoggerError(String::from("Error creating the Logger")));
-        }
-    };
+    let crate_log = get_directive(OTHER_CRATE_LEVEL)?; // "warn" by default (see constant.rs
+    let kasuki_log = get_directive(kasuki_filter)?;
 
     let filter = EnvFilter::from_default_env()
         .add_directive(crate_log)
@@ -87,7 +75,7 @@ pub fn remove_old_logs() -> Result<(), Error> {
 
     // Remove the oldest ones until there are only 5 left
     for entry in entries.iter().clone().take(entries.len().saturating_sub(5)) {
-        fs::remove_file(entry.path())?;
+        fs::remove_file(entry.path())?
     }
 
     Ok(())
@@ -156,7 +144,18 @@ impl MessageVisitor {
 impl field::Visit for MessageVisitor {
     fn record_debug(&mut self, field: &Field, value: &dyn std::fmt::Debug) {
         if field.name() == "message" {
-            self.message = format!("{:?}", value);
+            self.message = format!("{:?}", value)
         }
     }
+}
+
+fn get_directive(filter: &str) -> Result<Directive, AppError> {
+    let directive = match Directive::from_str(filter) {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("{}", e);
+            return Err(SetLoggerError(String::from("Error creating the Logger")));
+        }
+    };
+    Ok(directive)
 }

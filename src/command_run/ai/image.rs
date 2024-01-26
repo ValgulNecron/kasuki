@@ -7,6 +7,7 @@ use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateAttachment,
     CreateEmbed, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
+use tracing::trace;
 use uuid::Uuid;
 
 use crate::constant::{
@@ -18,19 +19,20 @@ use crate::error_enum::AppError::{
     DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError,
     DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption,
 };
+use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
-    let lang = options.get(0).ok_or(OPTION_ERROR.clone())?;
+    let lang = options.first().ok_or(OPTION_ERROR.clone())?;
     let lang = lang.value.clone();
 
     let desc = match lang {
@@ -42,11 +44,11 @@ pub async fn run(
         }
     };
 
-    let image_localised = load_localization_image(guild_id).await?;
+    let image_localised = load_localization_image(guild_id.clone()).await?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
@@ -56,7 +58,7 @@ pub async fn run(
     let filename_str = filename.as_str();
 
     let prompt = desc;
-    let api_key = match env::var("AI_API_TOKEN") {
+    let api_key = match env::var("AI_IMAGE_API_TOKEN") {
         Ok(x) => x,
         Err(_) => {
             return Err(DifferedTokenError(String::from(
@@ -65,37 +67,121 @@ pub async fn run(
         }
     };
 
-    let api_base_url = match env::var("AI_API_BASE_URL") {
-        Ok(x) => x,
-        Err(_) => "https://api.openai.com/v1/".to_string(),
-    };
+    let api_base_url = env::var("AI_IMAGE_API_BASE_URL")
+        .unwrap_or_else(|_| "https://api.openai.com/v1/".to_string());
 
     let mut data = json!({
+        "model": "dall-e-3",
         "prompt": prompt,
         "n": 1,
         "size": "1024x1024",
         "response_format": "url"
     });
     if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
-        let is_ok = image_generation_mode.to_lowercase() == "true";
-        if is_ok {
-            let model = match env::var("IMAGE_GENERATION_MODELS") {
-                Ok(data) => data,
-                Err(_) => {
-                    return Err(DifferedImageModelError(String::from(
-                        "Please specify the models you want to use",
-                    )));
-                }
-            };
-            data = json!({
-                "prompt": prompt,
-                "n": 1,
-                "size": "1024x1024",
-                "model": model,
-                "response_format": "url"
-            })
+        let is_ok_image = image_generation_mode.to_lowercase() == "true";
+        let quality = match env::var("IMAGE_QUALITY") {
+            Ok(quality) => Some(quality),
+            Err(_) => None,
+        };
+        let style = match env::var("IMAGE_STYLE") {
+            Ok(style) => Some(style),
+            Err(_) => None,
+        };
+
+        let model = match env::var("IMAGE_GENERATION_MODELS") {
+            Ok(data) => data,
+            Err(_) => {
+                return Err(DifferedImageModelError(String::from(
+                    "Please specify the models you want to use",
+                )));
+            }
+        };
+
+        let size = env::var("IMAGE_SIZE").unwrap_or(String::from("1024x1024"));
+        match (is_ok_image, quality, style) {
+            (true, Some(quality), Some(style)) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": size,
+                    "model": model,
+                    "quality": quality,
+                    "style": style,
+                    "response_format": "url"
+                })
+            }
+            (true, None, Some(style)) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": size,
+                    "model": model,
+                    "style": style,
+                    "response_format": "url"
+                })
+            }
+            (true, Some(quality), None) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": size,
+                    "model": model,
+                    "quality": quality,
+                    "response_format": "url"
+                })
+            }
+            (true, None, None) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": size,
+                    "model": model,
+                    "response_format": "url"
+                })
+            }
+            (false, Some(quality), Some(style)) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": size,
+                    "model": "dall-e-3",
+                    "quality": quality,
+                    "style": style,
+                    "response_format": "url"
+                })
+            }
+            (false, None, Some(style)) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": size,
+                    "model": "dall-e-3",
+                    "style": style,
+                    "response_format": "url"
+                })
+            }
+            (false, Some(quality), None) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": size,
+                    "model": "dall-e-3",
+                    "quality": quality,
+                    "response_format": "url"
+                })
+            }
+            (false, None, None) => {
+                data = json!({
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": size,
+                    "model": "dall-e-3",
+                    "response_format": "url"
+                })
+            }
         }
     }
+    trace!("{:#?}", data);
 
     let api_url = format!("{}images/generations", api_base_url);
     let client = reqwest::Client::new();
@@ -128,6 +214,7 @@ pub async fn run(
         .map_err(|_| {
             DifferedResponseError(String::from("Failed to get the response from the server."))
         })?;
+    trace!("{:#?}", res);
 
     let url_string = res
         .get("data")
@@ -165,10 +252,18 @@ pub async fn run(
         .embed(builder_embed)
         .files(vec![attachement]);
 
-    command
+    command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+
+    image_saver(
+        guild_id,
+        command_interaction.user.id.to_string(),
+        filename.clone(),
+        bytes.to_vec(),
+    )
+    .await?;
 
     let _ = fs::remove_file(filename_str);
 

@@ -9,19 +9,21 @@ use serenity::all::{
 use crate::anilist_struct::run::random::PageWrapper;
 use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper;
-use crate::common::html_parser::convert_to_discord_markdown;
+use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::database::dispatcher::cache_dispatch::{
+    get_database_random_cache, set_database_random_cache,
+};
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::random::{load_localization_random, RandomLocalised};
-use crate::sqls::general::cache::{get_database_random_cache, set_database_random_cache};
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -30,16 +32,17 @@ pub async fn run(
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
-    let option = &options.get(0).ok_or(OPTION_ERROR.clone())?.value;
+    let option = &options.first().ok_or(OPTION_ERROR.clone())?.value;
     if let CommandDataOptionValue::String(random_type) = option {
         let row: (Option<String>, Option<i64>, Option<i64>) =
             get_database_random_cache(random_type).await?;
         let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
-        let page_number = last_page.unwrap_or(1620); // This is as today date the last page, i will update it sometime.
+        let page_number = last_page.unwrap_or(1628); // This is as today date the last page,
+                                                     // I will update it sometime.
         let previous_page = page_number - 1;
         let cached_response = response.unwrap_or("Nothing".to_string());
         if let Some(updated) = last_updated {
@@ -49,7 +52,7 @@ pub async fn run(
                     page_number,
                     random_type.to_string(),
                     ctx,
-                    command,
+                    command_interaction,
                     random_localised,
                 )
                 .await;
@@ -59,7 +62,7 @@ pub async fn run(
             page_number,
             random_type,
             ctx,
-            command,
+            command_interaction,
             previous_page,
             cached_response,
             random_localised,
@@ -76,32 +79,32 @@ pub async fn embed(
     last_page: i64,
     random_type: String,
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     random_localised: RandomLocalised,
 ) -> Result<(), AppError> {
     let number = thread_rng().gen_range(1..=last_page);
-    return if random_type == "manga" {
+    if random_type == "manga" {
         let data = PageWrapper::new_manga_page(number).await?;
         let url = format!(
             "https://anilist.co/manga/{}",
             data.data.page.media.clone()[0].id
         );
-        follow_up_message(ctx, command, data, url, random_localised).await
+        follow_up_message(ctx, command_interaction, data, url, random_localised).await
     } else if random_type == "anime" {
         let data = PageWrapper::new_anime_page(number).await?;
         let url = format!(
             "https://anilist.co/anime/{}",
             data.data.page.media.clone()[0].id
         );
-        follow_up_message(ctx, command, data, url, random_localised).await
+        follow_up_message(ctx, command_interaction, data, url, random_localised).await
     } else {
         Ok(())
-    };
+    }
 }
 
 pub async fn follow_up_message(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     data: PageWrapper,
     url: String,
     random_localised: RandomLocalised,
@@ -116,10 +119,10 @@ pub async fn follow_up_message(
         .collect::<Vec<String>>()
         .join("/");
     let mut desc = media.description;
-    desc = convert_to_discord_markdown(desc);
+    desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let length_diff = 4096 - desc.len() as i32;
     if length_diff <= 0 {
-        trim(desc.clone(), length_diff);
+        desc = trim(desc.clone(), length_diff);
     }
     let rj = media.title.native;
     let user_pref = media.title.user_preferred;
@@ -141,7 +144,7 @@ pub async fn follow_up_message(
 
     let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
 
-    command
+    command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
@@ -152,7 +155,7 @@ pub async fn update_cache(
     mut page_number: i64,
     random_type: &String,
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     mut previous_page: i64,
     mut cached_response: String,
     random_localised: RandomLocalised,
@@ -170,7 +173,7 @@ pub async fn update_cache(
             cached_response = res.to_string();
             previous_page = page_number;
 
-            page_number += 1;
+            page_number += 1
         }
     } else if random_type.as_str() == "anime" {
         loop {
@@ -183,7 +186,7 @@ pub async fn update_cache(
             cached_response = res.to_string();
             previous_page = page_number;
 
-            page_number += 1;
+            page_number += 1
         }
     }
 
@@ -192,7 +195,7 @@ pub async fn update_cache(
         previous_page,
         random_type.to_string(),
         ctx,
-        command,
+        command_interaction,
         random_localised,
     )
     .await

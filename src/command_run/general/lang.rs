@@ -4,17 +4,17 @@ use serenity::all::{
 };
 
 use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::database::dispatcher::data_dispatch::set_data_guild_langage;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NoCommandOption;
 use crate::lang_struct::general::lang::load_localization_lang;
-use crate::sqls::general::data::set_data_guild_langage;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let lang = options.get(0).ok_or(OPTION_ERROR.clone())?;
+    let lang = options.first().ok_or(OPTION_ERROR.clone())?;
     let lang = lang.value.clone();
 
     let lang = match lang {
@@ -26,7 +26,7 @@ pub async fn run(
         }
     };
 
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -43,7 +43,7 @@ pub async fn run(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

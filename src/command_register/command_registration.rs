@@ -17,6 +17,7 @@ pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
         }
         Ok(c) => c,
     };
+
     for command in commands {
         create_command(&command, http).await;
     }
@@ -34,10 +35,10 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
         permission = Permissions::from_bits(perm_bit).unwrap()
     }
 
-    let mut nsfw = command.nsfw.clone();
+    let mut nsfw = command.nsfw;
 
     if command.name.as_str() == "image" {
-        let honor_nsfw = env::var("IMAGE_GENERATION_MODELS_ON").unwrap_or(String::from("fale"));
+        let honor_nsfw = env::var("IMAGE_GENERATION_MODELS_ON").unwrap_or(String::from("false"));
         let is_ok = honor_nsfw.to_lowercase() == "true";
         nsfw = is_ok
     }
@@ -47,6 +48,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
         .dm_permission(command.dm_command)
         .nsfw(nsfw)
         .default_member_permissions(permission);
+    trace!("{:?}", build);
     match &command.localised {
         Some(localiseds) => {
             for localised in localiseds {
@@ -64,20 +66,18 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
             build = build.add_option(option);
         }
     }
-    trace!("{:?}", build);
     match Command::create_global_command(http, build).await {
-        Ok(res) => res,
+        Ok(res) => drop(res),
         Err(e) => {
             error!("{} for command {}", e, command.name);
-            return;
         }
-    };
+    }
 }
 
 async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
     let mut options_builds = Vec::new();
     for option in command.args.as_ref().unwrap() {
-        let command_type = option.command_type.clone().into();
+        let command_type = option.command_type.into();
         let mut options_build = CreateCommandOption::new(command_type, &option.name, &option.desc)
             .required(option.required);
         match &option.choices {
@@ -100,6 +100,7 @@ async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
             None => {}
         }
         options_build = options_build.set_autocomplete(option.autocomplete);
+        trace!("{:?}", options_build);
 
         options_builds.push(options_build)
     }

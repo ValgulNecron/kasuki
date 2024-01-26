@@ -4,54 +4,49 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::anilist_struct::run::user::{
-    get_banner, get_color, get_completed, get_user_url, UserWrapper,
-};
+use crate::anilist_struct::run::user::{get_color, get_completed, get_user_url, UserWrapper};
+use crate::command_run::anilist::user::get_user_data;
 use crate::constant::{COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::level::load_localization_level;
-use crate::sqls::general::data::get_registered_user;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     trace!("{:?}", options);
     for option in options {
         if option.name.as_str() != "type" {
-            match option.value.as_str() {
-                Some(a) => {
-                    let value = &a.to_string();
+            if let Some(a) = option.value.as_str() {
+                let value = &a.to_string();
 
-                    let data: UserWrapper = if value.parse::<i32>().is_ok() {
-                        UserWrapper::new_user_by_id(value.parse().unwrap()).await?
-                    } else {
-                        UserWrapper::new_user_by_search(value).await?
-                    };
+                let data: UserWrapper = get_user_data(value).await?;
 
-                    return send_embed(ctx, command, data).await;
-                }
-
-                None => {}
+                return send_embed(ctx, command_interaction, data).await;
             }
         }
     }
-    let user_id = &command.user.id.to_string();
+    let user_id = &command_interaction.user.id.to_string();
     let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
     trace!("{:?}", row);
     let (user, _): (Option<String>, Option<String>) = row;
     let user = user.ok_or(OPTION_ERROR.clone())?;
-    let data = UserWrapper::new_user_by_id((&user).parse::<i32>().unwrap()).await?;
-    return send_embed(ctx, command, data).await;
+    let data: UserWrapper = if user.parse::<i32>().is_ok() {
+        UserWrapper::new_user_by_id(user.parse().unwrap()).await?
+    } else {
+        UserWrapper::new_user_by_search(&user).await?
+    };
+    send_embed(ctx, command_interaction, data).await
 }
 
 pub async fn send_embed(
     ctx: &Context,
-    command: &CommandInteraction,
+    command_interaction: &CommandInteraction,
     data: UserWrapper,
 ) -> Result<(), AppError> {
-    let guild_id = match command.guild_id {
+    let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
@@ -65,8 +60,8 @@ pub async fn send_embed(
 
     let manga_completed = get_completed(manga.statuses.clone());
     let anime_completed = get_completed(anime.statuses.clone());
-    let chap_read = manga.chapters_read.clone().unwrap_or(0);
-    let tw = anime.minutes_watched.clone().unwrap_or(0);
+    let chap_read = manga.chapters_read.unwrap_or(0);
+    let tw = anime.minutes_watched.unwrap_or(0);
 
     let xp =
         (2.0 * (manga_completed + anime_completed) as f64) + chap_read as f64 + (tw as f64 * 0.1);
@@ -75,13 +70,12 @@ pub async fn send_embed(
 
     let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
 
-    let builder_embed = CreateEmbed::new()
+    let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(get_color(user.clone()))
-        .title(&user.name.unwrap_or(String::new()))
-        .url(get_user_url(&user.id.clone().unwrap_or(0)))
-        .image(get_banner(&user.id.clone().unwrap_or(0)))
-        .thumbnail(&user.avatar.large.clone().unwrap())
+        .title(user.name.unwrap_or_default())
+        .url(get_user_url(user.id.unwrap_or(0)))
+        .thumbnail(user.avatar.large.clone().unwrap())
         .description(
             level_localised
                 .desc
@@ -92,11 +86,16 @@ pub async fn send_embed(
                 .replace("$next$", next_xp.to_string().as_str()),
         );
 
+    match &user.banner_image {
+        Some(banner_image) => builder_embed = builder_embed.image(banner_image),
+        None => {}
+    }
+
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|_| COMMAND_SENDING_ERROR.clone())

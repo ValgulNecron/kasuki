@@ -6,7 +6,8 @@
     "button_see_on_github": "See on GitHub",
     "button_official_website": "Official website",
     "button_official_discord": "Official Discord",
-    "button_add_the_bot": "Add the bot"
+    "button_add_the_bot": "Add the bot",
+    "button_add_the_beta_bot": "Add the beta bot"
   },
   "fr": {
     "title": "Informations",
@@ -15,7 +16,8 @@
     "button_see_on_github": "Voir sur GitHub",
     "button_official_website": "Site officiel",
     "button_official_discord": "Discord officiel",
-    "button_add_the_bot": "Ajouter le bot"
+    "button_add_the_bot": "Ajouter le bot",
+    "button_add_the_beta_bot": "Ajouter le bot beta"
   },
   "jp": {
     "title": "情報",
@@ -24,7 +26,8 @@
     "button_see_on_github": "GitHubで見る",
     "button_official_website": "公式ウェブサイト",
     "button_official_discord": "公式Discord",
-    "button_add_the_bot": "ボットを追加"
+    "button_add_the_bot": "ボットを追加",
+    "button_add_the_beta_bot": "ベータ版ボットを追加"
   },
   "de": {
     "title": "Info",
@@ -33,6 +36,7 @@
     "button_see_on_github": "Auf GitHub ansehen",
     "button_official_website": "Offizielle Website",
     "button_official_discord": "Offizieller Discord",
-    "button_add_the_bot": "Bot hinzufügen"
+    "button_add_the_bot": "Bot hinzufügen",
+    "button_add_the_beta_bot": "Beta-Bot hinzufügen"
   }
 }

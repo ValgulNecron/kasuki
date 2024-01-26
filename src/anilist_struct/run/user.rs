@@ -6,9 +6,9 @@ use serenity::all::{
 };
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::constant::COMMAND_SENDING_ERROR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::MediaGettingError;
+use crate::error_enum::AppError::UserGettingError;
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -157,7 +157,7 @@ options{
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+            .map_err(|_| UserGettingError(String::from("Error getting this user.")))
     }
 
     pub async fn new_user_by_search(search: &String) -> Result<UserWrapper, AppError> {
@@ -217,7 +217,7 @@ options{
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+            .map_err(|_| UserGettingError(String::from("Error getting this user.")))
     }
 }
 
@@ -240,36 +240,30 @@ pub async fn send_embed(
     let manga = user.statistics.manga.clone();
     let anime = user.statistics.anime.clone();
 
-    match user.statistics.manga.count {
-        Some(m) => {
-            if m > 0 {
-                field.push(get_manga_field(
-                    user.id.unwrap_or(0),
-                    user_localised.clone(),
-                    manga,
-                ))
-            }
+    if let Some(m) = user.statistics.manga.count {
+        if m > 0 {
+            field.push(get_manga_field(
+                user.id.unwrap_or(0),
+                user_localised.clone(),
+                manga,
+            ))
         }
-        _ => {}
     }
-    match user.statistics.anime.count {
-        Some(a) => {
-            if a > 0 {
-                field.push(get_anime_field(
-                    user.id.unwrap_or(0),
-                    user_localised.clone(),
-                    anime,
-                ))
-            }
+    if let Some(a) = user.statistics.anime.count {
+        if a > 0 {
+            field.push(get_anime_field(
+                user.id.unwrap_or(0),
+                user_localised.clone(),
+                anime,
+            ))
         }
-        _ => {}
     }
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(get_color(user.clone()))
-        .title(user.name.unwrap_or(String::new()))
-        .url(get_user_url(&user.id.unwrap_or(0)))
+        .title(user.name.unwrap_or_default())
+        .url(get_user_url(user.id.unwrap_or(0)))
         .fields(field)
         .image(get_banner(&user.id.unwrap_or(0)))
         .thumbnail(user.avatar.large.unwrap());
@@ -284,7 +278,7 @@ pub async fn send_embed(
         .map_err(|_| COMMAND_SENDING_ERROR.clone())
 }
 
-pub fn get_user_url(user_id: &i32) -> String {
+pub fn get_user_url(user_id: i32) -> String {
     format!("https://anilist.co/user/{}", user_id)
 }
 
@@ -432,53 +426,53 @@ fn get_anime_time_watch(i: i32, localised1: UserLocalised) -> String {
 
     let mut tw = String::new();
 
-    if week == 1 {
-        tw.push_str(format!("{} {}", localised1.week, week).as_str())
-    } else if week > 1 {
-        tw.push_str(format!("{} {}", localised1.weeks, week).as_str())
-    }
-    if days == 1 {
-        tw.push_str(format!("{} {}", localised1.day, days).as_str())
-    } else if days > 1 {
-        tw.push_str(format!("{} {}", localised1.days, days).as_str())
-    }
-    if hour == 1 {
-        tw.push_str(format!("{} {}", localised1.hour, tw).as_str())
-    } else if hour > 1 {
-        tw.push_str(format!("{} {}", localised1.hours, tw).as_str())
-    }
-    if min == 1 {
-        tw.push_str(format!("{} {}", localised1.minute, min).as_str())
-    } else if min > 1 {
-        tw.push_str(format!("{} {}", localised1.minutes, min).as_str())
-    }
+    let weeks = match week {
+        1 => format!("{} {}", localised1.week, week),
+        _ => format!("{} {}", localised1.weeks, week),
+    };
+    tw.push_str(weeks.as_str());
+
+    let days = match days {
+        1 => format!("{} {}", localised1.day, days),
+        _ => format!("{} {}", localised1.days, days),
+    };
+    tw.push_str(days.as_str());
+
+    let hours = match hour {
+        1 => format!("{} {}", localised1.hour, hour),
+        _ => format!("{} {}", localised1.hours, hour),
+    };
+    tw.push_str(hours.as_str());
+
+    let mins = match min {
+        1 => format!("{} {}", localised1.minute, min),
+        _ => format!("{} {}", localised1.minutes, min),
+    };
+    tw.push_str(mins.as_str());
 
     tw
 }
 
 pub fn get_color(user: User) -> Colour {
-    let mut _color = COLOR.clone();
-    match user
+    let color = match user
         .options
         .profile_color
         .clone()
         .unwrap_or_else(|| "#FF00FF".to_string())
         .as_str()
     {
-        "blue" => _color = Colour::BLUE,
-        "purple" => _color = Colour::PURPLE,
-        "pink" => _color = Colour::MEIBE_PINK,
-        "orange" => _color = Colour::ORANGE,
-        "red" => _color = Colour::RED,
-        "green" => _color = Colour::DARK_GREEN,
-        "gray" => _color = Colour::LIGHT_GREY,
+        "blue" => Colour::BLUE,
+        "purple" => Colour::PURPLE,
+        "pink" => Colour::MEIBE_PINK,
+        "orange" => Colour::ORANGE,
+        "red" => Colour::RED,
+        "green" => Colour::DARK_GREEN,
+        "gray" => Colour::LIGHT_GREY,
         _ => {
-            _color = {
-                let hex_code = "#0D966D";
-                let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
-                Colour::new(color_code)
-            }
+            let hex_code = "#0D966D";
+            let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
+            Colour::new(color_code)
         }
-    }
-    _color
+    };
+    color
 }

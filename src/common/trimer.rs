@@ -11,24 +11,6 @@
 ///
 /// In the case when the number of substring "||" is odd in the trimmed string, it trims the original string up to an additional two characters from the end and adds "||.." to the end. The function returns the original string if `lenght_diff` is more than 0.
 ///
-/// # Examples
-///
-/// ```
-/// use your_crate::trim; // replace "your_crate" with the name of your crate
-///
-/// let description = "A demonstration of the trim function".to_string();
-/// let trimmed = trim(description, -3);
-/// ```
-///
-/// Example with an odd number of "||" in the trimmed string:
-///
-/// ```
-/// use your_crate::trim; // replace "your_crate" with the name of your crate
-///
-/// let description = "A demonstration with odd ||".to_string();
-/// let trimmed = trim(description, -3);
-/// assert_eq!(trimmed, "A demonstration with odd ||||..");
-/// ```
 pub fn trim(desc: String, lenght_diff: i32) -> String {
     if lenght_diff <= 0 {
         let mut desc_trim;
@@ -38,7 +20,7 @@ pub fn trim(desc: String, lenght_diff: i32) -> String {
         let count = desc_trim.matches("||").count();
         if count % 2 != 0 {
             let trim_length = desc.len() - ((-lenght_diff) as usize + 5);
-            desc_trim = format!("{}||...", &desc[..trim_length]);
+            desc_trim = format!("{}||...", &desc[..trim_length])
         }
         desc_trim.clone()
     } else {
@@ -57,14 +39,47 @@ pub fn trim(desc: String, lenght_diff: i32) -> String {
 /// # Return
 /// The function returns the trimmed `String`. If `length_diff` is equal to or less than 0, it returns the trimmed version of `desc` text.
 /// If `length_diff` is more than 0, it returns the original `desc` string.
-///
-/// # Panics
-/// This function may panic if your `length_diff` absolute value is more than length of your string.
 pub fn trim_webhook(desc: String, lenght_diff: i32) -> String {
     if lenght_diff <= 0 {
         let trim_length = desc.len() - (-lenght_diff) as usize;
         desc[..trim_length].to_string()
     } else {
         desc
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_trim() {
+        let desc = String::from("Hello, world!");
+        let length_diff = 6 - desc.len() as i32;
+        let result = trim(desc, length_diff);
+        assert_eq!(result, "Hel...");
+
+        let desc = String::from("Hello, || world! ||");
+        let length_diff = 14 - desc.len() as i32;
+        let result = trim(desc, length_diff);
+        assert_eq!(result, "Hello, ||||...");
+
+        let desc = String::from("Hello, world!");
+        let length_diff = 13;
+        let result = trim(desc, length_diff);
+        assert_eq!(result, "Hello, world!")
+    }
+
+    #[test]
+    fn test_trim_webhook() {
+        let desc = String::from("Hello, world!");
+        let length_diff = 3 - desc.len() as i32;
+        let result = trim_webhook(desc, length_diff);
+        assert_eq!(result, "Hel");
+
+        let desc = String::from("Hello, world!");
+        let length_diff = 13 - desc.len() as i32;
+        let result = trim_webhook(desc, length_diff);
+        assert_eq!(result, "Hello, world!")
     }
 }
