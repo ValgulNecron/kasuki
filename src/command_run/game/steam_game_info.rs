@@ -113,32 +113,23 @@ async fn send_embed(
         None => {}
     }
 
-    match game.publishers {
-        Some(publishers) => fields.push((
-            steam_game_info_localised.field4,
-            convert_steam_to_discord_flavored_markdown(publishers.join(", ")),
-            true,
-        )),
-        None => {}
-    }
+    if let Some(publishers) = game.publishers { fields.push((
+         steam_game_info_localised.field4,
+         convert_steam_to_discord_flavored_markdown(publishers.join(", ")),
+         true,
+     )) }
 
-    match game.app_type {
-        Some(app_type) => fields.push((
-            steam_game_info_localised.field5,
-            convert_steam_to_discord_flavored_markdown(app_type),
-            true,
-        )),
-        None => {}
-    }
+    if let Some(app_type) = game.app_type { fields.push((
+         steam_game_info_localised.field5,
+         convert_steam_to_discord_flavored_markdown(app_type),
+         true,
+     )) }
 
-    match game.supported_languages {
-        Some(game_lang) => fields.push((
-            steam_game_info_localised.field6,
-            convert_steam_to_discord_flavored_markdown(game_lang),
-            false,
-        )),
-        None => {}
-    }
+    if let Some(game_lang) = game.supported_languages { fields.push((
+         steam_game_info_localised.field6,
+         convert_steam_to_discord_flavored_markdown(game_lang),
+         false,
+     )) }
 
     if let Some(categories) = game.categories {
         let descriptions: Vec<String> = categories
