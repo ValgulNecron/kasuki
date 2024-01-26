@@ -96,7 +96,7 @@ pub async fn run(
             .await
             .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
 
-        return Ok(());
+        Ok(())
     } else {
         if anime_name.len() >= 50 {
             anime_name = trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
