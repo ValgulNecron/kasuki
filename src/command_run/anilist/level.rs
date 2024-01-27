@@ -222,9 +222,8 @@ fn get_level(xp: f64) -> (u32, f64, f64) {
 
 fn xp_required_for_level(level: u32) -> f64 {
     match level {
-        0..=9 => (level as f64).powf(2f64),
-        10..=19 => (level as f64).powf(3f64),
-        20..=29 => (level as f64).powf(4f64),
+        0..=9 => (level as f64).powf(3f64),
+        10..=29 => (level as f64).powf(4f64),
         30..=39 => (level as f64).powf(5f64),
         40..=49 => (level as f64).powf(6f64),
         50..=59 => (level as f64).powf(7f64),
