@@ -18,7 +18,6 @@ use crate::error_enum::AppError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
 pub async fn manage_activity(ctx: Context) {
-    trace!("Started the activity management.");
     loop {
         let ctx = ctx.clone();
         tokio::spawn(async move { send_activity(&ctx).await });

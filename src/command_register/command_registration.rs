@@ -2,7 +2,7 @@ use std::env;
 use std::sync::Arc;
 
 use serenity::all::{Command, CreateCommand, CreateCommandOption, Http, Permissions};
-use tracing::{error, trace};
+use tracing::{error, info, trace};
 
 use crate::command_register::command_structure::{get_commands, CommandData};
 
@@ -17,10 +17,11 @@ pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
         }
         Ok(c) => c,
     };
-
+    info!("Started creating command");
     for command in commands {
         create_command(&command, http).await;
     }
+    info!("Done creating command");
 }
 
 async fn create_command(command: &CommandData, http: &Arc<Http>) {
@@ -109,6 +110,7 @@ async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
 }
 
 async fn delete_command(http: &Arc<Http>) {
+    info!("Started deleting command");
     let cmds = Command::get_global_commands(http).await.unwrap();
     for cmd in cmds {
         trace!("Removing {:?}", cmd.name);
@@ -120,4 +122,5 @@ async fn delete_command(http: &Arc<Http>) {
             }
         };
     }
+    info!("Done deleting command")
 }

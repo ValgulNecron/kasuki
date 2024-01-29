@@ -11,19 +11,19 @@ pub const DATA_SQLITE_DB: &str = "./data.db";
 pub const CACHE_SQLITE_DB: &str = "./cache.db";
 pub const PING_UPDATE_DELAYS: u64 = 600;
 
-pub static OPTION_ERROR: Lazy<AppError> =
+pub const OPTION_ERROR: Lazy<AppError> =
     Lazy::new(|| AppError::OptionError(String::from("The option contain no value")));
-pub static COMMAND_SENDING_ERROR: Lazy<AppError> = Lazy::new(|| {
+pub const COMMAND_SENDING_ERROR: Lazy<AppError> = Lazy::new(|| {
     AppError::CommandSendingError(String::from(
         "Error while sending the response of the command.",
     ))
 });
-pub static DIFFERED_COMMAND_SENDING_ERROR: Lazy<AppError> = Lazy::new(|| {
+pub const DIFFERED_COMMAND_SENDING_ERROR: Lazy<AppError> = Lazy::new(|| {
     AppError::DifferedCommandSendingError(String::from(
         "Error while sending the response of the command.",
     ))
 });
-pub static DIFFERED_OPTION_ERROR: Lazy<AppError> =
+pub const DIFFERED_OPTION_ERROR: Lazy<AppError> =
     Lazy::new(|| AppError::DifferedOptionError(String::from("The option contain no value")));
 pub const AUTOCOMPLETE_COUNT: u32 = 20;
 pub const OTHER_CRATE_LEVEL: &str = "warn";
