@@ -18,7 +18,7 @@ use tracing::{error, trace};
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
 use crate::common::trimer::trim_webhook;
 use crate::constant::{
-    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
+    COLOR
 };
 use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
 use crate::database_struct::server_activity_struct::ServerActivityFull;

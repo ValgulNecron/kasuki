@@ -11,14 +11,10 @@ use tracing::trace;
 use uuid::Uuid;
 
 use crate::constant::{
-    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
-    OPTION_ERROR,
+    COLOR
 };
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError,
-    DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption,
-};
+use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError, DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption, OptionError};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 
@@ -32,7 +28,7 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let lang = options.first().ok_or(OPTION_ERROR.clone())?;
+    let lang = options.first().ok_or(OptionError(String::from("There is no option")))?;
     let lang = lang.value.clone();
 
     let desc = match lang {
@@ -51,7 +47,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e.clone())))?;
 
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.png", uuid_name);
@@ -218,11 +214,11 @@ pub async fn run(
 
     let url_string = res
         .get("data")
-        .ok_or(DIFFERED_OPTION_ERROR.clone())?
+        .ok_or(OptionError(String::from("There is no option")))?
         .get(0)
-        .ok_or(DIFFERED_OPTION_ERROR.clone())?
+        .ok_or(OptionError(String::from("There is no option")))?
         .get("url")
-        .ok_or(DIFFERED_OPTION_ERROR.clone())?
+        .ok_or(OptionError(String::from("There is no option")))?
         .as_str()
         .ok_or(DifferedFailedUrlError(String::from(
             "Failed to get the response url.",
@@ -246,7 +242,7 @@ pub async fn run(
 
     let attachement = CreateAttachment::path(&filename)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -255,7 +251,7 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
 
     image_saver(
         guild_id,

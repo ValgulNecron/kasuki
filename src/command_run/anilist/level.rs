@@ -7,9 +7,9 @@ use tracing::trace;
 
 use crate::anilist_struct::run::user::{get_color, get_completed, get_user_url, UserWrapper};
 use crate::command_run::anilist::user::get_user_data;
-use crate::constant::{COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{CommandSendingError, OptionError};
 use crate::lang_struct::anilist::level::load_localization_level;
 
 pub async fn run(
@@ -33,7 +33,7 @@ pub async fn run(
     let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
     trace!("{:?}", row);
     let (user, _): (Option<String>, Option<String>) = row;
-    let user = user.ok_or(OPTION_ERROR.clone())?;
+    let user = user.ok_or(OptionError(String::from("There is no option")))?;
     let data: UserWrapper = if user.parse::<i32>().is_ok() {
         UserWrapper::new_user_by_id(user.parse().unwrap()).await?
     } else {
@@ -99,7 +99,7 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }
 
 pub static LEVELS: Lazy<[(u32, f64, f64); 102]> = Lazy::new(|| {

@@ -14,12 +14,9 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::{COLOR};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    DifferedCopyBytesError, DifferedFileExtensionError, DifferedFileTypeError,
-    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, NoCommandOption,
-};
+use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedCopyBytesError, DifferedFileExtensionError, DifferedFileTypeError, DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, NoCommandOption, OptionError};
 use crate::lang_struct::ai::translation::load_localization_translation;
 
 pub async fn run(
@@ -65,7 +62,7 @@ pub async fn run(
     let content_type = attachement
         .content_type
         .clone()
-        .ok_or(OPTION_ERROR.clone())?;
+        .ok_or(OptionError(String::from("There is no option")))?;
     let content = attachement.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
@@ -84,7 +81,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
     let parsed_url = Url::parse(content.as_str()).expect("Failed to parse URL");
@@ -128,10 +125,7 @@ pub async fn run(
             )));
         }
     };
-    let api_base_url = match env::var("AI_API_BASE_URL") {
-        Ok(x) => x,
-        Err(_) => "https://api.openai.com/v1/".to_string(),
-    };
+    let api_base_url = env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string());
     let api_url = format!("{}audio/transcriptions", api_base_url);
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
@@ -188,7 +182,7 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
 
     Ok(())
 }

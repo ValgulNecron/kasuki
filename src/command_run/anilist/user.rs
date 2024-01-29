@@ -2,9 +2,9 @@ use serenity::all::{CommandDataOption, CommandInteraction, Context};
 use tracing::trace;
 
 use crate::anilist_struct::run::user::{send_embed, UserWrapper};
-use crate::constant::OPTION_ERROR;
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::OptionError;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -27,7 +27,7 @@ pub async fn run(
     let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
     trace!("{:?}", row);
     let (user, _): (Option<String>, Option<String>) = row;
-    let user = user.ok_or(OPTION_ERROR.clone())?;
+    let user = user.ok_or(OptionError(String::from("There is no option")))?;
     let data = UserWrapper::new_user_by_id(user.parse::<i32>().unwrap()).await?;
     send_embed(ctx, command_interaction, data).await
 }

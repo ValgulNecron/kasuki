@@ -7,11 +7,12 @@ use tracing::log::trace;
 
 use crate::anilist_struct::run::user::UserWrapper;
 use crate::constant::{
-    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, MEMBER_LIST_LIMIT, OPTION_ERROR,
+    COLOR,MEMBER_LIST_LIMIT,
     PASS_LIMIT,
 };
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, OptionError};
 use crate::lang_struct::anilist::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };
@@ -24,19 +25,19 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let list_user_localised = load_localization_list_user(guild_id).await?;
 
-    let guild_id = command_interaction.guild_id.ok_or(OPTION_ERROR.clone())?;
+    let guild_id = command_interaction.guild_id.ok_or(OptionError(String::from("There is no option")))?;
 
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)
         .await
-        .map_err(|_| OPTION_ERROR.clone())?;
+        .map_err(|e| OptionError(format!("There is no option {}", e)))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) =
         get_the_list(guild, ctx, &list_user_localised, None).await?;
@@ -55,7 +56,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let _ = command_interaction
         .create_followup(&ctx.http, response)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
     Ok(())
 }
 
@@ -77,7 +78,7 @@ pub async fn get_the_list(
         let members = guild
             .members(&ctx.http, Some(MEMBER_LIST_LIMIT), last_id)
             .await
-            .map_err(|_| OPTION_ERROR.clone())?;
+            .map_err(|e| OptionError(format!("There is no option {}", e)))?;
 
         for member in members {
             last_id = Some(member.user.id);

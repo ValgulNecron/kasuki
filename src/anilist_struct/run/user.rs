@@ -6,9 +6,8 @@ use serenity::all::{
 };
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::constant::COMMAND_SENDING_ERROR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::UserGettingError;
+use crate::error_enum::AppError::{CommandSendingError, UserGettingError};
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -275,7 +274,7 @@ pub async fn send_embed(
     command
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }
 
 pub fn get_user_url(user_id: i32) -> String {

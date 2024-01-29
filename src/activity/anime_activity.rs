@@ -9,12 +9,13 @@ use tokio::time::sleep;
 use tracing::trace;
 
 use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrapper};
-use crate::constant::{COLOR, OPTION_ERROR};
+use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
 use crate::database_struct::server_activity_struct::ServerActivityFull;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::OptionError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
 pub async fn manage_activity(ctx: Context) {
@@ -108,7 +109,7 @@ pub async fn send_specific_activity(
 
 pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
-        row.anime_id.clone().ok_or(OPTION_ERROR.clone())?,
+        row.anime_id.clone().ok_or(OptionError(String::from("There is no option")))?
     )
     .await?;
     let media = data.data.media;
@@ -116,7 +117,7 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
         Some(na) => na,
         None => return remove_activity(row, guild_id).await,
     };
-    let title = media.title.ok_or(OPTION_ERROR.clone())?;
+    let title = media.title.ok_or(OptionError(String::from("There is no option")))?;
     let rj = title.romaji;
     let en = title.english;
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));

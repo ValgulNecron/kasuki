@@ -1,5 +1,5 @@
 use crate::constant::{
-    ACTIVITY_LIST_LIMIT, COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR,
+    ACTIVITY_LIST_LIMIT, COLOR
 };
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::error_enum::AppError;
@@ -10,6 +10,7 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
+use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, OptionError};
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -19,14 +20,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
 
-    let guild_id = command_interaction.guild_id.ok_or(OPTION_ERROR.clone())?;
+    let guild_id = command_interaction.guild_id.ok_or(OptionError(String::from("There is no option")))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|_| CommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let list = get_all_server_activity(&guild_id.to_string()).await?;
     let len = list.len();
@@ -67,6 +68,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let _ = command_interaction
         .create_followup(&ctx.http, response)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|_| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
     Ok(())
 }

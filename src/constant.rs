@@ -3,8 +3,6 @@ use serenity::all::Colour;
 use std::collections::HashMap;
 use std::env;
 
-use crate::error_enum::AppError;
-
 pub static ACTIVITY_NAME: Lazy<String> = Lazy::new(|| {
    let activity = env::var("BOT_ACTIVITY")
         .unwrap_or("Let you get info from anilist.".to_string());

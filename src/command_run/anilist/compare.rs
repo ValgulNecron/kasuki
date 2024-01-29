@@ -9,9 +9,9 @@ use crate::anilist_struct::run::user::{
     Anime, Genre, Manga, Statistics, Statuses, Tag, UserWrapper,
 };
 use crate::command_run::anilist::user::get_user_data;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::{COLOR};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::NoCommandOption;
+use crate::error_enum::AppError::{CommandSendingError, NoCommandOption, OptionError};
 use crate::lang_struct::anilist::compare::load_localization_compare;
 
 pub async fn run(
@@ -19,7 +19,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let option = &options.first().ok_or(OPTION_ERROR.clone())?.value;
+    let option = &options.first().ok_or(OptionError(String::from("There is no option")))?.value;
 
     let value = match option {
         CommandDataOptionValue::String(lang) => lang,
@@ -30,7 +30,7 @@ pub async fn run(
         }
     };
 
-    let option2 = &options.get(1).ok_or(OPTION_ERROR.clone())?.value;
+    let option2 = &options.get(1).ok_or(OptionError(String::from("There is no option")))?.value;
 
     let value2 = match option2 {
         CommandDataOptionValue::String(lang) => lang,
@@ -41,9 +41,9 @@ pub async fn run(
         }
     };
 
-    let data: UserWrapper = get_user_data(value).await?;
+    let data: UserWrapper = get_user_data(&value).await?;
 
-    let data2: UserWrapper = get_user_data(value2).await?;
+    let data2: UserWrapper = get_user_data(&value2).await?;
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -274,7 +274,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }
 
 fn get_affinity(s1: Statistics, s2: Statistics) -> f64 {

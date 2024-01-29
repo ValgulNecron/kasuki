@@ -9,9 +9,9 @@ use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_disc
 use crate::common::get_nsfw::get_nsfw;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, UNKNOWN};
+use crate::constant::{COLOR, UNKNOWN};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{MediaGettingError, NotNSFWError};
+use crate::error_enum::AppError::{CommandSendingError, MediaGettingError, NotNSFWError};
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -682,5 +682,5 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }

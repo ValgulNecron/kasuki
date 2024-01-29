@@ -9,9 +9,9 @@ use tracing::log::trace;
 use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::MediaGettingError;
+use crate::error_enum::AppError::{CommandSendingError, MediaGettingError};
 use crate::lang_struct::anilist::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -216,5 +216,5 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)).clone())
 }
