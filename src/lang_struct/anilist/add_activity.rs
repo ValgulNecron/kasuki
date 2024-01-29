@@ -22,16 +22,16 @@ pub async fn load_localization_add_activity(
     guild_id: String,
 ) -> Result<AddActivityLocalised, AppError> {
     let mut file = File::open("json/message/anilist/add_activity.json")
-        .map_err(|_| LocalisationFileError(String::from("File add_activity.json not found.")))?;
+        .map_err(|_| LocalisationFileError(String::from("File add_anime_activity.json not found.")))?;
 
     let mut json = String::new();
     file.read_to_string(&mut json).map_err(|_| {
-        LocalisationReadError(String::from("File add_activity.json can't be read."))
+        LocalisationReadError(String::from("File add_anime_activity.json can't be read."))
     })?;
 
     let json_data: HashMap<String, AddActivityLocalised> =
         serde_json::from_str(&json).map_err(|_| {
-            LocalisationParsingError(String::from("Failing to parse add_activity.json."))
+            LocalisationParsingError(String::from("Failing to parse add_anime_activity.json."))
         })?;
 
     let lang_choice = get_guild_langage(guild_id).await;

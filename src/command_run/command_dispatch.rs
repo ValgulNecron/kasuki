@@ -161,7 +161,7 @@ pub async fn command_dispatching(
                 return Err(anilist_module_error);
             }
         }
-        "add_activity" => {
+        "add_anime_activity" => {
             if check_if_moule_is_on(&command_interaction, "ANILIST").await? {
                 add_activity::run(
                     &command_interaction.data.options,

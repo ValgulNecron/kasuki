@@ -3,7 +3,7 @@ use serenity::all::{
     CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, VERSION};
+use crate::constant::{COLOR, COMMAND_SENDING_ERROR, APP_VERSION};
 use crate::error_enum::AppError;
 use crate::lang_struct::general::info::load_localization_info;
 
@@ -21,7 +21,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             info_localised
                 .desc
                 .replace("$number$", ctx.cache.guilds().len().to_string().as_str())
-                .replace("$version$", VERSION),
+                .replace("$version$", APP_VERSION),
         )
         .title(&info_localised.title)
         .footer(CreateEmbedFooter::new(&info_localised.footer));

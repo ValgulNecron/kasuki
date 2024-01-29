@@ -4,7 +4,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use tracing::debug;
 
-use crate::constant::{APPS, GAME_UPDATE};
+use crate::constant::{APPS, TIME_BETWEEN_GAME_UPDATE};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct App {
@@ -30,7 +30,7 @@ pub async fn get_game() {
             }
         }
 
-        debug!("waiting for {} day(s)", GAME_UPDATE);
-        tokio::time::sleep(Duration::from_secs((GAME_UPDATE * 24 * 60 * 60) as u64)).await;
+        debug!("waiting for {} day(s)", TIME_BETWEEN_GAME_UPDATE);
+        tokio::time::sleep(Duration::from_secs((TIME_BETWEEN_GAME_UPDATE * 24 * 60 * 60) as u64)).await;
     }
 }

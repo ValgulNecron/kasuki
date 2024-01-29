@@ -1,5 +1,5 @@
 {
-  "name": "add_activity",
+  "name": "add_anime_activity",
   "desc": "Add an anime activity.",
   "dm_command": false,
   "nsfw": false,
@@ -73,22 +73,22 @@
   "localised": [
     {
       "code": "en-US",
-      "name": "add_activity",
+      "name": "add_anime_activity",
       "desc": "Add an anime activity."
     },
     {
       "code": "fr",
-      "name": "ajouter_activite",
+      "name": "ajouter_activite_anime",
       "desc": "Ajouter une activité anime."
     },
     {
       "code": "de",
-      "name": "aktivitat_hinzufugen",
+      "name": "anime_aktivitat_hinzufugen",
       "desc": "Fügen Sie eine Anime-Aktivität hinzu."
     },
     {
       "code": "ja",
-      "name": "katsudo_o_tsuika",
+      "name": "anime_katsudo_wo_tsuika",
       "desc": "アニメ活動を追加します。"
     }
   ]

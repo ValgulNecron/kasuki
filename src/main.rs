@@ -14,7 +14,7 @@ use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::command_dispatching;
 use crate::common::calculate_user_color::color_management;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::ACTIVITY_NAME;
+use crate::constant::{ACTIVITY_NAME, DELAY_BEFORE_THREAD_SPAWN};
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
 use crate::game_struct::steam_game_id_struct::get_game;
@@ -48,7 +48,7 @@ impl EventHandler for Handler {
             thread_management_launcher(ctx_clone).await;
         });
 
-        let activity_type = Some(ActivityData::custom(ACTIVITY_NAME));
+        let activity_type = Some(ActivityData::custom(ACTIVITY_NAME.clone()));
         ctx.set_activity(activity_type);
 
         info!(
@@ -198,7 +198,7 @@ async fn main() {
 
 async fn thread_management_launcher(ctx: Context) {
     info!("Waiting 30second before launching the different thread.");
-    sleep(Duration::from_secs(30)).await;
+    sleep(Duration::from_secs(DELAY_BEFORE_THREAD_SPAWN)).await;
     tokio::spawn(async move {
         info!("Launching the game management thread!");
         get_game().await
@@ -218,4 +218,6 @@ async fn thread_management_launcher(ctx: Context) {
         info!("Launching the user color management thread!");
         color_management(guilds, ctx_clone).await;
     });
+
+    info!("Done spawning thread manager.");
 }

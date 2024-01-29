@@ -1,4 +1,4 @@
-use crate::constant::AUTOCOMPLETE_COUNT;
+use crate::constant::AUTOCOMPLETE_COUNT_LIMIT;
 use serde::Deserialize;
 use serde_json::json;
 use tracing::log::trace;
@@ -49,7 +49,7 @@ impl StaffPageWrapper {
         }";
         let json = json!({"query": query_str, "variables": {
             "search": search,
-            "count": AUTOCOMPLETE_COUNT,
+            "count": AUTOCOMPLETE_COUNT_LIMIT,
         }});
 
         let res = make_request_anilist(json, true).await;

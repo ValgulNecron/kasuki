@@ -1,4 +1,4 @@
-use crate::constant::{APPS, AUTOCOMPLETE_COUNT};
+use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT};
 use rust_fuzzy_search::fuzzy_search_best_n;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
@@ -14,7 +14,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     }
 
     let app_names: Vec<&str> = unsafe { APPS.iter().map(|app| app.0.as_str()).collect() };
-    let result = fuzzy_search_best_n(search.as_str(), &app_names, AUTOCOMPLETE_COUNT as usize);
+    let result = fuzzy_search_best_n(search.as_str(), &app_names, AUTOCOMPLETE_COUNT_LIMIT as usize);
     let mut choices: Vec<AutocompleteChoice> = Vec::new();
 
     // Map the indices of the matched strings back to their original positions in the APPS array

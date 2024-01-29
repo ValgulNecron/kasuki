@@ -1,4 +1,4 @@
-use crate::constant::USER_COLOR_UPDATE_TIME;
+use crate::constant::TIME_BETWEEN_USER_COLOR_UPDATE;
 use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
@@ -137,7 +137,7 @@ pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
             Ok(_) => {}
             Err(e) => error!("{:?}", e),
         };
-        sleep(Duration::from_secs((USER_COLOR_UPDATE_TIME * 60) as u64)).await;
+        sleep(Duration::from_secs((TIME_BETWEEN_USER_COLOR_UPDATE * 60) as u64)).await;
     }
 }
 

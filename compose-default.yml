@@ -29,6 +29,7 @@ services:
       - SAVE_IMAGE="local/remote/false"
       - SAVE_SERVER="imgur/catbox"
       - TOKEN="catbox userhash / imgur client id"
+      - BOT_ACTIVITY="Let you get info from anilist."
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db
