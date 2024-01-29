@@ -6,9 +6,9 @@ use serenity::all::{
 use crate::anilist_struct::run::user::{get_color, get_user_url, UserWrapper};
 use crate::command_run::anilist::user::get_user_data;
 use crate::common::get_option_value::get_option;
-use crate::constant::COMMAND_SENDING_ERROR;
 use crate::database::dispatcher::data_dispatch::set_registered_user;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::CommandSendingError;
 use crate::lang_struct::anilist::register::load_localization_register;
 
 pub async fn run(
@@ -58,5 +58,5 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }

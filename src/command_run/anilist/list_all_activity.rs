@@ -27,7 +27,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| CommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let list = get_all_server_activity(&guild_id.to_string()).await?;
     let len = list.len();
@@ -68,6 +68,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let _ = command_interaction
         .create_followup(&ctx.http, response)
         .await
-        .map_err(|_| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
     Ok(())
 }

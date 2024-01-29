@@ -15,12 +15,9 @@ use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
 use crate::common::get_option_value::get_option;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR};
+use crate::constant::{COLOR};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    DifferedCreatingImageError, DifferedFailedToGetBytes, DifferedFailedUrlError,
-    DifferedWritingFile,
-};
+use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedCreatingImageError, DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedWritingFile};
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
 
 pub async fn run(
@@ -48,7 +45,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let mut uuids: Vec<Uuid> = Vec::new();
     for _ in 0..5 {
@@ -170,7 +167,7 @@ pub async fn run(
 
     let attachement = CreateAttachment::path(&image_path)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -179,7 +176,7 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
 
     for uuid in uuids {
         let path = format!("{}.png", uuid);

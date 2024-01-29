@@ -1,9 +1,9 @@
 use crate::common::calculate_user_color::{
     get_image_from_url, get_member, return_average_user_color,
 };
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::DifferedWritingFile;
+use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedWritingFile, OptionError};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
@@ -37,14 +37,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap()
         .to_partial_guild(&ctx.http)
         .await
-        .map_err(|_| OPTION_ERROR.clone())?;
+        .map_err(|e| OptionError(format!("There is no option {}", e)))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let members: Vec<Member> = get_member(ctx, &guild.id).await;
 
@@ -126,7 +126,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let attachement = CreateAttachment::path(&image_path)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -135,7 +135,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
     trace!("Done");
 
     image_saver(

@@ -3,9 +3,9 @@ use serenity::all::{
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
 };
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::{COLOR, };
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::FailedToGetUser;
+use crate::error_enum::AppError::{CommandSendingError, FailedToGetUser, OptionError};
 use crate::lang_struct::general::profile::load_localization_profile;
 
 pub async fn run(
@@ -39,7 +39,7 @@ async fn profile_with_user(
     command_interaction: &CommandInteraction,
     user: &User,
 ) -> Result<(), AppError> {
-    let avatar_url = user.avatar_url().ok_or(OPTION_ERROR.clone())?;
+    let avatar_url = user.avatar_url().ok_or(OptionError(String::from("There is no option")))?;
 
     send_embed(avatar_url, ctx, command_interaction, user).await
 }
@@ -60,7 +60,7 @@ pub async fn send_embed(
     let member = &command_interaction
         .member
         .clone()
-        .ok_or(OPTION_ERROR.clone())?;
+        .ok_or(OptionError(String::from("There is no option")))?;
 
     let public_flag = match user.public_flags {
         Some(public_flag) => {
@@ -92,7 +92,7 @@ pub async fn send_embed(
                     "$joined_date$",
                     member
                         .joined_at
-                        .ok_or(OPTION_ERROR.clone())?
+                        .ok_or(OptionError(String::from("There is no option")))?
                         .to_string()
                         .as_str(),
                 )
@@ -109,5 +109,5 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }

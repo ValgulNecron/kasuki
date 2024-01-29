@@ -11,11 +11,12 @@ use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper
 use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper;
 use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::trimer::trim;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::COLOR;
 use crate::database::dispatcher::cache_dispatch::{
     get_database_random_cache, set_database_random_cache,
 };
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{CommandSendingError, OptionError};
 use crate::lang_struct::anilist::random::{load_localization_random, RandomLocalised};
 
 pub async fn run(
@@ -35,8 +36,8 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
-    let option = &options.first().ok_or(OPTION_ERROR.clone())?.value;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
+    let option = &options.first().ok_or(OptionError(String::from("There is no option")))?.value;
     if let CommandDataOptionValue::String(random_type) = option {
         let row: (Option<String>, Option<i64>, Option<i64>) =
             get_database_random_cache(random_type).await?;
@@ -147,7 +148,7 @@ pub async fn follow_up_message(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
     Ok(())
 }
 

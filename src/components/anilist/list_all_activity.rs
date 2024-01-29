@@ -1,4 +1,4 @@
-use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR, };
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::error_enum::AppError;
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
@@ -6,6 +6,7 @@ use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, Timestamp,
 };
 use tracing::trace;
+use crate::error_enum::AppError::{CommandSendingError, OptionError};
 
 pub async fn update(
     ctx: &Context,
@@ -19,7 +20,7 @@ pub async fn update(
 
     let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
 
-    let guild_id = component_interaction.guild_id.ok_or(OPTION_ERROR.clone())?;
+    let guild_id = component_interaction.guild_id.ok_or(OptionError(String::from("There is no option")))?;
 
     let list = get_all_server_activity(&guild_id.to_string()).await?;
     let len = list.len();
@@ -71,5 +72,5 @@ pub async fn update(
 
     let a = message.edit(&ctx.http, response).await;
     trace!("{:?}", a);
-    a.map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())
+    a.map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }

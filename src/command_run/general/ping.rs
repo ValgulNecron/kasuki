@@ -3,8 +3,9 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::{COLOR,};
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{CommandSendingError, OptionError};
 use crate::lang_struct::general::ping::load_localization_ping;
 use crate::struct_shard_manager::ShardManagerContainer;
 
@@ -17,7 +18,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let data_read = ctx.data.read().await;
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
-        None => return Err(OPTION_ERROR.clone()),
+        None => return Err(OptionError(String::from("There is no option"))),
     }
     .runners
     .clone();
@@ -27,7 +28,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let shard_runner_info = match shard_manager.get(&shard_id) {
         Some(data) => data,
-        None => return Err(OPTION_ERROR.clone()),
+        None => return Err(OptionError(String::from("There is no option"))),
     };
 
     let latency = match shard_runner_info.latency {
@@ -56,5 +57,5 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }

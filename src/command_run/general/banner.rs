@@ -3,9 +3,9 @@ use serenity::all::{
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
 };
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::constant::{COLOR,};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::FailedToGetUser;
+use crate::error_enum::AppError::{CommandSendingError, FailedToGetUser};
 use crate::lang_struct::general::banner::load_localization_banner;
 
 pub async fn run(
@@ -50,7 +50,7 @@ pub async fn no_banner(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }
 
 pub async fn banner_without_user(
@@ -99,5 +99,5 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }

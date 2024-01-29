@@ -3,8 +3,9 @@ use serenity::all::{
     CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, APP_VERSION};
+use crate::constant::{COLOR, APP_VERSION};
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::CommandSendingError;
 use crate::lang_struct::general::info::load_localization_info;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -61,5 +62,5 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
 }

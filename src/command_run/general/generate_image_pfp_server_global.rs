@@ -2,11 +2,11 @@ use crate::command_run::general::generate_image_pfp_server::{
     find_closest_color, get_color_with_url, Color, ColorWithUrl,
 };
 use crate::common::calculate_user_color::get_image_from_url;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::{COLOR, };
 use crate::database::dispatcher::data_dispatch::get_all_user_approximated_color;
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::DifferedWritingFile;
+use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedWritingFile, OptionError};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
@@ -37,7 +37,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap()
         .to_partial_guild(&ctx.http)
         .await
-        .map_err(|_| OPTION_ERROR.clone())?;
+        .map_err(|e| OptionError(format!("There is no option {}", e)))?;
 
     let pfp_server_image_localised_text =
         load_localization_pfp_server_image(guild_id.clone()).await?;
@@ -47,7 +47,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let average_colors = get_all_user_approximated_color().await?;
 
@@ -128,7 +128,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let attachement = CreateAttachment::path(&image_path)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -137,7 +137,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
     trace!("Done");
 
     image_saver(

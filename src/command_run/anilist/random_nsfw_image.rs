@@ -1,8 +1,6 @@
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR};
+use crate::constant::{COLOR};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    DifferedFailedToGetBytes, DifferedResponseError, DifferedWritingFile,
-};
+use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedResponseError, DifferedWritingFile};
 use crate::lang_struct::anilist::random_image_nsfw::{
     load_localization_random_image_nsfw, RandomImageNSFWLocalised,
 };
@@ -41,7 +39,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
 
     send_embed(
         ctx,
@@ -94,7 +92,7 @@ async fn send_embed(
 
     let attachement = CreateAttachment::path(&filename)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)).clone())?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -103,7 +101,7 @@ async fn send_embed(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let _ = fs::remove_file(filename_str);
 

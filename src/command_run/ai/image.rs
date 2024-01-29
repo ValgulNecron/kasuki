@@ -14,7 +14,7 @@ use crate::constant::{
     COLOR
 };
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError, DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption, OptionError};
+use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError, DifferedOptionError, DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption, OptionError};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 
@@ -47,7 +47,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e.clone())))?;
+        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
 
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.png", uuid_name);
@@ -214,11 +214,11 @@ pub async fn run(
 
     let url_string = res
         .get("data")
-        .ok_or(OptionError(String::from("There is no option")))?
+        .ok_or(DifferedOptionError(String::from("There is no option")))?
         .get(0)
-        .ok_or(OptionError(String::from("There is no option")))?
+        .ok_or(DifferedOptionError(String::from("There is no option")))?
         .get("url")
-        .ok_or(OptionError(String::from("There is no option")))?
+        .ok_or(DifferedOptionError(String::from("There is no option")))?
         .as_str()
         .ok_or(DifferedFailedUrlError(String::from(
             "Failed to get the response url.",
