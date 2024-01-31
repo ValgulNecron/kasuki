@@ -1,4 +1,7 @@
-use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
+use serenity::all::Member;
+use serenity::all::{
+    ActivityData, Context, EventHandler, GatewayIntents, GuildId, Interaction, Ready,
+};
 use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;
@@ -19,6 +22,7 @@ use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
 use crate::game_struct::steam_game_id_struct::get_game;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
+use crate::new_member::new_member;
 
 mod activity;
 mod anilist_struct;
@@ -36,12 +40,24 @@ mod game_struct;
 mod image_saver;
 mod lang_struct;
 mod logger;
+mod new_member;
 pub mod struct_shard_manager;
 
 struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
+    async fn guild_member_addition(&self, ctx: Context, mut member: Member) {
+        trace!(
+            "Member {} joined guild {}",
+            member.user.tag(),
+            member.guild_id
+        );
+        if let Err(e) = new_member(ctx, &mut member).await {
+            error!("{:?}", e)
+        }
+    }
+
     async fn ready(&self, ctx: Context, ready: Ready) {
         let ctx_clone = ctx.clone();
         tokio::spawn(async move {
@@ -110,7 +126,7 @@ impl EventHandler for Handler {
             autocomplete_dispatching(ctx, autocomplete_interaction).await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
             if let Err(e) = components_dispatching(ctx, component_interaction).await {
-                trace!("{:?}", e)
+                error!("{:?}", e)
             }
         }
     }
