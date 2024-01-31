@@ -27,8 +27,6 @@ LABEL author="valgul"
 LABEL "com.docker.compose.hide"="true"
 LABEL hidden="true"
 
-HEALTHCHECK CMD ps aux | grep kasuki || exit 1
-
 WORKDIR /kasuki/
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

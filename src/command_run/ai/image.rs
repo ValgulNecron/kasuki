@@ -202,13 +202,13 @@ pub async fn run(
         .json(&data)
         .send()
         .await
-        .map_err(|_| {
-            DifferedResponseError(String::from("Failed to get the response from the server."))
+        .map_err(|e| {
+            DifferedResponseError(format!("Failed to get the response from the server. {}", e))
         })?
         .json()
         .await
-        .map_err(|_| {
-            DifferedResponseError(String::from("Failed to get the response from the server."))
+        .map_err(|e| {
+            DifferedResponseError(format!("Failed to get the response from the server. {}", e))
         })?;
     trace!("{:#?}", res);
 
