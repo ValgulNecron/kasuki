@@ -137,7 +137,10 @@ pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
             Ok(_) => {}
             Err(e) => error!("{:?}", e),
         };
-        sleep(Duration::from_secs((TIME_BETWEEN_USER_COLOR_UPDATE * 60) as u64)).await;
+        sleep(Duration::from_secs(
+            (TIME_BETWEEN_USER_COLOR_UPDATE * 60) as u64,
+        ))
+        .await;
     }
 }
 

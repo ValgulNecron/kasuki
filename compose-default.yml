@@ -34,3 +34,4 @@ services:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db
       - ./logs/:/kasuki/logs/
+      - ./server_image:/kasuki/server_image/

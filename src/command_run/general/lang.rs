@@ -3,7 +3,7 @@ use serenity::all::{
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::constant::{COLOR};
+use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::set_data_guild_langage;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CommandSendingError, NoCommandOption, OptionError};
@@ -14,7 +14,9 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let lang = options.first().ok_or(OptionError(String::from("There is no option")))?;
+    let lang = options
+        .first()
+        .ok_or(OptionError(String::from("There is no option")))?;
     let lang = lang.value.clone();
 
     let lang = match lang {

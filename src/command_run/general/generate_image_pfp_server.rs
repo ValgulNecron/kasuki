@@ -3,7 +3,9 @@ use crate::common::calculate_user_color::{
 };
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedWritingFile, OptionError};
+use crate::error_enum::AppError::{
+    CommandSendingError, DifferedCommandSendingError, DifferedWritingFile, OptionError,
+};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
@@ -124,9 +126,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .image(format!("attachment://{}", &image_path))
         .title(pfp_server_image_localised_text.title);
 
-    let attachement = CreateAttachment::path(&image_path)
-        .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+    let attachement = CreateAttachment::path(&image_path).await.map_err(|e| {
+        DifferedCommandSendingError(format!("Error while sending the command {}", e))
+    })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -135,7 +137,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| {
+            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+        })?;
     trace!("Done");
 
     image_saver(

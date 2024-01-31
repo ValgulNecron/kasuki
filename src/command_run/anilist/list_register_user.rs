@@ -6,10 +6,7 @@ use serenity::all::{
 use tracing::log::trace;
 
 use crate::anilist_struct::run::user::UserWrapper;
-use crate::constant::{
-    COLOR,MEMBER_LIST_LIMIT,
-    PASS_LIMIT,
-};
+use crate::constant::{COLOR, MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, OptionError};
@@ -25,7 +22,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let list_user_localised = load_localization_list_user(guild_id).await?;
 
-    let guild_id = command_interaction.guild_id.ok_or(OptionError(String::from("There is no option")))?;
+    let guild_id = command_interaction
+        .guild_id
+        .ok_or(OptionError(String::from("There is no option")))?;
 
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)
@@ -56,7 +55,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let _ = command_interaction
         .create_followup(&ctx.http, response)
         .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| {
+            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+        })?;
     Ok(())
 }
 

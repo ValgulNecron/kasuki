@@ -15,9 +15,12 @@ use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
 use crate::common::get_option_value::get_option;
-use crate::constant::{COLOR};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedCreatingImageError, DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedWritingFile};
+use crate::error_enum::AppError::{
+    CommandSendingError, DifferedCommandSendingError, DifferedCreatingImageError,
+    DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedWritingFile,
+};
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
 
 pub async fn run(
@@ -165,9 +168,9 @@ pub async fn run(
         .image(format!("attachment://{}", &image_path))
         .title(&seiyuu_localised.title);
 
-    let attachement = CreateAttachment::path(&image_path)
-        .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+    let attachement = CreateAttachment::path(&image_path).await.map_err(|e| {
+        DifferedCommandSendingError(format!("Error while sending the command {}", e))
+    })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -176,7 +179,9 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| {
+            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+        })?;
 
     for uuid in uuids {
         let path = format!("{}.png", uuid);

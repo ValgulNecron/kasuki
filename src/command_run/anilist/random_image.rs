@@ -1,6 +1,9 @@
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedResponseError, DifferedWritingFile};
+use crate::error_enum::AppError::{
+    CommandSendingError, DifferedCommandSendingError, DifferedFailedToGetBytes,
+    DifferedResponseError, DifferedWritingFile,
+};
 use crate::lang_struct::anilist::random_image::{
     load_localization_random_image, RandomImageLocalised,
 };
@@ -82,9 +85,9 @@ async fn send_embed(
         .image(format!("attachment://{}", &filename))
         .title(random_image_localised.title);
 
-    let attachement = CreateAttachment::path(&filename)
-        .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+    let attachement = CreateAttachment::path(&filename).await.map_err(|e| {
+        DifferedCommandSendingError(format!("Error while sending the command {}", e))
+    })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -93,7 +96,9 @@ async fn send_embed(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| {
+            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+        })?;
 
     let _ = fs::remove_file(filename_str);
 

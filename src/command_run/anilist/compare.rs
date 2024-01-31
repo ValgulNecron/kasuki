@@ -9,7 +9,7 @@ use crate::anilist_struct::run::user::{
     Anime, Genre, Manga, Statistics, Statuses, Tag, UserWrapper,
 };
 use crate::command_run::anilist::user::get_user_data;
-use crate::constant::{COLOR};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CommandSendingError, NoCommandOption, OptionError};
 use crate::lang_struct::anilist::compare::load_localization_compare;
@@ -19,7 +19,10 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let option = &options.first().ok_or(OptionError(String::from("There is no option")))?.value;
+    let option = &options
+        .first()
+        .ok_or(OptionError(String::from("There is no option")))?
+        .value;
 
     let value = match option {
         CommandDataOptionValue::String(lang) => lang,
@@ -30,7 +33,10 @@ pub async fn run(
         }
     };
 
-    let option2 = &options.get(1).ok_or(OptionError(String::from("There is no option")))?.value;
+    let option2 = &options
+        .get(1)
+        .ok_or(OptionError(String::from("There is no option")))?
+        .value;
 
     let value2 = match option2 {
         CommandDataOptionValue::String(lang) => lang,

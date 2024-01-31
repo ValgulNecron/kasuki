@@ -3,7 +3,7 @@ use serenity::all::{
     CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::constant::{COLOR, APP_VERSION};
+use crate::constant::{APP_VERSION, COLOR};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::CommandSendingError;
 use crate::lang_struct::general::info::load_localization_info;

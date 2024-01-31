@@ -5,7 +5,7 @@ use serenity::all::{
 
 use crate::anilist_struct::run::studio::StudioWrapper;
 use crate::common::get_option_value::get_option;
-use crate::constant::{COLOR, };
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::CommandSendingError;
 use crate::lang_struct::anilist::studio::load_localization_studio;

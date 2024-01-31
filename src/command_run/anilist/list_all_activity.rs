@@ -1,8 +1,7 @@
-use crate::constant::{
-    ACTIVITY_LIST_LIMIT, COLOR
-};
+use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, OptionError};
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -10,7 +9,6 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
-use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, OptionError};
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -20,7 +18,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
 
-    let guild_id = command_interaction.guild_id.ok_or(OptionError(String::from("There is no option")))?;
+    let guild_id = command_interaction
+        .guild_id
+        .ok_or(OptionError(String::from("There is no option")))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
@@ -68,6 +68,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let _ = command_interaction
         .create_followup(&ctx.http, response)
         .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| {
+            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+        })?;
     Ok(())
 }

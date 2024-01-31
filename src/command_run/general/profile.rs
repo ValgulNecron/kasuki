@@ -3,7 +3,7 @@ use serenity::all::{
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
 };
 
-use crate::constant::{COLOR, };
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CommandSendingError, FailedToGetUser, OptionError};
 use crate::lang_struct::general::profile::load_localization_profile;
@@ -39,7 +39,9 @@ async fn profile_with_user(
     command_interaction: &CommandInteraction,
     user: &User,
 ) -> Result<(), AppError> {
-    let avatar_url = user.avatar_url().ok_or(OptionError(String::from("There is no option")))?;
+    let avatar_url = user
+        .avatar_url()
+        .ok_or(OptionError(String::from("There is no option")))?;
 
     send_embed(avatar_url, ctx, command_interaction, user).await
 }

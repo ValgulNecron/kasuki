@@ -3,7 +3,7 @@ use serenity::all::{
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
 };
 
-use crate::constant::{COLOR,};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CommandSendingError, FailedToGetUser};
 use crate::lang_struct::general::banner::load_localization_banner;

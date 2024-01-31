@@ -10,11 +10,13 @@ use serenity::all::{
 use tracing::trace;
 use uuid::Uuid;
 
-use crate::constant::{
-    COLOR
-};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError, DifferedOptionError, DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption, OptionError};
+use crate::error_enum::AppError::{
+    CommandSendingError, DifferedCommandSendingError, DifferedFailedToGetBytes,
+    DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError, DifferedOptionError,
+    DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption, OptionError,
+};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 
@@ -28,7 +30,9 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let lang = options.first().ok_or(OptionError(String::from("There is no option")))?;
+    let lang = options
+        .first()
+        .ok_or(OptionError(String::from("There is no option")))?;
     let lang = lang.value.clone();
 
     let desc = match lang {
@@ -240,9 +244,9 @@ pub async fn run(
         .image(format!("attachment://{}", &filename))
         .title(image_localised.title);
 
-    let attachement = CreateAttachment::path(&filename)
-        .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+    let attachement = CreateAttachment::path(&filename).await.map_err(|e| {
+        DifferedCommandSendingError(format!("Error while sending the command {}", e))
+    })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -251,7 +255,9 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| {
+            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+        })?;
 
     image_saver(
         guild_id,

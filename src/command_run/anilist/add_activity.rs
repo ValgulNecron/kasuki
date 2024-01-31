@@ -17,13 +17,14 @@ use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
 use crate::common::trimer::trim_webhook;
-use crate::constant::{
-    COLOR
-};
+use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
 use crate::database_struct::server_activity_struct::ServerActivityFull;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, CreatingWebhookDifferedError, DifferedCommandSendingError, DifferedNotAiringError, DifferedOptionError, OptionError};
+use crate::error_enum::AppError::{
+    CommandSendingError, CreatingWebhookDifferedError, DifferedCommandSendingError,
+    DifferedNotAiringError, DifferedOptionError, OptionError,
+};
 use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
 
 pub async fn run(
@@ -73,7 +74,11 @@ pub async fn run(
     };
     let media = data.data.media.clone();
     let anime_id = media.id;
-    let title = data.data.media.title.ok_or(DifferedOptionError(String::from("There is no option")))?;
+    let title = data
+        .data
+        .media
+        .title
+        .ok_or(DifferedOptionError(String::from("There is no option")))?;
     let mut anime_name = get_name(title);
     let channel_id = command_interaction.channel_id;
 
@@ -94,7 +99,9 @@ pub async fn run(
         command_interaction
             .create_followup(&ctx.http, builder_message)
             .await
-            .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+            .map_err(|e| {
+                DifferedCommandSendingError(format!("Error while sending the command {}", e))
+            })?;
 
         Ok(())
     } else {
@@ -159,7 +166,9 @@ pub async fn run(
         command_interaction
             .create_followup(&ctx.http, builder_message)
             .await
-            .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+            .map_err(|e| {
+                DifferedCommandSendingError(format!("Error while sending the command {}", e))
+            })?;
         Ok(())
     }
 }

@@ -11,7 +11,8 @@ use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, MediaGettingError};
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::{CommandSendingError, MediaGettingError};
 use crate::lang_struct::anilist::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -63,7 +64,7 @@ pub struct Image {
 }
 
 impl CharacterWrapper {
-    pub async fn new_character_by_id(value: i32) -> Result<CharacterWrapper, AppError> {
+    pub async fn new_character_by_id(id: i32) -> Result<CharacterWrapper, AppError> {
         let query_id: &str = "
         query ($name: Int) {
             Character(id: $name) {
@@ -90,15 +91,19 @@ impl CharacterWrapper {
           }
         }
         ";
-        let json = json!({"query": query_id, "variables": {"name": value}});
+        let json = json!({"query": query_id, "variables": {"name": id}});
         trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
-        serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+        serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the character with id {}. {}",
+                id, e
+            )))
+        })
     }
 
-    pub async fn new_character_by_search(value: &String) -> Result<CharacterWrapper, AppError> {
+    pub async fn new_character_by_search(search: &String) -> Result<CharacterWrapper, AppError> {
         let query_string: &str = "
 query ($name: String) {
 	Character(search: $name) {
@@ -125,12 +130,16 @@ query ($name: String) {
   }
 }
 ";
-        let json = json!({"query": query_string, "variables": {"name": value}});
+        let json = json!({"query": query_string, "variables": {"name": search}});
         trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
-        serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+        serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the character with name {}. {}",
+                search, e
+            )))
+        })
     }
 }
 
@@ -216,5 +225,7 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)).clone())
+        .map_err(|e| {
+            Error(CommandSendingError(format!("Error while sending the command {}", e)).clone())
+        })
 }

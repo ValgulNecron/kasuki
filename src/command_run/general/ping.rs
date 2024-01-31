@@ -3,7 +3,7 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::constant::{COLOR,};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{CommandSendingError, OptionError};
 use crate::lang_struct::general::ping::load_localization_ping;

@@ -14,9 +14,13 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::constant::{COLOR};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedCopyBytesError, DifferedFileExtensionError, DifferedFileTypeError, DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, NoCommandOption, OptionError};
+use crate::error_enum::AppError::{
+    CommandSendingError, DifferedCommandSendingError, DifferedCopyBytesError,
+    DifferedFileExtensionError, DifferedFileTypeError, DifferedGettingBytesError,
+    DifferedResponseError, DifferedTokenError, NoCommandOption, OptionError,
+};
 use crate::lang_struct::ai::translation::load_localization_translation;
 
 pub async fn run(
@@ -125,7 +129,8 @@ pub async fn run(
             )));
         }
     };
-    let api_base_url = env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string());
+    let api_base_url =
+        env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string());
     let api_url = format!("{}audio/transcriptions", api_base_url);
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
@@ -182,7 +187,9 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| {
+            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+        })?;
 
     Ok(())
 }

@@ -1,6 +1,7 @@
 use crate::common::steam_to_discord_markdown::convert_steam_to_discord_flavored_markdown;
-use crate::constant::{COLOR,};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{CommandSendingError, OptionError};
 use crate::game_struct::run::steam_game::SteamGameWrapper;
 use crate::lang_struct::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
@@ -11,7 +12,6 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
-use crate::error_enum::AppError::{CommandSendingError, OptionError};
 
 pub async fn run(
     options: &[CommandDataOption],

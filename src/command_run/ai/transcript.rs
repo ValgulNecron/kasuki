@@ -16,7 +16,11 @@ use uuid::Uuid;
 
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, DifferedCopyBytesError, DifferedFileExtensionError, DifferedFileTypeError, DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, NoCommandOption, OptionError};
+use crate::error_enum::AppError::{
+    CommandSendingError, DifferedCommandSendingError, DifferedCopyBytesError,
+    DifferedFileExtensionError, DifferedFileTypeError, DifferedGettingBytesError,
+    DifferedResponseError, DifferedTokenError, NoCommandOption, OptionError,
+};
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
 pub async fn run(
@@ -188,7 +192,9 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| DifferedCommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| {
+            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+        })?;
 
     Ok(())
 }

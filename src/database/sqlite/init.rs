@@ -94,9 +94,9 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         PRIMARY KEY (anime_id, server_id)
     )",
     )
-    .execute(pool)
-    .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+        .execute(pool)
+        .await
+        .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
