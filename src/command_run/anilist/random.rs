@@ -162,7 +162,8 @@ pub async fn follow_up_message(
                 "Error while sending the command {}",
                 e
             )))
-        })?;    Ok(())
+        })?;
+    Ok(())
 }
 
 pub async fn update_cache(

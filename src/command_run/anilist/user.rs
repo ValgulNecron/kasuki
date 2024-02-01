@@ -28,7 +28,7 @@ pub async fn run(
     let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
     trace!("{:?}", row);
     let (user, _): (Option<String>, Option<String>) = row;
-    let user = user        .ok_or(Error(OptionError(String::from("There is no option"))))?;
+    let user = user.ok_or(Error(OptionError(String::from("There is no option"))))?;
 
     let data = UserWrapper::new_user_by_id(user.parse::<i32>().unwrap()).await?;
     send_embed(ctx, command_interaction, data).await

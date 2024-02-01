@@ -8,7 +8,7 @@ pub async fn command_dispatching(error: AppError) {
     match error {
         Error(e) => send_error(e).await,
         DifferedError(e) => send_differed_error(e).await,
-        ComponentError(_) => {},
+        ComponentError(_) => {}
     }
 }
 

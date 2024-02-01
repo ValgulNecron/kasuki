@@ -153,7 +153,8 @@ pub async fn run(
                 "Error while sending the command {}",
                 e
             )))
-        })}
+        })
+}
 
 fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {
     match (a, b) {

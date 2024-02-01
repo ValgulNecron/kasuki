@@ -57,7 +57,7 @@ async fn send_embed(
 ) -> Result<(), AppError> {
     let url = format!("https://api.waifu.pics/sfw/{}", image_type);
     let resp = reqwest::get(&url).await.map_err(|e| {
-       DifferedError(DifferedResponseError(format!("Failed to get the response from the server. {}", e)))
+        DifferedError(DifferedResponseError(format!("Failed to get the response from the server. {}", e)))
     })?;
     let json: serde_json::Value = resp.json().await.map_err(|e| {
         DifferedError(DifferedResponseError(format!("Failed to get the json from the server response. {}", e)))

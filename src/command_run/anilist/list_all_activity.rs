@@ -74,11 +74,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let _ = command_interaction
         .create_followup(&ctx.http, response)
         .await
-            .map_err(|e| {
-                DifferedError(DifferedCommandSendingError(format!(
-                    "Error while sending the command {}",
-                    e
-                )))
-            })?;
+        .map_err(|e| {
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     Ok(())
 }
