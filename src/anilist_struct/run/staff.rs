@@ -3,7 +3,8 @@ use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::MediaGettingError;
+use crate::error_enum::AppError::{Error, MediaGettingError};
+use crate::error_enum::Error::StaffGettingError;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Name {
@@ -159,7 +160,12 @@ query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, false).await;
         serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+            .map_err(|e| {
+            Error(StaffGettingError(format!(
+                "Error getting the staff with id {}. {}",
+                id, e
+            )))
+        })
     }
 
     pub async fn new_staff_by_search(search: &String) -> Result<StaffWrapper, AppError> {
@@ -221,6 +227,11 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, false).await;
         serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+            .map_err(|e| {
+            Error(StaffGettingError(format!(
+                "Error getting the staff with name {}. {}",
+                search, e
+            )))
+        })
     }
 }

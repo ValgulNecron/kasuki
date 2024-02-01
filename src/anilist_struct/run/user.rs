@@ -7,7 +7,8 @@ use serenity::all::{
 
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, UserGettingError};
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::{CommandSendingError, UserGettingError};
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -156,7 +157,12 @@ options{
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp)
-            .map_err(|_| UserGettingError(String::from("Error getting this user.")))
+           .map_err(|e| {
+            Error(UserGettingError(format!(
+                "Error getting the user with id {}. {}",
+                id, e
+            )))
+        })
     }
 
     pub async fn new_user_by_search(search: &String) -> Result<UserWrapper, AppError> {
@@ -216,7 +222,12 @@ options{
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp)
-            .map_err(|_| UserGettingError(String::from("Error getting this user.")))
+            .map_err(|e| {
+            Error(UserGettingError(format!(
+                "Error getting the user with name {}. {}",
+                search, e
+            )))
+        })
     }
 }
 
@@ -274,7 +285,7 @@ pub async fn send_embed(
     command
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
+        .map_err(|e| Error(CommandSendingError(format!("Error while sending the command {}", e))))
 }
 
 pub fn get_user_url(user_id: i32) -> String {

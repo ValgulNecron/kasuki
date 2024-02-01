@@ -15,7 +15,8 @@ use crate::database::dispatcher::data_dispatch::{
 };
 use crate::database_struct::server_activity_struct::ServerActivityFull;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::OptionError;
+use crate::error_enum::AppError::NotACommandError;
+use crate::error_enum::NotACommandError::OptionError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
 pub async fn manage_activity(ctx: Context) {
@@ -108,11 +109,9 @@ pub async fn send_specific_activity(
 }
 
 pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
-    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
-        row.anime_id
-            .clone()
-            .ok_or(OptionError(String::from("There is no option")))?,
-    )
+    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(row.anime_id.clone().ok_or(
+        NotACommandError(OptionError(String::from("There is no option"))),
+    )?)
     .await?;
     let media = data.data.media;
     let next_airing = match media.next_airing_episode {

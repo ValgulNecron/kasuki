@@ -12,7 +12,7 @@ use crate::common::trimer::trim;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{CommandSendingError, MediaGettingError};
+use crate::error_enum::Error::{CharacterGettingError, CommandSendingError};
 use crate::lang_struct::anilist::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -96,7 +96,7 @@ impl CharacterWrapper {
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
         serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
+            Error(CharacterGettingError(format!(
                 "Error getting the character with id {}. {}",
                 id, e
             )))
@@ -135,7 +135,7 @@ query ($name: String) {
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
         serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
+            Error(CharacterGettingError(format!(
                 "Error getting the character with name {}. {}",
                 search, e
             )))

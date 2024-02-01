@@ -75,13 +75,12 @@ impl MinimalAnimeWrapper {
         let resp = make_request_anilist(json, true).await;
         trace!("{:?}", resp);
         // Get json
-        let data = serde_json::from_str(&resp)
-            .map_err(|e| {
-                Error(MediaGettingError(format!(
-                    "Error getting the media with id {}. {}",
-                    id, e
-                )))
-            })?;
+        let data = serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the media with id {}. {}",
+                id, e
+            )))
+        })?;
         Ok(data)
     }
 
@@ -110,13 +109,12 @@ impl MinimalAnimeWrapper {
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         // Get json
-        let data = serde_json::from_str(&resp)
-            .map_err(|e| {
-                Error(MediaGettingError(format!(
-                    "Error getting the media with name {}. {}",
-                    search, e
-                )))
-            })?;
+        let data = serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the media with name {}. {}",
+                search, e
+            )))
+        })?;
         Ok(data)
     }
 }

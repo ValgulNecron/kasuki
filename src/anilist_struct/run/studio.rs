@@ -3,7 +3,8 @@ use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::MediaGettingError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::{StaffGettingError, StudioGettingError};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Title {
@@ -72,7 +73,12 @@ impl StudioWrapper {
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, false).await;
         serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+            .map_err(|e| {
+            Error(StudioGettingError(format!(
+                "Error getting the studio with id {}. {}",
+                id, e
+            )))
+        })
     }
 
     pub async fn new_studio_by_search(search: &String) -> Result<StudioWrapper, AppError> {
@@ -99,6 +105,11 @@ impl StudioWrapper {
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, false).await;
         serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+            .map_err(|e| {
+            Error(StaffGettingError(format!(
+                "Error getting the studio with name {}. {}",
+                search, e
+            )))
+        })
     }
 }

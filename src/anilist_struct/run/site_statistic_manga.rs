@@ -3,7 +3,8 @@ use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::NoStatisticDifferedError;
+use crate::error_enum::AppError::DifferedError;
+use crate::error_enum::DifferedError::DifferedNoStatisticError;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SiteStatisticsMangaWrapper {
@@ -72,7 +73,12 @@ impl SiteStatisticsMangaWrapper {
         let json = json!({"query": query, "variables": {"page": page_number}});
         let res = make_request_anilist(json, false).await;
         let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res)
-            .map_err(|_| NoStatisticDifferedError(String::from("No media")))?;
+            .map_err(|e| {
+            DifferedError(DifferedNoStatisticError(format!(
+                "No media with page {}. {}",
+                page_number, e
+            )))
+        })?;
         Ok((api_response, res))
     }
     pub fn has_next_page(&self) -> bool {

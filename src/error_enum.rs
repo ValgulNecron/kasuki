@@ -2,6 +2,7 @@
 pub enum AppError {
     Error(Error),
     DifferedError(DifferedError),
+    NotACommandError(NotACommandError),
 }
 #[derive(Debug, Clone)]
 pub enum DifferedError {
@@ -21,6 +22,9 @@ pub enum DifferedError {
     DifferedWritingFile(String),
     DifferedCommandSendingError(String),
     DifferedNotAiringError(String),
+    DifferedMediaError(String),
+    DifferedCreatingWebhookError(String),
+    DifferedNoStatisticError(String),
 }
 
 #[derive(Debug, Clone)]
@@ -51,13 +55,18 @@ pub enum Error {
     ModuleError(String),
     ModuleOffError(String),
     UnknownCommandError(String),
-    NoMediaDifferedError(String),
-    CreatingWebhookDifferedError(String),
     CreatingPoolError(String),
     FailedToCreateAFile(String),
-    SetLoggerError(String),
     MediaGettingError(String),
     UserGettingError(String),
-    NoStatisticDifferedError(String),
     NotAValidTypeError(String),
+    CharacterGettingError(String),
+    StaffGettingError(String),
+    StudioGettingError(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum NotACommandError {
+    OptionError(String),
+    SetLoggerError(String),
 }
