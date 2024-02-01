@@ -70,7 +70,7 @@ pub async fn run(
     let content_type = attachment
         .content_type
         .clone()
-        .ok_or(Error(OptionError(String::from("There is no option"))))?;
+        .ok_or(Error(OptionError(String::from("Error getting content type"))))?;
     let content = attachment.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
