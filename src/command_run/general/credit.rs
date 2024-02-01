@@ -5,7 +5,8 @@ use serenity::all::{
 
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::CommandSendingError;
+use crate::error_enum::AppError::{ Error};
+use crate::error_enum::Error::CommandSendingError;
 use crate::lang_struct::general::credit::load_localization_credit;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -32,5 +33,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
-}
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })}

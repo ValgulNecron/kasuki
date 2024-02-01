@@ -5,7 +5,8 @@ use serenity::all::{
 
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, FailedToGetUser, OptionError};
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::{CommandSendingError, OptionError};
 use crate::lang_struct::general::profile::load_localization_profile;
 
 pub async fn run(
@@ -19,7 +20,7 @@ pub async fn run(
             let user = user
                 .to_user(&ctx.http)
                 .await
-                .map_err(|_| FailedToGetUser(String::from("Could not get the user.")))?;
+                .ok_or(Error(OptionError(String::from("There is no option"))))?;
             return profile_with_user(ctx, command_interaction, &user).await;
         }
     }
@@ -111,5 +112,9 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
-}
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })}

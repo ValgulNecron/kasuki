@@ -8,7 +8,8 @@ use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
 };
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::CommandSendingError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::{CommandSendingError, ModuleError};
 use crate::lang_struct::general::module::load_localization_module_activation;
 
 pub async fn run(
@@ -57,9 +58,9 @@ pub async fn run(
         "AI" => ai_value = state,
         "GAME" => game_value = state,
         _ => {
-            return Err(AppError::ModuleError(String::from(
+            return Err(Error(ModuleError(String::from(
                 "This module does not exist.",
-            )));
+            ))));
         }
     }
     set_data_module_activation_status(&guild_id, anilist_value, ai_value, game_value).await?;
@@ -82,8 +83,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
-}
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })}
 
 pub async fn check_activation_status(module: &str, guild_id: String) -> Result<bool, AppError> {
     let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>) =

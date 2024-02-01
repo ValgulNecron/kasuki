@@ -1,4 +1,4 @@
-²use crate::constant::AUTOCOMPLETE_COUNT_LIMIT;
+use crate::constant::AUTOCOMPLETE_COUNT_LIMIT;
 use serde::Deserialize;
 use serde_json::json;
 use tracing::log::trace;

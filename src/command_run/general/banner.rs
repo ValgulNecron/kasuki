@@ -5,7 +5,8 @@ use serenity::all::{
 
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, FailedToGetUser};
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::{CommandSendingError, FailedToGetUser};
 use crate::lang_struct::general::banner::load_localization_banner;
 
 pub async fn run(
@@ -19,7 +20,7 @@ pub async fn run(
             let user = user
                 .to_user(&ctx.http)
                 .await
-                .map_err(|_| FailedToGetUser(String::from("Failed to get the user.")))?;
+                .map_err(|e| Error(FailedToGetUser(format!("Could not get the user. {}", e))))?;
             return banner_with_user(ctx, command_interaction, &user).await;
         }
     }
@@ -50,8 +51,12 @@ pub async fn no_banner(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
-}
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })}
 
 pub async fn banner_without_user(
     ctx: &Context,
@@ -99,5 +104,9 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
-}
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })}

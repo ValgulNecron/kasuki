@@ -7,9 +7,9 @@ use tracing::trace;
 
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
-};
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::NoLangageError;
+
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct StaffLocalised {
@@ -38,7 +38,7 @@ pub async fn load_localization_staff(guild_id: String) -> Result<StaffLocalised,
 
     let staff_localised_text = json_data
         .get(lang_choice.as_str())
-        .ok_or(NoLangageError(String::from("not found")))?;
+        .ok_or(Error(NoLangageError(String::from("not found"))))?;
 
     Ok(staff_localised_text.clone())
 }

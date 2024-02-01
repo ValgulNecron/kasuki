@@ -1,7 +1,6 @@
 use crate::constant::{APPS, LANG_MAP};
 use crate::database::dispatcher::data_dispatch::get_data_guild_langage;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{NotAValidGameError, NotAValidUrlError};
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
@@ -10,6 +9,8 @@ use serde_with::serde_as;
 use serde_with::OneOrMany;
 use std::collections::HashMap;
 use tracing::trace;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::{NotAValidGameError, NotAValidUrlError};
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
@@ -189,7 +190,7 @@ impl SteamGameWrapper {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
             .build()
-            .map_err(|_| NotAValidUrlError(String::from("Bad url")))?;
+            .map_err(|e| Error(NotAValidUrlError(format!("Bad url. {}", e))))?;
         let lang = get_data_guild_langage(guild_id)
             .await?
             .0
@@ -209,14 +210,14 @@ impl SteamGameWrapper {
             .get(&url)
             .send()
             .await
-            .map_err(|_| NotAValidUrlError(String::from("Bad url")))?;
+            .map_err(|e| Error(NotAValidUrlError(format!("Bad url response. {}", e))))?;
         let text = response
             .text()
             .await
-            .map_err(|_| NotAValidGameError(String::from("Bad game 1")))?;
+            .map_err(|e| Error(NotAValidGameError(format!("Failed to get the text data. {}", e))))?;
         let game_wrapper: HashMap<String, SteamGameWrapper> =
             serde_json::from_str(text.as_str())
-                .map_err(|_| NotAValidGameError(String::from("Bad game 2")))?;
+                .map_err(|e| Error(NotAValidGameError(format!("Failed to parse as json. {}", e))))?;
 
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }
@@ -234,7 +235,7 @@ impl SteamGameWrapper {
         let mut appid = &0u128;
         unsafe {
             if results.is_empty() {
-                return Err(NotAValidGameError(String::from("Bad game")));
+                return Err(NotAValidGameError(format!("Bad game")));
             }
             for (name, _) in results {
                 if appid == &0u128 {
@@ -251,7 +252,7 @@ impl SteamGameWrapper {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
             .build()
-            .map_err(|_| NotAValidUrlError(String::from("Bad url")))?;
+            .map_err(|_| NotAValidUrlError(format!("Bad url")))?;
         let lang = get_data_guild_langage(guild_id)
             .await?
             .0
@@ -271,11 +272,11 @@ impl SteamGameWrapper {
             .get(&url)
             .send()
             .await
-            .map_err(|_| NotAValidUrlError(String::from("Bad url")))?;
+            .map_err(|_| NotAValidUrlError(format!("Bad url")))?;
         let mut text = response
             .text()
             .await
-            .map_err(|_| NotAValidGameError(String::from("Bad game 1")))?;
+            .map_err(|_| NotAValidGameError(format!("Bad game 1")))?;
 
         let re = Regex::new(r#""required_age":"(\d+)""#).unwrap();
 
@@ -295,7 +296,7 @@ impl SteamGameWrapper {
                 Ok(a) => a,
                 Err(e) => {
                     trace!("{:#?}", e);
-                    return Err(NotAValidGameError(String::from("Bad game 2")));
+                    return Err(NotAValidGameError(format!("Bad game 2")));
                 }
             };
         // .map_err(|_| )?;

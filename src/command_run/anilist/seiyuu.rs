@@ -167,7 +167,8 @@ pub async fn run(
         .title(&seiyuu_localised.title);
 
     let attachment = CreateAttachment::path(&image_path).await.map_err(|e|
-        DifferedError(DifferedCommandSendingError(format!("Error while sending the command {}", e))))?;
+        DifferedError(DifferedCommandSendingError(format!("Error while uploading the attachment {}", e)))
+    )?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)

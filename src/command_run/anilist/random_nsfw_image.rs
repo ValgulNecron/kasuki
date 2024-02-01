@@ -97,10 +97,7 @@ async fn send_embed(
         .title(random_image_nsfw_localised.title);
 
     let attachment = CreateAttachment::path(&filename).await.map_err(|e| {
-        DifferedError(DifferedCommandSendingError(format!(
-            "Error while sending the command {}",
-            e
-        )))
+        DifferedError(DifferedCommandSendingError(format!("Error while uploading the attachment {}", e)))
     })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()

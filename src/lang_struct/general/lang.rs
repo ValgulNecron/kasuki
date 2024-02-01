@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
-};
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::NoLangageError;
+
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LangLocalised {
@@ -32,7 +32,7 @@ pub async fn load_localization_lang(guild_id: String) -> Result<LangLocalised, A
 
     let lang_localised_text = json_data
         .get(lang_choice.as_str())
-        .ok_or(NoLangageError(String::from("not found")))?;
+        .ok_or(Error(NoLangageError(String::from("not found"))))?;
 
     Ok(lang_localised_text.clone())
 }
