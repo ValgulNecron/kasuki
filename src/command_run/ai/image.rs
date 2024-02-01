@@ -12,11 +12,9 @@ use uuid::Uuid;
 
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    CommandSendingError, DifferedCommandSendingError, DifferedFailedToGetBytes,
-    DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError, DifferedOptionError,
-    DifferedResponseError, DifferedTokenError, DifferedWritingFile, NoCommandOption, OptionError,
-};
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedHeaderError, DifferedImageModelError, DifferedOptionError, DifferedResponseError, DifferedTokenError, DifferedWritingFile};
+use crate::error_enum::Error::{CommandSendingError, OptionError};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 
@@ -32,15 +30,15 @@ pub async fn run(
 
     let lang = options
         .first()
-        .ok_or(OptionError(String::from("There is no option")))?;
+        .ok_or(Error(OptionError(String::from("There is no option"))))?;
     let lang = lang.value.clone();
 
     let desc = match lang {
         CommandDataOptionValue::String(lang) => lang,
         _ => {
-            return Err(NoCommandOption(String::from(
+            return Err(Error(OptionError(String::from(
                 "The command contain no option.",
-            )));
+            ))));
         }
     };
 
@@ -51,7 +49,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| Error(CommandSendingError(format!("Error while sending the command {}", e))))?;
 
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.png", uuid_name);
@@ -61,14 +59,14 @@ pub async fn run(
     let api_key = match env::var("AI_IMAGE_API_TOKEN") {
         Ok(x) => x,
         Err(_) => {
-            return Err(DifferedTokenError(String::from(
+            return Err(DifferedError(DifferedTokenError(String::from(
                 "There was an error while getting the token.",
-            )));
+            ))));
         }
     };
 
     let api_base_url = env::var("AI_IMAGE_API_BASE_URL")
-        .unwrap_or_else(|_| "https://api.openai.com/v1/".to_string());
+        .unwrap_or("https://api.openai.com/v1/".to_string());
 
     let mut data = json!({
         "model": "dall-e-3",
@@ -90,9 +88,9 @@ pub async fn run(
 
         let model = match env::var("IMAGE_GENERATION_MODELS") {
             Ok(data) => data,
-            Err(_) => {
-                return Err(DifferedImageModelError(String::from(
-                    "Please specify the models you want to use",
+            Err(e) => {
+                return Err(DifferedError(DifferedImageModelError(format!(
+                    "Please specify the models you want to use. {}", e)
                 )));
             }
         };
@@ -191,10 +189,10 @@ pub async fn run(
         AUTHORIZATION,
         match HeaderValue::from_str(&format!("Bearer {}", api_key)) {
             Ok(data) => data,
-            Err(_) => {
-                return Err(DifferedHeaderError(String::from(
-                    "Failed to create the header",
-                )));
+            Err(e) => {
+                return Err(DifferedError(DifferedHeaderError(format!(
+                    "Failed to create the header. {}", e
+                ))));
             }
         },
     );
@@ -207,36 +205,36 @@ pub async fn run(
         .send()
         .await
         .map_err(|e| {
-            DifferedResponseError(format!("Failed to get the response from the server. {}", e))
+            DifferedError(DifferedResponseError(format!("Failed to get the response from the server. {}", e)))
         })?
         .json()
         .await
         .map_err(|e| {
-            DifferedResponseError(format!("Failed to get the response from the server. {}", e))
+            DifferedError(DifferedResponseError(format!("Failed to get the response from the server. {}", e)))
         })?;
     trace!("{:#?}", res);
 
     let url_string = res
         .get("data")
-        .ok_or(DifferedOptionError(String::from("There is no option")))?
+        .ok_or(DifferedError(DifferedOptionError(String::from("Failed to get data from result"))))?
         .get(0)
-        .ok_or(DifferedOptionError(String::from("There is no option")))?
+        .ok_or(DifferedError(DifferedOptionError(String::from("Failed to get the first image"))))?
         .get("url")
-        .ok_or(DifferedOptionError(String::from("There is no option")))?
+        .ok_or(DifferedError(DifferedOptionError(String::from("Failed to get the url from the result"))))?
         .as_str()
-        .ok_or(DifferedFailedUrlError(String::from(
-            "Failed to get the response url.",
-        )))?;
+        .ok_or(DifferedError(DifferedFailedUrlError(String::from(
+            "Failed to convert to str.",
+        ))))?;
 
     let response = reqwest::get(url_string)
         .await
-        .map_err(|_| DifferedResponseError(String::from("Failed to get data from url.")))?;
-    let bytes = response.bytes().await.map_err(|_| {
-        DifferedFailedToGetBytes(String::from("Failed to get bytes data from response."))
+        .map_err(|e| DifferedResponseError(format!("Failed to get bytes data from response. {}", e)))?;
+    let bytes = response.bytes().await.map_err(|e| {
+        DifferedError(DifferedFailedToGetBytes(format!("Failed to get bytes data from response. {}", e)))
     })?;
 
     fs::write(&filename, &bytes)
-        .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
+        .map_err(|e| DifferedError(DifferedWritingFile(format!("Failed to write the file bytes.{}", e))))?;
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -245,7 +243,7 @@ pub async fn run(
         .title(image_localised.title);
 
     let attachement = CreateAttachment::path(&filename).await.map_err(|e| {
-        DifferedCommandSendingError(format!("Error while sending the command {}", e))
+        DifferedError(DifferedCommandSendingError(format!("Error while sending the command {}", e)))
     })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
@@ -256,7 +254,7 @@ pub async fn run(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+            DifferedError(DifferedCommandSendingError(format!("Error while sending the command {}", e)))
         })?;
 
     image_saver(
