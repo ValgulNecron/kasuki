@@ -34,7 +34,7 @@ pub async fn command_dispatching(
                 &ctx,
                 &command_interaction,
             )
-            .await?
+                .await?
         }
         "banner" => {
             banner::run(
@@ -42,7 +42,7 @@ pub async fn command_dispatching(
                 &ctx,
                 &command_interaction,
             )
-            .await?
+                .await?
         }
         "credit" => credit::run(&ctx, &command_interaction).await?,
         "info" => info::run(&ctx, &command_interaction).await?,
@@ -52,7 +52,7 @@ pub async fn command_dispatching(
                 &ctx,
                 &command_interaction,
             )
-            .await?
+                .await?
         }
         "module" => {
             module::run(
@@ -60,7 +60,7 @@ pub async fn command_dispatching(
                 &ctx,
                 &command_interaction,
             )
-            .await?
+                .await?
         }
         "ping" => ping::run(&ctx, &command_interaction).await?,
         "profile" => {
@@ -69,7 +69,7 @@ pub async fn command_dispatching(
                 &ctx,
                 &command_interaction,
             )
-            .await?
+                .await?
         }
         "guild" => guild::run(&ctx, &command_interaction).await?,
         "guild_image" => generate_image_pfp_server::run(&ctx, &command_interaction).await?,
@@ -90,7 +90,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(ai_module_error);
             }
@@ -102,7 +102,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(ai_module_error);
             }
@@ -114,7 +114,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(ai_module_error);
             }
@@ -132,7 +132,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -144,7 +144,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -156,7 +156,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -168,7 +168,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -180,7 +180,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -192,7 +192,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -211,7 +211,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -223,7 +223,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -235,7 +235,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -247,7 +247,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -259,7 +259,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -271,7 +271,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -283,7 +283,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -295,7 +295,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -314,7 +314,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -326,7 +326,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -338,7 +338,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -356,7 +356,7 @@ pub async fn command_dispatching(
                     &ctx,
                     &command_interaction,
                 )
-                .await?
+                    .await?
             } else {
                 return Err(anilist_module_error);
             }

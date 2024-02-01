@@ -50,7 +50,7 @@ pub async fn run(
         image_type,
         random_image_nsfw_localised,
     )
-    .await
+        .await
 }
 
 async fn send_embed(

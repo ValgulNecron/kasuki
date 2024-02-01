@@ -144,7 +144,7 @@ pub async fn run(
             delays: delay,
             image: base64,
         })
-        .await?;
+            .await?;
 
         let builder_embed = CreateEmbed::new()
             .timestamp(Timestamp::now())

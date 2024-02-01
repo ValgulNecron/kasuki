@@ -55,8 +55,8 @@ pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
         ("de", "german"),
         ("ja", "japanese"),
     ]
-    .iter()
-    .cloned()
-    .collect()
+        .iter()
+        .cloned()
+        .collect()
 });
 pub static mut APPS: Lazy<HashMap<String, u128>> = Lazy::new(HashMap::new);

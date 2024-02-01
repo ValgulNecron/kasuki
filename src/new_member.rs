@@ -17,9 +17,7 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
 
     let channel_id = get_channel_to_send().await?;
 
-    if Path::new(full_image_path).exists() {
-    } else {
-    }
+    if Path::new(full_image_path).exists() {} else {}
 
     Ok(())
 }

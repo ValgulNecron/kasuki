@@ -150,7 +150,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         image_path.clone(),
         image_data,
     )
-    .await?;
+        .await?;
 
     match fs::remove_file(image_path) {
         Ok(_) => debug!("File {} has been removed successfully", combined_uuid),

@@ -209,15 +209,14 @@ pub async fn remove_data_activity_status_sqlite(
     Ok(())
 }
 
-pub async fn get_data_module_activation_kill_switch_status_sqlite(
-) -> Result<(Option<String>, Option<bool>, Option<bool>, Option<bool>), AppError> {
+pub async fn get_data_module_activation_kill_switch_status_sqlite() -> Result<(Option<String>, Option<bool>, Option<bool>, Option<bool>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
         "SELECT id, ai_module, anilist_module, game_module FROM module_activation WHERE guild = 1",
     )
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None, None, None));
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None, None, None));
     pool.close().await;
 
     Ok(row)
@@ -288,18 +287,18 @@ pub async fn set_user_approximated_color_sqlite(
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO user_color (user_id, color, pfp_url, image) VALUES (?, ?, ?, ?)",
     )
-    .bind(user_id)
-    .bind(color)
-    .bind(pfp_url)
-    .bind(image)
-    .execute(&pool)
-    .await
-    .map_err(|e| {
-        Error(SqlInsertError(format!(
-            "Failed to insert into the table. {}",
-            e
-        )))
-    })?;
+        .bind(user_id)
+        .bind(color)
+        .bind(pfp_url)
+        .bind(image)
+        .execute(&pool)
+        .await
+        .map_err(|e| {
+            Error(SqlInsertError(format!(
+                "Failed to insert into the table. {}",
+                e
+            )))
+        })?;
     pool.close().await;
 
     Ok(())
@@ -339,10 +338,10 @@ pub async fn get_all_server_activity_sqlite(
        FROM activity_data WHERE server_id = ?
    ",
     )
-    .bind(server_id)
-    .fetch_all(&pool)
-    .await
-    .unwrap_or_default();
+        .bind(server_id)
+        .fetch_all(&pool)
+        .await
+        .unwrap_or_default();
 
     //.map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
 
@@ -377,11 +376,11 @@ pub async fn get_data_activity_with_server_and_anime_id_sqlite(
        FROM activity_data WHERE server_id = ? and anime_id = ?
    ",
     )
-    .bind(server_id)
-    .bind(anime_id)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or_default();
+        .bind(server_id)
+        .bind(anime_id)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or_default();
     pool.close().await;
     Ok(row)
 }
@@ -396,10 +395,10 @@ pub async fn get_data_all_activity_by_server_sqlite(
            FROM activity_data WHERE server_id = ?
        ",
     )
-    .bind(server_id)
-    .fetch_all(&pool)
-    .await
-    .unwrap_or_default();
+        .bind(server_id)
+        .fetch_all(&pool)
+        .await
+        .unwrap_or_default();
     pool.close().await;
 
     Ok(rows)

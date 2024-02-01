@@ -46,7 +46,7 @@ pub async fn run(
             get_database_random_cache(random_type).await?;
         let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
         let page_number = last_page.unwrap_or(1628); // This is as today date the last page,
-                                                     // I will update it sometime.
+        // I will update it sometime.
         let previous_page = page_number - 1;
         let cached_response = response.unwrap_or("Nothing".to_string());
         if let Some(updated) = last_updated {
@@ -59,7 +59,7 @@ pub async fn run(
                     command_interaction,
                     random_localised,
                 )
-                .await;
+                    .await;
             }
         }
         update_cache(
@@ -71,7 +71,7 @@ pub async fn run(
             cached_response,
             random_localised,
         )
-        .await
+            .await
     } else {
         Err(AppError::NoCommandOption(String::from(
             "The command contain no option.",
@@ -202,5 +202,5 @@ pub async fn update_cache(
         command_interaction,
         random_localised,
     )
-    .await
+        .await
 }

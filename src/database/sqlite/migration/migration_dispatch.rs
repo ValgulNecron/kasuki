@@ -16,9 +16,9 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     let row: u32 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM pragma_table_info('activity_data') WHERE name='image'",
     )
-    .fetch_one(&pool)
-    .await
-    .map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
+        .fetch_one(&pool)
+        .await
+        .map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
 
     // If the "image" column doesn't exist, add it
     if row == 0 {

@@ -148,7 +148,7 @@ pub async fn run(
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     let genre = get_genre(&user.statistics.anime.genres);
@@ -163,7 +163,7 @@ pub async fn run(
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     match user
@@ -250,7 +250,7 @@ pub async fn run(
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     let genre = get_genre(&user.statistics.manga.genres);
@@ -265,7 +265,7 @@ pub async fn run(
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     let builder_embed = CreateEmbed::new()

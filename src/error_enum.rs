@@ -3,6 +3,7 @@ pub enum AppError {
     Error(Error),
     DifferedError(DifferedError),
     NotACommandError(NotACommandError),
+    ComponentError(ComponentError),
 }
 
 #[derive(Debug, Clone)]
@@ -29,6 +30,7 @@ pub enum DifferedError {
     DifferedFailedToUploadImage(String),
     DifferedFailedToCreateFolder(String),
     DifferedFailedToWriteFile(String),
+    DifferedFailedToGetImage(String),
 }
 
 #[derive(Debug, Clone)]
@@ -37,9 +39,7 @@ pub enum Error {
     NotAValidUrlError(String),
     NotAValidGameError(String),
     ErrorGettingUserList(String),
-    CreatingImageError(String),
     DecodingImageError(String),
-    FailedToGetImage(String),
     FailedToCreateFolder(String),
     FailedToWriteFile(String),
     FailedToUpdateDatabase(String),
@@ -78,4 +78,10 @@ pub enum NotACommandError {
     NotACommandInsertingDatabaseError(String),
     NotACommandCreatingTableError(String),
     NotACommandCreatingPoolError(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum ComponentError {
+    ComponentOptionError(String),
+    ComponentSendingError(String),
 }

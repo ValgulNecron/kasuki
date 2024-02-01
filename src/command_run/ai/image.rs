@@ -299,7 +299,7 @@ pub async fn run(
         filename.clone(),
         bytes.to_vec(),
     )
-    .await?;
+        .await?;
 
     let _ = fs::remove_file(filename_str);
 
