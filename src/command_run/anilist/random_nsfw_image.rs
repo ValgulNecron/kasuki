@@ -1,9 +1,5 @@
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    CommandSendingError, DifferedCommandSendingError, DifferedFailedToGetBytes,
-    DifferedResponseError, DifferedWritingFile,
-};
 use crate::lang_struct::anilist::random_image_nsfw::{
     load_localization_random_image_nsfw, RandomImageNSFWLocalised,
 };
@@ -15,6 +11,9 @@ use serenity::all::{
 };
 use std::fs;
 use uuid::Uuid;
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedResponseError, DifferedWritingFile};
+use crate::error_enum::Error::CommandSendingError;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -42,8 +41,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
-
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     send_embed(
         ctx,
         command_interaction,
@@ -60,24 +63,24 @@ async fn send_embed(
     random_image_nsfw_localised: RandomImageNSFWLocalised,
 ) -> Result<(), AppError> {
     let url = format!("https://api.waifu.pics/nsfw/{}", image_type);
-    let resp = reqwest::get(&url).await.map_err(|_| {
-        DifferedResponseError(String::from("Failed to get the response from the server."))
+    let resp = reqwest::get(&url).await.map_err(|e| {
+        DifferedError(DifferedResponseError(format!("Failed to get the response from the server. {}", e)))
     })?;
-    let json: Value = resp.json().await.map_err(|_| {
-        DifferedResponseError(String::from("Failed to get the response from the server."))
+    let json: Value = resp.json().await.map_err(|e| {
+        DifferedError(DifferedResponseError(format!("Failed to get the json from the server response. {}", e)))
     })?;
 
     let image_url = json["url"]
         .as_str()
         .ok_or("No image found")
-        .map_err(|_| DifferedResponseError(String::from("Failed to get data from url.")))?
+        .map_err(|e| DifferedError(DifferedResponseError(format!("Failed to get data from url. {}", e))))
         .to_string();
 
     let response = reqwest::get(image_url)
         .await
-        .map_err(|_| DifferedResponseError(String::from("Failed to get data from url.")))?;
-    let bytes = response.bytes().await.map_err(|_| {
-        DifferedFailedToGetBytes(String::from("Failed to get bytes data from response."))
+        .map_err(|e| DifferedResponseError(format!("Failed to get data from url. {}", e)))?;
+    let bytes = response.bytes().await.map_err(|e| {
+        DifferedError(DifferedFailedToGetBytes(format!("Failed to get bytes data from response. {}", e)))
     })?;
 
     let uuid_name = Uuid::new_v4();
@@ -85,7 +88,7 @@ async fn send_embed(
     let filename_str = filename.as_str();
 
     fs::write(&filename, &bytes)
-        .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
+        .map_err(|e| DifferedError(DifferedWritingFile(format!("Failed to write the file bytes. {}", e))))?;
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -93,13 +96,16 @@ async fn send_embed(
         .image(format!("attachment://{}", &filename))
         .title(random_image_nsfw_localised.title);
 
-    let attachement = CreateAttachment::path(&filename).await.map_err(|e| {
-        DifferedCommandSendingError(format!("Error while sending the command {}", e)).clone()
+    let attachment = CreateAttachment::path(&filename).await.map_err(|e| {
+        DifferedError(DifferedCommandSendingError(format!(
+            "Error while sending the command {}",
+            e
+        )))
     })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
-        .files(vec![attachement]);
+        .files(vec![attachment]);
 
     command_interaction
         .create_followup(&ctx.http, builder_message)

@@ -17,10 +17,9 @@ use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
 use crate::common::get_option_value::get_option;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    CommandSendingError, DifferedCommandSendingError, DifferedCreatingImageError,
-    DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedWritingFile,
-};
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedCreatingImageError, DifferedFailedToGetBytes, DifferedFailedUrlError, DifferedWritingFile};
+use crate::error_enum::Error::CommandSendingError;
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
 
 pub async fn run(
@@ -48,8 +47,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
-
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     let mut uuids: Vec<Uuid> = Vec::new();
     for _ in 0..5 {
         let uuid = Uuid::new_v4();
@@ -59,29 +62,27 @@ pub async fn run(
     let url = get_staff_image(data.clone());
     let response = reqwest::get(url)
         .await
-        .map_err(|_| DifferedFailedUrlError(String::from("failed to get the image.")))?;
-    let bytes = response.bytes().await.map_err(|_| {
-        DifferedFailedToGetBytes(String::from("Failed to get bytes data from response."))
-    })?;
+        .map_err(|e| DifferedError(DifferedFailedUrlError(format!("failed to get the image. {}", e))))?;
+    let bytes = response.bytes().await.map_err(|e|
+        DifferedError(DifferedFailedToGetBytes(format!("Failed to get bytes data from response. {}", e))))?;
     let mut buffer = File::create(format!("{}.png", uuids[0]))
-        .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
+        .map_err(|e| DifferedError(DifferedWritingFile(format!("Failed to write the file bytes. {}", e))))?;
     buffer
         .write_all(&bytes)
-        .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
+        .map_err(|e| DifferedError(DifferedWritingFile(format!("Failed to write the file bytes. {}", e))))?;
     let mut i = 1;
     let characters_images_url = get_characters_image(data.clone());
     for character_image in characters_images_url {
         let response = reqwest::get(&character_image.image.large)
             .await
-            .map_err(|_| DifferedFailedUrlError(String::from("failed to get the image.")))?;
-        let bytes = response.bytes().await.map_err(|_| {
-            DifferedFailedToGetBytes(String::from("Failed to get bytes data from response."))
-        })?;
+            .map_err(|e| DifferedError(DifferedFailedUrlError(format!("failed to get the image. {}", e))))?;
+        let bytes = response.bytes().await.map_err(|e|
+            DifferedError(DifferedFailedToGetBytes(format!("Failed to get bytes data from response. {}", e))))?;
         let mut buffer = File::create(format!("{}.png", uuids[i]))
-            .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
+            .map_err(|e| DifferedError(DifferedWritingFile(format!("Failed to write the file bytes. {}", e))))?;
         buffer
             .write_all(&bytes)
-            .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
+            .map_err(|e| DifferedError(DifferedWritingFile(format!("Failed to write the file bytes. {}", e))))?;
         i += 1
     }
 
@@ -108,9 +109,8 @@ pub async fn run(
         };
 
         // Load the image from the byte vector
-        images.push(image::load_from_memory(&buffer).map_err(|_| {
-            DifferedCreatingImageError(String::from("Failed to create the image from the file."))
-        })?);
+        images.push(image::load_from_memory(&buffer).map_err(|e|
+            DifferedError(DifferedCreatingImageError(format!("Failed to create the image from the file. {}", e))))?);
     }
 
     let (width, height) = images[0].dimensions();
@@ -148,17 +148,15 @@ pub async fn run(
         let (pos_width, pos_height) = pos_list[i];
         combined_image
             .copy_from(&resized_img, pos_width, pos_height)
-            .map_err(|_| {
-                DifferedCreatingImageError(String::from(
-                    "Failed to create the image from the file.",
-                ))
-            })?
+            .map_err(|e|
+                DifferedError(DifferedCreatingImageError(format!(
+                    "Failed to create the image from the file. {}", e))))?;
     }
 
     let combined_uuid = Uuid::new_v4();
     combined_image
         .save(format!("{}.png", combined_uuid))
-        .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
+        .map_err(|e| DifferedError(DifferedWritingFile(format!("Failed to write the file bytes. {}", e))))?;
     uuids.push(combined_uuid);
     let image_path = &format!("{}.png", combined_uuid);
 
@@ -168,19 +166,21 @@ pub async fn run(
         .image(format!("attachment://{}", &image_path))
         .title(&seiyuu_localised.title);
 
-    let attachement = CreateAttachment::path(&image_path).await.map_err(|e| {
-        DifferedCommandSendingError(format!("Error while sending the command {}", e))
-    })?;
+    let attachment = CreateAttachment::path(&image_path).await.map_err(|e|
+        DifferedError(DifferedCommandSendingError(format!("Error while sending the command {}", e))))?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
-        .files(vec![attachement]);
+        .files(vec![attachment]);
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
         })?;
 
     for uuid in uuids {

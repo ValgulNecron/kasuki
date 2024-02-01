@@ -14,14 +14,15 @@ use crate::command_run::general::{
 };
 use crate::database::dispatcher::data_dispatch::get_data_module_activation_kill_switch_status;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::UnknownCommandError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::{ModuleOffError, UnknownCommandError};
 
 pub async fn command_dispatching(
     ctx: Context,
     command_interaction: CommandInteraction,
 ) -> Result<(), AppError> {
-    let ai_module_error = AppError::ModuleOffError(String::from("AI module is off."));
-    let anilist_module_error = AppError::ModuleOffError(String::from("Anilist module is off."));
+    let ai_module_error = Error(ModuleOffError(String::from("AI module is off.")));
+    let anilist_module_error = Error(ModuleOffError(String::from("Anilist module is off.")));
     match command_interaction.data.name.as_str() {
         /*
 
@@ -361,7 +362,7 @@ pub async fn command_dispatching(
                 return Err(anilist_module_error);
             }
         }
-        _ => return Err(UnknownCommandError(String::from("Command does not exist."))),
+        _ => return Err(Error(UnknownCommandError(String::from("Command does not exist.")))),
     }
 
     Ok(())

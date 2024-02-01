@@ -37,7 +37,7 @@ pub async fn send_activity(ctx: &Context) {
             if row.delays.unwrap() != 0 {
                 let ctx = ctx.clone();
                 tokio::spawn(async move {
-                    tokio::time::sleep(Duration::from_secs((row2.delays.unwrap()) as u64)).await;
+                    tokio::time::sleep(Duration::from_secs(row2.delays.unwrap() as u64)).await;
                     send_specific_activity(row, guild_id.unwrap(), row2, &ctx)
                         .await
                         .unwrap()

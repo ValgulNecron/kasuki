@@ -7,7 +7,8 @@ use crate::anilist_struct::run::studio::StudioWrapper;
 use crate::common::get_option_value::get_option;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::CommandSendingError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::CommandSendingError;
 use crate::lang_struct::anilist::studio::load_localization_studio;
 
 pub async fn run(
@@ -65,5 +66,9 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
-}
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })}

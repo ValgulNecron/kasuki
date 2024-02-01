@@ -233,7 +233,7 @@ pub async fn get_data_activity_with_server_and_anime_id(
 
 pub async fn get_data_all_activity_by_server(
     server_id: &String,
-) -> Result<Option<Vec<(String, String)>>, AppError> {
+) -> Result<Vec<(String, String)>, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_all_activity_by_server_sqlite(server_id).await

@@ -1,7 +1,6 @@
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError, OptionError};
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -9,6 +8,9 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::DifferedError::DifferedCommandSendingError;
+use crate::error_enum::Error::{CommandSendingError, OptionError};
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -20,15 +22,19 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let guild_id = command_interaction
         .guild_id
-        .ok_or(OptionError(String::from("There is no option")))?;
+        .ok_or(Error(OptionError(String::from("There is no option"))))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
-
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     let list = get_all_server_activity(&guild_id.to_string()).await?;
     let len = list.len();
     let next_page = 1;
@@ -68,8 +74,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let _ = command_interaction
         .create_followup(&ctx.http, response)
         .await
-        .map_err(|e| {
-            DifferedCommandSendingError(format!("Error while sending the command {}", e))
-        })?;
+            .map_err(|e| {
+                DifferedError(DifferedCommandSendingError(format!(
+                    "Error while sending the command {}",
+                    e
+                )))
+            })?;
     Ok(())
 }

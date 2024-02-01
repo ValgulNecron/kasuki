@@ -96,14 +96,6 @@ pub fn convert_html_entity_to_real_char(value: String) -> String {
 /// A `String` which is the input with all HTML anchor links replaced by
 /// Discord-flavored markdown links. If no HTML anchor links are found, the
 /// original string is returned.
-///
-/// # Examples
-///
-/// ```
-/// let input = String::from("<a href=\"http://example.com\">Example</a>");
-/// let output = convert_link_to_discord_markdown(input);
-/// assert_eq!(output, "[Example](http://example.com)");
-/// ```
 pub fn convert_link_to_discord_markdown(value: String) -> String {
     let re = Regex::new(r#"<a\s+href="([^"]+)">([^<]+)</a>"#).unwrap();
     re.replace_all(value.as_str(), "[$2]($1)").to_string()

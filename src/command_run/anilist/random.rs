@@ -16,7 +16,8 @@ use crate::database::dispatcher::cache_dispatch::{
     get_database_random_cache, set_database_random_cache,
 };
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, OptionError};
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::{CommandSendingError, NoCommandOption, OptionError};
 use crate::lang_struct::anilist::random::{load_localization_random, RandomLocalised};
 
 pub async fn run(
@@ -36,10 +37,15 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     let option = &options
         .first()
-        .ok_or(OptionError(String::from("There is no option")))?
+        .ok_or(Error(OptionError(String::from("There is no option"))))?
         .value;
     if let CommandDataOptionValue::String(random_type) = option {
         let row: (Option<String>, Option<i64>, Option<i64>) =
@@ -73,9 +79,9 @@ pub async fn run(
         )
             .await
     } else {
-        Err(AppError::NoCommandOption(String::from(
+        Err(Error(NoCommandOption(String::from(
             "The command contain no option.",
-        )))
+        ))))
     }
 }
 
@@ -151,8 +157,12 @@ pub async fn follow_up_message(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
-    Ok(())
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;    Ok(())
 }
 
 pub async fn update_cache(

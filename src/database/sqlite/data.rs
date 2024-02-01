@@ -1,7 +1,4 @@
 use chrono::Utc;
-use sqlx::sqlite::SqliteRow;
-use sqlx::Row;
-use tracing::error;
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;

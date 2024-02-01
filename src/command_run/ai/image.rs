@@ -272,7 +272,7 @@ pub async fn run(
         .image(format!("attachment://{}", &filename))
         .title(image_localised.title);
 
-    let attachement = CreateAttachment::path(&filename).await.map_err(|e| {
+    let attachment = CreateAttachment::path(&filename).await.map_err(|e| {
         DifferedError(DifferedCommandSendingError(format!(
             "Error while sending the command {}",
             e
@@ -281,7 +281,7 @@ pub async fn run(
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
-        .files(vec![attachement]);
+        .files(vec![attachment]);
 
     command_interaction
         .create_followup(&ctx.http, builder_message)

@@ -1,6 +1,6 @@
 use serenity::all::Member;
 use serenity::all::{
-    ActivityData, Context, EventHandler, GatewayIntents, GuildId, Interaction, Ready,
+    ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready,
 };
 use serenity::{async_trait, Client};
 use std::env;

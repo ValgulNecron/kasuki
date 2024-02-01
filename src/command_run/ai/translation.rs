@@ -220,7 +220,7 @@ pub async fn translation(
     api_base_url: String,
 ) -> Result<String, AppError> {
     let prompt_gpt = format!("
-            i will give you a text and a ISO-639-1 code and you will translate it in the corresponding langage
+            i will give you a text and a ISO-639-1 code and you will translate it in the corresponding language
             iso code: {}
             text:
             {}

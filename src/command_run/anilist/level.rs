@@ -9,7 +9,6 @@ use crate::anilist_struct::run::user::{get_color, get_completed, get_user_url, U
 use crate::command_run::anilist::user::get_user_data;
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, OptionError};
 use crate::lang_struct::anilist::level::load_localization_level;
 
 pub async fn run(

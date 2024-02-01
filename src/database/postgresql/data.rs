@@ -6,9 +6,6 @@ use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
 use crate::error_enum::Error::SqlInsertError;
 use chrono::Utc;
-use sqlx::postgres::PgRow;
-use sqlx::Row;
-use tracing::error;
 
 pub async fn set_data_ping_history_postgresql(
     shard_id: String,

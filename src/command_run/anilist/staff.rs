@@ -7,7 +7,8 @@ use crate::anilist_struct::run::staff::StaffWrapper;
 use crate::common::get_option_value::get_option;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::CommandSendingError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::CommandSendingError;
 use crate::lang_struct::anilist::staff::load_localization_staff;
 
 pub async fn run(
@@ -147,8 +148,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))
-}
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })}
 
 fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {
     match (a, b) {

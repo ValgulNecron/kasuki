@@ -3,13 +3,15 @@ use crate::command_run::anilist::add_activity::get_name;
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::remove_data_activity_status;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CommandSendingError, DifferedCommandSendingError};
 use crate::lang_struct::anilist::delete_activity::load_localization_delete_activity;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::DifferedError::DifferedCommandSendingError;
+use crate::error_enum::Error::CommandSendingError;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -42,8 +44,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| CommandSendingError(format!("Error while sending the command {}", e)))?;
-
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     let anime_id = if anime.parse::<i32>().is_ok() {
         anime.parse().unwrap()
     } else {
@@ -77,7 +83,10 @@ pub async fn run(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
         })?;
     Ok(())
 }
