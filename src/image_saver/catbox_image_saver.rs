@@ -1,8 +1,8 @@
 use crate::error_enum::AppError;
-use std::env;
-use tracing::debug;
 use crate::error_enum::AppError::DifferedError;
 use crate::error_enum::DifferedError::DifferedFailedToUploadImage;
+use std::env;
+use tracing::debug;
 
 pub async fn upload_image_catbox(filename: String) -> Result<(), AppError> {
     let token = match env::var("TOKEN") {
@@ -13,7 +13,9 @@ pub async fn upload_image_catbox(filename: String) -> Result<(), AppError> {
         .await
         .map_err(|e| {
             DifferedError(DifferedFailedToUploadImage(format!(
-                "Failed to upload image to catbox.moe. {}", e)))
+                "Failed to upload image to catbox.moe. {}",
+                e
+            )))
         })?;
     debug!("Image uploaded to catbox.moe: {}", url);
     Ok(())

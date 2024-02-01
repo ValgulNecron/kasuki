@@ -3,6 +3,9 @@ use crate::common::calculate_user_color::{
 };
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedWritingFile};
+use crate::error_enum::Error::{CommandSendingError, OptionError};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
@@ -21,9 +24,6 @@ use std::sync::{Arc, Mutex};
 use std::{fs, thread};
 use tracing::{debug, error, trace};
 use uuid::Uuid;
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedWritingFile};
-use crate::error_enum::Error::{CommandSendingError, OptionError};
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -120,8 +120,12 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let combined_uuid = Uuid::new_v4();
     let image_path = &format!("{}.png", combined_uuid);
-    fs::write(image_path, image_data.clone())
-        .map_err(|e| DifferedError(DifferedWritingFile(format!("Failed to write the file bytes. {}", e))))?;
+    fs::write(image_path, image_data.clone()).map_err(|e| {
+        DifferedError(DifferedWritingFile(format!(
+            "Failed to write the file bytes. {}",
+            e
+        )))
+    })?;
     trace!("Saved image");
 
     let builder_embed = CreateEmbed::new()
@@ -131,7 +135,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .title(pfp_server_image_localised_text.title);
 
     let attachment = CreateAttachment::path(&image_path).await.map_err(|e| {
-        DifferedError(DifferedCommandSendingError(format!("Error while uploading the attachment {}", e)))
+        DifferedError(DifferedCommandSendingError(format!(
+            "Error while uploading the attachment {}",
+            e
+        )))
     })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
@@ -142,7 +149,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!("Error while sending the command {}", e)))
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
         })?;
     trace!("Done");
 
@@ -152,7 +162,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         image_path.clone(),
         image_data,
     )
-        .await?;
+    .await?;
 
     match fs::remove_file(image_path) {
         Ok(_) => debug!("File {} has been removed successfully", combined_uuid),

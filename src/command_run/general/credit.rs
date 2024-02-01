@@ -5,7 +5,7 @@ use serenity::all::{
 
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{ Error};
+use crate::error_enum::AppError::Error;
 use crate::error_enum::Error::CommandSendingError;
 use crate::lang_struct::general::credit::load_localization_credit;
 
@@ -38,4 +38,5 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 "Error while sending the command {}",
                 e
             )))
-        })}
+        })
+}

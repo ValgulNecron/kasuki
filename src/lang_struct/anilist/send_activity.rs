@@ -7,8 +7,10 @@ use serde::{Deserialize, Serialize};
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::NoLangageError;
-
+use crate::error_enum::Error::{
+    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
+};
+use crate::lang_struct::ai::image::ImageLocalised;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SendActivityLocalised {
@@ -19,18 +21,27 @@ pub struct SendActivityLocalised {
 pub async fn load_localization_send_activity(
     guild_id: String,
 ) -> Result<SendActivityLocalised, AppError> {
-    let mut file = File::open("json/message/anilist/send_activity.json")
-        .map_err(|_| LocalisationFileError(String::from("File send_activity.json not found.")))?;
-
-    let mut json = String::new();
-    file.read_to_string(&mut json).map_err(|_| {
-        LocalisationReadError(String::from("File send_activity.json can't be read."))
+    let mut file = File::open("json/message/anilist/send_activity.json").map_err(|e| {
+        Error(LocalisationFileError(format!(
+            "File send_activity.json not found. {}",
+            e
+        )))
     })?;
 
-    let json_data: HashMap<String, SendActivityLocalised> =
-        serde_json::from_str(&json).map_err(|_| {
-            LocalisationParsingError(String::from("Failing to parse send_activity.json."))
-        })?;
+    let mut json = String::new();
+    file.read_to_string(&mut json).map_err(|e| {
+        Error(LocalisationReadError(format!(
+            "File send_activity.json can't be read. {}",
+            e
+        )))
+    })?;
+
+    let json_data: HashMap<String, SendActivityLocalised> = serde_json::from_str(&json).map_err(|e| {
+        Error(LocalisationParsingError(format!(
+            "Failing to parse send_activity.json. {}",
+            e
+        )))
+    })?;
 
     let send_activity_choice = get_guild_langage(guild_id).await;
 

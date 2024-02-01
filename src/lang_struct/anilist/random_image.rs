@@ -7,8 +7,10 @@ use serde::{Deserialize, Serialize};
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::NoLangageError;
-
+use crate::error_enum::Error::{
+    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
+};
+use crate::lang_struct::ai::image::ImageLocalised;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct RandomImageLocalised {
@@ -18,18 +20,27 @@ pub struct RandomImageLocalised {
 pub async fn load_localization_random_image(
     guild_id: String,
 ) -> Result<RandomImageLocalised, AppError> {
-    let mut file = File::open("json/message/anilist/random_image.json")
-        .map_err(|_| LocalisationFileError(String::from("File random_image.json not found.")))?;
-
-    let mut json = String::new();
-    file.read_to_string(&mut json).map_err(|_| {
-        LocalisationReadError(String::from("File random_image.json can't be read."))
+    let mut file = File::open("json/message/anilist/random_image.json").map_err(|e| {
+        Error(LocalisationFileError(format!(
+            "File random_image.json not found. {}",
+            e
+        )))
     })?;
 
-    let json_data: HashMap<String, RandomImageLocalised> =
-        serde_json::from_str(&json).map_err(|_| {
-            LocalisationParsingError(String::from("Failing to parse random_image.json."))
-        })?;
+    let mut json = String::new();
+    file.read_to_string(&mut json).map_err(|e| {
+        Error(LocalisationReadError(format!(
+            "File random_image.json can't be read. {}",
+            e
+        )))
+    })?;
+
+    let json_data: HashMap<String, RandomImageLocalised> = serde_json::from_str(&json).map_err(|e| {
+        Error(LocalisationParsingError(format!(
+            "Failing to parse random_image.json. {}",
+            e
+        )))
+    })?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 

@@ -1,9 +1,9 @@
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::DifferedError;
+use crate::error_enum::DifferedError::{DifferedFailedToCreateFolder, DifferedFailedToWriteFile};
 use chrono::Local;
 use std::fs;
 use std::path::Path;
-use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DifferedError::{DifferedFailedToCreateFolder, DifferedFailedToWriteFile};
 
 pub async fn local_image_save(
     guild_id: String,
@@ -18,14 +18,21 @@ pub async fn local_image_save(
     // create the directory if it doesn't exist
     if !Path::new(&file_path).exists() {
         fs::create_dir_all(&file_path).map_err(|e| {
-            DifferedError(DifferedFailedToCreateFolder(format!("Failed to create directory. {}", e)))
+            DifferedError(DifferedFailedToCreateFolder(format!(
+                "Failed to create directory. {}",
+                e
+            )))
         })?;
     }
 
     let filename = format!("{}_{}", filename, formatted);
     // write the file
-    fs::write(format!("{}/{}", file_path, filename), image_data)
-        .map_err(|e| DifferedError(DifferedFailedToWriteFile(format!("Failed to write image. {}", e))))?;
+    fs::write(format!("{}/{}", file_path, filename), image_data).map_err(|e| {
+        DifferedError(DifferedFailedToWriteFile(format!(
+            "Failed to write image. {}",
+            e
+        )))
+    })?;
 
     Ok(())
 }

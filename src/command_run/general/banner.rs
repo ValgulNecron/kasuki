@@ -56,7 +56,8 @@ pub async fn no_banner(
                 "Error while sending the command {}",
                 e
             )))
-        })}
+        })
+}
 
 pub async fn banner_without_user(
     ctx: &Context,
@@ -109,4 +110,5 @@ pub async fn send_embed(
                 "Error while sending the command {}",
                 e
             )))
-        })}
+        })
+}

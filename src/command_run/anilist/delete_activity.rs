@@ -3,15 +3,15 @@ use crate::command_run::anilist::add_activity::get_name;
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::remove_data_activity_status;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::DifferedError::DifferedCommandSendingError;
+use crate::error_enum::Error::CommandSendingError;
 use crate::lang_struct::anilist::delete_activity::load_localization_delete_activity;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::DifferedCommandSendingError;
-use crate::error_enum::Error::CommandSendingError;
 
 pub async fn run(
     options: &[CommandDataOption],

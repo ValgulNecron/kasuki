@@ -250,7 +250,7 @@ pub async fn run(
         ))))?;
 
     let response = reqwest::get(url_string).await.map_err(|e| {
-        DifferedResponseError(format!("Failed to get bytes data from response. {}", e))
+        DifferedError(DifferedResponseError(format!("Failed to get bytes data from response. {}", e)))
     })?;
     let bytes = response.bytes().await.map_err(|e| {
         DifferedError(DifferedFailedToGetBytes(format!(
@@ -273,7 +273,10 @@ pub async fn run(
         .title(image_localised.title);
 
     let attachment = CreateAttachment::path(&filename).await.map_err(|e| {
-        DifferedError(DifferedCommandSendingError(format!("Error while uploading the attachment {}", e)))
+        DifferedError(DifferedCommandSendingError(format!(
+            "Error while uploading the attachment {}",
+            e
+        )))
     })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
@@ -296,7 +299,7 @@ pub async fn run(
         filename.clone(),
         bytes.to_vec(),
     )
-        .await?;
+    .await?;
 
     let _ = fs::remove_file(filename_str);
 

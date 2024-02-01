@@ -54,4 +54,5 @@ pub async fn run(
                 "Error while sending the command {}",
                 e
             )))
-        })}
+        })
+}

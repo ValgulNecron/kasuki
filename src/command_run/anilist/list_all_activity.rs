@@ -1,6 +1,9 @@
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::DifferedError::DifferedCommandSendingError;
+use crate::error_enum::Error::{CommandSendingError, OptionError};
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -8,9 +11,6 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::DifferedCommandSendingError;
-use crate::error_enum::Error::{CommandSendingError, OptionError};
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {

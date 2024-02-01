@@ -20,7 +20,7 @@ pub async fn run(
             let user = user
                 .to_user(&ctx.http)
                 .await
-                .ok_or(Error(OptionError(String::from("There is no option"))))?;
+                .map_err(|e| Error(OptionError(format!("There is no option. {}", e))))?;
             return profile_with_user(ctx, command_interaction, &user).await;
         }
     }
@@ -42,7 +42,7 @@ async fn profile_with_user(
 ) -> Result<(), AppError> {
     let avatar_url = user
         .avatar_url()
-        .ok_or(OptionError(String::from("There is no option")))?;
+        .ok_or(Error(OptionError(String::from("There is no option"))))?;
 
     send_embed(avatar_url, ctx, command_interaction, user).await
 }
@@ -63,7 +63,7 @@ pub async fn send_embed(
     let member = &command_interaction
         .member
         .clone()
-        .ok_or(OptionError(String::from("There is no option")))?;
+        .ok_or(Error(OptionError(String::from("There is no option"))))?;
 
     let public_flag = match user.public_flags {
         Some(public_flag) => {
@@ -95,7 +95,7 @@ pub async fn send_embed(
                     "$joined_date$",
                     member
                         .joined_at
-                        .ok_or(OptionError(String::from("There is no option")))?
+                        .ok_or(Error(OptionError(String::from("There is no option"))))?
                         .to_string()
                         .as_str(),
                 )
@@ -117,4 +117,5 @@ pub async fn send_embed(
                 "Error while sending the command {}",
                 e
             )))
-        })}
+        })
+}

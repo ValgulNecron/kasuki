@@ -1,6 +1,9 @@
 use crate::common::steam_to_discord_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedOptionError};
+use crate::error_enum::Error::CommandSendingError;
 use crate::game_struct::run::steam_game::SteamGameWrapper;
 use crate::lang_struct::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
@@ -11,9 +14,6 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedOptionError};
-use crate::error_enum::Error::CommandSendingError;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -53,7 +53,9 @@ pub async fn run(
         }
     }
 
-    Err(DifferedError(DifferedOptionError(String::from("There is no option"))))
+    Err(DifferedError(DifferedOptionError(String::from(
+        "There is no option",
+    ))))
 }
 
 async fn send_embed(
@@ -171,7 +173,12 @@ async fn send_embed(
     let _ = command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| DifferedError(DifferedCommandSendingError(format!("Error while sending the command {}", e))))?;
+        .map_err(|e| {
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
 
     Ok(())
 }

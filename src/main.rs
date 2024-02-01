@@ -1,7 +1,5 @@
 use serenity::all::Member;
-use serenity::all::{
-    ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready,
-};
+use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;

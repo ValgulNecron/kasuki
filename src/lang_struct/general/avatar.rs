@@ -7,8 +7,10 @@ use serde::{Deserialize, Serialize};
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::NoLangageError;
-
+use crate::error_enum::Error::{
+    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
+};
+use crate::lang_struct::ai::image::ImageLocalised;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AvatarLocalised {
@@ -16,15 +18,27 @@ pub struct AvatarLocalised {
 }
 
 pub async fn load_localization_avatar(guild_id: String) -> Result<AvatarLocalised, AppError> {
-    let mut file = File::open("json/message/general/avatar.json")
-        .map_err(|_| LocalisationFileError(String::from("File avatar.json not found.")))?;
+    let mut file = File::open("json/message/general/avatar.json").map_err(|e| {
+        Error(LocalisationFileError(format!(
+            "File avatar.json not found. {}",
+            e
+        )))
+    })?;
 
     let mut json = String::new();
-    file.read_to_string(&mut json)
-        .map_err(|_| LocalisationReadError(String::from("File avatar.json can't be read.")))?;
+    file.read_to_string(&mut json).map_err(|e| {
+        Error(LocalisationReadError(format!(
+            "File avatar.json can't be read. {}",
+            e
+        )))
+    })?;
 
-    let json_data: HashMap<String, AvatarLocalised> = serde_json::from_str(&json)
-        .map_err(|_| LocalisationParsingError(String::from("Failing to parse avatar.json.")))?;
+    let json_data: HashMap<String, AvatarLocalised> = serde_json::from_str(&json).map_err(|e| {
+        Error(LocalisationParsingError(format!(
+            "Failing to parse avatar.json. {}",
+            e
+        )))
+    })?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 

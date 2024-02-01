@@ -68,5 +68,5 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 "Error while sending the command {}",
                 e
             )))
-        })}
-
+        })
+}

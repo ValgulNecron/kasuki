@@ -88,7 +88,8 @@ pub async fn run(
                 "Error while sending the command {}",
                 e
             )))
-        })}
+        })
+}
 
 pub async fn check_activation_status(module: &str, guild_id: String) -> Result<bool, AppError> {
     let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>) =

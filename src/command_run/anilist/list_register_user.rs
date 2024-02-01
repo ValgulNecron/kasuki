@@ -88,7 +88,7 @@ pub async fn get_the_list(
         let members = guild
             .members(&ctx.http, Some(MEMBER_LIST_LIMIT), last_id)
             .await
-            .map_err(|e| OptionError(format!("There is no option {}", e)))?;
+            .map_err(|e| Error(OptionError(format!("There is no option {}", e))))?;
 
         for member in members {
             last_id = Some(member.user.id);

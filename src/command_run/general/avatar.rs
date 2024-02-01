@@ -77,4 +77,5 @@ pub async fn send_embed(
                 "Error while sending the command {}",
                 e
             )))
-        })}
+        })
+}

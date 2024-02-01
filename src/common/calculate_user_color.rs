@@ -4,6 +4,8 @@ use crate::database::dispatcher::data_dispatch::{
 };
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::DifferedError;
+use crate::error_enum::DifferedError::{DifferedCreatingImageError, DifferedFailedToGetImage};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::io::Reader as ImageReader;
@@ -13,8 +15,6 @@ use std::io::Cursor;
 use std::time::Duration;
 use tokio::time::sleep;
 use tracing::{debug, error};
-use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DifferedError::{DifferedCreatingImageError, DifferedFailedToGetImage};
 
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
     for member in members {
@@ -104,17 +104,37 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
     // Fetch the image data
     let resp = reqwest::get(url)
         .await
-        .map_err(|e| DifferedError(DifferedFailedToGetImage(format!("Failed to download image. {}", e))))?
+        .map_err(|e| {
+            DifferedError(DifferedFailedToGetImage(format!(
+                "Failed to download image. {}",
+                e
+            )))
+        })?
         .bytes()
         .await
-        .map_err(|e| DifferedError(DifferedFailedToGetImage(format!("Failed to get bytes image. {}", e))))?;
+        .map_err(|e| {
+            DifferedError(DifferedFailedToGetImage(format!(
+                "Failed to get bytes image. {}",
+                e
+            )))
+        })?;
 
     // Decode the image data
     let img = ImageReader::new(Cursor::new(resp))
         .with_guessed_format()
-        .map_err(|e| DifferedError(DifferedCreatingImageError(format!("Failed to load image. {}", e))))?
+        .map_err(|e| {
+            DifferedError(DifferedCreatingImageError(format!(
+                "Failed to load image. {}",
+                e
+            )))
+        })?
         .decode()
-        .map_err(|e| DifferedError(DifferedCreatingImageError(format!("Failed to decode image. {}", e))))?;
+        .map_err(|e| {
+            DifferedError(DifferedCreatingImageError(format!(
+                "Failed to decode image. {}",
+                e
+            )))
+        })?;
 
     Ok(img)
 }
@@ -141,7 +161,7 @@ pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
         sleep(Duration::from_secs(
             (TIME_BETWEEN_USER_COLOR_UPDATE * 60) as u64,
         ))
-            .await;
+        .await;
     }
 }
 

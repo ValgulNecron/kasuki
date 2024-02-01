@@ -7,8 +7,10 @@ use serde::{Deserialize, Serialize};
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::NoLangageError;
-
+use crate::error_enum::Error::{
+    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
+};
+use crate::lang_struct::ai::image::ImageLocalised;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LangLocalised {
@@ -17,15 +19,26 @@ pub struct LangLocalised {
 }
 
 pub async fn load_localization_lang(guild_id: String) -> Result<LangLocalised, AppError> {
-    let mut file = File::open("json/message/general/lang.json")
-        .map_err(|_| LocalisationFileError(String::from("File lang_struct.json not found.")))?;
+    let mut file = File::open("json/message/general/lang.json").map_err(|e| {
+        Error(LocalisationFileError(format!(
+            "File lang.json not found. {}",
+            e
+        )))
+    })?;
 
     let mut json = String::new();
-    file.read_to_string(&mut json)
-        .map_err(|_| LocalisationReadError(String::from("File lang_struct.json can't be read.")))?;
+    file.read_to_string(&mut json).map_err(|e| {
+        Error(LocalisationReadError(format!(
+            "File lang.json can't be read. {}",
+            e
+        )))
+    })?;
 
-    let json_data: HashMap<String, LangLocalised> = serde_json::from_str(&json).map_err(|_| {
-        LocalisationParsingError(String::from("Failing to parse lang_struct.json."))
+    let json_data: HashMap<String, LangLocalised> = serde_json::from_str(&json).map_err(|e| {
+        Error(LocalisationParsingError(format!(
+            "Failing to parse lang.json. {}",
+            e
+        )))
     })?;
 
     let lang_choice = get_guild_langage(guild_id).await;

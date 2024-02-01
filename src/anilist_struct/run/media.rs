@@ -450,7 +450,7 @@ impl MediaWrapper {
 }
 ";
 
-        let json = json!({"query": query_id, "variables": {"search": search}});
+        let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp).map_err(|e| {

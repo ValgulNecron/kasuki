@@ -1,5 +1,11 @@
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::DifferedError::{
+    DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedResponseError,
+    DifferedWritingFile,
+};
+use crate::error_enum::Error::CommandSendingError;
 use crate::lang_struct::anilist::random_image::{
     load_localization_random_image, RandomImageLocalised,
 };
@@ -10,9 +16,6 @@ use serenity::all::{
 };
 use std::fs;
 use uuid::Uuid;
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedResponseError, DifferedWritingFile};
-use crate::error_enum::Error::CommandSendingError;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -57,30 +60,48 @@ async fn send_embed(
 ) -> Result<(), AppError> {
     let url = format!("https://api.waifu.pics/sfw/{}", image_type);
     let resp = reqwest::get(&url).await.map_err(|e| {
-        DifferedError(DifferedResponseError(format!("Failed to get the response from the server. {}", e)))
+        DifferedError(DifferedResponseError(format!(
+            "Failed to get the response from the server. {}",
+            e
+        )))
     })?;
     let json: serde_json::Value = resp.json().await.map_err(|e| {
-        DifferedError(DifferedResponseError(format!("Failed to get the json from the server response. {}", e)))
+        DifferedError(DifferedResponseError(format!(
+            "Failed to get the json from the server response. {}",
+            e
+        )))
     })?;
     let image_url = json["url"]
         .as_str()
         .ok_or("No image found")
-        .map_err(|e| DifferedError(DifferedResponseError(format!("Failed to get data from url. {}", e))))
+        .map_err(|e| {
+            DifferedError(DifferedResponseError(format!(
+                "Failed to get data from url. {}",
+                e
+            )))
+        })?
         .to_string();
 
     let response = reqwest::get(image_url)
         .await
-        .map_err(|e| DifferedResponseError(format!("Failed to get data from url. {}", e)))?;
+        .map_err(|e| DifferedError(DifferedResponseError(format!("Failed to get data from url. {}", e))))?;
     let bytes = response.bytes().await.map_err(|e| {
-        DifferedError(DifferedFailedToGetBytes(format!("Failed to get bytes data from response. {}", e)))
+        DifferedError(DifferedFailedToGetBytes(format!(
+            "Failed to get bytes data from response. {}",
+            e
+        )))
     })?;
 
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.gif", uuid_name);
     let filename_str = filename.as_str();
 
-    fs::write(&filename, &bytes)
-        .map_err(|e| DifferedError(DifferedWritingFile(format!("Failed to write the file bytes. {}", e))))?;
+    fs::write(&filename, &bytes).map_err(|e| {
+        DifferedError(DifferedWritingFile(format!(
+            "Failed to write the file bytes. {}",
+            e
+        )))
+    })?;
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -89,7 +110,10 @@ async fn send_embed(
         .title(random_image_localised.title);
 
     let attachment = CreateAttachment::path(&filename).await.map_err(|e| {
-        DifferedError(DifferedCommandSendingError(format!("Error while uploading the attachment {}", e)))
+        DifferedError(DifferedCommandSendingError(format!(
+            "Error while uploading the attachment {}",
+            e
+        )))
     })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
@@ -100,7 +124,7 @@ async fn send_embed(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedCommandSendingError(format!("Error while sending the command {}", e))
+            DifferedError(DifferedCommandSendingError(format!("Error while sending the command {}", e)))
         })?;
 
     let _ = fs::remove_file(filename_str);

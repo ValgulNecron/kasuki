@@ -2,12 +2,12 @@ use crate::command_run::anilist::list_register_user::get_the_list;
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::ComponentError;
+use crate::error_enum::ComponentError::{ComponentOptionError, ComponentSendingError};
 use crate::lang_struct::anilist::list_register_user::load_localization_list_user;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, UserId,
 };
 use tracing::trace;
-use crate::error_enum::ComponentError::{ComponentOptionError, ComponentSendingError};
 
 pub async fn update(
     ctx: &Context,
@@ -23,7 +23,9 @@ pub async fn update(
 
     let guild_id = component_interaction
         .guild_id
-        .ok_or(ComponentError(ComponentOptionError(String::from("There is no option"))))?;
+        .ok_or(ComponentError(ComponentOptionError(String::from(
+            "There is no option",
+        ))))?;
 
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)

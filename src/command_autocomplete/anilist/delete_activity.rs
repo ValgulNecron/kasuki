@@ -20,7 +20,6 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
     let activities = get_data_all_activity_by_server(&guild_id)
         .await
-        .unwrap()
         .unwrap();
     let activity_strings: Vec<String> = activities
         .into_iter()
