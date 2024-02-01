@@ -16,11 +16,8 @@ use uuid::Uuid;
 
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    CommandSendingError, DifferedCommandSendingError, DifferedCopyBytesError,
-    DifferedFileExtensionError, DifferedFileTypeError, DifferedGettingBytesError,
-    DifferedResponseError, DifferedTokenError, NoCommandOption, OptionError,
-};
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::{NoCommandOption, OptionError};
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
 pub async fn run(
@@ -54,27 +51,27 @@ pub async fn run(
                 let attach_option = simple.clone();
                 attachement = Some(attach_option)
             } else {
-                return Err(NoCommandOption(String::from(
+                return Err(Error(NoCommandOption(String::from(
                     "The command contain no option.",
-                )));
+                ))));
             }
         }
     }
 
-    let attachement = match attachement {
+    let attachment = match attachement {
         Some(att) => att,
         None => {
-            return Err(NoCommandOption(String::from(
-                "The command contain no option.",
-            )));
+            return Err(Error(NoCommandOption(String::from(
+                "The command contain no attachment.",
+            ))));
         }
     };
 
-    let content_type = attachement
+    let content_type = attachment
         .content_type
         .clone()
-        .ok_or(OptionError(String::from("There is no option")))?;
-    let content = attachement.proxy_url.clone();
+        .ok_or(Error(OptionError(String::from("There is no option"))))?;
+    let content = attachment.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
