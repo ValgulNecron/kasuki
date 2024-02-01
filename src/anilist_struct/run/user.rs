@@ -156,8 +156,7 @@ options{
 ";
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
-        serde_json::from_str(&resp)
-           .map_err(|e| {
+        serde_json::from_str(&resp).map_err(|e| {
             Error(UserGettingError(format!(
                 "Error getting the user with id {}. {}",
                 id, e
@@ -221,8 +220,7 @@ options{
 ";
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
-        serde_json::from_str(&resp)
-            .map_err(|e| {
+        serde_json::from_str(&resp).map_err(|e| {
             Error(UserGettingError(format!(
                 "Error getting the user with name {}. {}",
                 search, e
@@ -285,7 +283,12 @@ pub async fn send_embed(
     command
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| Error(CommandSendingError(format!("Error while sending the command {}", e))))
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })
 }
 
 pub fn get_user_url(user_id: i32) -> String {

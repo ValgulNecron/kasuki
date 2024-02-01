@@ -9,7 +9,8 @@ use crate::database::sqlite::pool::get_sqlite_pool;
 use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{SqlInsertError, SqlSelectError};
+use crate::error_enum::AppError::Error;
+use crate::error_enum::Error::SqlInsertError;
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
 ///
@@ -39,7 +40,12 @@ pub async fn set_data_ping_history_sqlite(
         .bind(latency)
         .execute(&pool)
         .await
-        .map_err(|_| SqlInsertError(String::from("Failed to insert into the table.")))?;
+        .map_err(|e| {
+            Error(SqlInsertError(format!(
+                "Failed to insert into the table. {}",
+                e
+            )))
+        })?;
     pool.close().await;
     Ok(())
 }
@@ -85,7 +91,12 @@ pub async fn set_data_guild_langage_sqlite(
         .bind(lang)
         .execute(&pool)
         .await
-        .map_err(|_| SqlInsertError(String::from("Failed to insert into the table.")))?;
+        .map_err(|e| {
+            Error(SqlInsertError(format!(
+                "Failed to insert into the table. {}",
+                e
+            )))
+        })?;
     pool.close().await;
     Ok(())
 }
@@ -104,7 +115,7 @@ pub async fn get_data_activity_sqlite(now: String) -> Result<Vec<ActivityData>, 
         .bind(now)
         .fetch_all(&pool)
         .await
-        .unwrap();
+        .unwrap_or_default();
     Ok(rows)
 }
 
@@ -136,7 +147,7 @@ pub async fn set_data_activity_sqlite(
         .bind(server_activity_full.delays)
         .bind(server_activity_full.image)
         .execute(&pool)
-        .await.map_err(|_| SqlInsertError(String::from("Failed to insert into the table.")))?;
+        .await.map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
     pool.close().await;
     Ok(())
 }
@@ -172,7 +183,7 @@ pub async fn set_data_module_activation_status_sqlite(
         .bind(game_value)
         .execute(&pool)
         .await
-        .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+        .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
     pool.close().await;
     Ok(())
 }
@@ -187,7 +198,12 @@ pub async fn remove_data_activity_status_sqlite(
         .bind(server_id)
         .execute(&pool)
         .await
-        .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+        .map_err(|e| {
+            Error(SqlInsertError(format!(
+                "Failed to insert into the table. {}",
+                e
+            )))
+        })?;
     pool.close().await;
 
     Ok(())
@@ -251,7 +267,12 @@ pub async fn set_registered_user_sqlite(
         .bind(username)
         .fetch_one(&pool)
         .await
-        .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+        .map_err(|e| {
+            Error(SqlInsertError(format!(
+                "Failed to insert into the table. {}",
+                e
+            )))
+        })?;
     pool.close().await;
 
     Ok(())
@@ -273,7 +294,12 @@ pub async fn set_user_approximated_color_sqlite(
     .bind(image)
     .execute(&pool)
     .await
-    .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+    .map_err(|e| {
+        Error(SqlInsertError(format!(
+            "Failed to insert into the table. {}",
+            e
+        )))
+    })?;
     pool.close().await;
 
     Ok(())
@@ -301,7 +327,7 @@ pub async fn get_all_server_activity_sqlite(
     server_id: &String,
 ) -> Result<Vec<ServerActivity>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let rows: Vec<SqliteRow> = match sqlx::query(
+    let rows: Vec<ServerActivity> = sqlx::query_as(
         "SELECT
        anime_id,
        timestamp,
@@ -316,41 +342,11 @@ pub async fn get_all_server_activity_sqlite(
     .bind(server_id)
     .fetch_all(&pool)
     .await
-    {
-        Ok(rows) => rows,
-        Err(e) => {
-            error!("Failed to select from the table: {}", e);
-            return Err(SqlSelectError(String::from(
-                "Failed to select from the table.",
-            )));
-        }
-    };
+    .unwrap_or_default();
+
     //.map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
 
-    let list: Vec<ServerActivity> = rows
-        .into_iter()
-        .map(|row| {
-            let anime_id: Option<String> = row.get(0);
-            let timestamp: Option<String> = row.get(1);
-            let server_id: Option<String> = row.get(2);
-            let webhook: Option<String> = row.get(3);
-            let episode: Option<String> = row.get(4);
-            let name: Option<String> = row.get(5);
-            let delays: Option<u32> = row.get(6);
-            ServerActivity {
-                anime_id,
-                timestamp,
-                server_id,
-                webhook,
-                episode,
-                name,
-                delays,
-            }
-        })
-        .collect();
-
-    pool.close().await;
-    Ok(list)
+    Ok(rows)
 }
 
 pub async fn get_all_user_approximated_color_sqlite() -> Result<Vec<UserColor>, AppError> {
@@ -375,7 +371,7 @@ pub async fn get_data_activity_with_server_and_anime_id_sqlite(
     server_id: &String,
 ) -> Result<Option<String>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row = sqlx::query(
+    let row = sqlx::query_as(
         "SELECT
        webhook
        FROM activity_data WHERE server_id = ? and anime_id = ?
@@ -384,18 +380,15 @@ pub async fn get_data_activity_with_server_and_anime_id_sqlite(
     .bind(server_id)
     .bind(anime_id)
     .fetch_one(&pool)
-    .await;
+    .await
+    .unwrap_or_default();
     pool.close().await;
-    let webhook: Option<String> = match row {
-        Ok(row) => row.get(0),
-        Err(_) => None,
-    };
-    Ok(webhook)
+    Ok(row)
 }
 
 pub async fn get_data_all_activity_by_server_sqlite(
     server_id: &String,
-) -> Result<Option<Vec<(String, String)>>, AppError> {
+) -> Result<Vec<(String, String)>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let rows = sqlx::query_as(
         "SELECT
@@ -405,13 +398,9 @@ pub async fn get_data_all_activity_by_server_sqlite(
     )
     .bind(server_id)
     .fetch_all(&pool)
-    .await;
+    .await
+    .unwrap_or_default();
     pool.close().await;
-
-    let rows: Option<Vec<(String, String)>> = match rows {
-        Ok(rows) => Some(rows),
-        Err(_) => None,
-    };
 
     Ok(rows)
 }

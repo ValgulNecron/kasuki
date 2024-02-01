@@ -1,6 +1,5 @@
 # Discord bot that uses the anilist api to get anime/manga info
 
-
 ## **What does it do?**
 
 - Get anime/manga/ln info
@@ -23,9 +22,7 @@ accept new translation on the repos (if it seems good on deepl), but will not ad
 speaks other language to help me translate it.)
 You can also request feature and report issue.
 
-
 ## **Screenshot**
-
 
 ![anime command](https://files.catbox.moe/pmp6be.png)
 ![seiyuu command](https://files.catbox.moe/nwn173.png)

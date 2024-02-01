@@ -159,8 +159,7 @@ query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
 ";
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, false).await;
-        serde_json::from_str(&resp)
-            .map_err(|e| {
+        serde_json::from_str(&resp).map_err(|e| {
             Error(StaffGettingError(format!(
                 "Error getting the staff with id {}. {}",
                 id, e
@@ -226,8 +225,7 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
 ";
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, false).await;
-        serde_json::from_str(&resp)
-            .map_err(|e| {
+        serde_json::from_str(&resp).map_err(|e| {
             Error(StaffGettingError(format!(
                 "Error getting the staff with name {}. {}",
                 search, e

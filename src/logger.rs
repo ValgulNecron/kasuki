@@ -15,7 +15,8 @@ use uuid::Uuid;
 
 use crate::constant::OTHER_CRATE_LEVEL;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::SetLoggerError;
+use crate::error_enum::AppError::NotACommandError;
+use crate::error_enum::NotACommandError::NotACommandSetLoggerError;
 
 /// Initializes the logger with the specified log level filter.
 ///
@@ -154,7 +155,10 @@ fn get_directive(filter: &str) -> Result<Directive, AppError> {
         Ok(d) => d,
         Err(e) => {
             eprintln!("{}", e);
-            return Err(SetLoggerError(String::from("Error creating the Logger")));
+            return Err(NotACommandError(NotACommandSetLoggerError(format!(
+                "Error creating the Logger. Please check the log level filter. {}",
+                e
+            ))));
         }
     };
     Ok(directive)

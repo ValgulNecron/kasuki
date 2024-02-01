@@ -4,6 +4,7 @@ pub enum AppError {
     DifferedError(DifferedError),
     NotACommandError(NotACommandError),
 }
+
 #[derive(Debug, Clone)]
 pub enum DifferedError {
     DifferedFailedToCreateDirectory(String),
@@ -55,7 +56,6 @@ pub enum Error {
     ModuleError(String),
     ModuleOffError(String),
     UnknownCommandError(String),
-    CreatingPoolError(String),
     FailedToCreateAFile(String),
     MediaGettingError(String),
     UserGettingError(String),
@@ -68,6 +68,12 @@ pub enum Error {
 
 #[derive(Debug, Clone)]
 pub enum NotACommandError {
-NotACommandOptionError(String),
+    NotACommandOptionError(String),
     NotACommandSetLoggerError(String),
+    NotACommandGettingDatabaseFileError(String),
+    NotACommandCreatingDatabaseFileError(String),
+    NotACommandCreatingDatabaseError(String),
+    NotACommandInsertingDatabaseError(String),
+    NotACommandCreatingTableError(String),
+    NotACommandCreatingPoolError(String),
 }

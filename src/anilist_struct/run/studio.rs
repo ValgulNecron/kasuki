@@ -72,8 +72,7 @@ impl StudioWrapper {
         ";
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, false).await;
-        serde_json::from_str(&resp)
-            .map_err(|e| {
+        serde_json::from_str(&resp).map_err(|e| {
             Error(StudioGettingError(format!(
                 "Error getting the studio with id {}. {}",
                 id, e
@@ -104,8 +103,7 @@ impl StudioWrapper {
         ";
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, false).await;
-        serde_json::from_str(&resp)
-            .map_err(|e| {
+        serde_json::from_str(&resp).map_err(|e| {
             Error(StaffGettingError(format!(
                 "Error getting the studio with name {}. {}",
                 search, e

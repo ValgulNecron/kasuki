@@ -1,7 +1,12 @@
 use crate::database::postgresql::migration::migration_dispatch::migrate_postgres;
 use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::SqlCreateError;
+use crate::error_enum::AppError::{NotACommandError, SqlCreateError};
+use crate::error_enum::NotACommandError::{
+    NotACommandCreatingDatabaseError, NotACommandCreatingDatabaseFileError,
+    NotACommandCreatingTableError, NotACommandGettingDatabaseFileError,
+    NotACommandInsertingDatabaseError,
+};
 use sqlx::{Pool, Postgres};
 
 pub async fn init_postgres() -> Result<(), AppError> {
@@ -22,14 +27,24 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
             .bind("CACHE")
             .fetch_one(pool)
             .await
-            .map_err(|_| SqlCreateError(String::from("Failed to check if the database exists.")))?;
+            .map_err(|e| {
+                NotACommandError(NotACommandGettingDatabaseFileError(format!(
+                    "Failed to check if the database exists. {}",
+                    e
+                )))
+            })?;
 
     // If the database does not exist, create it
     if !exists.0 {
         sqlx::query("CREATE DATABASE CACHE")
             .execute(pool)
             .await
-            .map_err(|_| SqlCreateError(String::from("Failed to create the database.")))?;
+            .map_err(|e| {
+                NotACommandError(NotACommandCreatingDatabaseError(format!(
+                    "Failed to create the database. {}",
+                    e
+                )))
+            })?;
     }
 
     sqlx::query(
@@ -41,7 +56,12 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(NotACommandCreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS cache_stats (
@@ -53,7 +73,12 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(NotACommandCreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
     Ok(())
 }
 
@@ -64,14 +89,24 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             .bind("DATA")
             .fetch_one(pool)
             .await
-            .map_err(|_| SqlCreateError(String::from("Failed to check if the database exists.")))?;
+            .map_err(|e| {
+                NotACommandError(NotACommandGettingDatabaseFileError(format!(
+                    "Failed to check if the database exists. {}",
+                    e
+                )))
+            })?;
 
     // If the database does not exist, create it
     if !exists.0 {
         sqlx::query("CREATE DATABASE DATA")
             .execute(pool)
             .await
-            .map_err(|_| SqlCreateError(String::from("Failed to create the database.")))?;
+            .map_err(|e| {
+                NotACommandError(NotACommandCreatingDatabaseError(format!(
+                    "Failed to create the database. {}",
+                    e
+                )))
+            })?;
     }
 
     sqlx::query(
@@ -84,7 +119,12 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(NotACommandCreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS guild_lang (
@@ -94,7 +134,12 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(NotACommandCreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS activity_data (
@@ -111,7 +156,12 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(NotACommandCreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
@@ -123,7 +173,12 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(NotACommandCreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
@@ -133,7 +188,12 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(NotACommandCreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
@@ -145,7 +205,12 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(NotACommandCreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "INSERT INTO global_kill_switch (id, anilist_module, ai_module, game_module) VALUES ($1, $2, $3, $4)
@@ -156,7 +221,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         .bind(1)
         .bind(1)
         .execute(pool)
-        .await.map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+        .await.map_err(|e| NotACommandError(NotACommandInsertingDatabaseError(format!("Failed to create the database table. {}", e))))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_color (
@@ -168,7 +233,12 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(NotACommandCreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     Ok(())
 }

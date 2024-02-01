@@ -17,7 +17,10 @@ use uuid::Uuid;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedCopyBytesError, DifferedFileExtensionError, DifferedGettingBytesError, DifferedResponseError, DifferedTokenError};
+use crate::error_enum::DifferedError::{
+    DifferedCommandSendingError, DifferedCopyBytesError, DifferedFileExtensionError,
+    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError,
+};
 use crate::error_enum::Error::{CommandSendingError, FileTypeError, NoCommandOption, OptionError};
 use crate::lang_struct::ai::translation::load_localization_translation;
 
@@ -64,7 +67,9 @@ pub async fn run(
     let content_type = attachment
         .content_type
         .clone()
-        .ok_or(Error(OptionError(String::from("Error getting content type"))))?;
+        .ok_or(Error(OptionError(String::from(
+            "Error getting content type",
+        ))))?;
     let content = attachment.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
@@ -83,7 +88,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| Error(CommandSendingError(format!("Error while sending the command {}", e))))?;
+        .map_err(|e| {
+            Error(CommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
     let parsed_url = Url::parse(content.as_str()).expect("Failed to parse URL");
@@ -110,18 +120,28 @@ pub async fn run(
     let file_name = format!("/{}.{}", uuid_name, file_extension);
     let mut file = File::create(fname.clone()).expect("file name");
     let resp_byte = response.bytes().await.map_err(|e| {
-        DifferedError(DifferedGettingBytesError(format!("Failed to get the bytes from the response. {}", e)))
+        DifferedError(DifferedGettingBytesError(format!(
+            "Failed to get the bytes from the response. {}",
+            e
+        )))
     })?;
-    copy(&mut resp_byte.as_ref(), &mut file)
-        .map_err(|e| DifferedError(DifferedCopyBytesError(format!("Failed to copy bytes data. {}", e))))?;
+    copy(&mut resp_byte.as_ref(), &mut file).map_err(|e| {
+        DifferedError(DifferedCopyBytesError(format!(
+            "Failed to copy bytes data. {}",
+            e
+        )))
+    })?;
     let file_to_delete = fname.clone();
 
     let my_path = "./.env";
     let path = Path::new(my_path);
     let _ = dotenv::from_path(path);
-    let api_key = env::var("AI_API_TOKEN").map_err(|e| DifferedError(DifferedTokenError(format!(
-        "There was an error while getting the token. {}", e
-    ))))?;
+    let api_key = env::var("AI_API_TOKEN").map_err(|e| {
+        DifferedError(DifferedTokenError(format!(
+            "There was an error while getting the token. {}",
+            e
+        )))
+    })?;
     let api_base_url =
         env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string());
     let api_url = format!("{}audio/transcriptions", api_base_url);
@@ -149,13 +169,16 @@ pub async fn run(
         .multipart(form)
         .send()
         .await;
-    let response = response_result.map_err(|e|
-        DifferedError(DifferedResponseError(format!("Failed to get the response from the server. {}", e)))
-    )?;
+    let response = response_result.map_err(|e| {
+        DifferedError(DifferedResponseError(format!(
+            "Failed to get the response from the server. {}",
+            e
+        )))
+    })?;
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
     let res = res_result.map_err(|e| {
-        DifferedResponseError(format!("Failed to get the response from the server. {}",e))
+        DifferedResponseError(format!("Failed to get the response from the server. {}", e))
     })?;
 
     let _ = fs::remove_file(&file_to_delete);
@@ -181,7 +204,10 @@ pub async fn run(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!("Error while sending the command {}", e)))
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
         })?;
 
     Ok(())
@@ -220,10 +246,20 @@ pub async fn translation(
         .json(&data)
         .send()
         .await
-        .map_err(|e| DifferedError(DifferedResponseError(format!("error during translation. {}", e))))?
+        .map_err(|e| {
+            DifferedError(DifferedResponseError(format!(
+                "error during translation. {}",
+                e
+            )))
+        })?
         .json()
         .await
-        .map_err(|e| DifferedError(DifferedResponseError(format!("error during translation. {}", e))))?;
+        .map_err(|e| {
+            DifferedError(DifferedResponseError(format!(
+                "error during translation. {}",
+                e
+            )))
+        })?;
     let content = res["choices"][0]["message"]["content"].to_string();
     let no_quote = content.replace('"', "");
 

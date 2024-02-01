@@ -72,8 +72,7 @@ impl SiteStatisticsMangaWrapper {
                 ";
         let json = json!({"query": query, "variables": {"page": page_number}});
         let res = make_request_anilist(json, false).await;
-        let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res)
-            .map_err(|e| {
+        let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res).map_err(|e| {
             DifferedError(DifferedNoStatisticError(format!(
                 "No media with page {}. {}",
                 page_number, e
