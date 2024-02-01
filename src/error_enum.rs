@@ -63,10 +63,11 @@ pub enum Error {
     CharacterGettingError(String),
     StaffGettingError(String),
     StudioGettingError(String),
+    FileTypeError(String),
 }
 
 #[derive(Debug, Clone)]
 pub enum NotACommandError {
-    OptionError(String),
-    SetLoggerError(String),
+NotACommandOptionError(String),
+    NotACommandSetLoggerError(String),
 }
