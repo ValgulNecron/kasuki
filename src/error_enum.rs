@@ -26,6 +26,9 @@ pub enum DifferedError {
     DifferedMediaError(String),
     DifferedCreatingWebhookError(String),
     DifferedNoStatisticError(String),
+    DifferedFailedToUploadImage(String),
+    DifferedFailedToCreateFolder(String),
+    DifferedFailedToWriteFile(String),
 }
 
 #[derive(Debug, Clone)]
@@ -38,7 +41,6 @@ pub enum Error {
     DecodingImageError(String),
     FailedToGetImage(String),
     FailedToCreateFolder(String),
-    FailedToUploadImage(String),
     FailedToWriteFile(String),
     FailedToUpdateDatabase(String),
     FailedToCreateDirectory(String),
