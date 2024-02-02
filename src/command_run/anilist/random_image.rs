@@ -2,8 +2,7 @@ use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::DifferedError::{
-    DifferedCommandSendingError, FailedToGetBytes, ResponseError,
-    WritingFile,
+    DifferedCommandSendingError, FailedToGetBytes, ResponseError, WritingFile,
 };
 use crate::error_enum::Error::ErrorCommandSendingError;
 use crate::lang_struct::anilist::random_image::{
@@ -74,20 +73,12 @@ async fn send_embed(
     let image_url = json["url"]
         .as_str()
         .ok_or("No image found")
-        .map_err(|e| {
-            DifferedError(ResponseError(format!(
-                "Failed to get data from url. {}",
-                e
-            )))
-        })?
+        .map_err(|e| DifferedError(ResponseError(format!("Failed to get data from url. {}", e))))?
         .to_string();
 
-    let response = reqwest::get(image_url).await.map_err(|e| {
-        DifferedError(ResponseError(format!(
-            "Failed to get data from url. {}",
-            e
-        )))
-    })?;
+    let response = reqwest::get(image_url)
+        .await
+        .map_err(|e| DifferedError(ResponseError(format!("Failed to get data from url. {}", e))))?;
     let bytes = response.bytes().await.map_err(|e| {
         DifferedError(FailedToGetBytes(format!(
             "Failed to get bytes data from response. {}",

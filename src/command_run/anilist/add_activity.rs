@@ -22,7 +22,9 @@ use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_acti
 use crate::database_struct::server_activity_struct::ServerActivityFull;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{CreatingWebhookError, DifferedCommandSendingError, DifferedOptionError, NotAiringError};
+use crate::error_enum::DifferedError::{
+    CreatingWebhookError, DifferedCommandSendingError, DifferedOptionError, NotAiringError,
+};
 use crate::error_enum::Error::ErrorCommandSendingError;
 use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
 

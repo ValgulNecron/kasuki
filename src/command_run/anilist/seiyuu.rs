@@ -19,8 +19,7 @@ use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::DifferedError::{
-    DifferedCommandSendingError, CreatingImageError, FailedToGetBytes,
-    FailedUrlError, WritingFile,
+    CreatingImageError, DifferedCommandSendingError, FailedToGetBytes, FailedUrlError, WritingFile,
 };
 use crate::error_enum::Error::ErrorCommandSendingError;
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
@@ -63,12 +62,9 @@ pub async fn run(
     }
 
     let url = get_staff_image(data.clone());
-    let response = reqwest::get(url).await.map_err(|e| {
-        DifferedError(FailedUrlError(format!(
-            "failed to get the image. {}",
-            e
-        )))
-    })?;
+    let response = reqwest::get(url)
+        .await
+        .map_err(|e| DifferedError(FailedUrlError(format!("failed to get the image. {}", e))))?;
     let bytes = response.bytes().await.map_err(|e| {
         DifferedError(FailedToGetBytes(format!(
             "Failed to get bytes data from response. {}",
@@ -93,10 +89,7 @@ pub async fn run(
         let response = reqwest::get(&character_image.image.large)
             .await
             .map_err(|e| {
-                DifferedError(FailedUrlError(format!(
-                    "failed to get the image. {}",
-                    e
-                )))
+                DifferedError(FailedUrlError(format!("failed to get the image. {}", e)))
             })?;
         let bytes = response.bytes().await.map_err(|e| {
             DifferedError(FailedToGetBytes(format!(

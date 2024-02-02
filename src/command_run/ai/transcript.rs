@@ -17,8 +17,13 @@ use uuid::Uuid;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError, ResponseError, TokenError};
-use crate::error_enum::Error::{ErrorCommandSendingError, FileTypeError, NoCommandOption, ErrorOptionError};
+use crate::error_enum::DifferedError::{
+    CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
+    ResponseError, TokenError,
+};
+use crate::error_enum::Error::{
+    ErrorCommandSendingError, ErrorOptionError, FileTypeError, NoCommandOption,
+};
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
 pub async fn run(
@@ -129,12 +134,8 @@ pub async fn run(
             e
         )))
     })?;
-    copy(&mut resp_byte.as_ref(), &mut file).map_err(|e| {
-        DifferedError(CopyBytesError(format!(
-            "Failed to copy bytes data. {}",
-            e
-        )))
-    })?;
+    copy(&mut resp_byte.as_ref(), &mut file)
+        .map_err(|e| DifferedError(CopyBytesError(format!("Failed to copy bytes data. {}", e))))?;
     let file_to_delete = fname.clone();
 
     let my_path = "./.env";

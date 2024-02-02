@@ -226,6 +226,8 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!("Error while sending the command {}", e)).clone())
+            Error(
+                ErrorCommandSendingError(format!("Error while sending the command {}", e)).clone(),
+            )
         })
 }

@@ -17,8 +17,13 @@ use uuid::Uuid;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError, ResponseError, TokenError};
-use crate::error_enum::Error::{ErrorCommandSendingError, FileTypeError, NoCommandOption, ErrorOptionError};
+use crate::error_enum::DifferedError::{
+    CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
+    ResponseError, TokenError,
+};
+use crate::error_enum::Error::{
+    ErrorCommandSendingError, ErrorOptionError, FileTypeError, NoCommandOption,
+};
 use crate::lang_struct::ai::translation::load_localization_translation;
 
 pub async fn run(
@@ -122,12 +127,8 @@ pub async fn run(
             e
         )))
     })?;
-    copy(&mut resp_byte.as_ref(), &mut file).map_err(|e| {
-        DifferedError(CopyBytesError(format!(
-            "Failed to copy bytes data. {}",
-            e
-        )))
-    })?;
+    copy(&mut resp_byte.as_ref(), &mut file)
+        .map_err(|e| DifferedError(CopyBytesError(format!("Failed to copy bytes data. {}", e))))?;
     let file_to_delete = fname.clone();
 
     let my_path = "./.env";
@@ -246,20 +247,10 @@ pub async fn translation(
         .json(&data)
         .send()
         .await
-        .map_err(|e| {
-            DifferedError(ResponseError(format!(
-                "error during translation. {}",
-                e
-            )))
-        })?
+        .map_err(|e| DifferedError(ResponseError(format!("error during translation. {}", e))))?
         .json()
         .await
-        .map_err(|e| {
-            DifferedError(ResponseError(format!(
-                "error during translation. {}",
-                e
-            )))
-        })?;
+        .map_err(|e| DifferedError(ResponseError(format!("error during translation. {}", e))))?;
     let content = res["choices"][0]["message"]["content"].to_string();
     let no_quote = content.replace('"', "");
 

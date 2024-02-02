@@ -9,8 +9,7 @@ use crate::database::sqlite::pool::get_sqlite_pool;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NotACommandError;
 use crate::error_enum::NotACommandError::{
-    CreatingDatabaseFileError, CreatingTableError,
-    InsertingDatabaseError,
+    CreatingDatabaseFileError, CreatingTableError, InsertingDatabaseError,
 };
 
 /// Initializes SQLite database.
@@ -208,9 +207,10 @@ fn create_sqlite_file(path: &str) -> Result<(), AppError> {
             Ok(_) => {}
             Err(e) => {
                 println!("Failed to create the file {} : {}", path, e);
-                return Err(NotACommandError(CreatingDatabaseFileError(
-                    format!("Failed to create db file. {}", e),
-                )));
+                return Err(NotACommandError(CreatingDatabaseFileError(format!(
+                    "Failed to create db file. {}",
+                    e
+                ))));
             }
         }
     }
