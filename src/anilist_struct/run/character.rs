@@ -12,7 +12,7 @@ use crate::common::trimer::trim;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{CharacterGettingError, CommandSendingError};
+use crate::error_enum::Error::{CharacterGettingError, ErrorCommandSendingError};
 use crate::lang_struct::anilist::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -226,6 +226,6 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!("Error while sending the command {}", e)).clone())
+            Error(ErrorCommandSendingError(format!("Error while sending the command {}", e)).clone())
         })
 }

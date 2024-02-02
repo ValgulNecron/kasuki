@@ -4,7 +4,7 @@ use serde_json::json;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DifferedError::DifferedMediaError;
+use crate::error_enum::DifferedError::MediaError;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Media {
@@ -84,7 +84,7 @@ impl PageWrapper {
         let json = json!({"query": query, "variables": {"anime_page": number}});
         let res = make_request_anilist(json, false).await;
         let res = serde_json::from_str(&res).map_err(|e| {
-            DifferedError(DifferedMediaError(format!(
+            DifferedError(MediaError(format!(
                 "Error getting the media with id {}. {}",
                 number, e
             )))
@@ -121,7 +121,7 @@ impl PageWrapper {
         let res = make_request_anilist(json, false).await;
 
         let res = serde_json::from_str(&res).map_err(|e| {
-            DifferedError(DifferedMediaError(format!(
+            DifferedError(MediaError(format!(
                 "Error getting the media with id {}. {}",
                 number, e
             )))

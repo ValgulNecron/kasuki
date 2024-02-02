@@ -2,10 +2,10 @@ use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::DifferedError::{
-    DifferedCommandSendingError, DifferedFailedToGetBytes, DifferedResponseError,
-    DifferedWritingFile,
+    DifferedCommandSendingError, FailedToGetBytes, ResponseError,
+    WritingFile,
 };
-use crate::error_enum::Error::CommandSendingError;
+use crate::error_enum::Error::ErrorCommandSendingError;
 use crate::lang_struct::anilist::random_image::{
     load_localization_random_image, RandomImageLocalised,
 };
@@ -44,7 +44,7 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))
@@ -60,13 +60,13 @@ async fn send_embed(
 ) -> Result<(), AppError> {
     let url = format!("https://api.waifu.pics/sfw/{}", image_type);
     let resp = reqwest::get(&url).await.map_err(|e| {
-        DifferedError(DifferedResponseError(format!(
+        DifferedError(ResponseError(format!(
             "Failed to get the response from the server. {}",
             e
         )))
     })?;
     let json: serde_json::Value = resp.json().await.map_err(|e| {
-        DifferedError(DifferedResponseError(format!(
+        DifferedError(ResponseError(format!(
             "Failed to get the json from the server response. {}",
             e
         )))
@@ -75,7 +75,7 @@ async fn send_embed(
         .as_str()
         .ok_or("No image found")
         .map_err(|e| {
-            DifferedError(DifferedResponseError(format!(
+            DifferedError(ResponseError(format!(
                 "Failed to get data from url. {}",
                 e
             )))
@@ -83,13 +83,13 @@ async fn send_embed(
         .to_string();
 
     let response = reqwest::get(image_url).await.map_err(|e| {
-        DifferedError(DifferedResponseError(format!(
+        DifferedError(ResponseError(format!(
             "Failed to get data from url. {}",
             e
         )))
     })?;
     let bytes = response.bytes().await.map_err(|e| {
-        DifferedError(DifferedFailedToGetBytes(format!(
+        DifferedError(FailedToGetBytes(format!(
             "Failed to get bytes data from response. {}",
             e
         )))
@@ -100,7 +100,7 @@ async fn send_embed(
     let filename_str = filename.as_str();
 
     fs::write(&filename, &bytes).map_err(|e| {
-        DifferedError(DifferedWritingFile(format!(
+        DifferedError(WritingFile(format!(
             "Failed to write the file bytes. {}",
             e
         )))

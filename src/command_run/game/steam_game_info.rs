@@ -3,7 +3,7 @@ use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedOptionError};
-use crate::error_enum::Error::CommandSendingError;
+use crate::error_enum::Error::ErrorCommandSendingError;
 use crate::game_struct::run::steam_game::SteamGameWrapper;
 use crate::lang_struct::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
@@ -33,7 +33,7 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))

@@ -1,6 +1,6 @@
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DifferedError::{DifferedFailedToCreateFolder, DifferedFailedToWriteFile};
+use crate::error_enum::DifferedError::{FailedToCreateFolder, FailedToWriteFile};
 use chrono::Local;
 use std::fs;
 use std::path::Path;
@@ -18,7 +18,7 @@ pub async fn local_image_save(
     // create the directory if it doesn't exist
     if !Path::new(&file_path).exists() {
         fs::create_dir_all(&file_path).map_err(|e| {
-            DifferedError(DifferedFailedToCreateFolder(format!(
+            DifferedError(FailedToCreateFolder(format!(
                 "Failed to create directory. {}",
                 e
             )))
@@ -28,7 +28,7 @@ pub async fn local_image_save(
     let filename = format!("{}_{}", filename, formatted);
     // write the file
     fs::write(format!("{}/{}", file_path, filename), image_data).map_err(|e| {
-        DifferedError(DifferedFailedToWriteFile(format!(
+        DifferedError(FailedToWriteFile(format!(
             "Failed to write image. {}",
             e
         )))

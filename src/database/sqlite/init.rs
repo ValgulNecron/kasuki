@@ -9,8 +9,8 @@ use crate::database::sqlite::pool::get_sqlite_pool;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NotACommandError;
 use crate::error_enum::NotACommandError::{
-    NotACommandCreatingDatabaseFileError, NotACommandCreatingTableError,
-    NotACommandInsertingDatabaseError,
+    CreatingDatabaseFileError, CreatingTableError,
+    InsertingDatabaseError,
 };
 
 /// Initializes SQLite database.
@@ -42,7 +42,7 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .execute(pool)
     .await
     .map_err(|e| {
-        NotACommandError(NotACommandCreatingTableError(format!(
+        NotACommandError(CreatingTableError(format!(
             "Failed to create the table. {}",
             e
         )))
@@ -59,7 +59,7 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .execute(pool)
     .await
     .map_err(|e| {
-        NotACommandError(NotACommandCreatingTableError(format!(
+        NotACommandError(CreatingTableError(format!(
             "Failed to create the table. {}",
             e
         )))
@@ -84,7 +84,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .execute(pool)
     .await
     .map_err(|e| {
-        NotACommandError(NotACommandCreatingTableError(format!(
+        NotACommandError(CreatingTableError(format!(
             "Failed to create the table. {}",
             e
         )))
@@ -99,7 +99,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .execute(pool)
     .await
     .map_err(|e| {
-        NotACommandError(NotACommandCreatingTableError(format!(
+        NotACommandError(CreatingTableError(format!(
             "Failed to create the table. {}",
             e
         )))
@@ -120,7 +120,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     )
         .execute(pool)
         .await
-        .map_err(|e| NotACommandError(NotACommandCreatingTableError(format!("Failed to create the table. {}", e))))?;
+        .map_err(|e| NotACommandError(CreatingTableError(format!("Failed to create the table. {}", e))))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
@@ -133,7 +133,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .execute(pool)
     .await
     .map_err(|e| {
-        NotACommandError(NotACommandCreatingTableError(format!(
+        NotACommandError(CreatingTableError(format!(
             "Failed to create the table. {}",
             e
         )))
@@ -148,7 +148,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .execute(pool)
     .await
     .map_err(|e| {
-        NotACommandError(NotACommandCreatingTableError(format!(
+        NotACommandError(CreatingTableError(format!(
             "Failed to create the table. {}",
             e
         )))
@@ -165,7 +165,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .execute(pool)
     .await
     .map_err(|e| {
-        NotACommandError(NotACommandCreatingTableError(format!(
+        NotACommandError(CreatingTableError(format!(
             "Failed to create the table. {}",
             e
         )))
@@ -179,7 +179,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         .bind(1)
         .bind(1)
         .execute(pool)
-        .await.map_err(|e| NotACommandError(NotACommandInsertingDatabaseError(format!("Failed to create the database table. {}", e))))?;
+        .await.map_err(|e| NotACommandError(InsertingDatabaseError(format!("Failed to create the database table. {}", e))))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_color (
@@ -192,7 +192,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     .execute(pool)
     .await
     .map_err(|e| {
-        NotACommandError(NotACommandCreatingTableError(format!(
+        NotACommandError(CreatingTableError(format!(
             "Failed to create the table. {}",
             e
         )))
@@ -208,7 +208,7 @@ fn create_sqlite_file(path: &str) -> Result<(), AppError> {
             Ok(_) => {}
             Err(e) => {
                 println!("Failed to create the file {} : {}", path, e);
-                return Err(NotACommandError(NotACommandCreatingDatabaseFileError(
+                return Err(NotACommandError(CreatingDatabaseFileError(
                     format!("Failed to create db file. {}", e),
                 )));
             }

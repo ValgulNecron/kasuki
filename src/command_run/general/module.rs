@@ -9,7 +9,7 @@ use crate::database::dispatcher::data_dispatch::{
 };
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{CommandSendingError, ModuleError};
+use crate::error_enum::Error::{ErrorCommandSendingError, ModuleError};
 use crate::lang_struct::general::module::load_localization_module_activation;
 
 pub async fn run(
@@ -84,7 +84,7 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))

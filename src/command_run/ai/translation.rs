@@ -17,11 +17,8 @@ use uuid::Uuid;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{
-    DifferedCommandSendingError, DifferedCopyBytesError, DifferedFileExtensionError,
-    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError,
-};
-use crate::error_enum::Error::{CommandSendingError, FileTypeError, NoCommandOption, OptionError};
+use crate::error_enum::DifferedError::{CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError, ResponseError, TokenError};
+use crate::error_enum::Error::{ErrorCommandSendingError, FileTypeError, NoCommandOption, ErrorOptionError};
 use crate::lang_struct::ai::translation::load_localization_translation;
 
 pub async fn run(
@@ -67,7 +64,7 @@ pub async fn run(
     let content_type = attachment
         .content_type
         .clone()
-        .ok_or(Error(OptionError(String::from(
+        .ok_or(Error(ErrorOptionError(String::from(
             "Error getting content type",
         ))))?;
     let content = attachment.proxy_url.clone();
@@ -89,7 +86,7 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))
@@ -109,7 +106,7 @@ pub async fn run(
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
-        return Err(DifferedError(DifferedFileExtensionError(String::from(
+        return Err(DifferedError(FileExtensionError(String::from(
             "Bad file extension",
         ))));
     }
@@ -120,13 +117,13 @@ pub async fn run(
     let file_name = format!("/{}.{}", uuid_name, file_extension);
     let mut file = File::create(fname.clone()).expect("file name");
     let resp_byte = response.bytes().await.map_err(|e| {
-        DifferedError(DifferedGettingBytesError(format!(
+        DifferedError(GettingBytesError(format!(
             "Failed to get the bytes from the response. {}",
             e
         )))
     })?;
     copy(&mut resp_byte.as_ref(), &mut file).map_err(|e| {
-        DifferedError(DifferedCopyBytesError(format!(
+        DifferedError(CopyBytesError(format!(
             "Failed to copy bytes data. {}",
             e
         )))
@@ -137,7 +134,7 @@ pub async fn run(
     let path = Path::new(my_path);
     let _ = dotenv::from_path(path);
     let api_key = env::var("AI_API_TOKEN").map_err(|e| {
-        DifferedError(DifferedTokenError(format!(
+        DifferedError(TokenError(format!(
             "There was an error while getting the token. {}",
             e
         )))
@@ -170,7 +167,7 @@ pub async fn run(
         .send()
         .await;
     let response = response_result.map_err(|e| {
-        DifferedError(DifferedResponseError(format!(
+        DifferedError(ResponseError(format!(
             "Failed to get the response from the server. {}",
             e
         )))
@@ -178,7 +175,7 @@ pub async fn run(
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
     let res = res_result.map_err(|e| {
-        DifferedError(DifferedResponseError(format!(
+        DifferedError(ResponseError(format!(
             "Failed to get the response from the server. {}",
             e
         )))
@@ -250,7 +247,7 @@ pub async fn translation(
         .send()
         .await
         .map_err(|e| {
-            DifferedError(DifferedResponseError(format!(
+            DifferedError(ResponseError(format!(
                 "error during translation. {}",
                 e
             )))
@@ -258,7 +255,7 @@ pub async fn translation(
         .json()
         .await
         .map_err(|e| {
-            DifferedError(DifferedResponseError(format!(
+            DifferedError(ResponseError(format!(
                 "error during translation. {}",
                 e
             )))

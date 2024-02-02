@@ -12,7 +12,7 @@ use crate::command_run::anilist::user::get_user_data;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{CommandSendingError, OptionError};
+use crate::error_enum::Error::{ErrorCommandSendingError, ErrorOptionError};
 use crate::lang_struct::anilist::compare::load_localization_compare;
 
 pub async fn run(
@@ -22,13 +22,13 @@ pub async fn run(
 ) -> Result<(), AppError> {
     let option = &options
         .first()
-        .ok_or(Error(OptionError(String::from("There is no option"))))?
+        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
         .value;
 
     let value = match option {
         CommandDataOptionValue::String(lang) => lang,
         _ => {
-            return Err(Error(OptionError(String::from(
+            return Err(Error(ErrorOptionError(String::from(
                 "The command contain no option.",
             ))));
         }
@@ -36,13 +36,13 @@ pub async fn run(
 
     let option2 = &options
         .get(1)
-        .ok_or(Error(OptionError(String::from("There is no option"))))?
+        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
         .value;
 
     let value2 = match option2 {
         CommandDataOptionValue::String(lang) => lang,
         _ => {
-            return Err(Error(OptionError(String::from(
+            return Err(Error(ErrorOptionError(String::from(
                 "The command contain no option.",
             ))));
         }
@@ -282,7 +282,7 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))

@@ -4,14 +4,14 @@ use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::remove_data_activity_status;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::DifferedCommandSendingError;
-use crate::error_enum::Error::CommandSendingError;
+use crate::error_enum::Error::ErrorCommandSendingError;
 use crate::lang_struct::anilist::delete_activity::load_localization_delete_activity;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
+use crate::error_enum::DifferedError::DifferedCommandSendingError;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -45,7 +45,7 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))

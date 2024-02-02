@@ -12,7 +12,7 @@ use crate::common::trimer::trim;
 use crate::constant::{COLOR, UNKNOWN};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{CommandSendingError, MediaGettingError, NotNSFWError};
+use crate::error_enum::Error::{ErrorCommandSendingError, MediaGettingError, NotNSFWError};
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -710,7 +710,7 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))

@@ -1,6 +1,6 @@
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NotACommandError;
-use crate::error_enum::NotACommandError::NotACommandCreatingPoolError;
+use crate::error_enum::NotACommandError::CreatingPoolError;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 
@@ -10,7 +10,7 @@ pub async fn get_postgresql_pool() -> Result<Pool<Postgres>, AppError> {
         .max_connections(20)
         .connect_lazy(pool_url.as_str())
         .map_err(|e| {
-            NotACommandError(NotACommandCreatingPoolError(format!(
+            NotACommandError(CreatingPoolError(format!(
                 "Failed to create the pool. {}",
                 e
             )))

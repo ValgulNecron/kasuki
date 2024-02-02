@@ -4,8 +4,8 @@ use crate::common::calculate_user_color::{
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{DifferedCommandSendingError, DifferedWritingFile};
-use crate::error_enum::Error::{CommandSendingError, OptionError};
+use crate::error_enum::DifferedError::{DifferedCommandSendingError, WritingFile};
+use crate::error_enum::Error::{ErrorCommandSendingError, ErrorOptionError};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
@@ -39,7 +39,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap()
         .to_partial_guild(&ctx.http)
         .await
-        .map_err(|e| Error(OptionError(format!("There is no option {}", e))))?;
+        .map_err(|e| Error(ErrorOptionError(format!("There is no option {}", e))))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
@@ -47,7 +47,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))
@@ -121,7 +121,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let combined_uuid = Uuid::new_v4();
     let image_path = &format!("{}.png", combined_uuid);
     fs::write(image_path, image_data.clone()).map_err(|e| {
-        DifferedError(DifferedWritingFile(format!(
+        DifferedError(WritingFile(format!(
             "Failed to write the file bytes. {}",
             e
         )))

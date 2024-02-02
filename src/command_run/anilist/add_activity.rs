@@ -22,11 +22,8 @@ use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_acti
 use crate::database_struct::server_activity_struct::ServerActivityFull;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{
-    DifferedCommandSendingError, DifferedCreatingWebhookError, DifferedNotAiringError,
-    DifferedOptionError,
-};
-use crate::error_enum::Error::CommandSendingError;
+use crate::error_enum::DifferedError::{CreatingWebhookError, DifferedCommandSendingError, DifferedOptionError, NotAiringError};
+use crate::error_enum::Error::ErrorCommandSendingError;
 use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
 
 pub async fn run(
@@ -66,7 +63,7 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))
@@ -144,7 +141,7 @@ pub async fn run(
         let next_airing = match media.next_airing_episode.clone() {
             Some(na) => na,
             None => {
-                return Err(DifferedError(DifferedNotAiringError(String::from(
+                return Err(DifferedError(NotAiringError(String::from(
                     "This anime is not airing",
                 ))));
             }
@@ -259,13 +256,13 @@ async fn get_webhook(
                 .create_webhook(channel_id, &map, None)
                 .await
                 .map_err(|e| {
-                    DifferedError(DifferedCreatingWebhookError(format!(
+                    DifferedError(CreatingWebhookError(format!(
                         "Error when creating the webhook. {}",
                         e
                     )))
                 })?;
             webhook_return = webhook.url().map_err(|e| {
-                DifferedError(DifferedCreatingWebhookError(format!(
+                DifferedError(CreatingWebhookError(format!(
                     "Error when getting the webhook url. {}",
                     e
                 )))
@@ -280,13 +277,13 @@ async fn get_webhook(
             .create_webhook(channel_id, &map, None)
             .await
             .map_err(|e| {
-                DifferedError(DifferedCreatingWebhookError(format!(
+                DifferedError(CreatingWebhookError(format!(
                     "Error when creating the webhook. {}",
                     e
                 )))
             })?;
         webhook_return = webhook.url().map_err(|e| {
-            DifferedError(DifferedCreatingWebhookError(format!(
+            DifferedError(CreatingWebhookError(format!(
                 "Error when getting the webhook url. {}",
                 e
             )))
@@ -301,7 +298,7 @@ async fn get_webhook(
         if webhook_user_id == bot_id {
             trace!("Getting webhook");
             webhook_return = webhook.url().map_err(|e| {
-                DifferedError(DifferedCreatingWebhookError(format!(
+                DifferedError(CreatingWebhookError(format!(
                     "Error when getting the webhook url. {}",
                     e
                 )))
@@ -317,13 +314,13 @@ async fn get_webhook(
                     .create_webhook(channel_id, &map, None)
                     .await
                     .map_err(|e| {
-                        DifferedError(DifferedCreatingWebhookError(format!(
+                        DifferedError(CreatingWebhookError(format!(
                             "Error when creating the webhook url. {}",
                             e
                         )))
                     })?;
                 webhook_return = webhook.url().map_err(|e| {
-                    DifferedError(DifferedCreatingWebhookError(format!(
+                    DifferedError(CreatingWebhookError(format!(
                         "Error when getting the webhook url. {}",
                         e
                     )))

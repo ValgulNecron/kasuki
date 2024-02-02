@@ -6,7 +6,7 @@ use serenity::all::{
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{CommandSendingError, OptionError};
+use crate::error_enum::Error::{ErrorCommandSendingError, ErrorOptionError};
 use crate::lang_struct::general::profile::load_localization_profile;
 
 pub async fn run(
@@ -20,7 +20,7 @@ pub async fn run(
             let user = user
                 .to_user(&ctx.http)
                 .await
-                .map_err(|e| Error(OptionError(format!("There is no option. {}", e))))?;
+                .map_err(|e| Error(ErrorOptionError(format!("There is no option. {}", e))))?;
             return profile_with_user(ctx, command_interaction, &user).await;
         }
     }
@@ -42,7 +42,7 @@ async fn profile_with_user(
 ) -> Result<(), AppError> {
     let avatar_url = user
         .avatar_url()
-        .ok_or(Error(OptionError(String::from("There is no option"))))?;
+        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
 
     send_embed(avatar_url, ctx, command_interaction, user).await
 }
@@ -63,7 +63,7 @@ pub async fn send_embed(
     let member = &command_interaction
         .member
         .clone()
-        .ok_or(Error(OptionError(String::from("There is no option"))))?;
+        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
 
     let public_flag = match user.public_flags {
         Some(public_flag) => {
@@ -95,7 +95,7 @@ pub async fn send_embed(
                     "$joined_date$",
                     member
                         .joined_at
-                        .ok_or(Error(OptionError(String::from("There is no option"))))?
+                        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
                         .to_string()
                         .as_str(),
                 )
@@ -113,7 +113,7 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))

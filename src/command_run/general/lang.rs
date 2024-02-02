@@ -7,7 +7,7 @@ use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::set_data_guild_langage;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{CommandSendingError, NoCommandOption, OptionError};
+use crate::error_enum::Error::{ErrorCommandSendingError, NoCommandOption, ErrorOptionError};
 use crate::lang_struct::general::lang::load_localization_lang;
 
 pub async fn run(
@@ -17,7 +17,7 @@ pub async fn run(
 ) -> Result<(), AppError> {
     let lang = options
         .first()
-        .ok_or(Error(OptionError(String::from("There is no option"))))?;
+        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
     let lang = lang.value.clone();
 
     let lang = match lang {
@@ -50,7 +50,7 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))

@@ -6,7 +6,7 @@ use serenity::all::{
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{CommandSendingError, FailedToGetUser, OptionError};
+use crate::error_enum::Error::{ErrorCommandSendingError, FailedToGetUser, ErrorOptionError};
 use crate::lang_struct::general::avatar::load_localization_avatar;
 
 pub async fn run(
@@ -42,7 +42,7 @@ async fn avatar_with_user(
 ) -> Result<(), AppError> {
     let avatar_url = user
         .avatar_url()
-        .ok_or(Error(OptionError(String::from("There is no option"))))?;
+        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
     send_embed(avatar_url, ctx, command_interaction, user.name.clone()).await
 }
 
@@ -73,7 +73,7 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))

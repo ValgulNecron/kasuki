@@ -8,7 +8,7 @@ use crate::common::get_option_value::get_option;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::CommandSendingError;
+use crate::error_enum::Error::ErrorCommandSendingError;
 use crate::lang_struct::anilist::staff::load_localization_staff;
 
 pub async fn run(
@@ -149,7 +149,7 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))

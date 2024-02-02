@@ -19,10 +19,10 @@ use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::DifferedError::{
-    DifferedCommandSendingError, DifferedCreatingImageError, DifferedFailedToGetBytes,
-    DifferedFailedUrlError, DifferedWritingFile,
+    DifferedCommandSendingError, CreatingImageError, FailedToGetBytes,
+    FailedUrlError, WritingFile,
 };
-use crate::error_enum::Error::CommandSendingError;
+use crate::error_enum::Error::ErrorCommandSendingError;
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
 
 pub async fn run(
@@ -51,7 +51,7 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(CommandSendingError(format!(
+            Error(ErrorCommandSendingError(format!(
                 "Error while sending the command {}",
                 e
             )))
@@ -64,25 +64,25 @@ pub async fn run(
 
     let url = get_staff_image(data.clone());
     let response = reqwest::get(url).await.map_err(|e| {
-        DifferedError(DifferedFailedUrlError(format!(
+        DifferedError(FailedUrlError(format!(
             "failed to get the image. {}",
             e
         )))
     })?;
     let bytes = response.bytes().await.map_err(|e| {
-        DifferedError(DifferedFailedToGetBytes(format!(
+        DifferedError(FailedToGetBytes(format!(
             "Failed to get bytes data from response. {}",
             e
         )))
     })?;
     let mut buffer = File::create(format!("{}.png", uuids[0])).map_err(|e| {
-        DifferedError(DifferedWritingFile(format!(
+        DifferedError(WritingFile(format!(
             "Failed to write the file bytes. {}",
             e
         )))
     })?;
     buffer.write_all(&bytes).map_err(|e| {
-        DifferedError(DifferedWritingFile(format!(
+        DifferedError(WritingFile(format!(
             "Failed to write the file bytes. {}",
             e
         )))
@@ -93,25 +93,25 @@ pub async fn run(
         let response = reqwest::get(&character_image.image.large)
             .await
             .map_err(|e| {
-                DifferedError(DifferedFailedUrlError(format!(
+                DifferedError(FailedUrlError(format!(
                     "failed to get the image. {}",
                     e
                 )))
             })?;
         let bytes = response.bytes().await.map_err(|e| {
-            DifferedError(DifferedFailedToGetBytes(format!(
+            DifferedError(FailedToGetBytes(format!(
                 "Failed to get bytes data from response. {}",
                 e
             )))
         })?;
         let mut buffer = File::create(format!("{}.png", uuids[i])).map_err(|e| {
-            DifferedError(DifferedWritingFile(format!(
+            DifferedError(WritingFile(format!(
                 "Failed to write the file bytes. {}",
                 e
             )))
         })?;
         buffer.write_all(&bytes).map_err(|e| {
-            DifferedError(DifferedWritingFile(format!(
+            DifferedError(WritingFile(format!(
                 "Failed to write the file bytes. {}",
                 e
             )))
@@ -143,7 +143,7 @@ pub async fn run(
 
         // Load the image from the byte vector
         images.push(image::load_from_memory(&buffer).map_err(|e| {
-            DifferedError(DifferedCreatingImageError(format!(
+            DifferedError(CreatingImageError(format!(
                 "Failed to create the image from the file. {}",
                 e
             )))
@@ -186,7 +186,7 @@ pub async fn run(
         combined_image
             .copy_from(&resized_img, pos_width, pos_height)
             .map_err(|e| {
-                DifferedError(DifferedCreatingImageError(format!(
+                DifferedError(CreatingImageError(format!(
                     "Failed to create the image from the file. {}",
                     e
                 )))
@@ -197,7 +197,7 @@ pub async fn run(
     combined_image
         .save(format!("{}.png", combined_uuid))
         .map_err(|e| {
-            DifferedError(DifferedWritingFile(format!(
+            DifferedError(WritingFile(format!(
                 "Failed to write the file bytes. {}",
                 e
             )))

@@ -2,7 +2,7 @@ use crate::command_run::anilist::list_register_user::get_the_list;
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::ComponentError;
-use crate::error_enum::ComponentError::{ComponentOptionError, ComponentSendingError};
+use crate::error_enum::ComponentError::{ComponentOptionError, SendingError};
 use crate::lang_struct::anilist::list_register_user::load_localization_list_user;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, UserId,
@@ -63,7 +63,7 @@ pub async fn update(
     let a = message.edit(&ctx.http, response).await;
     trace!("{:?}", a);
     a.map_err(|e| {
-        ComponentError(ComponentSendingError(format!(
+        ComponentError(SendingError(format!(
             "Error while sending the component {}",
             e
         )))

@@ -9,29 +9,29 @@ pub enum AppError {
 
 #[derive(Debug, Clone)]
 pub enum DifferedError {
-    DifferedFailedToCreateDirectory(String),
-    DifferedCreatingImageError(String),
-    DifferedFileTypeError(String),
-    DifferedFileExtensionError(String),
-    DifferedCopyBytesError(String),
-    DifferedGettingBytesError(String),
-    DifferedTokenError(String),
-    DifferedImageModelError(String),
-    DifferedHeaderError(String),
-    DifferedResponseError(String),
-    DifferedFailedUrlError(String),
+    FailedToCreateDirectory(String),
+    CreatingImageError(String),
+    FileTypeError(String),
+    FileExtensionError(String),
+    CopyBytesError(String),
+    GettingBytesError(String),
+    TokenError(String),
+    ImageModelError(String),
+    HeaderError(String),
+    ResponseError(String),
+    FailedUrlError(String),
     DifferedOptionError(String),
-    DifferedFailedToGetBytes(String),
-    DifferedWritingFile(String),
+    FailedToGetBytes(String),
+    WritingFile(String),
     DifferedCommandSendingError(String),
-    DifferedNotAiringError(String),
-    DifferedMediaError(String),
-    DifferedCreatingWebhookError(String),
-    DifferedNoStatisticError(String),
-    DifferedFailedToUploadImage(String),
-    DifferedFailedToCreateFolder(String),
-    DifferedFailedToWriteFile(String),
-    DifferedFailedToGetImage(String),
+    NotAiringError(String),
+    MediaError(String),
+    CreatingWebhookError(String),
+    NoStatisticError(String),
+    FailedToUploadImage(String),
+    FailedToCreateFolder(String),
+    FailedToWriteFile(String),
+    FailedToGetImage(String),
 }
 
 #[derive(Debug, Clone)]
@@ -45,8 +45,8 @@ pub enum Error {
     FailedToWriteFile(String),
     FailedToUpdateDatabase(String),
     FailedToCreateDirectory(String),
-    OptionError(String),
-    CommandSendingError(String),
+    ErrorOptionError(String),
+    ErrorCommandSendingError(String),
     LocalisationFileError(String),
     LocalisationReadError(String),
     LocalisationParsingError(String),
@@ -72,22 +72,22 @@ pub enum Error {
 #[derive(Debug, Clone)]
 pub enum NotACommandError {
     NotACommandOptionError(String),
-    NotACommandSetLoggerError(String),
-    NotACommandGettingDatabaseFileError(String),
-    NotACommandCreatingDatabaseFileError(String),
-    NotACommandCreatingDatabaseError(String),
-    NotACommandInsertingDatabaseError(String),
-    NotACommandCreatingTableError(String),
-    NotACommandCreatingPoolError(String),
+    SetLoggerError(String),
+    GettingDatabaseFileError(String),
+    CreatingDatabaseFileError(String),
+    CreatingDatabaseError(String),
+    InsertingDatabaseError(String),
+    CreatingTableError(String),
+    CreatingPoolError(String),
 }
 
 #[derive(Debug, Clone)]
 pub enum ComponentError {
     ComponentOptionError(String),
-    ComponentSendingError(String),
+    SendingError(String),
 }
 
 #[derive(Debug, Clone)]
 pub enum JoiningError {
-    JoiningFailedToCreateDirectory(String),
+    FailedToCreateDirectory(String),
 }

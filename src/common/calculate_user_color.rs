@@ -5,7 +5,7 @@ use crate::database::dispatcher::data_dispatch::{
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DifferedError::{DifferedCreatingImageError, DifferedFailedToGetImage};
+use crate::error_enum::DifferedError::{CreatingImageError, FailedToGetImage};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::io::Reader as ImageReader;
@@ -105,7 +105,7 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
     let resp = reqwest::get(url)
         .await
         .map_err(|e| {
-            DifferedError(DifferedFailedToGetImage(format!(
+            DifferedError(FailedToGetImage(format!(
                 "Failed to download image. {}",
                 e
             )))
@@ -113,7 +113,7 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
         .bytes()
         .await
         .map_err(|e| {
-            DifferedError(DifferedFailedToGetImage(format!(
+            DifferedError(FailedToGetImage(format!(
                 "Failed to get bytes image. {}",
                 e
             )))
@@ -123,14 +123,14 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
     let img = ImageReader::new(Cursor::new(resp))
         .with_guessed_format()
         .map_err(|e| {
-            DifferedError(DifferedCreatingImageError(format!(
+            DifferedError(CreatingImageError(format!(
                 "Failed to load image. {}",
                 e
             )))
         })?
         .decode()
         .map_err(|e| {
-            DifferedError(DifferedCreatingImageError(format!(
+            DifferedError(CreatingImageError(format!(
                 "Failed to decode image. {}",
                 e
             )))
