@@ -34,12 +34,13 @@ pub async fn load_localization_register(guild_id: String) -> Result<RegisterLoca
         )))
     })?;
 
-    let json_data: HashMap<String, RegisterLocalised> = serde_json::from_str(&json).map_err(|e| {
-        Error(LocalisationParsingError(format!(
-            "Failing to parse register.json. {}",
-            e
-        )))
-    })?;
+    let json_data: HashMap<String, RegisterLocalised> =
+        serde_json::from_str(&json).map_err(|e| {
+            Error(LocalisationParsingError(format!(
+                "Failing to parse register.json. {}",
+                e
+            )))
+        })?;
 
     trace!("{}", guild_id);
     trace!("{}", guild_id != *"0");

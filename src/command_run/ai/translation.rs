@@ -178,7 +178,10 @@ pub async fn run(
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
     let res = res_result.map_err(|e| {
-        DifferedError(DifferedResponseError(format!("Failed to get the response from the server. {}", e)))
+        DifferedError(DifferedResponseError(format!(
+            "Failed to get the response from the server. {}",
+            e
+        )))
     })?;
 
     let _ = fs::remove_file(&file_to_delete);

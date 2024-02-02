@@ -34,12 +34,13 @@ pub async fn load_localization_profile(guild_id: String) -> Result<ProfileLocali
         )))
     })?;
 
-    let json_data: HashMap<String, ProfileLocalised> = serde_json::from_str(&json).map_err(|e| {
-        Error(LocalisationParsingError(format!(
-            "Failing to parse profile.json. {}",
-            e
-        )))
-    })?;
+    let json_data: HashMap<String, ProfileLocalised> =
+        serde_json::from_str(&json).map_err(|e| {
+            Error(LocalisationParsingError(format!(
+                "Failing to parse profile.json. {}",
+                e
+            )))
+        })?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 

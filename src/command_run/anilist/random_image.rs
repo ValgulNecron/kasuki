@@ -82,9 +82,12 @@ async fn send_embed(
         })?
         .to_string();
 
-    let response = reqwest::get(image_url)
-        .await
-        .map_err(|e| DifferedError(DifferedResponseError(format!("Failed to get data from url. {}", e))))?;
+    let response = reqwest::get(image_url).await.map_err(|e| {
+        DifferedError(DifferedResponseError(format!(
+            "Failed to get data from url. {}",
+            e
+        )))
+    })?;
     let bytes = response.bytes().await.map_err(|e| {
         DifferedError(DifferedFailedToGetBytes(format!(
             "Failed to get bytes data from response. {}",
@@ -124,7 +127,10 @@ async fn send_embed(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!("Error while sending the command {}", e)))
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
         })?;
 
     let _ = fs::remove_file(filename_str);

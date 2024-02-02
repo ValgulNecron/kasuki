@@ -287,7 +287,7 @@ pub async fn get_data_activity_with_server_and_anime_id_postgresql(
     server_id: &String,
 ) -> Result<Option<String>, AppError> {
     let pool = get_postgresql_pool().await?;
-    let row: Option<String> = sqlx::query_as(
+    let row: (Option<String>, Option<String>) = sqlx::query_as(
         "SELECT
        webhook
        FROM DATA.activity_data WHERE server_id = $1 and anime_id = $2
@@ -295,11 +295,12 @@ pub async fn get_data_activity_with_server_and_anime_id_postgresql(
     )
     .bind(server_id)
     .bind(anime_id)
-    .fetch_optional(&pool)
+    .fetch_one(&pool)
     .await
-    .unwrap_or(None);
+    .unwrap_or((None, None));
     pool.close().await;
-    Ok(row)
+    let result = row.0;
+    Ok(result)
 }
 
 pub async fn get_data_all_activity_by_server_postgresql(

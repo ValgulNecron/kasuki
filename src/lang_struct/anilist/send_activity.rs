@@ -36,12 +36,13 @@ pub async fn load_localization_send_activity(
         )))
     })?;
 
-    let json_data: HashMap<String, SendActivityLocalised> = serde_json::from_str(&json).map_err(|e| {
-        Error(LocalisationParsingError(format!(
-            "Failing to parse send_activity.json. {}",
-            e
-        )))
-    })?;
+    let json_data: HashMap<String, SendActivityLocalised> =
+        serde_json::from_str(&json).map_err(|e| {
+            Error(LocalisationParsingError(format!(
+                "Failing to parse send_activity.json. {}",
+                e
+            )))
+        })?;
 
     let send_activity_choice = get_guild_langage(guild_id).await;
 

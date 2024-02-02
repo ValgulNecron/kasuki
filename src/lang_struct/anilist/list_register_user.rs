@@ -35,12 +35,13 @@ pub async fn load_localization_list_user(guild_id: String) -> Result<ListUserLoc
         )))
     })?;
 
-    let json_data: HashMap<String, ListUserLocalised> = serde_json::from_str(&json).map_err(|e| {
-        Error(LocalisationParsingError(format!(
-            "Failing to parse list_register_user.json. {}",
-            e
-        )))
-    })?;
+    let json_data: HashMap<String, ListUserLocalised> =
+        serde_json::from_str(&json).map_err(|e| {
+            Error(LocalisationParsingError(format!(
+                "Failing to parse list_register_user.json. {}",
+                e
+            )))
+        })?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 

@@ -35,12 +35,13 @@ pub async fn load_localization_random_image_nsfw(
         )))
     })?;
 
-    let json_data: HashMap<String, RandomImageNSFWLocalised> = serde_json::from_str(&json).map_err(|e| {
-        Error(LocalisationParsingError(format!(
-            "Failing to parse random_image_nsfw.json. {}",
-            e
-        )))
-    })?;
+    let json_data: HashMap<String, RandomImageNSFWLocalised> = serde_json::from_str(&json)
+        .map_err(|e| {
+            Error(LocalisationParsingError(format!(
+                "Failing to parse random_image_nsfw.json. {}",
+                e
+            )))
+        })?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 

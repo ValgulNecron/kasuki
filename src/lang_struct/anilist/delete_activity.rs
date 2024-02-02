@@ -36,12 +36,13 @@ pub async fn load_localization_delete_activity(
         )))
     })?;
 
-    let json_data: HashMap<String, DeleteActivityLocalised> = serde_json::from_str(&json).map_err(|e| {
-        Error(LocalisationParsingError(format!(
-            "Failing to parse delete_activity.json. {}",
-            e
-        )))
-    })?;
+    let json_data: HashMap<String, DeleteActivityLocalised> =
+        serde_json::from_str(&json).map_err(|e| {
+            Error(LocalisationParsingError(format!(
+                "Failing to parse delete_activity.json. {}",
+                e
+            )))
+        })?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 

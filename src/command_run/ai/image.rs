@@ -250,7 +250,10 @@ pub async fn run(
         ))))?;
 
     let response = reqwest::get(url_string).await.map_err(|e| {
-        DifferedError(DifferedResponseError(format!("Failed to get bytes data from response. {}", e)))
+        DifferedError(DifferedResponseError(format!(
+            "Failed to get bytes data from response. {}",
+            e
+        )))
     })?;
     let bytes = response.bytes().await.map_err(|e| {
         DifferedError(DifferedFailedToGetBytes(format!(

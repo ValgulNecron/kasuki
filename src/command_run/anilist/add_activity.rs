@@ -146,7 +146,7 @@ pub async fn run(
             None => {
                 return Err(DifferedError(DifferedNotAiringError(String::from(
                     "This anime is not airing",
-                ))))
+                ))));
             }
         };
 

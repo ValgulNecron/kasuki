@@ -50,12 +50,13 @@ pub async fn load_localization_compare(guild_id: String) -> Result<CompareLocali
         )))
     })?;
 
-    let json_data: HashMap<String, CompareLocalised> = serde_json::from_str(&json).map_err(|e| {
-        Error(LocalisationParsingError(format!(
-            "Failing to parse compare.json. {}",
-            e
-        )))
-    })?;
+    let json_data: HashMap<String, CompareLocalised> =
+        serde_json::from_str(&json).map_err(|e| {
+            Error(LocalisationParsingError(format!(
+                "Failing to parse compare.json. {}",
+                e
+            )))
+        })?;
 
     trace!("{}", guild_id);
     trace!("{}", guild_id != *"0");

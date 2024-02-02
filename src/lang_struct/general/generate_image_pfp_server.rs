@@ -36,12 +36,13 @@ pub async fn load_localization_pfp_server_image(
         )))
     })?;
 
-    let json_data: HashMap<String, PFPServerLocalisedImage> = serde_json::from_str(&json).map_err(|e| {
-        Error(LocalisationParsingError(format!(
-            "Failing to parse generate_image_pfp_server.json. {}",
-            e
-        )))
-    })?;
+    let json_data: HashMap<String, PFPServerLocalisedImage> =
+        serde_json::from_str(&json).map_err(|e| {
+            Error(LocalisationParsingError(format!(
+                "Failing to parse generate_image_pfp_server.json. {}",
+                e
+            )))
+        })?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 

@@ -279,15 +279,12 @@ impl SteamGameWrapper {
             .send()
             .await
             .map_err(|e| Error(NotAValidUrlError(format!("Bad url response. {}", e))))?;
-        let mut text = response
-            .text()
-            .await
-            .map_err(|e| {
-                Error(NotAValidGameError(format!(
-                    "Failed to get the text data. {}",
-                    e
-                )))
-            })?;
+        let mut text = response.text().await.map_err(|e| {
+            Error(NotAValidGameError(format!(
+                "Failed to get the text data. {}",
+                e
+            )))
+        })?;
 
         let re = Regex::new(r#""required_age":"(\d+)""#).unwrap();
 
