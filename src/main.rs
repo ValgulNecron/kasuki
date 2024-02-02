@@ -40,6 +40,7 @@ mod lang_struct;
 mod logger;
 mod new_member;
 pub mod struct_shard_manager;
+mod web_server;
 
 struct Handler;
 
@@ -212,6 +213,13 @@ async fn main() {
 
 async fn thread_management_launcher(ctx: Context) {
     info!("Waiting 30second before launching the different thread.");
+    tokio::spawn(async move {
+        info!("Launching the log web server thread!");
+        get_game().await
+    });
+
+    sleep(Duration::from_secs(5)).await;
+
     sleep(Duration::from_secs(DELAY_BEFORE_THREAD_SPAWN)).await;
     tokio::spawn(async move {
         info!("Launching the game management thread!");

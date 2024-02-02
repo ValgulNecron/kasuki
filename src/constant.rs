@@ -2,6 +2,7 @@ use once_cell::sync::Lazy;
 use serenity::all::Colour;
 use std::collections::HashMap;
 use std::env;
+use std::sync::{Arc, Mutex};
 
 pub static ACTIVITY_NAME: Lazy<String> = Lazy::new(|| {
     let activity = env::var("BOT_ACTIVITY").unwrap_or("Let you get info from anilist.".to_string());
@@ -60,3 +61,5 @@ pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
     .collect()
 });
 pub static mut APPS: Lazy<HashMap<String, u128>> = Lazy::new(HashMap::new);
+
+pub static mut LOGS: Lazy<Arc<Mutex<Vec<String>>>> = Lazy::new(Arc::new(Mutex::new(vec![])));
