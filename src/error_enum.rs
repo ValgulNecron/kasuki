@@ -10,7 +10,6 @@ pub enum AppError {
 #[derive(Debug, Clone)]
 pub enum DifferedError {
     CreatingImageError(String),
-    FileTypeError(String),
     FileExtensionError(String),
     CopyBytesError(String),
     GettingBytesError(String),
@@ -38,11 +37,6 @@ pub enum Error {
     NotNSFWError(String),
     NotAValidUrlError(String),
     NotAValidGameError(String),
-    DecodingImageError(String),
-    FailedToCreateFolder(String),
-    FailedToWriteFile(String),
-    FailedToUpdateDatabase(String),
-    FailedToCreateDirectory(String),
     ErrorOptionError(String),
     ErrorCommandSendingError(String),
     LocalisationFileError(String),
@@ -52,12 +46,9 @@ pub enum Error {
     FailedToGetUser(String),
     NoCommandOption(String),
     SqlInsertError(String),
-    SqlSelectError(String),
-    SqlCreateError(String),
     ModuleError(String),
     ModuleOffError(String),
     UnknownCommandError(String),
-    FailedToCreateAFile(String),
     MediaGettingError(String),
     UserGettingError(String),
     NotAValidTypeError(String),
@@ -77,6 +68,8 @@ pub enum NotACommandError {
     InsertingDatabaseError(String),
     CreatingTableError(String),
     CreatingPoolError(String),
+    FailedToUpdateDatabase(String),
+    SqlSelectError(String),
 }
 
 #[derive(Debug, Clone)]

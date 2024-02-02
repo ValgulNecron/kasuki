@@ -18,8 +18,8 @@ use crate::error_enum::AppError::Error;
 use crate::error_enum::Error::{ModuleOffError, UnknownCommandError};
 
 pub async fn command_dispatching(
-    ctx: Context,
-    command_interaction: CommandInteraction,
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
     let ai_module_error = Error(ModuleOffError(String::from("AI module is off.")));
     let anilist_module_error = Error(ModuleOffError(String::from("Anilist module is off.")));
