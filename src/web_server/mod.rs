@@ -1,2 +1,1 @@
-pub mod logs;
-mod launcher;
+pub mod launcher;

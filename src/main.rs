@@ -21,6 +21,7 @@ use crate::error_management::error_dispatch;
 use crate::game_struct::steam_game_id_struct::get_game;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::new_member::new_member;
+use crate::web_server::launcher::web_server_launcher;
 
 mod activity;
 mod anilist_struct;
@@ -215,7 +216,7 @@ async fn thread_management_launcher(ctx: Context) {
     info!("Waiting 30second before launching the different thread.");
     tokio::spawn(async move {
         info!("Launching the log web server thread!");
-        get_game().await
+        web_server_launcher().await
     });
 
     sleep(Duration::from_secs(5)).await;
