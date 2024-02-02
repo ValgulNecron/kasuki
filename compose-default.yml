@@ -24,7 +24,7 @@ services:
       - RUST_LOG="info" # trace, debug, info, warn or error
       - NSFW=True # if the bot should honor the nsfw for image if set to true it will if false it will not. (turn it off if you are 100% the model you use for image can't generate nsfw)
       - TERM=xterm-256color
-      - REMOVE_OLD_COMMAND=True # if the bot should remove the old command when it start. recommended to set it for the 1st launch or when updating to a breaking change version
+      - REMOVE_OLD_COMMAND=True # if the bot should remove the old command when it starts. recommended to set it for the 1st launch or when updating to a breaking change version
       - DB_TYPE="sqlite"
       - SAVE_IMAGE="local/remote/false"
       - SAVE_SERVER="imgur/catbox"

@@ -2,7 +2,7 @@ use std::io::{Cursor, Read};
 
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
-use base64::{engine::general_purpose, Engine as _};
+use base64::Engine as _;
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
 use reqwest::get;
@@ -135,7 +135,7 @@ pub async fn run(
         let mut buf = Cursor::new(Vec::new());
         img.write_to(&mut buf, ImageFormat::Jpeg)
             .expect("Failed to encode image");
-        let base64 = general_purpose::STANDARD.encode(buf.into_inner());
+        let base64 = STANDARD.encode(buf.into_inner());
         let image = format!("data:image/jpeg;base64,{}", base64);
 
         let next_airing = match media.next_airing_episode.clone() {

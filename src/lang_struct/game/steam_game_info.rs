@@ -5,7 +5,6 @@ use crate::error_enum::AppError::Error;
 use crate::error_enum::Error::{
     LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
 };
-use crate::lang_struct::ai::image::ImageLocalised;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;

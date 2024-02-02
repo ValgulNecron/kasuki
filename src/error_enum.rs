@@ -9,7 +9,6 @@ pub enum AppError {
 
 #[derive(Debug, Clone)]
 pub enum DifferedError {
-    FailedToCreateDirectory(String),
     CreatingImageError(String),
     FileTypeError(String),
     FileExtensionError(String),
@@ -39,7 +38,6 @@ pub enum Error {
     NotNSFWError(String),
     NotAValidUrlError(String),
     NotAValidGameError(String),
-    ErrorGettingUserList(String),
     DecodingImageError(String),
     FailedToCreateFolder(String),
     FailedToWriteFile(String),

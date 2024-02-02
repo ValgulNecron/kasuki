@@ -16,7 +16,7 @@ use crate::error_enum::NotACommandError::{
 /// Initializes SQLite database.
 ///
 /// This function checks if the SQLite database files exist and creates them if they don't.
-/// It then initializes the database by creating necessary tables and indices.
+/// It then initializes the database by creating the necessary tables and indices.
 /// This function uses two separate SQLite databases: one for data and one for cache.
 pub async fn init_sqlite() -> Result<(), AppError> {
     create_sqlite_file(DATA_SQLITE_DB)?;
