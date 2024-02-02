@@ -1,6 +1,4 @@
 use chrono::Utc;
-use serenity::futures::TryFutureExt;
-use sqlx::sqlite::SqliteRow;
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
