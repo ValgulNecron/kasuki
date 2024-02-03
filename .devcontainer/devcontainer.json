@@ -5,7 +5,11 @@
         "vscode": {
             "settings": {
                 "editor.formatOnSave": true,
-                "terminal.integrated.shell.linux": "/usr/bin/zsh"
+                "terminal.integrated.shell.linux": "/usr/bin/zsh",
+                "extensions.ignoreRecommendations": false,
+                "rust-analyzer.completion.autoimport": true,
+                "rust-analyzer.lru.capacity": 10,
+                "rust-analyzer.completion.postfix.enable": true
             }
         }
     }

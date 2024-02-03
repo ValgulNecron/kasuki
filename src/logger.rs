@@ -1,19 +1,11 @@
 use std::fs;
-use std::fs::{File, OpenOptions};
 use std::io::Error;
-use std::io::Write;
 use std::path::Path;
 use std::str::FromStr;
 
-use chrono::Utc;
-use tracing_core::*;
 use tracing_subscriber::filter::{Directive, EnvFilter};
-use tracing_subscriber::layer::{Context, SubscriberExt};
-use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::{fmt, Layer};
-use uuid::Uuid;
 
-use crate::constant::OTHER_CRATE_LEVEL;
+use crate::constant::{LOGS_PATH, LOGS_PREFIX, OTHER_CRATE_LEVEL};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NotACommandError;
 use crate::error_enum::NotACommandError::SetLoggerError;
@@ -46,13 +38,14 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
         .add_directive(crate_log)
         .add_directive(kasuki_log);
 
-    let format = fmt::layer().with_ansi(true);
+    let file_appender = tracing_appender::rolling::daily(LOGS_PATH, LOGS_PREFIX);
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
-    tracing_subscriber::registry()
-        .with(filter)
-        .with(format)
-        .with(SimpleSubscriber::new())
-        .init();
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .with_ansi(true)
+        .with_writer(non_blocking)
+        .finish();
 
     Ok(())
 }
@@ -92,62 +85,6 @@ pub fn remove_old_logs() -> Result<(), Error> {
 /// If the directory already exists, this function does nothing and returns `Ok(())`.
 pub fn create_log_directory() -> std::io::Result<()> {
     fs::create_dir_all("./logs")
-}
-
-struct SimpleSubscriber {
-    uuid: Uuid,
-}
-
-impl SimpleSubscriber {
-    pub fn new() -> Self {
-        let uuid_generated = Uuid::new_v4();
-        let _ = File::create(format!("./logs/log_{}.log", uuid_generated)).is_ok();
-        SimpleSubscriber {
-            uuid: uuid_generated,
-        }
-    }
-}
-
-impl<S: Subscriber> Layer<S> for SimpleSubscriber {
-    fn on_event(&self, event: &Event, _ctx: Context<S>) {
-        let level = event.metadata().level();
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open(format!("./logs/log_{}.log", &self.uuid))
-            .unwrap();
-        let level_str = level.to_string();
-        let target = event.metadata().target();
-        let target_str = target;
-        let mut visitor = MessageVisitor::new();
-        event.record(&mut visitor);
-        let message = visitor.message;
-        let date = Utc::now().to_string();
-
-        let text = format!("{} - {} | {} - {}", date, level_str, target_str, message);
-
-        writeln!(file, "{}", text).unwrap();
-    }
-}
-
-struct MessageVisitor {
-    message: String,
-}
-
-impl MessageVisitor {
-    fn new() -> Self {
-        MessageVisitor {
-            message: String::new(),
-        }
-    }
-}
-
-impl field::Visit for MessageVisitor {
-    fn record_debug(&mut self, field: &Field, value: &dyn std::fmt::Debug) {
-        if field.name() == "message" {
-            self.message = format!("{:?}", value)
-        }
-    }
 }
 
 fn get_directive(filter: &str) -> Result<Directive, AppError> {
