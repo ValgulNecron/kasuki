@@ -1,11 +1,18 @@
+use tracing_subscriber::fmt;
+use std::any::TypeId;
 use std::fs;
 use std::io::Error;
 use std::path::Path;
 use std::str::FromStr;
+use tracing::instrument::WithSubscriber;
+use tracing_core::{Dispatch, Event, Interest, LevelFilter, Metadata, Subscriber};
+use tracing_core::span::{Attributes, Current, Id, Record};
 
 use tracing_subscriber::filter::{Directive, EnvFilter};
+use tracing_subscriber::Layer;
+use tracing_subscriber::layer::SubscriberExt;
 
-use crate::constant::{LOGS_PATH, LOGS_PREFIX, OTHER_CRATE_LEVEL};
+use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, MAX_LOG_RETENTION_DAYS, OTHER_CRATE_LEVEL};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NotACommandError;
 use crate::error_enum::NotACommandError::SetLoggerError;
@@ -39,13 +46,22 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
         .add_directive(kasuki_log);
 
     let file_appender = tracing_appender::rolling::daily(LOGS_PATH, LOGS_PREFIX);
-    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .with_ansi(true)
-        .with_writer(non_blocking)
-        .finish();
+    unsafe {
+        GUARD = Some(guard);
+    }
+
+    let format = fmt::layer().with_ansi(true);
+
+    let registry = tracing_subscriber::registry()
+        .with(filter)
+        .with(format)
+        .with(tracing_subscriber::fmt::layer().with_writer(file_appender_non_blocking).with_ansi(false));
+
+    tracing::subscriber::set_global_default(registry)
+        .map_err(|e| NotACommandError(SetLoggerError(format!("Error creating the Logger. {}", e))))?;
+
 
     Ok(())
 }
@@ -68,9 +84,12 @@ pub fn remove_old_logs() -> Result<(), Error> {
     entries.sort_by_key(|e| e.metadata().unwrap().modified().unwrap());
 
     // Remove the oldest ones until there are only 5 left
-    for entry in entries.iter().clone().take(entries.len().saturating_sub(5)) {
-        fs::remove_file(entry.path())?
+    unsafe  {
+        for entry in entries.iter().clone().take(entries.len().saturating_sub(MAX_LOG_RETENTION_DAYS as usize)) {
+            fs::remove_file(entry.path())?
+        }
     }
+
 
     Ok(())
 }

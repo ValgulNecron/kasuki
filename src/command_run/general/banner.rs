@@ -96,7 +96,7 @@ pub async fn send_embed(
         .timestamp(Timestamp::now())
         .color(COLOR)
         .image(banner)
-        .title(&banner_localised.no_banner_title);
+        .title(&banner_localised.title);
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

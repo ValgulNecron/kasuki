@@ -64,3 +64,6 @@ pub static mut APPS: Lazy<HashMap<String, u128>> = Lazy::new(HashMap::new);
 
 pub static LOGS_PATH: &str = "./logs";
 pub static LOGS_PREFIX: &str = "kasuki.log";
+pub static mut GUARD: Option<tracing_appender::non_blocking::WorkerGuard> = None;
+
+pub static mut MAX_LOG_RETENTION_DAYS: u64 = 7;

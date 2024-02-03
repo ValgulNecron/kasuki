@@ -1,4 +1,4 @@
-use serenity::all::{Guild, Member};
+use serenity::all::Member;
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::{async_trait, Client};
 use std::env;
@@ -15,7 +15,7 @@ use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::command_dispatching;
 use crate::common::calculate_user_color::color_management;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{ACTIVITY_NAME, DELAY_BEFORE_THREAD_SPAWN};
+use crate::constant::{ACTIVITY_NAME, DELAY_BEFORE_THREAD_SPAWN, MAX_LOG_RETENTION_DAYS};
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
 use crate::game_struct::steam_game_id_struct::get_game;
@@ -152,7 +152,15 @@ async fn main() {
         }
     };
 
-    let _ = remove_old_logs().is_ok();
+    unsafe {
+
+        MAX_LOG_RETENTION_DAYS = env::var("MAX_LOG_RETENTION_DAYS")
+            .unwrap_or("7".to_string()).parse().unwrap_or(7);
+    }
+    tokio::spawn(async move {
+        info!("Launching log management thread (the one that remove old one).");
+        let _ = remove_old_logs().is_ok();
+    });
 
     match init_logger(log) {
         Ok(_) => {}
