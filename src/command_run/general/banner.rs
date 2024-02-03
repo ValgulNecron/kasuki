@@ -78,13 +78,14 @@ pub async fn banner_with_user(
         Some(banner) => banner,
         None => return no_banner(ctx, command_interaction, &user.name).await,
     };
-    send_embed(ctx, command_interaction, banner_url).await
+    send_embed(ctx, command_interaction, banner_url, &user.name).await
 }
 
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     banner: String,
+    username: &str,
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -96,7 +97,7 @@ pub async fn send_embed(
         .timestamp(Timestamp::now())
         .color(COLOR)
         .image(banner)
-        .title(&banner_localised.title);
+        .title(&banner_localised.title.replace("$user$", username));
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 
