@@ -31,10 +31,10 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
                     e
                 )))
             })?;
-        let channel = get_channel_to_send(guild).await?;
+        let _channel = get_channel_to_send(guild).await?;
     } else {
         let fip = format!("{}/default.png", SERVER_IMAGE_PATH);
-        let full_image_path = fip.as_str();
+        let _full_image_path = fip.as_str();
     }
 
     Ok(())
@@ -46,7 +46,7 @@ async fn get_channel_to_send(guild: PartialGuild) -> Result<ChannelId, AppError>
         .ok_or(NewMemberError(NewMemberErrorOptionError(
             "there was an error getting the channel to send".to_string(),
         )));
-    if let Err(ref e) = channel_id {
+    if let Err(ref _e) = channel_id {
         Ok(channel_id.unwrap_or_default())
     } else {
         channel_id

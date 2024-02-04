@@ -48,9 +48,9 @@ pub async fn run(
         }
     };
 
-    let data: UserWrapper = get_user_data(&value).await?;
+    let data: UserWrapper = get_user_data(value).await?;
 
-    let data2: UserWrapper = get_user_data(&value2).await?;
+    let data2: UserWrapper = get_user_data(value2).await?;
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
