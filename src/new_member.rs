@@ -4,10 +4,11 @@ use crate::error_enum::JoiningError::FailedToCreateDirectory;
 use serenity::all::{Context, Member};
 use std::fs;
 use std::path::Path;
+use crate::constant::SERVER_IMAGE_PATH;
 
 pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppError> {
-    if !Path::new(path).exists() {
-        fs::create_dir_all(path).map_err(|e| {
+    if !Path::new(SERVER_IMAGE_PATH).exists() {
+        fs::create_dir_all(SERVER_IMAGE_PATH).map_err(|e| {
             JoiningError(FailedToCreateDirectory(format!(
                 "Failed to create the directory {}",
                 e
@@ -15,7 +16,7 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
         })?;
     }
 
-    let fip = format!("{}/{}", path, member.guild_id);
+    let fip = format!("{}/{}", SERVER_IMAGE_PATH, member.guild_id);
     let full_image_path = fip.as_str();
 
     let channel_id = get_channel_to_send().await?;
