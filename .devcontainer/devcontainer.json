@@ -1,15 +1,15 @@
 {
-    "name": "Codespaces Rust Starter",
-    "dockerFile": "Dockerfile",
-    "customizations": {
-        "vscode": {
-            "settings": {
-                "editor.formatOnSave": true,
-                "extensions.ignoreRecommendations": false,
-                "rust-analyzer.completion.autoimport": true,
-                "rust-analyzer.lru.capacity": 10,
-                "rust-analyzer.completion.postfix.enable": true
-            }
-        }
+  "name": "Codespaces Rust Starter",
+  "dockerFile": "Dockerfile",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "extensions.ignoreRecommendations": false,
+        "rust-analyzer.completion.autoimport": true,
+        "rust-analyzer.lru.capacity": 10,
+        "rust-analyzer.completion.postfix.enable": true
+      }
     }
+  }
 }

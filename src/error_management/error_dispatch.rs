@@ -19,6 +19,7 @@ pub async fn command_dispatching(
         AppError::ComponentError(_) => {}
         AppError::NotACommandError(_) => {}
         AppError::JoiningError(_) => {}
+        AppError::NewMemberError(_) => {}
     }
 }
 

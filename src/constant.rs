@@ -62,8 +62,8 @@ pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
 
 pub static mut APPS: Lazy<HashMap<String, u128>> = Lazy::new(HashMap::new);
 
-pub static LOGS_PATH: &str = "./logs";
-pub static LOGS_PREFIX: &str = "kasuki.log";
+pub const LOGS_PATH: &str = "./logs";
+pub const LOGS_PREFIX: &str = "kasuki.log";
 pub static mut GUARD: Option<tracing_appender::non_blocking::WorkerGuard> = None;
 pub static mut MAX_LOG_RETENTION_DAYS: u64 = 7;
-pub static SERVER_IMAGE_PATH: &str = "server_image";
+pub const SERVER_IMAGE_PATH: &str = "server_image";

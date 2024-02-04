@@ -5,6 +5,7 @@ pub enum AppError {
     NotACommandError(NotACommandError),
     ComponentError(ComponentError),
     JoiningError(JoiningError),
+    NewMemberError(NewMemberError),
 }
 
 #[derive(Debug, Clone)]
@@ -81,4 +82,10 @@ pub enum ComponentError {
 #[derive(Debug, Clone)]
 pub enum JoiningError {
     FailedToCreateDirectory(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum NewMemberError {
+    NewMemberErrorOptionError(String),
+    SendingMessageError(String),
 }

@@ -1,5 +1,5 @@
-use serenity::all::Member;
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
+use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;
@@ -47,6 +47,14 @@ struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
+    async fn guild_create(&self, _ctx: Context, guild: Guild, is_new: Option<bool>) {
+        if is_new.unwrap_or_default() {
+            debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
+        } else {
+            debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
+        }
+    }
+
     async fn guild_member_addition(&self, ctx: Context, mut member: Member) {
         trace!(
             "Member {} joined guild {}",
@@ -153,9 +161,10 @@ async fn main() {
     };
 
     unsafe {
-
         MAX_LOG_RETENTION_DAYS = env::var("MAX_LOG_RETENTION_DAYS")
-            .unwrap_or("7".to_string()).parse().unwrap_or(7);
+            .unwrap_or("7".to_string())
+            .parse()
+            .unwrap_or(7);
     }
     tokio::spawn(async move {
         info!("Launching log management thread (the one that remove old one).");
@@ -192,7 +201,27 @@ async fn main() {
     };
 
     // Build our client.
-    let gateway_intent = GatewayIntents::GUILD_MEMBERS;
+    let gateway_intent_non_privileged = GatewayIntents::GUILDS
+        | GatewayIntents::GUILD_INTEGRATIONS
+        | GatewayIntents::GUILD_INVITES
+        | GatewayIntents::GUILD_EMOJIS_AND_STICKERS
+        | GatewayIntents::GUILD_MESSAGE_REACTIONS
+        | GatewayIntents::GUILD_MESSAGE_TYPING
+        | GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::GUILD_MODERATION
+        | GatewayIntents::GUILD_SCHEDULED_EVENTS
+        | GatewayIntents::GUILD_VOICE_STATES
+        | GatewayIntents::GUILD_WEBHOOKS
+        | GatewayIntents::DIRECT_MESSAGE_REACTIONS
+        | GatewayIntents::DIRECT_MESSAGES
+        | GatewayIntents::DIRECT_MESSAGE_TYPING
+        | GatewayIntents::AUTO_MODERATION_CONFIGURATION
+        | GatewayIntents::AUTO_MODERATION_EXECUTION;
+    let gateway_intent_privileged = GatewayIntents::GUILD_PRESENCES
+        | GatewayIntents::GUILD_MEMBERS
+        //         | GatewayIntents::MESSAGE_CONTENT
+        ;
+    let gateway_intent = gateway_intent_non_privileged | gateway_intent_privileged;
     let mut client = match Client::builder(token, gateway_intent)
         .event_handler(Handler)
         .await
