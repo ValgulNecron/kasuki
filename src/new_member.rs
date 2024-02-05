@@ -1,12 +1,11 @@
 use crate::constant::SERVER_IMAGE_PATH;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{DifferedError, JoiningError, NewMemberError};
+use crate::error_enum::AppError::{JoiningError, NewMemberError};
 use crate::error_enum::JoiningError::FailedToCreateDirectory;
 use crate::error_enum::NewMemberError::NewMemberErrorOptionError;
 use serenity::all::{ChannelId, Context, CreateAttachment, CreateMessage, Member, PartialGuild};
 use std::fs;
 use std::path::Path;
-use crate::error_enum::DifferedCommandError::DifferedCommandSendingError;
 
 pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppError> {
     if !Path::new(SERVER_IMAGE_PATH).exists() {
