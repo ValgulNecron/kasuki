@@ -9,9 +9,10 @@ use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_disc
 use crate::common::get_nsfw::get_nsfw;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, UNKNOWN};
+use crate::constant::{COLOR, UNKNOWN};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{MediaGettingError, NotNSFWError};
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::{ErrorCommandSendingError, MediaGettingError, NotNSFWError};
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -112,7 +113,7 @@ pub struct Name {
 }
 
 impl MediaWrapper {
-    pub async fn new_anime_by_id(search: String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_anime_by_id(id: String) -> Result<MediaWrapper, AppError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5) {
 		Media (id: $search, type: ANIME){
@@ -171,11 +172,15 @@ impl MediaWrapper {
 }
 ";
 
-        let json = json!({"query": query_id, "variables": {"search": search}});
+        let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+        serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the media with id {}. {}",
+                id, e
+            )))
+        })
     }
 
     pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, AppError> {
@@ -239,11 +244,15 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+        serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the media with name {}. {}",
+                search, e
+            )))
+        })
     }
 
-    pub async fn new_manga_by_id(search: String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_manga_by_id(id: String) -> Result<MediaWrapper, AppError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (id: $search, type: MANGA, format_not: $format){
@@ -302,11 +311,15 @@ impl MediaWrapper {
 }
 ";
 
-        let json = json!({"query": query_id, "variables": {"search": search}});
+        let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+        serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the media with id {}. {}",
+                id, e
+            )))
+        })
     }
 
     pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, AppError> {
@@ -370,11 +383,15 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+        serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the media with name {}. {}",
+                search, e
+            )))
+        })
     }
 
-    pub async fn new_ln_by_id(search: String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_ln_by_id(id: String) -> Result<MediaWrapper, AppError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (id: $search, type: MANGA, format: $format){
@@ -433,11 +450,15 @@ impl MediaWrapper {
 }
 ";
 
-        let json = json!({"query": query_id, "variables": {"search": search}});
+        let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+        serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the media with id {}. {}",
+                id, e
+            )))
+        })
     }
 
     pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, AppError> {
@@ -502,8 +523,12 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp)
-            .map_err(|_| MediaGettingError(String::from("Error getting this media.")))
+        serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the media with name {}. {}",
+                search, e
+            )))
+        })
     }
 }
 
@@ -654,7 +679,9 @@ pub async fn send_embed(
     data: MediaWrapper,
 ) -> Result<(), AppError> {
     if data.data.media.is_adult && !get_nsfw(command_interaction, ctx).await {
-        return Err(NotNSFWError(String::from("The channel is not nsfw.")));
+        return Err(Error(NotNSFWError(String::from(
+            "The channel is not nsfw.",
+        ))));
     }
 
     let guild_id = match command_interaction.guild_id {
@@ -682,5 +709,10 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })
 }

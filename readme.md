@@ -109,7 +109,7 @@ cargo run --release
 cargo build --release
 ```
 
-You can if you wan't use a postgres database and not a sqlite one the user will need to be able to create a database
+You can if you want to use a postgres database and not a sqlite one the user will need to be able to create a database
 (cache and data).
 Create table inside both database
 and select, insert, delete on them.
@@ -181,7 +181,7 @@ and select, insert, delete on them.
   - [ ] Ask a question and reply the response.
     — Not a priority.
 
-- Games module:
+- Games module :
   - [X] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found),
     etc....)
     Get the currency and language from the server language setting.

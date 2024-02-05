@@ -1,4 +1,4 @@
-use crate::constant::AUTOCOMPLETE_COUNT;
+use crate::constant::AUTOCOMPLETE_COUNT_LIMIT;
 use crate::database::dispatcher::data_dispatch::get_data_all_activity_by_server;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
@@ -18,10 +18,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
         None => String::from("0"),
     };
 
-    let activities = get_data_all_activity_by_server(&guild_id)
-        .await
-        .unwrap()
-        .unwrap();
+    let activities = get_data_all_activity_by_server(&guild_id).await.unwrap();
     let activity_strings: Vec<String> = activities
         .into_iter()
         .map(|activity| format!("{} {}", activity.1, activity.0))
@@ -32,7 +29,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let matches = rust_fuzzy_search::fuzzy_search_best_n(
         &search,
         &activity_refs,
-        AUTOCOMPLETE_COUNT as usize,
+        AUTOCOMPLETE_COUNT_LIMIT as usize,
     );
 
     let mut choices = Vec::new();

@@ -2,11 +2,13 @@ use crate::command_run::general::generate_image_pfp_server::{
     find_closest_color, get_color_with_url, Color, ColorWithUrl,
 };
 use crate::common::calculate_user_color::get_image_from_url;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::get_all_user_approximated_color;
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::DifferedWritingFile;
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_enum::DiffereCommanddError::{DifferedCommandSendingError, WritingFile};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
@@ -37,7 +39,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap()
         .to_partial_guild(&ctx.http)
         .await
-        .map_err(|_| OPTION_ERROR.clone())?;
+        .map_err(|e| Error(ErrorOptionError(format!("There is no option {}", e))))?;
 
     let pfp_server_image_localised_text =
         load_localization_pfp_server_image(guild_id.clone()).await?;
@@ -47,8 +49,12 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
-
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     let average_colors = get_all_user_approximated_color().await?;
 
     let guild_pfp = guild.icon_url().unwrap_or(String::from("https://imgs.search.brave.com/FhPP6x9omGE50_uLbcuizNYwrBLp3bQZ8ii9Eel44aQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9h/YnN0cmFjdC1zdXJm/YWNlLXRleHR1cmVz/LXdoaXRlLWNvbmNy/ZXRlLXN0b25lLXdh/bGxfNzQxOTAtODE4/OS5qcGc_c2l6ZT02/MjYmZXh0PWpwZw"))
@@ -116,8 +122,12 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let combined_uuid = Uuid::new_v4();
     let image_path = &format!("{}.png", combined_uuid);
-    fs::write(image_path, image_data.clone())
-        .map_err(|_| DifferedWritingFile(String::from("Failed to write the file bytes.")))?;
+    fs::write(image_path, image_data.clone()).map_err(|e| {
+        DifferedError(WritingFile(format!(
+            "Failed to write the file bytes. {}",
+            e
+        )))
+    })?;
     trace!("Saved image");
 
     let builder_embed = CreateEmbed::new()
@@ -126,18 +136,26 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .image(format!("attachment://{}", &image_path))
         .title(pfp_server_image_localised_text.title);
 
-    let attachement = CreateAttachment::path(&image_path)
-        .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+    let attachment = CreateAttachment::path(&image_path).await.map_err(|e| {
+        DifferedError(DifferedCommandSendingError(format!(
+            "Error while uploading the attachment {}",
+            e
+        )))
+    })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
-        .files(vec![attachement]);
+        .files(vec![attachment]);
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| {
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     trace!("Done");
 
     image_saver(

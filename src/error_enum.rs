@@ -1,7 +1,45 @@
 #[derive(Debug, Clone)]
 pub enum AppError {
-    OptionError(String),
-    CommandSendingError(String),
+    Error(CommandError),
+    DifferedError(DiffereCommanddError),
+    NotACommandError(NotACommandError),
+    ComponentError(ComponentError),
+    JoiningError(JoiningError),
+    NewMemberError(NewMemberError),
+}
+
+#[derive(Debug, Clone)]
+pub enum DiffereCommanddError {
+    CreatingImageError(String),
+    FileExtensionError(String),
+    CopyBytesError(String),
+    GettingBytesError(String),
+    TokenError(String),
+    ImageModelError(String),
+    HeaderError(String),
+    ResponseError(String),
+    FailedUrlError(String),
+    DifferedOptionError(String),
+    FailedToGetBytes(String),
+    WritingFile(String),
+    DifferedCommandSendingError(String),
+    NotAiringError(String),
+    MediaError(String),
+    CreatingWebhookError(String),
+    NoStatisticError(String),
+    FailedToUploadImage(String),
+    FailedToCreateFolder(String),
+    FailedToWriteFile(String),
+    FailedToGetImage(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum CommandError {
+    NotNSFWError(String),
+    NotAValidUrlError(String),
+    NotAValidGameError(String),
+    ErrorOptionError(String),
+    ErrorCommandSendingError(String),
     LocalisationFileError(String),
     LocalisationReadError(String),
     LocalisationParsingError(String),
@@ -9,44 +47,44 @@ pub enum AppError {
     FailedToGetUser(String),
     NoCommandOption(String),
     SqlInsertError(String),
-    SqlSelectError(String),
-    SqlCreateError(String),
     ModuleError(String),
     ModuleOffError(String),
-    UnknownCommandError(String),
-    NoMediaDifferedError(String),
-    CreatingWebhookDifferedError(String),
-    CreatingPoolError(String),
-    FailedToCreateAFile(String),
-    DifferedTokenError(String),
-    DifferedImageModelError(String),
-    DifferedHeaderError(String),
-    DifferedResponseError(String),
-    DifferedFailedUrlError(String),
-    DifferedOptionError(String),
-    DifferedFailedToGetBytes(String),
-    DifferedWritingFile(String),
-    DifferedCommandSendingError(String),
-    SetLoggerError(String),
-    DifferedFileTypeError(String),
-    DifferedFileExtensionError(String),
-    DifferedCopyBytesError(String),
-    DifferedGettingBytesError(String),
+    UnknowndError(String),
     MediaGettingError(String),
     UserGettingError(String),
-    DifferedNotAiringError(String),
-    NoStatisticDifferedError(String),
     NotAValidTypeError(String),
-    DifferedCreatingImageError(String),
-    NotNSFWError(String),
-    NotAValidUrlError(String),
-    NotAValidGameError(String),
-    ErrorGettingUserList(String),
-    CreatingImageError(String),
-    DecodingImageError(String),
-    FailedToGetImage(String),
-    FailedToCreateFolder(String),
-    FailedToUploadImage(String),
-    FailedToWriteFile(String),
+    CharacterGettingError(String),
+    StaffGettingError(String),
+    StudioGettingError(String),
+    FileTypeError(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum NotACommandError {
+    NotACommandOptionError(String),
+    SetLoggerError(String),
+    GettingDatabaseFileError(String),
+    CreatingDatabaseFileError(String),
+    CreatingDatabaseError(String),
+    InsertingDatabaseError(String),
+    CreatingTableError(String),
+    CreatingPoolError(String),
     FailedToUpdateDatabase(String),
+    SqlSelectError(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum ComponentError {
+    ComponentOptionError(String),
+    SendingError(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum JoiningError {
+    FailedToCreateDirectory(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum NewMemberError {
+    NewMemberErrorOptionError(String),
 }

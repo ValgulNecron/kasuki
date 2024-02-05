@@ -2,7 +2,8 @@ use serenity::all::{CommandDataOption, CommandInteraction, Context};
 
 use crate::command_run::anilist::{anime, character, ln, manga, staff, studio, user};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::NotAValidTypeError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::NotAValidTypeError;
 
 pub async fn run(
     options: &[CommandDataOption],
@@ -24,6 +25,6 @@ pub async fn run(
         "staff" => staff::run(options, ctx, command_interaction).await,
         "user" => user::run(options, ctx, command_interaction).await,
         "studio" => studio::run(options, ctx, command_interaction).await,
-        _ => Err(NotAValidTypeError(String::from("Invalid type"))),
+        _ => Err(Error(NotAValidTypeError(String::from("Invalid type")))),
     }
 }

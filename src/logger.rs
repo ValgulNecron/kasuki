@@ -1,21 +1,16 @@
 use std::fs;
-use std::fs::{File, OpenOptions};
 use std::io::Error;
-use std::io::Write;
 use std::path::Path;
 use std::str::FromStr;
+use tracing_subscriber::fmt;
 
-use chrono::Utc;
-use tracing_core::*;
 use tracing_subscriber::filter::{Directive, EnvFilter};
-use tracing_subscriber::layer::{Context, SubscriberExt};
-use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::{fmt, Layer};
-use uuid::Uuid;
+use tracing_subscriber::layer::SubscriberExt;
 
-use crate::constant::OTHER_CRATE_LEVEL;
+use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, MAX_LOG_RETENTION_DAYS, OTHER_CRATE_LEVEL};
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::SetLoggerError;
+use crate::error_enum::AppError::NotACommandError;
+use crate::error_enum::NotACommandError::SetLoggerError;
 
 /// Initializes the logger with the specified log level filter.
 ///
@@ -45,13 +40,27 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
         .add_directive(crate_log)
         .add_directive(kasuki_log);
 
+    let file_appender = tracing_appender::rolling::daily(LOGS_PATH, LOGS_PREFIX);
+    let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+
+    unsafe {
+        GUARD = Some(guard);
+    }
+
     let format = fmt::layer().with_ansi(true);
 
-    tracing_subscriber::registry()
+    let registry = tracing_subscriber::registry()
         .with(filter)
         .with(format)
-        .with(SimpleSubscriber::new())
-        .init();
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_writer(file_appender_non_blocking)
+                .with_ansi(false),
+        );
+
+    tracing::subscriber::set_global_default(registry).map_err(|e| {
+        NotACommandError(SetLoggerError(format!("Error creating the Logger. {}", e)))
+    })?;
 
     Ok(())
 }
@@ -74,8 +83,14 @@ pub fn remove_old_logs() -> Result<(), Error> {
     entries.sort_by_key(|e| e.metadata().unwrap().modified().unwrap());
 
     // Remove the oldest ones until there are only 5 left
-    for entry in entries.iter().clone().take(entries.len().saturating_sub(5)) {
-        fs::remove_file(entry.path())?
+    unsafe {
+        for entry in entries.iter().clone().take(
+            entries
+                .len()
+                .saturating_sub(MAX_LOG_RETENTION_DAYS as usize),
+        ) {
+            fs::remove_file(entry.path())?
+        }
     }
 
     Ok(())
@@ -93,68 +108,15 @@ pub fn create_log_directory() -> std::io::Result<()> {
     fs::create_dir_all("./logs")
 }
 
-struct SimpleSubscriber {
-    uuid: Uuid,
-}
-
-impl SimpleSubscriber {
-    pub fn new() -> Self {
-        let uuid_generated = Uuid::new_v4();
-        let _ = File::create(format!("./logs/log_{}.log", uuid_generated)).is_ok();
-        SimpleSubscriber {
-            uuid: uuid_generated,
-        }
-    }
-}
-
-impl<S: Subscriber> Layer<S> for SimpleSubscriber {
-    fn on_event(&self, event: &Event, _ctx: Context<S>) {
-        let level = event.metadata().level();
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open(format!("./logs/log_{}.log", &self.uuid))
-            .unwrap();
-        let level_str = level.to_string();
-        let target = event.metadata().target();
-        let target_str = target;
-        let mut visitor = MessageVisitor::new();
-        event.record(&mut visitor);
-        let message = visitor.message;
-        let date = Utc::now().to_string();
-
-        let text = format!("{} - {} | {} - {}", date, level_str, target_str, message);
-
-        writeln!(file, "{}", text).unwrap();
-    }
-}
-
-struct MessageVisitor {
-    message: String,
-}
-
-impl MessageVisitor {
-    fn new() -> Self {
-        MessageVisitor {
-            message: String::new(),
-        }
-    }
-}
-
-impl field::Visit for MessageVisitor {
-    fn record_debug(&mut self, field: &Field, value: &dyn std::fmt::Debug) {
-        if field.name() == "message" {
-            self.message = format!("{:?}", value)
-        }
-    }
-}
-
 fn get_directive(filter: &str) -> Result<Directive, AppError> {
     let directive = match Directive::from_str(filter) {
         Ok(d) => d,
         Err(e) => {
             eprintln!("{}", e);
-            return Err(SetLoggerError(String::from("Error creating the Logger")));
+            return Err(NotACommandError(SetLoggerError(format!(
+                "Error creating the Logger. Please check the log level filter. {}",
+                e
+            ))));
         }
     };
     Ok(directive)

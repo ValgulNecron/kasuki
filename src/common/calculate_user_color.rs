@@ -1,10 +1,11 @@
-use crate::constant::USER_COLOR_UPDATE_TIME;
+use crate::constant::TIME_BETWEEN_USER_COLOR_UPDATE;
 use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CreatingImageError, DecodingImageError, FailedToGetImage};
+use crate::error_enum::AppError::DifferedError;
+use crate::error_enum::DiffereCommanddError::{CreatingImageError, FailedToGetImage};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::io::Reader as ImageReader;
@@ -103,17 +104,22 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
     // Fetch the image data
     let resp = reqwest::get(url)
         .await
-        .map_err(|_| FailedToGetImage(String::from("Failed to download image.")))?
+        .map_err(|e| DifferedError(FailedToGetImage(format!("Failed to download image. {}", e))))?
         .bytes()
         .await
-        .map_err(|_| FailedToGetImage(String::from("Failed to get bytes image.")))?;
+        .map_err(|e| {
+            DifferedError(FailedToGetImage(format!(
+                "Failed to get bytes image. {}",
+                e
+            )))
+        })?;
 
     // Decode the image data
     let img = ImageReader::new(Cursor::new(resp))
         .with_guessed_format()
-        .map_err(|_| CreatingImageError(String::from("Failed to load image.")))?
+        .map_err(|e| DifferedError(CreatingImageError(format!("Failed to load image. {}", e))))?
         .decode()
-        .map_err(|_| DecodingImageError(String::from("Failed to decode image.")))?;
+        .map_err(|e| DifferedError(CreatingImageError(format!("Failed to decode image. {}", e))))?;
 
     Ok(img)
 }
@@ -137,7 +143,10 @@ pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
             Ok(_) => {}
             Err(e) => error!("{:?}", e),
         };
-        sleep(Duration::from_secs((USER_COLOR_UPDATE_TIME * 60) as u64)).await;
+        sleep(Duration::from_secs(
+            (TIME_BETWEEN_USER_COLOR_UPDATE * 60) as u64,
+        ))
+        .await;
     }
 }
 

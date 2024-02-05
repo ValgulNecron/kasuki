@@ -5,8 +5,10 @@ use serenity::all::{
 
 use crate::anilist_struct::run::staff::StaffWrapper;
 use crate::common::get_option_value::get_option;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::ErrorCommandSendingError;
 use crate::lang_struct::anilist::staff::load_localization_staff;
 
 pub async fn run(
@@ -146,7 +148,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })
 }
 
 fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {

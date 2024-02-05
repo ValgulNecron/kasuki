@@ -1,0 +1,95 @@
+{
+  "name": "add_anime_activity",
+  "desc": "Add an anime activity.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": true,
+  "default_permissions": [
+    {
+      "permission": "Administrator"
+    }
+  ],
+  "arg_num": 2,
+  "args": [
+    {
+      "name": "anime_name",
+      "desc": "Name of the anime you want to add as an activity.",
+      "required": true,
+      "autocomplete": true,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "anime_name",
+          "desc": "Name of the anime you want to add as an activity."
+        },
+        {
+          "code": "fr",
+          "name": "nom_de_l_anime",
+          "desc": "Nom de l'anime que vous voulez ajouter comme activité."
+        },
+        {
+          "code": "de",
+          "name": "anime_name",
+          "desc": "Name des Animes, das Sie als Aktivität hinzufügen möchten."
+        },
+        {
+          "code": "ja",
+          "name": "anime_no_namae",
+          "desc": "アクティビティとして追加したいアニメの名前。"
+        }
+      ]
+    },
+    {
+      "name": "delays",
+      "desc": "A delay in seconds.",
+      "required": false,
+      "autocomplete": false,
+      "command_type": "Integer",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "delays",
+          "desc": "A delay in seconds."
+        },
+        {
+          "code": "fr",
+          "name": "delais",
+          "desc": "Un délai en secondes."
+        },
+        {
+          "code": "de",
+          "name": "verzogerungen",
+          "desc": "Eine Verzögerung in Sekunden."
+        },
+        {
+          "code": "ja",
+          "name": "keishi",
+          "desc": "秒単位の遅延。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "add_anime_activity",
+      "desc": "Add an anime activity."
+    },
+    {
+      "code": "fr",
+      "name": "ajouter_activite_anime",
+      "desc": "Ajouter une activité anime."
+    },
+    {
+      "code": "de",
+      "name": "anime_aktivitat_hinzufugen",
+      "desc": "Fügen Sie eine Anime-Aktivität hinzu."
+    },
+    {
+      "code": "ja",
+      "name": "anime_katsudo_wo_tsuika",
+      "desc": "アニメ活動を追加します。"
+    }
+  ]
+}

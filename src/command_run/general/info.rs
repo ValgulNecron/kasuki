@@ -3,8 +3,10 @@ use serenity::all::{
     CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, VERSION};
+use crate::constant::{APP_VERSION, COLOR};
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::ErrorCommandSendingError;
 use crate::lang_struct::general::info::load_localization_info;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -21,7 +23,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             info_localised
                 .desc
                 .replace("$number$", ctx.cache.guilds().len().to_string().as_str())
-                .replace("$version$", VERSION),
+                .replace("$version$", APP_VERSION),
         )
         .title(&info_localised.title)
         .footer(CreateEmbedFooter::new(&info_localised.footer));
@@ -61,5 +63,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })
 }

@@ -80,12 +80,12 @@ pub fn convert_html_entity_to_real_char(value: String) -> String {
     value.replace("&mdash;", "—")
 }
 
-/// Convert HTML anchor tags in a string to Discord-flavored markdown link.
+/// Convert HTML anchor tags in a string to Discord-flavored Markdown link.
 ///
 /// This function takes a `String` value as input. It uses the `regex` crate to
 /// construct a regular expression that matches HTML anchor links.
 /// It replaces every HTML link in the input string with its equivalent in the
-/// Discord-flavored markdown syntax, which is `[link_text](url)`.
+/// Discord-flavored Markdown syntax, which is `[link_text](url)`.
 ///
 /// # Arguments
 ///
@@ -94,16 +94,8 @@ pub fn convert_html_entity_to_real_char(value: String) -> String {
 /// # Returns
 ///
 /// A `String` which is the input with all HTML anchor links replaced by
-/// Discord-flavored markdown links. If no HTML anchor links are found, the
+/// Discord-flavored Markdown links. If no HTML anchor links are found, the
 /// original string is returned.
-///
-/// # Examples
-///
-/// ```
-/// let input = String::from("<a href=\"http://example.com\">Example</a>");
-/// let output = convert_link_to_discord_markdown(input);
-/// assert_eq!(output, "[Example](http://example.com)");
-/// ```
 pub fn convert_link_to_discord_markdown(value: String) -> String {
     let re = Regex::new(r#"<a\s+href="([^"]+)">([^<]+)</a>"#).unwrap();
     re.replace_all(value.as_str(), "[$2]($1)").to_string()
@@ -213,7 +205,7 @@ pub fn convert_bold(value: String) -> String {
 
 /// Converts strikethrough markdown to underline markdown.
 ///
-/// This function takes a String as input, checks for strikethrough markdown syntax
+/// This function takes a String as input, checks for strikethrough Markdown syntax
 /// (`~~`, `<del>`, and `<strike>`) and replaces them with underline syntax (`__`).
 ///
 /// # Arguments

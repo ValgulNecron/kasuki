@@ -5,7 +5,8 @@ use tracing::log::trace;
 
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::NoMediaDifferedError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::MediaGettingError;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NextAiringEpisode {
@@ -50,7 +51,7 @@ pub struct CoverImage {
 }
 
 impl MinimalAnimeWrapper {
-    pub async fn new_minimal_anime_by_id(search: String) -> Result<MinimalAnimeWrapper, AppError> {
+    pub async fn new_minimal_anime_by_id(id: String) -> Result<MinimalAnimeWrapper, AppError> {
         let query = "
                 query ($name: Int) {
                   Media(type: ANIME, id: $name) {
@@ -70,12 +71,16 @@ impl MinimalAnimeWrapper {
                   }
                 }
         ";
-        let json = json!({"query": query, "variables": {"name": search}});
+        let json = json!({"query": query, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
         trace!("{:?}", resp);
         // Get json
-        let data = serde_json::from_str(&resp)
-            .map_err(|_| NoMediaDifferedError(String::from("No media")))?;
+        let data = serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the media with id {}. {}",
+                id, e
+            )))
+        })?;
         Ok(data)
     }
 
@@ -104,8 +109,12 @@ impl MinimalAnimeWrapper {
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         // Get json
-        let data = serde_json::from_str(&resp)
-            .map_err(|_| NoMediaDifferedError(String::from("No media")))?;
+        let data = serde_json::from_str(&resp).map_err(|e| {
+            Error(MediaGettingError(format!(
+                "Error getting the media with name {}. {}",
+                search, e
+            )))
+        })?;
         Ok(data)
     }
 }

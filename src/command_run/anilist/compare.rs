@@ -9,9 +9,10 @@ use crate::anilist_struct::run::user::{
     Anime, Genre, Manga, Statistics, Statuses, Tag, UserWrapper,
 };
 use crate::command_run::anilist::user::get_user_data;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::NoCommandOption;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
 use crate::lang_struct::anilist::compare::load_localization_compare;
 
 pub async fn run(
@@ -19,25 +20,31 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let option = &options.first().ok_or(OPTION_ERROR.clone())?.value;
+    let option = &options
+        .first()
+        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
+        .value;
 
     let value = match option {
         CommandDataOptionValue::String(lang) => lang,
         _ => {
-            return Err(NoCommandOption(String::from(
+            return Err(Error(ErrorOptionError(String::from(
                 "The command contain no option.",
-            )));
+            ))));
         }
     };
 
-    let option2 = &options.get(1).ok_or(OPTION_ERROR.clone())?.value;
+    let option2 = &options
+        .get(1)
+        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
+        .value;
 
     let value2 = match option2 {
         CommandDataOptionValue::String(lang) => lang,
         _ => {
-            return Err(NoCommandOption(String::from(
+            return Err(Error(ErrorOptionError(String::from(
                 "The command contain no option.",
-            )));
+            ))));
         }
     };
 
@@ -274,7 +281,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })
 }
 
 fn get_affinity(s1: Statistics, s2: Statistics) -> f64 {

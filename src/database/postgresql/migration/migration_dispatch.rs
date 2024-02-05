@@ -1,6 +1,7 @@
 use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{FailedToUpdateDatabase, SqlSelectError};
+use crate::error_enum::AppError::NotACommandError;
+use crate::error_enum::NotACommandError::{FailedToUpdateDatabase, SqlSelectError};
 
 pub async fn migrate_postgres() -> Result<(), AppError> {
     // used to update the database when new row are added to a table.
@@ -23,14 +24,24 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     )
     .fetch_one(&pool)
     .await
-    .map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
+    .map_err(|e| {
+        NotACommandError(SqlSelectError(format!(
+            "Failed to select from the table. {}",
+            e
+        )))
+    })?;
 
     // If the "image" column doesn't exist, add it
     if !row.0 {
         sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT")
             .execute(&pool)
             .await
-            .map_err(|_| FailedToUpdateDatabase(String::from("Failed to update the table.")))?;
+            .map_err(|e| {
+                NotACommandError(FailedToUpdateDatabase(format!(
+                    "Failed to update the table. {}",
+                    e
+                )))
+            })?;
     }
 
     pool.close().await;

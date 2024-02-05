@@ -2,7 +2,7 @@ use std::io::{Cursor, Read};
 
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
-use base64::{engine::general_purpose, Engine as _};
+use base64::Engine as _;
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
 use reqwest::get;
@@ -17,13 +17,15 @@ use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
 use crate::common::trimer::trim_webhook;
-use crate::constant::{
-    COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, DIFFERED_OPTION_ERROR,
-};
+use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
 use crate::database_struct::server_activity_struct::ServerActivityFull;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{CreatingWebhookDifferedError, DifferedNotAiringError};
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::CommandError::ErrorCommandSendingError;
+use crate::error_enum::DiffereCommanddError::{
+    CreatingWebhookError, DifferedCommandSendingError, DifferedOptionError, NotAiringError,
+};
 use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
 
 pub async fn run(
@@ -62,8 +64,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
-
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     let add_activity_localised = load_localization_add_activity(guild_id.clone()).await?;
 
     let data = if anime.parse::<i32>().is_ok() {
@@ -73,7 +79,13 @@ pub async fn run(
     };
     let media = data.data.media.clone();
     let anime_id = media.id;
-    let title = data.data.media.title.ok_or(DIFFERED_OPTION_ERROR.clone())?;
+    let title = data
+        .data
+        .media
+        .title
+        .ok_or(DifferedError(DifferedOptionError(String::from(
+            "There is no option in the title.",
+        ))))?;
     let mut anime_name = get_name(title);
     let channel_id = command_interaction.channel_id;
 
@@ -94,7 +106,12 @@ pub async fn run(
         command_interaction
             .create_followup(&ctx.http, builder_message)
             .await
-            .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+            .map_err(|e| {
+                DifferedError(DifferedCommandSendingError(format!(
+                    "Error while sending the command {}",
+                    e
+                )))
+            })?;
 
         Ok(())
     } else {
@@ -104,7 +121,7 @@ pub async fn run(
 
         let bytes = get(media.cover_image.unwrap().extra_large.
             unwrap_or(
-                "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+                "https://imgs.search.brave.com/ CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
                     .to_string()
             )
         ).await.unwrap().bytes().await.unwrap();
@@ -120,12 +137,16 @@ pub async fn run(
         let mut buf = Cursor::new(Vec::new());
         img.write_to(&mut buf, ImageFormat::Jpeg)
             .expect("Failed to encode image");
-        let base64 = general_purpose::STANDARD.encode(buf.into_inner());
+        let base64 = STANDARD.encode(buf.into_inner());
         let image = format!("data:image/jpeg;base64,{}", base64);
 
         let next_airing = match media.next_airing_episode.clone() {
             Some(na) => na,
-            None => return Err(DifferedNotAiringError(String::from("Not airing"))),
+            None => {
+                return Err(DifferedError(NotAiringError(String::from(
+                    "This anime is not airing",
+                ))));
+            }
         };
 
         let webhook =
@@ -159,7 +180,12 @@ pub async fn run(
         command_interaction
             .create_followup(&ctx.http, builder_message)
             .await
-            .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+            .map_err(|e| {
+                DifferedError(DifferedCommandSendingError(format!(
+                    "Error while sending the command {}",
+                    e
+                )))
+            })?;
         Ok(())
     }
 }
@@ -231,11 +257,17 @@ async fn get_webhook(
                 .http
                 .create_webhook(channel_id, &map, None)
                 .await
-                .map_err(|_| {
-                    CreatingWebhookDifferedError(String::from("Error when creating the webhook."))
+                .map_err(|e| {
+                    DifferedError(CreatingWebhookError(format!(
+                        "Error when creating the webhook. {}",
+                        e
+                    )))
                 })?;
-            webhook_return = webhook.url().map_err(|_| {
-                CreatingWebhookDifferedError(String::from("Error when getting the webhook url."))
+            webhook_return = webhook.url().map_err(|e| {
+                DifferedError(CreatingWebhookError(format!(
+                    "Error when getting the webhook url. {}",
+                    e
+                )))
             })?;
 
             return Ok(webhook_return);
@@ -246,11 +278,17 @@ async fn get_webhook(
             .http
             .create_webhook(channel_id, &map, None)
             .await
-            .map_err(|_| {
-                CreatingWebhookDifferedError(String::from("Error when creating the webhook."))
+            .map_err(|e| {
+                DifferedError(CreatingWebhookError(format!(
+                    "Error when creating the webhook. {}",
+                    e
+                )))
             })?;
-        webhook_return = webhook.url().map_err(|_| {
-            CreatingWebhookDifferedError(String::from("Error when getting the webhook url."))
+        webhook_return = webhook.url().map_err(|e| {
+            DifferedError(CreatingWebhookError(format!(
+                "Error when getting the webhook url. {}",
+                e
+            )))
         })?;
 
         return Ok(webhook_return);
@@ -261,8 +299,11 @@ async fn get_webhook(
         trace!(webhook_user_id);
         if webhook_user_id == bot_id {
             trace!("Getting webhook");
-            webhook_return = webhook.url().map_err(|_| {
-                CreatingWebhookDifferedError(String::from("Error when getting the webhook url."))
+            webhook_return = webhook.url().map_err(|e| {
+                DifferedError(CreatingWebhookError(format!(
+                    "Error when getting the webhook url. {}",
+                    e
+                )))
             })?;
         } else {
             trace!(webhook_return);
@@ -274,15 +315,17 @@ async fn get_webhook(
                     .http
                     .create_webhook(channel_id, &map, None)
                     .await
-                    .map_err(|_| {
-                        CreatingWebhookDifferedError(String::from(
-                            "Error when creating the webhook.",
-                        ))
+                    .map_err(|e| {
+                        DifferedError(CreatingWebhookError(format!(
+                            "Error when creating the webhook url. {}",
+                            e
+                        )))
                     })?;
-                webhook_return = webhook.url().map_err(|_| {
-                    CreatingWebhookDifferedError(String::from(
-                        "Error when getting the webhook url.",
-                    ))
+                webhook_return = webhook.url().map_err(|e| {
+                    DifferedError(CreatingWebhookError(format!(
+                        "Error when getting the webhook url. {}",
+                        e
+                    )))
                 })?;
             }
         }

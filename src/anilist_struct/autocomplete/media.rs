@@ -1,4 +1,4 @@
-use crate::constant::AUTOCOMPLETE_COUNT;
+use crate::constant::AUTOCOMPLETE_COUNT_LIMIT;
 use serde::Deserialize;
 use serde_json::json;
 use serenity::all::{
@@ -54,7 +54,7 @@ impl MediaPageWrapper {
         let json = json!({"query": query_str, "variables": {
             "search": search,
             "type": "ANIME",
-            "count": AUTOCOMPLETE_COUNT,
+            "count": AUTOCOMPLETE_COUNT_LIMIT,
         }});
 
         let res = make_request_anilist(json, true).await;
@@ -78,7 +78,7 @@ impl MediaPageWrapper {
         let json = json!({"query": query_str, "variables": {
             "search": search,
             "type": "MANGA",
-            "count": AUTOCOMPLETE_COUNT,
+            "count": AUTOCOMPLETE_COUNT_LIMIT,
             "format": "NOVEL"
         }});
 
@@ -105,7 +105,7 @@ impl MediaPageWrapper {
         let json = json!({"query": query_str, "variables": {
             "search": search,
             "type": "MANGA",
-            "count": AUTOCOMPLETE_COUNT,
+            "count": AUTOCOMPLETE_COUNT_LIMIT,
             "format": "NOVEL"
         }});
 

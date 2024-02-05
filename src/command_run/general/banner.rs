@@ -3,9 +3,10 @@ use serenity::all::{
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
 };
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::FailedToGetUser;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::{ErrorCommandSendingError, FailedToGetUser};
 use crate::lang_struct::general::banner::load_localization_banner;
 
 pub async fn run(
@@ -19,7 +20,7 @@ pub async fn run(
             let user = user
                 .to_user(&ctx.http)
                 .await
-                .map_err(|_| FailedToGetUser(String::from("Failed to get the user.")))?;
+                .map_err(|e| Error(FailedToGetUser(format!("Could not get the user. {}", e))))?;
             return banner_with_user(ctx, command_interaction, &user).await;
         }
     }
@@ -50,7 +51,12 @@ pub async fn no_banner(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })
 }
 
 pub async fn banner_without_user(
@@ -72,13 +78,14 @@ pub async fn banner_with_user(
         Some(banner) => banner,
         None => return no_banner(ctx, command_interaction, &user.name).await,
     };
-    send_embed(ctx, command_interaction, banner_url).await
+    send_embed(ctx, command_interaction, banner_url, &user.name).await
 }
 
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     banner: String,
+    username: &str,
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -90,7 +97,7 @@ pub async fn send_embed(
         .timestamp(Timestamp::now())
         .color(COLOR)
         .image(banner)
-        .title(&banner_localised.no_banner_title);
+        .title(banner_localised.title.replace("$user$", username));
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 
@@ -99,5 +106,10 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })
 }

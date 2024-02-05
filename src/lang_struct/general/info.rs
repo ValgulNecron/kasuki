@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::{
     LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
 };
 
@@ -23,21 +24,33 @@ pub struct InfoLocalised {
 }
 
 pub async fn load_localization_info(guild_id: String) -> Result<InfoLocalised, AppError> {
-    let mut file = File::open("json/message/general/info.json")
-        .map_err(|_| LocalisationFileError(String::from("File info.json not found.")))?;
+    let mut file = File::open("json/message/general/info.json").map_err(|e| {
+        Error(LocalisationFileError(format!(
+            "File info.json not found. {}",
+            e
+        )))
+    })?;
 
     let mut json = String::new();
-    file.read_to_string(&mut json)
-        .map_err(|_| LocalisationReadError(String::from("File info.json can't be read.")))?;
+    file.read_to_string(&mut json).map_err(|e| {
+        Error(LocalisationReadError(format!(
+            "File info.json can't be read. {}",
+            e
+        )))
+    })?;
 
-    let json_data: HashMap<String, InfoLocalised> = serde_json::from_str(&json)
-        .map_err(|_| LocalisationParsingError(String::from("Failing to parse info.json.")))?;
+    let json_data: HashMap<String, InfoLocalised> = serde_json::from_str(&json).map_err(|e| {
+        Error(LocalisationParsingError(format!(
+            "Failing to parse info.json. {}",
+            e
+        )))
+    })?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 
     let info_localised_text = json_data
         .get(lang_choice.as_str())
-        .ok_or(NoLangageError(String::from("not found")))?;
+        .ok_or(Error(NoLangageError(String::from("not found"))))?;
 
     Ok(info_localised_text.clone())
 }

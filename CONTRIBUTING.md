@@ -5,7 +5,7 @@
 
 
 Please use clippy and do not add new warning (or as little as possible)
-Always add docstring to public function except for autocomplete, run and register.
+Always add docstring to public function except for autocomplete, run, and register.
 also add comment to "hard" thing so people know why you did this.
 
 

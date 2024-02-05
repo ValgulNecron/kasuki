@@ -1,6 +1,7 @@
 use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::SqlInsertError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::SqlInsertError;
 use chrono::Utc;
 use serde_json::Value;
 
@@ -35,7 +36,7 @@ pub async fn set_database_random_cache_postgres(
         .bind(previous_page)
         .execute(&pool)
         .await
-        .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+        .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
     pool.close().await;
     Ok(())
 }
@@ -68,7 +69,7 @@ pub async fn set_database_cache_postgresql(json: Value, resp: String) -> Result<
         .bind(now)
         .execute(&pool)
         .await
-        .map_err(|_| SqlInsertError(String::from("Failed to insert data.")))?;
+        .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
     pool.close().await;
     Ok(())
 }

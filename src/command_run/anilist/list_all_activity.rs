@@ -1,8 +1,9 @@
-use crate::constant::{
-    ACTIVITY_LIST_LIMIT, COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR,
-};
+use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_enum::DiffereCommanddError::DifferedCommandSendingError;
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -19,15 +20,21 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
 
-    let guild_id = command_interaction.guild_id.ok_or(OPTION_ERROR.clone())?;
+    let guild_id = command_interaction
+        .guild_id
+        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
-
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     let list = get_all_server_activity(&guild_id.to_string()).await?;
     let len = list.len();
     let next_page = 1;
@@ -67,6 +74,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let _ = command_interaction
         .create_followup(&ctx.http, response)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| {
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     Ok(())
 }

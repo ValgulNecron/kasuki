@@ -1,6 +1,9 @@
 use crate::common::steam_to_discord_markdown::convert_steam_to_discord_flavored_markdown;
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::CommandError::ErrorCommandSendingError;
+use crate::error_enum::DiffereCommanddError::{DifferedCommandSendingError, DifferedOptionError};
 use crate::game_struct::run::steam_game::SteamGameWrapper;
 use crate::lang_struct::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
@@ -29,8 +32,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
-
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
     for option in options {
         if option.name.as_str() != "type" {
             if let Some(a) = option.value.as_str() {
@@ -46,7 +53,9 @@ pub async fn run(
         }
     }
 
-    Err(OPTION_ERROR.clone())
+    Err(DifferedError(DifferedOptionError(String::from(
+        "There is no option",
+    ))))
 }
 
 async fn send_embed(
@@ -164,7 +173,12 @@ async fn send_embed(
     let _ = command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| {
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
 
     Ok(())
 }

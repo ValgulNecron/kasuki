@@ -7,12 +7,15 @@ use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
 use crate::database::sqlite::migration::migration_dispatch::migrate_sqlite;
 use crate::database::sqlite::pool::get_sqlite_pool;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{FailedToCreateAFile, SqlCreateError};
+use crate::error_enum::AppError::NotACommandError;
+use crate::error_enum::NotACommandError::{
+    CreatingDatabaseFileError, CreatingTableError, InsertingDatabaseError,
+};
 
 /// Initializes SQLite database.
 ///
 /// This function checks if the SQLite database files exist and creates them if they don't.
-/// It then initializes the database by creating necessary tables and indices.
+/// It then initializes the database by creating the necessary tables and indices.
 /// This function uses two separate SQLite databases: one for data and one for cache.
 pub async fn init_sqlite() -> Result<(), AppError> {
     create_sqlite_file(DATA_SQLITE_DB)?;
@@ -37,7 +40,12 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(CreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS cache_stats (
@@ -49,7 +57,12 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(CreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
     Ok(())
 }
 
@@ -69,7 +82,12 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(CreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS guild_lang (
@@ -79,7 +97,12 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(CreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS activity_data (
@@ -94,9 +117,9 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         PRIMARY KEY (anime_id, server_id)
     )",
     )
-    .execute(pool)
-    .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+        .execute(pool)
+        .await
+        .map_err(|e| NotACommandError(CreatingTableError(format!("Failed to create the table. {}", e))))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
@@ -108,7 +131,12 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(CreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
@@ -118,7 +146,12 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(CreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
@@ -130,7 +163,12 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(CreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     sqlx::query(
         "INSERT OR REPLACE INTO global_kill_switch (id, anilist_module, ai_module, game_module) VALUES (?, ?, ?, ?)",
@@ -140,7 +178,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         .bind(1)
         .bind(1)
         .execute(pool)
-        .await.map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+        .await.map_err(|e| NotACommandError(InsertingDatabaseError(format!("Failed to create the database table. {}", e))))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_color (
@@ -152,7 +190,12 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     )
     .execute(pool)
     .await
-    .map_err(|_| SqlCreateError(String::from("Failed to create the database table.")))?;
+    .map_err(|e| {
+        NotACommandError(CreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     Ok(())
 }
@@ -164,9 +207,10 @@ fn create_sqlite_file(path: &str) -> Result<(), AppError> {
             Ok(_) => {}
             Err(e) => {
                 println!("Failed to create the file {} : {}", path, e);
-                return Err(FailedToCreateAFile(String::from(
-                    "Failed to create db file.",
-                )));
+                return Err(NotACommandError(CreatingDatabaseFileError(format!(
+                    "Failed to create db file. {}",
+                    e
+                ))));
             }
         }
     }

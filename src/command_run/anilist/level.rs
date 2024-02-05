@@ -1,3 +1,4 @@
+use once_cell::sync::Lazy;
 use serenity::all::{
     CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
@@ -6,9 +7,10 @@ use tracing::trace;
 
 use crate::anilist_struct::run::user::{get_color, get_completed, get_user_url, UserWrapper};
 use crate::command_run::anilist::user::get_user_data;
-use crate::constant::{COMMAND_SENDING_ERROR, OPTION_ERROR};
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_enum::AppError;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
 use crate::lang_struct::anilist::level::load_localization_level;
 
 pub async fn run(
@@ -32,7 +34,7 @@ pub async fn run(
     let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
     trace!("{:?}", row);
     let (user, _): (Option<String>, Option<String>) = row;
-    let user = user.ok_or(OPTION_ERROR.clone())?;
+    let user = user.ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
     let data: UserWrapper = if user.parse::<i32>().is_ok() {
         UserWrapper::new_user_by_id(user.parse().unwrap()).await?
     } else {
@@ -98,62 +100,120 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })
 }
 
-pub const LEVELS: [(u32, f64, f64); 51] = [
-    (0, 0.0, 20.0),
-    (1, 20.0, 40.0),
-    (2, 40.0, 60.0),
-    (3, 60.0, 80.0),
-    (4, 80.0, 100.0),
-    (5, 100.0, 130.0),
-    (6, 130.0, 160.0),
-    (7, 160.0, 190.0),
-    (8, 190.0, 220.0),
-    (9, 220.0, 250.0),
-    (10, 250.0, 280.0),
-    (11, 280.0, 310.0),
-    (12, 310.0, 340.0),
-    (13, 340.0, 370.0),
-    (14, 370.0, 400.0),
-    (15, 9360.0, 13860.0),
-    (16, 13860.0, 20460.0),
-    (17, 20460.0, 30160.0),
-    (18, 30160.0, 44360.0),
-    (19, 44360.0, 65160.0),
-    (20, 65160.0, 95560.0),
-    (21, 95560.0, 140160.0),
-    (22, 140160.0, 206160.0),
-    (23, 206160.0, 303160.0),
-    (24, 303160.0, 447160.0),
-    (25, 447160.0, 657160.0),
-    (26, 657160.0, 969160.0),
-    (27, 969160.0, 1426160.0),
-    (28, 1426160.0, 2096160.0),
-    (29, 2096160.0, 3076160.0),
-    (30, 3076160.0, 4526160.0),
-    (31, 4526160.0, 6626160.0),
-    (32, 6626160.0, 9746160.0),
-    (33, 9746160.0, 14316160.0),
-    (34, 14316160.0, 21016160.0),
-    (35, 21016160.0, 30816160.0),
-    (36, 30816160.0, 45316160.0),
-    (37, 45316160.0, 66316160.0),
-    (38, 66316160.0, 97516160.0),
-    (39, 97516160.0, 143516160.0),
-    (40, 143516160.0, 210516160.0),
-    (41, 210516160.0, 308516160.0),
-    (42, 308516160.0, 453516160.0),
-    (43, 453516160.0, 663516160.0),
-    (44, 663516160.0, 975516160.0),
-    (45, 975516160.0, 1437516160.0),
-    (46, 1437516160.0, 2107516160.0),
-    (47, 2107516160.0, 3087516160.0),
-    (48, 3087516160.0, 4537516160.0),
-    (49, 4537516160.0, 6637516160.0),
-    (50, 6637516160.0, 9757516160.0),
-];
+pub static LEVELS: Lazy<[(u32, f64, f64); 102]> = Lazy::new(|| {
+    [
+        (0, 0.0, xp_required_for_level(1)),
+        (1, xp_required_for_level(1), xp_required_for_level(2)),
+        (2, xp_required_for_level(2), xp_required_for_level(3)),
+        (3, xp_required_for_level(3), xp_required_for_level(4)),
+        (4, xp_required_for_level(4), xp_required_for_level(5)),
+        (5, xp_required_for_level(5), xp_required_for_level(6)),
+        (6, xp_required_for_level(6), xp_required_for_level(7)),
+        (7, xp_required_for_level(7), xp_required_for_level(8)),
+        (8, xp_required_for_level(8), xp_required_for_level(9)),
+        (9, xp_required_for_level(9), xp_required_for_level(10)),
+        (10, xp_required_for_level(10), xp_required_for_level(11)),
+        (11, xp_required_for_level(11), xp_required_for_level(12)),
+        (12, xp_required_for_level(12), xp_required_for_level(13)),
+        (13, xp_required_for_level(13), xp_required_for_level(14)),
+        (14, xp_required_for_level(14), xp_required_for_level(15)),
+        (15, xp_required_for_level(15), xp_required_for_level(16)),
+        (16, xp_required_for_level(16), xp_required_for_level(17)),
+        (17, xp_required_for_level(17), xp_required_for_level(18)),
+        (18, xp_required_for_level(18), xp_required_for_level(19)),
+        (19, xp_required_for_level(19), xp_required_for_level(20)),
+        (20, xp_required_for_level(20), xp_required_for_level(21)),
+        (21, xp_required_for_level(21), xp_required_for_level(22)),
+        (22, xp_required_for_level(22), xp_required_for_level(23)),
+        (23, xp_required_for_level(23), xp_required_for_level(24)),
+        (24, xp_required_for_level(24), xp_required_for_level(25)),
+        (25, xp_required_for_level(25), xp_required_for_level(26)),
+        (26, xp_required_for_level(26), xp_required_for_level(27)),
+        (27, xp_required_for_level(27), xp_required_for_level(28)),
+        (28, xp_required_for_level(28), xp_required_for_level(29)),
+        (29, xp_required_for_level(29), xp_required_for_level(30)),
+        (30, xp_required_for_level(30), xp_required_for_level(31)),
+        (31, xp_required_for_level(31), xp_required_for_level(32)),
+        (32, xp_required_for_level(32), xp_required_for_level(33)),
+        (33, xp_required_for_level(33), xp_required_for_level(34)),
+        (34, xp_required_for_level(34), xp_required_for_level(35)),
+        (35, xp_required_for_level(35), xp_required_for_level(36)),
+        (36, xp_required_for_level(36), xp_required_for_level(37)),
+        (37, xp_required_for_level(37), xp_required_for_level(38)),
+        (38, xp_required_for_level(38), xp_required_for_level(39)),
+        (39, xp_required_for_level(39), xp_required_for_level(40)),
+        (40, xp_required_for_level(40), xp_required_for_level(41)),
+        (41, xp_required_for_level(41), xp_required_for_level(42)),
+        (42, xp_required_for_level(42), xp_required_for_level(43)),
+        (43, xp_required_for_level(43), xp_required_for_level(44)),
+        (44, xp_required_for_level(44), xp_required_for_level(45)),
+        (45, xp_required_for_level(45), xp_required_for_level(46)),
+        (46, xp_required_for_level(46), xp_required_for_level(47)),
+        (47, xp_required_for_level(47), xp_required_for_level(48)),
+        (48, xp_required_for_level(48), xp_required_for_level(49)),
+        (49, xp_required_for_level(49), xp_required_for_level(50)),
+        (50, xp_required_for_level(50), xp_required_for_level(51)),
+        (51, xp_required_for_level(51), xp_required_for_level(52)),
+        (52, xp_required_for_level(52), xp_required_for_level(53)),
+        (53, xp_required_for_level(53), xp_required_for_level(54)),
+        (54, xp_required_for_level(54), xp_required_for_level(55)),
+        (55, xp_required_for_level(55), xp_required_for_level(56)),
+        (56, xp_required_for_level(56), xp_required_for_level(57)),
+        (57, xp_required_for_level(57), xp_required_for_level(58)),
+        (58, xp_required_for_level(58), xp_required_for_level(59)),
+        (59, xp_required_for_level(59), xp_required_for_level(60)),
+        (60, xp_required_for_level(60), xp_required_for_level(61)),
+        (61, xp_required_for_level(61), xp_required_for_level(62)),
+        (62, xp_required_for_level(62), xp_required_for_level(63)),
+        (63, xp_required_for_level(63), xp_required_for_level(64)),
+        (64, xp_required_for_level(64), xp_required_for_level(65)),
+        (65, xp_required_for_level(65), xp_required_for_level(66)),
+        (66, xp_required_for_level(66), xp_required_for_level(67)),
+        (67, xp_required_for_level(67), xp_required_for_level(68)),
+        (68, xp_required_for_level(68), xp_required_for_level(69)),
+        (69, xp_required_for_level(69), xp_required_for_level(70)),
+        (70, xp_required_for_level(70), xp_required_for_level(71)),
+        (71, xp_required_for_level(71), xp_required_for_level(72)),
+        (72, xp_required_for_level(72), xp_required_for_level(73)),
+        (73, xp_required_for_level(73), xp_required_for_level(74)),
+        (74, xp_required_for_level(74), xp_required_for_level(75)),
+        (75, xp_required_for_level(75), xp_required_for_level(76)),
+        (76, xp_required_for_level(76), xp_required_for_level(77)),
+        (77, xp_required_for_level(77), xp_required_for_level(78)),
+        (78, xp_required_for_level(78), xp_required_for_level(79)),
+        (79, xp_required_for_level(79), xp_required_for_level(80)),
+        (80, xp_required_for_level(80), xp_required_for_level(81)),
+        (81, xp_required_for_level(81), xp_required_for_level(82)),
+        (82, xp_required_for_level(82), xp_required_for_level(83)),
+        (83, xp_required_for_level(83), xp_required_for_level(84)),
+        (84, xp_required_for_level(84), xp_required_for_level(85)),
+        (85, xp_required_for_level(85), xp_required_for_level(86)),
+        (86, xp_required_for_level(86), xp_required_for_level(87)),
+        (87, xp_required_for_level(87), xp_required_for_level(88)),
+        (88, xp_required_for_level(88), xp_required_for_level(89)),
+        (89, xp_required_for_level(89), xp_required_for_level(90)),
+        (90, xp_required_for_level(90), xp_required_for_level(91)),
+        (91, xp_required_for_level(91), xp_required_for_level(92)),
+        (92, xp_required_for_level(92), xp_required_for_level(93)),
+        (93, xp_required_for_level(93), xp_required_for_level(94)),
+        (94, xp_required_for_level(94), xp_required_for_level(95)),
+        (95, xp_required_for_level(95), xp_required_for_level(96)),
+        (96, xp_required_for_level(96), xp_required_for_level(97)),
+        (97, xp_required_for_level(97), xp_required_for_level(98)),
+        (98, xp_required_for_level(98), xp_required_for_level(99)),
+        (99, xp_required_for_level(99), xp_required_for_level(100)),
+        (100, xp_required_for_level(100), f64::MAX),
+        (101, f64::MAX, f64::MAX),
+    ]
+});
 
 fn get_level(xp: f64) -> (u32, f64, f64) {
     for &(level, required_xp, next_level_required_xp) in LEVELS.iter().rev() {
@@ -164,4 +224,19 @@ fn get_level(xp: f64) -> (u32, f64, f64) {
         }
     }
     (0, 0.0, 20.0)
+}
+
+fn xp_required_for_level(level: u32) -> f64 {
+    match level {
+        0..=9 => (level as f64).powf(3f64),
+        10..=29 => (level as f64).powf(4f64),
+        30..=39 => (level as f64).powf(5f64),
+        40..=49 => (level as f64).powf(6f64),
+        50..=59 => (level as f64).powf(7f64),
+        60..=69 => (level as f64).powf(8f64),
+        70..=79 => (level as f64).powf(9f64),
+        80..=89 => (level as f64).powf(10f64),
+        90..=100 => (level as f64).powf(11f64),
+        _ => f64::MAX,
+    }
 }

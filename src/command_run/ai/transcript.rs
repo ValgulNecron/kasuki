@@ -14,11 +14,15 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::constant::{COLOR, COMMAND_SENDING_ERROR, DIFFERED_COMMAND_SENDING_ERROR, OPTION_ERROR};
+use crate::constant::COLOR;
 use crate::error_enum::AppError;
-use crate::error_enum::AppError::{
-    DifferedCopyBytesError, DifferedFileExtensionError, DifferedFileTypeError,
-    DifferedGettingBytesError, DifferedResponseError, DifferedTokenError, NoCommandOption,
+use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::CommandError::{
+    ErrorCommandSendingError, ErrorOptionError, FileTypeError, NoCommandOption,
+};
+use crate::error_enum::DiffereCommanddError::{
+    CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
+    ResponseError, TokenError,
 };
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
@@ -53,27 +57,29 @@ pub async fn run(
                 let attach_option = simple.clone();
                 attachement = Some(attach_option)
             } else {
-                return Err(NoCommandOption(String::from(
+                return Err(Error(NoCommandOption(String::from(
                     "The command contain no option.",
-                )));
+                ))));
             }
         }
     }
 
-    let attachement = match attachement {
+    let attachment = match attachement {
         Some(att) => att,
         None => {
-            return Err(NoCommandOption(String::from(
-                "The command contain no option.",
-            )));
+            return Err(Error(NoCommandOption(String::from(
+                "The command contain no attachment.",
+            ))));
         }
     };
 
-    let content_type = attachement
+    let content_type = attachment
         .content_type
         .clone()
-        .ok_or(OPTION_ERROR.clone())?;
-    let content = attachement.proxy_url.clone();
+        .ok_or(Error(ErrorOptionError(String::from(
+            "Error getting content type",
+        ))))?;
+    let content = attachment.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -83,7 +89,7 @@ pub async fn run(
     let transcript_localised = load_localization_transcript(guild_id).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-        return Err(DifferedFileTypeError(String::from("Bad file type.")));
+        return Err(Error(FileTypeError(String::from("Bad file type."))));
     }
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -91,7 +97,12 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|_| COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| {
+            Error(ErrorCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
     let parsed_url = Url::parse(content.as_str()).expect("Failed to parse URL");
@@ -107,9 +118,9 @@ pub async fn run(
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
-        return Err(DifferedFileExtensionError(String::from(
+        return Err(DifferedError(FileExtensionError(String::from(
             "Bad file extension",
-        )));
+        ))));
     }
 
     let response = reqwest::get(content).await.expect("download");
@@ -117,28 +128,27 @@ pub async fn run(
     let fname = Path::new("./").join(format!("{}.{}", uuid_name, file_extension));
     let file_name = format!("/{}.{}", uuid_name, file_extension);
     let mut file = File::create(fname.clone()).expect("file name");
-    let resp_byte = response.bytes().await.map_err(|_| {
-        DifferedGettingBytesError(String::from("Failed to get the bytes from the response."))
+    let resp_byte = response.bytes().await.map_err(|e| {
+        DifferedError(GettingBytesError(format!(
+            "Failed to get the bytes from the response. {}",
+            e
+        )))
     })?;
     copy(&mut resp_byte.as_ref(), &mut file)
-        .map_err(|_| DifferedCopyBytesError(String::from("Failed to copy bytes data.")))?;
+        .map_err(|e| DifferedError(CopyBytesError(format!("Failed to copy bytes data. {}", e))))?;
     let file_to_delete = fname.clone();
 
     let my_path = "./.env";
     let path = Path::new(my_path);
     let _ = dotenv::from_path(path);
-    let api_key = match env::var("AI_API_TOKEN") {
-        Ok(x) => x,
-        Err(_) => {
-            return Err(DifferedTokenError(String::from(
-                "There was an error while getting the token.",
-            )));
-        }
-    };
-    let api_base_url = match env::var("AI_API_BASE_URL") {
-        Ok(x) => x,
-        Err(_) => "https://api.openai.com/v1/".to_string(),
-    };
+    let api_key = env::var("AI_API_TOKEN").map_err(|e| {
+        DifferedError(TokenError(format!(
+            "There was an error while getting the token. {}",
+            e
+        )))
+    })?;
+    let api_base_url =
+        env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string());
     let api_url = format!("{}audio/transcriptions", api_base_url);
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
@@ -166,13 +176,19 @@ pub async fn run(
         .multipart(form)
         .send()
         .await;
-    let response = response_result.map_err(|_| {
-        DifferedResponseError(String::from("Failed to get the response from the server."))
+    let response = response_result.map_err(|e| {
+        DifferedError(ResponseError(format!(
+            "Failed to get the response from the server. {}",
+            e
+        )))
     })?;
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
-    let res = res_result.map_err(|_| {
-        DifferedResponseError(String::from("Failed to get the response from the server."))
+    let res = res_result.map_err(|e| {
+        DifferedError(ResponseError(format!(
+            "Failed to get the response from the server. {}",
+            e
+        )))
     })?;
 
     let _ = fs::remove_file(&file_to_delete);
@@ -191,7 +207,12 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|_| DIFFERED_COMMAND_SENDING_ERROR.clone())?;
+        .map_err(|e| {
+            DifferedError(DifferedCommandSendingError(format!(
+                "Error while sending the command {}",
+                e
+            )))
+        })?;
 
     Ok(())
 }

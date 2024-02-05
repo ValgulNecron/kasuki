@@ -7,8 +7,8 @@
   "arg_num": 1,
   "args": [
     {
-      "name": "username",
-      "desc": "Username of the user you want the avatar of.",
+      "name": "description",
+      "desc": "Enter a description of the image you want to generate.",
       "required": true,
       "autocomplete": false,
       "command_type": "String",

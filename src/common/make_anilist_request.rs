@@ -2,7 +2,7 @@ use chrono::Utc;
 use reqwest::Client;
 use serde_json::Value;
 
-use crate::constant::DAYS;
+use crate::constant::TIME_BETWEEN_CACHE_UPDATE;
 use crate::database::dispatcher::cache_dispatch::{get_database_cache, set_database_cache};
 
 pub async fn make_request_anilist(json: Value, always_update: bool) -> String {
@@ -24,7 +24,7 @@ async fn get_cache(json: Value) -> String {
     } else {
         let updated_at = last_updated.unwrap();
         let duration_since_updated = Utc::now().timestamp() - updated_at;
-        if duration_since_updated < (DAYS * 24 * 60 * 60) {
+        if duration_since_updated < (TIME_BETWEEN_CACHE_UPDATE * 24 * 60 * 60) {
             response.unwrap()
         } else {
             do_request(json.clone(), false).await
