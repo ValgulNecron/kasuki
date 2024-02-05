@@ -3,10 +3,8 @@ use serenity::all::Colour;
 use std::collections::HashMap;
 use std::env;
 
-pub static ACTIVITY_NAME: Lazy<String> = Lazy::new(|| {
-    
-    env::var("BOT_ACTIVITY").unwrap_or("Let you get info from anilist.".to_string())
-});
+pub static ACTIVITY_NAME: Lazy<String> =
+    Lazy::new(|| env::var("BOT_ACTIVITY").unwrap_or("Let you get info from anilist.".to_string()));
 pub const APP_VERSION: &str = "V2.2.1";
 
 /*
