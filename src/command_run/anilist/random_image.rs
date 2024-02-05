@@ -2,7 +2,7 @@ use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_enum::DiffereCommanddError::{
+use crate::error_enum::DifferedCommandError::{
     DifferedCommandSendingError, FailedToGetBytes, ResponseError, WritingFile,
 };
 use crate::lang_struct::anilist::random_image::{

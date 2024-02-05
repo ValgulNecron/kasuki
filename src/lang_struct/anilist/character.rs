@@ -9,7 +9,7 @@ use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
 use crate::error_enum::CommandError::{
-    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
+    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLanguageError,
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -49,7 +49,7 @@ pub async fn load_localization_character(guild_id: String) -> Result<CharacterLo
 
     let character_localised_text = json_data
         .get(lang_choice.as_str())
-        .ok_or(Error(NoLangageError(String::from("not found"))))?;
+        .ok_or(Error(NoLanguageError(String::from("not found"))))?;
 
     Ok(character_localised_text.clone())
 }

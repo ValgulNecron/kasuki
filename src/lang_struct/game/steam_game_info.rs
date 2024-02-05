@@ -3,7 +3,7 @@ use crate::error_enum::AppError;
 
 use crate::error_enum::AppError::Error;
 use crate::error_enum::CommandError::{
-    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
+    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLanguageError,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -54,7 +54,7 @@ pub async fn load_localization_steam_game_info(
 
     let avatar_localised_text = json_data
         .get(lang_choice.as_str())
-        .ok_or(Error(NoLangageError(String::from("not found"))))?;
+        .ok_or(Error(NoLanguageError(String::from("not found"))))?;
 
     Ok(avatar_localised_text.clone())
 }

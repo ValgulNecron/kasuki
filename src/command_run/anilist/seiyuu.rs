@@ -19,7 +19,7 @@ use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_enum::DiffereCommanddError::{
+use crate::error_enum::DifferedCommandError::{
     CreatingImageError, DifferedCommandSendingError, FailedToGetBytes, FailedUrlError, WritingFile,
 };
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;

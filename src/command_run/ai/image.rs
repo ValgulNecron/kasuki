@@ -14,7 +14,7 @@ use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
-use crate::error_enum::DiffereCommanddError::{
+use crate::error_enum::DifferedCommandError::{
     DifferedCommandSendingError, DifferedOptionError, FailedToGetBytes, FailedUrlError,
     HeaderError, ImageModelError, ResponseError, TokenError, WritingFile,
 };

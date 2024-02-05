@@ -20,7 +20,7 @@ use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{
     ErrorCommandSendingError, ErrorOptionError, FileTypeError, NoCommandOption,
 };
-use crate::error_enum::DiffereCommanddError::{
+use crate::error_enum::DifferedCommandError::{
     CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
     ResponseError, TokenError,
 };

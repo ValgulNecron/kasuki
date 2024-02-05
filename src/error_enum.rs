@@ -1,7 +1,7 @@
 #[derive(Debug, Clone)]
 pub enum AppError {
     Error(CommandError),
-    DifferedError(DiffereCommanddError),
+    DifferedError(DifferedCommandError),
     NotACommandError(NotACommandError),
     ComponentError(ComponentError),
     JoiningError(JoiningError),
@@ -9,7 +9,7 @@ pub enum AppError {
 }
 
 #[derive(Debug, Clone)]
-pub enum DiffereCommanddError {
+pub enum DifferedCommandError {
     CreatingImageError(String),
     FileExtensionError(String),
     CopyBytesError(String),
@@ -43,13 +43,13 @@ pub enum CommandError {
     LocalisationFileError(String),
     LocalisationReadError(String),
     LocalisationParsingError(String),
-    NoLangageError(String),
+    NoLanguageError(String),
     FailedToGetUser(String),
     NoCommandOption(String),
     SqlInsertError(String),
     ModuleError(String),
     ModuleOffError(String),
-    UnknowndError(String),
+    UnknownError(String),
     MediaGettingError(String),
     UserGettingError(String),
     NotAValidTypeError(String),
