@@ -41,8 +41,7 @@ async fn profile_with_user(
     user: &User,
 ) -> Result<(), AppError> {
     let avatar_url = user
-        .avatar_url()
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
+        .face();
 
     send_embed(avatar_url, ctx, command_interaction, user).await
 }
