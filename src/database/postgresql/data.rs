@@ -4,7 +4,7 @@ use crate::database_struct::server_activity_struct::{ServerActivity, ServerActiv
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::SqlInsertError;
+use crate::error_enum::CommandError::SqlInsertError;
 use chrono::Utc;
 
 pub async fn set_data_ping_history_postgresql(

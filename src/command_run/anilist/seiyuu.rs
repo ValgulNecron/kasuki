@@ -18,10 +18,10 @@ use crate::common::get_option_value::get_option;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{
+use crate::error_enum::DiffereCommanddError::{
     CreatingImageError, DifferedCommandSendingError, FailedToGetBytes, FailedUrlError, WritingFile,
 };
-use crate::error_enum::Error::ErrorCommandSendingError;
+use crate::error_enum::CommandError::ErrorCommandSendingError;
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
 
 pub async fn run(

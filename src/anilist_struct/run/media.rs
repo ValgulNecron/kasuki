@@ -12,7 +12,7 @@ use crate::common::trimer::trim;
 use crate::constant::{COLOR, UNKNOWN};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{ErrorCommandSendingError, MediaGettingError, NotNSFWError};
+use crate::error_enum::CommandError::{ErrorCommandSendingError, MediaGettingError, NotNSFWError};
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]

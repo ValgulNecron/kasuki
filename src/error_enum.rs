@@ -1,7 +1,7 @@
 #[derive(Debug, Clone)]
 pub enum AppError {
-    Error(Error),
-    DifferedError(DifferedError),
+    Error(CommandError),
+    DifferedError(DiffereCommanddError),
     NotACommandError(NotACommandError),
     ComponentError(ComponentError),
     JoiningError(JoiningError),
@@ -9,7 +9,7 @@ pub enum AppError {
 }
 
 #[derive(Debug, Clone)]
-pub enum DifferedError {
+pub enum DiffereCommanddError {
     CreatingImageError(String),
     FileExtensionError(String),
     CopyBytesError(String),
@@ -34,7 +34,7 @@ pub enum DifferedError {
 }
 
 #[derive(Debug, Clone)]
-pub enum Error {
+pub enum CommandError {
     NotNSFWError(String),
     NotAValidUrlError(String),
     NotAValidGameError(String),
@@ -49,7 +49,7 @@ pub enum Error {
     SqlInsertError(String),
     ModuleError(String),
     ModuleOffError(String),
-    UnknownCommandError(String),
+    UnknowndError(String),
     MediaGettingError(String),
     UserGettingError(String),
     NotAValidTypeError(String),
@@ -87,5 +87,4 @@ pub enum JoiningError {
 #[derive(Debug, Clone)]
 pub enum NewMemberError {
     NewMemberErrorOptionError(String),
-    SendingMessageError(String),
 }

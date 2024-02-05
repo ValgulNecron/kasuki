@@ -3,7 +3,7 @@ use serenity::all::{CommandDataOption, CommandInteraction, Context};
 use crate::command_run::anilist::{anime, character, ln, manga, staff, studio, user};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::NotAValidTypeError;
+use crate::error_enum::CommandError::NotAValidTypeError;
 
 pub async fn run(
     options: &[CommandDataOption],

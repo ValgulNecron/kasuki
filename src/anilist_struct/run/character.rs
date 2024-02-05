@@ -12,7 +12,7 @@ use crate::common::trimer::trim;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{CharacterGettingError, ErrorCommandSendingError};
+use crate::error_enum::CommandError::{CharacterGettingError, ErrorCommandSendingError};
 use crate::lang_struct::anilist::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]

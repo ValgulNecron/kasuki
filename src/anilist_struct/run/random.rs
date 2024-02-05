@@ -4,7 +4,7 @@ use serde_json::json;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DifferedError::MediaError;
+use crate::error_enum::DiffereCommanddError::MediaError;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Media {

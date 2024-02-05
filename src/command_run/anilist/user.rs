@@ -5,7 +5,7 @@ use crate::anilist_struct::run::user::{send_embed, UserWrapper};
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::ErrorOptionError;
+use crate::error_enum::CommandError::ErrorOptionError;
 
 pub async fn run(
     options: &[CommandDataOption],

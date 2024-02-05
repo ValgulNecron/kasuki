@@ -1,6 +1,6 @@
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DifferedError::FailedToUploadImage;
+use crate::error_enum::DiffereCommanddError::FailedToUploadImage;
 use std::env;
 use tracing::debug;
 

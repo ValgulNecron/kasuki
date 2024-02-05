@@ -13,11 +13,11 @@ use uuid::Uuid;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DifferedError::{
+use crate::error_enum::DiffereCommanddError::{
     DifferedCommandSendingError, DifferedOptionError, FailedToGetBytes, FailedUrlError,
     HeaderError, ImageModelError, ResponseError, TokenError, WritingFile,
 };
-use crate::error_enum::Error::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 

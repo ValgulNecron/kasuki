@@ -8,7 +8,7 @@ use crate::common::get_option_value::get_option;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::ErrorCommandSendingError;
+use crate::error_enum::CommandError::ErrorCommandSendingError;
 use crate::lang_struct::anilist::studio::load_localization_studio;
 
 pub async fn run(

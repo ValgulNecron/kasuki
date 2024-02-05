@@ -5,7 +5,7 @@ use serenity::all::{
 };
 use tracing::error;
 
-use crate::error_enum::{AppError, DifferedError, Error};
+use crate::error_enum::{AppError, DiffereCommanddError, CommandError};
 
 pub async fn command_dispatching(
     error: AppError,
@@ -23,7 +23,7 @@ pub async fn command_dispatching(
     }
 }
 
-async fn send_error(e: Error, command_interaction: &CommandInteraction, ctx: &Context) {
+async fn send_error(e: CommandError, command_interaction: &CommandInteraction, ctx: &Context) {
     let error_message = format!("**This error is most likely an error on your part. \
     like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
     error and report it to me and I will try to fix it the fastest I can**  \n{:?}", e);
@@ -42,7 +42,7 @@ async fn send_error(e: Error, command_interaction: &CommandInteraction, ctx: &Co
 }
 
 async fn send_differed_error(
-    e: DifferedError,
+    e: DiffereCommanddError,
     command_interaction: &CommandInteraction,
     ctx: &Context,
 ) {

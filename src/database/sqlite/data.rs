@@ -7,7 +7,7 @@ use crate::database_struct::server_activity_struct::{ServerActivity, ServerActiv
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::SqlInsertError;
+use crate::error_enum::CommandError::SqlInsertError;
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
 ///

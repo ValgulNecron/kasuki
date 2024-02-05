@@ -7,7 +7,7 @@ use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::set_data_guild_langage;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{ErrorCommandSendingError, ErrorOptionError, NoCommandOption};
+use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError, NoCommandOption};
 use crate::lang_struct::general::lang::load_localization_lang;
 
 pub async fn run(

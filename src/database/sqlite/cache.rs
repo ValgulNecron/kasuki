@@ -5,7 +5,7 @@ use crate::constant::CACHE_SQLITE_DB;
 use crate::database::sqlite::pool::get_sqlite_pool;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::SqlInsertError;
+use crate::error_enum::CommandError::SqlInsertError;
 
 /// Retrieves the cache statistics for a given random type from a SQLite database using a connection pool.
 /// The cache statistics include the response, last updated timestamp, and last page.

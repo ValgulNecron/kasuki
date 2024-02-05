@@ -15,7 +15,7 @@ use crate::command_run::general::{
 use crate::database::dispatcher::data_dispatch::get_data_module_activation_kill_switch_status;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::Error::{ModuleOffError, UnknownCommandError};
+use crate::error_enum::CommandError::{ModuleOffError, UnknowndError};
 
 pub async fn command_dispatching(
     ctx: &Context,
@@ -244,7 +244,7 @@ pub async fn command_dispatching(
             }
         }
         _ => {
-            return Err(Error(UnknownCommandError(String::from(
+            return Err(Error(UnknowndError(String::from(
                 "Command does not exist.",
             ))));
         }
