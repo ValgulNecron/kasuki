@@ -468,14 +468,14 @@ fn get_genre(genres: &[Genre]) -> String {
 fn diff(
     a1: &str,
     a2: &str,
-    same: &str,
     diff_text: &str,
+    same: &str,
     username: &str,
     username2: &str,
 ) -> String {
     let diff = a1 != a2;
 
-    if diff {
+    let info = if diff {
         diff_text
             .replace("$1$", username)
             .replace("$2$", username2)
@@ -485,5 +485,7 @@ fn diff(
         same.replace("$1$", username)
             .replace("$2$", username2)
             .replace("$1a$", a1)
-    }
+    };
+    trace!(info);
+    info
 }
