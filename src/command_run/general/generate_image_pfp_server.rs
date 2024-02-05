@@ -4,8 +4,8 @@ use crate::common::calculate_user_color::{
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::DiffereCommanddError::{DifferedCommandSendingError, WritingFile};
 use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_enum::DiffereCommanddError::{DifferedCommandSendingError, WritingFile};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;

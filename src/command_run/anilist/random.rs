@@ -17,7 +17,9 @@ use crate::database::dispatcher::cache_dispatch::{
 };
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError, NoCommandOption};
+use crate::error_enum::CommandError::{
+    ErrorCommandSendingError, ErrorOptionError, NoCommandOption,
+};
 use crate::lang_struct::anilist::random::{load_localization_random, RandomLocalised};
 
 pub async fn run(

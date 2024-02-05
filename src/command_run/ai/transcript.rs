@@ -17,12 +17,12 @@ use uuid::Uuid;
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
+use crate::error_enum::CommandError::{
+    ErrorCommandSendingError, ErrorOptionError, FileTypeError, NoCommandOption,
+};
 use crate::error_enum::DiffereCommanddError::{
     CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
     ResponseError, TokenError,
-};
-use crate::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError, FileTypeError, NoCommandOption,
 };
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
