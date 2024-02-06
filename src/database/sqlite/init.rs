@@ -18,6 +18,7 @@ use crate::error_enum::NotACommandError::{
 /// It then initializes the database by creating the necessary tables and indices.
 /// This function uses two separate SQLite databases: one for data and one for cache.
 pub async fn init_sqlite() -> Result<(), AppError> {
+    migrate_sqlite().await?;
     create_sqlite_file(DATA_SQLITE_DB)?;
     create_sqlite_file(CACHE_SQLITE_DB)?;
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
@@ -26,7 +27,6 @@ pub async fn init_sqlite() -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     init_sqlite_data(&pool).await?;
     pool.close().await;
-    migrate_sqlite().await?;
     Ok(())
 }
 
@@ -126,7 +126,8 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
        guild_id TEXT PRIMARY KEY,
        ai_module INTEGER,
        anilist_module INTEGER,
-        game_module INTEGER
+        game_module INTEGER,
+            new_member INTEGER
    )",
     )
     .execute(pool)
@@ -158,7 +159,8 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             id TEXT PRIMARY KEY,
             ai_module INTEGER,
             anilist_module INTEGER,
-            game_module INTEGER
+            game_module INTEGER,
+            new_member INTEGER
         )",
     )
     .execute(pool)
@@ -171,9 +173,10 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     })?;
 
     sqlx::query(
-        "INSERT OR REPLACE INTO global_kill_switch (id, anilist_module, ai_module, game_module) VALUES (?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO global_kill_switch (id, anilist_module, ai_module, game_module, new_member) VALUES (?, ?, ?, ?, ?)",
     )
         .bind("1")
+        .bind(1)
         .bind(1)
         .bind(1)
         .bind(1)

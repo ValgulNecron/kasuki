@@ -8,13 +8,13 @@ use crate::error_enum::NotACommandError::{
 use sqlx::{Pool, Postgres};
 
 pub async fn init_postgres() -> Result<(), AppError> {
+    migrate_postgres().await?;
     let pool = get_postgresql_pool().await?;
     init_postgres_cache(&pool).await?;
     pool.close().await;
     let pool = get_postgresql_pool().await?;
     init_postgres_data(&pool).await?;
     pool.close().await;
-    migrate_postgres().await?;
     Ok(())
 }
 
@@ -166,7 +166,8 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
        guild_id TEXT PRIMARY KEY,
        ai_module BIGINT,
        anilist_module BIGINT,
-        game_module BIGINT
+        game_module BIGINT,
+            new_member BIGINT
    )",
     )
     .execute(pool)
@@ -198,7 +199,8 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             id TEXT PRIMARY KEY,
             ai_module BIGINT,
             anilist_module BIGINT,
-            game_module BIGINT
+            game_module BIGINT,
+            new_member BIGINT
         )",
     )
     .execute(pool)
@@ -211,10 +213,11 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     })?;
 
     sqlx::query(
-        "INSERT INTO global_kill_switch (id, anilist_module, ai_module, game_module) VALUES ($1, $2, $3, $4)
-    ON CONFLICT (id) DO UPDATE SET anilist_module = excluded.anilist_module, ai_module = excluded.ai_module, game_module = excluded.game_module",
+        "INSERT INTO global_kill_switch (id, anilist_module, ai_module, game_module, new_member) VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (id) DO UPDATE SET anilist_module = excluded.anilist_module, ai_module = excluded.ai_module, game_module = excluded.game_module, new_member = excluded.new_member",
     )
         .bind("1")
+        .bind(1)
         .bind(1)
         .bind(1)
         .bind(1)
