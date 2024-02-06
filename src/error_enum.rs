@@ -87,4 +87,8 @@ pub enum JoiningError {
 #[derive(Debug, Clone)]
 pub enum NewMemberError {
     NewMemberErrorOptionError(String),
+    NewMemberLocalisationParsingError(String),
+    NewMemberLocalisationReadError(String),
+NewMemberLocalisationFileError(String),
+    NewMemberNoLanguageError(String),
 }

@@ -6,9 +6,11 @@ use crate::error_enum::NewMemberError::NewMemberErrorOptionError;
 use serenity::all::{ChannelId, Context, CreateAttachment, CreateMessage, Member, PartialGuild};
 use std::fs;
 use std::path::Path;
-use image::{DynamicImage, imageops, Rgba};
+use image::{imageops, Rgba};
+use image::io::Reader;
 use uuid::Uuid;
 use crate::common::calculate_user_color::get_image_from_url;
+use crate::lang_struct::new_member::load_localization_new_member;
 
 pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppError> {
     if !Path::new(SERVER_IMAGE_PATH).exists() {
@@ -20,6 +22,9 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
         })?;
     }
 
+    let guild_id = member.guild_id.to_string();
+    let new_member_localised = load_localization_new_member(guild_id).await?;
+
     let fip = format!("{}/{}.webp", SERVER_IMAGE_PATH, member.guild_id);
     let full_image_path = fip.as_str();
 
@@ -27,7 +32,7 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
         fip
     } else {
         format!("{}/default.webp", SERVER_IMAGE_PATH)
-    }.as_str();
+    };
     let guild = member
         .guild_id
         .to_partial_guild_with_counts(&ctx.http)
@@ -56,7 +61,13 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
             *pixel = Rgba([pixel[0], pixel[1], pixel[2], 0]);
         }
     }
-    let mut bg_image  = DynamicImage::new_rgba16(dim_x, dim_y);
+    let mut bg_image = Reader::open(full_image_path).map_err(|e| NewMemberError(NewMemberErrorOptionError(format!(
+        "there was an error when opening the image. {}",
+        e
+    ))))?.decode().map_err(|e| NewMemberError(NewMemberErrorOptionError(format!(
+        "there was an error when opening the image. {}",
+        e
+    ))))?;
     let offset_x = (dim_x / 2) - (128 / 2);
     let offset_y = (dim_y / 2) - (128 / 2);
     imageops::overlay(&mut bg_image, &overlay_image, offset_x as i64, offset_y as i64);
@@ -67,7 +78,7 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
             "there was an error when creating the image. {}",
             e
         )))
-    })?;;
+    })?;
 
     let channel = get_channel_to_send(guild).await?;
     let attachment = CreateAttachment::path(&path).await.map_err(|e| {
@@ -77,7 +88,7 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
         )))
     })?;
     let mut create_message = CreateMessage::default();
-    create_message = create_message.content("This is a test");
+    create_message = create_message.content(new_member_localised.welcome.replace("$user$", &*format!("<@{}>", member.user.id)));
     create_message = create_message.add_file(attachment);
     channel.send_message(&ctx.http, create_message).await.map_err(|e| {
         NewMemberError(NewMemberErrorOptionError(format!(

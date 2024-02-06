@@ -1,0 +1,14 @@
+{
+  "en": {
+    "welcome": "Welcome $user$"
+  },
+  "fr": {
+    "welcome": "Bienvenue $user$"
+  },
+  "jp": {
+    "welcome": "ようこそ $user$ さん"
+  },
+  "de": {
+    "welcome": "Willkommen $user$"
+  }
+}
