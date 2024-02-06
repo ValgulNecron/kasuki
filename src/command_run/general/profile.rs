@@ -40,8 +40,7 @@ async fn profile_with_user(
     command_interaction: &CommandInteraction,
     user: &User,
 ) -> Result<(), AppError> {
-    let avatar_url = user
-        .face();
+    let avatar_url = user.face();
 
     send_embed(avatar_url, ctx, command_interaction, user).await
 }

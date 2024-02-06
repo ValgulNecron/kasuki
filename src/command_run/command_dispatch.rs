@@ -244,9 +244,7 @@ pub async fn command_dispatching(
             }
         }
         _ => {
-            return Err(Error(UnknownError(String::from(
-                "Command does not exist.",
-            ))));
+            return Err(Error(UnknownError(String::from("Command does not exist."))));
         }
     }
 

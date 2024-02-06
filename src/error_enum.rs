@@ -4,7 +4,6 @@ pub enum AppError {
     DifferedError(DifferedCommandError),
     NotACommandError(NotACommandError),
     ComponentError(ComponentError),
-    JoiningError(JoiningError),
     NewMemberError(NewMemberError),
 }
 
@@ -76,19 +75,16 @@ pub enum NotACommandError {
 #[derive(Debug, Clone)]
 pub enum ComponentError {
     ComponentOptionError(String),
-    SendingError(String),
-}
-
-#[derive(Debug, Clone)]
-pub enum JoiningError {
-    FailedToCreateDirectory(String),
+    ComponentSendingError(String),
 }
 
 #[derive(Debug, Clone)]
 pub enum NewMemberError {
+    NewMemberFailedToCreateDirectory(String),
     NewMemberErrorOptionError(String),
     NewMemberLocalisationParsingError(String),
     NewMemberLocalisationReadError(String),
-NewMemberLocalisationFileError(String),
+    NewMemberLocalisationFileError(String),
     NewMemberNoLanguageError(String),
+    NewMemberOff(String),
 }

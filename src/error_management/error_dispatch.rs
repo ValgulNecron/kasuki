@@ -18,7 +18,6 @@ pub async fn command_dispatching(
         AppError::DifferedError(e) => send_differed_error(e, command_interaction, ctx).await,
         AppError::ComponentError(_) => {}
         AppError::NotACommandError(_) => {}
-        AppError::JoiningError(_) => {}
         AppError::NewMemberError(_) => {}
     }
 }

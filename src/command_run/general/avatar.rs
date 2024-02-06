@@ -7,7 +7,7 @@ use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
 use crate::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError, FailedToGetUser,
+    ErrorCommandSendingError, FailedToGetUser,
 };
 use crate::lang_struct::general::avatar::load_localization_avatar;
 
@@ -42,8 +42,7 @@ async fn avatar_with_user(
     command_interaction: &CommandInteraction,
     user: &User,
 ) -> Result<(), AppError> {
-    let avatar_url = user
-        .face();
+    let avatar_url = user.face();
     send_embed(avatar_url, ctx, command_interaction, user.name.clone()).await
 }
 
