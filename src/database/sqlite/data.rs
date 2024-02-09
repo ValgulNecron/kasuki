@@ -151,15 +151,15 @@ pub async fn set_data_activity_sqlite(
 
 pub async fn get_data_module_activation_status_sqlite(
     guild_id: &String,
-) -> Result<(Option<String>, Option<bool>, Option<bool>, Option<bool>), AppError> {
+) -> Result<(Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module, game_module FROM module_activation WHERE guild = ?",
+    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member FROM module_activation WHERE guild = ?",
     )
         .bind(guild_id)
         .fetch_one(&pool)
         .await
-        .unwrap_or((None, None, None, None));
+        .unwrap_or((None, None, None, None, None));
     pool.close().await;
     Ok(row)
 }

@@ -44,19 +44,22 @@ pub async fn run(
     }
 
     let row = get_data_module_activation_status(&guild_id).await?;
-    let (_, ai_module, anilist_module, game_module): (
+    let (_, ai_module, anilist_module, game_module, new_member_value): (
         Option<String>,
         Option<bool>,
         Option<bool>,
         Option<bool>,
+        Option<bool>,
     ) = row;
-    let mut ai_value = ai_module.unwrap_or(false);
-    let mut anilist_value = anilist_module.unwrap_or(false);
-    let mut game_value = game_module.unwrap_or(false);
+    let mut ai_value = ai_module.unwrap_or(true);
+    let mut anilist_value = anilist_module.unwrap_or(true);
+    let mut game_value = game_module.unwrap_or(true);
+    let mut new_member_value = new_member_value.unwrap_or(true);
     match module.as_str() {
         "ANIME" => anilist_value = state,
         "AI" => ai_value = state,
         "GAME" => game_value = state,
+        "NEW MEMBER" => new_member_value = state,
         _ => {
             return Err(Error(ModuleError(String::from(
                 "This module does not exist.",
@@ -92,14 +95,15 @@ pub async fn run(
 }
 
 pub async fn check_activation_status(module: &str, guild_id: String) -> Result<bool, AppError> {
-    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>) =
+    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) =
         get_data_module_activation_status(&guild_id).await?;
 
-    let (_, ai_module, anilist_module, game_module): (
+    let (_, ai_module, anilist_module, game_module, _): (
         Option<String>,
         Option<bool>,
         Option<bool>,
         Option<bool>,
+        Option<bool>
     ) = row;
     Ok(match module {
         "ANILIST" => anilist_module.unwrap_or(true),
