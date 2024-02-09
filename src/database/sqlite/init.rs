@@ -2,6 +2,7 @@ use std::fs::File;
 use std::path::Path;
 
 use sqlx::{Pool, Sqlite};
+use tracing::error;
 
 use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
 use crate::database::sqlite::migration::migration_dispatch::migrate_sqlite;
@@ -18,9 +19,11 @@ use crate::error_enum::NotACommandError::{
 /// It then initializes the database by creating the necessary tables and indices.
 /// This function uses two separate SQLite databases: one for data and one for cache.
 pub async fn init_sqlite() -> Result<(), AppError> {
-    migrate_sqlite().await?;
     create_sqlite_file(DATA_SQLITE_DB)?;
     create_sqlite_file(CACHE_SQLITE_DB)?;
+    if let Err(e) = migrate_sqlite().await {
+        error!("{:?}", e);
+    };
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
     init_sqlite_cache(&pool).await?;
     pool.close().await;
@@ -209,7 +212,7 @@ fn create_sqlite_file(path: &str) -> Result<(), AppError> {
         match File::create(p) {
             Ok(_) => {}
             Err(e) => {
-                println!("Failed to create the file {} : {}", path, e);
+                error!("Failed to create the file {} : {}", path, e);
                 return Err(NotACommandError(CreatingDatabaseFileError(format!(
                     "Failed to create db file. {}",
                     e

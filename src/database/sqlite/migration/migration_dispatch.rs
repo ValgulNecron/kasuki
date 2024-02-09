@@ -47,17 +47,17 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
     let row: u32 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM pragma_table_info('module_activation') WHERE name='new_member'",
     )
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| {
-            NotACommandError(SqlSelectError(format!(
-                "Failed to select from the table. {}",
-                e
-            )))
-        })?;
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| {
+        NotACommandError(SqlSelectError(format!(
+            "Failed to select from the table. {}",
+            e
+        )))
+    })?;
 
     // If the "new_member" column doesn't exist, add it
-    if row ==  0 {
+    if row == 0 {
         sqlx::query("ALTER TABLE module_activation ADD COLUMN new_member TEXT")
             .execute(&pool)
             .await
@@ -80,17 +80,17 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
     let row: u32 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM pragma_table_info('global_kill_switch') WHERE name='new_member'",
     )
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| {
-            NotACommandError(SqlSelectError(format!(
-                "Failed to select from the table. {}",
-                e
-            )))
-        })?;
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| {
+        NotACommandError(SqlSelectError(format!(
+            "Failed to select from the table. {}",
+            e
+        )))
+    })?;
 
     // If the "new_member" column doesn't exist, add it
-    if row ==  0 {
+    if row == 0 {
         sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN new_member TEXT")
             .execute(&pool)
             .await

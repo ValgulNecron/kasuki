@@ -63,14 +63,14 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
         )
         "#,
     )
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| {
-            NotACommandError(SqlSelectError(format!(
-                "Failed to check existence of column. {}",
-                e
-            )))
-        })?;
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| {
+        NotACommandError(SqlSelectError(format!(
+            "Failed to check existence of column. {}",
+            e
+        )))
+    })?;
 
     // If the "new_member" column doesn't exist, add it
     if !row.0 {
@@ -102,14 +102,14 @@ pub async fn add_new_column_to_module_activation() -> Result<(), AppError> {
         )
         "#,
     )
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| {
-            NotACommandError(SqlSelectError(format!(
-                "Failed to check existence of column. {}",
-                e
-            )))
-        })?;
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| {
+        NotACommandError(SqlSelectError(format!(
+            "Failed to check existence of column. {}",
+            e
+        )))
+    })?;
 
     // If the "new_column" column doesn't exist, add it
     if !row.0 {
