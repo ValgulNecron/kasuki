@@ -12,7 +12,7 @@ use struct_shard_manager::ShardManagerContainer;
 use crate::activity::anime_activity::manage_activity;
 use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command_register::command_registration::creates_commands;
-use crate::command_run::command_dispatch::command_dispatching;
+use crate::command_run::command_dispatch::{check_if_moule_is_on, command_dispatching};
 use crate::common::calculate_user_color::color_management;
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::{ACTIVITY_NAME, DELAY_BEFORE_THREAD_SPAWN, MAX_LOG_RETENTION_DAYS};
@@ -56,13 +56,12 @@ impl EventHandler for Handler {
     }
 
     async fn guild_member_addition(&self, ctx: Context, mut member: Member) {
-        trace!(
-            "Member {} joined guild {}",
-            member.user.tag(),
-            member.guild_id
-        );
-        if let Err(e) = new_member(ctx, &mut member).await {
-            error!("{:?}", e)
+        let guild_id = member.guild_id.to_string();
+        trace!("Member {} joined guild {}", member.user.tag(), guild_id);
+        if check_if_moule_is_on(guild_id, "GAME").await.unwrap_or(true) {
+            if let Err(e) = new_member(ctx, &mut member).await {
+                error!("{:?}", e)
+            }
         }
     }
 

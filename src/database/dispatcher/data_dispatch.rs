@@ -86,7 +86,16 @@ pub async fn set_data_activity(server_activity_full: ServerActivityFull) -> Resu
 
 pub async fn get_data_module_activation_status(
     guild_id: &String,
-) -> Result<(Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>), AppError> {
+) -> Result<
+    (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+    ),
+    AppError,
+> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_module_activation_status_sqlite(guild_id).await
@@ -102,17 +111,36 @@ pub async fn set_data_module_activation_status(
     anilist_value: bool,
     ai_value: bool,
     game_value: bool,
+    new_member_value: bool,
 ) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
-        set_data_module_activation_status_sqlite(guild_id, anilist_value, ai_value, game_value)
-            .await
+        set_data_module_activation_status_sqlite(
+            guild_id,
+            anilist_value,
+            ai_value,
+            game_value,
+            new_member_value,
+        )
+        .await
     } else if db_type == *"postgresql" {
-        set_data_module_activation_status_postgresql(guild_id, anilist_value, ai_value, game_value)
-            .await
+        set_data_module_activation_status_postgresql(
+            guild_id,
+            anilist_value,
+            ai_value,
+            game_value,
+            new_member_value,
+        )
+        .await
     } else {
-        set_data_module_activation_status_sqlite(guild_id, anilist_value, ai_value, game_value)
-            .await
+        set_data_module_activation_status_sqlite(
+            guild_id,
+            anilist_value,
+            ai_value,
+            game_value,
+            new_member_value,
+        )
+        .await
     }
 }
 
@@ -154,8 +182,16 @@ pub async fn set_registered_user(user_id: &String, username: &String) -> Result<
     }
 }
 
-pub async fn get_data_module_activation_kill_switch_status(
-) -> Result<(Option<String>, Option<bool>, Option<bool>, Option<bool>), AppError> {
+pub async fn get_data_module_activation_kill_switch_status() -> Result<
+    (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+    ),
+    AppError,
+> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_module_activation_kill_switch_status_sqlite().await

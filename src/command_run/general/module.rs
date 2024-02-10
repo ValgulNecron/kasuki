@@ -66,7 +66,14 @@ pub async fn run(
             ))));
         }
     }
-    set_data_module_activation_status(&guild_id, anilist_value, ai_value, game_value).await?;
+    set_data_module_activation_status(
+        &guild_id,
+        anilist_value,
+        ai_value,
+        game_value,
+        new_member_value,
+    )
+    .await?;
     let desc = if state {
         &module_localised.on
     } else {
@@ -95,20 +102,26 @@ pub async fn run(
 }
 
 pub async fn check_activation_status(module: &str, guild_id: String) -> Result<bool, AppError> {
-    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) =
-        get_data_module_activation_status(&guild_id).await?;
-
-    let (_, ai_module, anilist_module, game_module, _): (
+    let row: (
         Option<String>,
         Option<bool>,
         Option<bool>,
         Option<bool>,
-        Option<bool>
+        Option<bool>,
+    ) = get_data_module_activation_status(&guild_id).await?;
+
+    let (_, ai_module, anilist_module, game_module, new_member): (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
     ) = row;
     Ok(match module {
         "ANILIST" => anilist_module.unwrap_or(true),
         "AI" => ai_module.unwrap_or(true),
         "GAME" => game_module.unwrap_or(true),
+        "NEW_MEMBER" => new_member.unwrap_or(true),
         _ => false,
     })
 }

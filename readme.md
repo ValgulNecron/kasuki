@@ -5,9 +5,7 @@
 ![Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/master?style=plastic)
 ![Dev Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/dev?style=plastic&label=Dev)
 
-
 # Vision
-
 
 The bot is in the first place,
 a bot that interfaces discord and the anilist api,
@@ -15,16 +13,12 @@ letting users get different information from it.
 There are also multiple secondary modules that will be added
 when I have ideas or want to test things.
 
-
 # Contributing
-
 
 ## I know how to code in rust
 
-
 Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
 something else, you can do it and open a pr afterward.
-
 
 ## I don’t know how to code in rust but still want to contribute
 
@@ -40,29 +34,22 @@ please also add the country code to the constant LANG_MAP in src/constant.rs and
 for the command json please follow the example,
 the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
 
-
 # How to use
 
-
 ## 1. Add the bot to your server
-
 
 you can add my instance of the bot
 with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot)
 
-
 ## 2. Self-host your instance
 
-
 ### tested on:
-
 
 linux: ubuntu 22.04.2 x86-64
 
 Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates
 
 windows: windows 10 and 11
-
 
 ### Docker
 
@@ -87,7 +74,6 @@ docker compose up -d --pull always
 ```
 
 or you can build from the latest commit.
-
 
 ### or Rust
 
@@ -114,87 +100,83 @@ You can if you want to use a postgres database and not a sqlite one the user wil
 Create table inside both database
 and select, insert, delete on them.
 
-
 # TODO
-
 
 ## BOT
 
 - General part:
-  - [X] Change how the text is displayed to support localization.
-  - [X] Find a name for the bot.
-  - [x] Add a sqlite database.
-  - [X] Add postgres database choices.
-  - [ ] Add more database choices when I have time.
-  - [X] Banner. Show your or a specified user banner.
-  - [X] Profil. Show a user profile and some info.
-  - [X] Avatar. show you the profile picture of a user.
-  - [X] Add support to turn on and off module.
-  - [X] Create a parser because some description uses html and not markdown.
-  - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases are
-    supported
-  - [ ] Poll feature with custom choice and a graph afterward for comparison.
-  - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
-    size.
-  - [X] Better error handling.
-  - [ ] Doing something with error else than logging it.
-  - [X] Localisation for response.
-  - [X] Localisation for command.
-  - [ ] Rename for better clarity.
-  - [ ] Add docs to every public function.
-    (Run, Register and Autocomplete don’t need this.).
-  - [X] Logging
-  - [X] Updating to serenity 0.12.
-  - [X] Support for command in dm.
-  - [X] Make an anilist forum post.
+    - [X] Change how the text is displayed to support localization.
+    - [X] Find a name for the bot.
+    - [x] Add a sqlite database.
+    - [X] Add postgres database choices.
+    - [ ] Add more database choices when I have time.
+    - [X] Banner. Show your or a specified user banner.
+    - [X] Profil. Show a user profile and some info.
+    - [X] Avatar. show you the profile picture of a user.
+    - [X] Add support to turn on and off module.
+    - [X] Create a parser because some description uses html and not markdown.
+    - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases are
+      supported
+    - [ ] Poll feature with custom choice and a graph afterward for comparison.
+    - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
+      size.
+    - [X] Better error handling.
+    - [ ] Doing something with error else than logging it.
+    - [X] Localisation for response.
+    - [X] Localisation for command.
+    - [ ] Rename for better clarity.
+    - [ ] Add docs to every public function.
+      (Run, Register and Autocomplete don’t need this.).
+    - [X] Logging
+    - [X] Updating to serenity 0.12.
+    - [X] Support for command in dm.
+    - [X] Make an anilist forum post.
 
 - Anime submodule:
-  - [X] Finish comparison function.
-  - [X] Add affinity score to user comparaison.
-  - [X] Add character search function.
-  - [X] Add staff search function.
-  - [X] Add search feature with a type.
-  - [X] Bind anilist account to discord for /user.
-  - [X] Random /random {anime, manga}.
-  - [ ] Rework the xp in level.rs to something easier. — Too lazy to balance.
-  - [X] Add caching to all requests.
-  - [X] Send anime release to a channel.
-  - [X] List all activity.
-  - [X] Delete an activity.
-  - [ ] Try to do the same for manga.
-    with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263).
-    — Did some digging seem possible.
-  - [ ] Activity command (auto sends activity of a user to a channel).
-    — Same as anime, but this one will be hard since
-    a user can do update every second like every year. Will either have delay or be resource intensive.
-  - [X] Add a "delay" option to delay notification.
-  - [X] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
-    with a seiyuu and va role.
-  - [X] Get all the register users of the server.
-  - [X] Add studio search.
-  - [X] Add commands that give the best waifu.
+    - [X] Finish comparison function.
+    - [X] Add affinity score to user comparaison.
+    - [X] Add character search function.
+    - [X] Add staff search function.
+    - [X] Add search feature with a type.
+    - [X] Bind anilist account to discord for /user.
+    - [X] Random /random {anime, manga}.
+    - [ ] Rework the xp in level.rs to something easier. — Too lazy to balance.
+    - [X] Add caching to all requests.
+    - [X] Send anime release to a channel.
+    - [X] List all activity.
+    - [X] Delete an activity.
+    - [ ] Try to do the same for manga.
+      with [https://www.mangaupdates.com/series.html?id=70263](https://www.mangaupdates.com/series.html?id=70263).
+      — Did some digging seem possible.
+    - [ ] Activity command (auto sends activity of a user to a channel).
+      — Same as anime, but this one will be hard since
+      a user can do update every second like every year. Will either have delay or be resource intensive.
+    - [X] Add a "delay" option to delay notification.
+    - [X] Take [https://anilist.co/forum/thread/64835](https://anilist.co/forum/thread/64835) idea of generating image
+      with a seiyuu and va role.
+    - [X] Get all the register users of the server.
+    - [X] Add studio search.
+    - [X] Add commands that give the best waifu.
 
 - AI submodule:
-  - [X] Image generation with AI.
-  - [X] Video transcription.
-  - [X] Video translation.
-  - [ ] Ask a question and reply the response.
-    — Not a priority.
+    - [X] Image generation with AI.
+    - [X] Video transcription.
+    - [X] Video translation.
+    - [ ] Ask a question and reply the response.
+      — Not a priority.
 
 - Games module :
-  - [X] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found),
-    etc....)
-    Get the currency and language from the server language setting.
-    Steam done.
-  - [ ] get player stat
-  - [ ] get free promotion notification
+    - [X] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found),
+      etc....)
+      Get the currency and language from the server language setting.
+      Steam done.
+    - [ ] get player stat
+    - [ ] get free promotion notification
 
 ## Website
 
-
 for those of you who prefer web dev.\
 [https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
-
 
 # Credit
 
@@ -215,6 +197,5 @@ for those of you who prefer web dev.\
   even know it existed before.
 
 # Stat
-
 
 ![kasuki](https://counter.valgul.moe/get/@kasuki?theme=gelbooru)
