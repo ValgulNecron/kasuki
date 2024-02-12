@@ -13,6 +13,7 @@ pub async fn update(
     ctx: &Context,
     component_interaction: &ComponentInteraction,
     user_id: &str,
+    prev_id: &str,
 ) -> Result<(), AppError> {
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -44,19 +45,16 @@ pub async fn update(
     let mut response = EditMessage::new().embed(builder_message);
     if user_id != "0" {
         response = response.button(
-            CreateButton::new(format!("next_user_{}", last_id.unwrap()))
+            CreateButton::new(format!("user_{}_{}", user_id, prev_id))
                 .label(&list_user_localised.previous),
         );
     }
-    if len >= MEMBER_LIST_LIMIT as usize {
+    if len > MEMBER_LIST_LIMIT as usize {
         response = response.button(
-            CreateButton::new(format!("next_user_{}", last_id.unwrap()))
+            CreateButton::new(format!("user_{}_{}", last_id.unwrap(), user_id))
                 .label(list_user_localised.next),
         )
     }
-
-    response = response
-        .button(CreateButton::new(format!("next_user_{}", 0)).label(list_user_localised.previous));
 
     let mut message = component_interaction.message.clone();
 

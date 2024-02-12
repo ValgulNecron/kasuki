@@ -232,9 +232,9 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite() -> Result<
     let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
         "SELECT id, ai_module, anilist_module, game_module, new_member FROM module_activation WHERE guild = 1",
     )
-        .fetch_one(&pool)
-        .await
-        .unwrap_or((None, None, None, None, None));
+    .fetch_one(&pool)
+    .await
+    .unwrap_or((None, None, None, None, None));
     pool.close().await;
 
     Ok(row)

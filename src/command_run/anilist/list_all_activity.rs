@@ -1,3 +1,4 @@
+use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::error_enum::AppError;
@@ -39,19 +40,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let len = list.len();
     let next_page = 1;
 
-    let activity: Vec<String> = list
-        .into_iter()
-        .map(|activity| {
-            let anime_id = activity.anime_id;
-            let name = activity.name;
-            format!(
-                "[{}](https://anilist.co/anime/{})",
-                name.unwrap_or_default(),
-                anime_id.unwrap_or_default()
-            )
-        })
-        .take(ACTIVITY_LIST_LIMIT as usize)
-        .collect();
+    let activity: Vec<String> = get_formatted_activity_list(list, 0);
 
     let join_activity = activity.join("\n");
 

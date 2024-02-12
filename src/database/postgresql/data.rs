@@ -123,7 +123,7 @@ pub async fn set_data_module_activation_status_postgresql(
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
-        "INSERT INTO DATA.module_activation (guild_id, anilist_module, ai_module, game_module, new_member) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (guild_id) DO UPDATE SET anilist_module = EXCLUDED.anilist_module, ai_module = EXCLUDED.ai_module, game_module = EXCLUDED.game_module",
+        "INSERT INTO DATA.module_activation (guild_id, anilist_module, ai_module, game_module, new_member) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (guild_id) DO UPDATE SET anilist_module = EXCLUDED.anilist_module, ai_module = EXCLUDED.ai_module, game_module = EXCLUDED.game_module, new_member = EXCLUDED.new_member",
     )
         .bind(guild_id)
         .bind(anilist_value)
