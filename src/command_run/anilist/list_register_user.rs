@@ -53,7 +53,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let mut response = CreateInteractionResponseFollowup::new().embed(builder_message);
     if len >= (MEMBER_LIST_LIMIT + 1) as usize {
         response = response.button(
-            CreateButton::new(format!("next_user_{}", last_id.unwrap()))
+            CreateButton::new(format!("user_{}_0", last_id.unwrap()))
                 .label(&list_user_localised.next),
         )
     }

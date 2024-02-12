@@ -11,6 +11,7 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
+use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -39,19 +40,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let len = list.len();
     let next_page = 1;
 
-    let activity: Vec<String> = list
-        .into_iter()
-        .map(|activity| {
-            let anime_id = activity.anime_id;
-            let name = activity.name;
-            format!(
-                "[{}](https://anilist.co/anime/{})",
-                name.unwrap_or_default(),
-                anime_id.unwrap_or_default()
-            )
-        })
-        .take(ACTIVITY_LIST_LIMIT as usize)
-        .collect();
+    let activity: Vec<String> = get_formatted_activity_list(list, 0);
 
     let join_activity = activity.join("\n");
 

@@ -26,8 +26,8 @@ limit.
  */
 pub const AUTOCOMPLETE_COUNT_LIMIT: u32 = 20;
 pub const PASS_LIMIT: u32 = 10;
-// min 2 max 1001 (yeah you should do +1 dunno why but yeah so 2 = 1 and 1001 = 1000)
-pub const MEMBER_LIST_LIMIT: u64 = 11;
+// min 1 max 1000
+pub const MEMBER_LIST_LIMIT: u64 = 10;
 pub const ACTIVITY_LIST_LIMIT: u64 = 10;
 /*
 Database path.
