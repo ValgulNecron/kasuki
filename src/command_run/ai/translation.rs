@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::copy;
 use std::path::Path;
-use std::{env, fs};
+use std::{fs};
 
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
@@ -22,7 +22,7 @@ use crate::error_enum::CommandError::{
 };
 use crate::error_enum::DifferedCommandError::{
     CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
-    ResponseError, TokenError,
+    ResponseError,
 };
 use crate::lang_struct::ai::translation::load_localization_translation;
 

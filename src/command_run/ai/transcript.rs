@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::copy;
 use std::path::Path;
-use std::{env, fs};
+use std::{fs};
 
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
@@ -14,7 +14,7 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::constant::{COLOR, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN};
+use crate::constant::{COLOR, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{
@@ -22,7 +22,7 @@ use crate::error_enum::CommandError::{
 };
 use crate::error_enum::DifferedCommandError::{
     CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
-    ResponseError, TokenError,
+    ResponseError,
 };
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
