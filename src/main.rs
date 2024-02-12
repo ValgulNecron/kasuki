@@ -1,12 +1,12 @@
-use crate::constant::TRANSCRIPT_MODELS;
-use crate::constant::TRANSCRIPT_TOKEN;
-use crate::constant::TRANSCRIPT_BASE_URL;
+use crate::constant::CHAT_BASE_URL;
 use crate::constant::CHAT_MODELS;
 use crate::constant::CHAT_TOKEN;
+use crate::constant::IMAGE_BASE_URL;
 use crate::constant::IMAGE_MODELS;
 use crate::constant::IMAGE_TOKEN;
-use crate::constant::IMAGE_BASE_URL;
-use crate::constant::CHAT_BASE_URL;
+use crate::constant::TRANSCRIPT_BASE_URL;
+use crate::constant::TRANSCRIPT_MODELS;
+use crate::constant::TRANSCRIPT_TOKEN;
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};

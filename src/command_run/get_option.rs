@@ -1,13 +1,61 @@
-use serenity::all::CommandInteraction;
+use crate::error_enum::AppError::Error;
+use crate::error_enum::CommandError::NoCommandOption;
+use serenity::all::{Attachment, CommandInteraction, ResolvedOption, ResolvedValue};
 use std::collections::HashMap;
+use crate::error_enum::AppError;
 
-pub fn get_option_map(interaction: &CommandInteraction) -> HashMap<String, String> {
+pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<String, String> {
     let mut map = HashMap::new();
     for option in &interaction.data.options {
-        let search = option.value.as_str().unwrap_or_default().to_string();
+        let value = match option.value.as_str() {
+            Some(value) => value.to_string(),
+            None => continue,
+        };
         let name = option.name.clone();
-        map.insert(name, search);
+        map.insert(name, value);
     }
 
     map
+}
+
+pub fn get_option_map_attachment(
+    interaction: &CommandInteraction,
+) -> HashMap<String, Option<Attachment>> {
+    let mut map = HashMap::new();
+    for option in &interaction.data.options() {
+        let attachment;
+        if let ResolvedOption {
+            value: ResolvedValue::Attachment(attachment_option),
+            ..
+        } = option
+        {
+            let simple = *attachment_option;
+            let attach_option = simple.clone();
+            attachment = Some(attach_option)
+        } else {
+            continue;
+        }
+        let name = option.name.to_string();
+        map.insert(name, attachment);
+    }
+
+    map
+}
+
+pub fn get_the_attachment(attachment: Option<&Option<Attachment>>) -> Result<&Attachment, AppError> {
+    match attachment {
+        Some(att) => match att {
+            Some(att) => Ok(att),
+            None => {
+                return Err(Error(NoCommandOption(String::from(
+                    "The command contain no attachment.",
+                ))));
+            }
+        },
+        None => {
+            return Err(Error(NoCommandOption(String::from(
+                "The command contain no attachment.",
+            ))));
+        }
+    }
 }

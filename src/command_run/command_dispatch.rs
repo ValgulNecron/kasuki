@@ -61,7 +61,7 @@ pub async fn command_dispatching(
          */
         "image" => {
             if check_if_moule_is_on(guild_id, "AI").await? {
-                image::run(&command_interaction.data.options, ctx, command_interaction).await?
+                image::run(ctx, command_interaction).await?
             } else {
                 return Err(ai_module_error);
             }
@@ -69,7 +69,6 @@ pub async fn command_dispatching(
         "transcript" => {
             if check_if_moule_is_on(guild_id, "AI").await? {
                 transcript::run(
-                    &command_interaction.data.options(),
                     ctx,
                     command_interaction,
                 )

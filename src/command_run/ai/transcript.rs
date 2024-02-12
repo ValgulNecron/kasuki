@@ -1,8 +1,9 @@
+use std::fs;
 use std::fs::File;
 use std::io::copy;
 use std::path::Path;
-use std::{fs};
 
+use crate::command_run::get_option::{get_option_map_attachment, get_option_map_string, get_the_attachment};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
 use serde_json::Value;
@@ -14,7 +15,9 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::constant::{COLOR, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN};
+use crate::constant::{
+    COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
+};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{
@@ -27,51 +30,16 @@ use crate::error_enum::DifferedCommandError::{
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
 pub async fn run(
-    options: &[ResolvedOption<'_>],
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let mut prompt: String = String::new();
-    let mut lang: String = String::new();
-    let mut attachement: Option<Attachment> = None;
-    for option in options.iter().clone() {
-        if option.name == "lang" {
-            let resolved = option.value.clone();
-            if let ResolvedValue::String(lang_option) = resolved {
-                lang = String::from(lang_option)
-            }
-        }
-        if option.name == "prompt" {
-            let resolved = option.value.clone();
-            if let ResolvedValue::String(prompt_option) = resolved {
-                prompt = String::from(prompt_option)
-            }
-        }
-        if option.name == "video" {
-            if let ResolvedOption {
-                value: ResolvedValue::Attachment(attachment_option),
-                ..
-            } = option
-            {
-                let simple = *attachment_option;
-                let attach_option = simple.clone();
-                attachement = Some(attach_option)
-            } else {
-                return Err(Error(NoCommandOption(String::from(
-                    "The command contain no option.",
-                ))));
-            }
-        }
-    }
+    let map = get_option_map_string(&command_interaction);
+    let attachment_map = get_option_map_attachment(&command_interaction);
+    let prompt = map.get(&String::from("lang")).unwrap_or(DEFAULT_STRING).clone();
+    let lang = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING).clone();
+    let attachment = attachment_map.get(&String::from("video"));
 
-    let attachment = match attachement {
-        Some(att) => att,
-        None => {
-            return Err(Error(NoCommandOption(String::from(
-                "The command contain no attachment.",
-            ))));
-        }
-    };
+    let attachment = get_the_attachment(attachment)?;
 
     let content_type = attachment
         .content_type
@@ -152,9 +120,7 @@ pub async fn run(
         .mime_str(content_type.as_str())
         .unwrap();
     let prompt = prompt;
-    let model = unsafe {
-        TRANSCRIPT_MODELS.as_str()
-    };
+    let model = unsafe { TRANSCRIPT_MODELS.as_str() };
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", model)
@@ -162,9 +128,7 @@ pub async fn run(
         .text("language", lang)
         .text("response_format", "json");
 
-    let url = unsafe {
-        format!("{}audio/transcriptions", TRANSCRIPT_BASE_URL.as_str())
-    };
+    let url = unsafe { format!("{}audio/transcriptions", TRANSCRIPT_BASE_URL.as_str()) };
     let response_result = client
         .post(url)
         .headers(headers)

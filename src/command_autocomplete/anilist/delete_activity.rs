@@ -1,4 +1,4 @@
-use crate::command_run::get_option::get_option_map;
+use crate::command_run::get_option::get_option_map_string;
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::database::dispatcher::data_dispatch::get_data_all_activity_by_server;
 use serenity::all::{
@@ -7,7 +7,7 @@ use serenity::all::{
 };
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let map = get_option_map(&autocomplete_interaction);
+    let map = get_option_map_string(&autocomplete_interaction);
     let activity_search = map
         .get(&String::from("anime_name"))
         .unwrap_or(DEFAULT_STRING);

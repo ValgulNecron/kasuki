@@ -1,5 +1,6 @@
 use std::{env, fs};
 
+use crate::command_run::get_option::get_option_map_string;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
@@ -10,7 +11,7 @@ use serenity::all::{
 use tracing::{info, trace};
 use uuid::Uuid;
 
-use crate::constant::{COLOR, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
+use crate::constant::{COLOR, DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
@@ -22,7 +23,6 @@ use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 
 pub async fn run(
-    options: &[CommandDataOption],
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
@@ -31,19 +31,10 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let lang = options
-        .first()
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
-    let lang = lang.value.clone();
-
-    let desc = match lang {
-        CommandDataOptionValue::String(lang) => lang,
-        _ => {
-            return Err(Error(ErrorOptionError(String::from(
-                "The command contain no option.",
-            ))));
-        }
-    };
+    let map = get_option_map_string(&command_interaction);
+    let prompt = map
+        .get(&String::from("description"))
+        .unwrap_or(DEFAULT_STRING);
 
     let image_localised = load_localization_image(guild_id.clone()).await?;
 
@@ -63,11 +54,7 @@ pub async fn run(
     let filename = format!("{}.png", uuid_name);
     let filename_str = filename.as_str();
 
-    let prompt = desc;
-
-    let model = unsafe {
-        IMAGE_MODELS.as_str()
-    };
+    let model = unsafe { IMAGE_MODELS.as_str() };
     info!("{}", model);
     let data: Value;
     let quality = match env::var("AI_IMAGE_QUALITY") {
