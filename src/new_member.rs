@@ -107,7 +107,7 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
     create_message = create_message.content(
         new_member_localised
             .welcome
-            .replace("$user$", &*format!("<@{}>", member.user.id)),
+            .replace("$user$", &format!("<@{}>", member.user.id)),
     );
     create_message = create_message.add_file(attachment);
     channel
