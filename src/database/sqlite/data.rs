@@ -196,7 +196,6 @@ pub async fn set_data_module_activation_status_sqlite(
     Ok(())
 }
 
-
 pub async fn remove_data_activity_status_sqlite(
     server_id: String,
     anime_id: String,

@@ -10,13 +10,13 @@ use serenity::all::{
 use tracing::trace;
 use uuid::Uuid;
 
-use crate::constant::COLOR;
+use crate::constant::{COLOR, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
 use crate::error_enum::DifferedCommandError::{
     DifferedCommandSendingError, DifferedOptionError, FailedToGetBytes, FailedUrlError,
-    HeaderError, ImageModelError, ResponseError, TokenError, WritingFile,
+    HeaderError, ImageModelError, ResponseError, WritingFile,
 };
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
@@ -64,17 +64,6 @@ pub async fn run(
     let filename_str = filename.as_str();
 
     let prompt = desc;
-    let api_key = match env::var("AI_IMAGE_API_TOKEN") {
-        Ok(x) => x,
-        Err(_) => {
-            return Err(DifferedError(TokenError(String::from(
-                "There was an error while getting the token.",
-            ))));
-        }
-    };
-
-    let api_base_url =
-        env::var("AI_IMAGE_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string());
 
     let mut data = json!({
         "model": "dall-e-3",
@@ -83,120 +72,71 @@ pub async fn run(
         "size": "1024x1024",
         "response_format": "url"
     });
-    if let Ok(image_generation_mode) = env::var("IMAGE_GENERATION_MODELS_ON") {
-        let is_ok_image = image_generation_mode.to_lowercase() == "true";
-        let quality = match env::var("IMAGE_QUALITY") {
-            Ok(quality) => Some(quality),
-            Err(_) => None,
-        };
-        let style = match env::var("IMAGE_STYLE") {
-            Ok(style) => Some(style),
-            Err(_) => None,
-        };
+    let quality = match env::var("IMAGE_QUALITY") {
+        Ok(quality) => Some(quality),
+        Err(_) => None,
+    };
+    let style = match env::var("IMAGE_STYLE") {
+        Ok(style) => Some(style),
+        Err(_) => None,
+    };
 
-        let model = match env::var("IMAGE_GENERATION_MODELS") {
-            Ok(data) => data,
-            Err(e) => {
-                return Err(DifferedError(ImageModelError(format!(
-                    "Please specify the models you want to use. {}",
-                    e
-                ))));
-            }
-        };
-
-        let size = env::var("IMAGE_SIZE").unwrap_or(String::from("1024x1024"));
-        match (is_ok_image, quality, style) {
-            (true, Some(quality), Some(style)) => {
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": size,
-                    "model": model,
-                    "quality": quality,
-                    "style": style,
-                    "response_format": "url"
-                })
-            }
-            (true, None, Some(style)) => {
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": size,
-                    "model": model,
-                    "style": style,
-                    "response_format": "url"
-                })
-            }
-            (true, Some(quality), None) => {
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": size,
-                    "model": model,
-                    "quality": quality,
-                    "response_format": "url"
-                })
-            }
-            (true, None, None) => {
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": size,
-                    "model": model,
-                    "response_format": "url"
-                })
-            }
-            (false, Some(quality), Some(style)) => {
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": size,
-                    "model": "dall-e-3",
-                    "quality": quality,
-                    "style": style,
-                    "response_format": "url"
-                })
-            }
-            (false, None, Some(style)) => {
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": size,
-                    "model": "dall-e-3",
-                    "style": style,
-                    "response_format": "url"
-                })
-            }
-            (false, Some(quality), None) => {
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": size,
-                    "model": "dall-e-3",
-                    "quality": quality,
-                    "response_format": "url"
-                })
-            }
-            (false, None, None) => {
-                data = json!({
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": size,
-                    "model": "dall-e-3",
-                    "response_format": "url"
-                })
-            }
+    let size = env::var("IMAGE_SIZE").unwrap_or(String::from("1024x1024"));
+    let model = unsafe {
+        IMAGE_MODELS.as_str()
+    };
+    match (quality, style) {
+        (Some(quality), Some(style)) => {
+            data = json!({
+                "prompt": prompt,
+                "n": 1,
+                "size": size,
+                "model": model,
+                "quality": quality,
+                "style": style,
+                "response_format": "url"
+            })
+        }
+        (None, Some(style)) => {
+            data = json!({
+                "prompt": prompt,
+                "n": 1,
+                "size": size,
+                "model": model,
+                "style": style,
+                "response_format": "url"
+            })
+        }
+        (Some(quality), None) => {
+            data = json!({
+                "prompt": prompt,
+                "n": 1,
+                "size": size,
+                "model": model,
+                "quality": quality,
+                "response_format": "url"
+            })
+        }
+        (None, None) => {
+            data = json!({
+                "prompt": prompt,
+                "n": 1,
+                "size": size,
+                "model": model,
+                "response_format": "url"
+            })
         }
     }
+
     trace!("{:#?}", data);
 
-    let api_url = format!("{}images/generations", api_base_url);
     let client = reqwest::Client::new();
 
+    let token = unsafe { IMAGE_TOKEN.as_str() };
     let mut headers = HeaderMap::new();
     headers.insert(
         AUTHORIZATION,
-        match HeaderValue::from_str(&format!("Bearer {}", api_key)) {
+        match HeaderValue::from_str(&format!("Bearer {}", token)) {
             Ok(data) => data,
             Err(e) => {
                 return Err(DifferedError(HeaderError(format!(
@@ -208,8 +148,9 @@ pub async fn run(
     );
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
+    let url = unsafe { IMAGE_BASE_URL.as_str() };
     let res: Value = client
-        .post(api_url)
+        .post(url)
         .headers(headers)
         .json(&data)
         .send()
