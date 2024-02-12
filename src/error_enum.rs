@@ -13,8 +13,6 @@ pub enum DifferedCommandError {
     FileExtensionError(String),
     CopyBytesError(String),
     GettingBytesError(String),
-    TokenError(String),
-    ImageModelError(String),
     HeaderError(String),
     ResponseError(String),
     FailedUrlError(String),

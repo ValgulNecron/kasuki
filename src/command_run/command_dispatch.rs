@@ -68,23 +68,14 @@ pub async fn command_dispatching(
         }
         "transcript" => {
             if check_if_moule_is_on(guild_id, "AI").await? {
-                transcript::run(
-                    ctx,
-                    command_interaction,
-                )
-                .await?
+                transcript::run(ctx, command_interaction).await?
             } else {
                 return Err(ai_module_error);
             }
         }
         "translation" => {
             if check_if_moule_is_on(guild_id, "AI").await? {
-                translation::run(
-                    &command_interaction.data.options(),
-                    ctx,
-                    command_interaction,
-                )
-                .await?
+                translation::run(ctx, command_interaction).await?
             } else {
                 return Err(ai_module_error);
             }

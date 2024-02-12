@@ -3,19 +3,22 @@ use std::fs::File;
 use std::io::copy;
 use std::path::Path;
 
+use crate::command_run::get_option::{get_option_map_attachment, get_option_map_string};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    Attachment, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, ResolvedOption, ResolvedValue, Timestamp,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, ResolvedOption, Timestamp,
 };
 use tracing::log::trace;
 use uuid::Uuid;
-use crate::command_run::get_option::{get_option_map_attachment, get_option_map_string};
 
-use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN};
+use crate::constant::{
+    CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL,
+    TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
+};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{
@@ -27,14 +30,13 @@ use crate::error_enum::DifferedCommandError::{
 };
 use crate::lang_struct::ai::translation::load_localization_translation;
 
-pub async fn run(
-    options: &[ResolvedOption<'_>],
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(&command_interaction);
     let attachment_map = get_option_map_attachment(&command_interaction);
-    let lang = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING).clone();
+    let lang = map
+        .get(&String::from("prompt"))
+        .unwrap_or(DEFAULT_STRING)
+        .clone();
     let attachment = attachment_map.get(&String::from("video"));
 
     let attachment = match attachment {

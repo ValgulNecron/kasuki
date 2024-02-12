@@ -1,8 +1,8 @@
+use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
 use crate::error_enum::CommandError::NoCommandOption;
 use serenity::all::{Attachment, CommandInteraction, ResolvedOption, ResolvedValue};
 use std::collections::HashMap;
-use crate::error_enum::AppError;
 
 pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<String, String> {
     let mut map = HashMap::new();
@@ -42,7 +42,9 @@ pub fn get_option_map_attachment(
     map
 }
 
-pub fn get_the_attachment(attachment: Option<&Option<Attachment>>) -> Result<&Attachment, AppError> {
+pub fn get_the_attachment(
+    attachment: Option<&Option<Attachment>>,
+) -> Result<&Attachment, AppError> {
     match attachment {
         Some(att) => match att {
             Some(att) => Ok(att),

@@ -3,14 +3,16 @@ use std::fs::File;
 use std::io::copy;
 use std::path::Path;
 
-use crate::command_run::get_option::{get_option_map_attachment, get_option_map_string, get_the_attachment};
+use crate::command_run::get_option::{
+    get_option_map_attachment, get_option_map_string, get_the_attachment,
+};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
 use serde_json::Value;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    Attachment, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, ResolvedOption, ResolvedValue, Timestamp,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::log::trace;
 use uuid::Uuid;
@@ -20,23 +22,24 @@ use crate::constant::{
 };
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError, FileTypeError, NoCommandOption,
-};
+use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError, FileTypeError};
 use crate::error_enum::DifferedCommandError::{
     CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
     ResponseError,
 };
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(&command_interaction);
     let attachment_map = get_option_map_attachment(&command_interaction);
-    let prompt = map.get(&String::from("lang")).unwrap_or(DEFAULT_STRING).clone();
-    let lang = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING).clone();
+    let prompt = map
+        .get(&String::from("lang"))
+        .unwrap_or(DEFAULT_STRING)
+        .clone();
+    let lang = map
+        .get(&String::from("prompt"))
+        .unwrap_or(DEFAULT_STRING)
+        .clone();
     let attachment = attachment_map.get(&String::from("video"));
 
     let attachment = get_the_attachment(attachment)?;
