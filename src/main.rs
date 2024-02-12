@@ -1,3 +1,12 @@
+use crate::constant::TRANSCRIPT_MODELS;
+use crate::constant::TRANSCRIPT_TOKEN;
+use crate::constant::TRANSCRIPT_BASE_URL;
+use crate::constant::CHAT_MODELS;
+use crate::constant::CHAT_TOKEN;
+use crate::constant::IMAGE_MODELS;
+use crate::constant::IMAGE_TOKEN;
+use crate::constant::IMAGE_BASE_URL;
+use crate::constant::CHAT_BASE_URL;
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
@@ -198,6 +207,18 @@ async fn main() {
             return;
         }
     };
+
+    unsafe {
+        info!("{}", IMAGE_BASE_URL.as_str());
+        info!("{}", IMAGE_TOKEN.as_str());
+        info!("{}", IMAGE_MODELS.as_str());
+        info!("{}", CHAT_BASE_URL.as_str());
+        info!("{}", CHAT_TOKEN.as_str());
+        info!("{}", CHAT_MODELS.as_str());
+        info!("{}", TRANSCRIPT_BASE_URL.as_str());
+        info!("{}", TRANSCRIPT_TOKEN.as_str());
+        info!("{}", TRANSCRIPT_MODELS.as_str());
+    }
 
     // Build our client.
     let gateway_intent_non_privileged = GatewayIntents::GUILDS

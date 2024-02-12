@@ -76,8 +76,8 @@ image
  */
 
 pub static mut IMAGE_BASE_URL: Lazy<String> = Lazy::new(|| {
-    env::var("AI_IMAGE_API_BASE_URL")
-        .unwrap_or(env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string()))
+    format!("{}images/generations", env::var("AI_IMAGE_API_BASE_URL")
+        .unwrap_or(env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string())))
 });
 pub static mut IMAGE_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_IMAGE_API_TOKEN").unwrap_or(env::var("AI_API_TOKEN").unwrap_or(String::new()))
@@ -91,8 +91,8 @@ chat and translation
  */
 
 pub static mut CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
-    env::var("AI_CHAT_API_BASE_URL")
-        .unwrap_or(env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string()))
+    format!("{}chat/completions",env::var("AI_CHAT_API_BASE_URL")
+        .unwrap_or(env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string())))
 });
 pub static mut CHAT_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_CHAT_API_TOKEN").unwrap_or(env::var("AI_API_TOKEN").unwrap_or(String::new()))
@@ -106,8 +106,8 @@ transcription
  */
 
 pub static mut TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
-    env::var("AI_TRANSCRIPT_BASE_URL")
-        .unwrap_or(env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string()))
+    format!("{}images/generations",env::var("AI_TRANSCRIPT_BASE_URL")
+        .unwrap_or(env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string())))
 });
 pub static mut TRANSCRIPT_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_TRANSCRIPT_API_TOKEN").unwrap_or(env::var("AI_API_TOKEN").unwrap_or(String::new()))

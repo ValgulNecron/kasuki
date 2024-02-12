@@ -7,7 +7,7 @@ use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateAttachment,
     CreateEmbed, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
-use tracing::trace;
+use tracing::{info, trace};
 use uuid::Uuid;
 
 use crate::constant::{COLOR, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
@@ -16,7 +16,7 @@ use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
 use crate::error_enum::DifferedCommandError::{
     DifferedCommandSendingError, DifferedOptionError, FailedToGetBytes, FailedUrlError,
-    HeaderError, ImageModelError, ResponseError, WritingFile,
+    HeaderError, ResponseError, WritingFile,
 };
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
@@ -65,26 +65,22 @@ pub async fn run(
 
     let prompt = desc;
 
-    let mut data = json!({
-        "model": "dall-e-3",
-        "prompt": prompt,
-        "n": 1,
-        "size": "1024x1024",
-        "response_format": "url"
-    });
-    let quality = match env::var("IMAGE_QUALITY") {
+    let model = unsafe {
+        IMAGE_MODELS.as_str()
+    };
+    info!("{}", model);
+    let data: Value;
+    let quality = match env::var("AI_IMAGE_QUALITY") {
         Ok(quality) => Some(quality),
         Err(_) => None,
     };
-    let style = match env::var("IMAGE_STYLE") {
+    let style = match env::var("AI_IMAGE_STYLE") {
         Ok(style) => Some(style),
         Err(_) => None,
     };
 
-    let size = env::var("IMAGE_SIZE").unwrap_or(String::from("1024x1024"));
-    let model = unsafe {
-        IMAGE_MODELS.as_str()
-    };
+    let size = env::var("AI_IMAGE_SIZE").unwrap_or(String::from("1024x1024"));
+
     match (quality, style) {
         (Some(quality), Some(style)) => {
             data = json!({
@@ -148,6 +144,7 @@ pub async fn run(
     );
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
+    trace!("{:#?}", data);
     let url = unsafe { IMAGE_BASE_URL.as_str() };
     let res: Value = client
         .post(url)

@@ -14,7 +14,7 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::constant::COLOR;
+use crate::constant::{COLOR, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{
@@ -138,23 +138,12 @@ pub async fn run(
         .map_err(|e| DifferedError(CopyBytesError(format!("Failed to copy bytes data. {}", e))))?;
     let file_to_delete = fname.clone();
 
-    let my_path = "./.env";
-    let path = Path::new(my_path);
-    let _ = dotenv::from_path(path);
-    let api_key = env::var("AI_API_TOKEN").map_err(|e| {
-        DifferedError(TokenError(format!(
-            "There was an error while getting the token. {}",
-            e
-        )))
-    })?;
-    let api_base_url =
-        env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string());
-    let api_url = format!("{}audio/transcriptions", api_base_url);
+    let token = unsafe { TRANSCRIPT_TOKEN.as_str() };
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
         AUTHORIZATION,
-        HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+        HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
     );
 
     let file = fs::read(fname).unwrap();
@@ -163,15 +152,21 @@ pub async fn run(
         .mime_str(content_type.as_str())
         .unwrap();
     let prompt = prompt;
+    let model = unsafe {
+        TRANSCRIPT_MODELS.as_str()
+    };
     let form = multipart::Form::new()
         .part("file", part)
-        .text("model", "whisper-1")
+        .text("model", model)
         .text("prompt", prompt)
         .text("language", lang)
         .text("response_format", "json");
 
+    let url = unsafe {
+        format!("{}audio/transcriptions", TRANSCRIPT_BASE_URL.as_str())
+    };
     let response_result = client
-        .post(api_url)
+        .post(url)
         .headers(headers)
         .multipart(form)
         .send()

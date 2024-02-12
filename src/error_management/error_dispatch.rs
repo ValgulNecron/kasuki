@@ -45,7 +45,9 @@ async fn send_differed_error(
     command_interaction: &CommandInteraction,
     ctx: &Context,
 ) {
-    let error_message = format!("Please verify the error bellow and contact me on discord or github depending on the error: \n{:?}", e);
+    let error_message = format!("**This error is most likely an error on your part. \
+    like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
+    error and report it to me and I will try to fix it the fastest I can**  \n{:?}", e);
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
