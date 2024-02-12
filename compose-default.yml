@@ -11,25 +11,42 @@ services:
     restart: unless-stopped
     tty: true
     environment:
-      - DISCORD_TOKEN=your_discord_token_here
-      - AI_API_TOKEN=your_token_here_for_the_ai_part # used for transcription with whisper-1 and for translation with gpt-3.5-turbo-16k (will add feature to change later)
-      - AI_API_BASE_URL=the_url_for_the_request_open_ai_or_any_openai_proxy_one_do_not_forget_to_end_with_a_/_the_url # the url to get the models above
-      - AI_IMAGE_API_TOKEN="Your token here for the ai part" # token for the image generation can be the same or different from the one above
-      - AI_IMAGE_API_BASE_URL="The url for the request open ai or any openai proxy one do not forget to end with a / the url" # url of the api can be the same or different as the one above.
-      - IMAGE_GENERATION_MODELS_ON=True # true if you use have a proxy server on which you added another model for image gen.
-      - IMAGE_GENERATION_MODELS=model_name # the name of the model you want only used if IMAGE_GENERATION_MODELS_ON is True
-      - IMAGE_QUALITY="hd" # dall-e-3
-      - IMAGE_SIZE="1024x1024" # depend on models
-      - IMAGE_STYLE="vivid" #  dall-e-3
-      - RUST_LOG="info" # trace, debug, info, warn or error
-      - NSFW=True # if the bot should honor the nsfw for image if set to true it will if false it will not. (turn it off if you are 100% the model you use for image can't generate nsfw)
-      - TERM=xterm-256color
-      - REMOVE_OLD_COMMAND=True # if the bot should remove the old command when it starts. recommended to set it for the 1st launch or when updating to a breaking change version
-      - DB_TYPE="sqlite"
-      - SAVE_IMAGE="local/remote/false"
-      - SAVE_SERVER="imgur/catbox"
-      - TOKEN="catbox userhash / imgur client id"
-      - BOT_ACTIVITY="Let you get info from anilist."
+      # Discord Bot Configuration
+      - DISCORD_TOKEN="YourDiscordTokenHere" # Discord bot token used for authentication [0][2]
+      - BOT_ACTIVITY="Let you get info from anilist." # Status message displayed when the bot is active
+
+      # OpenAI API Tokens and Base URLs
+      - AI_API_TOKEN="YourOpenAITokenHere" # Token for making requests to the OpenAI API [12]
+      - AI_API_BASE_URL="https://api.openai.com/v1/" # Base URL for API requests; must end with a slash [12]
+
+      # Image Generation Settings
+      - AI_IMAGE_API_TOKEN="${AI_API_TOKEN}" # Token specifically for image-related AI requests; defaults to AI_API_TOKEN if unset
+      - AI_IMAGE_API_BASE_URL="${AI_API_BASE_URL}" # Base URL for image-related API requests; defaults to AI_API_BASE_URL if unset
+      - IMAGE_GENERATION_MODELS="dall-e-3" # AI model(s) used for generating images; default is 'dall-e-3' [12]
+      - IMAGE_QUALITY="hd" # Quality level for generated images; typical options are 'ld', 'sd', 'hd', etc.
+      - IMAGE_STYLE="vivid" # Style preference for generated images; can vary depending on the model used
+      - IMAGE_SIZE="1024x1024" # Dimensions of generated images; default is '1024x1024'
+
+      # Chatbot Configuration
+      - AI_CHAT_API_TOKEN="${AI_API_TOKEN}" # Token for chat-related AI requests; defaults to AI_API_TOKEN if unset
+      - AI_CHAT_API_BASE_URL="${AI_API_BASE_URL}" # Base URL for chat-related API requests; defaults to AI_API_BASE_URL if unset
+      - AI_CHAT_MODEL="gpt-3.5-turbo" # AI model used for chat generation; default is 'gpt-3.5-turbo' [12]
+
+      # Transcription Configuration
+      - AI_TRANSCRIPT_API_TOKEN="${AI_API_TOKEN}" # Token for transcription-related AI requests; defaults to AI_API_TOKEN if unset
+      - AI_TRANSCRIPT_BASE_URL="${AI_API_BASE_URL}" # Base URL for transcription-related API requests; defaults to AI_API_BASE_URL if unset
+      - AI_TRANSCRIPT_MODELS="whisper-1" # AI model used for transcription generation; default is 'whisper-1' [12]
+
+      # Logging and Debugging Configuration
+      - RUST_LOG="warn" # Logging level for the application; can be 'trace', 'debug', 'info', 'warn', or 'error'
+      - NSFW=true # Flag to enable processing of NSFW content; set to 'true' to allow, 'false' to disallow
+      - REMOVE_OLD_COMMAND_ON_STARTUP=true # Whether to remove old commands when the bot starts up
+      - DB_TYPE="sqlite" # Type of database to use; either 'sqlite' or 'postgres'
+
+      # Media Saving Configuration
+      - SAVE_IMAGE="local" # Location to save images; can be 'local', 'remote', or 'false' to disable
+      - SAVE_SERVER="imgur" # Server to save media to; either 'imgur' or 'catbox'
+      - TOKEN="ImgurClientIDOrCatboxUserHash" # Authentication token for the chosen media saving server
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db

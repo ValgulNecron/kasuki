@@ -92,7 +92,16 @@ pub async fn set_data_activity_postgresql(
 
 pub async fn get_data_module_activation_status_postgresql(
     guild_id: &String,
-) -> Result<(Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>), AppError> {
+) -> Result<
+    (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+    ),
+    AppError,
+> {
     let pool = get_postgresql_pool().await?;
     let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
         "SELECT guild_id, ai_module, anilist_module, game_module, new_member FROM DATA.module_activation WHERE guild = $1",
@@ -110,15 +119,17 @@ pub async fn set_data_module_activation_status_postgresql(
     anilist_value: bool,
     ai_value: bool,
     game_value: bool,
+    new_member_value: bool,
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
-        "INSERT INTO DATA.module_activation (guild_id, anilist_module, ai_module, game_module) VALUES ($1, $2, $3, $4) ON CONFLICT (guild_id) DO UPDATE SET anilist_module = EXCLUDED.anilist_module, ai_module = EXCLUDED.ai_module, game_module = EXCLUDED.game_module",
+        "INSERT INTO DATA.module_activation (guild_id, anilist_module, ai_module, game_module, new_member) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (guild_id) DO UPDATE SET anilist_module = EXCLUDED.anilist_module, ai_module = EXCLUDED.ai_module, game_module = EXCLUDED.game_module, new_member = EXCLUDED.new_member",
     )
         .bind(guild_id)
         .bind(anilist_value)
         .bind(ai_value)
         .bind(game_value)
+        .bind(new_member_value)
         .execute(&pool)
         .await
         .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
@@ -147,16 +158,24 @@ pub async fn remove_data_activity_status_postgresql(
     Ok(())
 }
 
-pub async fn get_data_module_activation_kill_switch_status_postgresql(
-) -> Result<(Option<String>, Option<bool>, Option<bool>, Option<bool>), AppError> {
+pub async fn get_data_module_activation_kill_switch_status_postgresql() -> Result<
+    (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+    ),
+    AppError,
+> {
     let pool = get_postgresql_pool().await?;
-    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
-        "SELECT id, ai_module, anilist_module, game_module FROM DATA.module_activation WHERE guild = $1",
+    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
+        "SELECT id, ai_module, anilist_module, game_module, new_member FROM DATA.module_activation WHERE guild = $1",
     )
         .bind(1)
         .fetch_one(&pool)
         .await
-        .unwrap_or((None, None, None, None));
+        .unwrap_or((None, None, None, None, None));
     pool.close().await;
 
     Ok(row)

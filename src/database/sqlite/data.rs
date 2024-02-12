@@ -151,7 +151,16 @@ pub async fn set_data_activity_sqlite(
 
 pub async fn get_data_module_activation_status_sqlite(
     guild_id: &String,
-) -> Result<(Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>), AppError> {
+) -> Result<
+    (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+    ),
+    AppError,
+> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
         "SELECT guild_id, ai_module, anilist_module, game_module, new_member FROM module_activation WHERE guild = ?",
@@ -169,15 +178,17 @@ pub async fn set_data_module_activation_status_sqlite(
     anilist_value: bool,
     ai_value: bool,
     game_value: bool,
+    new_member_value: bool,
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let _ = sqlx::query(
-        "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module, game_module) VALUES (?, ?, ?)",
+        "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module, game_module, new_member) VALUES (?, ?, ?, ?, ?)",
     )
         .bind(guild_id)
         .bind(anilist_value)
         .bind(ai_value)
         .bind(game_value)
+        .bind(new_member_value)
         .execute(&pool)
         .await
         .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
@@ -206,15 +217,23 @@ pub async fn remove_data_activity_status_sqlite(
     Ok(())
 }
 
-pub async fn get_data_module_activation_kill_switch_status_sqlite(
-) -> Result<(Option<String>, Option<bool>, Option<bool>, Option<bool>), AppError> {
+pub async fn get_data_module_activation_kill_switch_status_sqlite() -> Result<
+    (
+        Option<String>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+        Option<bool>,
+    ),
+    AppError,
+> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
-        "SELECT id, ai_module, anilist_module, game_module FROM module_activation WHERE guild = 1",
+    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
+        "SELECT id, ai_module, anilist_module, game_module, new_member FROM module_activation WHERE guild = 1",
     )
     .fetch_one(&pool)
     .await
-    .unwrap_or((None, None, None, None));
+    .unwrap_or((None, None, None, None, None));
     pool.close().await;
 
     Ok(row)

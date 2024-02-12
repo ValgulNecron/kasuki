@@ -1,4 +1,5 @@
-use crate::constant::AUTOCOMPLETE_COUNT_LIMIT;
+use crate::command_run::get_option::get_option_map;
+use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::database::dispatcher::data_dispatch::get_data_all_activity_by_server;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
@@ -6,12 +7,10 @@ use serenity::all::{
 };
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let mut search = String::new();
-    for option in &autocomplete_interaction.data.options {
-        if option.name.as_str() != "type" {
-            search = option.value.as_str().unwrap().to_string()
-        }
-    }
+    let map = get_option_map(&autocomplete_interaction);
+    let activity_search = map
+        .get(&String::from("anime_name"))
+        .unwrap_or(DEFAULT_STRING);
 
     let guild_id = match autocomplete_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -27,7 +26,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
     // Use rust-fuzzy-search to find the top 5 matches
     let matches = rust_fuzzy_search::fuzzy_search_best_n(
-        &search,
+        activity_search,
         &activity_refs,
         AUTOCOMPLETE_COUNT_LIMIT as usize,
     );

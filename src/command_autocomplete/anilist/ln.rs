@@ -1,14 +1,12 @@
 use serenity::all::{CommandInteraction, Context};
 
 use crate::anilist_struct::autocomplete::media::{send_auto_complete, MediaPageWrapper};
+use crate::command_run::get_option::get_option_map;
+use crate::constant::DEFAULT_STRING;
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let mut search = String::new();
-    for option in &autocomplete_interaction.data.options {
-        if option.name.as_str() != "type" {
-            search = option.value.as_str().unwrap().to_string()
-        }
-    }
-    let manga = MediaPageWrapper::new_autocomplete_ln(&search.to_string()).await;
+    let map = get_option_map(&autocomplete_interaction);
+    let ln_search = map.get(&String::from("ln_name")).unwrap_or(DEFAULT_STRING);
+    let manga = MediaPageWrapper::new_autocomplete_ln(ln_search).await;
     send_auto_complete(ctx, autocomplete_interaction, manga).await;
 }

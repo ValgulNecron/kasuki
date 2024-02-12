@@ -1,3 +1,4 @@
+use crate::command_run::command_dispatch::check_if_moule_is_on;
 use crate::common::calculate_user_color::get_image_from_url;
 use crate::constant::SERVER_IMAGE_PATH;
 use crate::error_enum::AppError;
@@ -24,7 +25,7 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
     }
 
     let guild_id = member.guild_id.to_string();
-    if !check_if_is_on(&guild_id).await {
+    if !check_if_moule_is_on(guild_id.clone(), "NEW_MEMBER").await? {
         return Err(NewMemberError(NewMemberOff(String::from("it's off"))));
     }
     let new_member_localised = load_localization_new_member(guild_id).await?;
@@ -136,8 +137,4 @@ async fn get_channel_to_send(guild: PartialGuild) -> Result<ChannelId, AppError>
         .ok_or(NewMemberError(NewMemberErrorOptionError(
             "there was an error getting the channel to send".to_string(),
         )))
-}
-
-async fn check_if_is_on(guild: &String) -> bool {
-    true
 }
