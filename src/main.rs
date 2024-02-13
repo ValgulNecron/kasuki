@@ -207,7 +207,6 @@ async fn main() {
             return;
         }
     };
-
     unsafe {
         info!("{}", IMAGE_BASE_URL.as_str());
         info!("{}", IMAGE_TOKEN.as_str());

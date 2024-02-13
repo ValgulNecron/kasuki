@@ -1,6 +1,6 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::command_run::ai::{image, transcript, translation};
+use crate::command_run::ai::{image, question, transcript, translation};
 use crate::command_run::anilist::{
     add_activity, anime, character, compare, delete_activity, level, list_all_activity,
     list_register_user, ln, manga, random, random_image, random_nsfw_image, register, search,
@@ -76,6 +76,13 @@ pub async fn command_dispatching(
         "translation" => {
             if check_if_moule_is_on(guild_id, "AI").await? {
                 translation::run(ctx, command_interaction).await?
+            } else {
+                return Err(ai_module_error);
+            }
+        }
+        "question" => {
+            if check_if_moule_is_on(guild_id, "AI").await? {
+                question::run(ctx, command_interaction).await?
             } else {
                 return Err(ai_module_error);
             }

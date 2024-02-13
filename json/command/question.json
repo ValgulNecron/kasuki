@@ -1,0 +1,61 @@
+{
+  "name": "question",
+  "desc": "Ask a question and get the response (this is not a chat it has no context).",
+  "dm_command": false,
+  "nsfw": true,
+  "perm": false,
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "prompt",
+      "desc": "What you want to ask.",
+      "required": true,
+      "autocomplete": false,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "prompt",
+          "desc": "What you want to ask."
+        },
+        {
+          "code": "fr",
+          "name": "question",
+          "desc": "Ce que vous voulez demander."
+        },
+        {
+          "code": "de",
+          "name": "prompt",
+          "desc": "Was Sie fragen möchten."
+        },
+        {
+          "code": "ja",
+          "name": "prompt",
+          "desc": "質問したい内容。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "question",
+      "desc": "Ask a question and get the response (this is not a chat it has no context)."
+    },
+    {
+      "code": "fr",
+      "name": "question",
+      "desc": "Poser une question et obtenir une réponse (ce n'est pas une conversation, cela n'a pas de contexte)."
+    },
+    {
+      "code": "de",
+      "name": "question",
+      "desc": "Eine Frage stellen und eine Antwort erhalten (dies ist keine Unterhaltung, es gibt keinen Kontext)."
+    },
+    {
+      "code": "ja",
+      "name": "question",
+      "desc": "質問をすると回答が得られます（これはチャットではなく、コンテキストがありません）。"
+    }
+  ]
+}

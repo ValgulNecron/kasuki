@@ -239,5 +239,5 @@ pub async fn translation(
     let content = res["choices"][0]["message"]["content"].to_string();
     let no_quote = content.replace('"', "");
 
-    Ok(no_quote.replace("\\n", " \\n "))
+    Ok(no_quote.replace("\\n", " \n "))
 }
