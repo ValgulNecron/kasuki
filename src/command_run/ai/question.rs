@@ -1,20 +1,21 @@
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
-use serde_json::{json, Value};
-use serenity::all::{CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp};
-use serenity::all::CreateInteractionResponse::Defer;
-use tracing::trace;
 use crate::command_run::get_option::get_option_map_string;
 use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING};
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::ErrorCommandSendingError;
 use crate::error_enum::DifferedCommandError::{DifferedCommandSendingError, ResponseError};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use serde_json::{json, Value};
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, Timestamp,
+};
+use tracing::trace;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(&command_interaction);
-    let prompt = map
-        .get(&String::from("prompt"))
-        .unwrap_or(DEFAULT_STRING);
+    let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
@@ -59,9 +60,7 @@ async fn question(
     api_base_url: String,
     model: String,
 ) -> Result<String, AppError> {
-    let prompt_gpt = format!("{}", text);
-
-    let api_url = format!("{}chat/completions", api_base_url);
+    let api_url = format!("{}", api_base_url);
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -72,7 +71,7 @@ async fn question(
 
     let data = json!({
          "model": model,
-         "messages": [{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": prompt_gpt}]
+         "messages": [{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": text}]
     });
     trace!("{:?}", data);
 
