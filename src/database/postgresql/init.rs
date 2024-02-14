@@ -226,10 +226,10 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_color (
-    user_id TEXT PRIMARY KEY,
-    color TEXT NOT NULL,
-    pfp_url TEXT NOT NULL,
-    image TEXT NOT NULL
+            user_id TEXT PRIMARY KEY,
+            color TEXT NOT NULL,
+            pfp_url TEXT NOT NULL,
+            image TEXT NOT NULL
      )",
     )
     .execute(pool)
@@ -240,6 +240,23 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             e
         )))
     })?;
+
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS server_image (
+                server_id TEXT PRIMARY KEY,
+                type TEXT PRIMARY KEY,
+                image TEXT NOT NULL,
+     )",
+    )
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            NotACommandError(CreatingTableError(format!(
+                "Failed to create the table. {}",
+                e
+            )))
+        })?;
 
     Ok(())
 }

@@ -1,5 +1,5 @@
 use crate::command_run::command_dispatch::check_if_moule_is_on;
-use crate::common::calculate_user_color::get_image_from_url;
+use crate::server_image::calculate_user_color::get_image_from_url;
 use crate::constant::SERVER_IMAGE_PATH;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NewMemberError;

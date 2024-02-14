@@ -1,4 +1,4 @@
-use crate::common::calculate_user_color::{
+use crate::server_image::calculate_user_color::{
     get_image_from_url, get_member, return_average_user_color,
 };
 use crate::constant::COLOR;

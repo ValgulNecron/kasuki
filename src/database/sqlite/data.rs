@@ -422,3 +422,28 @@ pub async fn get_data_all_activity_by_server_sqlite(
 
     Ok(rows)
 }
+
+pub async fn set_server_image_sqlite(
+    server_id: &String,
+    image_type: &String,
+    image: &String,
+) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let _ = sqlx::query(
+        "INSERT OR REPLACE INTO server_image (server_id, type, image) VALUES (?, ?, ?)",
+    )
+    .bind(server_id)
+    .bind(image_type)
+    .bind(image)
+    .execute(&pool)
+    .await
+    .map_err(|e| {
+        Error(SqlInsertError(format!(
+            "Failed to insert into the table. {}",
+            e
+        )))
+    })?;
+    pool.close().await;
+
+    Ok(())
+}

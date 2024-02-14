@@ -1,7 +1,7 @@
 use crate::command_run::general::generate_image_pfp_server::{
     find_closest_color, get_color_with_url, Color, ColorWithUrl,
 };
-use crate::common::calculate_user_color::get_image_from_url;
+use crate::server_image::calculate_user_color::get_image_from_url;
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::get_all_user_approximated_color;
 use crate::database_struct::user_color_struct::UserColor;

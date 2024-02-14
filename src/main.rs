@@ -22,7 +22,7 @@ use crate::activity::anime_activity::manage_activity;
 use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::{check_if_moule_is_on, command_dispatching};
-use crate::common::calculate_user_color::color_management;
+use crate::server_image::calculate_user_color::color_management;
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::{ACTIVITY_NAME, DELAY_BEFORE_THREAD_SPAWN, MAX_LOG_RETENTION_DAYS};
 use crate::database::dispatcher::init_dispatch::init_sql_database;
@@ -51,6 +51,7 @@ mod logger;
 mod new_member;
 pub mod struct_shard_manager;
 mod web_server;
+mod server_image;
 
 struct Handler;
 
@@ -296,6 +297,14 @@ async fn thread_management_launcher(ctx: Context) {
     tokio::spawn(async move {
         info!("Launching the user color management thread!");
         color_management(guilds, ctx_clone).await;
+    });
+
+    sleep(Duration::from_secs(5)).await;
+    let guilds = ctx.cache.guilds();
+    let ctx_clone = ctx.clone();
+    tokio::spawn(async move {
+        info!("Launching the user color management thread!");
+        server_image_dispatch(guilds, ctx_clone).await;
     });
 
     info!("Done spawning thread manager.");

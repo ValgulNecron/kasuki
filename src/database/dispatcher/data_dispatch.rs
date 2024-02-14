@@ -1,28 +1,8 @@
 use std::env;
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
-use crate::database::postgresql::data::{
-    get_all_server_activity_postgresql, get_all_user_approximated_color_postgres,
-    get_data_activity_postgresql, get_data_activity_with_server_and_anime_id_postgresql,
-    get_data_all_activity_by_server_postgresql, get_data_guild_language_postgresql,
-    get_data_module_activation_kill_switch_status_postgresql,
-    get_data_module_activation_status_postgresql, get_one_activity_postgresql,
-    get_registered_user_postgresql, get_user_approximated_color_postgresql,
-    remove_data_activity_status_postgresql, set_data_activity_postgresql,
-    set_data_guild_language_postgresql, set_data_module_activation_status_postgresql,
-    set_data_ping_history_postgresql, set_registered_user_postgresql,
-    set_user_approximated_color_postgresql,
-};
-use crate::database::sqlite::data::{
-    get_all_server_activity_sqlite, get_all_user_approximated_color_sqlite,
-    get_data_activity_sqlite, get_data_activity_with_server_and_anime_id_sqlite,
-    get_data_all_activity_by_server_sqlite, get_data_guild_langage_sqlite,
-    get_data_module_activation_kill_switch_status_sqlite, get_data_module_activation_status_sqlite,
-    get_one_activity_sqlite, get_registered_user_sqlite, get_user_approximated_color_sqlite,
-    remove_data_activity_status_sqlite, set_data_activity_sqlite, set_data_guild_langage_sqlite,
-    set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
-    set_registered_user_sqlite, set_user_approximated_color_sqlite,
-};
+use crate::database::postgresql::data::{get_all_server_activity_postgresql, get_all_user_approximated_color_postgres, get_data_activity_postgresql, get_data_activity_with_server_and_anime_id_postgresql, get_data_all_activity_by_server_postgresql, get_data_guild_language_postgresql, get_data_module_activation_kill_switch_status_postgresql, get_data_module_activation_status_postgresql, get_one_activity_postgresql, get_registered_user_postgresql, get_user_approximated_color_postgresql, remove_data_activity_status_postgresql, set_data_activity_postgresql, set_data_guild_language_postgresql, set_data_module_activation_status_postgresql, set_data_ping_history_postgresql, set_registered_user_postgresql, set_server_image_postgresql, set_user_approximated_color_postgresql};
+use crate::database::sqlite::data::{get_all_server_activity_sqlite, get_all_user_approximated_color_sqlite, get_data_activity_sqlite, get_data_activity_with_server_and_anime_id_sqlite, get_data_all_activity_by_server_sqlite, get_data_guild_langage_sqlite, get_data_module_activation_kill_switch_status_sqlite, get_data_module_activation_status_sqlite, get_one_activity_sqlite, get_registered_user_sqlite, get_user_approximated_color_sqlite, remove_data_activity_status_sqlite, set_data_activity_sqlite, set_data_guild_langage_sqlite, set_data_module_activation_status_sqlite, set_data_ping_history_sqlite, set_registered_user_sqlite, set_server_image_sqlite, set_user_approximated_color_sqlite};
 use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
@@ -289,5 +269,20 @@ pub async fn get_all_user_approximated_color() -> Result<Vec<UserColor>, AppErro
         get_all_user_approximated_color_postgres().await
     } else {
         get_all_user_approximated_color_sqlite().await
+    }
+}
+
+pub async fn set_server_image(
+    server_id: &String,
+    image_type: &String,
+    image: &String,
+) -> Result<(), AppError> {
+    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
+    if db_type == *"sqlite" {
+        set_server_image_sqlite(server_id, image_type, image).await
+    } else if db_type == *"postgresql" {
+        set_server_image_postgresql(server_id, image_type, image).await
+    } else {
+        set_server_image_sqlite(server_id, image_type, image).await
     }
 }
