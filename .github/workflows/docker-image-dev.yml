@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   docker_amd64:
+    needs: docker_amd64
     runs-on: ubuntu-latest
     steps:
       - name: Set up Docker Buildx
