@@ -299,13 +299,5 @@ async fn thread_management_launcher(ctx: Context) {
         color_management(guilds, ctx_clone).await;
     });
 
-    sleep(Duration::from_secs(5)).await;
-    let guilds = ctx.cache.guilds();
-    let ctx_clone = ctx.clone();
-    tokio::spawn(async move {
-        info!("Launching the user color management thread!");
-        server_image_dispatch(guilds, ctx_clone).await;
-    });
-
     info!("Done spawning thread manager.");
 }
