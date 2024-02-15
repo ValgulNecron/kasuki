@@ -10,14 +10,11 @@ use crate::lang_struct::general::generate_image_pfp_server::load_localization_pf
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 
-use image::DynamicImage;
-use palette::{IntoColor, Lab, Srgb};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
-use std::num::ParseIntError;
 
 use tracing::trace;
 use uuid::Uuid;

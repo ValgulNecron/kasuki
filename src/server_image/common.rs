@@ -16,9 +16,7 @@ pub struct ColorWithUrl {
     pub image: DynamicImage,
 }
 
-pub fn create_color_vector_from_tuple(
-    tuples: Vec<(String, String, String)>,
-) -> Vec<ColorWithUrl> {
+pub fn create_color_vector_from_tuple(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
         .filter_map(|(hex, _, image)| {
@@ -35,9 +33,7 @@ pub fn create_color_vector_from_tuple(
         .collect()
 }
 
-pub fn create_color_vector_from_user_color(
-    tuples: Vec<UserColor>,
-) -> Vec<ColorWithUrl> {
+pub fn create_color_vector_from_user_color(tuples: Vec<UserColor>) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
         .filter_map(|user_color| {
@@ -58,10 +54,7 @@ pub fn create_color_vector_from_user_color(
         .collect()
 }
 
-pub fn find_closest_color(
-    colors: &[ColorWithUrl],
-    target: &Color,
-) -> Option<ColorWithUrl> {
+pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<ColorWithUrl> {
     let a = colors.iter().min_by(|&a, &b| {
         let delta_l = (a.cielab.l - target.cielab.l).abs();
         let delta_a = (a.cielab.a - target.cielab.a).abs();
@@ -91,12 +84,10 @@ pub fn get_color_with_url(
             let b_normalized = b as f32 / 255.0;
             let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
             let lab_color: Lab = rgb_color.into_color();
-            Some(
-                ColorWithUrl {
-                    cielab: lab_color,
-                    image: img,
-                },
-            )
+            Some(ColorWithUrl {
+                cielab: lab_color,
+                image: img,
+            })
         }
         _ => None,
     }

@@ -9,7 +9,10 @@ use crate::image_saver::general_image_saver::image_saver;
 use crate::server_image::calculate_user_color::{
     get_image_from_url, get_member, return_average_user_color,
 };
-use crate::server_image::common::{Color, ColorWithUrl, create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color};
+use crate::server_image::common::{
+    create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
+    ColorWithUrl,
+};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::codecs::png::PngEncoder;
