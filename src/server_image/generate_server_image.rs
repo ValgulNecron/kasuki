@@ -167,5 +167,5 @@ pub async fn server_image_management(ctx: &Context) {
         tasks.push(global_server_task);
     }
 
-    while let Some(_) = tasks.next().await {}
+    while (tasks.next().await).is_some() {}
 }

@@ -40,15 +40,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let attachment = attachment_map.get(&String::from("video"));
 
     let attachment = match attachment {
-        Some(att) => match att {
-            Some(att) => att,
-            None => {
-                return Err(Error(NoCommandOption(String::from(
-                    "The command contain no attachment.",
-                ))));
-            }
-        },
-        None => {
+        Some(Some(att)) => att,
+        _ => {
             return Err(Error(NoCommandOption(String::from(
                 "The command contain no attachment.",
             ))));

@@ -2,9 +2,7 @@ use crate::command_run::command_dispatch::check_if_moule_is_on;
 use crate::constant::SERVER_IMAGE_PATH;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NewMemberError;
-use crate::error_enum::NewMemberError::{
-    NewMemberErrorOptionError, NewMemberFailedToCreateDirectory, NewMemberOff,
-};
+use crate::error_enum::NewMemberError::{NewMemberErrorFailedToReadTheFile, NewMemberErrorFailedToWriteTheFile, NewMemberErrorGettingTheGuild, NewMemberErrorOptionError, NewMemberFailedToCreateDirectory, NewMemberFailedToSendTheMessage, NewMemberOff};
 use crate::lang_struct::new_member::load_localization_new_member;
 use crate::server_image::calculate_user_color::get_image_from_url;
 use image::io::Reader;
@@ -43,7 +41,7 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
         .to_partial_guild_with_counts(&ctx.http)
         .await
         .map_err(|e| {
-            NewMemberError(NewMemberErrorOptionError(format!(
+            NewMemberError(NewMemberErrorGettingTheGuild(format!(
                 "there was an error getting the guild. {}",
                 e
             )))
@@ -68,15 +66,15 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
     }
     let mut bg_image = Reader::open(full_image_path)
         .map_err(|e| {
-            NewMemberError(NewMemberErrorOptionError(format!(
+            NewMemberError(NewMemberErrorFailedToReadTheFile(format!(
                 "there was an error when opening the image. {}",
                 e
             )))
         })?
         .decode()
         .map_err(|e| {
-            NewMemberError(NewMemberErrorOptionError(format!(
-                "there was an error when opening the image. {}",
+            NewMemberError(NewMemberErrorFailedToReadTheFile(format!(
+                "there was an error when decoding the image. {}",
                 e
             )))
         })?;
@@ -90,20 +88,9 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
     );
     let uuid = Uuid::new_v4();
     let path = format!("{}.png", uuid);
-    bg_image.save(&path).map_err(|e| {
-        NewMemberError(NewMemberErrorOptionError(format!(
-            "there was an error when creating the image. {}",
-            e
-        )))
-    })?;
 
     let channel = get_channel_to_send(guild).await?;
-    let attachment = CreateAttachment::path(&path).await.map_err(|e| {
-        NewMemberError(NewMemberErrorOptionError(format!(
-            "there was an error sending the image. {}",
-            e
-        )))
-    })?;
+    let attachment = CreateAttachment::bytes(bg_image.as_bytes(), &path);
     let mut create_message = CreateMessage::default();
     create_message = create_message.content(
         new_member_localised
@@ -115,18 +102,11 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
         .send_message(&ctx.http, create_message)
         .await
         .map_err(|e| {
-            NewMemberError(NewMemberErrorOptionError(format!(
+            NewMemberError(NewMemberFailedToSendTheMessage(format!(
                 "there was an error sending the message. {}",
                 e
             )))
         })?;
-
-    fs::remove_file(path).map_err(|e| {
-        NewMemberError(NewMemberErrorOptionError(format!(
-            "Failed to remove the file. {}",
-            e
-        )))
-    })?;
 
     Ok(())
 }

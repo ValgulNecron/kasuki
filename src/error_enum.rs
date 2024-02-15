@@ -80,6 +80,11 @@ pub enum ComponentError {
 pub enum NewMemberError {
     NewMemberFailedToCreateDirectory(String),
     NewMemberErrorOptionError(String),
+    NewMemberErrorGettingTheGuild(String),
+    NewMemberErrorFailedToReadTheFile(String),
+    NewMemberErrorFailedToWriteTheFile(String),
+    NewMemberFailedToSendTheImage(String),
+    NewMemberFailedToSendTheMessage(String),
     NewMemberLocalisationParsingError(String),
     NewMemberLocalisationReadError(String),
     NewMemberLocalisationFileError(String),
