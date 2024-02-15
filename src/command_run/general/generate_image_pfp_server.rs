@@ -2,28 +2,26 @@ use crate::constant::COLOR;
 use crate::database::sqlite::data::get_server_image_sqlite;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
-use crate::error_enum::DifferedCommandError::{DifferedCommandSendingError, WritingFile};
-use crate::image_saver::general_image_saver::image_saver;
+use crate::error_enum::CommandError::{ErrorCommandSendingError};
+use crate::error_enum::DifferedCommandError::{DifferedCommandSendingError};
+
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
-use crate::server_image::calculate_user_color::{
-    get_image_from_url, get_member, return_average_user_color,
-};
+
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
-use image::codecs::png::PngEncoder;
-use image::imageops::FilterType;
-use image::{DynamicImage, GenericImage, GenericImageView, ImageEncoder};
+
+
+use image::{DynamicImage};
 use palette::{IntoColor, Lab, Srgb};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, Member, Timestamp,
+    CreateInteractionResponseMessage, Timestamp,
 };
 use std::num::ParseIntError;
-use std::sync::{Arc, Mutex};
-use std::{fs, thread};
-use tracing::{debug, error, trace};
+
+
+use tracing::{trace};
 use uuid::Uuid;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -54,7 +52,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let image_data: Vec<u8> = BASE64.decode(input).unwrap();
     let uuid = Uuid::new_v4();
 
-    let attachment = CreateAttachment::bytes(image_data, format!("{}.png", uuid.to_string()));
+    let attachment = CreateAttachment::bytes(image_data, format!("{}.png", uuid));
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())

@@ -1,9 +1,9 @@
 use crate::command_run::general::generate_image_pfp_server::{
-    find_closest_color, get_color_with_url, Color, ColorWithUrl,
+    find_closest_color, Color, ColorWithUrl,
 };
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::get_all_user_approximated_color;
-use crate::database_struct::user_color_struct::UserColor;
+
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
@@ -12,10 +12,10 @@ use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 use crate::server_image::calculate_user_color::get_image_from_url;
 use crate::server_image::common::{
-    create_color_vector_from_tuple, create_color_vector_from_user_color,
+    create_color_vector_from_user_color,
 };
-use base64::engine::general_purpose::STANDARD as BASE64;
-use base64::engine::Engine as _;
+
+
 use image::codecs::png::PngEncoder;
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageEncoder};

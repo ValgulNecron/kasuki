@@ -10,7 +10,7 @@ use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, ResolvedOption, Timestamp,
+    CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::log::trace;
 use uuid::Uuid;
@@ -31,8 +31,8 @@ use crate::error_enum::DifferedCommandError::{
 use crate::lang_struct::ai::translation::load_localization_translation;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string(&command_interaction);
-    let attachment_map = get_option_map_attachment(&command_interaction);
+    let map = get_option_map_string(command_interaction);
+    let attachment_map = get_option_map_attachment(command_interaction);
     let lang = map
         .get(&String::from("prompt"))
         .unwrap_or(DEFAULT_STRING)

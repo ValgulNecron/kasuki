@@ -30,8 +30,8 @@ use crate::error_enum::DifferedCommandError::{
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string(&command_interaction);
-    let attachment_map = get_option_map_attachment(&command_interaction);
+    let map = get_option_map_string(command_interaction);
+    let attachment_map = get_option_map_attachment(command_interaction);
     let prompt = map
         .get(&String::from("lang"))
         .unwrap_or(DEFAULT_STRING)

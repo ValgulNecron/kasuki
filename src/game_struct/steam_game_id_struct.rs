@@ -30,6 +30,6 @@ pub async fn get_game() {
             }
         }
 
-        tokio::time::sleep(Duration::from_secs((TIME_BETWEEN_GAME_UPDATE) as u64)).await;
+        tokio::time::sleep(Duration::from_secs((TIME_BETWEEN_GAME_UPDATE))).await;
     }
 }

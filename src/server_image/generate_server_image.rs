@@ -4,8 +4,8 @@ use crate::command_run::general::generate_image_pfp_server::{
 use crate::database::dispatcher::data_dispatch::{
     get_all_user_approximated_color, get_server_image, set_server_image,
 };
-use crate::database::sqlite::data::get_server_image_sqlite;
-use crate::database_struct::user_color_struct::UserColor;
+
+
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NotACommandError;
 use crate::error_enum::NotACommandError::NotACommandOptionError;
@@ -27,10 +27,10 @@ use serenity::futures::stream::FuturesUnordered;
 use serenity::futures::StreamExt;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
+
 use tokio::task;
-use tokio::time::sleep;
-use tracing::{error, info, trace};
+
+use tracing::{error, info};
 use uuid::Uuid;
 
 pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId) -> Result<(), AppError> {
@@ -141,7 +141,7 @@ pub async fn server_image_management(ctx: &Context) {
 
     for guild in guilds {
         let ctx_clone = ctx.clone(); // Clone the context if it's needed inside the async block.
-        let guild_clone = guild.clone(); // Clone the guild if it's needed inside the async block.
+        let guild_clone = guild; // Clone the guild if it's needed inside the async block.
 
         let local_server_task = task::spawn(async move {
             match generate_local_server_image(&ctx_clone, guild_clone).await {
@@ -154,7 +154,7 @@ pub async fn server_image_management(ctx: &Context) {
         });
 
         let ctx_clone = ctx.clone(); // Clone the context if it's needed inside the async block.
-        let guild_clone = guild.clone(); // Clone the guild if it's needed inside the async block.
+        let guild_clone = guild; // Clone the guild if it's needed inside the async block.
         let global_server_task = task::spawn(async move {
             match generate_global_server_image(&ctx_clone, guild_clone).await {
                 Ok(_) => info!("Generated global server image for guild {}", guild),

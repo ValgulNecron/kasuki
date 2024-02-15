@@ -49,15 +49,15 @@ pub fn get_the_attachment(
         Some(att) => match att {
             Some(att) => Ok(att),
             None => {
-                return Err(Error(NoCommandOption(String::from(
+                Err(Error(NoCommandOption(String::from(
                     "The command contain no attachment.",
-                ))));
+                ))))
             }
         },
         None => {
-            return Err(Error(NoCommandOption(String::from(
+            Err(Error(NoCommandOption(String::from(
                 "The command contain no attachment.",
-            ))));
+            ))))
         }
     }
 }

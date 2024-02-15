@@ -1,4 +1,4 @@
-use crate::constant::TIME_BETWEEN_USER_COLOR_UPDATE;
+
 use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
@@ -131,7 +131,7 @@ pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context) {
     for guild in guilds {
         let guild_id = guild.to_string();
         debug!(guild_id);
-        let mut members_temp_out = get_member(&ctx_clone, guild).await;
+        let mut members_temp_out = get_member(ctx_clone, guild).await;
         let server_member_len = members_temp_out.len();
         debug!(server_member_len);
         members.append(&mut members_temp_out);

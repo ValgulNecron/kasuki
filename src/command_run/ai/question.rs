@@ -14,7 +14,7 @@ use serenity::all::{
 use tracing::trace;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string(&command_interaction);
+    let map = get_option_map_string(command_interaction);
     let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
@@ -60,7 +60,7 @@ async fn question(
     api_base_url: String,
     model: String,
 ) -> Result<String, AppError> {
-    let api_url = format!("{}", api_base_url);
+    let api_url = api_base_url.to_string();
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
