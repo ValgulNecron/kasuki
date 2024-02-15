@@ -213,13 +213,13 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
      )",
     )
     .execute(pool)
-        .await
-        .map_err(|e| {
-            NotACommandError(CreatingTableError(format!(
-                "Failed to create the table. {}",
-                e
-            )))
-        })?;
+    .await
+    .map_err(|e| {
+        NotACommandError(CreatingTableError(format!(
+            "Failed to create the table. {}",
+            e
+        )))
+    })?;
 
     Ok(())
 }

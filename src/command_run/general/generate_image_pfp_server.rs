@@ -1,6 +1,3 @@
-use crate::server_image::calculate_user_color::{
-    get_image_from_url, get_member, return_average_user_color,
-};
 use crate::constant::COLOR;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
@@ -8,6 +5,9 @@ use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError
 use crate::error_enum::DifferedCommandError::{DifferedCommandSendingError, WritingFile};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
+use crate::server_image::calculate_user_color::{
+    get_image_from_url, get_member, return_average_user_color,
+};
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use image::codecs::png::PngEncoder;

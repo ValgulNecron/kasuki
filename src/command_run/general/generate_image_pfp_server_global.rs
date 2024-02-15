@@ -1,7 +1,6 @@
 use crate::command_run::general::generate_image_pfp_server::{
     find_closest_color, get_color_with_url, Color, ColorWithUrl,
 };
-use crate::server_image::calculate_user_color::get_image_from_url;
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::get_all_user_approximated_color;
 use crate::database_struct::user_color_struct::UserColor;
@@ -11,6 +10,10 @@ use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError
 use crate::error_enum::DifferedCommandError::{DifferedCommandSendingError, WritingFile};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
+use crate::server_image::calculate_user_color::get_image_from_url;
+use crate::server_image::common::{
+    create_color_vector_from_tuple, create_color_vector_from_user_color,
+};
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use image::codecs::png::PngEncoder;
@@ -64,7 +67,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let dim = 128 * 64;
 
-    let color_vec = create_color_vector(average_colors.clone());
+    let color_vec = create_color_vector_from_user_color(average_colors.clone());
     let mut handles = vec![];
     let mut combined_image = DynamicImage::new_rgba16(dim, dim);
     let vec_image = Arc::new(Mutex::new(Vec::new()));
@@ -171,25 +174,4 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         Err(e) => error!("Failed to remove file {}: {}", combined_uuid, e),
     }
     Ok(())
-}
-
-fn create_color_vector(tuples: Vec<UserColor>) -> Vec<ColorWithUrl> {
-    tuples
-        .into_iter()
-        .filter_map(|user_color| {
-            let hex = user_color.color;
-            let image = user_color.image;
-            let hex = hex.unwrap_or_default();
-            let r = hex[1..3].parse::<u8>();
-            let g = hex[3..5].parse::<u8>();
-            let b = hex[5..7].parse::<u8>();
-
-            let image = image.unwrap_or_default();
-            let input = image.trim_start_matches("data:image/png;base64,");
-            let decoded = BASE64.decode(input).unwrap();
-            let img = image::load_from_memory(&decoded).unwrap();
-
-            get_color_with_url(img, r, g, b)
-        })
-        .collect()
 }
