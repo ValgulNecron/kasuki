@@ -26,6 +26,6 @@ pub async fn remote_saver(filename: String, image_data: Vec<u8>) -> Result<(), A
     } else if saver_server == *"imgur" {
         upload_image_imgur(image_data).await
     } else {
-        upload_image_catbox(filename,image_data).await
+        upload_image_catbox(filename, image_data).await
     }
 }

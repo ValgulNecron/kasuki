@@ -1,4 +1,3 @@
-
 use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };

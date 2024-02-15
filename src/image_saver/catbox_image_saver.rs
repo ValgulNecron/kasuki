@@ -23,12 +23,8 @@ pub async fn upload_image_catbox(filename: String, image_data: Vec<u8>) -> Resul
                 e
             )))
         })?;
-    fs::remove_file(&filename).map_err(|e| {
-        DifferedError(FailedToUploadImage(format!(
-            "Failed to remove file. {}",
-            e
-        )))
-    })?;
+    fs::remove_file(&filename)
+        .map_err(|e| DifferedError(FailedToUploadImage(format!("Failed to remove file. {}", e))))?;
     debug!("Image uploaded to catbox.moe: {}", url);
     Ok(())
 }

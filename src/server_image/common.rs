@@ -18,7 +18,7 @@ pub struct ColorWithUrl {
 
 pub fn create_color_vector_from_tuple(
     tuples: Vec<(String, String, String)>,
-) -> Vec<crate::command_run::general::generate_image_pfp_server::ColorWithUrl> {
+) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
         .filter_map(|(hex, _, image)| {
@@ -30,14 +30,14 @@ pub fn create_color_vector_from_tuple(
             let decoded = BASE64.decode(input).unwrap();
             let img = image::load_from_memory(&decoded).unwrap();
 
-            crate::command_run::general::generate_image_pfp_server::get_color_with_url(img, r, g, b)
+            get_color_with_url(img, r, g, b)
         })
         .collect()
 }
 
 pub fn create_color_vector_from_user_color(
     tuples: Vec<UserColor>,
-) -> Vec<crate::command_run::general::generate_image_pfp_server::ColorWithUrl> {
+) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
         .filter_map(|user_color| {
@@ -59,9 +59,9 @@ pub fn create_color_vector_from_user_color(
 }
 
 pub fn find_closest_color(
-    colors: &[crate::command_run::general::generate_image_pfp_server::ColorWithUrl],
-    target: &crate::command_run::general::generate_image_pfp_server::Color,
-) -> Option<crate::command_run::general::generate_image_pfp_server::ColorWithUrl> {
+    colors: &[ColorWithUrl],
+    target: &Color,
+) -> Option<ColorWithUrl> {
     let a = colors.iter().min_by(|&a, &b| {
         let delta_l = (a.cielab.l - target.cielab.l).abs();
         let delta_a = (a.cielab.a - target.cielab.a).abs();
@@ -83,7 +83,7 @@ pub fn get_color_with_url(
     r: Result<u8, ParseIntError>,
     g: Result<u8, ParseIntError>,
     b: Result<u8, ParseIntError>,
-) -> Option<crate::command_run::general::generate_image_pfp_server::ColorWithUrl> {
+) -> Option<ColorWithUrl> {
     match (r, g, b) {
         (Ok(r), Ok(g), Ok(b)) => {
             let r_normalized = r as f32 / 255.0;
@@ -92,7 +92,7 @@ pub fn get_color_with_url(
             let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
             let lab_color: Lab = rgb_color.into_color();
             Some(
-                crate::command_run::general::generate_image_pfp_server::ColorWithUrl {
+                ColorWithUrl {
                     cielab: lab_color,
                     image: img,
                 },
