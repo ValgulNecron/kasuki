@@ -215,7 +215,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     image_saver(
         guild_id,
-        command_interaction.user.id.to_string(),
         filename.clone(),
         bytes.to_vec(),
     )

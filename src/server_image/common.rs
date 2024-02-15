@@ -53,7 +53,7 @@ pub fn create_color_vector_from_user_color(
             let decoded = BASE64.decode(input).unwrap();
             let img = image::load_from_memory(&decoded).unwrap();
 
-            crate::command_run::general::generate_image_pfp_server::get_color_with_url(img, r, g, b)
+            get_color_with_url(img, r, g, b)
         })
         .collect()
 }

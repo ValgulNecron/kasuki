@@ -362,18 +362,37 @@ pub async fn set_server_image_postgresql(
     server_id: &String,
     image_type: &String,
     image: &String,
+    image_url: &String,
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
-        "INSERT INTO DATA.server_image (server_id, image_type, image) VALUES ($1, $2, $3) ON CONFLICT (server_id, image_type) DO UPDATE SET image = EXCLUDED.image",
+        "INSERT INTO DATA.server_image (server_id, image_type, image, image_url) VALUES ($1, $2, $3, $4) ON CONFLICT (server_id, image_type) DO UPDATE SET image = EXCLUDED.image",
     )
     .bind(server_id)
     .bind(image_type)
     .bind(image)
+    .bind(image_url)
     .execute(&pool)
     .await
     .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))) )?;
     pool.close().await;
 
     Ok(())
+}
+
+pub async fn get_server_image_postgresql(
+    server_id: &String,
+    image_type: &String,
+) -> Result<(Option<String>, Option<String>), AppError> {
+    let pool = get_postgresql_pool().await?;
+    let row: (Option<String>, Option<String>) = sqlx::query_as(
+        "SELECT image_url, image FROM DATA.server_image WHERE server_id = $1 and image_type = $2",
+    )
+    .bind(server_id)
+    .bind(image_type)
+    .fetch_one(&pool)
+    .await
+    .unwrap_or((None,None));
+    pool.close().await;
+    Ok(row)
 }

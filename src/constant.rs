@@ -8,19 +8,15 @@ pub static ACTIVITY_NAME: Lazy<String> =
 pub const APP_VERSION: &str = "V2.2.2";
 
 /*
-all delays in seconds.
+all delays
  */
-pub const DELAY_BEFORE_THREAD_SPAWN: u64 = 30;
-pub const PING_UPDATE_DELAYS: u64 = 600;
-/*
-all delays in minutes.
- */
-pub const TIME_BETWEEN_USER_COLOR_UPDATE: u32 = 30;
-/*
-all delays in days.
- */
-pub const TIME_BETWEEN_GAME_UPDATE: u32 = 1;
-pub const TIME_BETWEEN_CACHE_UPDATE: i64 = 3;
+pub const DELAY_BEFORE_THREAD_SPAWN: u64 = 30; // 30 seconds
+pub const PING_UPDATE_DELAYS: u64 = 600; // 10 minutes
+pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 86_400; // 1 day
+pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 1_800; // 30 minutes
+pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400; // 1 day
+pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200; // 3 days
+
 /*
 limit.
  */

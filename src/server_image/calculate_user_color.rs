@@ -124,30 +124,24 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
     Ok(img)
 }
 
-pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
-    loop {
-        let mut members: Vec<Member> = Vec::new();
-        let guild_len = guilds.len();
-        debug!(guild_len);
-        for guild in &guilds {
-            let guild_id = guild.to_string();
-            debug!(guild_id);
-            let mut members_temp_out = get_member(&ctx_clone, guild).await;
-            let server_member_len = members_temp_out.len();
-            debug!(server_member_len);
-            members.append(&mut members_temp_out);
-            let members_len = members.len();
-            debug!(members_len);
-        }
-        match calculate_users_color(members.into_iter().collect()).await {
-            Ok(_) => {}
-            Err(e) => error!("{:?}", e),
-        };
-        sleep(Duration::from_secs(
-            (TIME_BETWEEN_USER_COLOR_UPDATE * 60) as u64,
-        ))
-        .await;
+pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context) {
+    let mut members: Vec<Member> = Vec::new();
+    let guild_len = guilds.len();
+    debug!(guild_len);
+    for guild in guilds {
+        let guild_id = guild.to_string();
+        debug!(guild_id);
+        let mut members_temp_out = get_member(&ctx_clone, guild).await;
+        let server_member_len = members_temp_out.len();
+        debug!(server_member_len);
+        members.append(&mut members_temp_out);
+        let members_len = members.len();
+        debug!(members_len);
     }
+    match calculate_users_color(members.into_iter().collect()).await {
+        Ok(_) => {}
+        Err(e) => error!("{:?}", e),
+    };
 }
 
 pub async fn get_member(ctx_clone: &Context, guild: &GuildId) -> Vec<Member> {

@@ -427,14 +427,16 @@ pub async fn set_server_image_sqlite(
     server_id: &String,
     image_type: &String,
     image: &String,
+    image_url: &String,
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let _ = sqlx::query(
-        "INSERT OR REPLACE INTO server_image (server_id, type, image) VALUES (?, ?, ?)",
+        "INSERT OR REPLACE INTO server_image (server_id, type, image, image_url) VALUES (?, ?, ?, ?)",
     )
     .bind(server_id)
     .bind(image_type)
     .bind(image)
+        .bind(image_url)
     .execute(&pool)
     .await
     .map_err(|e| {
@@ -446,4 +448,20 @@ pub async fn set_server_image_sqlite(
     pool.close().await;
 
     Ok(())
+}
+
+pub async fn get_server_image_sqlite(
+    server_id: &String,
+    image_type: &String,
+) -> Result<(Option<String>,Option<String>), AppError> {
+    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let row: (Option<String>,Option<String>) =
+        sqlx::query_as("SELECT image_url, image FROM server_image WHERE server_id = ? and type = ?")
+            .bind(server_id)
+            .bind(image_type)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((None,None));
+    pool.close().await;
+    Ok(row)
 }

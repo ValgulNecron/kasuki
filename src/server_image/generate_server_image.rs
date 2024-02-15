@@ -1,9 +1,7 @@
 use crate::command_run::general::generate_image_pfp_server::{
     find_closest_color, Color, ColorWithUrl,
 };
-use crate::database::dispatcher::data_dispatch::{
-    get_all_user_approximated_color, set_server_image,
-};
+use crate::database::dispatcher::data_dispatch::{get_all_user_approximated_color, get_server_image, set_server_image};
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::NotACommandError;
@@ -23,7 +21,12 @@ use palette::{IntoColor, Lab, Srgb};
 use serenity::all::{Context, GuildId, Member};
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::time::Duration;
+use tokio::time::sleep;
 use tracing::{error, trace};
+use uuid::Uuid;
+use crate::database::sqlite::data::get_server_image_sqlite;
+use crate::image_saver::general_image_saver::image_saver;
 
 pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId) -> Result<(), AppError> {
     let members: Vec<Member> = get_member(ctx, &guild_id).await;
@@ -54,7 +57,13 @@ async fn generate_server_image(
     let guild_pfp = guild.icon_url().unwrap_or(String::from("https://imgs.search.brave.com/FhPP6x9omGE50_uLbcuizNYwrBLp3bQZ8ii9Eel44aQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9h/YnN0cmFjdC1zdXJm/YWNlLXRleHR1cmVz/LXdoaXRlLWNvbmNy/ZXRlLXN0b25lLXdh/bGxfNzQxOTAtODE4/OS5qcGc_c2l6ZT02/MjYmZXh0PWpwZw"))
         .replace("?size=1024", "?size=128");
 
-    let img = get_image_from_url(guild_pfp).await?;
+    let old_url = get_server_image(&guild_id.to_string(), &image_type).await?.0;
+
+    if old_url.unwrap_or_default() == guild_pfp {
+        return Ok(());
+    }
+
+    let img = get_image_from_url(guild_pfp.clone()).await?;
 
     let dim = 128 * 64;
 
@@ -112,33 +121,32 @@ async fn generate_server_image(
         )
         .unwrap();
 
-    let base64_image = general_purpose::STANDARD.encode(image_data);
+    let base64_image = general_purpose::STANDARD.encode(image_data.clone());
     let image = format!("data:image/png;base64,{}", base64_image);
-
-    set_server_image(&guild_id.to_string(), &image_type, &image).await
+    let uuid = Uuid::new_v4();
+    image_saver(guild_id.to_string(), uuid.to_string(), image_data).await?;
+    set_server_image(&guild_id.to_string(), &image_type, &image, &guild_pfp).await
 }
 
-pub async fn server_image_management(ctx: Context) {
-    loop {
-        let guilds = ctx.cache.guilds();
-        for guild in guilds {
-            match generate_local_server_image(&ctx, guild).await {
-                Ok(_) => {}
-                Err(e) => {
-                    error!(
+pub async fn server_image_management(ctx: &Context) {
+    let guilds = ctx.cache.guilds();
+    for guild in guilds {
+        match generate_local_server_image(&ctx, guild).await {
+            Ok(_) => {}
+            Err(e) => {
+                error!(
                     "Failed to generate local server image for guild {}. {:?}",
                     guild, e
                 );
-                }
-            };
-            match generate_global_server_image(&ctx, guild).await {
-                Ok(_) => {}
-                Err(e) => {
-                    error!(
+            }
+        };
+        match generate_global_server_image(&ctx, guild).await {
+            Ok(_) => {}
+            Err(e) => {
+                error!(
                     "Failed to generate global server image for guild {}. {:?}",
                     guild, e
                 );
-                }
             }
         }
     }

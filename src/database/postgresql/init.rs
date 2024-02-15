@@ -246,6 +246,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
                 server_id TEXT PRIMARY KEY,
                 type TEXT PRIMARY KEY,
                 image TEXT NOT NULL,
+image_url TEXT NOT NULL
      )",
     )
     .execute(pool)

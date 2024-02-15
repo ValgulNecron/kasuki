@@ -24,6 +24,7 @@ use std::sync::{Arc, Mutex};
 use std::{fs, thread};
 use tracing::{debug, error, trace};
 use uuid::Uuid;
+use crate::database::sqlite::data::get_server_image_sqlite;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -33,13 +34,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let pfp_server_image_localised_text =
         load_localization_pfp_server_image(guild_id.clone()).await?;
-
-    let guild = command_interaction
-        .guild_id
-        .unwrap()
-        .to_partial_guild(&ctx.http)
-        .await
-        .map_err(|e| Error(ErrorOptionError(format!("There is no option {}", e))))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
@@ -52,94 +46,19 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 e
             )))
         })?;
-    let members: Vec<Member> = get_member(ctx, &guild.id).await;
+   let image = get_server_image_sqlite(&guild_id, &String::from("local")).await?.1.unwrap_or_default();
+    let input = image.trim_start_matches("data:image/png;base64,");
+    let image_data: Vec<u8> = BASE64.decode(input).unwrap();
+    let uuid = Uuid::new_v4();
 
-    let average_colors = return_average_user_color(members).await?;
-
-    let guild_pfp = guild.icon_url().unwrap_or(String::from("https://imgs.search.brave.com/FhPP6x9omGE50_uLbcuizNYwrBLp3bQZ8ii9Eel44aQ/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9h/YnN0cmFjdC1zdXJm/YWNlLXRleHR1cmVz/LXdoaXRlLWNvbmNy/ZXRlLXN0b25lLXdh/bGxfNzQxOTAtODE4/OS5qcGc_c2l6ZT02/MjYmZXh0PWpwZw"))
-        .replace("?size=1024", "?size=128");
-    trace!(guild_pfp);
-    let img = get_image_from_url(guild_pfp).await?;
-
-    let dim = 128 * 64;
-
-    let color_vec = create_color_vector(average_colors.clone());
-    let mut handles = vec![];
-    let mut combined_image = DynamicImage::new_rgba16(dim, dim);
-    let vec_image = Arc::new(Mutex::new(Vec::new()));
-    trace!("Started creation");
-    for y in 0..img.height() {
-        for x in 0..img.width() {
-            let pixel = img.get_pixel(x, y);
-            let color_vec_moved = color_vec.clone();
-            let vec_image_clone = Arc::clone(&vec_image); // Clone the Arc
-
-            let handle = thread::spawn(move || {
-                let vec_image = vec_image_clone;
-                let r = pixel[0];
-                let g = pixel[1];
-                let b = pixel[2];
-                let r_normalized = r as f32 / 255.0;
-                let g_normalized = g as f32 / 255.0;
-                let b_normalized = b as f32 / 255.0;
-                let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
-                let lab_color: Lab = rgb_color.into_color();
-                let color_target = Color { cielab: lab_color };
-                let closest_color = find_closest_color(&color_vec_moved, &color_target).unwrap();
-                vec_image.lock().unwrap().push((x, y, closest_color.image));
-            });
-
-            handles.push(handle)
-        }
-    }
-    for handle in handles {
-        handle.join().unwrap()
-    }
-    let vec_image = vec_image.lock().unwrap().clone();
-    for (x, y, image) in vec_image {
-        combined_image.copy_from(&image, x * 64, y * 64).unwrap()
-    }
-    let image = combined_image.clone();
-    let image = image::imageops::resize(
-        &image,
-        (4096.0 * 0.6) as u32,
-        (4096.0 * 0.6) as u32,
-        FilterType::CatmullRom,
-    );
-    let mut image_data: Vec<u8> = Vec::new();
-    let encoder = PngEncoder::new(&mut image_data);
-    encoder
-        .write_image(
-            image.as_raw(),
-            image.width(),
-            image.height(),
-            image::ColorType::Rgba8,
-        )
-        .unwrap();
-    trace!("Created image");
-
-    let combined_uuid = Uuid::new_v4();
-    let image_path = &format!("{}.png", combined_uuid);
-    fs::write(image_path, image_data.clone()).map_err(|e| {
-        DifferedError(WritingFile(format!(
-            "Failed to write the file bytes. {}",
-            e
-        )))
-    })?;
-    trace!("Saved image");
+    let attachment = CreateAttachment::bytes(image_data, format!("{}.png", uuid.to_string()));
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .image(format!("attachment://{}", &image_path))
+        .image(format!("attachment://{}", format!("{}.png", uuid.to_string())))
         .title(pfp_server_image_localised_text.title);
 
-    let attachment = CreateAttachment::path(&image_path).await.map_err(|e| {
-        DifferedError(DifferedCommandSendingError(format!(
-            "Error while uploading the attachment {}",
-            e
-        )))
-    })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -156,18 +75,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })?;
     trace!("Done");
 
-    image_saver(
-        guild_id,
-        command_interaction.user.id.to_string(),
-        image_path.clone(),
-        image_data,
-    )
-    .await?;
-
-    match fs::remove_file(image_path) {
-        Ok(_) => debug!("File {} has been removed successfully", combined_uuid),
-        Err(e) => error!("Failed to remove file {}: {}", combined_uuid, e),
-    }
     Ok(())
 }
 

@@ -1,4 +1,3 @@
-use crate::constant::CHAT_BASE_URL;
 use crate::constant::CHAT_MODELS;
 use crate::constant::CHAT_TOKEN;
 use crate::constant::IMAGE_BASE_URL;
@@ -7,6 +6,9 @@ use crate::constant::IMAGE_TOKEN;
 use crate::constant::TRANSCRIPT_BASE_URL;
 use crate::constant::TRANSCRIPT_MODELS;
 use crate::constant::TRANSCRIPT_TOKEN;
+use crate::constant::{
+    CHAT_BASE_URL, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+};
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
@@ -30,8 +32,8 @@ use crate::game_struct::steam_game_id_struct::get_game;
 use crate::logger::{create_log_directory, init_logger, remove_old_logs};
 use crate::new_member::new_member;
 use crate::server_image::calculate_user_color::color_management;
-use crate::web_server::launcher::web_server_launcher;
 use crate::server_image::generate_server_image::server_image_management;
+use crate::web_server::launcher::web_server_launcher;
 
 mod activity;
 mod anilist_struct;
@@ -296,15 +298,22 @@ async fn thread_management_launcher(ctx: Context) {
     let guilds = ctx.cache.guilds();
     let ctx_clone = ctx.clone();
     tokio::spawn(async move {
-        info!("Launching the user color management thread!");
-        color_management(guilds, ctx_clone).await;
+        loop {
+            info!("Launching the user color management thread!");
+            color_management(&guilds, &ctx_clone).await;
+            sleep(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE)).await;
+        }
     });
 
     sleep(Duration::from_secs(5)).await;
     let ctx_clone = ctx.clone();
     tokio::spawn(async move {
-        info!("Launching the server image management thread!");
-        server_image_management(ctx_clone).await;
+        loop {
+            info!("Launching the server image management thread!");
+            server_image_management(&ctx_clone).await;
+            sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE))
+                .await;
+        }
     });
 
     info!("Done spawning thread manager.");

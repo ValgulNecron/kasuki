@@ -208,6 +208,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
                 server_id TEXT,
                 type TEXT,
                 image TEXT NOT NULL,
+image_url TEXT NOT NULL,
         PRIMARY KEY (server_id, type)
 
      )",

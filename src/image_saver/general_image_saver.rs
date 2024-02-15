@@ -6,13 +6,12 @@ use std::env;
 
 pub async fn image_saver(
     guild_id: String,
-    user_id: String,
     filename: String,
     image_data: Vec<u8>,
 ) -> Result<(), AppError> {
     let saver_type = env::var("SAVE_IMAGE").unwrap_or("local".to_string());
     if saver_type == *"local" {
-        local_image_save(guild_id, user_id, filename, image_data).await
+        local_image_save(guild_id, filename, image_data).await
     } else if saver_type == *"remote" {
         remote_saver(filename, image_data).await
     } else {
