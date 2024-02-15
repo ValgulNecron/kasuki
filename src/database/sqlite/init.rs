@@ -205,9 +205,11 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS server_image (
-                server_id TEXT PRIMARY KEY,
-                type TEXT PRIMARY KEY,
+                server_id TEXT,
+                type TEXT,
                 image TEXT NOT NULL,
+        PRIMARY KEY (server_id, type)
+
      )",
     )
     .execute(pool)
