@@ -82,8 +82,6 @@ pub enum NewMemberError {
     NewMemberErrorOptionError(String),
     NewMemberErrorGettingTheGuild(String),
     NewMemberErrorFailedToReadTheFile(String),
-    NewMemberErrorFailedToWriteTheFile(String),
-    NewMemberFailedToSendTheImage(String),
     NewMemberFailedToSendTheMessage(String),
     NewMemberLocalisationParsingError(String),
     NewMemberLocalisationReadError(String),

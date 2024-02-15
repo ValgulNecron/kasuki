@@ -56,9 +56,12 @@ async fn generate_server_image(
     let guild = guild_id.to_partial_guild(&ctx.http).await.map_err(|e| {
         NotACommandError(NotACommandOptionError(format!("There is no option {}", e)))
     })?;
-    let guild_pfp = guild.icon_url().ok_or(
-        NotACommandError(NotACommandOptionError(String::from("There is no option, no image for the guild.")))
-    )?.replace("?size=1024", "?size=128");
+    let guild_pfp = guild
+        .icon_url()
+        .ok_or(NotACommandError(NotACommandOptionError(String::from(
+            "There is no option, no image for the guild.",
+        ))))?
+        .replace("?size=1024", "?size=128");
 
     let old_url = get_server_image(&guild_id.to_string(), &image_type)
         .await?
@@ -135,13 +138,12 @@ async fn generate_server_image(
 
 pub async fn server_image_management(ctx: &Context) {
     let guilds = ctx.cache.guilds();
-    let mut tasks = FuturesUnordered::new();
 
     for guild in guilds {
-        let ctx_clone = ctx.clone(); // Clone the context if it's needed inside the async block.
-        let guild_clone = guild; // Clone the guild if it's needed inside the async block.
+        let ctx_clone = ctx.clone();
+        let guild_clone = guild;
 
-        let local_server_task = task::spawn(async move {
+        tokio::spawn(async move {
             match generate_local_server_image(&ctx_clone, guild_clone).await {
                 Ok(_) => info!("Generated local server image for guild {}", guild),
                 Err(e) => error!(
@@ -151,21 +153,15 @@ pub async fn server_image_management(ctx: &Context) {
             }
         });
 
-        let ctx_clone = ctx.clone(); // Clone the context if it's needed inside the async block.
-        let guild_clone = guild; // Clone the guild if it's needed inside the async block.
-        let global_server_task = task::spawn(async move {
-            match generate_global_server_image(&ctx_clone, guild_clone).await {
-                Ok(_) => info!("Generated global server image for guild {}", guild),
-                Err(e) => error!(
-                    "Failed to generate global server image for guild {}. {:?}",
-                    guild, e
-                ),
-            }
-        });
+        let ctx_clone = ctx.clone();
+        let guild_clone = guild;
 
-        tasks.push(local_server_task);
-        tasks.push(global_server_task);
+        match generate_global_server_image(&ctx_clone, guild_clone).await {
+            Ok(_) => info!("Generated global server image for guild {}", guild),
+            Err(e) => error!(
+                "Failed to generate global server image for guild {}. {:?}",
+                guild, e
+            ),
+        };
     }
-
-    while (tasks.next().await).is_some() {}
 }

@@ -262,8 +262,8 @@ pub async fn check_if_moule_is_on(guild_id: String, module: &str) -> Result<bool
 async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
     let row: ActivationStatusModule = get_data_module_activation_kill_switch_status().await?;
     Ok(match module {
-        "ANILIST" =>  row.anilist_module.unwrap_or(true),
-        "AI" =>  row.ai_module.unwrap_or(true),
+        "ANILIST" => row.anilist_module.unwrap_or(true),
+        "AI" => row.ai_module.unwrap_or(true),
         "GAME" => row.game_module.unwrap_or(true),
         "NEW_MEMBER" => row.new_member.unwrap_or(true),
         _ => false,

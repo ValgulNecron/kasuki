@@ -185,10 +185,8 @@ pub async fn set_registered_user(user_id: &String, username: &String) -> Result<
     }
 }
 
-pub async fn get_data_module_activation_kill_switch_status() -> Result<
-    ActivationStatusModule,
-    AppError,
-> {
+pub async fn get_data_module_activation_kill_switch_status(
+) -> Result<ActivationStatusModule, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_module_activation_kill_switch_status_sqlite().await

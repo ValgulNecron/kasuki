@@ -218,10 +218,8 @@ pub async fn remove_data_activity_status_sqlite(
     Ok(())
 }
 
-pub async fn get_data_module_activation_kill_switch_status_sqlite() -> Result<
-    ActivationStatusModule,
-    AppError,
-> {
+pub async fn get_data_module_activation_kill_switch_status_sqlite(
+) -> Result<ActivationStatusModule, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: ActivationStatusModule = sqlx::query_as(
         "SELECT id, ai_module, anilist_module, game_module, new_member FROM module_activation WHERE guild = 1",
@@ -436,18 +434,18 @@ pub async fn set_server_image_sqlite(
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO server_image (server_id, type, image, image_url) VALUES (?, ?, ?, ?)",
     )
-    .bind(server_id)
-    .bind(image_type)
-    .bind(image)
+        .bind(server_id)
+        .bind(image_type)
+        .bind(image)
         .bind(image_url)
-    .execute(&pool)
-    .await
-    .map_err(|e| {
-        Error(SqlInsertError(format!(
-            "Failed to insert into the table. {}",
-            e
-        )))
-    })?;
+        .execute(&pool)
+        .await
+        .map_err(|e| {
+            Error(SqlInsertError(format!(
+                "Failed to insert into the table. {}",
+                e
+            )))
+        })?;
     pool.close().await;
 
     Ok(())

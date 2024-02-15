@@ -1,12 +1,12 @@
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::database::postgresql::pool::get_postgresql_pool;
+use crate::database_struct::module_status::ActivationStatusModule;
 use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
 use crate::error_enum::CommandError::SqlInsertError;
 use chrono::Utc;
-use crate::database_struct::module_status::ActivationStatusModule;
 
 pub async fn set_data_ping_history_postgresql(
     shard_id: String,
@@ -159,10 +159,8 @@ pub async fn remove_data_activity_status_postgresql(
     Ok(())
 }
 
-pub async fn get_data_module_activation_kill_switch_status_postgresql() -> Result<
-    ActivationStatusModule,
-    AppError,
-> {
+pub async fn get_data_module_activation_kill_switch_status_postgresql(
+) -> Result<ActivationStatusModule, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: ActivationStatusModule = sqlx::query_as(
         "SELECT id, ai_module, anilist_module, game_module, new_member FROM DATA.module_activation WHERE guild = $1",
@@ -369,13 +367,13 @@ pub async fn set_server_image_postgresql(
     sqlx::query(
         "INSERT INTO DATA.server_image (server_id, image_type, image, image_url) VALUES ($1, $2, $3, $4) ON CONFLICT (server_id, image_type) DO UPDATE SET image = EXCLUDED.image",
     )
-    .bind(server_id)
-    .bind(image_type)
-    .bind(image)
-    .bind(image_url)
-    .execute(&pool)
-    .await
-    .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))) )?;
+        .bind(server_id)
+        .bind(image_type)
+        .bind(image)
+        .bind(image_url)
+        .execute(&pool)
+        .await
+        .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
     pool.close().await;
 
     Ok(())

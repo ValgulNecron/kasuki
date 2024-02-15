@@ -45,11 +45,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap_or_default();
     let input = image.trim_start_matches("data:image/png;base64,");
     let image_data: Vec<u8> = BASE64.decode(input).map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!(
-                "Error when decoding the image or there is no image {}",
-                e
-            )))
-        })?;
+        DifferedError(DifferedCommandSendingError(format!(
+            "Error when decoding the image or there is no image {}",
+            e
+        )))
+    })?;
     let uuid = Uuid::new_v4();
     let image_path = format!("{}.png", uuid);
 
