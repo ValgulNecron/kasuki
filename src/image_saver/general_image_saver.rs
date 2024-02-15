@@ -22,10 +22,10 @@ pub async fn image_saver(
 pub async fn remote_saver(filename: String, image_data: Vec<u8>) -> Result<(), AppError> {
     let saver_server = env::var("SAVE_SERVER").unwrap_or("catbox".to_string());
     if saver_server == *"catbox" {
-        upload_image_catbox(filename).await
+        upload_image_catbox(filename, image_data).await
     } else if saver_server == *"imgur" {
         upload_image_imgur(image_data).await
     } else {
-        upload_image_catbox(filename).await
+        upload_image_catbox(filename,image_data).await
     }
 }

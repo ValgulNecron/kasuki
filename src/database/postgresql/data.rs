@@ -392,7 +392,7 @@ pub async fn get_server_image_postgresql(
     .bind(image_type)
     .fetch_one(&pool)
     .await
-    .unwrap_or((None,None));
+    .unwrap_or((None, None));
     pool.close().await;
     Ok(row)
 }

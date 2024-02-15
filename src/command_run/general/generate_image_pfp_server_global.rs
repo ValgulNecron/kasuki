@@ -161,12 +161,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })?;
     trace!("Done");
 
-    image_saver(
-        guild_id,
-        image_path.clone(),
-        image_data,
-    )
-    .await?;
+    image_saver(guild_id, image_path.clone(), image_data).await?;
 
     match fs::remove_file(image_path) {
         Ok(_) => debug!("File {} has been removed successfully", combined_uuid),

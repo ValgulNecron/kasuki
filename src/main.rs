@@ -311,8 +311,7 @@ async fn thread_management_launcher(ctx: Context) {
         loop {
             info!("Launching the server image management thread!");
             server_image_management(&ctx_clone).await;
-            sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE))
-                .await;
+            sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE)).await;
         }
     });
 

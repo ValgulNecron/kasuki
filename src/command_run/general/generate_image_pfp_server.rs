@@ -1,4 +1,5 @@
 use crate::constant::COLOR;
+use crate::database::sqlite::data::get_server_image_sqlite;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::{DifferedError, Error};
 use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
@@ -24,7 +25,6 @@ use std::sync::{Arc, Mutex};
 use std::{fs, thread};
 use tracing::{debug, error, trace};
 use uuid::Uuid;
-use crate::database::sqlite::data::get_server_image_sqlite;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -46,7 +46,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 e
             )))
         })?;
-   let image = get_server_image_sqlite(&guild_id, &String::from("local")).await?.1.unwrap_or_default();
+    let image = get_server_image_sqlite(&guild_id, &String::from("local"))
+        .await?
+        .1
+        .unwrap_or_default();
     let input = image.trim_start_matches("data:image/png;base64,");
     let image_data: Vec<u8> = BASE64.decode(input).unwrap();
     let uuid = Uuid::new_v4();
@@ -56,9 +59,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .image(format!("attachment://{}", format!("{}.png", uuid.to_string())))
+        .image(format!(
+            "attachment://{}",
+            format!("{}.png", uuid.to_string())
+        ))
         .title(pfp_server_image_localised_text.title);
-
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
