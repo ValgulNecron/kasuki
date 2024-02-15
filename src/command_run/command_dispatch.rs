@@ -13,6 +13,7 @@ use crate::command_run::general::{
     info, lang, module, ping, profile,
 };
 use crate::database::dispatcher::data_dispatch::get_data_module_activation_kill_switch_status;
+use crate::database_struct::module_status::ActivationStatusModule;
 use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
 use crate::error_enum::CommandError::{ModuleOffError, UnknownError};
@@ -259,20 +260,7 @@ pub async fn check_if_moule_is_on(guild_id: String, module: &str) -> Result<bool
 }
 
 async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
-    let row: (
-        Option<String>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-    ) = get_data_module_activation_kill_switch_status().await?;
-    let (_, ai_module, anilist_module, game_module, new_member): (
-        Option<String>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-    ) = row;
+    let row: ActivationStatusModule = get_data_module_activation_kill_switch_status().await?;
     Ok(match module {
         "ANILIST" => anilist_module.unwrap_or(true),
         "AI" => ai_module.unwrap_or(true),

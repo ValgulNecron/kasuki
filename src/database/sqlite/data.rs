@@ -3,6 +3,7 @@ use chrono::Utc;
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
 use crate::database::sqlite::pool::get_sqlite_pool;
+use crate::database_struct::module_status::ActivationStatusModule;
 use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
@@ -218,22 +219,24 @@ pub async fn remove_data_activity_status_sqlite(
 }
 
 pub async fn get_data_module_activation_kill_switch_status_sqlite() -> Result<
-    (
-        Option<String>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-    ),
+    ActivationStatusModule,
     AppError,
 > {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
+    let row: ActivationStatusModule = sqlx::query_as(
         "SELECT id, ai_module, anilist_module, game_module, new_member FROM module_activation WHERE guild = 1",
     )
         .fetch_one(&pool)
         .await
-        .unwrap_or((None, None, None, None, None));
+        .unwrap_or(
+            ActivationStatusModule {
+                id: None,
+                ai_module: None,
+                anilist_module: None,
+                game_module: None,
+                new_member: None,
+            },
+        );
     pool.close().await;
 
     Ok(row)

@@ -25,6 +25,7 @@ use crate::database::sqlite::data::{
     set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
     set_registered_user_sqlite, set_server_image_sqlite, set_user_approximated_color_sqlite,
 };
+use crate::database_struct::module_status::ActivationStatusModule;
 use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_enum::AppError;
@@ -185,13 +186,7 @@ pub async fn set_registered_user(user_id: &String, username: &String) -> Result<
 }
 
 pub async fn get_data_module_activation_kill_switch_status() -> Result<
-    (
-        Option<String>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-    ),
+    ActivationStatusModule,
     AppError,
 > {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());

@@ -6,6 +6,7 @@ use crate::error_enum::AppError;
 use crate::error_enum::AppError::Error;
 use crate::error_enum::CommandError::SqlInsertError;
 use chrono::Utc;
+use crate::database_struct::module_status::ActivationStatusModule;
 
 pub async fn set_data_ping_history_postgresql(
     shard_id: String,
@@ -159,23 +160,23 @@ pub async fn remove_data_activity_status_postgresql(
 }
 
 pub async fn get_data_module_activation_kill_switch_status_postgresql() -> Result<
-    (
-        Option<String>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-    ),
+    ActivationStatusModule,
     AppError,
 > {
     let pool = get_postgresql_pool().await?;
-    let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
+    let row: ActivationStatusModule = sqlx::query_as(
         "SELECT id, ai_module, anilist_module, game_module, new_member FROM DATA.module_activation WHERE guild = $1",
     )
         .bind(1)
         .fetch_one(&pool)
         .await
-        .unwrap_or((None, None, None, None, None));
+        .unwrap_or(ActivationStatusModule {
+            id: None,
+            ai_module: None,
+            anilist_module: None,
+            game_module: None,
+            new_member: None,
+        });
     pool.close().await;
 
     Ok(row)
