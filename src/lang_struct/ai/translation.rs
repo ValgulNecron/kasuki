@@ -10,6 +10,8 @@ use crate::error_management::error_enum::AppError::Error;
 use crate::error_management::error_enum::CommandError::{
     LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLanguageError,
 };
+use crate::error_management::file::file_error::FileError::{NotFound, Parsing, Reading};
+use crate::error_management::lang::lang_error::LangError;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TranslationtLocalised {
@@ -18,35 +20,22 @@ pub struct TranslationtLocalised {
 
 pub async fn load_localization_translation(
     guild_id: String,
-) -> Result<TranslationtLocalised, AppError> {
-    let mut file = File::open("json/message/ai/translation.json").map_err(|e| {
-        Error(LocalisationFileError(format!(
-            "File translation.json not found. {}",
-            e
-        )))
-    })?;
+) -> Result<TranslationtLocalised, LangError> {
+    let mut file = File::open("json/message/ai/translation.json.json")
+        .map_err(|e| NotFound(format!("File translation.json not found. {}", e)))?;
 
     let mut json = String::new();
-    file.read_to_string(&mut json).map_err(|e| {
-        Error(LocalisationReadError(format!(
-            "File translation.json can't be read. {}",
-            e
-        )))
-    })?;
+    file.read_to_string(&mut json)
+        .map_err(|e| Reading(format!("File translation.json can't be read. {}", e)))?;
 
-    let json_data: HashMap<String, TranslationtLocalised> =
-        serde_json::from_str(&json).map_err(|e| {
-            Error(LocalisationParsingError(format!(
-                "Failing to parse translation.json. {}",
-                e
-            )))
-        })?;
+    let json_data: HashMap<String, TranslationtLocalised> = serde_json::from_str(&json)
+        .map_err(|e| Parsing(format!("Failing to parse translation.json. {}", e)))?;
 
-    let translation_choice = get_guild_langage(guild_id).await;
+    let lang_choice = get_guild_langage(guild_id).await;
 
-    let transcript_localised_text = json_data
-        .get(translation_choice.as_str())
-        .ok_or(Error(NoLanguageError(String::from("not found"))))?;
+    let localised_text = json_data
+        .get(lang_choice.as_str())
+        .ok_or(LangError::NotFound())?;
 
-    Ok(transcript_localised_text.clone())
+    Ok(localised_text.clone())
 }

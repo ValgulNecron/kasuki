@@ -26,9 +26,9 @@ pub async fn load_localization_image(guild_id: String) -> Result<ImageLocalised,
 
     let lang_choice = get_guild_langage(guild_id).await;
 
-    let image_localised_text = json_data
+    let localised_text = json_data
         .get(lang_choice.as_str())
         .ok_or(LangError::NotFound())?;
 
-    Ok(image_localised_text.clone())
+    Ok(localised_text.clone())
 }
