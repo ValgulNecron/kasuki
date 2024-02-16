@@ -22,7 +22,9 @@ use crate::constant::{
 };
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::{DifferedError, Error};
-use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError, FileTypeError};
+use crate::error_management::error_enum::CommandError::{
+    ErrorCommandSendingError, ErrorOptionError, FileTypeError,
+};
 use crate::error_management::error_enum::DifferedCommandError::{
     CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
     ResponseError,

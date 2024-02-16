@@ -8,7 +8,9 @@ use serenity::all::{
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, UserGettingError};
+use crate::error_management::error_enum::CommandError::{
+    ErrorCommandSendingError, UserGettingError,
+};
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]

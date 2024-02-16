@@ -3,7 +3,9 @@ use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::database_struct::server_activity_struct::ServerActivity;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::ComponentError;
-use crate::error_management::error_enum::ComponentError::{ComponentOptionError, ComponentSendingError};
+use crate::error_management::error_enum::ComponentError::{
+    ComponentOptionError, ComponentSendingError,
+};
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, Timestamp,

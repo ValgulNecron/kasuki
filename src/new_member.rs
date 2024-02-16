@@ -3,9 +3,8 @@ use crate::constant::SERVER_IMAGE_PATH;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::NewMemberError;
 use crate::error_management::error_enum::NewMemberError::{
-    NewMemberErrorFailedToReadTheFile,
-    NewMemberErrorGettingTheGuild, NewMemberErrorOptionError, NewMemberFailedToCreateDirectory,
-    NewMemberFailedToSendTheMessage, NewMemberOff,
+    NewMemberErrorFailedToReadTheFile, NewMemberErrorGettingTheGuild, NewMemberErrorOptionError,
+    NewMemberFailedToCreateDirectory, NewMemberFailedToSendTheMessage, NewMemberOff,
 };
 use crate::lang_struct::new_member::load_localization_new_member;
 use crate::server_image::calculate_user_color::get_image_from_url;

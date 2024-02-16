@@ -5,11 +5,6 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLanguageError,
-};
 use crate::error_management::file::file_error::FileError::{NotFound, Parsing, Reading};
 use crate::error_management::lang::lang_error::LangError;
 
@@ -21,7 +16,7 @@ pub struct TranslationtLocalised {
 pub async fn load_localization_translation(
     guild_id: String,
 ) -> Result<TranslationtLocalised, LangError> {
-    let mut file = File::open("json/message/ai/translation.json.json")
+    let mut file = File::open("json/message/ai/translation.json")
         .map_err(|e| NotFound(format!("File translation.json not found. {}", e)))?;
 
     let mut json = String::new();

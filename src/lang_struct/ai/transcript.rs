@@ -5,14 +5,8 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLanguageError,
-};
 use crate::error_management::file::file_error::FileError::{NotFound, Parsing, Reading};
 use crate::error_management::lang::lang_error::LangError;
-use crate::lang_struct::ai::image::ImageLocalised;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TranscriptLocalised {

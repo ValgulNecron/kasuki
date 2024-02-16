@@ -3,7 +3,9 @@ use crate::constant::COLOR;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::{DifferedError, Error};
 use crate::error_management::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_management::error_enum::DifferedCommandError::{DifferedCommandSendingError, DifferedOptionError};
+use crate::error_management::error_enum::DifferedCommandError::{
+    DifferedCommandSendingError, DifferedOptionError,
+};
 use crate::game_struct::run::steam_game::SteamGameWrapper;
 use crate::lang_struct::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,

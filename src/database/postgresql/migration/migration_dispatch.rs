@@ -1,7 +1,9 @@
 use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::NotACommandError;
-use crate::error_management::error_enum::NotACommandError::{FailedToUpdateDatabase, SqlSelectError};
+use crate::error_management::error_enum::NotACommandError::{
+    FailedToUpdateDatabase, SqlSelectError,
+};
 
 pub async fn migrate_postgres() -> Result<(), AppError> {
     // used to update the database when new row are added to a table.

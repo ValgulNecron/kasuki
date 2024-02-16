@@ -5,11 +5,8 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLanguageError,
-};
+use crate::error_management::file::file_error::FileError::{NotFound, Parsing, Reading};
+use crate::error_management::lang::lang_error::LangError;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InfoLocalised {
@@ -23,34 +20,22 @@ pub struct InfoLocalised {
     pub button_add_the_beta_bot: String,
 }
 
-pub async fn load_localization_info(guild_id: String) -> Result<InfoLocalised, AppError> {
-    let mut file = File::open("json/message/general/info.json").map_err(|e| {
-        Error(LocalisationFileError(format!(
-            "File info.json not found. {}",
-            e
-        )))
-    })?;
+pub async fn load_localization_info(guild_id: String) -> Result<InfoLocalised, LangError> {
+    let mut file = File::open("json/message/general/info.json")
+        .map_err(|e| NotFound(format!("File info.json not found. {}", e)))?;
 
     let mut json = String::new();
-    file.read_to_string(&mut json).map_err(|e| {
-        Error(LocalisationReadError(format!(
-            "File info.json can't be read. {}",
-            e
-        )))
-    })?;
+    file.read_to_string(&mut json)
+        .map_err(|e| Reading(format!("File info.json can't be read. {}", e)))?;
 
-    let json_data: HashMap<String, InfoLocalised> = serde_json::from_str(&json).map_err(|e| {
-        Error(LocalisationParsingError(format!(
-            "Failing to parse info.json. {}",
-            e
-        )))
-    })?;
+    let json_data: HashMap<String, InfoLocalised> = serde_json::from_str(&json)
+        .map_err(|e| Parsing(format!("Failing to parse info.json. {}", e)))?;
 
     let lang_choice = get_guild_langage(guild_id).await;
 
-    let info_localised_text = json_data
+    let localised_text = json_data
         .get(lang_choice.as_str())
-        .ok_or(Error(NoLanguageError(String::from("not found"))))?;
+        .ok_or(LangError::NotFound())?;
 
-    Ok(info_localised_text.clone())
+    Ok(localised_text.clone())
 }

@@ -12,7 +12,9 @@ use crate::command_run::anilist::user::get_user_data;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_management::error_enum::CommandError::{
+    ErrorCommandSendingError, ErrorOptionError,
+};
 use crate::lang_struct::anilist::compare::load_localization_compare;
 
 pub async fn run(

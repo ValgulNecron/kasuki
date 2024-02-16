@@ -5,7 +5,8 @@ use std::io::Read;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
-use crate::error_management::activity::activity_error::ActivityError;
+use crate::error_management::file::file_error::FileError::{NotFound, Parsing, Reading};
+use crate::error_management::lang::lang_error::LangError;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SendActivityLocalised {
@@ -15,31 +16,22 @@ pub struct SendActivityLocalised {
 
 pub async fn load_localization_send_activity(
     guild_id: String,
-) -> Result<SendActivityLocalised, ActivityError> {
+) -> Result<SendActivityLocalised, LangError> {
     let mut file = File::open("json/message/anilist/send_activity.json")
-        .map_err(|e| LocalisationFileError(format!("File send_activity.json not found. {}", e)))?;
+        .map_err(|e| NotFound(format!("File send_activity.json not found. {}", e)))?;
 
     let mut json = String::new();
-    file.read_to_string(&mut json).map_err(|e| {
-        Error(LocalisationReadError(format!(
-            "File send_activity.json can't be read. {}",
-            e
-        )))
-    })?;
+    file.read_to_string(&mut json)
+        .map_err(|e| Reading(format!("File send_activity.json can't be read. {}", e)))?;
 
-    let json_data: HashMap<String, SendActivityLocalised> =
-        serde_json::from_str(&json).map_err(|e| {
-            Error(LocalisationParsingError(format!(
-                "Failing to parse send_activity.json. {}",
-                e
-            )))
-        })?;
+    let json_data: HashMap<String, SendActivityLocalised> = serde_json::from_str(&json)
+        .map_err(|e| Parsing(format!("Failing to parse send_activity.json. {}", e)))?;
 
-    let send_activity_choice = get_guild_langage(guild_id).await;
+    let lang_choice = get_guild_langage(guild_id).await;
 
-    let add_activity_localised_text = json_data
-        .get(send_activity_choice.as_str())
-        .ok_or(Error(NoLanguageError(String::from("not found"))))?;
+    let localised_text = json_data
+        .get(lang_choice.as_str())
+        .ok_or(LangError::NotFound())?;
 
-    Ok(add_activity_localised_text.clone())
+    Ok(localised_text.clone())
 }

@@ -3,11 +3,11 @@ use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::database_struct::module_status::ActivationStatusModule;
 use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
+use crate::error_management::activity::activity_error::ActivityError;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::Error;
 use crate::error_management::error_enum::CommandError::SqlInsertError;
 use chrono::Utc;
-use crate::error_management::activity::activity_error::ActivityError;
 
 pub async fn set_data_ping_history_postgresql(
     shard_id: String,

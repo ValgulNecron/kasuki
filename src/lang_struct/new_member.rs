@@ -1,3 +1,9 @@
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
+
+use serde::{Deserialize, Serialize};
+
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::NewMemberError;
@@ -5,10 +11,6 @@ use crate::error_management::error_enum::NewMemberError::{
     NewMemberLocalisationFileError, NewMemberLocalisationParsingError,
     NewMemberLocalisationReadError, NewMemberNoLanguageError,
 };
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NewMemberLocalised {

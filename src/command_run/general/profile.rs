@@ -6,7 +6,9 @@ use serenity::all::{
 use crate::constant::COLOR;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_management::error_enum::CommandError::{
+    ErrorCommandSendingError, ErrorOptionError,
+};
 use crate::lang_struct::general::profile::load_localization_profile;
 
 pub async fn run(

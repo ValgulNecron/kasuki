@@ -6,7 +6,9 @@ use serenity::all::{
 use crate::constant::COLOR;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, FailedToGetUser};
+use crate::error_management::error_enum::CommandError::{
+    ErrorCommandSendingError, FailedToGetUser,
+};
 use crate::lang_struct::general::banner::load_localization_banner;
 
 pub async fn run(

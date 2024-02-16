@@ -3,7 +3,9 @@ use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::{DifferedError, Error};
-use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_management::error_enum::CommandError::{
+    ErrorCommandSendingError, ErrorOptionError,
+};
 use crate::error_management::error_enum::DifferedCommandError::DifferedCommandSendingError;
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
 use serenity::all::CreateInteractionResponse::Defer;

@@ -4,7 +4,9 @@ use crate::database::dispatcher::data_dispatch::{
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::DifferedError;
-use crate::error_management::error_enum::DifferedCommandError::{CreatingImageError, FailedToGetImage};
+use crate::error_management::error_enum::DifferedCommandError::{
+    CreatingImageError, FailedToGetImage,
+};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::io::Reader as ImageReader;
