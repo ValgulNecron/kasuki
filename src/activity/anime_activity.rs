@@ -14,6 +14,7 @@ use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
 use crate::database_struct::server_activity_struct::ServerActivityFull;
+use crate::error_management::activity::activity_error::ActivityError;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::NotACommandError;
 use crate::error_management::error_enum::NotACommandError::NotACommandOptionError;
@@ -31,25 +32,30 @@ pub async fn send_activity(ctx: &Context) {
     let now = Utc::now().timestamp().to_string();
     let rows = match get_data_activity(now.clone()).await {
         Ok(rows) => rows,
-        Err(e) => error!("{}", e)
+        Err(e) => error!("{}", e),
     };
     for row in rows {
-        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap() {
+        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {
         } else {
             let row2 = row.clone();
             let guild_id = row.server_id.clone();
             if row.delays.unwrap() != 0 {
                 let ctx = ctx.clone();
                 tokio::spawn(async move {
-                    tokio::time::sleep(Duration::from_secs(row2.delays.unwrap() as u64)).await;
-                    send_specific_activity(row, guild_id.unwrap(), row2, &ctx)
+                    tokio::time::sleep(Duration::from_secs(row2.delays.unwrap_or_default() as u64))
+                        .await;
+                    match send_specific_activity(row, guild_id.unwrap_or_default(), row2, &ctx)
                         .await
-                        .unwrap()
+                    {
+                        Err(e) => error!("{}", e),
+                        _ => {}
+                    }
                 });
             } else {
-                send_specific_activity(row, guild_id.unwrap(), row2, ctx)
-                    .await
-                    .unwrap()
+                match send_specific_activity(row, guild_id.unwrap(), row2, ctx).await {
+                    Err(e) => error!("{}", e),
+                    _ => {}
+                }
             }
         }
     }
@@ -60,10 +66,8 @@ pub async fn send_specific_activity(
     guild_id: String,
     row2: ActivityData,
     ctx: &Context,
-) -> Result<(), AppError> {
-    let localised_text = load_localization_send_activity(guild_id.clone())
-        .await
-        .unwrap();
+) -> Result<(), ActivityError> {
+    let localised_text = load_localization_send_activity(guild_id.clone()).await?;
     let webhook_url = row.webhook.clone().unwrap();
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
         .await
@@ -111,7 +115,7 @@ pub async fn send_specific_activity(
     Ok(())
 }
 
-pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), ActivityError> {
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(row.anime_id.clone().ok_or(
         NotACommandError(NotACommandOptionError(String::from("There is no option"))),
     )?)
@@ -142,7 +146,7 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
     .await
 }
 
-pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), ActivityError> {
     trace!("removing {:#?} for {}", row, guild_id);
     remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await
 }
