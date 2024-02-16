@@ -1,8 +1,8 @@
 use crate::database::postgresql::migration::migration_dispatch::migrate_postgres;
 use crate::database::postgresql::pool::get_postgresql_pool;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NotACommandError;
-use crate::error_enum::NotACommandError::{
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::NotACommandError;
+use crate::error_management::error_enum::NotACommandError::{
     CreatingDatabaseError, CreatingTableError, GettingDatabaseFileError, InsertingDatabaseError,
 };
 use sqlx::{Pool, Postgres};

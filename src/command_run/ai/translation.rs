@@ -19,12 +19,12 @@ use crate::constant::{
     CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL,
     TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
 };
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::CommandError::{
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::{DifferedError, Error};
+use crate::error_management::error_enum::CommandError::{
     ErrorCommandSendingError, ErrorOptionError, FileTypeError, NoCommandOption,
 };
-use crate::error_enum::DifferedCommandError::{
+use crate::error_management::error_enum::DifferedCommandError::{
     CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
     ResponseError,
 };

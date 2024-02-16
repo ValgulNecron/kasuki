@@ -7,9 +7,9 @@ use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
 };
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{ErrorCommandSendingError, ModuleError};
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::Error;
+use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, ModuleError};
 use crate::lang_struct::general::module::load_localization_module_activation;
 
 pub async fn run(

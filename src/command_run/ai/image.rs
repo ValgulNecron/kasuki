@@ -12,10 +12,10 @@ use tracing::{info, trace};
 use uuid::Uuid;
 
 use crate::constant::{COLOR, DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_enum::DifferedCommandError::{
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::{DifferedError, Error};
+use crate::error_management::error_enum::CommandError::ErrorCommandSendingError;
+use crate::error_management::error_enum::DifferedCommandError::{
     DifferedCommandSendingError, DifferedOptionError, FailedToGetBytes, FailedUrlError,
     HeaderError, ResponseError, WritingFile,
 };

@@ -1,8 +1,8 @@
 use crate::command_run::command_dispatch::check_if_moule_is_on;
 use crate::constant::SERVER_IMAGE_PATH;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NewMemberError;
-use crate::error_enum::NewMemberError::{
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::NewMemberError;
+use crate::error_management::error_enum::NewMemberError::{
     NewMemberErrorFailedToReadTheFile,
     NewMemberErrorGettingTheGuild, NewMemberErrorOptionError, NewMemberFailedToCreateDirectory,
     NewMemberFailedToSendTheMessage, NewMemberOff,

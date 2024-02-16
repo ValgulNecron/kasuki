@@ -1,8 +1,8 @@
 use crate::command_run::anilist::list_register_user::get_the_list;
 use crate::constant::MEMBER_LIST_LIMIT;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::ComponentError;
-use crate::error_enum::ComponentError::{ComponentOptionError, ComponentSendingError};
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::ComponentError;
+use crate::error_management::error_enum::ComponentError::{ComponentOptionError, ComponentSendingError};
 use crate::lang_struct::anilist::list_register_user::load_localization_list_user;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, UserId,

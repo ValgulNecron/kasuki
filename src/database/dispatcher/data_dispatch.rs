@@ -28,7 +28,8 @@ use crate::database::sqlite::data::{
 use crate::database_struct::module_status::ActivationStatusModule;
 use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
-use crate::error_enum::AppError;
+use crate::error_management::activity::activity_error::ActivityError;
+use crate::error_management::error_enum::AppError;
 
 pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
@@ -65,7 +66,7 @@ pub async fn set_data_guild_langage(guild_id: &String, lang: &String) -> Result<
     }
 }
 
-pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, AppError> {
+pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, ActivityError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_activity_sqlite(now).await

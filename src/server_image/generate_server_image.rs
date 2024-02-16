@@ -2,9 +2,9 @@ use crate::database::dispatcher::data_dispatch::{
     get_all_user_approximated_color, get_server_image, set_server_image,
 };
 
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NotACommandError;
-use crate::error_enum::NotACommandError::NotACommandOptionError;
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::NotACommandError;
+use crate::error_management::error_enum::NotACommandError::NotACommandOptionError;
 use crate::image_saver::general_image_saver::image_saver;
 use crate::server_image::calculate_user_color::{
     get_image_from_url, get_member, return_average_user_color,

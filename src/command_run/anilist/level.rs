@@ -8,9 +8,9 @@ use tracing::trace;
 use crate::anilist_struct::run::user::{get_color, get_completed, get_user_url, UserWrapper};
 use crate::command_run::anilist::user::get_user_data;
 use crate::database::dispatcher::data_dispatch::get_registered_user;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::Error;
+use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
 use crate::lang_struct::anilist::level::load_localization_level;
 
 pub async fn run(

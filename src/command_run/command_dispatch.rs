@@ -14,9 +14,9 @@ use crate::command_run::general::{
 };
 use crate::database::dispatcher::data_dispatch::get_data_module_activation_kill_switch_status;
 use crate::database_struct::module_status::ActivationStatusModule;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{ModuleOffError, UnknownError};
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::Error;
+use crate::error_management::error_enum::CommandError::{ModuleOffError, UnknownError};
 
 pub async fn command_dispatching(
     ctx: &Context,

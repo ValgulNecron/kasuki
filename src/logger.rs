@@ -8,9 +8,9 @@ use tracing_subscriber::filter::{Directive, EnvFilter};
 use tracing_subscriber::layer::SubscriberExt;
 
 use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, MAX_LOG_RETENTION_DAYS, OTHER_CRATE_LEVEL};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NotACommandError;
-use crate::error_enum::NotACommandError::SetLoggerError;
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::NotACommandError;
+use crate::error_management::error_enum::NotACommandError::SetLoggerError;
 
 /// Initializes the logger with the specified log level filter.
 ///

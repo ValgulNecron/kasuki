@@ -6,7 +6,7 @@ use std::time::Duration;
 use chrono::Utc;
 use serenity::all::{Context, CreateAttachment, CreateEmbed, EditWebhook, ExecuteWebhook, Webhook};
 use tokio::time::sleep;
-use tracing::trace;
+use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrapper};
 use crate::constant::COLOR;
@@ -14,9 +14,9 @@ use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
 use crate::database_struct::server_activity_struct::ServerActivityFull;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NotACommandError;
-use crate::error_enum::NotACommandError::NotACommandOptionError;
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::NotACommandError;
+use crate::error_management::error_enum::NotACommandError::NotACommandOptionError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
 pub async fn manage_activity(ctx: Context) {
@@ -29,7 +29,10 @@ pub async fn manage_activity(ctx: Context) {
 
 pub async fn send_activity(ctx: &Context) {
     let now = Utc::now().timestamp().to_string();
-    let rows = get_data_activity(now.clone()).await.unwrap();
+    let rows = match get_data_activity(now.clone()).await {
+        Ok(rows) => rows,
+        Err(e) => error!("{}", e)
+    };
     for row in rows {
         if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap() {
         } else {

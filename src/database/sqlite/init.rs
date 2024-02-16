@@ -7,9 +7,9 @@ use tracing::error;
 use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
 use crate::database::sqlite::migration::migration_dispatch::migrate_sqlite;
 use crate::database::sqlite::pool::get_sqlite_pool;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NotACommandError;
-use crate::error_enum::NotACommandError::{
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::NotACommandError;
+use crate::error_management::error_enum::NotACommandError::{
     CreatingDatabaseFileError, CreatingTableError, InsertingDatabaseError,
 };
 

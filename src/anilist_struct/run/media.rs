@@ -10,9 +10,9 @@ use crate::common::get_nsfw::get_nsfw;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, UNKNOWN};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{ErrorCommandSendingError, MediaGettingError, NotNSFWError};
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::Error;
+use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, MediaGettingError, NotNSFWError};
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]

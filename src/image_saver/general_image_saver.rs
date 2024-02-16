@@ -1,4 +1,4 @@
-use crate::error_enum::AppError;
+use crate::error_management::error_enum::AppError;
 use crate::image_saver::catbox_image_saver::upload_image_catbox;
 use crate::image_saver::imgur_image_saver::upload_image_imgur;
 use crate::image_saver::local_image_saver::local_image_save;

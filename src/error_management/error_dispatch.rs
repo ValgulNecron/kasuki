@@ -5,7 +5,7 @@ use serenity::all::{
 };
 use tracing::error;
 
-use crate::error_enum::{AppError, CommandError, DifferedCommandError};
+use crate::error_management::error_enum::{AppError, CommandError, DifferedCommandError};
 
 pub async fn command_dispatching(
     error: AppError,

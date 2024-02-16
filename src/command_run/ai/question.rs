@@ -1,9 +1,9 @@
 use crate::command_run::get_option::get_option_map_string;
 use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_enum::DifferedCommandError::{DifferedCommandSendingError, ResponseError};
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::{DifferedError, Error};
+use crate::error_management::error_enum::CommandError::ErrorCommandSendingError;
+use crate::error_management::error_enum::DifferedCommandError::{DifferedCommandSendingError, ResponseError};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;

@@ -45,7 +45,6 @@ mod components;
 mod constant;
 mod database;
 mod database_struct;
-mod error_enum;
 mod error_management;
 mod game_struct;
 mod image_saver;

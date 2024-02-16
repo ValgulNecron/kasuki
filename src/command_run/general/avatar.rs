@@ -4,9 +4,9 @@ use serenity::all::{
 };
 
 use crate::constant::COLOR;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{ErrorCommandSendingError, FailedToGetUser};
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::Error;
+use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, FailedToGetUser};
 use crate::lang_struct::general::avatar::load_localization_avatar;
 
 pub async fn run(

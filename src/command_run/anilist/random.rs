@@ -15,9 +15,9 @@ use crate::constant::COLOR;
 use crate::database::dispatcher::cache_dispatch::{
     get_database_random_cache, set_database_random_cache,
 };
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::Error;
+use crate::error_management::error_enum::CommandError::{
     ErrorCommandSendingError, ErrorOptionError, NoCommandOption,
 };
 use crate::lang_struct::anilist::random::{load_localization_random, RandomLocalised};

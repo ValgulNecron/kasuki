@@ -1,8 +1,8 @@
 use crate::constant::DATA_SQLITE_DB;
 use crate::database::sqlite::pool::get_sqlite_pool;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NotACommandError;
-use crate::error_enum::NotACommandError::{FailedToUpdateDatabase, SqlSelectError};
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::NotACommandError;
+use crate::error_management::error_enum::NotACommandError::{FailedToUpdateDatabase, SqlSelectError};
 
 pub async fn migrate_sqlite() -> Result<(), AppError> {
     // used to update the database when new row are added to a table.

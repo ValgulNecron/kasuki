@@ -1,7 +1,7 @@
 use crate::common::get_guild_lang::get_guild_langage;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NewMemberError;
-use crate::error_enum::NewMemberError::{
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::NewMemberError;
+use crate::error_management::error_enum::NewMemberError::{
     NewMemberLocalisationFileError, NewMemberLocalisationParsingError,
     NewMemberLocalisationReadError, NewMemberNoLanguageError,
 };

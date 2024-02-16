@@ -1,8 +1,8 @@
 use crate::common::get_guild_lang::get_guild_langage;
-use crate::error_enum::AppError;
+use crate::error_management::error_enum::AppError;
 
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{
+use crate::error_management::error_enum::AppError::Error;
+use crate::error_management::error_enum::CommandError::{
     LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLanguageError,
 };
 use serde::{Deserialize, Serialize};

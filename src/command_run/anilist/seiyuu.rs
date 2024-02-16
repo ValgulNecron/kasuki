@@ -16,10 +16,10 @@ use uuid::Uuid;
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
 use crate::common::get_option_value::get_option;
 use crate::constant::COLOR;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_enum::DifferedCommandError::{
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::{DifferedError, Error};
+use crate::error_management::error_enum::CommandError::ErrorCommandSendingError;
+use crate::error_management::error_enum::DifferedCommandError::{
     CreatingImageError, DifferedCommandSendingError, FailedToGetBytes, FailedUrlError, WritingFile,
 };
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;

@@ -1,6 +1,6 @@
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DifferedCommandError::{FailedToCreateFolder, FailedToWriteFile};
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::DifferedError;
+use crate::error_management::error_enum::DifferedCommandError::{FailedToCreateFolder, FailedToWriteFile};
 use chrono::Local;
 use std::fs;
 use std::path::Path;

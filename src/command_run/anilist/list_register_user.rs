@@ -8,10 +8,10 @@ use tracing::log::trace;
 use crate::anilist_struct::run::user::UserWrapper;
 use crate::constant::{COLOR, MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::dispatcher::data_dispatch::get_registered_user;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
-use crate::error_enum::DifferedCommandError::DifferedCommandSendingError;
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::{DifferedError, Error};
+use crate::error_management::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_management::error_enum::DifferedCommandError::DifferedCommandSendingError;
 use crate::lang_struct::anilist::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };

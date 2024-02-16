@@ -7,9 +7,9 @@ use crate::anilist_struct::run::user::{get_color, get_user_url, UserWrapper};
 use crate::command_run::anilist::user::get_user_data;
 use crate::common::get_option_value::get_option;
 use crate::database::dispatcher::data_dispatch::set_registered_user;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::ErrorCommandSendingError;
+use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::AppError::Error;
+use crate::error_management::error_enum::CommandError::ErrorCommandSendingError;
 use crate::lang_struct::anilist::register::load_localization_register;
 
 pub async fn run(

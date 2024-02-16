@@ -2,7 +2,7 @@ use serenity::all::{CommandDataOption, CommandInteraction, Context};
 
 use crate::anilist_struct::run::media::{send_embed, MediaWrapper};
 use crate::common::get_option_value::get_option;
-use crate::error_enum::AppError;
+use crate::error_management::error_enum::AppError;
 
 pub async fn run(
     options: &[CommandDataOption],
