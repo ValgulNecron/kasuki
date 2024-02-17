@@ -28,10 +28,9 @@ use crate::database::sqlite::data::{
 use crate::database_struct::module_status::ActivationStatusModule;
 use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
-use crate::error_management::activity::activity_error::ActivityError;
-use crate::error_management::error_enum::AppError;
+use crate::error_management::database_error::DatabaseError;
 
-pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<(), AppError> {
+pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<(), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_data_ping_history_sqlite(shard_id, latency).await
@@ -44,7 +43,7 @@ pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<
 
 pub async fn get_data_guild_langage(
     guild_id: String,
-) -> Result<(Option<String>, Option<String>), AppError> {
+) -> Result<(Option<String>, Option<String>), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_guild_langage_sqlite(guild_id).await
@@ -55,7 +54,7 @@ pub async fn get_data_guild_langage(
     }
 }
 
-pub async fn set_data_guild_langage(guild_id: &String, lang: &String) -> Result<(), AppError> {
+pub async fn set_data_guild_langage(guild_id: &String, lang: &String) -> Result<(), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_data_guild_langage_sqlite(guild_id, lang).await
@@ -66,7 +65,7 @@ pub async fn set_data_guild_langage(guild_id: &String, lang: &String) -> Result<
     }
 }
 
-pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, ActivityError> {
+pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_activity_sqlite(now).await
@@ -77,7 +76,7 @@ pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, Activit
     }
 }
 
-pub async fn set_data_activity(server_activity_full: ServerActivityFull) -> Result<(), AppError> {
+pub async fn set_data_activity(server_activity_full: ServerActivityFull) -> Result<(), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_data_activity_sqlite(server_activity_full).await
@@ -98,7 +97,7 @@ pub async fn get_data_module_activation_status(
         Option<bool>,
         Option<bool>,
     ),
-    AppError,
+    DatabaseError,
 > {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
@@ -116,7 +115,7 @@ pub async fn set_data_module_activation_status(
     ai_value: bool,
     game_value: bool,
     new_member_value: bool,
-) -> Result<(), AppError> {
+) -> Result<(), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_data_module_activation_status_sqlite(
@@ -151,7 +150,7 @@ pub async fn set_data_module_activation_status(
 pub async fn get_one_activity(
     anime_id: i32,
     server_id: String,
-) -> Result<(Option<String>, Option<String>, Option<String>), AppError> {
+) -> Result<(Option<String>, Option<String>, Option<String>), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_one_activity_sqlite(server_id, anime_id).await
@@ -164,7 +163,7 @@ pub async fn get_one_activity(
 
 pub async fn get_registered_user(
     user_id: &String,
-) -> Result<(Option<String>, Option<String>), AppError> {
+) -> Result<(Option<String>, Option<String>), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_registered_user_sqlite(user_id).await
@@ -175,7 +174,7 @@ pub async fn get_registered_user(
     }
 }
 
-pub async fn set_registered_user(user_id: &String, username: &String) -> Result<(), AppError> {
+pub async fn set_registered_user(user_id: &String, username: &String) -> Result<(), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_registered_user_sqlite(user_id, username).await
@@ -187,7 +186,7 @@ pub async fn set_registered_user(user_id: &String, username: &String) -> Result<
 }
 
 pub async fn get_data_module_activation_kill_switch_status(
-) -> Result<ActivationStatusModule, AppError> {
+) -> Result<ActivationStatusModule, DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_module_activation_kill_switch_status_sqlite().await
@@ -201,7 +200,7 @@ pub async fn get_data_module_activation_kill_switch_status(
 pub async fn remove_data_activity_status(
     server_id: String,
     anime_id: String,
-) -> Result<(), AppError> {
+) -> Result<(), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         remove_data_activity_status_sqlite(server_id, anime_id).await
@@ -217,7 +216,7 @@ pub async fn set_user_approximated_color(
     color: &String,
     pfp_url: &String,
     image: &String,
-) -> Result<(), AppError> {
+) -> Result<(), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_user_approximated_color_sqlite(user_id, color, pfp_url, image).await
@@ -228,7 +227,7 @@ pub async fn set_user_approximated_color(
     }
 }
 
-pub async fn get_user_approximated_color(user_id: &String) -> Result<UserColor, AppError> {
+pub async fn get_user_approximated_color(user_id: &String) -> Result<UserColor, DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_user_approximated_color_sqlite(user_id).await
@@ -239,7 +238,7 @@ pub async fn get_user_approximated_color(user_id: &String) -> Result<UserColor, 
     }
 }
 
-pub async fn get_all_server_activity(server_id: &String) -> Result<Vec<ServerActivity>, AppError> {
+pub async fn get_all_server_activity(server_id: &String) -> Result<Vec<ServerActivity>, DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_all_server_activity_sqlite(server_id).await
@@ -253,7 +252,7 @@ pub async fn get_all_server_activity(server_id: &String) -> Result<Vec<ServerAct
 pub async fn get_data_activity_with_server_and_anime_id(
     anime_id: &String,
     server_id: &String,
-) -> Result<Option<String>, AppError> {
+) -> Result<Option<String>, DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_activity_with_server_and_anime_id_sqlite(anime_id, server_id).await
@@ -266,7 +265,7 @@ pub async fn get_data_activity_with_server_and_anime_id(
 
 pub async fn get_data_all_activity_by_server(
     server_id: &String,
-) -> Result<Vec<(String, String)>, AppError> {
+) -> Result<Vec<(String, String)>, DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_all_activity_by_server_sqlite(server_id).await
@@ -277,7 +276,7 @@ pub async fn get_data_all_activity_by_server(
     }
 }
 
-pub async fn get_all_user_approximated_color() -> Result<Vec<UserColor>, AppError> {
+pub async fn get_all_user_approximated_color() -> Result<Vec<UserColor>, DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_all_user_approximated_color_sqlite().await
@@ -293,7 +292,7 @@ pub async fn set_server_image(
     image_type: &String,
     image: &String,
     image_url: &String,
-) -> Result<(), AppError> {
+) -> Result<(), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_server_image_sqlite(server_id, image_type, image, image_url).await
@@ -307,7 +306,7 @@ pub async fn set_server_image(
 pub async fn get_server_image(
     server_id: &String,
     image_type: &String,
-) -> Result<(Option<String>, Option<String>), AppError> {
+) -> Result<(Option<String>, Option<String>), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_server_image_sqlite(server_id, image_type).await

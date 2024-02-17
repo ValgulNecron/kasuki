@@ -1,11 +1,8 @@
 use crate::database::postgresql::pool::get_postgresql_pool;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::NotACommandError;
-use crate::error_management::error_enum::NotACommandError::{
-    FailedToUpdateDatabase, SqlSelectError,
-};
+use crate::error_management::database_error::DatabaseError;
+use crate::error_management::database_error::DatabaseError::Select;
 
-pub async fn migrate_postgres() -> Result<(), AppError> {
+pub async fn migrate_postgres() -> Result<(), DatabaseError> {
     // used to update the database when new row are added to a table.
     add_image_to_activity_data().await?;
     add_new_member_to_global_kill_switch().await?;
@@ -13,7 +10,7 @@ pub async fn migrate_postgres() -> Result<(), AppError> {
     Ok(())
 }
 
-pub async fn add_image_to_activity_data() -> Result<(), AppError> {
+pub async fn add_image_to_activity_data() -> Result<(), DatabaseError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "image" column exists in the "activity_data" table
@@ -29,10 +26,10 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     .fetch_one(&pool)
     .await
     .map_err(|e| {
-        NotACommandError(SqlSelectError(format!(
+        Select(format!(
             "Failed to select from the table. {}",
             e
-        )))
+        ))
     })?;
 
     // If the "image" column doesn't exist, add it
@@ -52,7 +49,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     Ok(())
 }
 
-pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
+pub async fn add_new_member_to_global_kill_switch() -> Result<(), DatabaseError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "new_member" column exists in the "global_kill_switch" table
@@ -91,7 +88,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
     Ok(())
 }
 
-pub async fn add_new_column_to_module_activation() -> Result<(), AppError> {
+pub async fn add_new_column_to_module_activation() -> Result<(), DatabaseError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "new_column" column exists in the "module_activation" table

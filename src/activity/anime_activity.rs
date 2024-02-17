@@ -14,10 +14,12 @@ use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
 use crate::database_struct::server_activity_struct::ServerActivityFull;
-use crate::error_management::activity::activity_error::ActivityError;
+use crate::error_management::activity_error::ActivityError;
+use crate::error_management::activity_error::ActivityError::WebhookError;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::NotACommandError;
 use crate::error_management::error_enum::NotACommandError::NotACommandOptionError;
+use crate::error_management::file_error::FileError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
 pub async fn manage_activity(ctx: Context) {
@@ -68,10 +70,10 @@ pub async fn send_specific_activity(
     ctx: &Context,
 ) -> Result<(), ActivityError> {
     let localised_text = load_localization_send_activity(guild_id.clone()).await?;
-    let webhook_url = row.webhook.clone().unwrap();
+    let webhook_url = row.webhook.clone().unwrap_or_default();
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
         .await
-        .unwrap();
+        .map_err(|e| WebhookError::Parsing(format!("There was an error getting the webhook from the url {}", e)))?;
 
     let image = row.image.unwrap_or_default();
     trace!(image);
@@ -83,12 +85,12 @@ pub async fn send_specific_activity(
     let mut decoded_bytes = Vec::new();
     decoder
         .read_to_end(&mut decoded_bytes)
-        .expect("Failed to decode base64");
-    let attachement = CreateAttachment::bytes(decoded_bytes, "avatar");
+        .map_err(|e| FileError::Decoding(format!("Failed to decode the bytes from the base64 {}", e)))?;
+    let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
     let edit_webhook = EditWebhook::new()
         .name(row.name.clone().unwrap())
-        .avatar(&attachement);
-    webhook.edit(&ctx.http, edit_webhook).await.unwrap();
+        .avatar(&attachment);
+    webhook.edit(&ctx.http, edit_webhook).await.map_err(|e| WebhookError::Editing(format!("There was an error editing the webhook {}", e)))?;
 
     let embed = CreateEmbed::new()
         .color(COLOR)
@@ -109,7 +111,7 @@ pub async fn send_specific_activity(
     webhook
         .execute(&ctx.http, false, builder_message)
         .await
-        .unwrap();
+        .map_err(|e| WebhookError::Sending(format!("There was an error sending the webhook {}", e)))?;
 
     tokio::spawn(async move { update_info(row2, guild_id).await });
     Ok(())

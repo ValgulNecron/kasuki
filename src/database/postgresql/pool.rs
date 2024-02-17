@@ -4,7 +4,7 @@ use crate::error_management::error_enum::AppError::NotACommandError;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 
-pub async fn get_postgresql_pool() -> Result<Pool<Postgres>, CreatingPoolError()> {
+pub async fn get_postgresql_pool() -> Result<Pool<Postgres>, CreatingPoolError> {
     let pool_url = std::env::var("DATABASE_URL").map_err(|e| {
         CreatingPoolError::new(format!("Failed to get the url from environment: {}", e))
     });
