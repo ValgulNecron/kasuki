@@ -2,8 +2,8 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::api_request_error::ApiRequestError;
-use crate::error_management::api_request_error::ApiRequestError::NotFound;
+use crate::error_management::web_request_error::WebRequestError;
+use crate::error_management::web_request_error::WebRequestError::NotFound;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Media {
@@ -55,7 +55,7 @@ pub struct CoverImage {
 }
 
 impl PageWrapper {
-    pub async fn new_anime_page(number: i64) -> Result<PageWrapper, ApiRequestError> {
+    pub async fn new_anime_page(number: i64) -> Result<PageWrapper, WebRequestError> {
         let query = "
                     query($anime_page: Int){
                         Page(page: $anime_page, perPage: 1){
@@ -87,7 +87,7 @@ impl PageWrapper {
         Ok(res)
     }
 
-    pub async fn new_manga_page(number: i64) -> Result<PageWrapper, ApiRequestError> {
+    pub async fn new_manga_page(number: i64) -> Result<PageWrapper, WebRequestError> {
         let query = "
                     query($manga_page: Int){
                         Page(page: $manga_page, perPage: 1){

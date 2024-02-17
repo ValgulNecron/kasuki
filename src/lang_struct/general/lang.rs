@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
+use crate::error_management::command_error::CommandError;
 use crate::error_management::file_error::FileError::{NotFound, Parsing, Reading};
 use crate::error_management::lang_error::LangError;
 
@@ -14,7 +15,7 @@ pub struct LangLocalised {
     pub desc: String,
 }
 
-pub async fn load_localization_lang(guild_id: String) -> Result<LangLocalised, LangError> {
+pub async fn load_localization_lang(guild_id: String) -> Result<LangLocalised, CommandError> {
     let mut file = File::open("json/message/general/lang.json")
         .map_err(|e| NotFound(format!("File lang.json not found. {}", e)))?;
 

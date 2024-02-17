@@ -5,6 +5,7 @@ use std::io::Read;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
+use crate::error_management::command_error::CommandError;
 use crate::error_management::file_error::FileError::{NotFound, Parsing, Reading};
 use crate::error_management::lang_error::LangError;
 
@@ -16,7 +17,7 @@ pub struct DeleteActivityLocalised {
 
 pub async fn load_localization_delete_activity(
     guild_id: String,
-) -> Result<DeleteActivityLocalised, LangError> {
+) -> Result<DeleteActivityLocalised, CommandError> {
     let mut file = File::open("json/message/anilist/delete_activity.json")
         .map_err(|e| NotFound(format!("File delete_activity.json not found. {}", e)))?;
 

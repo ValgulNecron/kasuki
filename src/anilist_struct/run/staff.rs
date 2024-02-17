@@ -2,8 +2,8 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::api_request_error::ApiRequestError;
-use crate::error_management::api_request_error::ApiRequestError::NotFound;
+use crate::error_management::web_request_error::WebRequestError;
+use crate::error_management::web_request_error::WebRequestError::NotFound;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Name {
@@ -100,7 +100,7 @@ pub struct StaffWrapper {
 }
 
 impl StaffWrapper {
-    pub async fn new_staff_by_id(id: i32) -> Result<StaffWrapper, ApiRequestError> {
+    pub async fn new_staff_by_id(id: i32) -> Result<StaffWrapper, WebRequestError> {
         let query_id: &str = "
 query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
 	Staff(id: $name){
@@ -158,15 +158,11 @@ query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
 ";
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, false).await;
-        serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the staff with id {}. {}",
-                id, e
-            ))
-        })
+        serde_json::from_str(&resp)
+            .map_err(|e| NotFound(format!("Error getting the staff with id {}. {}", id, e)))
     }
 
-    pub async fn new_staff_by_search(search: &String) -> Result<StaffWrapper, ApiRequestError> {
+    pub async fn new_staff_by_search(search: &String) -> Result<StaffWrapper, WebRequestError> {
         let query_string: &str = "
 query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
 	Staff(search: $name){

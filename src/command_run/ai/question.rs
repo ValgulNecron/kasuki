@@ -1,11 +1,6 @@
 use crate::command_run::get_option::get_option_map_string;
 use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING};
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::{DifferedError, Error};
-use crate::error_management::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_management::error_enum::DifferedCommandError::{
-    DifferedCommandSendingError, ResponseError,
-};
+use crate::error_management::interaction_error::InteractionError;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
@@ -15,7 +10,10 @@ use serenity::all::{
 };
 use tracing::trace;
 
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+) -> Result<(), InteractionError> {
     let map = get_option_map_string(command_interaction);
     let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
     let builder_message = Defer(CreateInteractionResponseMessage::new());

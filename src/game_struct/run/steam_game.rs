@@ -1,7 +1,7 @@
 use crate::constant::{APPS, LANG_MAP};
 use crate::database::dispatcher::data_dispatch::get_data_guild_langage;
-use crate::error_management::api_request_error::ApiRequestError;
-use crate::error_management::api_request_error::ApiRequestError::{
+use crate::error_management::web_request_error::WebRequestError;
+use crate::error_management::web_request_error::WebRequestError::{
     Decoding, IncorrectUrl, NotFound, Parsing, Request,
 };
 use regex::Regex;
@@ -187,7 +187,7 @@ impl SteamGameWrapper {
     pub async fn new_steam_game_by_id(
         appid: u128,
         guild_id: String,
-    ) -> Result<SteamGameWrapper, ApiRequestError> {
+    ) -> Result<SteamGameWrapper, WebRequestError> {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
             .build()
@@ -240,7 +240,7 @@ impl SteamGameWrapper {
     pub async fn new_steam_game_by_search(
         search: &str,
         guild_id: String,
-    ) -> Result<SteamGameWrapper, ApiRequestError> {
+    ) -> Result<SteamGameWrapper, WebRequestError> {
         let choices: Vec<(&String, &u128)>;
         unsafe { choices = APPS.iter().collect() }
 

@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
+use crate::error_management::command_error::CommandError;
 use crate::error_management::file_error::FileError::{NotFound, Parsing, Reading};
 use crate::error_management::lang_error::LangError;
 
@@ -15,7 +16,7 @@ pub struct PFPServerLocalisedImage {
 
 pub async fn load_localization_pfp_server_image(
     guild_id: String,
-) -> Result<PFPServerLocalisedImage, LangError> {
+) -> Result<PFPServerLocalisedImage, CommandError> {
     let mut file =
         File::open("json/message/general/generate_image_pfp_server.json").map_err(|e| {
             NotFound(format!(

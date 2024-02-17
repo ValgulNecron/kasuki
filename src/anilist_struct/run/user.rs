@@ -6,10 +6,10 @@ use serenity::all::{
 };
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::api_request_error::ApiRequestError;
-use crate::error_management::api_request_error::ApiRequestError::NotFound;
 use crate::error_management::generic_error::GenericError::SendingCommand;
 use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::web_request_error::WebRequestError;
+use crate::error_management::web_request_error::WebRequestError::NotFound;
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -101,7 +101,7 @@ pub struct Genre {
 }
 
 impl UserWrapper {
-    pub async fn new_user_by_id(id: i32) -> Result<UserWrapper, ApiRequestError> {
+    pub async fn new_user_by_id(id: i32) -> Result<UserWrapper, WebRequestError> {
         let query_id: &str = "
 query ($name: Int, $limit: Int = 5) {
   User(id: $name) {
@@ -157,15 +157,11 @@ options{
 ";
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
-        serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the user with id {}. {}",
-                id, e
-            ))
-        })
+        serde_json::from_str(&resp)
+            .map_err(|e| NotFound(format!("Error getting the user with id {}. {}", id, e)))
     }
 
-    pub async fn new_user_by_search(search: &String) -> Result<UserWrapper, ApiRequestError> {
+    pub async fn new_user_by_search(search: &String) -> Result<UserWrapper, WebRequestError> {
         let query_string: &str = "
 query ($name: String, $limit: Int = 5) {
   User(name: $name) {
@@ -284,12 +280,7 @@ pub async fn send_embed(
     command
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            SendingCommand(format!(
-                "Error while sending the command {}",
-                e
-            ))
-        })?;
+        .map_err(|e| SendingCommand(format!("Error while sending the command {}", e)))?;
     Ok(())
 }
 

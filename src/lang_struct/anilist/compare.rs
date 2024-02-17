@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
+use crate::error_management::command_error::CommandError;
 use crate::error_management::file_error::FileError::{NotFound, Parsing, Reading};
 use crate::error_management::lang_error::LangError;
 
@@ -29,7 +30,7 @@ pub struct CompareLocalised {
     pub same_manga_chapter: String,
 }
 
-pub async fn load_localization_compare(guild_id: String) -> Result<CompareLocalised, LangError> {
+pub async fn load_localization_compare(guild_id: String) -> Result<CompareLocalised, CommandError> {
     let mut file = File::open("json/message/anilist/compare.json")
         .map_err(|e| NotFound(format!("File compare.json not found. {}", e)))?;
 

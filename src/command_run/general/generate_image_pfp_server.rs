@@ -1,9 +1,5 @@
 use crate::constant::COLOR;
 use crate::database::sqlite::data::get_server_image_sqlite;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::{DifferedError, Error};
-use crate::error_management::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_management::error_enum::DifferedCommandError::DifferedCommandSendingError;
 
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 
@@ -16,10 +12,16 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
+use crate::error_management::command_error::CommandError::Generic;
+use crate::error_management::generic_error::GenericError::{OptionError, SendingCommand};
+use crate::error_management::interaction_error::InteractionError;
 use tracing::trace;
 use uuid::Uuid;
 
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+) -> Result<(), InteractionError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -27,28 +29,16 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let pfp_server_image_localised_text =
         load_localization_pfp_server_image(guild_id.clone()).await?;
-
-    let builder_message = Defer(CreateInteractionResponseMessage::new());
-
-    command_interaction
-        .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
-        })?;
     let image = get_server_image_sqlite(&guild_id, &String::from("local"))
         .await?
         .1
         .unwrap_or_default();
     let input = image.trim_start_matches("data:image/png;base64,");
     let image_data: Vec<u8> = BASE64.decode(input).map_err(|e| {
-        DifferedError(DifferedCommandSendingError(format!(
+        InteractionError::Command(Generic(OptionError(format!(
             "Error when decoding the image or there is no image {}",
             e
-        )))
+        ))))
     })?;
     let uuid = Uuid::new_v4();
     let image_path = format!("{}.png", uuid);
@@ -69,10 +59,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!(
+            InteractionError::Command(Generic(SendingCommand(format!(
                 "Error while sending the command {}",
                 e
-            )))
+            ))))
         })?;
     trace!("Done");
 

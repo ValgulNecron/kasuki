@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
+use crate::error_management::command_error::CommandError;
 use crate::error_management::file_error::FileError::{NotFound, Parsing, Reading};
 use crate::error_management::lang_error::LangError;
 
@@ -22,7 +23,7 @@ pub struct UserLocalised {
     pub minutes: String,
 }
 
-pub async fn load_localization_user(guild_id: String) -> Result<UserLocalised, LangError> {
+pub async fn load_localization_user(guild_id: String) -> Result<UserLocalised, CommandError> {
     let mut file = File::open("json/message/anilist/user.json")
         .map_err(|e| NotFound(format!("File user.json not found. {}", e)))?;
 

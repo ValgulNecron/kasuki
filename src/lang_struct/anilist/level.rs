@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
+use crate::error_management::command_error::CommandError;
 use crate::error_management::file_error::FileError::{NotFound, Parsing, Reading};
 use crate::error_management::lang_error::LangError;
 
@@ -13,7 +14,7 @@ pub struct LevelLocalised {
     pub desc: String,
 }
 
-pub async fn load_localization_level(guild_id: String) -> Result<LevelLocalised, LangError> {
+pub async fn load_localization_level(guild_id: String) -> Result<LevelLocalised, CommandError> {
     let mut file = File::open("json/message/anilist/level.json")
         .map_err(|e| NotFound(format!("File level.json not found. {}", e)))?;
 

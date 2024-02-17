@@ -1,8 +1,8 @@
-use crate::error_management::api_request_error::ApiRequestError;
 use crate::error_management::database_error::DatabaseError;
 use crate::error_management::file_error::FileError;
 use crate::error_management::generic_error::GenericError;
 use crate::error_management::lang_error::LangError;
+use crate::error_management::web_request_error::WebRequestError;
 use crate::error_management::webhook_error::WebhookError;
 use std::fmt;
 
@@ -11,7 +11,7 @@ pub enum ActivityError {
     Lang(LangError),
     DatabaseError(DatabaseError),
     WebhookError(WebhookError),
-    ApiError(ApiRequestError),
+    WebRequestError(WebRequestError),
     FileError(FileError),
     Generic(GenericError),
 }
@@ -34,9 +34,9 @@ impl From<WebhookError> for ActivityError {
     }
 }
 
-impl From<ApiRequestError> for ActivityError {
-    fn from(error: ApiRequestError) -> Self {
-        ActivityError::ApiError(error)
+impl From<WebRequestError> for ActivityError {
+    fn from(error: WebRequestError) -> Self {
+        ActivityError::WebRequestError(error)
     }
 }
 
@@ -62,7 +62,7 @@ impl fmt::Display for ActivityError {
             ActivityError::WebhookError(webhook_error) => {
                 write!(f, "Webhook error: {}", webhook_error)
             }
-            ActivityError::ApiError(api_error) => write!(f, "Api error: {}", api_error),
+            ActivityError::WebRequestError(api_error) => write!(f, "Api error: {}", api_error),
             ActivityError::FileError(file_error) => write!(f, "File error: {}", file_error),
             ActivityError::Generic(generic_error) => write!(f, "Generic error: {}", generic_error),
         }

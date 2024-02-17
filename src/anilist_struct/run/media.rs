@@ -10,12 +10,12 @@ use crate::common::get_nsfw::get_nsfw;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, UNKNOWN};
-use crate::error_management::api_request_error::ApiRequestError;
-use crate::error_management::api_request_error::ApiRequestError::NotFound;
 use crate::error_management::command_error::CommandError;
 use crate::error_management::command_error::CommandError::NotNSFW;
 use crate::error_management::generic_error::GenericError::SendingCommand;
 use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::web_request_error::WebRequestError;
+use crate::error_management::web_request_error::WebRequestError::NotFound;
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -116,7 +116,7 @@ pub struct Name {
 }
 
 impl MediaWrapper {
-    pub async fn new_anime_by_id(id: String) -> Result<MediaWrapper, ApiRequestError> {
+    pub async fn new_anime_by_id(id: String) -> Result<MediaWrapper, WebRequestError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5) {
 		Media (id: $search, type: ANIME){
@@ -182,7 +182,7 @@ impl MediaWrapper {
             .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))
     }
 
-    pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, ApiRequestError> {
+    pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, WebRequestError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5) {
 		Media (search: $search, type: ANIME){
@@ -251,7 +251,7 @@ impl MediaWrapper {
         })
     }
 
-    pub async fn new_manga_by_id(id: String) -> Result<MediaWrapper, ApiRequestError> {
+    pub async fn new_manga_by_id(id: String) -> Result<MediaWrapper, WebRequestError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (id: $search, type: MANGA, format_not: $format){
@@ -317,7 +317,7 @@ impl MediaWrapper {
             .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))
     }
 
-    pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, ApiRequestError> {
+    pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, WebRequestError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (search: $search, type: MANGA, format_not: $format){
@@ -386,7 +386,7 @@ impl MediaWrapper {
         })
     }
 
-    pub async fn new_ln_by_id(id: String) -> Result<MediaWrapper, ApiRequestError> {
+    pub async fn new_ln_by_id(id: String) -> Result<MediaWrapper, WebRequestError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (id: $search, type: MANGA, format: $format){
@@ -452,7 +452,7 @@ impl MediaWrapper {
             .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))
     }
 
-    pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, ApiRequestError> {
+    pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, WebRequestError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (search: $search, type: MANGA, format: $format){

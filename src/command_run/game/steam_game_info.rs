@@ -1,11 +1,9 @@
 use crate::common::steam_to_discord_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::constant::COLOR;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::{DifferedError, Error};
-use crate::error_management::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_management::error_enum::DifferedCommandError::{
-    DifferedCommandSendingError, DifferedOptionError,
-};
+use crate::error_management::command_error::CommandError::Generic;
+use crate::error_management::generic_error::GenericError::{OptionError, SendingCommand};
+use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::interaction_error::InteractionError::{Command, DifferedCommand};
 use crate::game_struct::run::steam_game::SteamGameWrapper;
 use crate::lang_struct::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
@@ -21,7 +19,7 @@ pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+) -> Result<(), InteractionError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -35,10 +33,10 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
+            Command(Generic(SendingCommand(format!(
                 "Error while sending the command {}",
                 e
-            )))
+            ))))
         })?;
     for option in options {
         if option.name.as_str() != "type" {
@@ -55,9 +53,9 @@ pub async fn run(
         }
     }
 
-    Err(DifferedError(DifferedOptionError(String::from(
+    Err(Command(Generic(OptionError(String::from(
         "There is no option",
-    ))))
+    )))))
 }
 
 async fn send_embed(
@@ -65,7 +63,7 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     data: SteamGameWrapper,
     steam_game_info_localised: SteamGameInfoLocalised,
-) -> Result<(), AppError> {
+) -> Result<(), InteractionError> {
     trace!("Sending embed.");
     let game = data.data;
 
@@ -176,10 +174,10 @@ async fn send_embed(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!(
+            DifferedCommand(DifferedCommand::Generic(SendingCommand(format!(
                 "Error while sending the command {}",
                 e
-            )))
+            ))))
         })?;
 
     Ok(())

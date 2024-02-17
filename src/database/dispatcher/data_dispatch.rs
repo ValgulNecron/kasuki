@@ -127,7 +127,7 @@ pub async fn set_data_module_activation_status(
             game_value,
             new_member_value,
         )
-            .await
+        .await
     } else if db_type == *"postgresql" {
         set_data_module_activation_status_postgresql(
             guild_id,
@@ -136,7 +136,7 @@ pub async fn set_data_module_activation_status(
             game_value,
             new_member_value,
         )
-            .await
+        .await
     } else {
         set_data_module_activation_status_sqlite(
             guild_id,
@@ -145,7 +145,7 @@ pub async fn set_data_module_activation_status(
             game_value,
             new_member_value,
         )
-            .await
+        .await
     }
 }
 
@@ -187,7 +187,8 @@ pub async fn set_registered_user(user_id: &String, username: &String) -> Result<
     }
 }
 
-pub async fn get_data_module_activation_kill_switch_status() -> Result<ActivationStatusModule, DatabaseError> {
+pub async fn get_data_module_activation_kill_switch_status(
+) -> Result<ActivationStatusModule, DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_module_activation_kill_switch_status_sqlite().await

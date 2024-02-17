@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
+use crate::error_management::command_error::CommandError;
 use crate::error_management::file_error::FileError::{NotFound, Parsing, Reading};
 use crate::error_management::lang_error::LangError;
 
@@ -16,7 +17,7 @@ pub struct MediaLocalised {
     pub staff_text: String,
 }
 
-pub async fn load_localization_media(guild_id: String) -> Result<MediaLocalised, LangError> {
+pub async fn load_localization_media(guild_id: String) -> Result<MediaLocalised, CommandError> {
     let mut file = File::open("json/message/anilist/media.json")
         .map_err(|e| NotFound(format!("File media.json not found. {}", e)))?;
 

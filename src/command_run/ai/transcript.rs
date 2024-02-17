@@ -20,18 +20,13 @@ use uuid::Uuid;
 use crate::constant::{
     COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
 };
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::{DifferedError, Error};
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError, FileTypeError,
-};
-use crate::error_management::error_enum::DifferedCommandError::{
-    CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
-    ResponseError,
-};
+use crate::error_management::interaction_error::InteractionError;
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+) -> Result<(), InteractionError> {
     let map = get_option_map_string(command_interaction);
     let attachment_map = get_option_map_attachment(command_interaction);
     let prompt = map

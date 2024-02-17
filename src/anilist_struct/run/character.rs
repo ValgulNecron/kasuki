@@ -10,10 +10,10 @@ use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_disc
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::COLOR;
-use crate::error_management::api_request_error::ApiRequestError;
-use crate::error_management::api_request_error::ApiRequestError::NotFound;
 use crate::error_management::generic_error::GenericError::SendingCommand;
 use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::web_request_error::WebRequestError;
+use crate::error_management::web_request_error::WebRequestError::NotFound;
 use crate::lang_struct::anilist::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -65,7 +65,7 @@ pub struct Image {
 }
 
 impl CharacterWrapper {
-    pub async fn new_character_by_id(id: i32) -> Result<CharacterWrapper, ApiRequestError> {
+    pub async fn new_character_by_id(id: i32) -> Result<CharacterWrapper, WebRequestError> {
         let query_id: &str = "
         query ($name: Int) {
             Character(id: $name) {
@@ -102,7 +102,7 @@ impl CharacterWrapper {
 
     pub async fn new_character_by_search(
         search: &String,
-    ) -> Result<CharacterWrapper, ApiRequestError> {
+    ) -> Result<CharacterWrapper, WebRequestError> {
         let query_string: &str = "
 query ($name: String) {
 	Character(search: $name) {

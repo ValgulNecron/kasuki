@@ -2,8 +2,8 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::api_request_error::ApiRequestError;
-use crate::error_management::api_request_error::ApiRequestError::NotFound;
+use crate::error_management::web_request_error::WebRequestError;
+use crate::error_management::web_request_error::WebRequestError::NotFound;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct StaffImageWrapper {
@@ -38,7 +38,7 @@ pub struct StaffImageNodes {
 }
 
 impl StaffImageWrapper {
-    pub async fn new_staff_by_id(id: i32) -> Result<StaffImageWrapper, ApiRequestError> {
+    pub async fn new_staff_by_id(id: i32) -> Result<StaffImageWrapper, WebRequestError> {
         let query_id: &str = "
         query ($name: Int, $limit: Int = 4) {
 	Staff(id: $name){
@@ -63,7 +63,7 @@ impl StaffImageWrapper {
 
     pub async fn new_staff_by_search(
         search: &String,
-    ) -> Result<StaffImageWrapper, ApiRequestError> {
+    ) -> Result<StaffImageWrapper, WebRequestError> {
         let query_string: &str = "
 query ($name: String, $limit: Int = 4) {
 	Staff(search: $name){

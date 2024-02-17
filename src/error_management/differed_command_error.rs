@@ -1,11 +1,15 @@
+use crate::error_management::file_error::FileError;
 use crate::error_management::generic_error::GenericError;
+use crate::error_management::image_error::ImageError;
+use crate::error_management::web_request_error::WebRequestError;
 use std::fmt;
-use crate::error_management::api_request_error::ApiRequestError;
 
 #[derive(Debug, Clone)]
 pub enum DifferedCommandError {
     Generic(GenericError),
-    APIRequestError(ApiRequestError),
+    WebRequestError(WebRequestError),
+    FileError(FileError),
+    ImageError(ImageError),
 }
 
 impl From<GenericError> for DifferedCommandError {
@@ -14,9 +18,21 @@ impl From<GenericError> for DifferedCommandError {
     }
 }
 
-impl From<ApiRequestError> for DifferedCommandError {
-    fn from(error: ApiRequestError) -> Self {
-        DifferedCommandError::APIRequestError(error)
+impl From<WebRequestError> for DifferedCommandError {
+    fn from(error: WebRequestError) -> Self {
+        DifferedCommandError::WebRequestError(error)
+    }
+}
+
+impl From<FileError> for DifferedCommandError {
+    fn from(error: FileError) -> Self {
+        DifferedCommandError::FileError(error)
+    }
+}
+
+impl From<ImageError> for DifferedCommandError {
+    fn from(error: ImageError) -> Self {
+        DifferedCommandError::ImageError(error)
     }
 }
 
@@ -26,8 +42,14 @@ impl fmt::Display for DifferedCommandError {
             DifferedCommandError::Generic(generic_error) => {
                 write!(f, "Generic error: {}", generic_error)
             }
-            DifferedCommandError::APIRequestError(api_request_error) => {
+            DifferedCommandError::WebRequestError(api_request_error) => {
                 write!(f, "API request error: {}", api_request_error)
+            }
+            DifferedCommandError::FileError(file_error) => {
+                write!(f, "File error: {}", file_error)
+            }
+            DifferedCommandError::ImageError(image_error) => {
+                write!(f, "Image error: {}", image_error)
             }
         }
     }

@@ -4,15 +4,16 @@ use serenity::all::{
 };
 
 use crate::constant::COLOR;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError,
-};
+use crate::error_management::command_error::CommandError::Generic;
+use crate::error_management::generic_error::GenericError::{OptionError, SendingCommand};
+use crate::error_management::interaction_error::InteractionError;
 use crate::lang_struct::general::ping::load_localization_ping;
 use crate::struct_shard_manager::ShardManagerContainer;
 
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+) -> Result<(), InteractionError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -21,17 +22,25 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let data_read = ctx.data.read().await;
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
-        None => return Err(Error(ErrorOptionError(String::from("There is no option")))),
+        None => {
+            return Err(InteractionError::Command(Generic(OptionError(
+                String::from("Could not get the shard manager from the data"),
+            ))))
+        }
     }
-        .runners
-        .clone();
+    .runners
+    .clone();
     let shard_manager = shard_manager.lock().await;
 
     let shard_id = ctx.shard_id;
 
     let shard_runner_info = match shard_manager.get(&shard_id) {
         Some(data) => data,
-        None => return Err(Error(ErrorOptionError(String::from("There is no option")))),
+        None => {
+            return Err(InteractionError::Command(Generic(OptionError(
+                String::from("Could not get the shard info from the shard manager"),
+            ))))
+        }
     };
 
     let latency = match shard_runner_info.latency {
@@ -61,9 +70,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
+            InteractionError::Command(Generic(SendingCommand(format!(
                 "Error while sending the command {}",
                 e
-            )))
+            ))))
         })
 }

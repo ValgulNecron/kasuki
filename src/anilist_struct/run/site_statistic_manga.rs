@@ -2,8 +2,8 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::api_request_error::ApiRequestError;
-use crate::error_management::api_request_error::ApiRequestError::NotFound;
+use crate::error_management::web_request_error::WebRequestError;
+use crate::error_management::web_request_error::WebRequestError::NotFound;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SiteStatisticsMangaWrapper {
@@ -49,7 +49,7 @@ pub struct SiteStatisticsMangaNode {
 impl SiteStatisticsMangaWrapper {
     pub async fn new_manga(
         page_number: i64,
-    ) -> Result<(SiteStatisticsMangaWrapper, String), ApiRequestError> {
+    ) -> Result<(SiteStatisticsMangaWrapper, String), WebRequestError> {
         let query = "
                     query($page: Int){
                         SiteStatistics{
@@ -71,12 +71,8 @@ impl SiteStatisticsMangaWrapper {
                 ";
         let json = json!({"query": query, "variables": {"page": page_number}});
         let res = make_request_anilist(json, false).await;
-        let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res).map_err(|e| {
-            NotFound(format!(
-                "No media with page {}. {}",
-                page_number, e
-            ))
-        })?;
+        let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res)
+            .map_err(|e| NotFound(format!("No media with page {}. {}", page_number, e)))?;
         Ok((api_response, res))
     }
     pub fn has_next_page(&self) -> bool {

@@ -4,25 +4,25 @@ use serenity::all::{
 };
 
 use crate::constant::COLOR;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError,
-};
+use crate::error_management::command_error::CommandError::Generic;
+use crate::error_management::generic_error::GenericError::{OptionError, SendingCommand};
+use crate::error_management::interaction_error::InteractionError;
 use crate::lang_struct::general::profile::load_localization_profile;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+) -> Result<(), InteractionError> {
     if let Some(option) = options.first() {
         let resolved = &option.value;
         if let CommandDataOptionValue::User(user, ..) = resolved {
-            let user = user
-                .to_user(&ctx.http)
-                .await
-                .map_err(|e| Error(ErrorOptionError(format!("There is no option. {}", e))))?;
+            let user = user.to_user(&ctx.http).await.map_err(|e| {
+                InteractionError::Command(Generic(OptionError(format!(
+                    "There is no user in the option. {}",
+                    e
+                ))))
+            })?;
             return profile_with_user(ctx, command_interaction, &user).await;
         }
     }
@@ -32,7 +32,7 @@ pub async fn run(
 async fn profile_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+) -> Result<(), InteractionError> {
     let user = command_interaction.user.clone();
     profile_with_user(ctx, command_interaction, &user).await
 }
@@ -41,7 +41,7 @@ async fn profile_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
-) -> Result<(), AppError> {
+) -> Result<(), InteractionError> {
     let avatar_url = user.face();
 
     send_embed(avatar_url, ctx, command_interaction, user).await
@@ -52,7 +52,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
-) -> Result<(), AppError> {
+) -> Result<(), InteractionError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -63,7 +63,9 @@ pub async fn send_embed(
     let member = &command_interaction
         .member
         .clone()
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
+        .ok_or(InteractionError::Command(Generic(OptionError(
+            String::from("There is no member in the option"),
+        ))))?;
 
     let public_flag = match user.public_flags {
         Some(public_flag) => {
@@ -95,7 +97,9 @@ pub async fn send_embed(
                     "$joined_date$",
                     member
                         .joined_at
-                        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
+                        .ok_or(InteractionError::Command(Generic(OptionError(
+                            String::from("There is no joined date for the user"),
+                        ))))?
                         .to_string()
                         .as_str(),
                 )
@@ -113,9 +117,9 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
+            InteractionError::Command(Generic(SendingCommand(format!(
                 "Error while sending the command {}",
                 e
-            )))
+            ))))
         })
 }

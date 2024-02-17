@@ -13,12 +13,17 @@ use uuid::Uuid;
 
 use crate::constant::{COLOR, DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::error_management::command_error::CommandError;
+use crate::error_management::differed_command_error::DifferedCommandError::WebRequestError;
 use crate::error_management::generic_error::GenericError::SendingCommand;
 use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::web_request_error::WebRequestError::Header;
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), InteractionError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+) -> Result<(), InteractionError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -115,9 +120,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         match HeaderValue::from_str(&format!("Bearer {}", token)) {
             Ok(data) => data,
             Err(e) => {
-                return Err(InteractionError::DifferedCommand((HeaderError(format!(
-                    "Failed to create the header. {}",
-                    e
+                return Err(InteractionError::DifferedCommand(WebRequestError(Header(
+                    format!("Failed to create the header. {}", e),
                 ))));
             }
         },

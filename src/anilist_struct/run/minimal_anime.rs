@@ -4,8 +4,8 @@ use sqlx::FromRow;
 use tracing::log::trace;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::api_request_error::ApiRequestError;
-use crate::error_management::api_request_error::ApiRequestError::NotFound;
+use crate::error_management::web_request_error::WebRequestError;
+use crate::error_management::web_request_error::WebRequestError::NotFound;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NextAiringEpisode {
@@ -52,7 +52,7 @@ pub struct CoverImage {
 impl MinimalAnimeWrapper {
     pub async fn new_minimal_anime_by_id(
         id: String,
-    ) -> Result<MinimalAnimeWrapper, ApiRequestError> {
+    ) -> Result<MinimalAnimeWrapper, WebRequestError> {
         let query = "
                 query ($name: Int) {
                   Media(type: ANIME, id: $name) {
@@ -83,7 +83,7 @@ impl MinimalAnimeWrapper {
 
     pub async fn new_minimal_anime_by_search(
         search: String,
-    ) -> Result<MinimalAnimeWrapper, ApiRequestError> {
+    ) -> Result<MinimalAnimeWrapper, WebRequestError> {
         let query = "
             query ($name: String) {
               Media(type: ANIME, search: $name) {

@@ -14,7 +14,7 @@ pub async fn add_image_to_activity_data() -> Result<(), DatabaseError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "image" column exists in the "activity_data" table
-    let row: (bool, ) = sqlx::query_as(
+    let row: (bool,) = sqlx::query_as(
         r#"
         SELECT EXISTS (
             SELECT 1 
@@ -23,9 +23,9 @@ pub async fn add_image_to_activity_data() -> Result<(), DatabaseError> {
         )
         "#,
     )
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| Select(format!("Failed to check existence of column. {}", e)))?;
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| Select(format!("Failed to check existence of column. {}", e)))?;
 
     // If the "image" column doesn't exist, add it
     if !row.0 {
@@ -43,7 +43,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), DatabaseError>
     let pool = get_postgresql_pool().await?;
 
     // Check if the "new_member" column exists in the "global_kill_switch" table
-    let row: (bool, ) = sqlx::query_as(
+    let row: (bool,) = sqlx::query_as(
         r#"
         SELECT EXISTS (
             SELECT  1
@@ -52,9 +52,9 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), DatabaseError>
         )
         "#,
     )
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| Select(format!("Failed to check existence of column. {}", e)))?;
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| Select(format!("Failed to check existence of column. {}", e)))?;
 
     // If the "new_member" column doesn't exist, add it
     if !row.0 {
@@ -72,7 +72,7 @@ pub async fn add_new_column_to_module_activation() -> Result<(), DatabaseError> 
     let pool = get_postgresql_pool().await?;
 
     // Check if the "new_column" column exists in the "module_activation" table
-    let row: (bool, ) = sqlx::query_as(
+    let row: (bool,) = sqlx::query_as(
         r#"
         SELECT EXISTS (
             SELECT  1
@@ -81,9 +81,9 @@ pub async fn add_new_column_to_module_activation() -> Result<(), DatabaseError> 
         )
         "#,
     )
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| Select(format!("Failed to check existence of column. {}", e)))?;
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| Select(format!("Failed to check existence of column. {}", e)))?;
 
     // If the "new_column" column doesn't exist, add it
     if !row.0 {

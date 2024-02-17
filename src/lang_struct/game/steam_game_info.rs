@@ -5,6 +5,7 @@ use std::io::Read;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
+use crate::error_management::command_error::CommandError;
 use crate::error_management::file_error::FileError::{NotFound, Parsing, Reading};
 use crate::error_management::lang_error::LangError;
 
@@ -24,7 +25,7 @@ pub struct SteamGameInfoLocalised {
 
 pub async fn load_localization_steam_game_info(
     guild_id: String,
-) -> Result<SteamGameInfoLocalised, LangError> {
+) -> Result<SteamGameInfoLocalised, CommandError> {
     let mut file = File::open("json/message/game/steam_game_info.json")
         .map_err(|e| NotFound(format!("File steam_game_info.json not found. {}", e)))?;
 

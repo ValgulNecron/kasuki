@@ -1,22 +1,26 @@
 use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
 
 use crate::anilist_struct::run::staff::StaffWrapper;
-use crate::common::get_option_value::get_option;
+use crate::command_run::get_option::get_option_map_string;
 use crate::constant::COLOR;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::ErrorCommandSendingError;
+use crate::error_management::command_error::CommandError::Generic;
+use crate::error_management::generic_error::GenericError::{OptionError, SendingCommand};
+use crate::error_management::interaction_error::InteractionError;
 use crate::lang_struct::anilist::staff::load_localization_staff;
 
 pub async fn run(
-    options: &[CommandDataOption],
     ctx: &Context,
     command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
-    let value = get_option(options);
+) -> Result<(), InteractionError> {
+    let map = get_option_map_string(command_interaction);
+    let value = map
+        .get(&String::from("staff_name"))
+        .ok_or(InteractionError::Command(Generic(OptionError(
+            String::from("There is no option"),
+        ))))?;
 
     let data: StaffWrapper = if value.parse::<i32>().is_ok() {
         StaffWrapper::new_staff_by_id(value.parse().unwrap()).await?
@@ -149,10 +153,10 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
+            InteractionError::Command(Generic(SendingCommand(format!(
                 "Error while sending the command {}",
                 e
-            )))
+            ))))
         })
 }
 

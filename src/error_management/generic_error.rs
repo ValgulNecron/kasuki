@@ -4,6 +4,7 @@ use std::fmt;
 pub enum GenericError {
     OptionError(String),
     SendingCommand(String),
+    AttachmentError(String),
 }
 
 impl fmt::Display for GenericError {
@@ -12,6 +13,9 @@ impl fmt::Display for GenericError {
             GenericError::OptionError(option_error) => write!(f, "Option error: {}", option_error),
             GenericError::SendingCommand(sending_command) => {
                 write!(f, "Sending command error: {}", sending_command)
+            }
+            GenericError::AttachmentError(attachment_error) => {
+                write!(f, "Attachment error: {}", attachment_error)
             }
         }
     }
