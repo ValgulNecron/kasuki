@@ -22,7 +22,9 @@ use crate::error_management::differed_command_error::DifferedCommandError::{
     FileError, ImageError, WebRequestError,
 };
 use crate::error_management::file_error::FileError::{Creating, Writing};
-use crate::error_management::generic_error::GenericError::{AttachmentError, OptionError, SendingCommand};
+use crate::error_management::generic_error::GenericError::{
+    AttachmentError, OptionError, SendingCommand,
+};
 use crate::error_management::image_error::ImageError::{CreateImage, DecodeImage, WriteImage};
 use crate::error_management::interaction_error::InteractionError;
 use crate::error_management::web_request_error::WebRequestError::{Decoding, Request};

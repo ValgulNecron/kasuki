@@ -1,14 +1,2 @@
-pub mod activity_error;
-pub mod autocomplete_error;
-pub mod command_error;
-pub mod component_error;
-pub mod database_error;
-pub mod differed_command_error;
 pub mod error_dispatch;
-pub mod file_error;
-pub mod generic_error;
-pub mod image_error;
-pub mod interaction_error;
-pub mod lang_error;
-pub mod web_request_error;
-pub mod webhook_error;
+pub mod error_enum;

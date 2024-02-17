@@ -4,8 +4,7 @@ use sqlx::FromRow;
 use tracing::log::trace;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::web_request_error::WebRequestError;
-use crate::error_management::web_request_error::WebRequestError::NotFound;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NextAiringEpisode {
@@ -52,7 +51,7 @@ pub struct CoverImage {
 impl MinimalAnimeWrapper {
     pub async fn new_minimal_anime_by_id(
         id: String,
-    ) -> Result<MinimalAnimeWrapper, WebRequestError> {
+    ) -> Result<MinimalAnimeWrapper, AppError> {
         let query = "
                 query ($name: Int) {
                   Media(type: ANIME, id: $name) {
@@ -77,13 +76,18 @@ impl MinimalAnimeWrapper {
         trace!("{:?}", resp);
         // Get json
         let data = serde_json::from_str(&resp)
-            .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))?;
+            .map_err(|e|
+                AppError::new(
+                    format!("Error getting the media with id {}. {}", id, e),
+                    ErrorType::WebRequest,
+                    ErrorResponseType::None,
+                ))?;
         Ok(data)
     }
 
     pub async fn new_minimal_anime_by_search(
         search: String,
-    ) -> Result<MinimalAnimeWrapper, WebRequestError> {
+    ) -> Result<MinimalAnimeWrapper, AppError> {
         let query = "
             query ($name: String) {
               Media(type: ANIME, search: $name) {
@@ -107,10 +111,14 @@ impl MinimalAnimeWrapper {
         let resp = make_request_anilist(json, true).await;
         // Get json
         let data = serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the media with name {}. {}",
-                search, e
-            ))
+            AppError {
+                message: format!(
+                    "Error getting the media with name {}. {}",
+                    search, e
+                ),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            }
         })?;
         Ok(data)
     }

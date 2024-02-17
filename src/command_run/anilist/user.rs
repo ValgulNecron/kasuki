@@ -5,6 +5,7 @@ use crate::anilist_struct::run::user::{send_embed, UserWrapper};
 use crate::command_run::get_option::get_option_map_string;
 use crate::constant::DEFAULT_STRING;
 use crate::database::dispatcher::data_dispatch::get_registered_user;
+use crate::error_management::command_error::CommandError;
 use crate::error_management::command_error::CommandError::Generic;
 use crate::error_management::generic_error::GenericError::OptionError;
 use crate::error_management::interaction_error::InteractionError;
@@ -17,7 +18,9 @@ pub async fn run(
     let user = map.get(&String::from("username"));
 
     if let Some(value) = user {
-        let data: UserWrapper = get_user_data(value).await?;
+        let data: UserWrapper = get_user_data(value)
+            .await
+            .map_err(|e| CommandError::WebRequestError(e))?;
 
         return send_embed(ctx, command_interaction, data).await;
     }
@@ -30,7 +33,9 @@ pub async fn run(
         String::from("There is no option"),
     ))))?;
 
-    let data = UserWrapper::new_user_by_id(user.parse::<i32>().unwrap()).await?;
+    let data = UserWrapper::new_user_by_id(user.parse::<i32>().unwrap())
+        .await
+        .map_err(|e| CommandError::WebRequestError(e))?;
     send_embed(ctx, command_interaction, data).await
 }
 

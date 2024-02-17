@@ -1,5 +1,5 @@
 use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
 

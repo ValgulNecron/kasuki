@@ -10,10 +10,7 @@ use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_disc
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::COLOR;
-use crate::error_management::generic_error::GenericError::SendingCommand;
-use crate::error_management::interaction_error::InteractionError;
-use crate::error_management::web_request_error::WebRequestError;
-use crate::error_management::web_request_error::WebRequestError::NotFound;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -65,7 +62,7 @@ pub struct Image {
 }
 
 impl CharacterWrapper {
-    pub async fn new_character_by_id(id: i32) -> Result<CharacterWrapper, WebRequestError> {
+    pub async fn new_character_by_id(id: i32) -> Result<CharacterWrapper, AppError> {
         let query_id: &str = "
         query ($name: Int) {
             Character(id: $name) {
@@ -96,13 +93,14 @@ impl CharacterWrapper {
         trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
-        serde_json::from_str(&resp)
-            .map_err(|e| NotFound(format!("Error getting the character with id {}. {}", id, e)))
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the character with id {}. {}", id, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
+        })
     }
 
-    pub async fn new_character_by_search(
-        search: &String,
-    ) -> Result<CharacterWrapper, WebRequestError> {
+    pub async fn new_character_by_search(search: &String) -> Result<CharacterWrapper, AppError> {
         let query_string: &str = "
 query ($name: String) {
 	Character(search: $name) {
@@ -133,11 +131,10 @@ query ($name: String) {
         trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
-        serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the character with name {}. {}",
-                search, e
-            ))
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the character with name {}. {}", search, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 }
@@ -146,7 +143,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     data: CharacterWrapper,
-) -> Result<(), InteractionError> {
+) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -224,6 +221,10 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| SendingCommand(format!("Error while sending the command {}", e)))?;
+        .map_err(|e| AppError {
+            message: format!("Error sending the character embed. {}", e),
+            error_type: ErrorType::Command,
+            error_response_type: ErrorResponseType::Message,
+        })?;
     Ok(())
 }

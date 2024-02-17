@@ -17,7 +17,7 @@ pub async fn init_postgres() -> Result<(), DatabaseError> {
 
 async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), DatabaseError> {
     // Check if the database exists
-    let exists: (bool,) =
+    let exists: (bool, ) =
         sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)")
             .bind("CACHE")
             .fetch_one(pool)
@@ -39,9 +39,9 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), DatabaseError>
            last_updated BIGINT NOT NULL
        )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
+        .execute(pool)
+        .await
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS cache_stats (
@@ -51,15 +51,15 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), DatabaseError>
            last_page BIGINT NOT NULL
        )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
+        .execute(pool)
+        .await
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
     Ok(())
 }
 
 async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), DatabaseError> {
     // Check if the database exists
-    let exists: (bool,) =
+    let exists: (bool, ) =
         sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)")
             .bind("DATA")
             .fetch_one(pool)
@@ -82,9 +82,9 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), DatabaseError> 
                     PRIMARY KEY (shard_id, timestamp)
                 )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
+        .execute(pool)
+        .await
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS guild_lang (
@@ -92,9 +92,9 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), DatabaseError> 
             lang TEXT NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
+        .execute(pool)
+        .await
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS activity_data (
@@ -109,9 +109,9 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), DatabaseError> 
         PRIMARY KEY (anime_id, server_id)
     )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
+        .execute(pool)
+        .await
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
@@ -122,9 +122,9 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), DatabaseError> 
             new_member BIGINT
    )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
+        .execute(pool)
+        .await
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
@@ -132,9 +132,9 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), DatabaseError> 
             anilist_id TEXT
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
+        .execute(pool)
+        .await
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
@@ -145,9 +145,9 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), DatabaseError> 
             new_member BIGINT
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
+        .execute(pool)
+        .await
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "INSERT INTO global_kill_switch (id, anilist_module, ai_module, game_module, new_member) VALUES ($1, $2, $3, $4, $5)
@@ -169,9 +169,9 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), DatabaseError> 
             image TEXT NOT NULL
      )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
+        .execute(pool)
+        .await
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS server_image (
@@ -181,9 +181,9 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), DatabaseError> 
 image_url TEXT NOT NULL
      )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
+        .execute(pool)
+        .await
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     Ok(())
 }

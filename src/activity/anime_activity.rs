@@ -14,10 +14,7 @@ use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
 use crate::database_struct::server_activity_struct::ServerActivityFull;
-use crate::error_management::activity_error::ActivityError;
-use crate::error_management::file_error::FileError;
-use crate::error_management::generic_error::GenericError::OptionError;
-use crate::error_management::webhook_error::WebhookError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
 pub async fn manage_activity(ctx: Context) {
@@ -38,8 +35,7 @@ pub async fn send_activity(ctx: &Context) {
         }
     };
     for row in rows {
-        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {
-        } else {
+        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {} else {
             let row2 = row.clone();
             let guild_id = row.server_id.clone();
             if row.delays.unwrap() != 0 {
@@ -69,16 +65,17 @@ pub async fn send_specific_activity(
     guild_id: String,
     row2: ActivityData,
     ctx: &Context,
-) -> Result<(), ActivityError> {
+) -> Result<(), AppError> {
     let localised_text = load_localization_send_activity(guild_id.clone()).await?;
     let webhook_url = row.webhook.clone().unwrap_or_default();
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
         .await
         .map_err(|e| {
-            WebhookError::Parsing(format!(
-                "There was an error getting the webhook from the url {}",
-                e
-            ))
+            AppError::new(
+                format!("There was an error getting the webhook from the url {}", e),
+                ErrorType::Webhook,
+                ErrorResponseType::None,
+            )
         })?;
 
     let image = row.image.unwrap_or_default();
@@ -90,14 +87,22 @@ pub async fn send_specific_activity(
     // Read the decoded bytes into a Vec
     let mut decoded_bytes = Vec::new();
     decoder.read_to_end(&mut decoded_bytes).map_err(|e| {
-        FileError::Decoding(format!("Failed to decode the bytes from the base64 {}", e))
+        AppError::new(
+            format!("There was an error reading the decoded bytes {}", e),
+            ErrorType::File,
+            ErrorResponseType::None,
+        )
     })?;
     let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
     let edit_webhook = EditWebhook::new()
         .name(row.name.clone().unwrap())
         .avatar(&attachment);
     webhook.edit(&ctx.http, edit_webhook).await.map_err(|e| {
-        WebhookError::Editing(format!("There was an error editing the webhook {}", e))
+        AppError::new(
+            format!("There was an error editing the webhook {}", e),
+            ErrorType::Webhook,
+            ErrorResponseType::None,
+        )
     })?;
 
     let embed = CreateEmbed::new()
@@ -120,26 +125,32 @@ pub async fn send_specific_activity(
         .execute(&ctx.http, false, builder_message)
         .await
         .map_err(|e| {
-            WebhookError::Sending(format!("There was an error sending the webhook {}", e))
+            AppError::new(
+                format!("There was an error sending the webhook {}", e),
+                ErrorType::Webhook,
+                ErrorResponseType::None,
+            )
         })?;
 
     tokio::spawn(async move { update_info(row2, guild_id).await });
     Ok(())
 }
 
-pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), ActivityError> {
+pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().unwrap_or("0".to_string()),
     )
-    .await?;
+        .await?;
     let media = data.data.media;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
         None => return remove_activity(row, guild_id).await,
     };
-    let title = media
-        .title
-        .ok_or(OptionError(String::from("Failed to get the error.")))?;
+    let title = media.title.ok_or(AppError::new(
+        "Failed to get the title.".to_string(),
+        ErrorType::Option,
+        ErrorResponseType::None,
+    ))?;
     let rj = title.romaji;
     let en = title.english;
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
@@ -153,11 +164,11 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), Acti
         delays: row.delays.unwrap_or(0) as i64,
         image: row.image.unwrap_or_default(),
     })
-    .await?;
+        .await?;
     Ok(())
 }
 
-pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), ActivityError> {
+pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
     trace!("removing {:#?} for {}", row, guild_id);
     remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await?;
     Ok(())

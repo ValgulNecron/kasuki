@@ -10,12 +10,7 @@ use crate::common::get_nsfw::get_nsfw;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, UNKNOWN};
-use crate::error_management::command_error::CommandError;
-use crate::error_management::command_error::CommandError::NotNSFW;
-use crate::error_management::generic_error::GenericError::SendingCommand;
-use crate::error_management::interaction_error::InteractionError;
-use crate::error_management::web_request_error::WebRequestError;
-use crate::error_management::web_request_error::WebRequestError::NotFound;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -116,7 +111,7 @@ pub struct Name {
 }
 
 impl MediaWrapper {
-    pub async fn new_anime_by_id(id: String) -> Result<MediaWrapper, WebRequestError> {
+    pub async fn new_anime_by_id(id: String) -> Result<MediaWrapper, AppError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5) {
 		Media (id: $search, type: ANIME){
@@ -179,10 +174,14 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp)
-            .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))
+            .map_err(|e| AppError {
+                message: format!("Error getting the media with id {}. {}", id, e),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            })
     }
 
-    pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, WebRequestError> {
+    pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, AppError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5) {
 		Media (search: $search, type: ANIME){
@@ -244,14 +243,18 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the media with name {}. {}",
-                search, e
-            ))
+            AppError {
+                message: format!(
+                    "Error getting the media with name {}. {}",
+                    search, e
+                ),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            }
         })
     }
 
-    pub async fn new_manga_by_id(id: String) -> Result<MediaWrapper, WebRequestError> {
+    pub async fn new_manga_by_id(id: String) -> Result<MediaWrapper, AppError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (id: $search, type: MANGA, format_not: $format){
@@ -314,10 +317,16 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp)
-            .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))
+            .map_err(|e|
+                AppError {
+                    message: format!("Error getting the media with id {}. {}", id, e),
+                    error_type: ErrorType::WebRequest,
+                    error_response_type: ErrorResponseType::Message,
+                }
+            )
     }
 
-    pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, WebRequestError> {
+    pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, AppError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (search: $search, type: MANGA, format_not: $format){
@@ -379,14 +388,18 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the media with name {}. {}",
-                search, e
-            ))
+            AppError {
+                message: format!(
+                    "Error getting the media with name {}. {}",
+                    search, e
+                ),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            }
         })
     }
 
-    pub async fn new_ln_by_id(id: String) -> Result<MediaWrapper, WebRequestError> {
+    pub async fn new_ln_by_id(id: String) -> Result<MediaWrapper, AppError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (id: $search, type: MANGA, format: $format){
@@ -449,10 +462,15 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp)
-            .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))
+            .map_err(|e|
+                AppError {
+                    message: format!("Error getting the media with id {}. {}", id, e),
+                    error_type: ErrorType::WebRequest,
+                    error_response_type: ErrorResponseType::Message,
+                })
     }
 
-    pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, WebRequestError> {
+    pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, AppError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (search: $search, type: MANGA, format: $format){
@@ -515,10 +533,14 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the media with name {}. {}",
-                search, e
-            ))
+            AppError {
+                message: format!(
+                    "Error getting the media with name {}. {}",
+                    search, e
+                ),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            }
         })
     }
 }
@@ -693,11 +715,15 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     data: MediaWrapper,
-) -> Result<(), InteractionError> {
+) -> Result<(), AppError> {
     if data.data.media.is_adult && !get_nsfw(command_interaction, ctx).await {
-        return Err(InteractionError::Command(NotNSFW(String::from(
-            "The channel is not nsfw but the media you requested is.",
-        ))));
+        return Err(
+            AppError {
+                message: String::from("The channel is not nsfw but the media you requested is."),
+                error_type: ErrorType::Command,
+                error_response_type: ErrorResponseType::Message,
+            }
+        );
     }
 
     let guild_id = match command_interaction.guild_id {
@@ -725,6 +751,11 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| SendingCommand(format!("Error while sending the command {}", e)))?;
-    Ok(())
+        .map_err(|e|
+            AppError {
+                message: format!("Error sending the media embed. {}", e),
+                error_type: ErrorType::Command,
+                error_response_type: ErrorResponseType::Message,
+            }
+        )
 }

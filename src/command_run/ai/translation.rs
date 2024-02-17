@@ -19,18 +19,16 @@ use crate::constant::{
     CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL,
     TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
 };
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::{DifferedError, Error};
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError, FileTypeError, NoCommandOption,
-};
-use crate::error_management::error_enum::DifferedCommandError::{
-    CopyBytesError, DifferedCommandSendingError, FileExtensionError, GettingBytesError,
-    ResponseError,
-};
+use crate::error_management::command_error::CommandError::{FileError, Generic};
+use crate::error_management::file_error::FileError::WrongContentType;
+use crate::error_management::generic_error::GenericError::OptionError;
+use crate::error_management::interaction_error::InteractionError;
 use crate::lang_struct::ai::translation::load_localization_translation;
 
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+) -> Result<(), InteractionError> {
     let map = get_option_map_string(command_interaction);
     let attachment_map = get_option_map_attachment(command_interaction);
     let lang = map
@@ -42,8 +40,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let attachment = match attachment {
         Some(Some(att)) => att,
         _ => {
-            return Err(Error(NoCommandOption(String::from(
-                "The command contain no attachment.",
+            return Err(InteractionError::Command(Generic(OptionError(
+                String::from("The command contain no attachment."),
             ))));
         }
     };
@@ -51,8 +49,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let content_type = attachment
         .content_type
         .clone()
-        .ok_or(Error(ErrorOptionError(String::from(
-            "Error getting content type",
+        .ok_or(InteractionError::Command(Generic(OptionError(
+            String::from("Error getting content type"),
         ))))?;
     let content = attachment.proxy_url.clone();
 
@@ -64,7 +62,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let translation_localised = load_localization_translation(guild_id).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-        return Err(Error(FileTypeError(String::from("Bad file type."))));
+        return Err(InteractionError::Command(FileError(WrongContentType(
+            String::from("Bad file type."),
+        ))));
     }
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -73,10 +73,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            InteractionError::Command((format!("Error while sending the command {}", e)))
         })?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
@@ -102,7 +99,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let uuid_name = Uuid::new_v4();
     let fname = Path::new("./").join(format!("{}.{}", uuid_name, file_extension));
     let file_name = format!("/{}.{}", uuid_name, file_extension);
-    let mut file = File::create(fname.clone()).expect("file name");
+    let mut file = FileError::create(fname.clone()).expect("file name");
     let resp_byte = response.bytes().await.map_err(|e| {
         DifferedError(GettingBytesError(format!(
             "Failed to get the bytes from the response. {}",
