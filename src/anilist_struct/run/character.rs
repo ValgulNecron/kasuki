@@ -10,11 +10,8 @@ use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_disc
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::COLOR;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    CharacterGettingError, ErrorCommandSendingError,
-};
+use crate::error_management::api_request_error::ApiRequestError;
+use crate::error_management::api_request_error::ApiRequestError::NotFound;
 use crate::lang_struct::anilist::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -66,7 +63,7 @@ pub struct Image {
 }
 
 impl CharacterWrapper {
-    pub async fn new_character_by_id(id: i32) -> Result<CharacterWrapper, AppError> {
+    pub async fn new_character_by_id(id: i32) -> Result<CharacterWrapper, ApiRequestError> {
         let query_id: &str = "
         query ($name: Int) {
             Character(id: $name) {
@@ -98,14 +95,14 @@ impl CharacterWrapper {
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
         serde_json::from_str(&resp).map_err(|e| {
-            Error(CharacterGettingError(format!(
+            NotFound(format!(
                 "Error getting the character with id {}. {}",
                 id, e
-            )))
+            ))
         })
     }
 
-    pub async fn new_character_by_search(search: &String) -> Result<CharacterWrapper, AppError> {
+    pub async fn new_character_by_search(search: &String) -> Result<CharacterWrapper, ApiRequestError> {
         let query_string: &str = "
 query ($name: String) {
 	Character(search: $name) {
@@ -137,10 +134,10 @@ query ($name: String) {
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
         serde_json::from_str(&resp).map_err(|e| {
-            Error(CharacterGettingError(format!(
+            NotFound(format!(
                 "Error getting the character with name {}. {}",
                 search, e
-            )))
+            ))
         })
     }
 }
@@ -149,7 +146,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     data: CharacterWrapper,
-) -> Result<(), AppError> {
+) -> Result<(), InteractionError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),

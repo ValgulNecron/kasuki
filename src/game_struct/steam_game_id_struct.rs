@@ -32,22 +32,21 @@ pub async fn get_game() {
             }
             Ok(body) => body,
         };
-        let json: Value = if let Err(e) = serde_json::from_str(&body) {
-            error!("Error: {}", e);
-            continue
-        } else if let Ok(json) = serde_json::from_str(&body) {
-            json
-        } else {
-            unreachable!()
+
+        let json: Value = match serde_json::from_str(&body)  {
+            Err(e) => {
+                error!("Error: {}", e);
+                continue
+            }
+            Ok(json) => json,
         };
 
-        let apps: Vec<App> = if let Err(e) = serde_json::from_value(json["applist"]["apps"].clone()) {
-            error!("Error: {}", e);
-            continue
-        } else if let Ok(apps) = serde_json::from_value(json["applist"]["apps"].clone()) {
-            apps
-        } else {
-            unreachable!()
+        let apps: Vec<App> = match serde_json::from_value(json["applist"]["apps"].clone()) {
+            Err(e) => {
+                error!("Error: {}", e);
+                continue
+            }
+            Ok(apps) => apps,
         };
 
         unsafe {

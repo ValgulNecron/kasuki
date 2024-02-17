@@ -20,12 +20,9 @@ use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageEncoder};
 use palette::{IntoColor, Lab, Srgb};
 use serenity::all::{Context, GuildId, Member};
-use serenity::futures::stream::FuturesUnordered;
-use serenity::futures::StreamExt;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use tokio::task;
 
 use tracing::{error, info};
 use uuid::Uuid;

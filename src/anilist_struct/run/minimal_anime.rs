@@ -5,6 +5,7 @@ use tracing::log::trace;
 
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_management::api_request_error::ApiRequestError;
+use crate::error_management::api_request_error::ApiRequestError::NotFound;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::Error;
 use crate::error_management::error_enum::CommandError::MediaGettingError;
@@ -77,17 +78,17 @@ impl MinimalAnimeWrapper {
         trace!("{:?}", resp);
         // Get json
         let data = serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
+            NotFound(format!(
                 "Error getting the media with id {}. {}",
                 id, e
-            )))
+            ))
         })?;
         Ok(data)
     }
 
     pub async fn new_minimal_anime_by_search(
         search: String,
-    ) -> Result<MinimalAnimeWrapper, AppError> {
+    ) -> Result<MinimalAnimeWrapper, ApiRequestError> {
         let query = "
             query ($name: String) {
               Media(type: ANIME, search: $name) {
@@ -111,10 +112,10 @@ impl MinimalAnimeWrapper {
         let resp = make_request_anilist(json, true).await;
         // Get json
         let data = serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
+            NotFound(format!(
                 "Error getting the media with name {}. {}",
                 search, e
-            )))
+            ))
         })?;
         Ok(data)
     }

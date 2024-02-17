@@ -15,11 +15,9 @@ use crate::database::dispatcher::data_dispatch::{
 };
 use crate::database_struct::server_activity_struct::ServerActivityFull;
 use crate::error_management::activity_error::ActivityError;
-use crate::error_management::activity_error::ActivityError::WebhookError;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::NotACommandError;
-use crate::error_management::error_enum::NotACommandError::NotACommandOptionError;
 use crate::error_management::file_error::FileError;
+use crate::error_management::generic_error::GenericError::OptionError;
+use crate::error_management::webhook_error::WebhookError;
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
 pub async fn manage_activity(ctx: Context) {
@@ -120,9 +118,7 @@ pub async fn send_specific_activity(
 }
 
 pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), ActivityError> {
-    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(row.anime_id.clone().ok_or(
-        NotACommandError(NotACommandOptionError(String::from("There is no option"))),
-    )?)
+    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(row.anime_id.clone().unwrap_or("0".to_string()))
         .await?;
     let media = data.data.media;
     let next_airing = match media.next_airing_episode {
@@ -131,9 +127,7 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), Acti
     };
     let title = media
         .title
-        .ok_or(NotACommandError(NotACommandOptionError(String::from(
-            "There is no option",
-        ))))?;
+        .ok_or(OptionError(String::from("Failed to get the error.")))?;
     let rj = title.romaji;
     let en = title.english;
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
@@ -147,10 +141,12 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), Acti
         delays: row.delays.unwrap_or(0) as i64,
         image: row.image.unwrap_or_default(),
     })
-        .await
+        .await?;
+    Ok(())
 }
 
 pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), ActivityError> {
     trace!("removing {:#?} for {}", row, guild_id);
-    remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await
+    remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await?;
+    Ok(())
 }
