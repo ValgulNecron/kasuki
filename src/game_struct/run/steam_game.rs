@@ -1,5 +1,9 @@
 use crate::constant::{APPS, LANG_MAP};
 use crate::database::dispatcher::data_dispatch::get_data_guild_langage;
+use crate::error_management::api_request_error::ApiRequestError;
+use crate::error_management::api_request_error::ApiRequestError::{
+    Decoding, IncorrectUrl, NotFound, Parsing, Request,
+};
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
@@ -8,8 +12,6 @@ use serde_with::serde_as;
 use serde_with::OneOrMany;
 use std::collections::HashMap;
 use tracing::trace;
-use crate::error_management::api_request_error::ApiRequestError;
-use crate::error_management::api_request_error::ApiRequestError::{Decoding, IncorrectUrl, NotFound, Parsing, Request};
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
@@ -210,12 +212,10 @@ impl SteamGameWrapper {
             .send()
             .await
             .map_err(|e| Request(format!("Error when making the request. {}", e)))?;
-        let mut text = response.text().await.map_err(|e| {
-            Decoding(format!(
-                "Failed to get the text data. {}",
-                e
-            ))
-        })?;
+        let mut text = response
+            .text()
+            .await
+            .map_err(|e| Decoding(format!("Failed to get the text data. {}", e)))?;
 
         let re = Regex::new(r#""required_age":"(\d+)""#).unwrap();
 
@@ -230,13 +230,9 @@ impl SteamGameWrapper {
             }
         }
 
-        let game_wrapper: HashMap<String, SteamGameWrapper> = serde_json::from_str(text.as_str())
-            .map_err(|e| {
-                Parsing(format!(
-                    "Failed to parse as json. {}",
-                    e
-                ))
-            })?;
+        let game_wrapper: HashMap<String, SteamGameWrapper> =
+            serde_json::from_str(text.as_str())
+                .map_err(|e| Parsing(format!("Failed to parse as json. {}", e)))?;
 
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }

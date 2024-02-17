@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::error_management::database_error::DatabaseError;
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub enum ApiRequestError {
@@ -19,7 +19,9 @@ impl fmt::Display for ApiRequestError {
             ApiRequestError::NotFound(error) => write!(f, "Not found error: {}", error),
             ApiRequestError::Decoding(error) => write!(f, "Decoding error: {}", error),
             ApiRequestError::IncorrectUrl(error) => write!(f, "Incorrect url error: {}", error),
-            ApiRequestError::DatabaseError(database_error) => write!(f, "Database error: {}", database_error),
+            ApiRequestError::DatabaseError(database_error) => {
+                write!(f, "Database error: {}", database_error)
+            }
         }
     }
 }

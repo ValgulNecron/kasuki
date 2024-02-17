@@ -10,7 +10,9 @@ impl fmt::Display for GenericError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             GenericError::OptionError(option_error) => write!(f, "Option error: {}", option_error),
-            GenericError::SendingCommand(sending_command) => write!(f, "Sending command error: {}", sending_command),
+            GenericError::SendingCommand(sending_command) => {
+                write!(f, "Sending command error: {}", sending_command)
+            }
         }
     }
 }

@@ -35,10 +35,11 @@ pub async fn send_activity(ctx: &Context) {
         Err(e) => {
             error!("{}", e);
             return;
-        },
+        }
     };
     for row in rows {
-        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {} else {
+        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {
+        } else {
             let row2 = row.clone();
             let guild_id = row.server_id.clone();
             if row.delays.unwrap() != 0 {
@@ -73,7 +74,12 @@ pub async fn send_specific_activity(
     let webhook_url = row.webhook.clone().unwrap_or_default();
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
         .await
-        .map_err(|e| WebhookError::Parsing(format!("There was an error getting the webhook from the url {}", e)))?;
+        .map_err(|e| {
+            WebhookError::Parsing(format!(
+                "There was an error getting the webhook from the url {}",
+                e
+            ))
+        })?;
 
     let image = row.image.unwrap_or_default();
     trace!(image);
@@ -83,14 +89,16 @@ pub async fn send_specific_activity(
 
     // Read the decoded bytes into a Vec
     let mut decoded_bytes = Vec::new();
-    decoder
-        .read_to_end(&mut decoded_bytes)
-        .map_err(|e| FileError::Decoding(format!("Failed to decode the bytes from the base64 {}", e)))?;
+    decoder.read_to_end(&mut decoded_bytes).map_err(|e| {
+        FileError::Decoding(format!("Failed to decode the bytes from the base64 {}", e))
+    })?;
     let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
     let edit_webhook = EditWebhook::new()
         .name(row.name.clone().unwrap())
         .avatar(&attachment);
-    webhook.edit(&ctx.http, edit_webhook).await.map_err(|e| WebhookError::Editing(format!("There was an error editing the webhook {}", e)))?;
+    webhook.edit(&ctx.http, edit_webhook).await.map_err(|e| {
+        WebhookError::Editing(format!("There was an error editing the webhook {}", e))
+    })?;
 
     let embed = CreateEmbed::new()
         .color(COLOR)
@@ -111,15 +119,19 @@ pub async fn send_specific_activity(
     webhook
         .execute(&ctx.http, false, builder_message)
         .await
-        .map_err(|e| WebhookError::Sending(format!("There was an error sending the webhook {}", e)))?;
+        .map_err(|e| {
+            WebhookError::Sending(format!("There was an error sending the webhook {}", e))
+        })?;
 
     tokio::spawn(async move { update_info(row2, guild_id).await });
     Ok(())
 }
 
 pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), ActivityError> {
-    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(row.anime_id.clone().unwrap_or("0".to_string()))
-        .await?;
+    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
+        row.anime_id.clone().unwrap_or("0".to_string()),
+    )
+    .await?;
     let media = data.data.media;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
@@ -141,7 +153,7 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), Acti
         delays: row.delays.unwrap_or(0) as i64,
         image: row.image.unwrap_or_default(),
     })
-        .await?;
+    .await?;
     Ok(())
 }
 

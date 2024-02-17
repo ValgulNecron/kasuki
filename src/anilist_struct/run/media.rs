@@ -178,12 +178,8 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the media with id {}. {}",
-                id, e
-            ))
-        })
+        serde_json::from_str(&resp)
+            .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))
     }
 
     pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, ApiRequestError> {
@@ -317,12 +313,8 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the media with id {}. {}",
-                id, e
-            ))
-        })
+        serde_json::from_str(&resp)
+            .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))
     }
 
     pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, ApiRequestError> {
@@ -456,12 +448,8 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the media with id {}. {}",
-                id, e
-            ))
-        })
+        serde_json::from_str(&resp)
+            .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))
     }
 
     pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, ApiRequestError> {
@@ -550,7 +538,7 @@ fn embed_title(data: &MediaWrapper) -> String {
         }
     }
 
-    match rj{
+    match rj {
         String::new() => {}
         _ => {
             if has_en_title {
@@ -737,11 +725,6 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            SendingCommand(format!(
-                "Error while sending the command {}",
-                e
-            ))
-        })?;
+        .map_err(|e| SendingCommand(format!("Error while sending the command {}", e)))?;
     Ok(())
 }

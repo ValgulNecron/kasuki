@@ -38,14 +38,9 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), DatabaseError> {
             last_updated INTEGER NOT NULL
         )",
     )
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            Create(format!(
-                "Failed to create the table. {}",
-                e
-            ))
-        })?;
+    .execute(pool)
+    .await
+    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS cache_stats (
@@ -55,14 +50,9 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), DatabaseError> {
             last_page INTEGER NOT NULL
         )",
     )
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            Create(format!(
-                "Failed to create the table. {}",
-                e
-            ))
-        })?;
+    .execute(pool)
+    .await
+    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
     Ok(())
 }
 
@@ -80,14 +70,9 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), DatabaseError> {
                     PRIMARY KEY (shard_id, timestamp)
                 )",
     )
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            Create(format!(
-                "Failed to create the table. {}",
-                e
-            ))
-        })?;
+    .execute(pool)
+    .await
+    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS guild_lang (
@@ -95,14 +80,9 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), DatabaseError> {
             lang TEXT NOT NULL
         )",
     )
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            Create(format!(
-                "Failed to create the table. {}",
-                e
-            ))
-        })?;
+    .execute(pool)
+    .await
+    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS activity_data (
@@ -130,14 +110,9 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), DatabaseError> {
             new_member INTEGER
    )",
     )
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            Create(format!(
-                "Failed to create the table. {}",
-                e
-            ))
-        })?;
+    .execute(pool)
+    .await
+    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
@@ -145,14 +120,9 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), DatabaseError> {
             anilist_id TEXT
         )",
     )
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            Create(format!(
-                "Failed to create the table. {}",
-                e
-            ))
-        })?;
+    .execute(pool)
+    .await
+    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
@@ -163,14 +133,9 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), DatabaseError> {
             new_member INTEGER
         )",
     )
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            Create(format!(
-                "Failed to create the table. {}",
-                e
-            ))
-        })?;
+    .execute(pool)
+    .await
+    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "INSERT OR REPLACE INTO global_kill_switch (id, anilist_module, ai_module, game_module, new_member) VALUES (?, ?, ?, ?, ?)",
@@ -191,14 +156,9 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), DatabaseError> {
                 image TEXT NOT NULL
      )",
     )
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            Create(format!(
-                "Failed to create the table. {}",
-                e
-            ))
-        })?;
+    .execute(pool)
+    .await
+    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS server_image (
@@ -210,14 +170,9 @@ image_url TEXT NOT NULL,
 
      )",
     )
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            Create(format!(
-                "Failed to create the table. {}",
-                e
-            ))
-        })?;
+    .execute(pool)
+    .await
+    .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     Ok(())
 }
@@ -229,10 +184,7 @@ fn create_sqlite_file(path: &str) -> Result<(), DatabaseError> {
             Ok(_) => {}
             Err(e) => {
                 error!("Failed to create the file {} : {}", path, e);
-                return Err(Create(format!(
-                    "Failed to create db file. {}",
-                    e
-                )));
+                return Err(Create(format!("Failed to create db file. {}", e)));
             }
         }
     }

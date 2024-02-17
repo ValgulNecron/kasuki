@@ -2,9 +2,8 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::DifferedError;
-use crate::error_management::error_enum::DifferedCommandError::MediaError;
+use crate::error_management::api_request_error::ApiRequestError;
+use crate::error_management::api_request_error::ApiRequestError::NotFound;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Media {
@@ -56,7 +55,7 @@ pub struct CoverImage {
 }
 
 impl PageWrapper {
-    pub async fn new_anime_page(number: i64) -> Result<PageWrapper, AppError> {
+    pub async fn new_anime_page(number: i64) -> Result<PageWrapper, ApiRequestError> {
         let query = "
                     query($anime_page: Int){
                         Page(page: $anime_page, perPage: 1){
@@ -83,16 +82,12 @@ impl PageWrapper {
 
         let json = json!({"query": query, "variables": {"anime_page": number}});
         let res = make_request_anilist(json, false).await;
-        let res = serde_json::from_str(&res).map_err(|e| {
-            DifferedError(MediaError(format!(
-                "Error getting the media with id {}. {}",
-                number, e
-            )))
-        })?;
+        let res = serde_json::from_str(&res)
+            .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", number, e)))?;
         Ok(res)
     }
 
-    pub async fn new_manga_page(number: i64) -> Result<PageWrapper, AppError> {
+    pub async fn new_manga_page(number: i64) -> Result<PageWrapper, ApiRequestError> {
         let query = "
                     query($manga_page: Int){
                         Page(page: $manga_page, perPage: 1){
@@ -120,12 +115,8 @@ impl PageWrapper {
         let json = json!({"query": query, "variables": {"manga_page": number}});
         let res = make_request_anilist(json, false).await;
 
-        let res = serde_json::from_str(&res).map_err(|e| {
-            DifferedError(MediaError(format!(
-                "Error getting the media with id {}. {}",
-                number, e
-            )))
-        })?;
+        let res = serde_json::from_str(&res)
+            .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", number, e)))?;
         Ok(res)
     }
 }

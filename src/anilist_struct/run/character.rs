@@ -96,15 +96,13 @@ impl CharacterWrapper {
         trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
-        serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the character with id {}. {}",
-                id, e
-            ))
-        })
+        serde_json::from_str(&resp)
+            .map_err(|e| NotFound(format!("Error getting the character with id {}. {}", id, e)))
     }
 
-    pub async fn new_character_by_search(search: &String) -> Result<CharacterWrapper, ApiRequestError> {
+    pub async fn new_character_by_search(
+        search: &String,
+    ) -> Result<CharacterWrapper, ApiRequestError> {
         let query_string: &str = "
 query ($name: String) {
 	Character(search: $name) {
@@ -226,8 +224,6 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            SendingCommand(format!("Error while sending the command {}", e))
-        })?;
+        .map_err(|e| SendingCommand(format!("Error while sending the command {}", e)))?;
     Ok(())
 }

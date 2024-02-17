@@ -50,7 +50,9 @@ pub struct CoverImage {
 }
 
 impl MinimalAnimeWrapper {
-    pub async fn new_minimal_anime_by_id(id: String) -> Result<MinimalAnimeWrapper, ApiRequestError> {
+    pub async fn new_minimal_anime_by_id(
+        id: String,
+    ) -> Result<MinimalAnimeWrapper, ApiRequestError> {
         let query = "
                 query ($name: Int) {
                   Media(type: ANIME, id: $name) {
@@ -74,12 +76,8 @@ impl MinimalAnimeWrapper {
         let resp = make_request_anilist(json, true).await;
         trace!("{:?}", resp);
         // Get json
-        let data = serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the media with id {}. {}",
-                id, e
-            ))
-        })?;
+        let data = serde_json::from_str(&resp)
+            .map_err(|e| NotFound(format!("Error getting the media with id {}. {}", id, e)))?;
         Ok(data)
     }
 

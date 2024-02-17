@@ -20,7 +20,7 @@ pub async fn get_game() {
         let response = match reqwest::get(url).await {
             Err(e) => {
                 error!("Error: {}", e);
-                continue
+                continue;
             }
             Ok(response) => response,
         };
@@ -28,15 +28,15 @@ pub async fn get_game() {
         let body = match response.text().await {
             Err(e) => {
                 error!("Error: {}", e);
-                continue
+                continue;
             }
             Ok(body) => body,
         };
 
-        let json: Value = match serde_json::from_str(&body)  {
+        let json: Value = match serde_json::from_str(&body) {
             Err(e) => {
                 error!("Error: {}", e);
-                continue
+                continue;
             }
             Ok(json) => json,
         };
@@ -44,7 +44,7 @@ pub async fn get_game() {
         let apps: Vec<App> = match serde_json::from_value(json["applist"]["apps"].clone()) {
             Err(e) => {
                 error!("Error: {}", e);
-                continue
+                continue;
             }
             Ok(apps) => apps,
         };

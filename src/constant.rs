@@ -10,11 +10,16 @@ pub const APP_VERSION: &str = "V2.3.0";
 /*
 all delays
  */
-pub const DELAY_BEFORE_THREAD_SPAWN: u64 = 30; // 30 seconds
-pub const PING_UPDATE_DELAYS: u64 = 600; // 10 minutes
-pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 120; // 2 minutes
-pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 1_800; // 30 minutes
-pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400; // 1 day
+pub const DELAY_BEFORE_THREAD_SPAWN: u64 = 30;
+// 30 seconds
+pub const PING_UPDATE_DELAYS: u64 = 600;
+// 10 minutes
+pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 120;
+// 2 minutes
+pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 1_800;
+// 30 minutes
+pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
+// 1 day
 pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200; // 3 days
 
 /*
@@ -49,9 +54,9 @@ pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
         ("de", "german"),
         ("ja", "japanese"),
     ]
-        .iter()
-        .cloned()
-        .collect()
+    .iter()
+    .cloned()
+    .collect()
 });
 
 pub static mut APPS: Lazy<HashMap<String, u128>> = Lazy::new(HashMap::new);

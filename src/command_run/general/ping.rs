@@ -23,8 +23,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         Some(data) => data,
         None => return Err(Error(ErrorOptionError(String::from("There is no option")))),
     }
-        .runners
-        .clone();
+    .runners
+    .clone();
     let shard_manager = shard_manager.lock().await;
 
     let shard_id = ctx.shard_id;

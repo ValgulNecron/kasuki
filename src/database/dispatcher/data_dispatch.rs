@@ -76,7 +76,9 @@ pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, Databas
     }
 }
 
-pub async fn set_data_activity(server_activity_full: ServerActivityFull) -> Result<(), DatabaseError> {
+pub async fn set_data_activity(
+    server_activity_full: ServerActivityFull,
+) -> Result<(), DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         set_data_activity_sqlite(server_activity_full).await
@@ -125,7 +127,7 @@ pub async fn set_data_module_activation_status(
             game_value,
             new_member_value,
         )
-            .await
+        .await
     } else if db_type == *"postgresql" {
         set_data_module_activation_status_postgresql(
             guild_id,
@@ -134,7 +136,7 @@ pub async fn set_data_module_activation_status(
             game_value,
             new_member_value,
         )
-            .await
+        .await
     } else {
         set_data_module_activation_status_sqlite(
             guild_id,
@@ -143,7 +145,7 @@ pub async fn set_data_module_activation_status(
             game_value,
             new_member_value,
         )
-            .await
+        .await
     }
 }
 
@@ -185,7 +187,8 @@ pub async fn set_registered_user(user_id: &String, username: &String) -> Result<
     }
 }
 
-pub async fn get_data_module_activation_kill_switch_status() -> Result<ActivationStatusModule, DatabaseError> {
+pub async fn get_data_module_activation_kill_switch_status(
+) -> Result<ActivationStatusModule, DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_module_activation_kill_switch_status_sqlite().await
@@ -237,7 +240,9 @@ pub async fn get_user_approximated_color(user_id: &String) -> Result<UserColor, 
     }
 }
 
-pub async fn get_all_server_activity(server_id: &String) -> Result<Vec<ServerActivity>, DatabaseError> {
+pub async fn get_all_server_activity(
+    server_id: &String,
+) -> Result<Vec<ServerActivity>, DatabaseError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_all_server_activity_sqlite(server_id).await

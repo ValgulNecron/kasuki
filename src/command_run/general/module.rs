@@ -73,7 +73,7 @@ pub async fn run(
         game_value,
         new_member_value,
     )
-        .await?;
+    .await?;
     let desc = if state {
         &module_localised.on
     } else {

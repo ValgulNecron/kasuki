@@ -1,6 +1,6 @@
-use sqlx::{Pool, Sqlite, SqlitePool};
 use crate::error_management::database_error::DatabaseError;
 use crate::error_management::database_error::DatabaseError::CreatePool;
+use sqlx::{Pool, Sqlite, SqlitePool};
 
 /// Connects to a SQLite database and returns a connection pool.
 /// The function is asynchronous and returns a `Pool` wrapped in a `Result`.

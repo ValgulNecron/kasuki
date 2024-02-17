@@ -1,10 +1,10 @@
-use std::fmt;
 use crate::error_management::api_request_error::ApiRequestError;
 use crate::error_management::database_error::DatabaseError;
 use crate::error_management::file_error::FileError;
 use crate::error_management::generic_error::GenericError;
 use crate::error_management::lang_error::LangError;
 use crate::error_management::webhook_error::WebhookError;
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub enum ActivityError {
@@ -56,8 +56,12 @@ impl fmt::Display for ActivityError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             ActivityError::Lang(lang_error) => write!(f, "Lang error: {}", lang_error),
-            ActivityError::DatabaseError(database_error) => write!(f, "Database error: {}", database_error),
-            ActivityError::WebhookError(webhook_error) => write!(f, "Webhook error: {}", webhook_error),
+            ActivityError::DatabaseError(database_error) => {
+                write!(f, "Database error: {}", database_error)
+            }
+            ActivityError::WebhookError(webhook_error) => {
+                write!(f, "Webhook error: {}", webhook_error)
+            }
             ActivityError::ApiError(api_error) => write!(f, "Api error: {}", api_error),
             ActivityError::FileError(file_error) => write!(f, "File error: {}", file_error),
             ActivityError::Generic(generic_error) => write!(f, "Generic error: {}", generic_error),

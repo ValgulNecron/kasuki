@@ -23,7 +23,6 @@ use serenity::all::{Context, GuildId, Member};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-
 use tracing::{error, info};
 use uuid::Uuid;
 
