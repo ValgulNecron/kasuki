@@ -20,13 +20,10 @@ use uuid::Uuid;
 use crate::constant::{
     COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
 };
-use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), InteractionError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
     let attachment_map = get_option_map_attachment(command_interaction);
     let prompt = map
@@ -41,12 +38,11 @@ pub async fn run(
 
     let attachment = get_the_attachment(attachment)?;
 
-    let content_type = attachment
-        .content_type
-        .clone()
-        .ok_or(Error(ErrorOptionError(String::from(
-            "Error getting content type",
-        ))))?;
+    let content_type = attachment.content_type.clone().ok_or(AppError::new(
+        String::from("Error getting content type"),
+        ErrorType::File,
+        ErrorResponseType::Message,
+    ))?;
     let content = attachment.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
@@ -57,7 +53,11 @@ pub async fn run(
     let transcript_localised = load_localization_transcript(guild_id).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-        return Err(Error(FileTypeError(String::from("Bad file type."))));
+        return Err(AppError::new(
+            String::from("Bad file type."),
+            ErrorType::File,
+            ErrorResponseType::Message,
+        ));
     }
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -66,29 +66,38 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
     let parsed_url = Url::parse(content.as_str()).expect("Failed to parse URL");
-    let path_segments = parsed_url
-        .path_segments()
-        .expect("Failed to retrieve path segments");
-    let last_segment = path_segments.last().expect("URL has no path segments");
+    let path_segments = parsed_url.path_segments().ok_or(AppError::new(
+        String::from("Failed to retrieve path segments"),
+        ErrorType::Option,
+        ErrorResponseType::Followup,
+    ))?;
+    let last_segment = path_segments.last().unwrap_or_default();
 
     let file_extension = last_segment
         .rsplit('.')
         .next()
-        .expect("No file extension found")
+        .ok_or(AppError::new(
+            String::from("No file extension found"),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        ))?
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
-        return Err(DifferedError(FileExtensionError(String::from(
-            "Bad file extension",
-        ))));
+        return Err(AppError::new(
+            String::from("Bad file extension"),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        ));
     }
 
     let response = reqwest::get(content).await.expect("download");
@@ -97,13 +106,19 @@ pub async fn run(
     let file_name = format!("/{}.{}", uuid_name, file_extension);
     let mut file = File::create(fname.clone()).expect("file name");
     let resp_byte = response.bytes().await.map_err(|e| {
-        DifferedError(GettingBytesError(format!(
-            "Failed to get the bytes from the response. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to get the bytes from the response. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
     })?;
-    copy(&mut resp_byte.as_ref(), &mut file)
-        .map_err(|e| DifferedError(CopyBytesError(format!("Failed to copy bytes data. {}", e))))?;
+    copy(&mut resp_byte.as_ref(), &mut file).map_err(|e| {
+        AppError::new(
+            format!("Failed to copy bytes data. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
+    })?;
     let file_to_delete = fname.clone();
 
     let token = unsafe { TRANSCRIPT_TOKEN.as_str() };
@@ -136,18 +151,20 @@ pub async fn run(
         .send()
         .await;
     let response = response_result.map_err(|e| {
-        DifferedError(ResponseError(format!(
-            "Failed to get the response from the server. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to get the response from the server. {}", e),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        )
     })?;
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
     let res = res_result.map_err(|e| {
-        DifferedError(ResponseError(format!(
-            "Failed to get the response from the server. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to get the response from the server. {}", e),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        )
     })?;
 
     let _ = fs::remove_file(&file_to_delete);
@@ -167,10 +184,11 @@ pub async fn run(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Followup,
+            )
         })?;
 
     Ok(())

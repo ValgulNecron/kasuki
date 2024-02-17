@@ -1,6 +1,6 @@
 use crate::command_run::get_option::get_option_map_string;
 use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING};
-use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
@@ -10,10 +10,7 @@ use serenity::all::{
 };
 use tracing::trace;
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), InteractionError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
     let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -22,10 +19,11 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            )
         })?;
 
     let api_key = unsafe { CHAT_TOKEN.clone() };
@@ -45,10 +43,11 @@ pub async fn run(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Option,
+                ErrorResponseType::Followup,
+            )
         })?;
 
     Ok(())
@@ -81,10 +80,22 @@ async fn question(
         .json(&data)
         .send()
         .await
-        .map_err(|e| DifferedError(ResponseError(format!("error during translation. {}", e))))?
+        .map_err(|e| {
+            AppError::new(
+                format!("error during translation. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Followup,
+            )
+        })?
         .json()
         .await
-        .map_err(|e| DifferedError(ResponseError(format!("error during translation. {}", e))))?;
+        .map_err(|e| {
+            AppError::new(
+                format!("error during translation. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Followup,
+            )
+        })?;
     trace!("{:?}", res);
     let content = res["choices"][0]["message"]["content"].to_string();
 

@@ -19,16 +19,10 @@ use crate::constant::{
     CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL,
     TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
 };
-use crate::error_management::command_error::CommandError::{FileError, Generic};
-use crate::error_management::file_error::FileError::WrongContentType;
-use crate::error_management::generic_error::GenericError::OptionError;
-use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::ai::translation::load_localization_translation;
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), InteractionError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
     let attachment_map = get_option_map_attachment(command_interaction);
     let lang = map
@@ -40,18 +34,19 @@ pub async fn run(
     let attachment = match attachment {
         Some(Some(att)) => att,
         _ => {
-            return Err(InteractionError::Command(Generic(OptionError(
+            return Err(AppError::new(
                 String::from("The command contain no attachment."),
-            ))));
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            ));
         }
     };
 
-    let content_type = attachment
-        .content_type
-        .clone()
-        .ok_or(InteractionError::Command(Generic(OptionError(
-            String::from("Error getting content type"),
-        ))))?;
+    let content_type = attachment.content_type.clone().ok_or(AppError::new(
+        String::from("Error getting content type"),
+        ErrorType::File,
+        ErrorResponseType::Message,
+    ))?;
     let content = attachment.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
@@ -62,9 +57,11 @@ pub async fn run(
     let translation_localised = load_localization_translation(guild_id).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-        return Err(InteractionError::Command(FileError(WrongContentType(
+        return Err(AppError::new(
             String::from("Bad file type."),
-        ))));
+            ErrorType::File,
+            ErrorResponseType::Message,
+        ));
     }
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -73,7 +70,11 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            InteractionError::Command((format!("Error while sending the command {}", e)))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
@@ -90,24 +91,32 @@ pub async fn run(
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
-        return Err(DifferedError(FileExtensionError(String::from(
-            "Bad file extension",
-        ))));
+        return Err(AppError::new(
+            String::from("Bad file extension"),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        ));
     }
 
     let response = reqwest::get(content).await.expect("download");
     let uuid_name = Uuid::new_v4();
     let fname = Path::new("./").join(format!("{}.{}", uuid_name, file_extension));
     let file_name = format!("/{}.{}", uuid_name, file_extension);
-    let mut file = FileError::create(fname.clone()).expect("file name");
+    let mut file = File::create(fname.clone()).expect("file name");
     let resp_byte = response.bytes().await.map_err(|e| {
-        DifferedError(GettingBytesError(format!(
-            "Failed to get the bytes from the response. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to get the bytes from the response. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Message,
+        )
     })?;
-    copy(&mut resp_byte.as_ref(), &mut file)
-        .map_err(|e| DifferedError(CopyBytesError(format!("Failed to copy bytes data. {}", e))))?;
+    copy(&mut resp_byte.as_ref(), &mut file).map_err(|e| {
+        AppError::new(
+            format!("Failed to copy bytes data. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Message,
+        )
+    })?;
     let file_to_delete = fname.clone();
 
     let client = reqwest::Client::new();
@@ -139,18 +148,20 @@ pub async fn run(
         .send()
         .await;
     let response = response_result.map_err(|e| {
-        DifferedError(ResponseError(format!(
-            "Failed to get the response from the server. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to get the response from the server. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
     })?;
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
     let res = res_result.map_err(|e| {
-        DifferedError(ResponseError(format!(
-            "Failed to get the response from the server. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to get the response from the server. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
     })?;
 
     let _ = fs::remove_file(&file_to_delete);
@@ -179,10 +190,11 @@ pub async fn run(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Followup,
+            )
         })?;
 
     Ok(())
@@ -222,10 +234,22 @@ pub async fn translation(
         .json(&data)
         .send()
         .await
-        .map_err(|e| DifferedError(ResponseError(format!("error during translation. {}", e))))?
+        .map_err(|e| {
+            AppError::new(
+                format!("error during translation. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Followup,
+            )
+        })?
         .json()
         .await
-        .map_err(|e| DifferedError(ResponseError(format!("error during translation. {}", e))))?;
+        .map_err(|e| {
+            AppError::new(
+                format!("error during translation. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Followup,
+            )
+        })?;
     let content = res["choices"][0]["message"]["content"].to_string();
     let no_quote = content.replace('"', "");
 

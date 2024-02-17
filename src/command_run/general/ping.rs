@@ -28,8 +28,8 @@ pub async fn run(
             ))));
         }
     }
-        .runners
-        .clone();
+    .runners
+    .clone();
     let shard_manager = shard_manager.lock().await;
 
     let shard_id = ctx.shard_id;

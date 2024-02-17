@@ -12,18 +12,11 @@ use tracing::{info, trace};
 use uuid::Uuid;
 
 use crate::constant::{COLOR, DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
-use crate::error_management::command_error::CommandError;
-use crate::error_management::differed_command_error::DifferedCommandError::WebRequestError;
-use crate::error_management::generic_error::GenericError::SendingCommand;
-use crate::error_management::interaction_error::InteractionError;
-use crate::error_management::web_request_error::WebRequestError::Header;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), InteractionError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -42,10 +35,11 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            InteractionError::Command(CommandError::from(SendingCommand(format!(
-                "Error while sending the command {}",
-                e
-            ))))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            )
         })?;
 
     let uuid_name = Uuid::new_v4();
@@ -120,9 +114,11 @@ pub async fn run(
         match HeaderValue::from_str(&format!("Bearer {}", token)) {
             Ok(data) => data,
             Err(e) => {
-                return Err(InteractionError::DifferedCommand(WebRequestError(Header(
+                return Err(AppError::new(
                     format!("Failed to create the header. {}", e),
-                ))));
+                    ErrorType::WebRequest,
+                    ErrorResponseType::Followup,
+                ));
             }
         },
     );
@@ -137,54 +133,71 @@ pub async fn run(
         .send()
         .await
         .map_err(|e| {
-            DifferedError(ResponseError(format!(
-                "Failed to get the response from the server. {}",
-                e
-            )))
+            AppError::new(
+                format!("Failed to get the response from the server. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Followup,
+            )
         })?
         .json()
         .await
         .map_err(|e| {
-            DifferedError(ResponseError(format!(
-                "Failed to get the response from the server. {}",
-                e
-            )))
+            AppError::new(
+                format!("Failed to get the response from the server. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Followup,
+            )
         })?;
     trace!("{:#?}", res);
 
     let url_string = res
         .get("data")
-        .ok_or(DifferedError(DifferedOptionError(String::from(
-            "Failed to get data from result",
-        ))))?
+        .ok_or(AppError::new(
+            String::from("Failed to get data from result"),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        ))?
         .get(0)
-        .ok_or(DifferedError(DifferedOptionError(String::from(
-            "Failed to get the first image",
-        ))))?
+        .ok_or(AppError::new(
+            String::from("Failed to get the first image"),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        ))?
         .get("url")
-        .ok_or(DifferedError(DifferedOptionError(String::from(
-            "Failed to get the url from the result",
-        ))))?
+        .ok_or(AppError::new(
+            String::from("Failed to get the url from the result"),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        ))?
         .as_str()
-        .ok_or(DifferedError(FailedUrlError(String::from(
-            "Failed to convert to str.",
-        ))))?;
+        .ok_or(AppError::new(
+            String::from("Failed to convert to str."),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        ))?;
 
     let response = reqwest::get(url_string).await.map_err(|e| {
-        DifferedError(ResponseError(format!(
-            "Failed to get bytes data from response. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to get the response from the server. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
     })?;
     let bytes = response.bytes().await.map_err(|e| {
-        DifferedError(FailedToGetBytes(format!(
-            "Failed to get bytes data from response. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to get bytes data from response. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
     })?;
 
-    fs::write(&filename, &bytes)
-        .map_err(|e| DifferedError(WritingFile(format!("Failed to write the file bytes.{}", e))))?;
+    fs::write(&filename, &bytes).map_err(|e| {
+        AppError::new(
+            format!("Failed to write the file bytes.{}", e),
+            ErrorType::File,
+            ErrorResponseType::Followup,
+        )
+    })?;
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -193,10 +206,11 @@ pub async fn run(
         .title(image_localised.title);
 
     let attachment = CreateAttachment::path(&filename).await.map_err(|e| {
-        DifferedError(DifferedCommandSendingError(format!(
-            "Error while uploading the attachment {}",
-            e
-        )))
+        AppError::new(
+            format!("Error while uploading the attachment {}", e),
+            ErrorType::File,
+            ErrorResponseType::Followup,
+        )
     })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
@@ -207,10 +221,11 @@ pub async fn run(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Option,
+                ErrorResponseType::Followup,
+            )
         })?;
 
     image_saver(guild_id, filename.clone(), bytes.to_vec()).await?;

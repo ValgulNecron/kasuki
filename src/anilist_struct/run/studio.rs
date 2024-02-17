@@ -2,8 +2,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::web_request_error::WebRequestError;
-use crate::error_management::web_request_error::WebRequestError::NotFound;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Title {
@@ -48,7 +47,7 @@ pub struct StudioWrapper {
 }
 
 impl StudioWrapper {
-    pub async fn new_studio_by_id(id: i32) -> Result<StudioWrapper, WebRequestError> {
+    pub async fn new_studio_by_id(id: i32) -> Result<StudioWrapper, AppError> {
         let query_id: &str = "\
         query ($name: Int, $limit: Int = 15) {
           Studio(id: $name) {
@@ -71,11 +70,16 @@ impl StudioWrapper {
         ";
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, false).await;
-        serde_json::from_str(&resp)
-            .map_err(|e| NotFound(format!("Error getting the studio with id {}. {}", id, e)))
+        serde_json::from_str(&resp).map_err(|e| {
+            AppError::new(
+                format!("Error getting the studio with id {}. {}", id, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
+        })
     }
 
-    pub async fn new_studio_by_search(search: &String) -> Result<StudioWrapper, WebRequestError> {
+    pub async fn new_studio_by_search(search: &String) -> Result<StudioWrapper, AppError> {
         let query_string: &str = "
         query ($name: String, $limit: Int = 5) {
           Studio(search: $name) {
@@ -99,10 +103,11 @@ impl StudioWrapper {
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, false).await;
         serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the studio with name {}. {}",
-                search, e
-            ))
+            AppError::new(
+                format!("Error getting the studio with name {}. {}", search, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
         })
     }
 }

@@ -49,9 +49,7 @@ pub struct CoverImage {
 }
 
 impl MinimalAnimeWrapper {
-    pub async fn new_minimal_anime_by_id(
-        id: String,
-    ) -> Result<MinimalAnimeWrapper, AppError> {
+    pub async fn new_minimal_anime_by_id(id: String) -> Result<MinimalAnimeWrapper, AppError> {
         let query = "
                 query ($name: Int) {
                   Media(type: ANIME, id: $name) {
@@ -75,13 +73,13 @@ impl MinimalAnimeWrapper {
         let resp = make_request_anilist(json, true).await;
         trace!("{:?}", resp);
         // Get json
-        let data = serde_json::from_str(&resp)
-            .map_err(|e|
-                AppError::new(
-                    format!("Error getting the media with id {}. {}", id, e),
-                    ErrorType::WebRequest,
-                    ErrorResponseType::None,
-                ))?;
+        let data = serde_json::from_str(&resp).map_err(|e| {
+            AppError::new(
+                format!("Error getting the media with id {}. {}", id, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
+        })?;
         Ok(data)
     }
 
@@ -110,15 +108,10 @@ impl MinimalAnimeWrapper {
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         // Get json
-        let data = serde_json::from_str(&resp).map_err(|e| {
-            AppError {
-                message: format!(
-                    "Error getting the media with name {}. {}",
-                    search, e
-                ),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            }
+        let data = serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with name {}. {}", search, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })?;
         Ok(data)
     }

@@ -81,13 +81,13 @@ impl PageWrapper {
 
         let json = json!({"query": query, "variables": {"anime_page": number}});
         let res = make_request_anilist(json, false).await;
-        let res = serde_json::from_str(&res)
-            .map_err(|e|
-                AppError::new(
-                    format!("Error getting the media with id {}. {}", number, e),
-                    ErrorType::WebRequest,
-                    ErrorResponseType::None,
-                ))?;
+        let res = serde_json::from_str(&res).map_err(|e| {
+            AppError::new(
+                format!("Error getting the media with id {}. {}", number, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
+        })?;
         Ok(res)
     }
 
@@ -119,13 +119,13 @@ impl PageWrapper {
         let json = json!({"query": query, "variables": {"manga_page": number}});
         let res = make_request_anilist(json, false).await;
 
-        let res = serde_json::from_str(&res)
-            .map_err(|e|
-                AppError::new(
-                    format!("Error getting the media with id {}. {}", number, e),
-                    ErrorType::WebRequest,
-                    ErrorResponseType::None,
-                ))?;
+        let res = serde_json::from_str(&res).map_err(|e| {
+            AppError::new(
+                format!("Error getting the media with id {}. {}", number, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
+        })?;
         Ok(res)
     }
 }

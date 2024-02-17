@@ -173,12 +173,11 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp)
-            .map_err(|e| AppError {
-                message: format!("Error getting the media with id {}. {}", id, e),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            })
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with id {}. {}", id, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
+        })
     }
 
     pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, AppError> {
@@ -242,15 +241,10 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            AppError {
-                message: format!(
-                    "Error getting the media with name {}. {}",
-                    search, e
-                ),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            }
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with name {}. {}", search, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 
@@ -316,14 +310,11 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp)
-            .map_err(|e|
-                AppError {
-                    message: format!("Error getting the media with id {}. {}", id, e),
-                    error_type: ErrorType::WebRequest,
-                    error_response_type: ErrorResponseType::Message,
-                }
-            )
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with id {}. {}", id, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
+        })
     }
 
     pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, AppError> {
@@ -387,15 +378,10 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            AppError {
-                message: format!(
-                    "Error getting the media with name {}. {}",
-                    search, e
-                ),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            }
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with name {}. {}", search, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 
@@ -461,13 +447,11 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp)
-            .map_err(|e|
-                AppError {
-                    message: format!("Error getting the media with id {}. {}", id, e),
-                    error_type: ErrorType::WebRequest,
-                    error_response_type: ErrorResponseType::Message,
-                })
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with id {}. {}", id, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
+        })
     }
 
     pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, AppError> {
@@ -532,15 +516,10 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            AppError {
-                message: format!(
-                    "Error getting the media with name {}. {}",
-                    search, e
-                ),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            }
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with name {}. {}", search, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 }
@@ -717,13 +696,11 @@ pub async fn send_embed(
     data: MediaWrapper,
 ) -> Result<(), AppError> {
     if data.data.media.is_adult && !get_nsfw(command_interaction, ctx).await {
-        return Err(
-            AppError {
-                message: String::from("The channel is not nsfw but the media you requested is."),
-                error_type: ErrorType::Command,
-                error_response_type: ErrorResponseType::Message,
-            }
-        );
+        return Err(AppError {
+            message: String::from("The channel is not nsfw but the media you requested is."),
+            error_type: ErrorType::Command,
+            error_response_type: ErrorResponseType::Message,
+        });
     }
 
     let guild_id = match command_interaction.guild_id {
@@ -751,11 +728,9 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e|
-            AppError {
-                message: format!("Error sending the media embed. {}", e),
-                error_type: ErrorType::Command,
-                error_response_type: ErrorResponseType::Message,
-            }
-        )
+        .map_err(|e| AppError {
+            message: format!("Error sending the media embed. {}", e),
+            error_type: ErrorType::Command,
+            error_response_type: ErrorResponseType::Message,
+        })
 }

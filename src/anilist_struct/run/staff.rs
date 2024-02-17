@@ -2,8 +2,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::web_request_error::WebRequestError;
-use crate::error_management::web_request_error::WebRequestError::NotFound;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Name {
@@ -100,7 +99,7 @@ pub struct StaffWrapper {
 }
 
 impl StaffWrapper {
-    pub async fn new_staff_by_id(id: i32) -> Result<StaffWrapper, WebRequestError> {
+    pub async fn new_staff_by_id(id: i32) -> Result<StaffWrapper, AppError> {
         let query_id: &str = "
 query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
 	Staff(id: $name){
@@ -158,11 +157,16 @@ query ($name: Int, $limit1: Int = 5, $limit2: Int = 15) {
 ";
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, false).await;
-        serde_json::from_str(&resp)
-            .map_err(|e| NotFound(format!("Error getting the staff with id {}. {}", id, e)))
+        serde_json::from_str(&resp).map_err(|e| {
+            AppError::new(
+                format!("Error getting the staff with id {}. {}", id, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
+        })
     }
 
-    pub async fn new_staff_by_search(search: &String) -> Result<StaffWrapper, WebRequestError> {
+    pub async fn new_staff_by_search(search: &String) -> Result<StaffWrapper, AppError> {
         let query_string: &str = "
 query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
 	Staff(search: $name){
@@ -221,10 +225,11 @@ query ($name: String, $limit1: Int = 5, $limit2: Int = 15) {
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, false).await;
         serde_json::from_str(&resp).map_err(|e| {
-            NotFound(format!(
-                "Error getting the staff with name {}. {}",
-                search, e
-            ))
+            AppError::new(
+                format!("Error getting the staff with name {}. {}", search, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
         })
     }
 }
