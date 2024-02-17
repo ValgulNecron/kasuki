@@ -12,6 +12,30 @@ pub enum InteractionError {
     Autocomplete(AutocompleteError),
 }
 
+impl From<CommandError> for InteractionError {
+    fn from(error: CommandError) -> Self {
+        InteractionError::Command(error)
+    }
+}
+
+impl From<DifferedCommandError> for InteractionError {
+    fn from(error: DifferedCommandError) -> Self {
+        InteractionError::DifferedCommand(error)
+    }
+}
+
+impl From<ComponentError> for InteractionError {
+    fn from(error: ComponentError) -> Self {
+        InteractionError::Component(error)
+    }
+}
+
+impl From<AutocompleteError> for InteractionError {
+    fn from(error: AutocompleteError) -> Self {
+        InteractionError::Autocomplete(error)
+    }
+}
+
 impl fmt::Display for InteractionError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {

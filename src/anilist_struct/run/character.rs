@@ -12,6 +12,8 @@ use crate::common::trimer::trim;
 use crate::constant::COLOR;
 use crate::error_management::api_request_error::ApiRequestError;
 use crate::error_management::api_request_error::ApiRequestError::NotFound;
+use crate::error_management::generic_error::GenericError::SendingCommand;
+use crate::error_management::interaction_error::InteractionError;
 use crate::lang_struct::anilist::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -158,44 +160,44 @@ pub async fn send_embed(
 
     let character_localised = load_localization_character(guild_id).await?;
 
-    let dob_data = character.date_of_birth.clone();
-    let mut dob_string = String::new();
+    let date_of_birth_data = character.date_of_birth.clone();
+    let mut date_of_birth_string = String::new();
 
-    let mut mo: bool = false;
-    let mut da: bool = false;
+    let mut has_month: bool = false;
+    let mut has_day: bool = false;
 
-    if let Some(m) = dob_data.month {
-        dob_string.push_str(format!("{:02}", m).as_str());
-        mo = true
+    if let Some(m) = date_of_birth_data.month {
+        date_of_birth_string.push_str(format!("{:02}", m).as_str());
+        has_month = true
     }
 
-    if let Some(d) = dob_data.day {
-        if mo {
-            dob_string.push('/')
+    if let Some(d) = date_of_birth_data.day {
+        if has_month {
+            date_of_birth_string.push('/')
         }
-        dob_string.push_str(format!("{:02}", d).as_str());
-        da = true
+        date_of_birth_string.push_str(format!("{:02}", d).as_str());
+        has_day = true
     }
 
-    if let Some(y) = dob_data.year {
-        if da {
-            dob_string.push('/')
+    if let Some(y) = date_of_birth_data.year {
+        if has_day {
+            date_of_birth_string.push('/')
         }
-        dob_string.push_str(format!("{:04}", y).as_str());
+        date_of_birth_string.push_str(format!("{:04}", y).as_str());
     }
 
-    let mut dob = String::new();
-    if dob_string != String::new() {
-        dob = character_localised
+    let mut date_of_birth = String::new();
+    if date_of_birth_string != String::new() {
+        date_of_birth = character_localised
             .date_of_birth
-            .replace("$date$", dob_string.as_str())
+            .replace("$date$", date_of_birth_string.as_str())
     }
 
     let mut desc = character_localised
         .desc
         .replace("$age$", character.age.as_str())
         .replace("$gender$", character.gender.as_str())
-        .replace("$date_of_birth$", dob.as_str())
+        .replace("$date_of_birth$", date_of_birth.as_str())
         .replace("$fav$", character.favourites.to_string().as_str())
         .replace("$desc$", character.description.as_str());
 
@@ -225,8 +227,7 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(
-                ErrorCommandSendingError(format!("Error while sending the command {}", e)).clone(),
-            )
-        })
+            SendingCommand(format!("Error while sending the command {}", e))
+        })?;
+    Ok(())
 }

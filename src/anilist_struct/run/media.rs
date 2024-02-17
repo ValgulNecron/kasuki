@@ -10,11 +10,12 @@ use crate::common::get_nsfw::get_nsfw;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, UNKNOWN};
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, MediaGettingError, NotNSFWError,
-};
+use crate::error_management::api_request_error::ApiRequestError;
+use crate::error_management::api_request_error::ApiRequestError::NotFound;
+use crate::error_management::command_error::CommandError;
+use crate::error_management::command_error::CommandError::NotNSFW;
+use crate::error_management::generic_error::GenericError::SendingCommand;
+use crate::error_management::interaction_error::InteractionError;
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -115,7 +116,7 @@ pub struct Name {
 }
 
 impl MediaWrapper {
-    pub async fn new_anime_by_id(id: String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_anime_by_id(id: String) -> Result<MediaWrapper, ApiRequestError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5) {
 		Media (id: $search, type: ANIME){
@@ -178,14 +179,14 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
+            NotFound(format!(
                 "Error getting the media with id {}. {}",
                 id, e
-            )))
+            ))
         })
     }
 
-    pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, ApiRequestError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5) {
 		Media (search: $search, type: ANIME){
@@ -247,14 +248,14 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
+            NotFound(format!(
                 "Error getting the media with name {}. {}",
                 search, e
-            )))
+            ))
         })
     }
 
-    pub async fn new_manga_by_id(id: String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_manga_by_id(id: String) -> Result<MediaWrapper, ApiRequestError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (id: $search, type: MANGA, format_not: $format){
@@ -317,14 +318,14 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
+            NotFound(format!(
                 "Error getting the media with id {}. {}",
                 id, e
-            )))
+            ))
         })
     }
 
-    pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, ApiRequestError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (search: $search, type: MANGA, format_not: $format){
@@ -386,14 +387,14 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
+            NotFound(format!(
                 "Error getting the media with name {}. {}",
                 search, e
-            )))
+            ))
         })
     }
 
-    pub async fn new_ln_by_id(id: String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_ln_by_id(id: String) -> Result<MediaWrapper, ApiRequestError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (id: $search, type: MANGA, format: $format){
@@ -456,14 +457,14 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
+            NotFound(format!(
                 "Error getting the media with id {}. {}",
                 id, e
-            )))
+            ))
         })
     }
 
-    pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, AppError> {
+    pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, ApiRequestError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
 		Media (search: $search, type: MANGA, format: $format){
@@ -526,10 +527,10 @@ impl MediaWrapper {
         let resp = make_request_anilist(json, false).await;
         // Get json
         serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
+            NotFound(format!(
                 "Error getting the media with name {}. {}",
                 search, e
-            )))
+            ))
         })
     }
 }
@@ -537,22 +538,22 @@ impl MediaWrapper {
 fn embed_title(data: &MediaWrapper) -> String {
     let en = data.data.media.title.english.clone();
     let rj = data.data.media.title.romaji.clone();
-    let en = en.unwrap_or(String::from(""));
-    let rj = rj.unwrap_or(String::from(""));
+    let en = en.unwrap_or_default();
+    let rj = rj.unwrap_or_default();
     let mut title = String::new();
-    let mut total = 0;
-    match en.as_str() {
-        "" => {}
+    let mut has_en_title = false;
+    match en {
+        String::new() => {}
         _ => {
-            total += 1;
+            has_en_title = true;
             title.push_str(en.as_str())
         }
     }
 
-    match rj.as_str() {
-        "\"\"" => {}
+    match rj{
+        String::new() => {}
         _ => {
-            if total == 1 {
+            if has_en_title {
                 title.push_str(" / ");
                 title.push_str(rj.as_str())
             } else {
@@ -567,9 +568,9 @@ fn embed_title(data: &MediaWrapper) -> String {
 fn embed_desc(data: &MediaWrapper) -> String {
     let mut desc = data.data.media.description.clone().unwrap_or_default();
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
-    let lenght_diff = 4096 - desc.len() as i32;
-    if lenght_diff <= 0 {
-        desc = trim(desc, lenght_diff)
+    let length_diff = 4096 - desc.len() as i32;
+    if length_diff <= 0 {
+        desc = trim(desc, length_diff)
     }
     desc
 }
@@ -579,8 +580,8 @@ fn get_genre(data: &MediaWrapper) -> String {
         .media
         .genres
         .iter()
-        .filter_map(|x| x.as_ref())
-        .map(|s| s.as_str())
+        .filter_map(|genre| genre.as_ref())
+        .map(|string| string.as_str())
         .take(5)
         .collect::<Vec<&str>>()
         .join("\n")
@@ -591,8 +592,8 @@ fn get_tag(data: &MediaWrapper) -> String {
         .media
         .tags
         .iter()
-        .filter_map(|x| x.name.as_ref())
-        .map(|s| s.as_str())
+        .filter_map(|tag| tag.name.as_ref())
+        .map(|string| string.as_str())
         .take(5)
         .collect::<Vec<&str>>()
         .join("\n")
@@ -650,7 +651,32 @@ fn get_date(date: &StartEndDate) -> String {
     if date_y == 0 && date_d == 0 && date_m == 0 {
         UNKNOWN.to_string()
     } else {
-        format!("{}/{}/{}", date_d, date_m, date_y)
+        let mut date_of_birth_string = String::new();
+
+        let mut has_month: bool = false;
+        let mut has_day: bool = false;
+
+        if let Some(m) = date.month {
+            date_of_birth_string.push_str(format!("{:02}", m).as_str());
+            has_month = true
+        }
+
+        if let Some(d) = date.day {
+            if has_month {
+                date_of_birth_string.push('/')
+            }
+            date_of_birth_string.push_str(format!("{:02}", d).as_str());
+            has_day = true
+        }
+
+        if let Some(y) = date.year {
+            if has_day {
+                date_of_birth_string.push('/')
+            }
+            date_of_birth_string.push_str(format!("{:04}", y).as_str());
+        }
+
+        date_of_birth_string
     }
 }
 
@@ -679,10 +705,10 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     data: MediaWrapper,
-) -> Result<(), AppError> {
+) -> Result<(), InteractionError> {
     if data.data.media.is_adult && !get_nsfw(command_interaction, ctx).await {
-        return Err(Error(NotNSFWError(String::from(
-            "The channel is not nsfw.",
+        return Err(InteractionError::Command(NotNSFW(String::from(
+            "The channel is not nsfw but the media you requested is.",
         ))));
     }
 
@@ -712,9 +738,10 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
+            SendingCommand(format!(
                 "Error while sending the command {}",
                 e
-            )))
-        })
+            ))
+        })?;
+    Ok(())
 }
