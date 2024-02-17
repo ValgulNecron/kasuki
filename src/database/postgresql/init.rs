@@ -2,8 +2,7 @@ use crate::database::postgresql::migration::migration_dispatch::migrate_postgres
 use crate::database::postgresql::pool::get_postgresql_pool;
 use sqlx::{Pool, Postgres};
 use crate::error_management::database_error::DatabaseError;
-use crate::error_management::database_error::DatabaseError::Insert;
-use crate::error_management::error_enum::NotACommandError::{CreatingDatabaseError, CreatingTableError};
+use crate::error_management::database_error::DatabaseError::{Create, Insert};
 
 pub async fn init_postgres() -> Result<(), DatabaseError> {
     migrate_postgres().await?;
@@ -24,7 +23,7 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), DatabaseError>
             .fetch_one(pool)
             .await
             .map_err(|e| {
-                CreatingDatabaseError(format!(
+                Create(format!(
                     "Failed to check if the database exists. {}",
                     e
                 ))
@@ -36,7 +35,7 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), DatabaseError>
             .execute(pool)
             .await
             .map_err(|e| {
-                CreatingDatabaseError(format!(
+                Create(format!(
                     "Failed to create the database. {}",
                     e
                 ))
@@ -53,7 +52,7 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), DatabaseError>
         .execute(pool)
         .await
         .map_err(|e| {
-            CreatingTableError(format!(
+            Create(format!(
                 "Failed to create the table. {}",
                 e
             ))
@@ -70,7 +69,7 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), DatabaseError>
         .execute(pool)
         .await
         .map_err(|e| {
-            CreatingTableError(format!(
+            Create(format!(
                 "Failed to create the table. {}",
                 e
             ))
@@ -78,7 +77,7 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), DatabaseError>
     Ok(())
 }
 
-async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
+async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), DatabaseError> {
     // Check if the database exists
     let exists: (bool, ) =
         sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)")
@@ -86,7 +85,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             .fetch_one(pool)
             .await
             .map_err(|e| {
-                CreatingTableError(format!(
+                Create(format!(
                     "Failed to check if the database exists. {}",
                     e
                 ))
@@ -98,7 +97,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             .execute(pool)
             .await
             .map_err(|e| {
-                CreatingTableError(format!(
+                Create(format!(
                     "Failed to create the database. {}",
                     e
                 ))
@@ -116,7 +115,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         .execute(pool)
         .await
         .map_err(|e| {
-            CreatingTableError(format!(
+            Create(format!(
                 "Failed to create the table. {}",
                 e
             ))
@@ -131,7 +130,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         .execute(pool)
         .await
         .map_err(|e| {
-            CreatingTableError(format!(
+            Create(format!(
                 "Failed to create the table. {}",
                 e
             ))
@@ -153,7 +152,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         .execute(pool)
         .await
         .map_err(|e| {
-            CreatingTableError(format!(
+            Create(format!(
                 "Failed to create the table. {}",
                 e
             ))
@@ -171,7 +170,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         .execute(pool)
         .await
         .map_err(|e| {
-            CreatingTableError(format!(
+            Create(format!(
                 "Failed to create the table. {}",
                 e
             ))
@@ -186,7 +185,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         .execute(pool)
         .await
         .map_err(|e| {
-            CreatingTableError(format!(
+            Create(format!(
                 "Failed to create the table. {}",
                 e
             ))
@@ -204,7 +203,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         .execute(pool)
         .await
         .map_err(|e| {
-            CreatingTableError(format!(
+            Create(format!(
                 "Failed to create the table. {}",
                 e
             ))
@@ -233,7 +232,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         .execute(pool)
         .await
         .map_err(|e| {
-            CreatingTableError(format!(
+            Create(format!(
                 "Failed to create the table. {}",
                 e
             ))
@@ -250,7 +249,7 @@ image_url TEXT NOT NULL
         .execute(pool)
         .await
         .map_err(|e| {
-            CreatingTableError(format!(
+            Create(format!(
                 "Failed to create the table. {}",
                 e
             ))

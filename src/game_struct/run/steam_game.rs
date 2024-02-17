@@ -1,8 +1,5 @@
 use crate::constant::{APPS, LANG_MAP};
 use crate::database::dispatcher::data_dispatch::get_data_guild_langage;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{NotAValidGameError, NotAValidUrlError};
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
@@ -11,6 +8,8 @@ use serde_with::serde_as;
 use serde_with::OneOrMany;
 use std::collections::HashMap;
 use tracing::trace;
+use crate::error_management::api_request_error::ApiRequestError;
+use crate::error_management::api_request_error::ApiRequestError::{Decoding, IncorrectUrl, NotFound, Parsing, Request};
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
@@ -186,11 +185,11 @@ impl SteamGameWrapper {
     pub async fn new_steam_game_by_id(
         appid: u128,
         guild_id: String,
-    ) -> Result<SteamGameWrapper, AppError> {
+    ) -> Result<SteamGameWrapper, ApiRequestError> {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
             .build()
-            .map_err(|e| Error(NotAValidUrlError(format!("Bad url. {}", e))))?;
+            .map_err(|e| IncorrectUrl(format!("Incorrect url. {}", e)))?;
         let lang = get_data_guild_langage(guild_id)
             .await?
             .0
@@ -210,80 +209,12 @@ impl SteamGameWrapper {
             .get(&url)
             .send()
             .await
-            .map_err(|e| Error(NotAValidUrlError(format!("Bad url response. {}", e))))?;
-        let text = response.text().await.map_err(|e| {
-            Error(NotAValidGameError(format!(
-                "Failed to get the text data. {}",
-                e
-            )))
-        })?;
-        let game_wrapper: HashMap<String, SteamGameWrapper> = serde_json::from_str(text.as_str())
-            .map_err(|e| {
-                Error(NotAValidGameError(format!(
-                    "Failed to parse as json. {}",
-                    e
-                )))
-            })?;
-
-        Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
-    }
-
-    pub async fn new_steam_game_by_search(
-        search: &str,
-        guild_id: String,
-    ) -> Result<SteamGameWrapper, AppError> {
-        let choices: Vec<(&String, &u128)>;
-        unsafe { choices = APPS.iter().collect() }
-
-        let choices: Vec<&str> = choices.into_iter().map(|(s, _)| s.as_str()).collect();
-        let results: Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
-
-        let mut appid = &0u128;
-        unsafe {
-            if results.is_empty() {
-                return Err(Error(NotAValidGameError(String::from("Game not found."))));
-            }
-            for (name, _) in results {
-                if appid == &0u128 {
-                    appid = APPS.get(name).unwrap()
-                }
-
-                if search.to_lowercase() == name.to_lowercase() {
-                    appid = APPS.get(name).unwrap();
-                    break;
-                }
-            }
-        }
-
-        let client = reqwest::Client::builder()
-            .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
-            .build()
-            .map_err(|e| Error(NotAValidUrlError(format!("Invalid Url. {}", e))))?;
-        let lang = get_data_guild_langage(guild_id)
-            .await?
-            .0
-            .unwrap_or(String::from("en"))
-            .to_uppercase();
-        let full_lang = LANG_MAP
-            .get(lang.to_lowercase().as_str())
-            .unwrap_or(&"english");
-        let url = format!(
-            "https://store.steampowered.com/api/appdetails/?cc={}&l={}&appids={}",
-            lang, full_lang, appid
-        );
-
-        trace!("{}", url);
-
-        let response = client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| Error(NotAValidUrlError(format!("Bad url response. {}", e))))?;
+            .map_err(|e| Request(format!("Error when making the request. {}", e)))?;
         let mut text = response.text().await.map_err(|e| {
-            Error(NotAValidGameError(format!(
+            Decoding(format!(
                 "Failed to get the text data. {}",
                 e
-            )))
+            ))
         })?;
 
         let re = Regex::new(r#""required_age":"(\d+)""#).unwrap();
@@ -299,16 +230,44 @@ impl SteamGameWrapper {
             }
         }
 
-        let game_wrapper: HashMap<String, SteamGameWrapper> =
-            match serde_json::from_str(text.as_str()) {
-                Ok(a) => a,
-                Err(e) => {
-                    trace!("{:#?}", e);
-                    return Err(Error(NotAValidGameError(format!("Invalid Game. {}", e))));
-                }
-            };
-        // .map_err(|_| )?;
+        let game_wrapper: HashMap<String, SteamGameWrapper> = serde_json::from_str(text.as_str())
+            .map_err(|e| {
+                Parsing(format!(
+                    "Failed to parse as json. {}",
+                    e
+                ))
+            })?;
 
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
+    }
+
+    pub async fn new_steam_game_by_search(
+        search: &str,
+        guild_id: String,
+    ) -> Result<SteamGameWrapper, ApiRequestError> {
+        let choices: Vec<(&String, &u128)>;
+        unsafe { choices = APPS.iter().collect() }
+
+        let choices: Vec<&str> = choices.into_iter().map(|(s, _)| s.as_str()).collect();
+        let results: Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
+
+        let mut appid = &0u128;
+        unsafe {
+            if results.is_empty() {
+                return Err(NotFound(String::from("Game not found.")));
+            }
+            for (name, _) in results {
+                if appid == &0u128 {
+                    appid = APPS.get(name).unwrap()
+                }
+
+                if search.to_lowercase() == name.to_lowercase() {
+                    appid = APPS.get(name).unwrap();
+                    break;
+                }
+            }
+        }
+
+        SteamGameWrapper::new_steam_game_by_id(*appid, guild_id).await
     }
 }

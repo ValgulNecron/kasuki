@@ -4,6 +4,7 @@ use sqlx::FromRow;
 use tracing::log::trace;
 
 use crate::common::make_anilist_request::make_request_anilist;
+use crate::error_management::api_request_error::ApiRequestError;
 use crate::error_management::error_enum::AppError;
 use crate::error_management::error_enum::AppError::Error;
 use crate::error_management::error_enum::CommandError::MediaGettingError;

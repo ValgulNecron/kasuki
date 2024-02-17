@@ -5,21 +5,16 @@ use std::env;
 
 pub static ACTIVITY_NAME: Lazy<String> =
     Lazy::new(|| env::var("BOT_ACTIVITY").unwrap_or("Let you get info from anilist.".to_string()));
-pub const APP_VERSION: &str = "V2.2.2";
+pub const APP_VERSION: &str = "V2.3.0";
 
 /*
 all delays
  */
-pub const DELAY_BEFORE_THREAD_SPAWN: u64 = 30;
-// 30 seconds
-pub const PING_UPDATE_DELAYS: u64 = 600;
-// 10 minutes
-pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 120;
-// 2 minutes
-pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 1_800;
-// 30 minutes
-pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
-// 1 day
+pub const DELAY_BEFORE_THREAD_SPAWN: u64 = 30; // 30 seconds
+pub const PING_UPDATE_DELAYS: u64 = 600; // 10 minutes
+pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 120; // 2 minutes
+pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 1_800; // 30 minutes
+pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400; // 1 day
 pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200; // 3 days
 
 /*
@@ -40,7 +35,7 @@ app embed color.
  */
 pub const COLOR: Colour = Colour::FABLED_PINK;
 /*
-other crate log level. because serenity use info for obviously trace thing like heartbeat.
+Other crate log level. Because serenity uses info to obviously trace things like heartbeat.
  */
 pub const OTHER_CRATE_LEVEL: &str = "warn";
 /*

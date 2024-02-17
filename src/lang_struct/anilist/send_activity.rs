@@ -4,9 +4,8 @@ use std::io::Read;
 
 use serde::{Deserialize, Serialize};
 
-use crate::common::get_guild_lang::get_guild_langage;
-use crate::error_management::file::file_error::FileError::{NotFound, Parsing, Reading};
-use crate::error_management::lang::lang_error::LangError;
+use crate::common::get_guild_lang::get_guild_langage;use crate::error_management::file_error::FileError::{NotFound, Parsing, Reading};
+use crate::error_management::lang_error::LangError;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SendActivityLocalised {

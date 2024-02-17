@@ -216,7 +216,7 @@ image_url TEXT NOT NULL,
             Create(format!(
                 "Failed to create the table. {}",
                 e
-            )))=
+            ))
         })?;
 
     Ok(())

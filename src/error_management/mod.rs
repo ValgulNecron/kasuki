@@ -6,3 +6,8 @@ pub mod lang_error;
 pub mod webhook_error;
 pub mod api_request_error;
 pub mod database_error;
+mod generic_error;
+mod command_error;
+mod differed_command_error;
+mod component_error;
+mod autocomplete_error;

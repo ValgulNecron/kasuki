@@ -34,7 +34,10 @@ pub async fn send_activity(ctx: &Context) {
     let now = Utc::now().timestamp().to_string();
     let rows = match get_data_activity(now.clone()).await {
         Ok(rows) => rows,
-        Err(e) => error!("{}", e),
+        Err(e) => {
+            error!("{}", e);
+            return;
+        },
     };
     for row in rows {
         if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {} else {
