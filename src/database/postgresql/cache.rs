@@ -1,22 +1,21 @@
 use crate::database::postgresql::pool::get_postgresql_pool;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::SqlInsertError;
 use chrono::Utc;
 use serde_json::Value;
+use crate::error_management::database_error::DatabaseError;
+use crate::error_management::database_error::DatabaseError::Insert;
 
 pub async fn get_database_random_cache_postgresql(
     random_type: &str,
-) -> Result<(Option<String>, Option<i64>, Option<i64>), AppError> {
+) -> Result<(Option<String>, Option<i64>, Option<i64>), DatabaseError> {
     let pool = get_postgresql_pool().await?;
 
     let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as(
         "SELECT response, last_updated, last_page FROM CACHE.cache_stats WHERE key = $1",
     )
-    .bind(random_type)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None, None));
+        .bind(random_type)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None, None));
 
     pool.close().await;
     Ok(row)
@@ -27,7 +26,7 @@ pub async fn set_database_random_cache_postgres(
     cached_response: &str,
     now: i64,
     previous_page: i64,
-) -> Result<(), AppError> {
+) -> Result<(), DatabaseError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query("INSERT INTO CACHE.cache_stats (key, response, last_updated, last_page) VALUES ($1, $2, $3, $4) ON CONFLICT (key) DO UPDATE SET response = EXCLUDED.response, last_updated = EXCLUDED.last_updated, last_page = EXCLUDED.last_page")
         .bind(random_type)
@@ -36,29 +35,29 @@ pub async fn set_database_random_cache_postgres(
         .bind(previous_page)
         .execute(&pool)
         .await
-        .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
+        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
     pool.close().await;
     Ok(())
 }
 
 pub async fn get_database_cache_postgresql(
     json: Value,
-) -> Result<(Option<String>, Option<String>, Option<i64>), AppError> {
+) -> Result<(Option<String>, Option<String>, Option<i64>), DatabaseError> {
     let pool = get_postgresql_pool().await?;
 
     let row: (Option<String>, Option<String>, Option<i64>) = sqlx::query_as(
         "SELECT json, response, last_updated FROM CACHE.request_cache WHERE json = $1",
     )
-    .bind(json.clone())
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None, None));
+        .bind(json.clone())
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None, None));
 
     pool.close().await;
     Ok(row)
 }
 
-pub async fn set_database_cache_postgresql(json: Value, resp: String) -> Result<(), AppError> {
+pub async fn set_database_cache_postgresql(json: Value, resp: String) -> Result<(), DatabaseError> {
     let pool = get_postgresql_pool().await?;
     let now = Utc::now().timestamp();
     sqlx::query(
@@ -69,7 +68,7 @@ pub async fn set_database_cache_postgresql(json: Value, resp: String) -> Result<
         .bind(now)
         .execute(&pool)
         .await
-        .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
+        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
     pool.close().await;
     Ok(())
 }

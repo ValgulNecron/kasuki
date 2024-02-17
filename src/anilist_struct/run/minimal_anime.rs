@@ -51,7 +51,7 @@ pub struct CoverImage {
 }
 
 impl MinimalAnimeWrapper {
-    pub async fn new_minimal_anime_by_id(id: String) -> Result<MinimalAnimeWrapper, AppError> {
+    pub async fn new_minimal_anime_by_id(id: String) -> Result<MinimalAnimeWrapper, ApiRequestError> {
         let query = "
                 query ($name: Int) {
                   Media(type: ANIME, id: $name) {

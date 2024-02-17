@@ -219,11 +219,11 @@ impl SteamGameWrapper {
         })?;
         let game_wrapper: HashMap<String, SteamGameWrapper> = serde_json::from_str(text.as_str())
             .map_err(|e| {
-            Error(NotAValidGameError(format!(
-                "Failed to parse as json. {}",
-                e
-            )))
-        })?;
+                Error(NotAValidGameError(format!(
+                    "Failed to parse as json. {}",
+                    e
+                )))
+            })?;
 
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }

@@ -1,4 +1,5 @@
 use std::fmt;
+
 #[derive(Debug, Clone)]
 pub enum DatabaseError {
     Insert(String),
@@ -8,6 +9,7 @@ pub enum DatabaseError {
     Alter(String),
     Update(String),
 }
+
 impl fmt::Display for DatabaseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {

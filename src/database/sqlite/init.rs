@@ -7,18 +7,15 @@ use tracing::error;
 use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
 use crate::database::sqlite::migration::migration_dispatch::migrate_sqlite;
 use crate::database::sqlite::pool::get_sqlite_pool;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::NotACommandError;
-use crate::error_management::error_enum::NotACommandError::{
-    CreatingDatabaseFileError, CreatingTableError, InsertingDatabaseError,
-};
+use crate::error_management::database_error::DatabaseError;
+use crate::error_management::database_error::DatabaseError::Create;
 
 /// Initializes SQLite database.
 ///
 /// This function checks if the SQLite database files exist and creates them if they don't.
 /// It then initializes the database by creating the necessary tables and indices.
 /// This function uses two separate SQLite databases: one for data and one for cache.
-pub async fn init_sqlite() -> Result<(), AppError> {
+pub async fn init_sqlite() -> Result<(), DatabaseError> {
     create_sqlite_file(DATA_SQLITE_DB)?;
     create_sqlite_file(CACHE_SQLITE_DB)?;
     if let Err(e) = migrate_sqlite().await {
@@ -33,7 +30,7 @@ pub async fn init_sqlite() -> Result<(), AppError> {
     Ok(())
 }
 
-async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
+async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), DatabaseError> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS request_cache (
             json TEXT PRIMARY KEY,
@@ -41,14 +38,14 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             last_updated INTEGER NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        NotACommandError(CreatingTableError(format!(
-            "Failed to create the table. {}",
-            e
-        )))
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            Create(format!(
+                "Failed to create the table. {}",
+                e
+            ))
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS cache_stats (
@@ -58,14 +55,14 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             last_page INTEGER NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        NotACommandError(CreatingTableError(format!(
-            "Failed to create the table. {}",
-            e
-        )))
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            Create(format!(
+                "Failed to create the table. {}",
+                e
+            ))
+        })?;
     Ok(())
 }
 
@@ -74,7 +71,7 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
 /// # Arguments
 ///
 /// * `_pool` - A reference to the SQLite connection pool.
-async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
+async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), DatabaseError> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS ping_history (
                     shard_id TEXT,
@@ -83,14 +80,14 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
                     PRIMARY KEY (shard_id, timestamp)
                 )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        NotACommandError(CreatingTableError(format!(
-            "Failed to create the table. {}",
-            e
-        )))
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            Create(format!(
+                "Failed to create the table. {}",
+                e
+            ))
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS guild_lang (
@@ -98,14 +95,14 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             lang TEXT NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        NotACommandError(CreatingTableError(format!(
-            "Failed to create the table. {}",
-            e
-        )))
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            Create(format!(
+                "Failed to create the table. {}",
+                e
+            ))
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS activity_data (
@@ -122,7 +119,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
     )
         .execute(pool)
         .await
-        .map_err(|e| NotACommandError(CreatingTableError(format!("Failed to create the table. {}", e))))?;
+        .map_err(|e| Create(format!("Failed to create the table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
@@ -133,14 +130,14 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             new_member INTEGER
    )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        NotACommandError(CreatingTableError(format!(
-            "Failed to create the table. {}",
-            e
-        )))
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            Create(format!(
+                "Failed to create the table. {}",
+                e
+            ))
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
@@ -148,14 +145,14 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             anilist_id TEXT
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        NotACommandError(CreatingTableError(format!(
-            "Failed to create the table. {}",
-            e
-        )))
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            Create(format!(
+                "Failed to create the table. {}",
+                e
+            ))
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
@@ -166,14 +163,14 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             new_member INTEGER
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        NotACommandError(CreatingTableError(format!(
-            "Failed to create the table. {}",
-            e
-        )))
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            Create(format!(
+                "Failed to create the table. {}",
+                e
+            ))
+        })?;
 
     sqlx::query(
         "INSERT OR REPLACE INTO global_kill_switch (id, anilist_module, ai_module, game_module, new_member) VALUES (?, ?, ?, ?, ?)",
@@ -184,7 +181,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
         .bind(1)
         .bind(1)
         .execute(pool)
-        .await.map_err(|e| NotACommandError(InsertingDatabaseError(format!("Failed to create the database table. {}", e))))?;
+        .await.map_err(|e| Create(format!("Failed to create the database table. {}", e)))?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_color (
@@ -194,14 +191,14 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
                 image TEXT NOT NULL
      )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        NotACommandError(CreatingTableError(format!(
-            "Failed to create the table. {}",
-            e
-        )))
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            Create(format!(
+                "Failed to create the table. {}",
+                e
+            ))
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS server_image (
@@ -213,29 +210,29 @@ image_url TEXT NOT NULL,
 
      )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        NotACommandError(CreatingTableError(format!(
-            "Failed to create the table. {}",
-            e
-        )))
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            Create(format!(
+                "Failed to create the table. {}",
+                e
+            )))=
+        })?;
 
     Ok(())
 }
 
-fn create_sqlite_file(path: &str) -> Result<(), AppError> {
+fn create_sqlite_file(path: &str) -> Result<(), DatabaseError> {
     let p = Path::new(path);
     if !p.exists() {
         match File::create(p) {
             Ok(_) => {}
             Err(e) => {
                 error!("Failed to create the file {} : {}", path, e);
-                return Err(NotACommandError(CreatingDatabaseFileError(format!(
+                return Err(Create(format!(
                     "Failed to create db file. {}",
                     e
-                ))));
+                )));
             }
         }
     }
