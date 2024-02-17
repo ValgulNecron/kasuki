@@ -6,11 +6,10 @@ use serenity::all::{
 };
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, UserGettingError,
-};
+use crate::error_management::api_request_error::ApiRequestError;
+use crate::error_management::api_request_error::ApiRequestError::NotFound;
+use crate::error_management::generic_error::GenericError::SendingCommand;
+use crate::error_management::interaction_error::InteractionError;
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -102,7 +101,7 @@ pub struct Genre {
 }
 
 impl UserWrapper {
-    pub async fn new_user_by_id(id: i32) -> Result<UserWrapper, AppError> {
+    pub async fn new_user_by_id(id: i32) -> Result<UserWrapper, ApiRequestError> {
         let query_id: &str = "
 query ($name: Int, $limit: Int = 5) {
   User(id: $name) {
@@ -159,14 +158,14 @@ options{
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp).map_err(|e| {
-            Error(UserGettingError(format!(
+            NotFound(format!(
                 "Error getting the user with id {}. {}",
                 id, e
-            )))
+            ))
         })
     }
 
-    pub async fn new_user_by_search(search: &String) -> Result<UserWrapper, AppError> {
+    pub async fn new_user_by_search(search: &String) -> Result<UserWrapper, ApiRequestError> {
         let query_string: &str = "
 query ($name: String, $limit: Int = 5) {
   User(name: $name) {
@@ -223,10 +222,10 @@ options{
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp).map_err(|e| {
-            Error(UserGettingError(format!(
+            NotFound(format!(
                 "Error getting the user with name {}. {}",
                 search, e
-            )))
+            ))
         })
     }
 }
@@ -235,7 +234,7 @@ pub async fn send_embed(
     ctx: &Context,
     command: &CommandInteraction,
     data: UserWrapper,
-) -> Result<(), AppError> {
+) -> Result<(), InteractionError> {
     let guild_id = match command.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -286,11 +285,12 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
+            SendingCommand(format!(
                 "Error while sending the command {}",
                 e
-            )))
-        })
+            ))
+        })?;
+    Ok(())
 }
 
 pub fn get_user_url(user_id: i32) -> String {

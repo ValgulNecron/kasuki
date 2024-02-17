@@ -2,9 +2,8 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::DifferedError;
-use crate::error_management::error_enum::DifferedCommandError::NoStatisticError;
+use crate::error_management::api_request_error::ApiRequestError;
+use crate::error_management::api_request_error::ApiRequestError::NotFound;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SiteStatisticsMangaWrapper {
@@ -50,7 +49,7 @@ pub struct SiteStatisticsMangaNode {
 impl SiteStatisticsMangaWrapper {
     pub async fn new_manga(
         page_number: i64,
-    ) -> Result<(SiteStatisticsMangaWrapper, String), AppError> {
+    ) -> Result<(SiteStatisticsMangaWrapper, String), ApiRequestError> {
         let query = "
                     query($page: Int){
                         SiteStatistics{
@@ -73,10 +72,10 @@ impl SiteStatisticsMangaWrapper {
         let json = json!({"query": query, "variables": {"page": page_number}});
         let res = make_request_anilist(json, false).await;
         let api_response: SiteStatisticsMangaWrapper = serde_json::from_str(&res).map_err(|e| {
-            DifferedError(NoStatisticError(format!(
+            NotFound(format!(
                 "No media with page {}. {}",
                 page_number, e
-            )))
+            ))
         })?;
         Ok((api_response, res))
     }
