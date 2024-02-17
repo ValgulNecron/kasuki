@@ -16,43 +16,21 @@ use serenity::all::{
 use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
+use crate::command_run::get_option::get_option_map_string;
 use crate::common::trimer::trim_webhook;
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
 use crate::database_struct::server_activity_struct::ServerActivityFull;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::{DifferedError, Error};
-use crate::error_management::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_management::error_enum::DifferedCommandError::{
-    CreatingWebhookError, DifferedCommandSendingError, DifferedOptionError, NotAiringError,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
 
 pub async fn run(
-    options: &[CommandDataOption],
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let mut delay = 0;
-    let mut anime = String::new();
-    for option in options {
-        if option.name == "delay" {
-            let resolved = &option.value;
-            if let CommandDataOptionValue::Integer(delay_option) = resolved {
-                delay = *delay_option
-            } else {
-                delay = 0
-            }
-        }
-        if option.name == "anime_name" {
-            let resolved = &option.value;
-            if let CommandDataOptionValue::String(anime_option) = resolved {
-                anime = anime_option.clone()
-            } else {
-                anime = String::new()
-            }
-        }
-    }
+    let map = get_option_map_string(command_interaction);
+    let delay = map.get(&String::from("delay")).unwrap_or(&String::from("0")).parse().unwrap_or(0);
+    let anime = map.get(&String::from("anime_name")).unwrap_or_default();
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -65,10 +43,11 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            )
         })?;
     let add_activity_localised = load_localization_add_activity(guild_id.clone()).await?;
 
@@ -83,9 +62,13 @@ pub async fn run(
         .data
         .media
         .title
-        .ok_or(DifferedError(DifferedOptionError(String::from(
-            "There is no option in the title.",
-        ))))?;
+        .ok_or(
+            AppError::new(
+                String::from("There is no option in the title."),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            )
+        )?;
     let mut anime_name = get_name(title);
     let channel_id = command_interaction.channel_id;
 
@@ -107,10 +90,11 @@ pub async fn run(
             .create_followup(&ctx.http, builder_message)
             .await
             .map_err(|e| {
-                DifferedError(DifferedCommandSendingError(format!(
-                    "Error while sending the command {}",
-                    e
-                )))
+                AppError::new(
+                    format!("Error while sending the command {}", e),
+                    ErrorType::Command,
+                    ErrorResponseType::Followup,
+                )
             })?;
 
         Ok(())
@@ -143,9 +127,11 @@ pub async fn run(
         let next_airing = match media.next_airing_episode.clone() {
             Some(na) => na,
             None => {
-                return Err(DifferedError(NotAiringError(String::from(
-                    "This anime is not airing",
-                ))));
+                AppError::new(
+                    String::from("There is no next airing episode."),
+                    ErrorType::Option,
+                    ErrorResponseType::Message,
+                )
             }
         };
 
@@ -181,10 +167,11 @@ pub async fn run(
             .create_followup(&ctx.http, builder_message)
             .await
             .map_err(|e| {
-                DifferedError(DifferedCommandSendingError(format!(
-                    "Error while sending the command {}",
-                    e
-                )))
+                AppError::new(
+                    format!("Error while sending the command {}", e),
+                    ErrorType::Command,
+                    ErrorResponseType::Followup,
+                )
             })?;
         Ok(())
     }
@@ -258,16 +245,18 @@ async fn get_webhook(
                 .create_webhook(channel_id, &map, None)
                 .await
                 .map_err(|e| {
-                    DifferedError(CreatingWebhookError(format!(
-                        "Error when creating the webhook. {}",
-                        e
-                    )))
+                    AppError::new(
+                        format!("Error when creating the webhook. {}", e),
+                        ErrorType::WebRequest,
+                        ErrorResponseType::Followup,
+                    )
                 })?;
             webhook_return = webhook.url().map_err(|e| {
-                DifferedError(CreatingWebhookError(format!(
-                    "Error when getting the webhook url. {}",
-                    e
-                )))
+                AppError::new(
+                    format!("Error when getting the webhook url. {}", e),
+                    ErrorType::WebRequest,
+                    ErrorResponseType::Followup,
+                )
             })?;
 
             return Ok(webhook_return);
@@ -279,16 +268,18 @@ async fn get_webhook(
             .create_webhook(channel_id, &map, None)
             .await
             .map_err(|e| {
-                DifferedError(CreatingWebhookError(format!(
-                    "Error when creating the webhook. {}",
-                    e
-                )))
+                AppError::new(
+                    format!("Error when creating the webhook. {}", e),
+                    ErrorType::WebRequest,
+                    ErrorResponseType::Followup,
+                )
             })?;
         webhook_return = webhook.url().map_err(|e| {
-            DifferedError(CreatingWebhookError(format!(
-                "Error when getting the webhook url. {}",
-                e
-            )))
+            AppError::new(
+                format!("Error when getting the webhook url. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Followup,
+            )
         })?;
 
         return Ok(webhook_return);
@@ -300,10 +291,11 @@ async fn get_webhook(
         if webhook_user_id == bot_id {
             trace!("Getting webhook");
             webhook_return = webhook.url().map_err(|e| {
-                DifferedError(CreatingWebhookError(format!(
-                    "Error when getting the webhook url. {}",
-                    e
-                )))
+                AppError::new(
+                    format!("Error when getting the webhook url. {}", e),
+                    ErrorType::WebRequest,
+                    ErrorResponseType::Followup,
+                )
             })?;
         } else {
             trace!(webhook_return);
@@ -316,16 +308,18 @@ async fn get_webhook(
                     .create_webhook(channel_id, &map, None)
                     .await
                     .map_err(|e| {
-                        DifferedError(CreatingWebhookError(format!(
-                            "Error when creating the webhook url. {}",
-                            e
-                        )))
+                        AppError::new(
+                            format!("Error when creating the webhook url. {}", e),
+                            ErrorType::WebRequest,
+                            ErrorResponseType::Followup,
+                        )
                     })?;
                 webhook_return = webhook.url().map_err(|e| {
-                    DifferedError(CreatingWebhookError(format!(
-                        "Error when getting the webhook url. {}",
-                        e
-                    )))
+                    AppError::new(
+                        format!("Error when getting the webhook url. {}", e),
+                        ErrorType::WebRequest,
+                        ErrorResponseType::Followup,
+                    )
                 })?;
             }
         }
