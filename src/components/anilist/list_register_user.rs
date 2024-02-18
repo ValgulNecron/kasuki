@@ -34,7 +34,7 @@ pub async fn update(
         .await
         .map_err(|e|
             AppError::new(
-                String::from("There is no guild"),
+                format!("There is no guild. {}", e),
                 ErrorType::Option,
                 ErrorResponseType::None,
             ))?;
