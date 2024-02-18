@@ -50,9 +50,9 @@ struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
-        color_management(&ctx.cache.guilds(), &ctx).await;
-        server_image_management(&ctx).await;
         if is_new.unwrap_or_default() {
+            color_management(&ctx.cache.guilds(), &ctx).await;
+            server_image_management(&ctx).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
