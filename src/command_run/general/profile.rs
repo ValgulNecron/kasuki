@@ -2,37 +2,38 @@ use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
 };
+use crate::command_run::get_option::get_option_map_user;
 
 use crate::constant::COLOR;
-use crate::error_management::command_error::CommandError::Generic;
-use crate::error_management::generic_error::GenericError::{OptionError, SendingCommand};
-use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::general::profile::load_localization_profile;
 
 pub async fn run(
-    options: &[CommandDataOption],
     ctx: &Context,
     command_interaction: &CommandInteraction,
-) -> Result<(), InteractionError> {
-    if let Some(option) = options.first() {
-        let resolved = &option.value;
-        if let CommandDataOptionValue::User(user, ..) = resolved {
+) -> Result<(), AppError> {
+    let map = get_option_map_user(command_interaction);
+    let user = map.get(&String::from("username"));
+
+    return match user {
+        Some(user) => {
             let user = user.to_user(&ctx.http).await.map_err(|e| {
-                InteractionError::Command(Generic(OptionError(format!(
-                    "There is no user in the option. {}",
-                    e
-                ))))
+                AppError::new(
+                    format!("Could not get the user. {}", e),
+                    ErrorType::Option,
+                    ErrorResponseType::Message,
+                )
             })?;
-            return profile_with_user(ctx, command_interaction, &user).await;
+            profile_with_user(ctx, command_interaction, &user).await
         }
+        None => profile_without_user(ctx, command_interaction).await,
     }
-    profile_without_user(ctx, command_interaction).await
 }
 
 async fn profile_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-) -> Result<(), InteractionError> {
+) -> Result<(), AppError> {
     let user = command_interaction.user.clone();
     profile_with_user(ctx, command_interaction, &user).await
 }
@@ -41,7 +42,7 @@ async fn profile_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
-) -> Result<(), InteractionError> {
+) -> Result<(), AppError> {
     let avatar_url = user.face();
 
     send_embed(avatar_url, ctx, command_interaction, user).await
@@ -52,7 +53,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
-) -> Result<(), InteractionError> {
+) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -63,9 +64,13 @@ pub async fn send_embed(
     let member = &command_interaction
         .member
         .clone()
-        .ok_or(InteractionError::Command(Generic(OptionError(
-            String::from("There is no member in the option"),
-        ))))?;
+        .ok_or(
+            AppError::new(
+                String::from("There is no member in the option"),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            ),
+        )?;
 
     let public_flag = match user.public_flags {
         Some(public_flag) => {
@@ -97,9 +102,13 @@ pub async fn send_embed(
                     "$joined_date$",
                     member
                         .joined_at
-                        .ok_or(InteractionError::Command(Generic(OptionError(
-                            String::from("There is no joined date for the user"),
-                        ))))?
+                        .ok_or(
+                            AppError::new(
+                                String::from("There is no joined date for the user"),
+                                ErrorType::Option,
+                                ErrorResponseType::Message,
+                            ),
+                        )?
                         .to_string()
                         .as_str(),
                 )
@@ -117,9 +126,10 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            InteractionError::Command(Generic(SendingCommand(format!(
-                "Error while sending the command {}",
-                e
-            ))))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })
 }

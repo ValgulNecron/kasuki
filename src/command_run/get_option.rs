@@ -1,7 +1,6 @@
-use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::NoCommandOption;
-use serenity::all::{Attachment, CommandInteraction, ResolvedOption, ResolvedValue};
+use serenity::all::{Attachment, CommandInteraction, ResolvedOption, ResolvedValue, UserId};
 use std::collections::HashMap;
 
 pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<String, String> {
@@ -47,8 +46,27 @@ pub fn get_the_attachment(
 ) -> Result<&Attachment, AppError> {
     match attachment {
         Some(Some(att)) => Ok(att),
-        _ => Err(Error(NoCommandOption(String::from(
-            "The command contain no attachment.",
-        )))),
+        _ =>
+        Err(
+            AppError::new(
+                String::from("There is no option"),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            )
+        )
     }
+}
+
+pub fn get_option_map_user(interaction: &CommandInteraction) -> HashMap<String, UserId> {
+    let mut map = HashMap::new();
+    for option in &interaction.data.options {
+        let value = match option.value.as_user_id() {
+            Some(user) => user,
+            None => continue,
+        };
+        let name = option.name.clone();
+        map.insert(name, value);
+    }
+
+    map
 }

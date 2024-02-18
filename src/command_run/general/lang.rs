@@ -5,29 +5,34 @@ use serenity::all::{
 
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::set_data_guild_langage;
-use crate::error_management::command_error::CommandError::Generic;
-use crate::error_management::generic_error::GenericError::{OptionError, SendingCommand};
-use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::general::lang::load_localization_lang;
 
 pub async fn run(
     options: &[CommandDataOption],
     ctx: &Context,
     command_interaction: &CommandInteraction,
-) -> Result<(), InteractionError> {
+) -> Result<(), AppError> {
     let lang = options
         .first()
-        .ok_or(InteractionError::Command(Generic(OptionError(
-            String::from("There is no option"),
-        ))))?;
+        .ok_or(
+            AppError::new(
+                String::from("There is no option"),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            ))?;
     let lang = lang.value.clone();
 
     let lang = match lang {
         CommandDataOptionValue::String(lang) => lang,
         _ => {
-            return Err(InteractionError::Command(Generic(OptionError(
-                String::from("The command contain no option."),
-            ))));
+            return Err(
+                AppError::new(
+                    String::from("The option is not a string."),
+                    ErrorType::Option,
+                    ErrorResponseType::Message,
+                )
+            );
         }
     };
 
@@ -52,9 +57,10 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            InteractionError::Command(Generic(SendingCommand(format!(
-                "Error while sending the command {}",
-                e
-            ))))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })
 }

@@ -42,6 +42,8 @@ pub enum ErrorType {
     WebRequest,
     Webhook,
     Language,
+    Image,
+    Module,
 }
 
 impl fmt::Display for ErrorType {
@@ -52,10 +54,12 @@ impl fmt::Display for ErrorType {
             ErrorType::Database => write!(f, "Database"),
             ErrorType::File => write!(f, "File"),
             ErrorType::Generic => write!(f, "Generic"),
-            ErrorType::Interaction => write!(f, "Interaction"),
             ErrorType::Option => write!(f, "Option"),
             ErrorType::WebRequest => write!(f, "WebRequest"),
             ErrorType::Webhook => write!(f, "Webhook"),
+            ErrorType::Language => write!(f, "Language"),
+            ErrorType::Image => write!(f, "Image"),
+            ErrorType::Module => write!(f, "Module"),
         }
     }
 }
@@ -64,6 +68,7 @@ impl fmt::Display for ErrorType {
 pub enum ErrorResponseType {
     Message,
     Followup,
+    Unknown,
     None,
 }
 
@@ -72,6 +77,7 @@ impl fmt::Display for ErrorResponseType {
         match self {
             ErrorResponseType::Message => write!(f, "Message"),
             ErrorResponseType::Followup => write!(f, "Followup"),
+            ErrorResponseType::Unknown => write!(f, "Unknown"),
             ErrorResponseType::None => write!(f, "None"),
         }
     }

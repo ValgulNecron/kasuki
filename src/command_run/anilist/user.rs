@@ -5,23 +5,18 @@ use crate::anilist_struct::run::user::{send_embed, UserWrapper};
 use crate::command_run::get_option::get_option_map_string;
 use crate::constant::DEFAULT_STRING;
 use crate::database::dispatcher::data_dispatch::get_registered_user;
-use crate::error_management::command_error::CommandError;
-use crate::error_management::command_error::CommandError::Generic;
-use crate::error_management::generic_error::GenericError::OptionError;
-use crate::error_management::interaction_error::InteractionError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-) -> Result<(), InteractionError> {
+) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
     let user = map.get(&String::from("username"));
 
     if let Some(value) = user {
         let data: UserWrapper = get_user_data(value)
-            .await
-            .map_err(|e| CommandError::WebRequestError(e))?;
-
+            .await?;
         return send_embed(ctx, command_interaction, data).await;
     }
 
@@ -29,17 +24,19 @@ pub async fn run(
     let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
     trace!("{:?}", row);
     let (user, _): (Option<String>, Option<String>) = row;
-    let user = user.ok_or(InteractionError::Command(Generic(OptionError(
-        String::from("There is no option"),
-    ))))?;
+    let user = user.ok_or(
+        AppError::new(
+            String::from("There is no option"),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        ))?;
 
-    let data = UserWrapper::new_user_by_id(user.parse::<i32>().unwrap())
-        .await
-        .map_err(|e| CommandError::WebRequestError(e))?;
+    let data = get_user_data(&user)
+        .await?;
     send_embed(ctx, command_interaction, data).await
 }
 
-pub async fn get_user_data(value: &String) -> Result<UserWrapper, InteractionError> {
+pub async fn get_user_data(value: &String) -> Result<UserWrapper, AppError> {
     if value.parse::<i32>().is_ok() {
         UserWrapper::new_user_by_id(value.parse().unwrap()).await
     } else {

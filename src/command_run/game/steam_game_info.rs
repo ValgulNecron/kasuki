@@ -1,9 +1,5 @@
 use crate::common::steam_to_discord_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::constant::COLOR;
-use crate::error_management::command_error::CommandError::Generic;
-use crate::error_management::generic_error::GenericError::{OptionError, SendingCommand};
-use crate::error_management::interaction_error::InteractionError;
-use crate::error_management::interaction_error::InteractionError::{Command, DifferedCommand};
 use crate::game_struct::run::steam_game::SteamGameWrapper;
 use crate::lang_struct::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
@@ -14,12 +10,22 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
+use crate::command_run::get_option::get_option_map_string;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn run(
-    options: &[CommandDataOption],
     ctx: &Context,
     command_interaction: &CommandInteraction,
-) -> Result<(), InteractionError> {
+) -> Result<(), AppError> {
+    let map = get_option_map_string(command_interaction);
+    let value = map.get(&String::from("game_name"))
+        .ok_or(
+            AppError::new(
+                String::from("There is no option"),
+                ErrorType::Option,
+                ErrorResponseType::Followup,
+            ))?;
+
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -33,29 +39,19 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Command(Generic(SendingCommand(format!(
-                "Error while sending the command {}",
-                e
-            ))))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })?;
-    for option in options {
-        if option.name.as_str() != "type" {
-            if let Some(a) = option.value.as_str() {
-                let value = &a.to_string();
 
-                let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
-                    SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id).await?
-                } else {
-                    SteamGameWrapper::new_steam_game_by_search(value, guild_id).await?
-                };
-                return send_embed(ctx, command_interaction, data, steam_game_info_localised).await;
-            }
-        }
-    }
-
-    Err(Command(Generic(OptionError(String::from(
-        "There is no option",
-    )))))
+    let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
+        SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id).await?
+    } else {
+        SteamGameWrapper::new_steam_game_by_search(value, guild_id).await?
+    };
+    return send_embed(ctx, command_interaction, data, steam_game_info_localised).await;
 }
 
 async fn send_embed(
@@ -63,7 +59,7 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     data: SteamGameWrapper,
     steam_game_info_localised: SteamGameInfoLocalised,
-) -> Result<(), InteractionError> {
+) -> Result<(), AppError> {
     trace!("Sending embed.");
     let game = data.data;
 
@@ -170,14 +166,15 @@ async fn send_embed(
         .image(game.header_image.unwrap());
     let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
 
-    let _ = command_interaction
+    command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedCommand(DifferedCommand::Generic(SendingCommand(format!(
-                "Error while sending the command {}",
-                e
-            ))))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Followup,
+            )
         })?;
 
     Ok(())

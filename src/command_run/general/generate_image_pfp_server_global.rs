@@ -9,20 +9,14 @@ use base64::engine::Engine as _;
 use log::trace;
 
 use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, Timestamp,
-};
-
-use crate::error_management::command_error::CommandError::Generic;
-use crate::error_management::generic_error::GenericError::{OptionError, SendingCommand};
-use crate::error_management::interaction_error::InteractionError;
+use serenity::all::{CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp};
 use uuid::Uuid;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-) -> Result<(), InteractionError> {
+) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -37,10 +31,11 @@ pub async fn run(
         .unwrap_or_default();
     let input = image.trim_start_matches("data:image/png;base64,");
     let image_data: Vec<u8> = BASE64.decode(input).map_err(|e| {
-        InteractionError::Command(Generic(OptionError(format!(
-            "Error when decoding the image or there is no image {}",
-            e
-        ))))
+        AppError::new(
+            format!("Error when decoding the image or there is no image {}", e),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )
     })?;
     let uuid = Uuid::new_v4();
     let image_path = format!("{}.png", uuid);
@@ -53,18 +48,19 @@ pub async fn run(
 
     let attachment = CreateAttachment::bytes(image_data, image_path);
 
-    let builder_message = CreateInteractionResponseFollowup::new()
+    let builder_message = CreateInteractionResponse::new()
         .embed(builder_embed)
         .files(vec![attachment]);
 
     command_interaction
-        .create_followup(&ctx.http, builder_message)
+        .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            InteractionError::Command(Generic(SendingCommand(format!(
-                "Error while sending the command {}",
-                e
-            ))))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })?;
     trace!("Done");
     Ok(())
