@@ -256,14 +256,22 @@ async fn main() {
 
 async fn thread_management_launcher(ctx: Context) {
     info!("Waiting 30second before launching the different thread.");
+    sleep(Duration::from_secs(DELAY_BEFORE_THREAD_SPAWN)).await;
+
+    let guilds = ctx.cache.guilds();
+    let ctx_clone = ctx.clone();
+    tokio::spawn(async move {
+        loop {
+            info!("Launching the user color management thread!");
+            color_management(&guilds, &ctx_clone).await;
+            sleep(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE)).await;
+        }
+    });
     tokio::spawn(async move {
         info!("Launching the log web server thread!");
         web_server_launcher().await
     });
 
-    sleep(Duration::from_secs(5)).await;
-
-    sleep(Duration::from_secs(DELAY_BEFORE_THREAD_SPAWN)).await;
     tokio::spawn(async move {
         info!("Launching the game management thread!");
         get_game().await
@@ -274,17 +282,6 @@ async fn thread_management_launcher(ctx: Context) {
     tokio::spawn(async move {
         info!("Launching the activity management thread!");
         manage_activity(ctx_clone).await
-    });
-
-    sleep(Duration::from_secs(5)).await;
-    let guilds = ctx.cache.guilds();
-    let ctx_clone = ctx.clone();
-    tokio::spawn(async move {
-        loop {
-            info!("Launching the user color management thread!");
-            color_management(&guilds, &ctx_clone).await;
-            sleep(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE)).await;
-        }
     });
 
     sleep(Duration::from_secs(5)).await;

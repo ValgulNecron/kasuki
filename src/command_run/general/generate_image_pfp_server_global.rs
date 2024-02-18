@@ -10,10 +10,8 @@ use log::trace;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
-};
+use serenity::all::{CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp};
+use serenity::all::CreateInteractionResponse::Defer;
 use uuid::Uuid;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -24,6 +22,19 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let pfp_server_image_localised_text =
         load_localization_pfp_server_image(guild_id.clone()).await?;
+
+    let builder_message = Defer(CreateInteractionResponseMessage::new());
+
+    command_interaction
+        .create_response(&ctx.http, builder_message)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Followup,
+            )
+        })?;
 
     let image = get_server_image_sqlite(&guild_id, &String::from("global"))
         .await?
@@ -48,20 +59,19 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let attachment = CreateAttachment::bytes(image_data, image_path);
 
-    let builder_message = CreateInteractionResponse::Message(
-        CreateInteractionResponseMessage::new()
+    let builder =
+        CreateInteractionResponseFollowup::new()
             .embed(builder_embed)
-            .files(vec![attachment]),
-    );
+            .files(vec![attachment]);
 
     command_interaction
-        .create_response(&ctx.http, builder_message)
+        .create_followup(&ctx.http, builder)
         .await
         .map_err(|e| {
             AppError::new(
                 format!("Error while sending the command {}", e),
                 ErrorType::Command,
-                ErrorResponseType::Message,
+                ErrorResponseType::Followup,
             )
         })?;
     trace!("Done");

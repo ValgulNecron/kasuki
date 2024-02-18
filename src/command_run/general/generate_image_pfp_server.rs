@@ -1,3 +1,4 @@
+use std::fs;
 use crate::constant::COLOR;
 use crate::database::sqlite::data::get_server_image_sqlite;
 
@@ -10,6 +11,8 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::builder::CreateInteractionResponseFollowup;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use tracing::trace;
@@ -23,34 +26,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let pfp_server_image_localised_text =
         load_localization_pfp_server_image(guild_id.clone()).await?;
-    let image = get_server_image_sqlite(&guild_id, &String::from("local"))
-        .await?
-        .1
-        .unwrap_or_default();
-    let input = image.trim_start_matches("data:image/png;base64,");
-    let image_data: Vec<u8> = BASE64.decode(input).map_err(|e| {
-        AppError::new(
-            format!("Error when decoding the image or there is no image {}", e),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )
-    })?;
-    let uuid = Uuid::new_v4();
-    let image_path = format!("{}.png", uuid);
 
-    let attachment = CreateAttachment::bytes(image_data, &image_path);
+    let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(COLOR)
-        .image(format!("attachment://{}", &image_path))
-        .title(pfp_server_image_localised_text.title);
-
-    let builder_message = CreateInteractionResponse::Message(
-        CreateInteractionResponseMessage::new()
-            .embed(builder_embed)
-            .files(vec![attachment]),
-    );
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
@@ -59,6 +37,46 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 format!("Error while sending the command {}", e),
                 ErrorType::Command,
                 ErrorResponseType::Message,
+            )
+        })?;
+
+    let image = get_server_image_sqlite(&guild_id, &String::from("local"))
+        .await?
+        .1
+        .unwrap_or_default();
+    let input = image.trim_start_matches("data:image/png;base64,");
+
+    let image_data: Vec<u8> = BASE64.decode(input).map_err(|e| {
+        AppError::new(
+            format!("Error when decoding the image or there is no image {}", e),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        )
+    })?;
+    let uuid = Uuid::new_v4();
+    let image_path = format!("{}.png", uuid);
+
+    let attachment = CreateAttachment::bytes(image_data.clone(), &image_path);
+
+    let builder_embed = CreateEmbed::new()
+        .timestamp(Timestamp::now())
+        .color(COLOR)
+        .image(format!("attachment://{}", &image_path))
+        .title(pfp_server_image_localised_text.title);
+
+    let builder =
+        CreateInteractionResponseFollowup::new()
+            .embed(builder_embed)
+            .files(vec![attachment]);
+
+    command_interaction
+        .create_followup(&ctx.http, builder)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Followup,
             )
         })?;
     trace!("Done");

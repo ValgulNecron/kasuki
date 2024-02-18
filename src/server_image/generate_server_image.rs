@@ -132,36 +132,34 @@ async fn generate_server_image(
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
     let image = format!("data:image/png;base64,{}", base64_image);
     let uuid = Uuid::new_v4();
-    image_saver(guild_id.to_string(), uuid.to_string(), image_data).await?;
+    image_saver(guild_id.to_string(), format!("{}.png", uuid.to_string()), image_data).await?;
     set_server_image(&guild_id.to_string(), &image_type, &image, &guild_pfp).await
 }
 
 pub async fn server_image_management(ctx: &Context) {
     let guilds = ctx.cache.guilds();
 
-    for guild in guilds {
-        let ctx_clone = ctx.clone();
-        let guild_clone = guild;
 
-        tokio::spawn(async move {
-            match generate_local_server_image(&ctx_clone, guild_clone).await {
+        for guild in guilds {
+            let ctx_clone = ctx.clone();
+            let guild_clone = guild.clone();
+            tokio::spawn(async move {
+
+                match generate_local_server_image(&ctx_clone, guild_clone).await {
                 Ok(_) => info!("Generated local server image for guild {}", guild),
                 Err(e) => error!(
                     "Failed to generate local server image for guild {}. {:?}",
                     guild, e
                 ),
             }
-        });
 
-        let ctx_clone = ctx.clone();
-        let guild_clone = guild;
-
-        match generate_global_server_image(&ctx_clone, guild_clone).await {
-            Ok(_) => info!("Generated global server image for guild {}", guild),
-            Err(e) => error!(
+            match generate_global_server_image(&ctx_clone, guild_clone).await {
+                Ok(_) => info!("Generated global server image for guild {}", guild),
+                Err(e) => error!(
                 "Failed to generate global server image for guild {}. {:?}",
                 guild, e
             ),
-        };
-    }
+            };
+            });
+        }
 }
