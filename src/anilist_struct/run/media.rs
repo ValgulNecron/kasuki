@@ -531,16 +531,16 @@ fn embed_title(data: &MediaWrapper) -> String {
     let rj = rj.unwrap_or_default();
     let mut title = String::new();
     let mut has_en_title = false;
-    match en {
-        String::new() => {}
+    match en.as_str() {
+        "" => {}
         _ => {
             has_en_title = true;
             title.push_str(en.as_str())
         }
     }
 
-    match rj {
-        String::new() => {}
+    match rj.as_str() {
+        "" => {}
         _ => {
             if has_en_title {
                 title.push_str(" / ");

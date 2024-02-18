@@ -1,11 +1,7 @@
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::database_struct::server_activity_struct::ServerActivity;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::ComponentError;
-use crate::error_management::error_enum::ComponentError::{
-    ComponentOptionError, ComponentSendingError,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, Timestamp,
@@ -26,9 +22,12 @@ pub async fn update(
 
     let guild_id = component_interaction
         .guild_id
-        .ok_or(ComponentError(ComponentOptionError(String::from(
-            "There is no option",
-        ))))?;
+        .ok_or(
+            AppError::new(
+                String::from("There is no guild id"),
+                ErrorType::Option,
+                ErrorResponseType::None,
+            ))?;
 
     let list = get_all_server_activity(&guild_id.to_string()).await?;
     let len = list.len();
@@ -68,10 +67,11 @@ pub async fn update(
     let a = message.edit(&ctx.http, response).await;
     trace!("{:?}", a);
     a.map_err(|e| {
-        ComponentError(ComponentSendingError(format!(
-            "Error while sending the component {}",
-            e
-        )))
+        AppError::new(
+            format!("Error while sending the component {}", e),
+            ErrorType::Component,
+            ErrorResponseType::None,
+        )
     })
 }
 

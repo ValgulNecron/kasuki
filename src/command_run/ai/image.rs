@@ -197,7 +197,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .image(format!("attachment://{}", &filename))
         .title(image_localised.title);
 
-    let attachment = CreateAttachment::bytes(bytes, &filename).await;
+    let attachment = CreateAttachment::bytes(bytes.clone(), &filename);
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)

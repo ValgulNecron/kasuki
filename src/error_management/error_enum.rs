@@ -44,6 +44,9 @@ pub enum ErrorType {
     Language,
     Image,
     Module,
+    Component,
+    Logging,
+    NewMember,
 }
 
 impl fmt::Display for ErrorType {
@@ -60,6 +63,9 @@ impl fmt::Display for ErrorType {
             ErrorType::Language => write!(f, "Language"),
             ErrorType::Image => write!(f, "Image"),
             ErrorType::Module => write!(f, "Module"),
+            ErrorType::Component => write!(f, "Component"),
+            ErrorType::Logging => write!(f, "Logging"),
+            ErrorType::NewMember => write!(f, "NewMember"),
         }
     }
 }

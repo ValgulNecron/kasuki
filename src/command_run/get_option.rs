@@ -1,4 +1,3 @@
-use crate::error_management::error_enum::AppError::Error;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use serenity::all::{Attachment, CommandInteraction, ResolvedOption, ResolvedValue, UserId};
 use std::collections::HashMap;

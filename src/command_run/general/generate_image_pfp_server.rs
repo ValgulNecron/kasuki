@@ -47,10 +47,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .image(format!("attachment://{}", &image_path))
         .title(pfp_server_image_localised_text.title);
 
-    let builder_message = CreateInteractionResponse::new()
-        .embed(builder_embed)
-        .files(vec![attachment]);
-
+    let builder_message = CreateInteractionResponse::Message(CreateInteractionResponseMessage::new().embed(builder_embed)
+                                                                 .files(vec![attachment]));
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await

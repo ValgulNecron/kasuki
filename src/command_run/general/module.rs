@@ -105,7 +105,7 @@ pub async fn run(
 pub async fn check_activation_status(
     module: &str,
     guild_id: String,
-) -> Result<bool, CommandInteraction> {
+) -> Result<bool, AppError> {
     let row: (
         Option<String>,
         Option<bool>,

@@ -16,12 +16,12 @@ use crate::lang_struct::anilist::compare::load_localization_compare;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
-    let value = map.get(&String::from("username")).unwrap_or_default();
-    let value2 = map.get(&String::from("username2")).unwrap_or_default();
+    let value = map.get(&String::from("username")).cloned().unwrap_or(String::new());
+    let value2 = map.get(&String::from("username2")).cloned().unwrap_or(String::new());
 
-    let data: UserWrapper = get_user_data(value).await?;
+    let data: UserWrapper = get_user_data(&value).await?;
 
-    let data2: UserWrapper = get_user_data(value2).await?;
+    let data2: UserWrapper = get_user_data(&value2).await?;
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

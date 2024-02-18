@@ -2,9 +2,7 @@ use crate::database::dispatcher::data_dispatch::{
     get_all_user_approximated_color, get_server_image, set_server_image,
 };
 
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::NotACommandError;
-use crate::error_management::error_enum::NotACommandError::NotACommandOptionError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::server_image::calculate_user_color::{
     get_image_from_url, get_member, return_average_user_color,
@@ -50,13 +48,21 @@ async fn generate_server_image(
     image_type: String,
 ) -> Result<(), AppError> {
     let guild = guild_id.to_partial_guild(&ctx.http).await.map_err(|e| {
-        NotACommandError(NotACommandOptionError(format!("There is no option {}", e)))
+        AppError::new(
+            format!("Failed to get the guild. {}", e),
+            ErrorType::Option,
+            ErrorResponseType::None,
+        )
     })?;
     let guild_pfp = guild
         .icon_url()
-        .ok_or(NotACommandError(NotACommandOptionError(String::from(
-            "There is no option, no image for the guild.",
-        ))))?
+        .ok_or(
+            AppError::new(
+                String::from("There is no option, no image for the guild."),
+                ErrorType::Option,
+                ErrorResponseType::None,
+            )
+        )?
         .replace("?size=1024", "?size=128");
 
     let old_url = get_server_image(&guild_id.to_string(), &image_type)

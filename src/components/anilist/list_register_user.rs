@@ -1,10 +1,6 @@
 use crate::command_run::anilist::list_register_user::get_the_list;
 use crate::constant::MEMBER_LIST_LIMIT;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::ComponentError;
-use crate::error_management::error_enum::ComponentError::{
-    ComponentOptionError, ComponentSendingError,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::list_register_user::load_localization_list_user;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, UserId,
@@ -26,14 +22,22 @@ pub async fn update(
 
     let guild_id = component_interaction
         .guild_id
-        .ok_or(ComponentError(ComponentOptionError(String::from(
-            "There is no option",
-        ))))?;
+        .ok_or(
+            AppError::new(
+                String::from("There is no guild id"),
+                ErrorType::Option,
+                ErrorResponseType::None,
+            ))?;
 
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)
         .await
-        .map_err(|e| ComponentError(ComponentOptionError(format!("There is no option {}", e))))?;
+        .map_err(|e|
+            AppError::new(
+                String::from("There is no guild"),
+                ErrorType::Option,
+                ErrorResponseType::None,
+            ))?;
 
     let id = if user_id == "0" {
         None
@@ -63,9 +67,10 @@ pub async fn update(
     let a = message.edit(&ctx.http, response).await;
     trace!("{:?}", a);
     a.map_err(|e| {
-        ComponentError(ComponentSendingError(format!(
-            "Error while sending the component {}",
-            e
-        )))
+        AppError::new(
+            format!("Error while sending the component {}", e),
+            ErrorType::Component,
+            ErrorResponseType::None,
+        )
     })
 }

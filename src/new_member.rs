@@ -1,11 +1,6 @@
 use crate::command_run::command_dispatch::check_if_moule_is_on;
 use crate::constant::SERVER_IMAGE_PATH;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::NewMemberError;
-use crate::error_management::error_enum::NewMemberError::{
-    NewMemberErrorFailedToReadTheFile, NewMemberErrorGettingTheGuild, NewMemberErrorOptionError,
-    NewMemberFailedToCreateDirectory, NewMemberFailedToSendTheMessage, NewMemberOff,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::new_member::load_localization_new_member;
 use crate::server_image::calculate_user_color::get_image_from_url;
 use image::io::Reader;
@@ -18,16 +13,22 @@ use uuid::Uuid;
 pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppError> {
     if !Path::new(SERVER_IMAGE_PATH).exists() {
         fs::create_dir_all(SERVER_IMAGE_PATH).map_err(|e| {
-            NewMemberError(NewMemberFailedToCreateDirectory(format!(
-                "Failed to create the directory {}",
-                e
-            )))
+            AppError::new(
+                format!("Failed to create the directory. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
         })?;
     }
 
     let guild_id = member.guild_id.to_string();
     if !check_if_moule_is_on(guild_id.clone(), "NEW_MEMBER").await? {
-        return Err(NewMemberError(NewMemberOff(String::from("it's off"))));
+        return Err(
+            AppError::new(
+                String::from("The module is off"),
+                ErrorType::Module,
+                ErrorResponseType::None,
+            ))
     }
     let new_member_localised = load_localization_new_member(guild_id).await?;
 
@@ -44,10 +45,11 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
         .to_partial_guild_with_counts(&ctx.http)
         .await
         .map_err(|e| {
-            NewMemberError(NewMemberErrorGettingTheGuild(format!(
-                "there was an error getting the guild. {}",
-                e
-            )))
+            AppError::new(
+                format!("There was an error getting the guild. {}", e),
+                ErrorType::Option,
+                ErrorResponseType::None,
+            )
         })?;
     let dim_x = 4000;
     let dim_y = 1000;
@@ -69,17 +71,19 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
     }
     let mut bg_image = Reader::open(full_image_path)
         .map_err(|e| {
-            NewMemberError(NewMemberErrorFailedToReadTheFile(format!(
-                "there was an error when opening the image. {}",
-                e
-            )))
+            AppError::new(
+                format!("There was an error when opening the image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
         })?
         .decode()
         .map_err(|e| {
-            NewMemberError(NewMemberErrorFailedToReadTheFile(format!(
-                "there was an error when decoding the image. {}",
-                e
-            )))
+            AppError::new(
+                format!("There was an error when decoding the image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
         })?;
     let offset_x = (dim_x / 2) - (128 / 2);
     let offset_y = (dim_y / 2) - (128 / 2);
@@ -105,10 +109,11 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
         .send_message(&ctx.http, create_message)
         .await
         .map_err(|e| {
-            NewMemberError(NewMemberFailedToSendTheMessage(format!(
-                "there was an error sending the message. {}",
-                e
-            )))
+            AppError::new(
+                format!("There was an error sending the message. {}", e),
+                ErrorType::NewMember,
+                ErrorResponseType::None,
+            )
         })?;
 
     Ok(())
@@ -117,7 +122,10 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
 async fn get_channel_to_send(guild: PartialGuild) -> Result<ChannelId, AppError> {
     guild
         .system_channel_id
-        .ok_or(NewMemberError(NewMemberErrorOptionError(
-            "there was an error getting the channel to send".to_string(),
-        )))
+        .ok_or(
+            AppError::new(
+                String::from("There is no system channel"),
+                ErrorType::Option,
+                ErrorResponseType::None,
+            ))
 }

@@ -31,7 +31,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap_or(&String::from("0"))
         .parse()
         .unwrap_or(0);
-    let anime = map.get(&String::from("anime_name")).unwrap_or_default();
+    let anime = map.get(&String::from("anime_name")).cloned().unwrap_or(String::new());
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -121,11 +121,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
         let next_airing = match media.next_airing_episode.clone() {
             Some(na) => na,
-            None => AppError::new(
+            None => return Err(AppError::new(
                 String::from("There is no next airing episode."),
                 ErrorType::Option,
                 ErrorResponseType::Message,
-            ),
+            )),
         };
 
         let webhook =

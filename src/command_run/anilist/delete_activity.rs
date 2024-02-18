@@ -13,7 +13,7 @@ use serenity::all::{
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
-    let anime = map.get(&String::from("anime_name")).unwrap_or_default();
+    let anime = map.get(&String::from("anime_name")).cloned().unwrap_or(String::new());
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

@@ -105,7 +105,7 @@ async fn send_embed(
         .image(format!("attachment://{}", &filename))
         .title(random_image_nsfw_localised.title);
 
-    let attachment = CreateAttachment::bytes(bytes, &filename).await?;
+    let attachment = CreateAttachment::bytes(bytes, &filename);
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)

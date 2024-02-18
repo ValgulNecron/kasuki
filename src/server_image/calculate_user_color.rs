@@ -2,11 +2,7 @@ use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
 use crate::database_struct::user_color_struct::UserColor;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::DifferedError;
-use crate::error_management::error_enum::DifferedCommandError::{
-    CreatingImageError, FailedToGetImage,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::io::Reader as ImageReader;
@@ -105,22 +101,38 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
     // Fetch the image data
     let resp = reqwest::get(url)
         .await
-        .map_err(|e| DifferedError(FailedToGetImage(format!("Failed to download image. {}", e))))?
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to download image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            ))?
         .bytes()
         .await
         .map_err(|e| {
-            DifferedError(FailedToGetImage(format!(
-                "Failed to get bytes image. {}",
-                e
-            )))
+            AppError::new(
+                format!("Failed to get bytes image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
         })?;
 
     // Decode the image data
     let img = ImageReader::new(Cursor::new(resp))
         .with_guessed_format()
-        .map_err(|e| DifferedError(CreatingImageError(format!("Failed to load image. {}", e))))?
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to load image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            ))?
         .decode()
-        .map_err(|e| DifferedError(CreatingImageError(format!("Failed to decode image. {}", e))))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to decode image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            ))?;
 
     Ok(img)
 }

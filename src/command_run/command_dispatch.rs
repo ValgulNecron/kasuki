@@ -187,7 +187,7 @@ pub async fn command_dispatching(
         }
         "search" => {
             if check_if_moule_is_on(guild_id, "ANILIST").await? {
-                search::run(&command_interaction.data.options, ctx, command_interaction).await?
+                search::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
