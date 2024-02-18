@@ -15,20 +15,39 @@ pub async fn command_dispatching(
     error!("{:?}", error);
     let response_type = error.error_response_type.clone();
     match response_type {
-        ErrorResponseType::Message => send_error(error, command_interaction, ctx).await.unwrap(),
-        ErrorResponseType::Followup => send_differed_error(error, command_interaction, ctx)
-            .await
-            .unwrap(),
+        ErrorResponseType::Message => {
+            match send_error(error, command_interaction, ctx).await {
+                Ok(_) => {}
+                Err(e) => {
+                    error!("{:?}", e);
+                }
+            }
+        },
+        ErrorResponseType::Followup => {
+            match send_differed_error(error, command_interaction, ctx)
+                .await
+            {
+                Ok(_) => {}
+                Err(e) => {
+                    error!("{:?}", e);
+                }
+            }
+        },
         ErrorResponseType::Unknown => {
             match send_error(error.clone(), command_interaction, ctx).await {
                 Ok(_) => {}
                 Err(_) => {
-                    send_differed_error(error, command_interaction, ctx)
+                    match send_differed_error(error, command_interaction, ctx)
                         .await
-                        .unwrap();
+                    {
+                        Ok(_) => {}
+                        Err(e) => {
+                            error!("{:?}", e);
+                        }
+                    }
                 }
             }
-        }
+        },
         ErrorResponseType::None => {}
     }
 }

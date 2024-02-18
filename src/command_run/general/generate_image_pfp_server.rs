@@ -32,7 +32,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         AppError::new(
             format!("Error when decoding the image or there is no image {}", e),
             ErrorType::Option,
-            ErrorResponseType::Followup,
+            ErrorResponseType::Message,
         )
     })?;
     let uuid = Uuid::new_v4();
