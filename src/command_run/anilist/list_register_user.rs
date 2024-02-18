@@ -8,12 +8,7 @@ use tracing::log::trace;
 use crate::anilist_struct::run::user::UserWrapper;
 use crate::constant::{COLOR, MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::dispatcher::data_dispatch::get_registered_user;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::{DifferedError, Error};
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError,
-};
-use crate::error_management::error_enum::DifferedCommandError::DifferedCommandSendingError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };
@@ -26,14 +21,22 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let list_user_localised = load_localization_list_user(guild_id).await?;
 
-    let guild_id = command_interaction
-        .guild_id
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
+    let guild_id = command_interaction.guild_id.ok_or(AppError::new(
+        String::from("There is no guild id"),
+        ErrorType::Option,
+        ErrorResponseType::Message,
+    ))?;
 
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)
         .await
-        .map_err(|e| Error(ErrorOptionError(format!("There is no option {}", e))))?;
+        .map_err(|e| {
+            AppError::new(
+                format!("Error while getting the guild {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
+        })?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
@@ -41,10 +44,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })?;
     let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) =
         get_the_list(guild, ctx, &list_user_localised, None).await?;
@@ -60,14 +64,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
     }
 
-    let _ = command_interaction
+    command_interaction
         .create_followup(&ctx.http, response)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Followup,
+            )
         })?;
     Ok(())
 }
@@ -90,7 +95,13 @@ pub async fn get_the_list(
         let members = guild
             .members(&ctx.http, Some(MEMBER_LIST_LIMIT), last_id)
             .await
-            .map_err(|e| Error(ErrorOptionError(format!("There is no option {}", e))))?;
+            .map_err(|e| {
+                AppError::new(
+                    format!("Error while getting the members {}", e),
+                    ErrorType::WebRequest,
+                    ErrorResponseType::Followup,
+                )
+            })?;
 
         for member in members {
             last_id = Some(member.user.id);

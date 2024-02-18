@@ -2,31 +2,24 @@ use chrono::Utc;
 use rand::{thread_rng, Rng};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
+    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, Timestamp,
 };
 
 use crate::anilist_struct::run::random::PageWrapper;
 use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper;
+use crate::command_run::get_option::get_option_map_string;
 use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::trimer::trim;
 use crate::constant::COLOR;
 use crate::database::dispatcher::cache_dispatch::{
     get_database_random_cache, set_database_random_cache,
 };
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError, NoCommandOption,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::random::{load_localization_random, RandomLocalised};
 
-pub async fn run(
-    options: &[CommandDataOption],
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -36,55 +29,54 @@ pub async fn run(
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
+    let map = get_option_map_string(command_interaction);
+    let random_type = map.get(&String::from("type")).ok_or(AppError::new(
+        String::from("There is no option"),
+        ErrorType::Option,
+        ErrorResponseType::Message,
+    ))?;
+
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })?;
-    let option = &options
-        .first()
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
-        .value;
-    if let CommandDataOptionValue::String(random_type) = option {
-        let row: (Option<String>, Option<i64>, Option<i64>) =
-            get_database_random_cache(random_type).await?;
-        let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
-        let page_number = last_page.unwrap_or(1628); // This is as today date the last page,
-                                                     // I will update it sometime.
-        let previous_page = page_number - 1;
-        let cached_response = response.unwrap_or("Nothing".to_string());
-        if let Some(updated) = last_updated {
-            let duration_since_updated = Utc::now().timestamp() - updated;
-            if duration_since_updated < 24 * 60 * 60 {
-                return embed(
-                    page_number,
-                    random_type.to_string(),
-                    ctx,
-                    command_interaction,
-                    random_localised,
-                )
-                .await;
-            }
+
+    let row: (Option<String>, Option<i64>, Option<i64>) =
+        get_database_random_cache(random_type).await?;
+    let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
+    let page_number = last_page.unwrap_or(1628); // This is as today date the last page,
+                                                 // I will update it sometime.
+    let previous_page = page_number - 1;
+    let cached_response = response.unwrap_or("Nothing".to_string());
+    if let Some(updated) = last_updated {
+        let duration_since_updated = Utc::now().timestamp() - updated;
+        if duration_since_updated < 24 * 60 * 60 {
+            return embed(
+                page_number,
+                random_type.to_string(),
+                ctx,
+                command_interaction,
+                random_localised,
+            )
+            .await;
         }
-        update_cache(
-            page_number,
-            random_type,
-            ctx,
-            command_interaction,
-            previous_page,
-            cached_response,
-            random_localised,
-        )
-        .await
-    } else {
-        Err(Error(NoCommandOption(String::from(
-            "The command contain no option.",
-        ))))
     }
+    update_cache(
+        page_number,
+        random_type,
+        ctx,
+        command_interaction,
+        previous_page,
+        cached_response,
+        random_localised,
+    )
+    .await
 }
 
 pub async fn embed(
@@ -160,10 +152,11 @@ pub async fn follow_up_message(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Followup,
+            )
         })?;
     Ok(())
 }

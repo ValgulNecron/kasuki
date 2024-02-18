@@ -41,6 +41,7 @@ pub enum ErrorType {
     Option,
     WebRequest,
     Webhook,
+    Language,
 }
 
 impl fmt::Display for ErrorType {

@@ -1,12 +1,7 @@
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::{DifferedError, Error};
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError,
-};
-use crate::error_management::error_enum::DifferedCommandError::DifferedCommandSendingError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -23,9 +18,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
 
-    let guild_id = command_interaction
-        .guild_id
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
+    let guild_id = command_interaction.guild_id.ok_or(AppError::new(
+        String::from("There is no guild id"),
+        ErrorType::Option,
+        ErrorResponseType::Message,
+    ))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
@@ -33,10 +30,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })?;
     let list = get_all_server_activity(&guild_id.to_string()).await?;
     let len = list.len();
@@ -66,10 +64,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .create_followup(&ctx.http, response)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Followup,
+            )
         })?;
     Ok(())
 }

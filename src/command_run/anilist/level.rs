@@ -7,42 +7,34 @@ use tracing::trace;
 
 use crate::anilist_struct::run::user::{get_color, get_completed, get_user_url, UserWrapper};
 use crate::command_run::anilist::user::get_user_data;
+use crate::command_run::get_option::get_option_map_string;
 use crate::database::dispatcher::data_dispatch::get_registered_user;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::level::load_localization_level;
 
-pub async fn run(
-    options: &[CommandDataOption],
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
-    trace!("{:?}", options);
-    for option in options {
-        if option.name.as_str() != "type" {
-            if let Some(a) = option.value.as_str() {
-                let value = &a.to_string();
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    let map = get_option_map_string(command_interaction);
+    let user = map.get(&String::from("username"));
+    match user {
+        Some(value) => {
+            let data: UserWrapper = get_user_data(value).await?;
+            send_embed(ctx, command_interaction, data).await
+        }
+        None => {
+            let user_id = &command_interaction.user.id.to_string();
+            let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
+            trace!("{:?}", row);
+            let (user, _): (Option<String>, Option<String>) = row;
+            let user = user.ok_or(AppError::new(
+                String::from("There is no user selected"),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            ))?;
 
-                let data: UserWrapper = get_user_data(value).await?;
-
-                return send_embed(ctx, command_interaction, data).await;
-            }
+            let data: UserWrapper = get_user_data(&user).await?;
+            send_embed(ctx, command_interaction, data).await
         }
     }
-    let user_id = &command_interaction.user.id.to_string();
-    let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
-    trace!("{:?}", row);
-    let (user, _): (Option<String>, Option<String>) = row;
-    let user = user.ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
-    let data: UserWrapper = if user.parse::<i32>().is_ok() {
-        UserWrapper::new_user_by_id(user.parse().unwrap()).await?
-    } else {
-        UserWrapper::new_user_by_search(&user).await?
-    };
-    send_embed(ctx, command_interaction, data).await
 }
 
 pub async fn send_embed(
@@ -103,10 +95,11 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })
 }
 

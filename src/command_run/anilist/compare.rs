@@ -9,46 +9,15 @@ use crate::anilist_struct::run::user::{
     Anime, Genre, Manga, Statistics, Statuses, Tag, UserWrapper,
 };
 use crate::command_run::anilist::user::get_user_data;
+use crate::command_run::get_option::get_option_map_string;
 use crate::constant::COLOR;
-use crate::error_management::error_enum::AppError;
-use crate::error_management::error_enum::AppError::Error;
-use crate::error_management::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::compare::load_localization_compare;
 
-pub async fn run(
-    options: &[CommandDataOption],
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
-    let option = &options
-        .first()
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
-        .value;
-
-    let value = match option {
-        CommandDataOptionValue::String(lang) => lang,
-        _ => {
-            return Err(Error(ErrorOptionError(String::from(
-                "The command contain no option.",
-            ))));
-        }
-    };
-
-    let option2 = &options
-        .get(1)
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
-        .value;
-
-    let value2 = match option2 {
-        CommandDataOptionValue::String(lang) => lang,
-        _ => {
-            return Err(Error(ErrorOptionError(String::from(
-                "The command contain no option.",
-            ))));
-        }
-    };
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    let map = get_option_map_string(command_interaction);
+    let value = map.get(&String::from("username")).unwrap_or_default();
+    let value2 = map.get(&String::from("username2")).unwrap_or_default();
 
     let data: UserWrapper = get_user_data(value).await?;
 
@@ -284,10 +253,11 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })
 }
 

@@ -191,27 +191,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
     })?;
 
-    fs::write(&filename, &bytes).map_err(|e| {
-        AppError::new(
-            format!("Failed to write the file bytes.{}", e),
-            ErrorType::File,
-            ErrorResponseType::Followup,
-        )
-    })?;
-
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
         .image(format!("attachment://{}", &filename))
         .title(image_localised.title);
 
-    let attachment = CreateAttachment::path(&filename).await.map_err(|e| {
-        AppError::new(
-            format!("Error while uploading the attachment {}", e),
-            ErrorType::File,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let attachment = CreateAttachment::bytes(bytes, &filename).await;
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -229,8 +215,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })?;
 
     image_saver(guild_id, filename.clone(), bytes.to_vec()).await?;
-
-    let _ = fs::remove_file(filename_str);
 
     Ok(())
 }
