@@ -9,7 +9,7 @@ use reqwest::get;
 use serde_json::json;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    ChannelId, CommandDataOption, CommandDataOptionValue, CommandInteraction, Context,
+    ChannelId, CommandInteraction, Context,
     CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, EditWebhook, Timestamp,
 };

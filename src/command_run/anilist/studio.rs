@@ -19,7 +19,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let data: StudioWrapper = if value.parse::<i32>().is_ok() {
         StudioWrapper::new_studio_by_id(value.parse().unwrap()).await?
     } else {
-        StudioWrapper::new_studio_by_search(&value).await?
+        StudioWrapper::new_studio_by_search(value).await?
     };
 
     let guild_id = match command_interaction.guild_id {

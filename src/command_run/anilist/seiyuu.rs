@@ -7,7 +7,7 @@ use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateAttachment, CreateEmbed,
+    CommandInteraction, Context, CreateAttachment, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::{debug, error};
@@ -15,7 +15,7 @@ use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
 use crate::command_run::get_option::get_option_map_string;
-use crate::common::get_option_value::get_option;
+
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
@@ -31,7 +31,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let data = if value.parse::<i32>().is_ok() {
         StaffImageWrapper::new_staff_by_id(value.parse().unwrap()).await?
     } else {
-        StaffImageWrapper::new_staff_by_search(&value).await?
+        StaffImageWrapper::new_staff_by_search(value).await?
     };
 
     let guild_id = match command_interaction.guild_id {

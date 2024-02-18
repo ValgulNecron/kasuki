@@ -9,10 +9,9 @@ use base64::engine::Engine as _;
 use log::trace;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use serenity::all::CreateInteractionResponse::Defer;
+
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 use uuid::Uuid;
 

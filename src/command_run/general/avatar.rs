@@ -12,7 +12,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let map = get_option_map_user(command_interaction);
     let user = map.get(&String::from("username"));
 
-    return match user {
+    match user {
         Some(user) => {
             let user = user.to_user(&ctx.http).await.map_err(|e| {
                 AppError::new(
@@ -24,7 +24,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             avatar_with_user(ctx, command_interaction, &user).await
         }
         None => avatar_without_user(ctx, command_interaction).await,
-    };
+    }
 }
 
 async fn avatar_without_user(

@@ -2,7 +2,7 @@ use chrono::Utc;
 use rand::{thread_rng, Rng};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
 

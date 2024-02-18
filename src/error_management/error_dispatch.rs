@@ -50,7 +50,7 @@ async fn send_error(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    let _ = command_interaction
+    command_interaction
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {

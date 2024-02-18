@@ -20,7 +20,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let data: StaffWrapper = if value.parse::<i32>().is_ok() {
         StaffWrapper::new_staff_by_id(value.parse().unwrap()).await?
     } else {
-        StaffWrapper::new_staff_by_search(&value).await?
+        StaffWrapper::new_staff_by_search(value).await?
     };
 
     let guild_id = match command_interaction.guild_id {

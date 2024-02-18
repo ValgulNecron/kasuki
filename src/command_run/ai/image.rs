@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{env};
 
 use crate::command_run::get_option::get_option_map_string;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
@@ -44,7 +44,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.png", uuid_name);
-    let filename_str = filename.as_str();
+    let _filename_str = filename.as_str();
 
     let model = unsafe { IMAGE_MODELS.as_str() };
     info!("{}", model);

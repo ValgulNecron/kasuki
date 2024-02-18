@@ -6,10 +6,9 @@ use crate::lang_struct::general::generate_image_pfp_server::load_localization_pf
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 
-use serenity::all::CreateInteractionResponse::Defer;
+
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

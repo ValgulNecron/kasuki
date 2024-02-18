@@ -18,7 +18,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         ErrorResponseType::Followup,
     ))?;
 
-    let data: UserWrapper = get_user_data(&value).await?;
+    let data: UserWrapper = get_user_data(value).await?;
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

@@ -1,8 +1,8 @@
-use serenity::all::{CommandDataOption, CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context};
 
 use crate::anilist_struct::run::media::{send_embed, MediaWrapper};
 use crate::command_run::get_option::get_option_map_string;
-use crate::common::get_option_value::get_option;
+
 use crate::error_management::error_enum::AppError;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {

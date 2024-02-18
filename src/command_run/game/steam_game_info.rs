@@ -8,7 +8,7 @@ use crate::lang_struct::game::steam_game_info::{
 };
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
@@ -46,7 +46,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     } else {
         SteamGameWrapper::new_steam_game_by_search(value, guild_id).await?
     };
-    return send_embed(ctx, command_interaction, data, steam_game_info_localised).await;
+    send_embed(ctx, command_interaction, data, steam_game_info_localised).await
 }
 
 async fn send_embed(

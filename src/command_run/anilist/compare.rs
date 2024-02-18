@@ -1,5 +1,5 @@
 use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
+    CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 use std::collections::HashSet;
