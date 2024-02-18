@@ -1,12 +1,11 @@
 use crate::database::postgresql::pool::get_postgresql_pool;
-use crate::error_management::database_error::DatabaseError;
-use crate::error_management::database_error::DatabaseError::Insert;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use chrono::Utc;
 use serde_json::Value;
 
 pub async fn get_database_random_cache_postgresql(
     random_type: &str,
-) -> Result<(Option<String>, Option<i64>, Option<i64>), DatabaseError> {
+) -> Result<(Option<String>, Option<i64>, Option<i64>), AppError> {
     let pool = get_postgresql_pool().await?;
 
     let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as(
@@ -26,7 +25,7 @@ pub async fn set_database_random_cache_postgres(
     cached_response: &str,
     now: i64,
     previous_page: i64,
-) -> Result<(), DatabaseError> {
+) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query("INSERT INTO CACHE.cache_stats (key, response, last_updated, last_page) VALUES ($1, $2, $3, $4) ON CONFLICT (key) DO UPDATE SET response = EXCLUDED.response, last_updated = EXCLUDED.last_updated, last_page = EXCLUDED.last_page")
         .bind(random_type)
@@ -35,14 +34,19 @@ pub async fn set_database_random_cache_postgres(
         .bind(previous_page)
         .execute(&pool)
         .await
-        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
     Ok(())
 }
 
 pub async fn get_database_cache_postgresql(
     json: Value,
-) -> Result<(Option<String>, Option<String>, Option<i64>), DatabaseError> {
+) -> Result<(Option<String>, Option<String>, Option<i64>), AppError> {
     let pool = get_postgresql_pool().await?;
 
     let row: (Option<String>, Option<String>, Option<i64>) = sqlx::query_as(
@@ -57,7 +61,7 @@ pub async fn get_database_cache_postgresql(
     Ok(row)
 }
 
-pub async fn set_database_cache_postgresql(json: Value, resp: String) -> Result<(), DatabaseError> {
+pub async fn set_database_cache_postgresql(json: Value, resp: String) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     let now = Utc::now().timestamp();
     sqlx::query(
@@ -68,7 +72,12 @@ pub async fn set_database_cache_postgresql(json: Value, resp: String) -> Result<
         .bind(now)
         .execute(&pool)
         .await
-        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
     Ok(())
 }

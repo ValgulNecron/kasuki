@@ -7,16 +7,16 @@ use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 
 use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp};
+use serenity::all::{
+    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
+};
 
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use tracing::trace;
 use uuid::Uuid;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),

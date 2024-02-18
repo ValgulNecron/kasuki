@@ -1,8 +1,7 @@
 use crate::database::postgresql::pool::get_postgresql_pool;
-use crate::error_management::database_error::DatabaseError;
-use crate::error_management::database_error::DatabaseError::{Alter, Select};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-pub async fn migrate_postgres() -> Result<(), DatabaseError> {
+pub async fn migrate_postgres() -> Result<(), AppError> {
     // used to update the database when new row are added to a table.
     add_image_to_activity_data().await?;
     add_new_member_to_global_kill_switch().await?;
@@ -10,7 +9,7 @@ pub async fn migrate_postgres() -> Result<(), DatabaseError> {
     Ok(())
 }
 
-pub async fn add_image_to_activity_data() -> Result<(), DatabaseError> {
+pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "image" column exists in the "activity_data" table
@@ -25,21 +24,33 @@ pub async fn add_image_to_activity_data() -> Result<(), DatabaseError> {
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| Select(format!("Failed to check existence of column. {}", e)))?;
+    .map_err(|e| {
+        AppError::new(
+            format!("Failed to check existence of column. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::None,
+        )
+    })?;
 
     // If the "image" column doesn't exist, add it
     if !row.0 {
         sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT")
             .execute(&pool)
             .await
-            .map_err(|e| Alter(format!("Failed to add column to the table. {}", e)))?;
+            .map_err(|e| {
+                AppError::new(
+                    format!("Failed to add column to the table. {}", e),
+                    ErrorType::Database,
+                    ErrorResponseType::None,
+                )
+            })?;
     }
 
     pool.close().await;
     Ok(())
 }
 
-pub async fn add_new_member_to_global_kill_switch() -> Result<(), DatabaseError> {
+pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "new_member" column exists in the "global_kill_switch" table
@@ -54,21 +65,33 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), DatabaseError>
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| Select(format!("Failed to check existence of column. {}", e)))?;
+    .map_err(|e| {
+        AppError::new(
+            format!("Failed to check existence of column. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::None,
+        )
+    })?;
 
     // If the "new_member" column doesn't exist, add it
     if !row.0 {
         sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN new_member TEXT")
             .execute(&pool)
             .await
-            .map_err(|e| Alter(format!("Failed to add column to the table. {}", e)))?;
+            .map_err(|e| {
+                AppError::new(
+                    format!("Failed to add column to the table. {}", e),
+                    ErrorType::Database,
+                    ErrorResponseType::None,
+                )
+            })?;
     }
 
     pool.close().await;
     Ok(())
 }
 
-pub async fn add_new_column_to_module_activation() -> Result<(), DatabaseError> {
+pub async fn add_new_column_to_module_activation() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "new_column" column exists in the "module_activation" table
@@ -83,14 +106,26 @@ pub async fn add_new_column_to_module_activation() -> Result<(), DatabaseError> 
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| Select(format!("Failed to check existence of column. {}", e)))?;
+    .map_err(|e| {
+        AppError::new(
+            format!("Failed to check existence of column. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::None,
+        )
+    })?;
 
     // If the "new_column" column doesn't exist, add it
     if !row.0 {
         sqlx::query("ALTER TABLE module_activation ADD COLUMN new_column TYPE")
             .execute(&pool)
             .await
-            .map_err(|e| Alter(format!("Failed to add column to the table. {}", e)))?;
+            .map_err(|e| {
+                AppError::new(
+                    format!("Failed to add column to the table. {}", e),
+                    ErrorType::Database,
+                    ErrorResponseType::None,
+                )
+            })?;
     }
 
     pool.close().await;

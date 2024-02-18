@@ -3,14 +3,13 @@ use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::database_struct::module_status::ActivationStatusModule;
 use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
 use crate::database_struct::user_color_struct::UserColor;
-use crate::error_management::database_error::DatabaseError;
-use crate::error_management::database_error::DatabaseError::Insert;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use chrono::Utc;
 
 pub async fn set_data_ping_history_postgresql(
     shard_id: String,
     latency: String,
-) -> Result<(), DatabaseError> {
+) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     let now = Utc::now().timestamp().to_string();
     sqlx::query(
@@ -21,14 +20,19 @@ pub async fn set_data_ping_history_postgresql(
         .bind(latency)
         .execute(&pool)
         .await
-        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
     Ok(())
 }
 
 pub async fn get_data_guild_language_postgresql(
     guild_id: String,
-) -> Result<(Option<String>, Option<String>), DatabaseError> {
+) -> Result<(Option<String>, Option<String>), AppError> {
     let pool = get_postgresql_pool().await?;
     let row: (Option<String>, Option<String>) =
         sqlx::query_as("SELECT lang, guild FROM DATA.guild_lang WHERE guild = $1")
@@ -43,7 +47,7 @@ pub async fn get_data_guild_language_postgresql(
 pub async fn set_data_guild_language_postgresql(
     guild_id: &String,
     lang: &String,
-) -> Result<(), DatabaseError> {
+) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
         "INSERT INTO DATA.guild_lang (guild, lang) VALUES ($1, $2) ON CONFLICT (guild) DO UPDATE SET lang = EXCLUDED.lang",
@@ -52,12 +56,17 @@ pub async fn set_data_guild_language_postgresql(
         .bind(lang)
         .execute(&pool)
         .await
-        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
     Ok(())
 }
 
-pub async fn get_data_activity_postgresql(now: String) -> Result<Vec<ActivityData>, DatabaseError> {
+pub async fn get_data_activity_postgresql(now: String) -> Result<Vec<ActivityData>, AppError> {
     let pool = get_postgresql_pool().await?;
     let rows: Vec<ActivityData> = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays, image FROM DATA.activity_data WHERE timestamp = $1",
@@ -71,7 +80,7 @@ pub async fn get_data_activity_postgresql(now: String) -> Result<Vec<ActivityDat
 
 pub async fn set_data_activity_postgresql(
     server_activity_full: ServerActivityFull,
-) -> Result<(), DatabaseError> {
+) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
         "INSERT INTO DATA.activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (anime_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, server_id = EXCLUDED.server_id, webhook = EXCLUDED.webhook, episode = EXCLUDED.episode, name = EXCLUDED.name, delays = EXCLUDED.delays",
@@ -85,7 +94,12 @@ pub async fn set_data_activity_postgresql(
         .bind(server_activity_full.delays)
         .bind(server_activity_full.image)
         .execute(&pool)
-        .await.map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
+        .await.map_err(|e|
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        ))?;
     pool.close().await;
     Ok(())
 }
@@ -100,7 +114,7 @@ pub async fn get_data_module_activation_status_postgresql(
         Option<bool>,
         Option<bool>,
     ),
-    DatabaseError,
+    AppError,
 > {
     let pool = get_postgresql_pool().await?;
     let row: (Option<String>, Option<bool>, Option<bool>, Option<bool>, Option<bool>) = sqlx::query_as(
@@ -120,7 +134,7 @@ pub async fn set_data_module_activation_status_postgresql(
     ai_value: bool,
     game_value: bool,
     new_member_value: bool,
-) -> Result<(), DatabaseError> {
+) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
         "INSERT INTO DATA.module_activation (guild_id, anilist_module, ai_module, game_module, new_member) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (guild_id) DO UPDATE SET anilist_module = EXCLUDED.anilist_module, ai_module = EXCLUDED.ai_module, game_module = EXCLUDED.game_module, new_member = EXCLUDED.new_member",
@@ -132,7 +146,12 @@ pub async fn set_data_module_activation_status_postgresql(
         .bind(new_member_value)
         .execute(&pool)
         .await
-        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
     Ok(())
 }
@@ -140,21 +159,27 @@ pub async fn set_data_module_activation_status_postgresql(
 pub async fn remove_data_activity_status_postgresql(
     server_id: String,
     anime_id: String,
-) -> Result<(), DatabaseError> {
+) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query("DELETE FROM DATA.activity_data WHERE anime_id = $1 AND server_id = $2")
         .bind(anime_id)
         .bind(server_id)
         .execute(&pool)
         .await
-        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to delete from the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            )
+        })?;
     pool.close().await;
 
     Ok(())
 }
 
 pub async fn get_data_module_activation_kill_switch_status_postgresql(
-) -> Result<ActivationStatusModule, DatabaseError> {
+) -> Result<ActivationStatusModule, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: ActivationStatusModule = sqlx::query_as(
         "SELECT id, ai_module, anilist_module, game_module, new_member FROM DATA.module_activation WHERE guild = $1",
@@ -177,7 +202,7 @@ pub async fn get_data_module_activation_kill_switch_status_postgresql(
 pub async fn get_one_activity_postgresql(
     server_id: String,
     anime_id: i32,
-) -> Result<(Option<String>, Option<String>, Option<String>), DatabaseError> {
+) -> Result<(Option<String>, Option<String>, Option<String>), AppError> {
     let pool = get_postgresql_pool().await?;
     let row: (Option<String>, Option<String>, Option<String>) = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id FROM DATA.activity_data WHERE anime_id = $1 AND server_id = $2",
@@ -195,7 +220,7 @@ pub async fn get_one_activity_postgresql(
 
 pub async fn get_registered_user_postgresql(
     user_id: &String,
-) -> Result<(Option<String>, Option<String>), DatabaseError> {
+) -> Result<(Option<String>, Option<String>), AppError> {
     let pool = get_postgresql_pool().await?;
     let row: (Option<String>, Option<String>) =
         sqlx::query_as("SELECT anilist_id, user_id FROM DATA.registered_user WHERE user_id = $1")
@@ -211,7 +236,7 @@ pub async fn get_registered_user_postgresql(
 pub async fn set_registered_user_postgresql(
     user_id: &String,
     username: &String,
-) -> Result<(), DatabaseError> {
+) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
         "INSERT INTO DATA.registered_user (user_id, anilist_id) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET anilist_id = EXCLUDED.anilist_id",
@@ -220,7 +245,12 @@ pub async fn set_registered_user_postgresql(
         .bind(username)
         .execute(&pool)
         .await
-        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
 
     Ok(())
@@ -231,7 +261,7 @@ pub async fn set_user_approximated_color_postgresql(
     color: &String,
     pfp_url: &String,
     image: &String,
-) -> Result<(), DatabaseError> {
+) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
         "INSERT INTO DATA.user_color (user_id, color, pfp_url, image) VALUES ($1, $2, $3, $4) ON CONFLICT (user_id) DO UPDATE SET color = EXCLUDED.color, pfp_url = EXCLUDED.pfp_url, image = EXCLUDED.image",
@@ -242,7 +272,12 @@ pub async fn set_user_approximated_color_postgresql(
         .bind(image)
         .execute(&pool)
         .await
-        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
 
     Ok(())
@@ -250,7 +285,7 @@ pub async fn set_user_approximated_color_postgresql(
 
 pub async fn get_user_approximated_color_postgresql(
     user_id: &String,
-) -> Result<UserColor, DatabaseError> {
+) -> Result<UserColor, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: UserColor = sqlx::query_as(
         "SELECT user_id, color, pfp_url, image FROM DATA.user_color WHERE user_id = $1",
@@ -271,7 +306,7 @@ pub async fn get_user_approximated_color_postgresql(
 
 pub async fn get_all_server_activity_postgresql(
     server_id: &String,
-) -> Result<Vec<ServerActivity>, DatabaseError> {
+) -> Result<Vec<ServerActivity>, AppError> {
     let pool = get_postgresql_pool().await?;
     let rows: Vec<ServerActivity> = sqlx::query_as(
         "SELECT
@@ -297,7 +332,7 @@ pub async fn get_all_server_activity_postgresql(
 pub async fn get_data_activity_with_server_and_anime_id_postgresql(
     anime_id: &String,
     server_id: &String,
-) -> Result<Option<String>, DatabaseError> {
+) -> Result<Option<String>, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: (Option<String>, Option<String>) = sqlx::query_as(
         "SELECT
@@ -317,7 +352,7 @@ pub async fn get_data_activity_with_server_and_anime_id_postgresql(
 
 pub async fn get_data_all_activity_by_server_postgresql(
     server_id: &String,
-) -> Result<Vec<(String, String)>, DatabaseError> {
+) -> Result<Vec<(String, String)>, AppError> {
     let pool = get_postgresql_pool().await?;
     let rows: Vec<(String, String)> = sqlx::query_as(
         "SELECT
@@ -334,7 +369,7 @@ pub async fn get_data_all_activity_by_server_postgresql(
     Ok(rows)
 }
 
-pub async fn get_all_user_approximated_color_postgres() -> Result<Vec<UserColor>, DatabaseError> {
+pub async fn get_all_user_approximated_color_postgres() -> Result<Vec<UserColor>, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: Vec<UserColor> =
         sqlx::query_as("SELECT user_id, color, pfp_url, image FROM DATA.user_color")
@@ -356,7 +391,7 @@ pub async fn set_server_image_postgresql(
     image_type: &String,
     image: &String,
     image_url: &String,
-) -> Result<(), DatabaseError> {
+) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
         "INSERT INTO DATA.server_image (server_id, image_type, image, image_url) VALUES ($1, $2, $3, $4) ON CONFLICT (server_id, image_type) DO UPDATE SET image = EXCLUDED.image",
@@ -367,7 +402,12 @@ pub async fn set_server_image_postgresql(
         .bind(image_url)
         .execute(&pool)
         .await
-        .map_err(|e| Insert(format!("Failed to insert into the table. {}", e)))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
 
     Ok(())
@@ -376,7 +416,7 @@ pub async fn set_server_image_postgresql(
 pub async fn get_server_image_postgresql(
     server_id: &String,
     image_type: &String,
-) -> Result<(Option<String>, Option<String>), DatabaseError> {
+) -> Result<(Option<String>, Option<String>), AppError> {
     let pool = get_postgresql_pool().await?;
     let row: (Option<String>, Option<String>) = sqlx::query_as(
         "SELECT image_url, image FROM DATA.server_image WHERE server_id = $1 and image_type = $2",

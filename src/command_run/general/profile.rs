@@ -1,17 +1,14 @@
+use crate::command_run::get_option::get_option_map_user;
 use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
 };
-use crate::command_run::get_option::get_option_map_user;
 
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::general::profile::load_localization_profile;
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_user(command_interaction);
     let user = map.get(&String::from("username"));
 
@@ -27,7 +24,7 @@ pub async fn run(
             profile_with_user(ctx, command_interaction, &user).await
         }
         None => profile_without_user(ctx, command_interaction).await,
-    }
+    };
 }
 
 async fn profile_without_user(
@@ -61,16 +58,11 @@ pub async fn send_embed(
 
     let profile_localised = load_localization_profile(guild_id).await?;
 
-    let member = &command_interaction
-        .member
-        .clone()
-        .ok_or(
-            AppError::new(
-                String::from("There is no member in the option"),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            ),
-        )?;
+    let member = &command_interaction.member.clone().ok_or(AppError::new(
+        String::from("There is no member in the option"),
+        ErrorType::Option,
+        ErrorResponseType::Message,
+    ))?;
 
     let public_flag = match user.public_flags {
         Some(public_flag) => {
@@ -102,13 +94,11 @@ pub async fn send_embed(
                     "$joined_date$",
                     member
                         .joined_at
-                        .ok_or(
-                            AppError::new(
-                                String::from("There is no joined date for the user"),
-                                ErrorType::Option,
-                                ErrorResponseType::Message,
-                            ),
-                        )?
+                        .ok_or(AppError::new(
+                            String::from("There is no joined date for the user"),
+                            ErrorType::Option,
+                            ErrorResponseType::Message,
+                        ))?
                         .to_string()
                         .as_str(),
                 )

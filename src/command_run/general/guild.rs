@@ -7,10 +7,7 @@ use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::general::guild::load_localization_guild;
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -18,14 +15,11 @@ pub async fn run(
 
     let guild_localised = load_localization_guild(guild_id).await?;
 
-    let guild_id = command_interaction
-        .guild_id
-        .ok_or(
-            AppError::new(
-                String::from("There is no option"),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            ))?;
+    let guild_id = command_interaction.guild_id.ok_or(AppError::new(
+        String::from("There is no option"),
+        ErrorType::Option,
+        ErrorResponseType::Message,
+    ))?;
 
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)

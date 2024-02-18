@@ -8,10 +8,7 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 use crate::lang_struct::general::ping::load_localization_ping;
 use crate::struct_shard_manager::ShardManagerContainer;
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -21,13 +18,11 @@ pub async fn run(
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
         None => {
-            return Err(
-                AppError::new(
-                    String::from("Could not get the shard manager from the data"),
-                    ErrorType::Option,
-                    ErrorResponseType::Message,
-                )
-            );
+            return Err(AppError::new(
+                String::from("Could not get the shard manager from the data"),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            ));
         }
     }
     .runners
@@ -39,13 +34,11 @@ pub async fn run(
     let shard_runner_info = match shard_manager.get(&shard_id) {
         Some(data) => data,
         None => {
-            return Err(
-                AppError::new(
-                    String::from("Could not get the shard info from the shard manager"),
-                    ErrorType::Option,
-                    ErrorResponseType::Message,
-                )
-            );
+            return Err(AppError::new(
+                String::from("Could not get the shard info from the shard manager"),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            ));
         }
     };
 

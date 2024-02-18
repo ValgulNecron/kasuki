@@ -20,22 +20,19 @@ pub async fn command_dispatching(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let ai_module_error =
-    AppError::new(
+    let ai_module_error = AppError::new(
         String::from("AI module is off."),
         ErrorType::Module,
         ErrorResponseType::Message,
     );
 
-    let anilist_module_error =
-    AppError::new(
+    let anilist_module_error = AppError::new(
         String::from("Anilist module is off."),
         ErrorType::Module,
         ErrorResponseType::Message,
     );
 
-    let game_module_error =
-    AppError::new(
+    let game_module_error = AppError::new(
         String::from("Game module is off."),
         ErrorType::Module,
         ErrorResponseType::Message,
@@ -50,12 +47,8 @@ pub async fn command_dispatching(
         THIS IS THE GENERAL MODULE.
 
          */
-        "avatar" => {
-            avatar::run(ctx, command_interaction).await?
-        }
-        "banner" => {
-            banner::run(ctx, command_interaction).await?
-        }
+        "avatar" => avatar::run(ctx, command_interaction).await?,
+        "banner" => banner::run(ctx, command_interaction).await?,
         "credit" => credit::run(ctx, command_interaction).await?,
         "info" => info::run(ctx, command_interaction).await?,
         "lang" => lang::run(&command_interaction.data.options, ctx, command_interaction).await?,
@@ -63,9 +56,7 @@ pub async fn command_dispatching(
             module::run(&command_interaction.data.options, ctx, command_interaction).await?
         }
         "ping" => ping::run(ctx, command_interaction).await?,
-        "profile" => {
-            profile::run(ctx, command_interaction).await?
-        }
+        "profile" => profile::run(ctx, command_interaction).await?,
         "guild" => guild::run(ctx, command_interaction).await?,
         "guild_image" => generate_image_pfp_server::run(ctx, command_interaction).await?,
         "list_activity" => list_all_activity::run(ctx, command_interaction).await?,
@@ -133,8 +124,7 @@ pub async fn command_dispatching(
         }
         "add_anime_activity" => {
             if check_if_moule_is_on(guild_id, "ANILIST").await? {
-                add_activity::run(ctx, command_interaction)
-                    .await?
+                add_activity::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -225,24 +215,21 @@ pub async fn command_dispatching(
         }
         "random_image" => {
             if check_if_moule_is_on(guild_id, "ANILIST").await? {
-                random_image::run(ctx, command_interaction)
-                    .await?
+                random_image::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "random_nsfw_image" => {
             if check_if_moule_is_on(guild_id, "ANILIST").await? {
-                random_nsfw_image::run(ctx, command_interaction)
-                    .await?
+                random_nsfw_image::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "delete_activity" => {
             if check_if_moule_is_on(guild_id, "ANILIST").await? {
-                delete_activity::run(ctx, command_interaction)
-                    .await?
+                delete_activity::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
@@ -255,19 +242,17 @@ pub async fn command_dispatching(
          */
         "steam_game" => {
             if check_if_moule_is_on(guild_id, "GAME").await? {
-                steam_game_info::run(ctx, command_interaction)
-                    .await?
+                steam_game_info::run(ctx, command_interaction).await?
             } else {
                 return Err(game_module_error);
             }
         }
         _ => {
-            return Err(
-                AppError::new(
-                    String::from("Command does not exist."),
-                    ErrorType::Option,
-                    ErrorResponseType::Message,
-                ))
+            return Err(AppError::new(
+                String::from("Command does not exist."),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            ));
         }
     }
 

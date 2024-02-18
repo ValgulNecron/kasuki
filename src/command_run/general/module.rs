@@ -59,13 +59,11 @@ pub async fn run(
         "GAME" => game_value = state,
         "NEW MEMBER" => new_member_value = state,
         _ => {
-            return Err(
-                AppError::new(
-                    String::from("This module does not exist."),
-                    ErrorType::Option,
-                    ErrorResponseType::Message,
-                )
-            );
+            return Err(AppError::new(
+                String::from("This module does not exist."),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            ));
         }
     }
     set_data_module_activation_status(

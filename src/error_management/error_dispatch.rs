@@ -16,12 +16,16 @@ pub async fn command_dispatching(
     let response_type = error.error_response_type.clone();
     match response_type {
         ErrorResponseType::Message => send_error(error, command_interaction, ctx).await.unwrap(),
-        ErrorResponseType::Followup => send_differed_error(error, command_interaction, ctx).await.unwrap(),
+        ErrorResponseType::Followup => send_differed_error(error, command_interaction, ctx)
+            .await
+            .unwrap(),
         ErrorResponseType::Unknown => {
             match send_error(error.clone(), command_interaction, ctx).await {
                 Ok(_) => {}
                 Err(_) => {
-                    send_differed_error(error, command_interaction, ctx).await.unwrap();
+                    send_differed_error(error, command_interaction, ctx)
+                        .await
+                        .unwrap();
                 }
             }
         }
@@ -29,7 +33,11 @@ pub async fn command_dispatching(
     }
 }
 
-async fn send_error(e: AppError, command_interaction: &CommandInteraction, ctx: &Context) -> Result<(), AppError> {
+async fn send_error(
+    e: AppError,
+    command_interaction: &CommandInteraction,
+    ctx: &Context,
+) -> Result<(), AppError> {
     let error_message = format!("**This error is most likely an error on your part. \
     like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
     error and report it to me and I will try to fix it the fastest I can**  \n{:?}", e);
@@ -45,13 +53,13 @@ async fn send_error(e: AppError, command_interaction: &CommandInteraction, ctx: 
     let _ = command_interaction
         .create_response(&ctx.http, builder)
         .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Error while sending the command {}", e),
-            ErrorType::Command,
-            ErrorResponseType::Message,
-        )
-    })?;
+        .map_err(|e| {
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
+        })?;
     Ok(())
 }
 
@@ -59,7 +67,7 @@ async fn send_differed_error(
     e: AppError,
     command_interaction: &CommandInteraction,
     ctx: &Context,
-)  -> Result<(), AppError> {
+) -> Result<(), AppError> {
     let error_message = format!("**This error is most likely an error on your part. \
     like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
     error and report it to me and I will try to fix it the fastest I can**  \n{:?}", e);

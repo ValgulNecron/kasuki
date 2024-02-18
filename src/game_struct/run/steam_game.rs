@@ -1,9 +1,6 @@
 use crate::constant::{APPS, LANG_MAP};
-use crate::database::dispatcher::data_dispatch::get_data_guild_langage;
-use crate::error_management::web_request_error::WebRequestError;
-use crate::error_management::web_request_error::WebRequestError::{
-    Decoding, IncorrectUrl, NotFound, Parsing, Request,
-};
+use crate::database::dispatcher::data_dispatch::get_data_guild_language;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
@@ -187,12 +184,18 @@ impl SteamGameWrapper {
     pub async fn new_steam_game_by_id(
         appid: u128,
         guild_id: String,
-    ) -> Result<SteamGameWrapper, WebRequestError> {
+    ) -> Result<SteamGameWrapper, AppError> {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
             .build()
-            .map_err(|e| IncorrectUrl(format!("Incorrect url. {}", e)))?;
-        let lang = get_data_guild_langage(guild_id)
+            .map_err(|e| {
+                AppError::new(
+                    format!("Failed to build the client. {}", e),
+                    ErrorType::WebRequest,
+                    ErrorResponseType::Unknown,
+                )
+            })?;
+        let lang = get_data_guild_language(guild_id)
             .await?
             .0
             .unwrap_or(String::from("en"))
@@ -207,15 +210,20 @@ impl SteamGameWrapper {
 
         trace!("{}", url);
 
-        let response = client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| Request(format!("Error when making the request. {}", e)))?;
-        let mut text = response
-            .text()
-            .await
-            .map_err(|e| Decoding(format!("Failed to get the text data. {}", e)))?;
+        let response = client.get(&url).send().await.map_err(|e| {
+            AppError::new(
+                format!("Error when making the request. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Unknown,
+            )
+        })?;
+        let mut text = response.text().await.map_err(|e| {
+            AppError::new(
+                format!("Failed to get the text data. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Unknown,
+            )
+        })?;
 
         let re = Regex::new(r#""required_age":"(\d+)""#).unwrap();
 
@@ -230,9 +238,14 @@ impl SteamGameWrapper {
             }
         }
 
-        let game_wrapper: HashMap<String, SteamGameWrapper> =
-            serde_json::from_str(text.as_str())
-                .map_err(|e| Parsing(format!("Failed to parse as json. {}", e)))?;
+        let game_wrapper: HashMap<String, SteamGameWrapper> = serde_json::from_str(text.as_str())
+            .map_err(|e| {
+            AppError::new(
+                format!("Failed to parse as json. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Unknown,
+            )
+        })?;
 
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }
@@ -240,7 +253,7 @@ impl SteamGameWrapper {
     pub async fn new_steam_game_by_search(
         search: &str,
         guild_id: String,
-    ) -> Result<SteamGameWrapper, WebRequestError> {
+    ) -> Result<SteamGameWrapper, AppError> {
         let choices: Vec<(&String, &u128)>;
         unsafe { choices = APPS.iter().collect() }
 
@@ -250,7 +263,11 @@ impl SteamGameWrapper {
         let mut appid = &0u128;
         unsafe {
             if results.is_empty() {
-                return Err(NotFound(String::from("Game not found.")));
+                return Err(AppError::new(
+                    "Game not found.".to_string(),
+                    ErrorType::WebRequest,
+                    ErrorResponseType::Unknown,
+                ));
             }
             for (name, _) in results {
                 if appid == &0u128 {

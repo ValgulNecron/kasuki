@@ -1,13 +1,23 @@
-use crate::error_management::database_error::DatabaseError;
-use crate::error_management::error_enum::NotACommandError::CreatingPoolError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 
-pub async fn get_postgresql_pool() -> Result<Pool<Postgres>, DatabaseError> {
-    let pool_url = std::env::var("DATABASE_URL")
-        .map_err(|e| CreatingPoolError(format!("Failed to get the url from environment: {}", e)));
+pub async fn get_postgresql_pool() -> Result<Pool<Postgres>, AppError> {
+    let pool_url = std::env::var("DATABASE_URL").map_err(|e| {
+        AppError::new(
+            format!("Failed to get the url from environment: {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        )
+    })?;
     PgPoolOptions::new()
         .max_connections(20)
         .connect_lazy(pool_url.as_str())
-        .map_err(|e| CreatingPoolError(format!("Failed to get the postgres pool: {}", e)))
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to get the postgres pool: {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            )
+        })
 }

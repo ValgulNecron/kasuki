@@ -8,15 +8,15 @@ use base64::engine::Engine as _;
 
 use log::trace;
 
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp};
-use uuid::Uuid;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
+};
+use uuid::Uuid;
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),

@@ -1,5 +1,5 @@
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::error_management::error_enum::AppError::Error;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use serenity::all::{Attachment, CommandInteraction, ResolvedOption, ResolvedValue, UserId};
 use std::collections::HashMap;
 
@@ -46,14 +46,11 @@ pub fn get_the_attachment(
 ) -> Result<&Attachment, AppError> {
     match attachment {
         Some(Some(att)) => Ok(att),
-        _ =>
-        Err(
-            AppError::new(
-                String::from("There is no option"),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            )
-        )
+        _ => Err(AppError::new(
+            String::from("There is no option"),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
     }
 }
 

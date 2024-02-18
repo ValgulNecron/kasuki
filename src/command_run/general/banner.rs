@@ -1,17 +1,14 @@
-use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
-};
 use crate::command_run::get_option::get_option_map_user;
+use serenity::all::{
+    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp, User,
+};
 
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::general::banner::load_localization_banner;
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_user(command_interaction);
     let user = map.get(&String::from("username"));
 
@@ -27,7 +24,7 @@ pub async fn run(
             banner_with_user(ctx, command_interaction, &user).await
         }
         None => banner_without_user(ctx, command_interaction).await,
-    }
+    };
 }
 
 pub async fn no_banner(

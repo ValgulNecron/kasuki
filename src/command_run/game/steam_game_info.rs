@@ -1,5 +1,7 @@
+use crate::command_run::get_option::get_option_map_string;
 use crate::common::steam_to_discord_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::constant::COLOR;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::game_struct::run::steam_game::SteamGameWrapper;
 use crate::lang_struct::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
@@ -10,21 +12,14 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
-use crate::command_run::get_option::get_option_map_string;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
-    let value = map.get(&String::from("game_name"))
-        .ok_or(
-            AppError::new(
-                String::from("There is no option"),
-                ErrorType::Option,
-                ErrorResponseType::Followup,
-            ))?;
+    let value = map.get(&String::from("game_name")).ok_or(AppError::new(
+        String::from("There is no option"),
+        ErrorType::Option,
+        ErrorResponseType::Followup,
+    ))?;
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
