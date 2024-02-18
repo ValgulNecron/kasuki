@@ -1,13 +1,6 @@
-use crate::constant::CHAT_MODELS;
-use crate::constant::CHAT_TOKEN;
-use crate::constant::IMAGE_BASE_URL;
-use crate::constant::IMAGE_MODELS;
-use crate::constant::IMAGE_TOKEN;
-use crate::constant::TRANSCRIPT_BASE_URL;
-use crate::constant::TRANSCRIPT_MODELS;
-use crate::constant::TRANSCRIPT_TOKEN;
+
 use crate::constant::{
-    CHAT_BASE_URL, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+    TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::all::{Guild, Member};
@@ -59,7 +52,9 @@ struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn guild_create(&self, _ctx: Context, guild: Guild, is_new: Option<bool>) {
+    async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
+        color_management(&ctx.cache.guilds(), &ctx).await;
+        server_image_management(&ctx).await;
         if is_new.unwrap_or_default() {
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
@@ -68,6 +63,8 @@ impl EventHandler for Handler {
     }
 
     async fn guild_member_addition(&self, ctx: Context, mut member: Member) {
+        color_management(&ctx.cache.guilds(), &ctx).await;
+        server_image_management(&ctx).await;
         let guild_id = member.guild_id.to_string();
         trace!("Member {} joined guild {}", member.user.tag(), guild_id);
         if check_if_moule_is_on(guild_id, "GAME").await.unwrap_or(true) {
@@ -210,17 +207,6 @@ async fn main() {
             return;
         }
     };
-    unsafe {
-        info!("{}", IMAGE_BASE_URL.as_str());
-        info!("{}", IMAGE_TOKEN.as_str());
-        info!("{}", IMAGE_MODELS.as_str());
-        info!("{}", CHAT_BASE_URL.as_str());
-        info!("{}", CHAT_TOKEN.as_str());
-        info!("{}", CHAT_MODELS.as_str());
-        info!("{}", TRANSCRIPT_BASE_URL.as_str());
-        info!("{}", TRANSCRIPT_TOKEN.as_str());
-        info!("{}", TRANSCRIPT_MODELS.as_str());
-    }
 
     // Build our client.
     let gateway_intent_non_privileged = GatewayIntents::GUILDS
