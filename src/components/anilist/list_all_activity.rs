@@ -20,14 +20,11 @@ pub async fn update(
 
     let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
 
-    let guild_id = component_interaction
-        .guild_id
-        .ok_or(
-            AppError::new(
-                String::from("There is no guild id"),
-                ErrorType::Option,
-                ErrorResponseType::None,
-            ))?;
+    let guild_id = component_interaction.guild_id.ok_or(AppError::new(
+        String::from("There is no guild id"),
+        ErrorType::Option,
+        ErrorResponseType::None,
+    ))?;
 
     let list = get_all_server_activity(&guild_id.to_string()).await?;
     let len = list.len();

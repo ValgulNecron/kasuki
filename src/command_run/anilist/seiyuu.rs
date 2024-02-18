@@ -7,8 +7,8 @@ use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateEmbed,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::{debug, error};
 use uuid::Uuid;

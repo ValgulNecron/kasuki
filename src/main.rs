@@ -1,7 +1,4 @@
-
-use crate::constant::{
-    TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
-};
+use crate::constant::{TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE};
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};

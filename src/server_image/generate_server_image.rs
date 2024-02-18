@@ -56,13 +56,11 @@ async fn generate_server_image(
     })?;
     let guild_pfp = guild
         .icon_url()
-        .ok_or(
-            AppError::new(
-                String::from("There is no option, no image for the guild."),
-                ErrorType::Option,
-                ErrorResponseType::None,
-            )
-        )?
+        .ok_or(AppError::new(
+            String::from("There is no option, no image for the guild."),
+            ErrorType::Option,
+            ErrorResponseType::None,
+        ))?
         .replace("?size=1024", "?size=128");
 
     let old_url = get_server_image(&guild_id.to_string(), &image_type)

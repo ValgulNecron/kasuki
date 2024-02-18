@@ -23,12 +23,11 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
 
     let guild_id = member.guild_id.to_string();
     if !check_if_moule_is_on(guild_id.clone(), "NEW_MEMBER").await? {
-        return Err(
-            AppError::new(
-                String::from("The module is off"),
-                ErrorType::Module,
-                ErrorResponseType::None,
-            ))
+        return Err(AppError::new(
+            String::from("The module is off"),
+            ErrorType::Module,
+            ErrorResponseType::None,
+        ));
     }
     let new_member_localised = load_localization_new_member(guild_id).await?;
 
@@ -120,12 +119,9 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
 }
 
 async fn get_channel_to_send(guild: PartialGuild) -> Result<ChannelId, AppError> {
-    guild
-        .system_channel_id
-        .ok_or(
-            AppError::new(
-                String::from("There is no system channel"),
-                ErrorType::Option,
-                ErrorResponseType::None,
-            ))
+    guild.system_channel_id.ok_or(AppError::new(
+        String::from("There is no system channel"),
+        ErrorType::Option,
+        ErrorResponseType::None,
+    ))
 }

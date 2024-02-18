@@ -9,9 +9,8 @@ use reqwest::get;
 use serde_json::json;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    ChannelId, CommandInteraction, Context,
-    CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, EditWebhook, Timestamp,
+    ChannelId, CommandInteraction, Context, CreateAttachment, CreateEmbed,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, Timestamp,
 };
 use tracing::{error, trace};
 
@@ -31,7 +30,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap_or(&String::from("0"))
         .parse()
         .unwrap_or(0);
-    let anime = map.get(&String::from("anime_name")).cloned().unwrap_or(String::new());
+    let anime = map
+        .get(&String::from("anime_name"))
+        .cloned()
+        .unwrap_or(String::new());
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -121,11 +123,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
         let next_airing = match media.next_airing_episode.clone() {
             Some(na) => na,
-            None => return Err(AppError::new(
-                String::from("There is no next airing episode."),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            )),
+            None => {
+                return Err(AppError::new(
+                    String::from("There is no next airing episode."),
+                    ErrorType::Option,
+                    ErrorResponseType::Message,
+                ))
+            }
         };
 
         let webhook =

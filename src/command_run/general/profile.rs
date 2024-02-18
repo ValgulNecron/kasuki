@@ -1,7 +1,7 @@
 use crate::command_run::get_option::get_option_map_user;
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp, User,
 };
 
 use crate::constant::COLOR;

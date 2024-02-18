@@ -89,16 +89,7 @@ pub async fn set_data_activity(server_activity_full: ServerActivityFull) -> Resu
 
 pub async fn get_data_module_activation_status(
     guild_id: &String,
-) -> Result<
-    (
-        Option<String>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-    ),
-    AppError,
-> {
+) -> Result<ActivationStatusModule, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_data_module_activation_status_sqlite(guild_id).await

@@ -7,6 +7,7 @@ use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
 };
+use crate::database_struct::module_status::ActivationStatusModule;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::general::module::load_localization_module_activation;
 
@@ -42,17 +43,10 @@ pub async fn run(
     }
 
     let row = get_data_module_activation_status(&guild_id).await?;
-    let (_, ai_module, anilist_module, game_module, new_member_value): (
-        Option<String>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-    ) = row;
-    let mut ai_value = ai_module.unwrap_or(true);
-    let mut anilist_value = anilist_module.unwrap_or(true);
-    let mut game_value = game_module.unwrap_or(true);
-    let mut new_member_value = new_member_value.unwrap_or(true);
+    let mut ai_value = row.ai_module.unwrap_or(true);
+    let mut anilist_value = row.anilist_module.unwrap_or(true);
+    let mut game_value = row.game_module.unwrap_or(true);
+    let mut new_member_value = row.new_member.unwrap_or(true);
     match module.as_str() {
         "ANIME" => anilist_value = state,
         "AI" => ai_value = state,
@@ -102,30 +96,14 @@ pub async fn run(
         })
 }
 
-pub async fn check_activation_status(
-    module: &str,
-    guild_id: String,
-) -> Result<bool, AppError> {
-    let row: (
-        Option<String>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-    ) = get_data_module_activation_status(&guild_id).await?;
+pub async fn check_activation_status(module: &str, guild_id: String) -> Result<bool, AppError> {
+    let row: ActivationStatusModule = get_data_module_activation_status(&guild_id).await?;
 
-    let (_, ai_module, anilist_module, game_module, new_member): (
-        Option<String>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-    ) = row;
     Ok(match module {
-        "ANILIST" => anilist_module.unwrap_or(true),
-        "AI" => ai_module.unwrap_or(true),
-        "GAME" => game_module.unwrap_or(true),
-        "NEW_MEMBER" => new_member.unwrap_or(true),
+        "ANILIST" => row.anilist_module.unwrap_or(true),
+        "AI" => row.ai_module.unwrap_or(true),
+        "GAME" => row.game_module.unwrap_or(true),
+        "NEW_MEMBER" => row.new_member.unwrap_or(true),
         _ => false,
     })
 }

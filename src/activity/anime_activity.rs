@@ -44,18 +44,14 @@ pub async fn send_activity(ctx: &Context) {
                 tokio::spawn(async move {
                     tokio::time::sleep(Duration::from_secs(row2.delays.unwrap_or_default() as u64))
                         .await;
-                    match send_specific_activity(row, guild_id.unwrap_or_default(), row2, &ctx)
-                        .await
+                    if let Err(e) =
+                        send_specific_activity(row, guild_id.unwrap_or_default(), row2, &ctx).await
                     {
-                        Err(e) => error!("{}", e),
-                        _ => {}
+                        error!("{}", e)
                     }
                 });
-            } else {
-                match send_specific_activity(row, guild_id.unwrap(), row2, ctx).await {
-                    Err(e) => error!("{}", e),
-                    _ => {}
-                }
+            } else if let Err(e) = send_specific_activity(row, guild_id.unwrap(), row2, ctx).await {
+                error!("{}", e);
             }
         }
     }

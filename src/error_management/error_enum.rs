@@ -33,11 +33,9 @@ impl fmt::Display for AppError {
 
 #[derive(Debug, Clone)]
 pub enum ErrorType {
-    Activity,
     Command,
     Database,
     File,
-    Generic,
     Option,
     WebRequest,
     Webhook,
@@ -52,11 +50,9 @@ pub enum ErrorType {
 impl fmt::Display for ErrorType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ErrorType::Activity => write!(f, "Activity"),
             ErrorType::Command => write!(f, "Command"),
             ErrorType::Database => write!(f, "Database"),
             ErrorType::File => write!(f, "File"),
-            ErrorType::Generic => write!(f, "Generic"),
             ErrorType::Option => write!(f, "Option"),
             ErrorType::WebRequest => write!(f, "WebRequest"),
             ErrorType::Webhook => write!(f, "Webhook"),

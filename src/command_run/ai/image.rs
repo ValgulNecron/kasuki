@@ -1,4 +1,4 @@
-use std::{env};
+use std::env;
 
 use crate::command_run::get_option::get_option_map_string;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
@@ -48,7 +48,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let model = unsafe { IMAGE_MODELS.as_str() };
     info!("{}", model);
-    let data: Value;
+
     let quality = match env::var("AI_IMAGE_QUALITY") {
         Ok(quality) => Some(quality),
         Err(_) => None,
@@ -60,9 +60,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let size = env::var("AI_IMAGE_SIZE").unwrap_or(String::from("1024x1024"));
 
-    match (quality, style) {
+    let data: Value = match (quality, style) {
         (Some(quality), Some(style)) => {
-            data = json!({
+            json!({
                 "prompt": prompt,
                 "n": 1,
                 "size": size,
@@ -73,7 +73,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             })
         }
         (None, Some(style)) => {
-            data = json!({
+            json!({
                 "prompt": prompt,
                 "n": 1,
                 "size": size,
@@ -83,7 +83,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             })
         }
         (Some(quality), None) => {
-            data = json!({
+            json!({
                 "prompt": prompt,
                 "n": 1,
                 "size": size,
@@ -93,7 +93,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             })
         }
         (None, None) => {
-            data = json!({
+            json!({
                 "prompt": prompt,
                 "n": 1,
                 "size": size,
@@ -101,7 +101,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 "response_format": "url"
             })
         }
-    }
+    };
 
     trace!("{:#?}", data);
 

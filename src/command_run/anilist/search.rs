@@ -4,10 +4,7 @@ use crate::command_run::anilist::{anime, character, ln, manga, staff, studio, us
 use crate::command_run::get_option::get_option_map_string;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-pub async fn run(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
     let search_type = map.get(&String::from("type")).ok_or(AppError::new(
         String::from("There is no option"),
@@ -22,11 +19,10 @@ pub async fn run(
         "staff" => staff::run(ctx, command_interaction).await,
         "user" => user::run(ctx, command_interaction).await,
         "studio" => studio::run(ctx, command_interaction).await,
-        _ => Err(
-            AppError::new(
-                String::from("Invalid type"),
-                ErrorType::Option,
-                ErrorResponseType::Followup,
-            )),
+        _ => Err(AppError::new(
+            String::from("Invalid type"),
+            ErrorType::Option,
+            ErrorResponseType::Followup,
+        )),
     }
 }

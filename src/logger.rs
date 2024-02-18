@@ -115,13 +115,14 @@ fn get_directive(filter: &str) -> Result<Directive, AppError> {
         Ok(d) => d,
         Err(e) => {
             eprintln!("{}", e);
-            return Err(
-                AppError::new(
-                    format!("Error creating the Logger. Please check the log level filter. {}", e),
-                    ErrorType::Logging,
-                    ErrorResponseType::None,
-                )
-            );
+            return Err(AppError::new(
+                format!(
+                    "Error creating the Logger. Please check the log level filter. {}",
+                    e
+                ),
+                ErrorType::Logging,
+                ErrorResponseType::None,
+            ));
         }
     };
     Ok(directive)

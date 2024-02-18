@@ -7,7 +7,10 @@ use crate::error_management::error_enum::AppError;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
-    let value = map.get(&String::from("anime_name")).cloned().unwrap_or(String::new());
+    let value = map
+        .get(&String::from("anime_name"))
+        .cloned()
+        .unwrap_or(String::new());
 
     let data: MediaWrapper = if value.parse::<i32>().is_ok() {
         MediaWrapper::new_anime_by_id(value.parse().unwrap()).await?

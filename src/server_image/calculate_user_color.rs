@@ -101,12 +101,13 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
     // Fetch the image data
     let resp = reqwest::get(url)
         .await
-        .map_err(|e|
+        .map_err(|e| {
             AppError::new(
                 format!("Failed to download image. {}", e),
                 ErrorType::File,
                 ErrorResponseType::None,
-            ))?
+            )
+        })?
         .bytes()
         .await
         .map_err(|e| {
@@ -120,19 +121,21 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
     // Decode the image data
     let img = ImageReader::new(Cursor::new(resp))
         .with_guessed_format()
-        .map_err(|e|
+        .map_err(|e| {
             AppError::new(
                 format!("Failed to load image. {}", e),
                 ErrorType::File,
                 ErrorResponseType::None,
-            ))?
+            )
+        })?
         .decode()
-        .map_err(|e|
+        .map_err(|e| {
             AppError::new(
                 format!("Failed to decode image. {}", e),
                 ErrorType::File,
                 ErrorResponseType::None,
-            ))?;
+            )
+        })?;
 
     Ok(img)
 }

@@ -20,24 +20,22 @@ pub async fn update(
 
     let list_user_localised = load_localization_list_user(guild_id).await?;
 
-    let guild_id = component_interaction
-        .guild_id
-        .ok_or(
-            AppError::new(
-                String::from("There is no guild id"),
-                ErrorType::Option,
-                ErrorResponseType::None,
-            ))?;
+    let guild_id = component_interaction.guild_id.ok_or(AppError::new(
+        String::from("There is no guild id"),
+        ErrorType::Option,
+        ErrorResponseType::None,
+    ))?;
 
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)
         .await
-        .map_err(|e|
+        .map_err(|e| {
             AppError::new(
                 format!("There is no guild. {}", e),
                 ErrorType::Option,
                 ErrorResponseType::None,
-            ))?;
+            )
+        })?;
 
     let id = if user_id == "0" {
         None

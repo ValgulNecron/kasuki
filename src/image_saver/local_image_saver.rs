@@ -25,13 +25,13 @@ pub async fn local_image_save(
 
     let filename = format!("{}_{}", formatted, filename);
     // write the file
-    fs::write(format!("{}/{}", file_path, filename), image_data)
-        .map_err(|e|
-            AppError::new(
-                format!("Failed to write image. {}", e),
-                ErrorType::File,
-                ErrorResponseType::Unknown,
-            ))?;
+    fs::write(format!("{}/{}", file_path, filename), image_data).map_err(|e| {
+        AppError::new(
+            format!("Failed to write image. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Unknown,
+        )
+    })?;
 
     Ok(())
 }

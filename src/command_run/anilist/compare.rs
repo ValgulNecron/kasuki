@@ -1,6 +1,6 @@
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
 };
 use std::collections::HashSet;
 use tracing::trace;
@@ -16,8 +16,14 @@ use crate::lang_struct::anilist::compare::load_localization_compare;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
-    let value = map.get(&String::from("username")).cloned().unwrap_or(String::new());
-    let value2 = map.get(&String::from("username2")).cloned().unwrap_or(String::new());
+    let value = map
+        .get(&String::from("username"))
+        .cloned()
+        .unwrap_or(String::new());
+    let value2 = map
+        .get(&String::from("username2"))
+        .cloned()
+        .unwrap_or(String::new());
 
     let data: UserWrapper = get_user_data(&value).await?;
 
