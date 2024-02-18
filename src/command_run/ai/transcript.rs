@@ -134,7 +134,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .file_name(file_name)
         .mime_str(content_type.as_str())
         .unwrap();
-    let prompt = prompt;
     let model = unsafe { TRANSCRIPT_MODELS.as_str() };
     let form = multipart::Form::new()
         .part("file", part)
