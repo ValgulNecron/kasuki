@@ -1,5 +1,5 @@
 use crate::database::dispatcher::data_dispatch::{
-    get_all_user_approximated_color, get_server_image, set_server_image,
+    get_all_user_approximated_color, set_server_image,
 };
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

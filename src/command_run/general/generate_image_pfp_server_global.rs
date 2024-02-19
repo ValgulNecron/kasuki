@@ -10,7 +10,7 @@ use log::trace;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-use serenity::all::{CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp};
+use serenity::all::{CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp};
 use serenity::all::CreateInteractionResponse::Defer;
 use uuid::Uuid;
 

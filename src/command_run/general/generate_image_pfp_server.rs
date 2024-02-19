@@ -1,4 +1,3 @@
-use std::fs;
 use crate::constant::COLOR;
 use crate::database::sqlite::data::get_server_image_sqlite;
 
@@ -8,7 +7,7 @@ use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponse,
+    CommandInteraction, Context, CreateAttachment, CreateEmbed,
     CreateInteractionResponseMessage, Timestamp,
 };
 use serenity::all::CreateInteractionResponse::Defer;
