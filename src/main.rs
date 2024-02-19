@@ -1,4 +1,4 @@
-use crate::constant::{TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE};
+use crate::constant::{TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE};
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
@@ -286,7 +286,7 @@ async fn thread_management_launcher(ctx: Context) {
         manage_activity(ctx_clone).await
     });
 
-    sleep(Duration::from_secs(5)).await;
+    sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
     let ctx_clone = ctx.clone();
     tokio::spawn(async move {
         loop {

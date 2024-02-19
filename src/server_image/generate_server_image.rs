@@ -63,14 +63,6 @@ async fn generate_server_image(
         ))?
         .replace("?size=1024", "?size=128");
 
-    let old_url = get_server_image(&guild_id.to_string(), &image_type)
-        .await?
-        .0;
-
-    if old_url.unwrap_or_default() == guild_pfp {
-        return Ok(());
-    }
-
     let img = get_image_from_url(guild_pfp.clone()).await?;
 
     let dim = 128 * 64;
@@ -138,7 +130,6 @@ async fn generate_server_image(
 
 pub async fn server_image_management(ctx: &Context) {
     let guilds = ctx.cache.guilds();
-
 
         for guild in guilds {
             let ctx_clone = ctx.clone();
