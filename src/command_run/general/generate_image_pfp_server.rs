@@ -6,11 +6,11 @@ use crate::lang_struct::general::generate_image_pfp_server::load_localization_pf
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 
-use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateEmbed,
-    CreateInteractionResponseMessage, Timestamp,
-};
 use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseMessage,
+    Timestamp,
+};
 use serenity::builder::CreateInteractionResponseFollowup;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -63,10 +63,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .image(format!("attachment://{}", &image_path))
         .title(pfp_server_image_localised_text.title);
 
-    let builder =
-        CreateInteractionResponseFollowup::new()
-            .embed(builder_embed)
-            .files(vec![attachment]);
+    let builder = CreateInteractionResponseFollowup::new()
+        .embed(builder_embed)
+        .files(vec![attachment]);
 
     command_interaction
         .create_followup(&ctx.http, builder)

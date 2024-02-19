@@ -1,4 +1,6 @@
-use crate::constant::{TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE};
+use crate::constant::{
+    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+};
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
@@ -264,7 +266,7 @@ async fn thread_management_launcher(ctx: Context) {
             sleep(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE)).await;
         }
     });
-    
+
     info!("Waiting 30second before launching the different thread.");
     sleep(Duration::from_secs(DELAY_BEFORE_THREAD_SPAWN)).await;
 

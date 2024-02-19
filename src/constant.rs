@@ -31,6 +31,7 @@ pub const PASS_LIMIT: u32 = 10;
 // min 1 max 1000
 pub const MEMBER_LIST_LIMIT: u64 = 10;
 pub const ACTIVITY_LIST_LIMIT: u64 = 10;
+pub const MAX_THREAD: usize = 5;
 /*
 Database path.
  */

@@ -10,8 +10,11 @@ use log::trace;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-use serenity::all::{CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp};
 use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, Timestamp,
+};
 use uuid::Uuid;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -59,10 +62,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let attachment = CreateAttachment::bytes(image_data, image_path);
 
-    let builder =
-        CreateInteractionResponseFollowup::new()
-            .embed(builder_embed)
-            .files(vec![attachment]);
+    let builder = CreateInteractionResponseFollowup::new()
+        .embed(builder_embed)
+        .files(vec![attachment]);
 
     command_interaction
         .create_followup(&ctx.http, builder)

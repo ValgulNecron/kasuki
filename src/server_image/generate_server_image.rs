@@ -20,9 +20,12 @@ use palette::{IntoColor, Lab, Srgb};
 use serenity::all::{Context, GuildId, Member};
 use std::sync::{Arc, Mutex};
 use std::thread;
+use tokio::sync::Semaphore;
+use tokio::task;
 
 use tracing::{error, info};
 use uuid::Uuid;
+use crate::constant::MAX_THREAD;
 
 pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId) -> Result<(), AppError> {
     let members: Vec<Member> = get_member(ctx, &guild_id).await;
@@ -124,33 +127,53 @@ async fn generate_server_image(
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
     let image = format!("data:image/png;base64,{}", base64_image);
     let uuid = Uuid::new_v4();
-    image_saver(guild_id.to_string(), format!("{}.png", uuid.to_string()), image_data).await?;
+    image_saver(
+        guild_id.to_string(),
+        format!("{}.png", uuid.to_string()),
+        image_data,
+    )
+    .await?;
     set_server_image(&guild_id.to_string(), &image_type, &image, &guild_pfp).await
 }
 
 pub async fn server_image_management(ctx: &Context) {
+    let semaphore = Arc::new(Semaphore::new(MAX_THREAD));
     let guilds = ctx.cache.guilds();
 
-        for guild in guilds {
-            let ctx_clone = ctx.clone();
-            let guild_clone = guild.clone();
-            tokio::spawn(async move {
+    for guild in guilds {
 
-                match generate_local_server_image(&ctx_clone, guild_clone).await {
+        let semaphore_clone = Arc::clone(&semaphore);
+        let ctx_clone = ctx.clone();
+        let guild_clone = guild.clone();
+        task::spawn(async move {
+            let permit = semaphore_clone.acquire().await.unwrap();
+            match generate_local_server_image(&ctx_clone, guild_clone).await {
                 Ok(_) => info!("Generated local server image for guild {}", guild),
                 Err(e) => error!(
                     "Failed to generate local server image for guild {}. {:?}",
                     guild, e
                 ),
             }
+            drop(permit);
+        });
+
+
+        let semaphore_clone = Arc::clone(&semaphore);
+        let ctx_clone = ctx.clone();
+        let guild_clone = guild.clone();
+        task::spawn(async move {
+            let permit = semaphore_clone.acquire().await.unwrap();
 
             match generate_global_server_image(&ctx_clone, guild_clone).await {
                 Ok(_) => info!("Generated global server image for guild {}", guild),
                 Err(e) => error!(
-                "Failed to generate global server image for guild {}. {:?}",
-                guild, e
-            ),
+                    "Failed to generate global server image for guild {}. {:?}",
+                    guild, e
+                ),
             };
-            });
-        }
+            drop(permit);
+        });
+    }
+
+    let _ = semaphore.acquire_many(MAX_THREAD as u32).await.unwrap();
 }
