@@ -23,9 +23,9 @@ use std::thread;
 use tokio::sync::Semaphore;
 use tokio::task;
 
+use crate::constant::MAX_THREAD;
 use tracing::{error, info};
 use uuid::Uuid;
-use crate::constant::MAX_THREAD;
 
 pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId) -> Result<(), AppError> {
     let members: Vec<Member> = get_member(ctx, &guild_id).await;
@@ -137,16 +137,12 @@ async fn generate_server_image(
 }
 
 pub async fn server_image_management(ctx: &Context) {
-    let semaphore = Arc::new(Semaphore::new(MAX_THREAD));
     let guilds = ctx.cache.guilds();
 
     for guild in guilds {
-
-        let semaphore_clone = Arc::clone(&semaphore);
         let ctx_clone = ctx.clone();
         let guild_clone = guild.clone();
         task::spawn(async move {
-            let permit = semaphore_clone.acquire().await.unwrap();
             match generate_local_server_image(&ctx_clone, guild_clone).await {
                 Ok(_) => info!("Generated local server image for guild {}", guild),
                 Err(e) => error!(
@@ -154,26 +150,16 @@ pub async fn server_image_management(ctx: &Context) {
                     guild, e
                 ),
             }
-            drop(permit);
         });
 
-
-        let semaphore_clone = Arc::clone(&semaphore);
         let ctx_clone = ctx.clone();
         let guild_clone = guild.clone();
-        task::spawn(async move {
-            let permit = semaphore_clone.acquire().await.unwrap();
-
-            match generate_global_server_image(&ctx_clone, guild_clone).await {
-                Ok(_) => info!("Generated global server image for guild {}", guild),
-                Err(e) => error!(
-                    "Failed to generate global server image for guild {}. {:?}",
-                    guild, e
-                ),
-            };
-            drop(permit);
-        });
+        match generate_global_server_image(&ctx_clone, guild_clone).await {
+            Ok(_) => info!("Generated global server image for guild {}", guild),
+            Err(e) => error!(
+                "Failed to generate global server image for guild {}. {:?}",
+                guild, e
+            ),
+        };
     }
-
-    let _ = semaphore.acquire_many(MAX_THREAD as u32).await.unwrap();
 }

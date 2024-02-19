@@ -128,7 +128,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                     String::from("There is no next airing episode."),
                     ErrorType::Option,
                     ErrorResponseType::Message,
-                ))
+                ));
             }
         };
 
