@@ -44,7 +44,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.png", uuid_name);
-    let _filename_str = filename.as_str();
 
     let model = unsafe { IMAGE_MODELS.as_str() };
     info!("{}", model);
@@ -108,6 +107,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let client = reqwest::Client::new();
 
     let token = unsafe { IMAGE_TOKEN.as_str() };
+    trace!("{}", token);
     let mut headers = HeaderMap::new();
     headers.insert(
         AUTHORIZATION,
@@ -126,6 +126,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     trace!("{:#?}", data);
     let url = unsafe { IMAGE_BASE_URL.as_str() };
+    trace!("{}", url);
     let res: Value = client
         .post(url)
         .headers(headers)

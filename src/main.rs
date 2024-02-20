@@ -1,5 +1,5 @@
-use crate::constant::{IMAGE_BASE_URL, TRANSCRIPT_MODELS};
 use crate::constant::TRANSCRIPT_TOKEN;
+use crate::constant::TRANSCRIPT_MODELS;
 use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE, TRANSCRIPT_BASE_URL};
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::all::{Guild, Member};
@@ -194,18 +194,6 @@ async fn main() {
         }
     }
 
-    unsafe {
-        trace!("{}", IMAGE_BASE_URL);
-        trace!("{}",IMAGE_TOKEN);
-        trace!("{}",IMAGE_MODELS);
-        trace!("{}",CHAT_BASE_URL);
-        trace!("{}",CHAT_TOKEN);
-        trace!("{}",CHAT_MODELS);
-        trace!("{}",TRANSCRIPT_BASE_URL);
-        trace!("{}",TRANSCRIPT_TOKEN);
-        trace!("{}",TRANSCRIPT_MODELS);
-    }
-
     info!("starting the bot.");
     let token = match env::var("DISCORD_TOKEN") {
         Ok(token) => {
@@ -218,6 +206,19 @@ async fn main() {
             return;
         }
     };
+
+
+    unsafe {
+        trace!("{}",*IMAGE_BASE_URL);
+        trace!("{}",*IMAGE_TOKEN);
+        trace!("{}",*IMAGE_MODELS);
+        trace!("{}",*CHAT_BASE_URL);
+        trace!("{}",*CHAT_TOKEN);
+        trace!("{}",*CHAT_MODELS);
+        trace!("{}",*TRANSCRIPT_BASE_URL);
+        trace!("{}",*TRANSCRIPT_TOKEN);
+        trace!("{}",*TRANSCRIPT_MODELS);
+    }
 
     // Build our client.
     let gateway_intent_non_privileged = GatewayIntents::GUILDS
