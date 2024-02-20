@@ -1,6 +1,6 @@
-use crate::constant::{
-    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
-};
+use crate::constant::{IMAGE_BASE_URL, TRANSCRIPT_MODELS};
+use crate::constant::TRANSCRIPT_TOKEN;
+use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE, TRANSCRIPT_BASE_URL};
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
@@ -15,7 +15,7 @@ use struct_shard_manager::ShardManagerContainer;
 use crate::activity::anime_activity::manage_activity;
 use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command_register::command_registration::creates_commands;
-use crate::command_run::command_dispatch::{check_if_moule_is_on, command_dispatching};
+use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::{ACTIVITY_NAME, DELAY_BEFORE_THREAD_SPAWN, MAX_LOG_RETENTION_DAYS};
 use crate::database::dispatcher::init_dispatch::init_sql_database;
@@ -66,7 +66,7 @@ impl EventHandler for Handler {
         server_image_management(&ctx).await;
         let guild_id = member.guild_id.to_string();
         trace!("Member {} joined guild {}", member.user.tag(), guild_id);
-        if check_if_moule_is_on(guild_id, "GAME").await.unwrap_or(true) {
+        if check_if_module_is_on(guild_id, "GAME").await.unwrap_or(true) {
             if let Err(e) = new_member(ctx, &mut member).await {
                 error!("{:?}", e)
             }
@@ -192,6 +192,18 @@ async fn main() {
             error!("{:?}", e);
             return;
         }
+    }
+
+    unsafe {
+        trace!("{}", IMAGE_BASE_URL);
+        trace!("{}",IMAGE_TOKEN);
+        trace!("{}",IMAGE_MODELS);
+        trace!("{}",CHAT_BASE_URL);
+        trace!("{}",CHAT_TOKEN);
+        trace!("{}",CHAT_MODELS);
+        trace!("{}",TRANSCRIPT_BASE_URL);
+        trace!("{}",TRANSCRIPT_TOKEN);
+        trace!("{}",TRANSCRIPT_MODELS);
     }
 
     info!("starting the bot.");

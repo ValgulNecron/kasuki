@@ -68,28 +68,28 @@ pub async fn command_dispatching(
 
          */
         "image" => {
-            if check_if_moule_is_on(guild_id, "AI").await? {
+            if check_if_module_is_on(guild_id, "AI").await? {
                 image::run(ctx, command_interaction).await?
             } else {
                 return Err(ai_module_error);
             }
         }
         "transcript" => {
-            if check_if_moule_is_on(guild_id, "AI").await? {
+            if check_if_module_is_on(guild_id, "AI").await? {
                 transcript::run(ctx, command_interaction).await?
             } else {
                 return Err(ai_module_error);
             }
         }
         "translation" => {
-            if check_if_moule_is_on(guild_id, "AI").await? {
+            if check_if_module_is_on(guild_id, "AI").await? {
                 translation::run(ctx, command_interaction).await?
             } else {
                 return Err(ai_module_error);
             }
         }
         "question" => {
-            if check_if_moule_is_on(guild_id, "AI").await? {
+            if check_if_module_is_on(guild_id, "AI").await? {
                 question::run(ctx, command_interaction).await?
             } else {
                 return Err(ai_module_error);
@@ -102,133 +102,133 @@ pub async fn command_dispatching(
 
          */
         "anime" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 anime::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "ln" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 ln::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "manga" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 manga::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "add_anime_activity" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 add_activity::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "user" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 user::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "character" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 character::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "waifu" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 waifu::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "compare" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 compare::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "random" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 random::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "register" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 register::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "staff" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 staff::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "studio" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 studio::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "search" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 search::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "seiyuu" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 seiyuu::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "level" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 level::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "list_user" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 list_register_user::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "random_image" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 random_image::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "random_nsfw_image" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 random_nsfw_image::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
             }
         }
         "delete_activity" => {
-            if check_if_moule_is_on(guild_id, "ANILIST").await? {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
                 delete_activity::run(ctx, command_interaction).await?
             } else {
                 return Err(anilist_module_error);
@@ -241,7 +241,7 @@ pub async fn command_dispatching(
 
          */
         "steam_game" => {
-            if check_if_moule_is_on(guild_id, "GAME").await? {
+            if check_if_module_is_on(guild_id, "GAME").await? {
                 steam_game_info::run(ctx, command_interaction).await?
             } else {
                 return Err(game_module_error);
@@ -259,7 +259,7 @@ pub async fn command_dispatching(
     Ok(())
 }
 
-pub async fn check_if_moule_is_on(guild_id: String, module: &str) -> Result<bool, AppError> {
+pub async fn check_if_module_is_on(guild_id: String, module: &str) -> Result<bool, AppError> {
     let state = check_activation_status(module, guild_id.clone()).await?;
     let state = state && check_kill_switch_status(module).await?;
     Ok(state)
