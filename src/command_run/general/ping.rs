@@ -47,7 +47,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         None => "?,??ms".to_string(),
     };
 
-    let tx_status = &shard_runner_info.stage.to_string();
+    let stage = &shard_runner_info.stage.to_string();
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -57,7 +57,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 .desc
                 .replace("$shard$", shard_id.to_string().as_str())
                 .replace("$latency$", latency.as_str())
-                .replace("$status$", tx_status),
+                .replace("$status$", stage),
         )
         .title(&ping_localised.title);
 
