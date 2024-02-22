@@ -13,27 +13,6 @@ letting users get different information from it.
 There are also multiple secondary modules that will be added
 when I have ideas or want to test things.
 
-# Contributing
-
-## I know how to code in rust
-
-Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
-something else, you can do it and open a pr afterward.
-
-## I don’t know how to code in rust but still want to contribute
-
-1. You can add a new language by adding a translation in the file located in json and adding it to the choices in
-   json/command/lang.json
-2. Contribute to this guide by making it clearer on how to use/ how it works.
-3. Or by opening an issue with enhancement or new feature you want to see.
-4. Or by contributing to the website for the bot.
-
-Please note that for embed you will need to use the country code.
-please also add the country code to the constant LANG_MAP in src/constant.rs and add the langage in full name with it.
-
-for the command json please follow the example,
-the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
-
 # How to use
 
 ## 1. Add the bot to your server
@@ -99,6 +78,27 @@ You can if you want use a postgres database and not a sqlite one the user will n
 (cache and data).
 Create table inside both database
 and select, insert, delete on them.
+
+# Contributing
+
+## I know how to code in rust
+
+Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
+something else, you can do it and open a pr afterward.
+
+## I don’t know how to code in rust but still want to contribute
+
+1. You can add a new language by adding a translation in the file located in json and adding it to the choices in
+   json/command/lang.json
+2. Contribute to this guide by making it clearer on how to use/ how it works.
+3. Or by opening an issue with enhancement or new feature you want to see.
+4. Or by contributing to the website for the bot.
+
+Please note that for embed you will need to use the country code.
+Please also add the country code to the constant LANG_MAP in src/constant.rs and add the langage in full name with it.
+
+for the command json please follow the example,
+the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
 
 # TODO
 

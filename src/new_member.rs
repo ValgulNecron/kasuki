@@ -1,4 +1,4 @@
-use crate::command_run::command_dispatch::check_if_moule_is_on;
+use crate::command_run::command_dispatch::check_if_module_is_on;
 use crate::constant::SERVER_IMAGE_PATH;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::new_member::load_localization_new_member;
@@ -22,7 +22,7 @@ pub async fn new_member(ctx: Context, member: &mut Member) -> Result<(), AppErro
     }
 
     let guild_id = member.guild_id.to_string();
-    if !check_if_moule_is_on(guild_id.clone(), "NEW_MEMBER").await? {
+    if !check_if_module_is_on(guild_id.clone(), "NEW_MEMBER").await? {
         return Err(AppError::new(
             String::from("The module is off"),
             ErrorType::Module,
