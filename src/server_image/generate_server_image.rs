@@ -152,9 +152,7 @@ pub async fn server_image_management(ctx: &Context) {
             }
         });
 
-        let ctx_clone = ctx.clone();
-        let guild_clone = guild.clone();
-        match generate_global_server_image(&ctx_clone, guild_clone).await {
+        match generate_global_server_image(&ctx, guild).await {
             Ok(_) => info!("Generated global server image for guild {}", guild),
             Err(e) => error!(
                 "Failed to generate global server image for guild {}. {:?}",

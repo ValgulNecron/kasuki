@@ -30,11 +30,11 @@ pub async fn run(
     ))?;
     let module_localised = load_localization_module_activation(guild_id.clone()).await?;
     let map = get_option_map_bool(command_interaction);
-    let state = map.get(&String::from("state")).ok_or(AppError::new(
+    let state = *map.get(&String::from("state")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,
         ErrorResponseType::Followup,
-    ))?.clone();
+    ))?;
 
     let row = get_data_module_activation_status(&guild_id).await?;
     let mut ai_value = row.ai_module.unwrap_or(true);
