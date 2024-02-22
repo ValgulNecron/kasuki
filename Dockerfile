@@ -24,8 +24,8 @@ FROM debian:trixie-slim AS bot
 
 LABEL maintainer="valgul"
 LABEL author="valgul"
-LABEL "com.docker.compose.hide"="true"
-LABEL hidden="true"
+
+RUN useradd -m kasuki
 
 WORKDIR /kasuki/
 
@@ -34,6 +34,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev libjpeg-dev \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+USER kasuki
 
 COPY json /kasuki/json
 
