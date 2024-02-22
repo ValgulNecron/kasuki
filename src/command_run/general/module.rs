@@ -1,5 +1,5 @@
 use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
+    CommandDataOption, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 use crate::command_run::get_option::{get_option_map_bool, get_option_map_string};
@@ -13,7 +13,6 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 use crate::lang_struct::general::module::load_localization_module_activation;
 
 pub async fn run(
-    options: &[CommandDataOption],
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
@@ -21,7 +20,6 @@ pub async fn run(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let module_localised = load_localization_module_activation(guild_id.clone()).await?;
     let map = get_option_map_string(command_interaction);
     let module = map.get(&String::from("name")).ok_or(AppError::new(
         String::from("There is no option"),

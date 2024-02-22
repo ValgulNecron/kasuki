@@ -20,10 +20,10 @@ use palette::{IntoColor, Lab, Srgb};
 use serenity::all::{Context, GuildId, Member};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use tokio::sync::Semaphore;
+
 use tokio::task;
 
-use crate::constant::MAX_THREAD;
+
 use tracing::{error, info};
 use uuid::Uuid;
 
@@ -129,7 +129,7 @@ async fn generate_server_image(
     let uuid = Uuid::new_v4();
     image_saver(
         guild_id.to_string(),
-        format!("{}.png", uuid.to_string()),
+        format!("{}.png", uuid),
         image_data,
     )
     .await?;
@@ -141,7 +141,7 @@ pub async fn server_image_management(ctx: &Context) {
 
     for guild in guilds {
         let ctx_clone = ctx.clone();
-        let guild_clone = guild.clone();
+        let guild_clone = guild;
         task::spawn(async move {
             match generate_local_server_image(&ctx_clone, guild_clone).await {
                 Ok(_) => info!("Generated local server image for guild {}", guild),
@@ -152,7 +152,7 @@ pub async fn server_image_management(ctx: &Context) {
             }
         });
 
-        match generate_global_server_image(&ctx, guild).await {
+        match generate_global_server_image(ctx, guild).await {
             Ok(_) => info!("Generated global server image for guild {}", guild),
             Err(e) => error!(
                 "Failed to generate global server image for guild {}. {:?}",
