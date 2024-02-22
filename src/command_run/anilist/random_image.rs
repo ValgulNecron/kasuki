@@ -46,7 +46,7 @@ pub async fn send_embed(
     title: String,
     endpoint: &str,
 ) -> Result<(), AppError> {
-    let url = format!("https://api.waifu.pics/{}}/{}", endpoint, image_type);
+    let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
     let resp = reqwest::get(&url).await.map_err(|e| {
         AppError::new(
             format!("Error while getting the response from the server. {}", e),
@@ -95,7 +95,7 @@ pub async fn send_embed(
         .timestamp(Timestamp::now())
         .color(COLOR)
         .image(format!("attachment://{}", &filename))
-        .title(random_image_localised.title);
+        .title(title);
 
     let attachment = CreateAttachment::bytes(bytes, &filename);
 
