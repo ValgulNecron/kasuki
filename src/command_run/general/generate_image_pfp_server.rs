@@ -1,5 +1,4 @@
 use crate::constant::COLOR;
-use crate::database::sqlite::data::get_server_image_sqlite;
 
 use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 
@@ -16,6 +15,7 @@ use serenity::builder::CreateInteractionResponseFollowup;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use tracing::trace;
 use uuid::Uuid;
+use crate::database::dispatcher::data_dispatch::get_server_image;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -39,7 +39,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
 
-    let image = get_server_image_sqlite(&guild_id, &String::from("local"))
+    let image = get_server_image(&guild_id, &String::from("local"))
         .await?
         .1
         .unwrap_or_default();
