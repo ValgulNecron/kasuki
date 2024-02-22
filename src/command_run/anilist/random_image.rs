@@ -1,16 +1,14 @@
-use crate::command_run::get_option::get_option_map_string;
-use crate::constant::COLOR;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist::random_image::{
-    load_localization_random_image, RandomImageLocalised,
-};
-use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
-
+use serenity::all::CreateInteractionResponse::Defer;
 use uuid::Uuid;
+
+use crate::command_run::get_option::get_option_map_string;
+use crate::constant::COLOR;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::lang_struct::anilist::random_image::load_localization_random_image;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);
@@ -38,16 +36,17 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Message,
             )
         })?;
-    send_embed(ctx, command_interaction, image_type, random_image_localised).await
+    send_embed(ctx, command_interaction, image_type, random_image_localised.title, "sfw").await
 }
 
-async fn send_embed(
+pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     image_type: &String,
-    random_image_localised: RandomImageLocalised,
+    title: String,
+    endpoint: &str,
 ) -> Result<(), AppError> {
-    let url = format!("https://api.waifu.pics/sfw/{}", image_type);
+    let url = format!("https://api.waifu.pics/{}}/{}", endpoint, image_type);
     let resp = reqwest::get(&url).await.map_err(|e| {
         AppError::new(
             format!("Error while getting the response from the server. {}", e),
