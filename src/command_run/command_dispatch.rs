@@ -52,9 +52,7 @@ pub async fn command_dispatching(
         "credit" => credit::run(ctx, command_interaction).await?,
         "info" => info::run(ctx, command_interaction).await?,
         "lang" => lang::run(&command_interaction.data.options, ctx, command_interaction).await?,
-        "module" => {
-            module::run(ctx, command_interaction).await?
-        }
+        "module" => module::run(ctx, command_interaction).await?,
         "ping" => ping::run(ctx, command_interaction).await?,
         "profile" => profile::run(ctx, command_interaction).await?,
         "guild" => guild::run(ctx, command_interaction).await?,

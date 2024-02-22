@@ -1,6 +1,10 @@
-use crate::constant::TRANSCRIPT_TOKEN;
 use crate::constant::TRANSCRIPT_MODELS;
-use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE, TRANSCRIPT_BASE_URL};
+use crate::constant::TRANSCRIPT_TOKEN;
+use crate::constant::{
+    CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN,
+    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+    TRANSCRIPT_BASE_URL,
+};
 use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
@@ -66,7 +70,10 @@ impl EventHandler for Handler {
         server_image_management(&ctx).await;
         let guild_id = member.guild_id.to_string();
         trace!("Member {} joined guild {}", member.user.tag(), guild_id);
-        if check_if_module_is_on(guild_id, "GAME").await.unwrap_or(true) {
+        if check_if_module_is_on(guild_id, "GAME")
+            .await
+            .unwrap_or(true)
+        {
             if let Err(e) = new_member(ctx, &mut member).await {
                 error!("{:?}", e)
             }
@@ -207,17 +214,16 @@ async fn main() {
         }
     };
 
-
     unsafe {
-        trace!("{}",*IMAGE_BASE_URL);
-        trace!("{}",*IMAGE_TOKEN);
-        trace!("{}",*IMAGE_MODELS);
-        trace!("{}",*CHAT_BASE_URL);
-        trace!("{}",*CHAT_TOKEN);
-        trace!("{}",*CHAT_MODELS);
-        trace!("{}",*TRANSCRIPT_BASE_URL);
-        trace!("{}",*TRANSCRIPT_TOKEN);
-        trace!("{}",*TRANSCRIPT_MODELS);
+        trace!("{}", *IMAGE_BASE_URL);
+        trace!("{}", *IMAGE_TOKEN);
+        trace!("{}", *IMAGE_MODELS);
+        trace!("{}", *CHAT_BASE_URL);
+        trace!("{}", *CHAT_TOKEN);
+        trace!("{}", *CHAT_MODELS);
+        trace!("{}", *TRANSCRIPT_BASE_URL);
+        trace!("{}", *TRANSCRIPT_TOKEN);
+        trace!("{}", *TRANSCRIPT_MODELS);
     }
 
     // Build our client.

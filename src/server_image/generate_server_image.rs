@@ -23,7 +23,6 @@ use std::thread;
 
 use tokio::task;
 
-
 use tracing::{error, info};
 use uuid::Uuid;
 
@@ -127,12 +126,7 @@ async fn generate_server_image(
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
     let image = format!("data:image/png;base64,{}", base64_image);
     let uuid = Uuid::new_v4();
-    image_saver(
-        guild_id.to_string(),
-        format!("{}.png", uuid),
-        image_data,
-    )
-    .await?;
+    image_saver(guild_id.to_string(), format!("{}.png", uuid), image_data).await?;
     set_server_image(&guild_id.to_string(), &image_type, &image, &guild_pfp).await
 }
 

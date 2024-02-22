@@ -9,13 +9,13 @@ use log::trace;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
+use crate::database::dispatcher::data_dispatch::get_server_image;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
 use uuid::Uuid;
-use crate::database::dispatcher::data_dispatch::get_server_image;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
