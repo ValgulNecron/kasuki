@@ -131,3 +131,17 @@ pub static mut TRANSCRIPT_TOKEN: Lazy<String> = Lazy::new(|| {
 
 pub static mut TRANSCRIPT_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_TRANSCRIPT_MODELS").unwrap_or(String::from("whisper-1")));
+
+
+/*
+ web server
+ */
+
+pub static mut WEB_SERVER: Lazy<bool> = Lazy::new(|| {
+    env::var("WEB_SERVER").unwrap_or("false".to_string()) == "true"
+});
+
+pub static mut WEB_SERVER_PORT: Lazy<String> = Lazy::new(|| {
+    env::var("WEB_SERVER_PORT").unwrap_or("8080".to_string())
+});
+

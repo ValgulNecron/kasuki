@@ -66,3 +66,17 @@ pub fn get_option_map_user(interaction: &CommandInteraction) -> HashMap<String, 
 
     map
 }
+
+pub fn get_option_map_bool(interaction: &CommandInteraction) -> HashMap<String, bool> {
+    let mut map = HashMap::new();
+    for option in &interaction.data.options {
+        let value = match option.value.as_bool() {
+            Some(value) => value,
+            None => continue,
+        };
+        let name = option.name.clone();
+        map.insert(name, value);
+    }
+
+    map
+}

@@ -2,6 +2,7 @@ use serenity::all::{
     CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
+use crate::command_run::get_option::{get_option_map_bool, get_option_map_string};
 
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
@@ -21,26 +22,19 @@ pub async fn run(
         None => String::from("0"),
     };
     let module_localised = load_localization_module_activation(guild_id.clone()).await?;
-    let mut module = "".to_string();
-    let mut state = false;
-    for option in options {
-        if option.name == "module_name" {
-            let resolved = &option.value;
-            if let CommandDataOptionValue::String(module_option) = resolved {
-                module = module_option.clone()
-            } else {
-                module = "".to_string()
-            }
-        }
-        if option.name == "state" {
-            let resolved = &option.value;
-            if let CommandDataOptionValue::Boolean(state_option) = resolved {
-                state = *state_option
-            } else {
-                state = false
-            }
-        }
-    }
+    let map = get_option_map_string(command_interaction);
+    let module = map.get(&String::from("name")).ok_or(AppError::new(
+        String::from("There is no option"),
+        ErrorType::Option,
+        ErrorResponseType::Followup,
+    ))?;
+    let module_localised = load_localization_module_activation(guild_id.clone()).await?;
+    let map = get_option_map_bool(command_interaction);
+    let state = map.get(&String::from("state")).ok_or(AppError::new(
+        String::from("There is no option"),
+        ErrorType::Option,
+        ErrorResponseType::Followup,
+    ))?.clone();
 
     let row = get_data_module_activation_status(&guild_id).await?;
     let mut ai_value = row.ai_module.unwrap_or(true);
@@ -48,10 +42,10 @@ pub async fn run(
     let mut game_value = row.game_module.unwrap_or(true);
     let mut new_member_value = row.new_member.unwrap_or(true);
     match module.as_str() {
-        "ANIME" => anilist_value = state,
+        "ANILIST" => anilist_value = state,
         "AI" => ai_value = state,
         "GAME" => game_value = state,
-        "NEW MEMBER" => new_member_value = state,
+        "NEW_MEMBER" => new_member_value = state,
         _ => {
             return Err(AppError::new(
                 String::from("This module does not exist."),
