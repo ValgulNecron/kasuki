@@ -27,7 +27,8 @@ pub async fn set_database_random_cache_postgres(
     previous_page: i64,
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
-    sqlx::query("INSERT INTO CACHE.cache_stats (key, response, last_updated, last_page) VALUES ($1, $2, $3, $4) ON CONFLICT (key) DO UPDATE SET response = EXCLUDED.response, last_updated = EXCLUDED.last_updated, last_page = EXCLUDED.last_page")
+    sqlx::query("INSERT INTO CACHE.cache_stats (key, response, last_updated, last_page) VALUES ($1, $2, $3, $4)\
+     ON CONFLICT (key) DO UPDATE SET response = EXCLUDED.response, last_updated = EXCLUDED.last_updated, last_page = EXCLUDED.last_page")
         .bind(random_type)
         .bind(cached_response)
         .bind(now)
