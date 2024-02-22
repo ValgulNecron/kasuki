@@ -1,6 +1,6 @@
 use crate::command_run::get_option::{get_option_map_bool, get_option_map_string};
 use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
 

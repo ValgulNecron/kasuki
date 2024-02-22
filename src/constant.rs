@@ -5,7 +5,7 @@ use std::env;
 
 pub static ACTIVITY_NAME: Lazy<String> =
     Lazy::new(|| env::var("BOT_ACTIVITY").unwrap_or("Let you get info from anilist.".to_string()));
-pub const APP_VERSION: &str = "V2.3.0";
+pub const APP_VERSION: &str = "V2.3.1";
 
 /*
 all delays
