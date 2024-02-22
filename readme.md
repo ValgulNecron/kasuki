@@ -165,7 +165,7 @@ and select, insert, delete on them.
     - [X] Ask a question and reply the response.
 - Games module :
     - [X] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found),
-      etc....)
+      etc…)
       Get the currency and language from the server language setting.
       Steam done.
     - [ ] get player stat
