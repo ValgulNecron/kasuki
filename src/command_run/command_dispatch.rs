@@ -53,7 +53,7 @@ pub async fn command_dispatching(
         "info" => info::run(ctx, command_interaction).await?,
         "lang" => lang::run(&command_interaction.data.options, ctx, command_interaction).await?,
         "module" => {
-            module::run(&command_interaction.data.options, ctx, command_interaction).await?
+            module::run(ctx, command_interaction).await?
         }
         "ping" => ping::run(ctx, command_interaction).await?,
         "profile" => profile::run(ctx, command_interaction).await?,
