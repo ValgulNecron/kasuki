@@ -1,10 +1,11 @@
-use std::env;
+use std::{env, fs};
 use std::sync::Arc;
+use async_recursion::async_recursion;
 
-use serenity::all::{Command, CreateCommand, CreateCommandOption, Http, Permissions};
+use serenity::all::{Command, CommandOptionType, CreateCommand, CreateCommandOption, Http, Permissions};
 use tracing::{error, info, trace};
 
-use crate::command_register::command_structure::{get_commands, CommandData};
+use crate::command_register::command_structure::{get_commands, CommandData, Arg, RemoteCommandOptionType, LocalisedArg, Localised, SubCommandData};
 
 pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
     if is_ok {
@@ -25,88 +26,145 @@ pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
 }
 
 async fn create_command(command: &CommandData, http: &Arc<Http>) {
+    let mut build = CreateCommand::new(&command.name)
+        .description(&command.desc)
+        .dm_permission(command.dm_command)
+        .nsfw(command.nsfw);
     let mut permission = Permissions::SEND_MESSAGES;
     if command.perm {
         let mut perm_bit: u64 = 0;
         let perm_list = command.default_permissions.clone().unwrap();
-        for permi in perm_list {
-            let permission: Permissions = permi.permission.into();
-            perm_bit += permission.bits()
+        for perm in perm_list {
+            let permission: Permissions = perm.permission.into();
+            perm_bit = perm_bit | permission.bits()
         }
         permission = Permissions::from_bits(perm_bit).unwrap()
     }
+    build = build.default_member_permissions(permission);
 
-    let mut nsfw = command.nsfw;
+    build = add_localised_command(build, &command.localised).await;
 
-    if command.name.as_str() == "image" {
-        let honor_nsfw = env::var("IMAGE_GENERATION_MODELS_ON").unwrap_or(String::from("false"));
-        let is_ok = honor_nsfw.to_lowercase() == "true";
-        nsfw = is_ok
-    }
-
-    let mut build = CreateCommand::new(&command.name)
-        .description(&command.desc)
-        .dm_permission(command.dm_command)
-        .nsfw(nsfw)
-        .default_member_permissions(permission);
-    trace!("{:?}", build);
-    match &command.localised {
-        Some(localiseds) => {
-            for localised in localiseds {
-                build = build
-                    .name_localized(&localised.code, &localised.name)
-                    .description_localized(&localised.code, &localised.desc)
-            }
-        }
-        None => {}
-    }
-
-    if command.arg_num > (0u32) {
-        let options = create_option(command).await;
+    if command.arg_num > 0 {
+        let options = get_options(&command.args).await;
         for option in options {
             build = build.add_option(option);
         }
     }
+
     match Command::create_global_command(http, build).await {
-        Ok(res) => drop(res),
+        Ok(_) => {},
         Err(e) => {
             error!("{} for command {}", e, command.name);
         }
     }
 }
 
-async fn create_option(command: &CommandData) -> Vec<CreateCommandOption> {
-    let mut options_builds = Vec::new();
-    for option in command.args.as_ref().unwrap() {
-        let command_type = option.command_type.into();
-        let mut options_build = CreateCommandOption::new(command_type, &option.name, &option.desc)
-            .required(option.required);
-        match &option.choices {
-            Some(choices) => {
-                for choice in choices {
-                    options_build = options_build
-                        .add_string_choice(&choice.option_choice, &choice.option_choice);
-                }
-            }
-            None => {}
+async fn get_options(args: &Option<Vec<Arg>>) -> Vec<CreateCommandOption> {
+    let args = args.clone().unwrap();
+    let mut options: Vec<CreateCommandOption> = Vec::new();
+    for arg in args {
+        if arg.command_type == RemoteCommandOptionType::SubCommand {
+            options.insert(options.len(), create_subcommand_option(arg).await);
+            trace!("{:#?}", options);
+        } else if arg.command_type == RemoteCommandOptionType::SubCommandGroup {
+            options.insert(options.len(), create_subcommand_group_option(arg).await);
+        } else {
+            options.insert(options.len(), create_option(arg).await)
         }
-        match &option.localised_args {
-            Some(localiseds) => {
-                for localised in localiseds {
-                    options_build = options_build
-                        .name_localized(&localised.code, &localised.name)
-                        .description_localized(&localised.code, &localised.desc)
-                }
-            }
-            None => {}
-        }
-        options_build = options_build.set_autocomplete(option.autocomplete);
-        trace!("{:?}", options_build);
+    }
+    options
+}
 
-        options_builds.push(options_build)
+async fn create_subcommand_option(arg: Arg) -> CreateCommandOption {
+    let path = format!("./json/command/{}", &arg.file.unwrap());
+    let content = fs::read_to_string(&path).unwrap_or_default();
+    let subcommand: SubCommandData = serde_json::from_str(&content).unwrap();
+    let mut subcommand_option = CreateCommandOption::new(
+        CommandOptionType::from(arg.command_type),
+        subcommand.name,
+        subcommand.desc
+    );
+    if subcommand.arg_num > 0 {
+        for arg in &subcommand.args.unwrap() {
+            let option = create_option(arg.clone()).await;
+            subcommand_option = subcommand_option.add_sub_option(option)
+        }
     }
 
-    options_builds
+    subcommand_option = add_localised_option(subcommand_option, arg.localised_args).await;
+
+    subcommand_option
+}
+
+async fn create_option(arg: Arg) -> CreateCommandOption {
+    let mut option = CreateCommandOption::new(
+        CommandOptionType::from(arg.command_type),
+        arg.name,
+        arg.desc
+    ).set_autocomplete(arg.autocomplete)
+        .required(arg.required);
+
+    match arg.choices {
+        Some(choices) => {
+            for choice in choices {
+                option = option.add_string_choice(&choice.option_choice,&choice.option_choice);
+            }
+        }
+        None => {}
+    }
+
+    option = add_localised_option(option, arg.localised_args).await;
+
+    option
+}
+
+async fn create_subcommand_group_option(arg: Arg) -> CreateCommandOption {
+    let path = format!("./json/command/{}", &arg.file.unwrap());
+    let subcommand: SubCommandData = serde_json::from_str(path.as_str()).unwrap();
+    let mut subcommand_option = CreateCommandOption::new(
+        CommandOptionType::from(arg.command_type),
+        subcommand.name,
+        subcommand.desc
+    );
+    if subcommand.arg_num > 0 {
+        for arg in &subcommand.args.unwrap() {
+            if arg.command_type == RemoteCommandOptionType::SubCommand {
+                subcommand_option = subcommand_option.add_sub_option(create_subcommand_option(arg.clone()).await);
+            } else {
+                subcommand_option = subcommand_option.add_sub_option( create_option(arg.clone()).await)
+            }
+        }
+    }
+
+    subcommand_option = add_localised_option(subcommand_option, arg.localised_args).await;
+
+    subcommand_option
+}
+
+async fn add_localised_option(mut command_option: CreateCommandOption, localised: Option<Vec<LocalisedArg>>) -> CreateCommandOption {
+    return match localised {
+        Some(locals) => {
+            for local in locals {
+                command_option = command_option.name_localized(&local.code, &local.name)
+                    .description_localized(&local.code, &local.desc)
+            }
+            command_option
+        },
+        None => command_option
+    }
+}
+
+async fn add_localised_command(mut command: CreateCommand, localised: &Option<Vec<Localised>>) -> CreateCommand {
+    return match localised {
+        Some(locals) => {
+            for local in locals {
+                command = command.name_localized(&local.code, &local.name)
+                    .description_localized(&local.code, &local.desc)
+            }
+            command
+        },
+        None => command
+    }
 }
 
 async fn delete_command(http: &Arc<Http>) {

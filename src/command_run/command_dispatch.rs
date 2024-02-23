@@ -1,4 +1,4 @@
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{CommandDataOption, CommandInteraction, Context};
 
 use crate::command_run::ai::{image, question, transcript, translation};
 use crate::command_run::anilist::{
@@ -65,30 +65,9 @@ pub async fn command_dispatching(
         THIS IS THE AI MODULE.
 
          */
-        "image" => {
+        "ai" => {
             if check_if_module_is_on(guild_id, "AI").await? {
-                image::run(ctx, command_interaction).await?
-            } else {
-                return Err(ai_module_error);
-            }
-        }
-        "transcript" => {
-            if check_if_module_is_on(guild_id, "AI").await? {
-                transcript::run(ctx, command_interaction).await?
-            } else {
-                return Err(ai_module_error);
-            }
-        }
-        "translation" => {
-            if check_if_module_is_on(guild_id, "AI").await? {
-                translation::run(ctx, command_interaction).await?
-            } else {
-                return Err(ai_module_error);
-            }
-        }
-        "question" => {
-            if check_if_module_is_on(guild_id, "AI").await? {
-                question::run(ctx, command_interaction).await?
+                ai_module(ctx, command_interaction).await?
             } else {
                 return Err(ai_module_error);
             }
@@ -272,4 +251,26 @@ async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
         "NEW_MEMBER" => row.new_member.unwrap_or(true),
         _ => false,
     })
+}
+
+async fn ai_module(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    match command_interaction.data.options.first().unwrap().name.as_str() {
+        "image" => {
+            image::run(ctx, command_interaction).await
+        }
+        "transcript" => {
+            transcript::run(ctx, command_interaction).await
+        }
+        "translation" => {
+            translation::run(ctx, command_interaction).await
+        }
+        "question" => {
+            question::run(ctx, command_interaction).await
+        }
+        _ => return Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        ))
+    }
 }

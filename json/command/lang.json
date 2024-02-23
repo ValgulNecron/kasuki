@@ -5,6 +5,11 @@
   "nsfw": false,
   "perm": false,
   "arg_num": 1,
+  "default_permissions": [
+    {
+      "permission": "Administrator"
+    }
+  ],
   "args": [
     {
       "name": "lang_choice",
