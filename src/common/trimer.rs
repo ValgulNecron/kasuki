@@ -9,7 +9,8 @@
 ///
 /// This function returns a trimmed version of the `desc` input string. If `lenght_diff` is less than or equal to 0, the string is trimmed depending on the absolute difference.
 ///
-/// In the case when the number of substring "||" is odd in the trimmed string, it trims the original string up to an additional two characters from the end and adds "||..." to the end. The function returns the original string if `lenght_diff` is more than 0.
+/// In the case when the number of substring "||" is odd in the trimmed string, it trims the original string up to an additional two characters from the end and adds "||..."
+/// to the end. The function returns the original string if `lenght_diff` is more than 0.
 ///
 pub fn trim(desc: String, lenght_diff: i32) -> String {
     if lenght_diff <= 0 {

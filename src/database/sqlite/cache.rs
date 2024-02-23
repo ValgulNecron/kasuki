@@ -3,9 +3,7 @@ use serde_json::Value;
 
 use crate::constant::CACHE_SQLITE_DB;
 use crate::database::sqlite::pool::get_sqlite_pool;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::SqlInsertError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Retrieves the cache statistics for a given random type from a SQLite database using a connection pool.
 /// The cache statistics include the response, last updated timestamp, and last page.
@@ -58,7 +56,12 @@ pub async fn set_database_random_cache_sqlite(
         .bind(previous_page)
         .execute(&pool)
         .await
-        .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
     Ok(())
 }
@@ -107,10 +110,11 @@ pub async fn set_database_cache_sqlite(json: Value, resp: String) -> Result<(), 
     .execute(&pool)
     .await
     .map_err(|e| {
-        Error(SqlInsertError(format!(
-            "Failed to insert into the table. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        )
     })?;
     pool.close().await;
     Ok(())

@@ -1,36 +1,31 @@
-use serenity::all::{CommandDataOption, CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
 
 use crate::anilist_struct::run::user::{send_embed, UserWrapper};
+use crate::command_run::get_option::get_option_map_string;
 use crate::database::dispatcher::data_dispatch::get_registered_user;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::ErrorOptionError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-pub async fn run(
-    options: &[CommandDataOption],
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
-    trace!("{:?}", options);
-    for option in options {
-        if option.name.as_str() != "type" {
-            if let Some(a) = option.value.as_str() {
-                let value = &a.to_string();
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    let map = get_option_map_string(command_interaction);
+    let user = map.get(&String::from("username"));
 
-                let data: UserWrapper = get_user_data(value).await?;
-
-                return send_embed(ctx, command_interaction, data).await;
-            }
-        }
+    if let Some(value) = user {
+        let data: UserWrapper = get_user_data(value).await?;
+        return send_embed(ctx, command_interaction, data).await;
     }
+
     let user_id = &command_interaction.user.id.to_string();
     let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
     trace!("{:?}", row);
     let (user, _): (Option<String>, Option<String>) = row;
-    let user = user.ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
+    let user = user.ok_or(AppError::new(
+        String::from("There is no option"),
+        ErrorType::Option,
+        ErrorResponseType::Followup,
+    ))?;
 
-    let data = UserWrapper::new_user_by_id(user.parse::<i32>().unwrap()).await?;
+    let data = get_user_data(&user).await?;
     send_embed(ctx, command_interaction, data).await
 }
 

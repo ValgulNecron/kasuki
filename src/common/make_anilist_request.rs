@@ -24,7 +24,7 @@ async fn get_cache(json: Value) -> String {
     } else {
         let updated_at = last_updated.unwrap();
         let duration_since_updated = Utc::now().timestamp() - updated_at;
-        if duration_since_updated < (TIME_BETWEEN_CACHE_UPDATE * 24 * 60 * 60) {
+        if duration_since_updated < (TIME_BETWEEN_CACHE_UPDATE) as i64 {
             response.unwrap()
         } else {
             do_request(json.clone(), false).await

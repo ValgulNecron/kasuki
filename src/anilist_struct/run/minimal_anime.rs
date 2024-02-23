@@ -4,9 +4,7 @@ use sqlx::FromRow;
 use tracing::log::trace;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::MediaGettingError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NextAiringEpisode {
@@ -76,10 +74,11 @@ impl MinimalAnimeWrapper {
         trace!("{:?}", resp);
         // Get json
         let data = serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
-                "Error getting the media with id {}. {}",
-                id, e
-            )))
+            AppError::new(
+                format!("Error getting the media with id {}. {}", id, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
         })?;
         Ok(data)
     }
@@ -109,11 +108,10 @@ impl MinimalAnimeWrapper {
         let json = json!({"query": query, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         // Get json
-        let data = serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
-                "Error getting the media with name {}. {}",
-                search, e
-            )))
+        let data = serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with name {}. {}", search, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })?;
         Ok(data)
     }

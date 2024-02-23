@@ -10,9 +10,7 @@ use crate::common::get_nsfw::get_nsfw;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, UNKNOWN};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{ErrorCommandSendingError, MediaGettingError, NotNSFWError};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -175,11 +173,10 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
-                "Error getting the media with id {}. {}",
-                id, e
-            )))
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with id {}. {}", id, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 
@@ -244,11 +241,10 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
-                "Error getting the media with name {}. {}",
-                search, e
-            )))
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with name {}. {}", search, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 
@@ -314,11 +310,10 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
-                "Error getting the media with id {}. {}",
-                id, e
-            )))
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with id {}. {}", id, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 
@@ -383,11 +378,10 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
-                "Error getting the media with name {}. {}",
-                search, e
-            )))
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with name {}. {}", search, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 
@@ -453,11 +447,10 @@ impl MediaWrapper {
         let json = json!({"query": query_id, "variables": {"search": id}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
-                "Error getting the media with id {}. {}",
-                id, e
-            )))
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with id {}. {}", id, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 
@@ -523,11 +516,10 @@ impl MediaWrapper {
         let json = json!({"query": query_string, "variables": {"search": search}});
         let resp = make_request_anilist(json, false).await;
         // Get json
-        serde_json::from_str(&resp).map_err(|e| {
-            Error(MediaGettingError(format!(
-                "Error getting the media with name {}. {}",
-                search, e
-            )))
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the media with name {}. {}", search, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 }
@@ -535,22 +527,22 @@ impl MediaWrapper {
 fn embed_title(data: &MediaWrapper) -> String {
     let en = data.data.media.title.english.clone();
     let rj = data.data.media.title.romaji.clone();
-    let en = en.unwrap_or(String::from(""));
-    let rj = rj.unwrap_or(String::from(""));
+    let en = en.unwrap_or_default();
+    let rj = rj.unwrap_or_default();
     let mut title = String::new();
-    let mut total = 0;
+    let mut has_en_title = false;
     match en.as_str() {
         "" => {}
         _ => {
-            total += 1;
+            has_en_title = true;
             title.push_str(en.as_str())
         }
     }
 
     match rj.as_str() {
-        "\"\"" => {}
+        "" => {}
         _ => {
-            if total == 1 {
+            if has_en_title {
                 title.push_str(" / ");
                 title.push_str(rj.as_str())
             } else {
@@ -565,9 +557,9 @@ fn embed_title(data: &MediaWrapper) -> String {
 fn embed_desc(data: &MediaWrapper) -> String {
     let mut desc = data.data.media.description.clone().unwrap_or_default();
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
-    let lenght_diff = 4096 - desc.len() as i32;
-    if lenght_diff <= 0 {
-        desc = trim(desc, lenght_diff)
+    let length_diff = 4096 - desc.len() as i32;
+    if length_diff <= 0 {
+        desc = trim(desc, length_diff)
     }
     desc
 }
@@ -577,8 +569,8 @@ fn get_genre(data: &MediaWrapper) -> String {
         .media
         .genres
         .iter()
-        .filter_map(|x| x.as_ref())
-        .map(|s| s.as_str())
+        .filter_map(|genre| genre.as_ref())
+        .map(|string| string.as_str())
         .take(5)
         .collect::<Vec<&str>>()
         .join("\n")
@@ -589,8 +581,8 @@ fn get_tag(data: &MediaWrapper) -> String {
         .media
         .tags
         .iter()
-        .filter_map(|x| x.name.as_ref())
-        .map(|s| s.as_str())
+        .filter_map(|tag| tag.name.as_ref())
+        .map(|string| string.as_str())
         .take(5)
         .collect::<Vec<&str>>()
         .join("\n")
@@ -605,7 +597,8 @@ fn get_url(data: &MediaWrapper) -> String {
 }
 
 fn get_thumbnail(data: &MediaWrapper) -> String {
-    data.data.media.cover_image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string())
+    data.data.media.cover_image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
+    bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string())
 }
 
 pub fn get_banner(data: &MediaWrapper) -> String {
@@ -648,7 +641,32 @@ fn get_date(date: &StartEndDate) -> String {
     if date_y == 0 && date_d == 0 && date_m == 0 {
         UNKNOWN.to_string()
     } else {
-        format!("{}/{}/{}", date_d, date_m, date_y)
+        let mut date_of_birth_string = String::new();
+
+        let mut has_month: bool = false;
+        let mut has_day: bool = false;
+
+        if let Some(m) = date.month {
+            date_of_birth_string.push_str(format!("{:02}", m).as_str());
+            has_month = true
+        }
+
+        if let Some(d) = date.day {
+            if has_month {
+                date_of_birth_string.push('/')
+            }
+            date_of_birth_string.push_str(format!("{:02}", d).as_str());
+            has_day = true
+        }
+
+        if let Some(y) = date.year {
+            if has_day {
+                date_of_birth_string.push('/')
+            }
+            date_of_birth_string.push_str(format!("{:04}", y).as_str());
+        }
+
+        date_of_birth_string
     }
 }
 
@@ -679,9 +697,11 @@ pub async fn send_embed(
     data: MediaWrapper,
 ) -> Result<(), AppError> {
     if data.data.media.is_adult && !get_nsfw(command_interaction, ctx).await {
-        return Err(Error(NotNSFWError(String::from(
-            "The channel is not nsfw.",
-        ))));
+        return Err(AppError {
+            message: String::from("The channel is not nsfw but the media you requested is."),
+            error_type: ErrorType::Command,
+            error_response_type: ErrorResponseType::Message,
+        });
     }
 
     let guild_id = match command_interaction.guild_id {
@@ -709,10 +729,9 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+        .map_err(|e| AppError {
+            message: format!("Error sending the media embed. {}", e),
+            error_type: ErrorType::Command,
+            error_response_type: ErrorResponseType::Message,
         })
 }

@@ -5,11 +5,7 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{
-    LocalisationFileError, LocalisationParsingError, LocalisationReadError, NoLangageError,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TranscriptLocalised {
@@ -20,33 +16,38 @@ pub async fn load_localization_transcript(
     guild_id: String,
 ) -> Result<TranscriptLocalised, AppError> {
     let mut file = File::open("json/message/ai/transcript.json").map_err(|e| {
-        Error(LocalisationFileError(format!(
-            "File transcript.json not found. {}",
-            e
-        )))
+        AppError::new(
+            format!("File transcript.json not found. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Unknown,
+        )
     })?;
 
     let mut json = String::new();
     file.read_to_string(&mut json).map_err(|e| {
-        Error(LocalisationReadError(format!(
-            "File transcript.json can't be read. {}",
-            e
-        )))
+        AppError::new(
+            format!("File transcript.json can't be read. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Unknown,
+        )
     })?;
 
     let json_data: HashMap<String, TranscriptLocalised> =
         serde_json::from_str(&json).map_err(|e| {
-            Error(LocalisationParsingError(format!(
-                "Failing to parse transcript.json. {}",
-                e
-            )))
+            AppError::new(
+                format!("Failing to parse transcript.json. {}", e),
+                ErrorType::File,
+                ErrorResponseType::Unknown,
+            )
         })?;
 
-    let transcript_choice = get_guild_langage(guild_id).await;
+    let lang_choice = get_guild_langage(guild_id).await;
 
-    let transcript_localised_text = json_data
-        .get(transcript_choice.as_str())
-        .ok_or(Error(NoLangageError(String::from("not found"))))?;
+    let localised_text = json_data.get(lang_choice.as_str()).ok_or(AppError::new(
+        "Language not found.".to_string(),
+        ErrorType::Language,
+        ErrorResponseType::Unknown,
+    ))?;
 
-    Ok(transcript_localised_text.clone())
+    Ok(localised_text.clone())
 }

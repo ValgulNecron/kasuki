@@ -2,9 +2,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DiffereCommanddError::MediaError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Media {
@@ -84,10 +82,11 @@ impl PageWrapper {
         let json = json!({"query": query, "variables": {"anime_page": number}});
         let res = make_request_anilist(json, false).await;
         let res = serde_json::from_str(&res).map_err(|e| {
-            DifferedError(MediaError(format!(
-                "Error getting the media with id {}. {}",
-                number, e
-            )))
+            AppError::new(
+                format!("Error getting the media with id {}. {}", number, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
         })?;
         Ok(res)
     }
@@ -121,10 +120,11 @@ impl PageWrapper {
         let res = make_request_anilist(json, false).await;
 
         let res = serde_json::from_str(&res).map_err(|e| {
-            DifferedError(MediaError(format!(
-                "Error getting the media with id {}. {}",
-                number, e
-            )))
+            AppError::new(
+                format!("Error getting the media with id {}. {}", number, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
         })?;
         Ok(res)
     }

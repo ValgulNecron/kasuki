@@ -1,56 +1,34 @@
-use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
-};
 use std::collections::HashSet;
+
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
+};
 use tracing::trace;
 
 use crate::anilist_struct::run::user::{
     Anime, Genre, Manga, Statistics, Statuses, Tag, UserWrapper,
 };
 use crate::command_run::anilist::user::get_user_data;
+use crate::command_run::get_option::get_option_map_string;
 use crate::constant::COLOR;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::compare::load_localization_compare;
 
-pub async fn run(
-    options: &[CommandDataOption],
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
-    let option = &options
-        .first()
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
-        .value;
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    let map = get_option_map_string(command_interaction);
+    let value = map
+        .get(&String::from("username"))
+        .cloned()
+        .unwrap_or(String::new());
+    let value2 = map
+        .get(&String::from("username2"))
+        .cloned()
+        .unwrap_or(String::new());
 
-    let value = match option {
-        CommandDataOptionValue::String(lang) => lang,
-        _ => {
-            return Err(Error(ErrorOptionError(String::from(
-                "The command contain no option.",
-            ))));
-        }
-    };
+    let data: UserWrapper = get_user_data(&value).await?;
 
-    let option2 = &options
-        .get(1)
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?
-        .value;
-
-    let value2 = match option2 {
-        CommandDataOptionValue::String(lang) => lang,
-        _ => {
-            return Err(Error(ErrorOptionError(String::from(
-                "The command contain no option.",
-            ))));
-        }
-    };
-
-    let data: UserWrapper = get_user_data(value).await?;
-
-    let data2: UserWrapper = get_user_data(value2).await?;
+    let data2: UserWrapper = get_user_data(&value2).await?;
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -282,10 +260,11 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })
 }
 
@@ -468,14 +447,14 @@ fn get_genre(genres: &[Genre]) -> String {
 fn diff(
     a1: &str,
     a2: &str,
-    same: &str,
     diff_text: &str,
+    same: &str,
     username: &str,
     username2: &str,
 ) -> String {
     let diff = a1 != a2;
 
-    if diff {
+    let info = if diff {
         diff_text
             .replace("$1$", username)
             .replace("$2$", username2)
@@ -485,5 +464,7 @@ fn diff(
         same.replace("$1$", username)
             .replace("$2$", username2)
             .replace("$1a$", a1)
-    }
+    };
+    trace!(info);
+    info
 }

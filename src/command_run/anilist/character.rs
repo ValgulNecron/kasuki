@@ -1,15 +1,15 @@
-use serenity::all::{CommandDataOption, CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context};
 
 use crate::anilist_struct::run::character::{send_embed, CharacterWrapper};
-use crate::common::get_option_value::get_option;
-use crate::error_enum::AppError;
+use crate::command_run::get_option::get_option_map_string;
+use crate::error_management::error_enum::AppError;
 
-pub async fn run(
-    options: &[CommandDataOption],
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
-    let value = get_option(options);
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    let map = get_option_map_string(command_interaction);
+    let value = map
+        .get(&String::from("name"))
+        .cloned()
+        .unwrap_or(String::new());
 
     let data: CharacterWrapper = if value.parse::<i32>().is_ok() {
         CharacterWrapper::new_character_by_id(value.parse().unwrap()).await?

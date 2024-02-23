@@ -6,9 +6,7 @@ use serenity::all::{
 };
 
 use crate::common::make_anilist_request::make_request_anilist;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{ErrorCommandSendingError, UserGettingError};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -157,10 +155,11 @@ options{
         let json = json!({"query": query_id, "variables": {"name": id}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp).map_err(|e| {
-            Error(UserGettingError(format!(
-                "Error getting the user with id {}. {}",
-                id, e
-            )))
+            AppError::new(
+                format!("Error getting the user with id {}. {}", id, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
         })
     }
 
@@ -221,10 +220,11 @@ options{
         let json = json!({"query": query_string, "variables": {"name": search}});
         let resp = make_request_anilist(json, true).await;
         serde_json::from_str(&resp).map_err(|e| {
-            Error(UserGettingError(format!(
-                "Error getting the user with name {}. {}",
-                search, e
-            )))
+            AppError::new(
+                format!("Error getting the user with name {}. {}", search, e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            )
         })
     }
 }
@@ -284,11 +284,13 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
-        })
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
+        })?;
+    Ok(())
 }
 
 pub fn get_user_url(user_id: i32) -> String {

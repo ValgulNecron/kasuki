@@ -10,9 +10,7 @@ use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_disc
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::COLOR;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{CharacterGettingError, ErrorCommandSendingError};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -95,11 +93,10 @@ impl CharacterWrapper {
         trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
-        serde_json::from_str(&resp).map_err(|e| {
-            Error(CharacterGettingError(format!(
-                "Error getting the character with id {}. {}",
-                id, e
-            )))
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the character with id {}. {}", id, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 
@@ -134,11 +131,10 @@ query ($name: String) {
         trace!("{:#?}", json);
         let resp = make_request_anilist(json, false).await;
         trace!("{:#?}", resp);
-        serde_json::from_str(&resp).map_err(|e| {
-            Error(CharacterGettingError(format!(
-                "Error getting the character with name {}. {}",
-                search, e
-            )))
+        serde_json::from_str(&resp).map_err(|e| AppError {
+            message: format!("Error getting the character with name {}. {}", search, e),
+            error_type: ErrorType::WebRequest,
+            error_response_type: ErrorResponseType::Message,
         })
     }
 }
@@ -159,44 +155,44 @@ pub async fn send_embed(
 
     let character_localised = load_localization_character(guild_id).await?;
 
-    let dob_data = character.date_of_birth.clone();
-    let mut dob_string = String::new();
+    let date_of_birth_data = character.date_of_birth.clone();
+    let mut date_of_birth_string = String::new();
 
-    let mut mo: bool = false;
-    let mut da: bool = false;
+    let mut has_month: bool = false;
+    let mut has_day: bool = false;
 
-    if let Some(m) = dob_data.month {
-        dob_string.push_str(format!("{:02}", m).as_str());
-        mo = true
+    if let Some(m) = date_of_birth_data.month {
+        date_of_birth_string.push_str(format!("{:02}", m).as_str());
+        has_month = true
     }
 
-    if let Some(d) = dob_data.day {
-        if mo {
-            dob_string.push('/')
+    if let Some(d) = date_of_birth_data.day {
+        if has_month {
+            date_of_birth_string.push('/')
         }
-        dob_string.push_str(format!("{:02}", d).as_str());
-        da = true
+        date_of_birth_string.push_str(format!("{:02}", d).as_str());
+        has_day = true
     }
 
-    if let Some(y) = dob_data.year {
-        if da {
-            dob_string.push('/')
+    if let Some(y) = date_of_birth_data.year {
+        if has_day {
+            date_of_birth_string.push('/')
         }
-        dob_string.push_str(format!("{:04}", y).as_str());
+        date_of_birth_string.push_str(format!("{:04}", y).as_str());
     }
 
-    let mut dob = String::new();
-    if dob_string != String::new() {
-        dob = character_localised
+    let mut date_of_birth = String::new();
+    if date_of_birth_string != String::new() {
+        date_of_birth = character_localised
             .date_of_birth
-            .replace("$date$", dob_string.as_str())
+            .replace("$date$", date_of_birth_string.as_str())
     }
 
     let mut desc = character_localised
         .desc
         .replace("$age$", character.age.as_str())
         .replace("$gender$", character.gender.as_str())
-        .replace("$date_of_birth$", dob.as_str())
+        .replace("$date_of_birth$", date_of_birth.as_str())
         .replace("$fav$", character.favourites.to_string().as_str())
         .replace("$desc$", character.description.as_str());
 
@@ -225,9 +221,10 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            Error(
-                ErrorCommandSendingError(format!("Error while sending the command {}", e)).clone(),
-            )
-        })
+        .map_err(|e| AppError {
+            message: format!("Error sending the character embed. {}", e),
+            error_type: ErrorType::Command,
+            error_response_type: ErrorResponseType::Message,
+        })?;
+    Ok(())
 }

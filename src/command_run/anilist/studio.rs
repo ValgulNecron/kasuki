@@ -1,26 +1,25 @@
 use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
 
 use crate::anilist_struct::run::studio::StudioWrapper;
-use crate::common::get_option_value::get_option;
+use crate::command_run::get_option::get_option_map_string;
 use crate::constant::COLOR;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::ErrorCommandSendingError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::studio::load_localization_studio;
 
-pub async fn run(
-    options: &[CommandDataOption],
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
-    let value = get_option(options);
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    let map = get_option_map_string(command_interaction);
+    let value = map.get(&String::from("studio")).ok_or(AppError::new(
+        String::from("There is no option"),
+        ErrorType::Option,
+        ErrorResponseType::Message,
+    ))?;
     let data: StudioWrapper = if value.parse::<i32>().is_ok() {
         StudioWrapper::new_studio_by_id(value.parse().unwrap()).await?
     } else {
-        StudioWrapper::new_studio_by_search(&value).await?
+        StudioWrapper::new_studio_by_search(value).await?
     };
 
     let guild_id = match command_interaction.guild_id {
@@ -67,9 +66,10 @@ pub async fn run(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })
 }

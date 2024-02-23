@@ -1,13 +1,13 @@
-use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
-use crate::database::dispatcher::data_dispatch::get_all_server_activity;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::ComponentError;
-use crate::error_enum::ComponentError::{ComponentOptionError, SendingError};
-use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, Timestamp,
 };
 use tracing::trace;
+
+use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
+use crate::database::dispatcher::data_dispatch::get_all_server_activity;
+use crate::database_struct::server_activity_struct::ServerActivity;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
 
 pub async fn update(
     ctx: &Context,
@@ -21,31 +21,18 @@ pub async fn update(
 
     let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
 
-    let guild_id = component_interaction
-        .guild_id
-        .ok_or(ComponentError(ComponentOptionError(String::from(
-            "There is no option",
-        ))))?;
+    let guild_id = component_interaction.guild_id.ok_or(AppError::new(
+        String::from("There is no guild id"),
+        ErrorType::Option,
+        ErrorResponseType::None,
+    ))?;
 
     let list = get_all_server_activity(&guild_id.to_string()).await?;
     let len = list.len();
     let actual_page: u64 = page_number.parse().unwrap();
     let next_page: u64 = actual_page + 1;
 
-    let activity: Vec<String> = list
-        .into_iter()
-        .map(|activity| {
-            let anime_id = activity.anime_id;
-            let name = activity.name;
-            format!(
-                "[{}](https://anilist.co/anime/{})",
-                name.unwrap_or_default(),
-                anime_id.unwrap_or_default()
-            )
-        })
-        .skip((ACTIVITY_LIST_LIMIT * actual_page) as usize)
-        .take(ACTIVITY_LIST_LIMIT as usize)
-        .collect();
+    let activity: Vec<String> = get_formatted_activity_list(list, actual_page);
 
     let join_activity = activity.join("\n");
 
@@ -78,9 +65,26 @@ pub async fn update(
     let a = message.edit(&ctx.http, response).await;
     trace!("{:?}", a);
     a.map_err(|e| {
-        ComponentError(SendingError(format!(
-            "Error while sending the component {}",
-            e
-        )))
+        AppError::new(
+            format!("Error while sending the component {}", e),
+            ErrorType::Component,
+            ErrorResponseType::None,
+        )
     })
+}
+
+pub fn get_formatted_activity_list(list: Vec<ServerActivity>, actual_page: u64) -> Vec<String> {
+    list.into_iter()
+        .map(|activity| {
+            let anime_id = activity.anime_id;
+            let name = activity.name;
+            format!(
+                "[{}](https://anilist.co/anime/{})",
+                name.unwrap_or_default(),
+                anime_id.unwrap_or_default()
+            )
+        })
+        .skip((ACTIVITY_LIST_LIMIT * actual_page) as usize)
+        .take(ACTIVITY_LIST_LIMIT as usize)
+        .collect()
 }

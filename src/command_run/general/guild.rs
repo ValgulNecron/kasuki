@@ -4,9 +4,7 @@ use serenity::all::{
 };
 
 use crate::constant::COLOR;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{ErrorCommandSendingError, ErrorOptionError};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::general::guild::load_localization_guild;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
@@ -17,14 +15,22 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let guild_localised = load_localization_guild(guild_id).await?;
 
-    let guild_id = command_interaction
-        .guild_id
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
+    let guild_id = command_interaction.guild_id.ok_or(AppError::new(
+        String::from("There is no option"),
+        ErrorType::Option,
+        ErrorResponseType::Message,
+    ))?;
 
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)
         .await
-        .map_err(|e| Error(ErrorOptionError(format!("There is no option {}", e))))?;
+        .map_err(|e| {
+            AppError::new(
+                format!("Could not get the guild. {}", e),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            )
+        })?;
 
     let guild_name = guild.name.clone();
     let created_date = guild
@@ -78,9 +84,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })
 }

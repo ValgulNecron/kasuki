@@ -4,15 +4,15 @@ use serenity::all::{
 };
 
 use crate::anilist_struct::autocomplete::staff::StaffPageWrapper;
+use crate::command_run::get_option::get_option_map_string;
+use crate::constant::DEFAULT_STRING;
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let mut search = String::new();
-    for option in &autocomplete_interaction.data.options {
-        if option.name.as_str() != "type" {
-            search = option.value.as_str().unwrap().to_string()
-        }
-    }
-    let data = StaffPageWrapper::new_autocomplete_staff(&search.to_string()).await;
+    let map = get_option_map_string(&autocomplete_interaction);
+    let staff_search = map
+        .get(&String::from("staff_name"))
+        .unwrap_or(DEFAULT_STRING);
+    let data = StaffPageWrapper::new_autocomplete_staff(staff_search).await;
     let mut choices = Vec::new();
     let staffs = data.data.page.staff.clone().unwrap();
 

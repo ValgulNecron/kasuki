@@ -7,34 +7,30 @@ use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandDataOption, CommandInteraction, Context, CreateAttachment, CreateEmbed,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
-use crate::common::get_option_value::get_option;
+use crate::command_run::get_option::get_option_map_string;
 use crate::constant::COLOR;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::{DifferedError, Error};
-use crate::error_enum::CommandError::ErrorCommandSendingError;
-use crate::error_enum::DiffereCommanddError::{
-    CreatingImageError, DifferedCommandSendingError, FailedToGetBytes, FailedUrlError, WritingFile,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
 
-pub async fn run(
-    options: &[CommandDataOption],
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
-    let value = get_option(options);
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    let map = get_option_map_string(command_interaction);
+    let value = map.get(&String::from("seiyuu_name")).ok_or(AppError::new(
+        String::from("There is no option"),
+        ErrorType::Option,
+        ErrorResponseType::Message,
+    ))?;
 
     let data = if value.parse::<i32>().is_ok() {
         StaffImageWrapper::new_staff_by_id(value.parse().unwrap()).await?
     } else {
-        StaffImageWrapper::new_staff_by_search(&value).await?
+        StaffImageWrapper::new_staff_by_search(value).await?
     };
 
     let guild_id = match command_interaction.guild_id {
@@ -50,10 +46,11 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })?;
     let mut uuids: Vec<Uuid> = Vec::new();
     for _ in 0..5 {
@@ -62,26 +59,33 @@ pub async fn run(
     }
 
     let url = get_staff_image(data.clone());
-    let response = reqwest::get(url)
-        .await
-        .map_err(|e| DifferedError(FailedUrlError(format!("failed to get the image. {}", e))))?;
+    let response = reqwest::get(url).await.map_err(|e| {
+        AppError::new(
+            format!("Error while getting the response from the server. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
+    })?;
     let bytes = response.bytes().await.map_err(|e| {
-        DifferedError(FailedToGetBytes(format!(
-            "Failed to get bytes data from response. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to get bytes data from response. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
     })?;
     let mut buffer = File::create(format!("{}.png", uuids[0])).map_err(|e| {
-        DifferedError(WritingFile(format!(
-            "Failed to write the file bytes. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to write the file bytes. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Followup,
+        )
     })?;
     buffer.write_all(&bytes).map_err(|e| {
-        DifferedError(WritingFile(format!(
-            "Failed to write the file bytes. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to write the file bytes. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Followup,
+        )
     })?;
     let mut i = 1;
     let characters_images_url = get_characters_image(data.clone());
@@ -89,25 +93,33 @@ pub async fn run(
         let response = reqwest::get(&character_image.image.large)
             .await
             .map_err(|e| {
-                DifferedError(FailedUrlError(format!("failed to get the image. {}", e)))
+                AppError::new(
+                    format!("Error while getting the response from the server. {}", e),
+                    ErrorType::WebRequest,
+                    ErrorResponseType::Followup,
+                )
             })?;
+
         let bytes = response.bytes().await.map_err(|e| {
-            DifferedError(FailedToGetBytes(format!(
-                "Failed to get bytes data from response. {}",
-                e
-            )))
+            AppError::new(
+                format!("Failed to get bytes data from response. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Followup,
+            )
         })?;
         let mut buffer = File::create(format!("{}.png", uuids[i])).map_err(|e| {
-            DifferedError(WritingFile(format!(
-                "Failed to write the file bytes. {}",
-                e
-            )))
+            AppError::new(
+                format!("Failed to write the file bytes. {}", e),
+                ErrorType::File,
+                ErrorResponseType::Followup,
+            )
         })?;
         buffer.write_all(&bytes).map_err(|e| {
-            DifferedError(WritingFile(format!(
-                "Failed to write the file bytes. {}",
-                e
-            )))
+            AppError::new(
+                format!("Failed to write the file bytes. {}", e),
+                ErrorType::File,
+                ErrorResponseType::Followup,
+            )
         })?;
         i += 1
     }
@@ -136,10 +148,11 @@ pub async fn run(
 
         // Load the image from the byte vector
         images.push(image::load_from_memory(&buffer).map_err(|e| {
-            DifferedError(CreatingImageError(format!(
-                "Failed to create the image from the file. {}",
-                e
-            )))
+            AppError::new(
+                format!("Failed to create the image from the file. {}", e),
+                ErrorType::Image,
+                ErrorResponseType::Followup,
+            )
         })?);
     }
 
@@ -179,10 +192,11 @@ pub async fn run(
         combined_image
             .copy_from(&resized_img, pos_width, pos_height)
             .map_err(|e| {
-                DifferedError(CreatingImageError(format!(
-                    "Failed to create the image from the file. {}",
-                    e
-                )))
+                AppError::new(
+                    format!("Failed to copy the image. {}", e),
+                    ErrorType::Image,
+                    ErrorResponseType::Followup,
+                )
             })?;
     }
 
@@ -190,10 +204,11 @@ pub async fn run(
     combined_image
         .save(format!("{}.png", combined_uuid))
         .map_err(|e| {
-            DifferedError(WritingFile(format!(
-                "Failed to write the file bytes. {}",
-                e
-            )))
+            AppError::new(
+                format!("Failed to write the file bytes. {}", e),
+                ErrorType::File,
+                ErrorResponseType::Followup,
+            )
         })?;
     uuids.push(combined_uuid);
     let image_path = &format!("{}.png", combined_uuid);
@@ -205,10 +220,11 @@ pub async fn run(
         .title(&seiyuu_localised.title);
 
     let attachment = CreateAttachment::path(&image_path).await.map_err(|e| {
-        DifferedError(DifferedCommandSendingError(format!(
-            "Error while uploading the attachment {}",
-            e
-        )))
+        AppError::new(
+            format!("Error while uploading the attachment {}", e),
+            ErrorType::Command,
+            ErrorResponseType::Followup,
+        )
     })?;
 
     let builder_message = CreateInteractionResponseFollowup::new()
@@ -219,10 +235,11 @@ pub async fn run(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| {
-            DifferedError(DifferedCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Followup,
+            )
         })?;
 
     for uuid in uuids {

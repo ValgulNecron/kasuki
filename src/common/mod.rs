@@ -1,8 +1,6 @@
 pub mod anilist_to_discord_markdown;
-pub mod calculate_user_color;
 pub mod get_guild_lang;
 pub mod get_nsfw;
-pub mod get_option_value;
 pub mod make_anilist_request;
 pub mod steam_to_discord_markdown;
 pub mod trimer;

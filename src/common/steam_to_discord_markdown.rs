@@ -1,4 +1,7 @@
-use regex::Regex;
+use crate::common::anilist_to_discord_markdown::{
+    add_anti_slash, convert_html_entity_to_real_char, convert_italic,
+    convert_link_to_discord_markdown,
+};
 
 /// Converts the given string into Discord-flavored markdown
 ///
@@ -18,7 +21,7 @@ use regex::Regex;
 /// A `String` that represents the text in Discord-flavored markdown.
 pub fn convert_steam_to_discord_flavored_markdown(value: String) -> String {
     let mut result = value;
-    result = add_antislash(result);
+    result = add_anti_slash(result);
     result = convert_html_entity_to_real_char(result);
     result = convert_link_to_discord_markdown(result);
     result = convert_html_line_break_to_line_break(result);
@@ -29,85 +32,6 @@ pub fn convert_steam_to_discord_flavored_markdown(value: String) -> String {
     result = convert_italic(result);
 
     result
-}
-
-pub fn add_antislash(value: String) -> String {
-    value.replace('*', "\\*")
-}
-
-/// Converts the HTML tags '<i>' and '<em>' (including their ending tags) in a given string to underscore, '_'
-///
-/// # Arguments
-///
-/// * `value` - A string that may contain '<i>', '</i>', '<em>', or '</em>' tags which need conversion.
-///
-/// # Returns
-///
-/// * An owned String where any '<i>', '</i>', '<em>', or '</em>' tags have been replaced with '_'.
-///
-/// # Examples
-///
-/// ```
-/// let str = "<i>Hello</i> <em>World</em>";
-/// let result = convert_italic(str);
-/// assert_eq!(result, "_Hello_ _World_");
-/// ```
-pub fn convert_italic(value: String) -> String {
-    value
-        .replace("<i>", "_")
-        .replace("</i>", "_")
-        .replace("<em>", "_")
-        .replace("</em>", "_")
-}
-
-/// This function takes an input string and replaces all occurrences of the HTML entity "&mdash;" with its equivalent symbol "—".
-///
-/// # Arguments
-///
-/// * `value` - The input string which can potentially contain HTML entities.
-///
-/// # Returns
-///
-/// A new string where all occurrences of "&mdash;" are replaced with "—".
-///
-/// # Examples
-///
-/// ```
-/// let input = "Hello &mdash; World".to_string();
-/// let output = convert_html_entity_to_real_char(input);
-/// assert_eq!(output, "Hello — World");
-/// ```
-pub fn convert_html_entity_to_real_char(value: String) -> String {
-    value.replace("&mdash;", "—")
-}
-
-/// Convert HTML anchor tags in a string to Discord-flavored Markdown link.
-///
-/// This function takes a `String` value as input. It uses the `regex` crate to
-/// construct a regular expression that matches HTML anchor links.
-/// It replaces every HTML link in the input string with its equivalent in the
-/// Discord-flavored Markdown syntax, which is `[link_text](url)`.
-///
-/// # Arguments
-///
-/// * `value` - A `String` that may contain HTML anchor links.
-///
-/// # Returns
-///
-/// A `String` which is the input with all HTML anchor links replaced by
-/// Discord-flavored Markdown links. If no HTML anchor links are found, the
-/// original string is returned.
-///
-/// # Examples
-///
-/// ```
-/// let input = String::from("<a href=\"https://example.com\">Example</a>");
-/// let output = convert_link_to_discord_markdown(input);
-/// assert_eq!(output, "[Example](https://example.com)");
-/// ```
-pub fn convert_link_to_discord_markdown(value: String) -> String {
-    let re = Regex::new(r#"<a\s+href="([^"]+)">([^<]+)</a>"#).unwrap();
-    re.replace_all(value.as_str(), "[$2]($1)").to_string()
 }
 
 /// # Convert HTML line breaks to regular line breaks
@@ -224,7 +148,7 @@ mod tests {
     #[test]
     fn test_add_antislash() {
         let value = String::from("Hello * World");
-        let result = add_antislash(value);
+        let result = add_anti_slash(value);
         assert_eq!(result, "Hello \\* World")
     }
 

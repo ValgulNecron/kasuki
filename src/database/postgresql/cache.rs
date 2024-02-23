@@ -1,9 +1,8 @@
-use crate::database::postgresql::pool::get_postgresql_pool;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::SqlInsertError;
 use chrono::Utc;
 use serde_json::Value;
+
+use crate::database::postgresql::pool::get_postgresql_pool;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn get_database_random_cache_postgresql(
     random_type: &str,
@@ -29,14 +28,20 @@ pub async fn set_database_random_cache_postgres(
     previous_page: i64,
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
-    sqlx::query("INSERT INTO CACHE.cache_stats (key, response, last_updated, last_page) VALUES ($1, $2, $3, $4) ON CONFLICT (key) DO UPDATE SET response = EXCLUDED.response, last_updated = EXCLUDED.last_updated, last_page = EXCLUDED.last_page")
+    sqlx::query("INSERT INTO CACHE.cache_stats (key, response, last_updated, last_page) VALUES ($1, $2, $3, $4)\
+     ON CONFLICT (key) DO UPDATE SET response = EXCLUDED.response, last_updated = EXCLUDED.last_updated, last_page = EXCLUDED.last_page")
         .bind(random_type)
         .bind(cached_response)
         .bind(now)
         .bind(previous_page)
         .execute(&pool)
         .await
-        .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
     Ok(())
 }
@@ -69,7 +74,12 @@ pub async fn set_database_cache_postgresql(json: Value, resp: String) -> Result<
         .bind(now)
         .execute(&pool)
         .await
-        .map_err(|e| Error(SqlInsertError(format!("Failed to insert into the table. {}", e))))?;
+        .map_err(|e|
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            ))?;
     pool.close().await;
     Ok(())
 }

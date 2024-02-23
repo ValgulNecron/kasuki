@@ -1,11 +1,8 @@
-use crate::constant::TIME_BETWEEN_USER_COLOR_UPDATE;
 use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
 use crate::database_struct::user_color_struct::UserColor;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DiffereCommanddError::{CreatingImageError, FailedToGetImage};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::io::Reader as ImageReader;
@@ -104,50 +101,63 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
     // Fetch the image data
     let resp = reqwest::get(url)
         .await
-        .map_err(|e| DifferedError(FailedToGetImage(format!("Failed to download image. {}", e))))?
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to download image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
+        })?
         .bytes()
         .await
         .map_err(|e| {
-            DifferedError(FailedToGetImage(format!(
-                "Failed to get bytes image. {}",
-                e
-            )))
+            AppError::new(
+                format!("Failed to get bytes image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
         })?;
 
     // Decode the image data
     let img = ImageReader::new(Cursor::new(resp))
         .with_guessed_format()
-        .map_err(|e| DifferedError(CreatingImageError(format!("Failed to load image. {}", e))))?
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to load image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
+        })?
         .decode()
-        .map_err(|e| DifferedError(CreatingImageError(format!("Failed to decode image. {}", e))))?;
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to decode image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
+        })?;
 
     Ok(img)
 }
 
-pub async fn color_management(guilds: Vec<GuildId>, ctx_clone: Context) {
-    loop {
-        let mut members: Vec<Member> = Vec::new();
-        let guild_len = guilds.len();
-        debug!(guild_len);
-        for guild in &guilds {
-            let guild_id = guild.to_string();
-            debug!(guild_id);
-            let mut members_temp_out = get_member(&ctx_clone, guild).await;
-            let server_member_len = members_temp_out.len();
-            debug!(server_member_len);
-            members.append(&mut members_temp_out);
-            let members_len = members.len();
-            debug!(members_len);
-        }
-        match calculate_users_color(members.into_iter().collect()).await {
-            Ok(_) => {}
-            Err(e) => error!("{:?}", e),
-        };
-        sleep(Duration::from_secs(
-            (TIME_BETWEEN_USER_COLOR_UPDATE * 60) as u64,
-        ))
-        .await;
+pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context) {
+    let mut members: Vec<Member> = Vec::new();
+    let guild_len = guilds.len();
+    debug!(guild_len);
+    for guild in guilds {
+        let guild_id = guild.to_string();
+        debug!(guild_id);
+        let mut members_temp_out = get_member(ctx_clone, guild).await;
+        let server_member_len = members_temp_out.len();
+        debug!(server_member_len);
+        members.append(&mut members_temp_out);
+        let members_len = members.len();
+        debug!(members_len);
     }
+    match calculate_users_color(members.into_iter().collect()).await {
+        Ok(_) => {}
+        Err(e) => error!("{:?}", e),
+    };
 }
 
 pub async fn get_member(ctx_clone: &Context, guild: &GuildId) -> Vec<Member> {

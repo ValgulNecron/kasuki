@@ -1,24 +1,26 @@
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::DifferedError;
-use crate::error_enum::DiffereCommanddError::FailedToUploadImage;
 use std::env;
+
 use tracing::debug;
+
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn upload_image_imgur(image_data: Vec<u8>) -> Result<(), AppError> {
     let token = match env::var("TOKEN") {
         Ok(a) => a,
         Err(e) => {
-            return Err(DifferedError(FailedToUploadImage(format!(
-                "Failed to get the token for imgur.com. {}",
-                e
-            ))));
+            return Err(AppError::new(
+                format!("Failed to get the token for imgur.com. {}", e),
+                ErrorType::File,
+                ErrorResponseType::Unknown,
+            ));
         }
     };
     let upload_info = imgur::Handle::new(token).upload(&image_data).map_err(|e| {
-        DifferedError(FailedToUploadImage(format!(
-            "Failed to upload image to imgur.com. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to upload image to imgur.com. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Unknown,
+        )
     })?;
     debug!(
         "Image uploaded to imgur.com: {}",

@@ -1,4 +1,5 @@
-use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT};
+use crate::command_run::get_option::get_option_map_string;
+use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use rust_fuzzy_search::fuzzy_search_best_n;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
@@ -6,16 +7,14 @@ use serenity::all::{
 };
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let mut search = String::new();
-    for option in &autocomplete_interaction.data.options {
-        if option.name.as_str() != "type" {
-            search = option.value.as_str().unwrap().to_string()
-        }
-    }
+    let map = get_option_map_string(&autocomplete_interaction);
+    let game_search = map
+        .get(&String::from("game_name"))
+        .unwrap_or(DEFAULT_STRING);
 
     let app_names: Vec<&str> = unsafe { APPS.iter().map(|app| app.0.as_str()).collect() };
     let result = fuzzy_search_best_n(
-        search.as_str(),
+        game_search.as_str(),
         &app_names,
         AUTOCOMPLETE_COUNT_LIMIT as usize,
     );

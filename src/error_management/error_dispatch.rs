@@ -5,7 +5,7 @@ use serenity::all::{
 };
 use tracing::error;
 
-use crate::error_enum::{AppError, CommandError, DiffereCommanddError};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn command_dispatching(
     error: AppError,
@@ -13,17 +13,42 @@ pub async fn command_dispatching(
     ctx: &Context,
 ) {
     error!("{:?}", error);
-    match error {
-        AppError::Error(e) => send_error(e, command_interaction, ctx).await,
-        AppError::DifferedError(e) => send_differed_error(e, command_interaction, ctx).await,
-        AppError::ComponentError(_) => {}
-        AppError::NotACommandError(_) => {}
-        AppError::JoiningError(_) => {}
-        AppError::NewMemberError(_) => {}
+    let response_type = error.error_response_type.clone();
+    match response_type {
+        ErrorResponseType::Message => match send_error(error, command_interaction, ctx).await {
+            Ok(_) => {}
+            Err(e) => {
+                error!("{:?}", e);
+            }
+        },
+        ErrorResponseType::Followup => {
+            match send_differed_error(error, command_interaction, ctx).await {
+                Ok(_) => {}
+                Err(e) => {
+                    error!("{:?}", e);
+                }
+            }
+        }
+        ErrorResponseType::Unknown => {
+            match send_error(error.clone(), command_interaction, ctx).await {
+                Ok(_) => {}
+                Err(_) => match send_differed_error(error, command_interaction, ctx).await {
+                    Ok(_) => {}
+                    Err(e) => {
+                        error!("{:?}", e);
+                    }
+                },
+            }
+        }
+        ErrorResponseType::None => {}
     }
 }
 
-async fn send_error(e: CommandError, command_interaction: &CommandInteraction, ctx: &Context) {
+async fn send_error(
+    e: AppError,
+    command_interaction: &CommandInteraction,
+    ctx: &Context,
+) -> Result<(), AppError> {
     let error_message = format!("**This error is most likely an error on your part. \
     like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
     error and report it to me and I will try to fix it the fastest I can**  \n{:?}", e);
@@ -36,17 +61,27 @@ async fn send_error(e: CommandError, command_interaction: &CommandInteraction, c
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    let _ = command_interaction
+    command_interaction
         .create_response(&ctx.http, builder)
-        .await;
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
+        })?;
+    Ok(())
 }
 
 async fn send_differed_error(
-    e: DiffereCommanddError,
+    e: AppError,
     command_interaction: &CommandInteraction,
     ctx: &Context,
-) {
-    let error_message = format!("Please verify the error bellow and contact me on discord or github depending on the error: \n{:?}", e);
+) -> Result<(), AppError> {
+    let error_message = format!("**This error is most likely an error on your part. \
+    like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
+    error and report it to me and I will try to fix it the fastest I can**  \n{:?}", e);
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
@@ -57,5 +92,14 @@ async fn send_differed_error(
 
     let _ = command_interaction
         .create_followup(&ctx.http, builder)
-        .await;
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Followup,
+            )
+        });
+
+    Ok(())
 }

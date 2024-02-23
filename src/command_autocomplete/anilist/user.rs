@@ -4,15 +4,13 @@ use serenity::all::{
 };
 
 use crate::anilist_struct::autocomplete::user::UserPageWrapper;
+use crate::command_run::get_option::get_option_map_string;
+use crate::constant::DEFAULT_STRING;
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let mut search = String::new();
-    for option in &autocomplete_interaction.data.options {
-        if option.name.as_str() != "type" {
-            search = option.value.as_str().unwrap().to_string()
-        }
-    }
-    let data = UserPageWrapper::new_autocomplete_user(&search.to_string()).await;
+    let map = get_option_map_string(&autocomplete_interaction);
+    let user_search = map.get(&String::from("username")).unwrap_or(DEFAULT_STRING);
+    let data = UserPageWrapper::new_autocomplete_user(user_search).await;
     let mut choices = Vec::new();
     let users = data.data.page.users.unwrap().clone();
 

@@ -1,8 +1,6 @@
 use sqlx::{Pool, Sqlite, SqlitePool};
 
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NotACommandError;
-use crate::error_enum::NotACommandError::CreatingPoolError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Connects to a SQLite database and returns a connection pool.
 /// The function is asynchronous and returns a `Pool` wrapped in a `Result`.
@@ -18,9 +16,10 @@ use crate::error_enum::NotACommandError::CreatingPoolError;
 ///
 pub async fn get_sqlite_pool(database_url: &str) -> Result<Pool<Sqlite>, AppError> {
     SqlitePool::connect(database_url).await.map_err(|e| {
-        NotACommandError(CreatingPoolError(format!(
-            "Failed to create the pool. {}",
-            e
-        )))
+        AppError::new(
+            format!("Failed to get the sqlite pool: {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        )
     })
 }

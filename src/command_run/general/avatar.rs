@@ -1,32 +1,30 @@
 use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp, User,
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp, User,
 };
 
+use crate::command_run::get_option::get_option_map_user;
 use crate::constant::COLOR;
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::Error;
-use crate::error_enum::CommandError::{
-    ErrorCommandSendingError, ErrorOptionError, FailedToGetUser,
-};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::general::avatar::load_localization_avatar;
 
-pub async fn run(
-    options: &[CommandDataOption],
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), AppError> {
-    if let Some(option) = options.first() {
-        let resolved = &option.value;
-        if let CommandDataOptionValue::User(user, ..) = resolved {
-            let user = user
-                .to_user(&ctx.http)
-                .await
-                .map_err(|e| Error(FailedToGetUser(format!("Could not get the user. {}", e))))?;
-            return avatar_with_user(ctx, command_interaction, &user).await;
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    let map = get_option_map_user(command_interaction);
+    let user = map.get(&String::from("username"));
+
+    match user {
+        Some(user) => {
+            let user = user.to_user(&ctx.http).await.map_err(|e| {
+                AppError::new(
+                    format!("Could not get the user. {}", e),
+                    ErrorType::Option,
+                    ErrorResponseType::Message,
+                )
+            })?;
+            avatar_with_user(ctx, command_interaction, &user).await
         }
+        None => avatar_without_user(ctx, command_interaction).await,
     }
-    avatar_without_user(ctx, command_interaction).await
 }
 
 async fn avatar_without_user(
@@ -42,9 +40,7 @@ async fn avatar_with_user(
     command_interaction: &CommandInteraction,
     user: &User,
 ) -> Result<(), AppError> {
-    let avatar_url = user
-        .avatar_url()
-        .ok_or(Error(ErrorOptionError(String::from("There is no option"))))?;
+    let avatar_url = user.face();
     send_embed(avatar_url, ctx, command_interaction, user.name.clone()).await
 }
 
@@ -75,9 +71,10 @@ pub async fn send_embed(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| {
-            Error(ErrorCommandSendingError(format!(
-                "Error while sending the command {}",
-                e
-            )))
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
         })
 }

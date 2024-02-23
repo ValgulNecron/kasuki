@@ -2,15 +2,13 @@ use std::fs;
 use std::io::Error;
 use std::path::Path;
 use std::str::FromStr;
-use tracing_subscriber::fmt;
 
 use tracing_subscriber::filter::{Directive, EnvFilter};
+use tracing_subscriber::fmt;
 use tracing_subscriber::layer::SubscriberExt;
 
 use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, MAX_LOG_RETENTION_DAYS, OTHER_CRATE_LEVEL};
-use crate::error_enum::AppError;
-use crate::error_enum::AppError::NotACommandError;
-use crate::error_enum::NotACommandError::SetLoggerError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Initializes the logger with the specified log level filter.
 ///
@@ -59,7 +57,11 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
         );
 
     tracing::subscriber::set_global_default(registry).map_err(|e| {
-        NotACommandError(SetLoggerError(format!("Error creating the Logger. {}", e)))
+        AppError::new(
+            format!("Error creating the Logger. {}", e),
+            ErrorType::Logging,
+            ErrorResponseType::None,
+        )
     })?;
 
     Ok(())
@@ -113,10 +115,14 @@ fn get_directive(filter: &str) -> Result<Directive, AppError> {
         Ok(d) => d,
         Err(e) => {
             eprintln!("{}", e);
-            return Err(NotACommandError(SetLoggerError(format!(
-                "Error creating the Logger. Please check the log level filter. {}",
-                e
-            ))));
+            return Err(AppError::new(
+                format!(
+                    "Error creating the Logger. Please check the log level filter. {}",
+                    e
+                ),
+                ErrorType::Logging,
+                ErrorResponseType::None,
+            ));
         }
     };
     Ok(directive)
