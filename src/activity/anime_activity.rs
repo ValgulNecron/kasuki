@@ -1,11 +1,10 @@
-use base64::engine::general_purpose::STANDARD;
-use base64::read::DecoderReader;
 use std::io::{Cursor, Read};
 use std::time::Duration;
 
+use base64::engine::general_purpose::STANDARD;
+use base64::read::DecoderReader;
 use chrono::Utc;
 use serenity::all::{Context, CreateAttachment, CreateEmbed, EditWebhook, ExecuteWebhook, Webhook};
-use tokio::time::sleep;
 use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrapper};
@@ -17,12 +16,9 @@ use crate::database_struct::server_activity_struct::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
-pub async fn manage_activity(ctx: Context) {
-    loop {
-        let ctx = ctx.clone();
-        tokio::spawn(async move { send_activity(&ctx).await });
-        sleep(Duration::from_secs(1)).await;
-    }
+pub async fn manage_activity(ctx: &Context) {
+    let ctx = ctx.clone();
+    tokio::spawn(async move { send_activity(&ctx).await });
 }
 
 pub async fn send_activity(ctx: &Context) {
@@ -35,8 +31,7 @@ pub async fn send_activity(ctx: &Context) {
         }
     };
     for row in rows {
-        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {
-        } else {
+        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {} else {
             let row2 = row.clone();
             let guild_id = row.server_id.clone();
             if row.delays.unwrap() != 0 {
@@ -137,7 +132,7 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().unwrap_or("0".to_string()),
     )
-    .await?;
+        .await?;
     let media = data.data.media;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
@@ -161,7 +156,7 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
         delays: row.delays.unwrap_or(0) as i64,
         image: row.image.unwrap_or_default(),
     })
-    .await?;
+        .await?;
     Ok(())
 }
 

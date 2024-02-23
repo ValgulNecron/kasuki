@@ -1,7 +1,4 @@
-use serenity::all::{
-    CommandInteraction, Context,
-    CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessage};
 use serenity::all::CreateInteractionResponse::Defer;
 
 use crate::command_run::anilist::random_image::send_embed;

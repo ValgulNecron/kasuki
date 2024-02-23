@@ -1,14 +1,16 @@
-use crate::constant::{APPS, LANG_MAP};
-use crate::database::dispatcher::data_dispatch::get_data_guild_language;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use std::collections::HashMap;
+
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
 use serde_with::formats::PreferOne;
-use serde_with::serde_as;
 use serde_with::OneOrMany;
-use std::collections::HashMap;
+use serde_with::serde_as;
 use tracing::trace;
+
+use crate::constant::{APPS, LANG_MAP};
+use crate::database::dispatcher::data_dispatch::get_data_guild_language;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
@@ -240,12 +242,12 @@ impl SteamGameWrapper {
 
         let game_wrapper: HashMap<String, SteamGameWrapper> = serde_json::from_str(text.as_str())
             .map_err(|e| {
-            AppError::new(
-                format!("Failed to parse as json. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Unknown,
-            )
-        })?;
+                AppError::new(
+                    format!("Failed to parse as json. {}", e),
+                    ErrorType::WebRequest,
+                    ErrorResponseType::Unknown,
+                )
+            })?;
 
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }

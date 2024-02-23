@@ -1,11 +1,12 @@
-use once_cell::sync::Lazy;
-use serenity::all::Colour;
 use std::collections::HashMap;
 use std::env;
 
+use once_cell::sync::Lazy;
+use serenity::all::Colour;
+
 pub static ACTIVITY_NAME: Lazy<String> =
     Lazy::new(|| env::var("BOT_ACTIVITY").unwrap_or("Let you get info from anilist.".to_string()));
-pub const APP_VERSION: &str = "V2.3.1";
+pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /*
 all delays
@@ -57,9 +58,9 @@ pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
         ("de", "german"),
         ("ja", "japanese"),
     ]
-    .iter()
-    .cloned()
-    .collect()
+        .iter()
+        .cloned()
+        .collect()
 });
 
 pub static mut APPS: Lazy<HashMap<String, u128>> = Lazy::new(HashMap::new);

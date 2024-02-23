@@ -3,20 +3,20 @@ use std::fs::File;
 use std::io::copy;
 use std::path::Path;
 
-use crate::command_run::get_option::{
-    get_option_map_attachment, get_option_map_string, get_the_attachment,
-};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use serde_json::Value;
-use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
+use serenity::all::CreateInteractionResponse::Defer;
 use tracing::log::trace;
 use uuid::Uuid;
 
+use crate::command_run::get_option::{
+    get_option_map_attachment, get_option_map_string, get_the_attachment,
+};
 use crate::constant::{
     COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
 };

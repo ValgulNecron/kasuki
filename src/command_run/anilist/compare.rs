@@ -1,8 +1,9 @@
+use std::collections::HashSet;
+
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
-use std::collections::HashSet;
 use tracing::trace;
 
 use crate::anilist_struct::run::user::{
@@ -126,7 +127,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     let genre = get_genre(&user.statistics.anime.genres);
@@ -141,7 +142,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     match user
@@ -228,7 +229,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     let genre = get_genre(&user.statistics.manga.genres);
@@ -243,7 +244,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     let builder_embed = CreateEmbed::new()

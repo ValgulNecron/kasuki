@@ -36,7 +36,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Message,
             )
         })?;
-    send_embed(ctx, command_interaction, image_type, random_image_localised.title, "sfw").await
+    send_embed(
+        ctx,
+        command_interaction,
+        image_type,
+        random_image_localised.title,
+        "sfw",
+    )
+        .await
 }
 
 pub async fn send_embed(

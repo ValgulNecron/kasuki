@@ -3,19 +3,18 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
 
-use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView};
-use serenity::all::CreateInteractionResponse::Defer;
+use image::imageops::FilterType;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
+use serenity::all::CreateInteractionResponse::Defer;
 use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
 use crate::command_run::get_option::get_option_map_string;
-
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;

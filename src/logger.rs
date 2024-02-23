@@ -2,9 +2,9 @@ use std::fs;
 use std::io::Error;
 use std::path::Path;
 use std::str::FromStr;
-use tracing_subscriber::fmt;
 
 use tracing_subscriber::filter::{Directive, EnvFilter};
+use tracing_subscriber::fmt;
 use tracing_subscriber::layer::SubscriberExt;
 
 use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, MAX_LOG_RETENTION_DAYS, OTHER_CRATE_LEVEL};

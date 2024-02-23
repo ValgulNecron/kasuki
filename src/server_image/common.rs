@@ -1,9 +1,11 @@
-use crate::database_struct::user_color_struct::UserColor;
+use std::num::ParseIntError;
+
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use image::DynamicImage;
 use palette::{IntoColor, Lab, Srgb};
-use std::num::ParseIntError;
+
+use crate::database_struct::user_color_struct::UserColor;
 
 #[derive(Clone, Debug)]
 pub struct Color {

@@ -1,3 +1,10 @@
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, Timestamp,
+};
+use serenity::all::CreateInteractionResponse::Defer;
+use tracing::trace;
+
 use crate::command_run::get_option::get_option_map_string;
 use crate::common::steam_to_discord_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::constant::COLOR;
@@ -6,12 +13,6 @@ use crate::game_struct::run::steam_game::SteamGameWrapper;
 use crate::lang_struct::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
 };
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, Timestamp,
-};
-use tracing::trace;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string(command_interaction);

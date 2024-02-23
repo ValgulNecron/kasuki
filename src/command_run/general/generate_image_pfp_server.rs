@@ -1,27 +1,27 @@
-use crate::constant::COLOR;
-
-use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
-
-use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
-
-use serenity::all::CreateInteractionResponse::Defer;
+use base64::engine::general_purpose::STANDARD as BASE64;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseMessage,
     Timestamp,
 };
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::builder::CreateInteractionResponseFollowup;
+use uuid::Uuid;
 
+use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::get_server_image;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-
-use uuid::Uuid;
+use crate::lang_struct::general::generate_image_pfp_server::load_localization_pfp_server_image;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     send_embed(ctx, command_interaction, "local").await
 }
 
-pub async fn send_embed(ctx: &Context, command_interaction: &CommandInteraction, image_type: &str) -> Result<(), AppError> {
+pub async fn send_embed(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    image_type: &str,
+) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),

@@ -1,5 +1,7 @@
-
-use crate::common::anilist_to_discord_markdown::{add_anti_slash, convert_html_entity_to_real_char, convert_italic, convert_link_to_discord_markdown};
+use crate::common::anilist_to_discord_markdown::{
+    add_anti_slash, convert_html_entity_to_real_char, convert_italic,
+    convert_link_to_discord_markdown,
+};
 
 /// Converts the given string into Discord-flavored markdown
 ///

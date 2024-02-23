@@ -104,18 +104,18 @@ pub async fn set_database_cache_sqlite(json: Value, resp: String) -> Result<(), 
     sqlx::query(
         "INSERT OR REPLACE INTO request_cache (json, response, last_updated) VALUES (?, ?, ?)",
     )
-    .bind(json.clone())
-    .bind(resp.clone())
-    .bind(now)
-    .execute(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to insert into the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::Unknown,
-        )
-    })?;
+        .bind(json.clone())
+        .bind(resp.clone())
+        .bind(now)
+        .execute(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            )
+        })?;
     pool.close().await;
     Ok(())
 }

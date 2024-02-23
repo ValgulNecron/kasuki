@@ -1,5 +1,6 @@
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use sqlx::{Pool, Sqlite, SqlitePool};
+
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Connects to a SQLite database and returns a connection pool.
 /// The function is asynchronous and returns a `Pool` wrapped in a `Result`.

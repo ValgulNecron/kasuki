@@ -1,16 +1,14 @@
-use crate::constant::TRANSCRIPT_MODELS;
-use crate::constant::TRANSCRIPT_TOKEN;
-use crate::constant::{
-    CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN,
-    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
-    TRANSCRIPT_BASE_URL,
-};
-use serenity::all::{ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready};
-use serenity::all::{Guild, Member};
-use serenity::{async_trait, Client};
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
+
+use serenity::{async_trait, Client};
+use serenity::all::{
+    ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready, ShardManager,
+};
+use serenity::all::{Guild, Member};
+use serenity::all::ShardId;
+use serenity::all::ShardRunnerInfo;
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
@@ -22,6 +20,15 @@ use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::{ACTIVITY_NAME, DELAY_BEFORE_THREAD_SPAWN, MAX_LOG_RETENTION_DAYS};
+use crate::constant::{
+    CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN,
+    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+    TRANSCRIPT_BASE_URL,
+};
+use crate::constant::{TIME_BETWEEN_GAME_UPDATE, TRANSCRIPT_MODELS};
+use crate::constant::PING_UPDATE_DELAYS;
+use crate::constant::TRANSCRIPT_TOKEN;
+use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
 use crate::game_struct::steam_game_id_struct::get_game;
@@ -265,9 +272,21 @@ async fn main() {
     {
         let mut data = client.data.write().await;
 
-        let shard_manager = &client.shard_manager;
+        let shard_manager = client.shard_manager.clone();
 
-        data.insert::<ShardManagerContainer>(Arc::clone(shard_manager))
+        data.insert::<ShardManagerContainer>(Arc::clone(&shard_manager));
+    }
+
+    {
+        let shard_manager = client.shard_manager.clone();
+
+        tokio::spawn(async move {
+            info!("Launching the ping thread!");
+            loop {
+                ping_manager(&Arc::clone(&shard_manager)).await;
+                sleep(Duration::from_secs(PING_UPDATE_DELAYS)).await;
+            }
+        });
     }
 
     if let Err(why) = client.start_autosharded().await {
@@ -276,11 +295,15 @@ async fn main() {
 }
 
 async fn thread_management_launcher(ctx: Context) {
+    tokio::spawn(async move {
+        info!("Launching the log web server thread!");
+        web_server_launcher().await
+    });
     let guilds = ctx.cache.guilds();
     let ctx_clone = ctx.clone();
     tokio::spawn(async move {
+        info!("Launching the user color management thread!");
         loop {
-            info!("Launching the user color management thread!");
             color_management(&guilds, &ctx_clone).await;
             sleep(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE)).await;
         }
@@ -290,32 +313,45 @@ async fn thread_management_launcher(ctx: Context) {
     sleep(Duration::from_secs(DELAY_BEFORE_THREAD_SPAWN)).await;
 
     tokio::spawn(async move {
-        info!("Launching the log web server thread!");
-        web_server_launcher().await
-    });
-    sleep(Duration::from_secs(5)).await;
-
-    tokio::spawn(async move {
         info!("Launching the game management thread!");
-        get_game().await
+        loop {
+            get_game().await;
+            tokio::time::sleep(Duration::from_secs(TIME_BETWEEN_GAME_UPDATE)).await;
+        }
     });
 
     sleep(Duration::from_secs(5)).await;
     let ctx_clone = ctx.clone();
     tokio::spawn(async move {
         info!("Launching the activity management thread!");
-        manage_activity(ctx_clone).await
+        loop {
+            manage_activity(&ctx_clone).await;
+            sleep(Duration::from_secs(1)).await;
+        }
     });
 
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
     let ctx_clone = ctx.clone();
     tokio::spawn(async move {
+        info!("Launching the server image management thread!");
         loop {
-            info!("Launching the server image management thread!");
             server_image_management(&ctx_clone).await;
             sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE)).await;
         }
     });
 
     info!("Done spawning thread manager.");
+}
+
+async fn ping_manager(shard_manager: &Arc<ShardManager>) {
+    let runner = &shard_manager.runners.lock().await;
+    let shard_list: Vec<(&ShardId, &ShardRunnerInfo)> = runner.iter().collect();
+    for (shard_id, shard) in shard_list {
+        set_data_ping_history(
+            shard_id.to_string(),
+            shard.latency.unwrap_or_default().as_millis().to_string(),
+        )
+            .await
+            .unwrap()
+    }
 }

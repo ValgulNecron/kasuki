@@ -1,6 +1,7 @@
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
+use sqlx::postgres::PgPoolOptions;
+
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn get_postgresql_pool() -> Result<Pool<Postgres>, AppError> {
     let pool_url = std::env::var("DATABASE_URL").map_err(|e| {

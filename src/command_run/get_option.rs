@@ -1,6 +1,8 @@
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use serenity::all::{Attachment, CommandInteraction, ResolvedOption, ResolvedValue, UserId};
 use std::collections::HashMap;
+
+use serenity::all::{Attachment, CommandInteraction, ResolvedOption, ResolvedValue, UserId};
+
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<String, String> {
     let mut map = HashMap::new();

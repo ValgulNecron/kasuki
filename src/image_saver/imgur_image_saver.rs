@@ -1,6 +1,8 @@
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use std::env;
+
 use tracing::debug;
+
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn upload_image_imgur(image_data: Vec<u8>) -> Result<(), AppError> {
     let token = match env::var("TOKEN") {

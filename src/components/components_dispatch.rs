@@ -1,7 +1,8 @@
-use crate::components::anilist::{list_all_activity, list_register_user};
-use crate::error_management::error_enum::AppError;
 use log::trace;
 use serenity::all::{ComponentInteraction, Context};
+
+use crate::components::anilist::{list_all_activity, list_register_user};
+use crate::error_management::error_enum::AppError;
 
 pub async fn components_dispatching(
     ctx: Context,

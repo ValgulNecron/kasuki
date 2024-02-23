@@ -1,9 +1,9 @@
-use crate::command_run::get_option::get_option_map_user;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp, User,
 };
 
+use crate::command_run::get_option::get_option_map_user;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::general::profile::load_localization_profile;

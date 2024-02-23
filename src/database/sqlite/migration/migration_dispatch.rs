@@ -17,15 +17,15 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     let row: u32 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM pragma_table_info('activity_data') WHERE name='image'",
     )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to check existence of column. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     // If the "image" column doesn't exist, add it
     if row == 0 {
@@ -52,15 +52,15 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
     let row: u32 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM pragma_table_info('module_activation') WHERE name='new_member'",
     )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to check existence of column. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     // If the "new_member" column doesn't exist, add it
     if row == 0 {
@@ -87,15 +87,15 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
     let row: u32 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM pragma_table_info('global_kill_switch') WHERE name='new_member'",
     )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to check existence of column. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     // If the "new_member" column doesn't exist, add it
     if row == 0 {
