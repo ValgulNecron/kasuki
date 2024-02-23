@@ -56,7 +56,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         game_value,
         new_member_value,
     )
-        .await?;
+    .await?;
     let desc = if state {
         &module_localised.on
     } else {

@@ -3,13 +3,13 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
 
-use image::{DynamicImage, GenericImage, GenericImageView};
 use image::imageops::FilterType;
+use image::{DynamicImage, GenericImage, GenericImageView};
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
-use serenity::all::CreateInteractionResponse::Defer;
 use tracing::{debug, error};
 use uuid::Uuid;
 

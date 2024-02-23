@@ -2,13 +2,13 @@ use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
-use serenity::{async_trait, Client};
+use serenity::all::ShardId;
+use serenity::all::ShardRunnerInfo;
 use serenity::all::{
     ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready, ShardManager,
 };
 use serenity::all::{Guild, Member};
-use serenity::all::ShardId;
-use serenity::all::ShardRunnerInfo;
+use serenity::{async_trait, Client};
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
@@ -19,6 +19,8 @@ use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching
 use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
+use crate::constant::PING_UPDATE_DELAYS;
+use crate::constant::TRANSCRIPT_TOKEN;
 use crate::constant::{ACTIVITY_NAME, DELAY_BEFORE_THREAD_SPAWN, MAX_LOG_RETENTION_DAYS};
 use crate::constant::{
     CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN,
@@ -26,8 +28,6 @@ use crate::constant::{
     TRANSCRIPT_BASE_URL,
 };
 use crate::constant::{TIME_BETWEEN_GAME_UPDATE, TRANSCRIPT_MODELS};
-use crate::constant::PING_UPDATE_DELAYS;
-use crate::constant::TRANSCRIPT_TOKEN;
 use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
@@ -351,7 +351,7 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>) {
             shard_id.to_string(),
             shard.latency.unwrap_or_default().as_millis().to_string(),
         )
-            .await
-            .unwrap()
+        .await
+        .unwrap()
     }
 }

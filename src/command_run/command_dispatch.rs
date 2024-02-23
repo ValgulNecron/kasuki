@@ -7,11 +7,11 @@ use crate::command_run::anilist::{
     seiyuu, staff, studio, user, waifu,
 };
 use crate::command_run::game::steam_game_info;
+use crate::command_run::general::module::check_activation_status;
 use crate::command_run::general::{
     avatar, banner, credit, generate_image_pfp_server, generate_image_pfp_server_global, guild,
     info, lang, module, ping, profile,
 };
-use crate::command_run::general::module::check_activation_status;
 use crate::database::dispatcher::data_dispatch::get_data_module_activation_kill_switch_status;
 use crate::database_struct::module_status::ActivationStatusModule;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
