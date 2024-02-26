@@ -1,11 +1,15 @@
-use std::{env, fs};
 use std::sync::Arc;
-use async_recursion::async_recursion;
+use std::{env, fs};
 
-use serenity::all::{Command, CommandOptionType, CreateCommand, CreateCommandOption, Http, Permissions};
+use serenity::all::{
+    Command, CommandOptionType, CreateCommand, CreateCommandOption, Http, Permissions,
+};
 use tracing::{error, info, trace};
 
-use crate::command_register::command_structure::{get_commands, CommandData, Arg, RemoteCommandOptionType, LocalisedArg, Localised, SubCommandData};
+use crate::command_register::command_structure::{
+    get_commands, Arg, CommandData, Localised, LocalisedArg, RemoteCommandOptionType,
+    SubCommandData,
+};
 
 pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
     if is_ok {
@@ -20,6 +24,7 @@ pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
     };
     info!("Started creating command");
     for command in commands {
+        trace!("Creating: {}", command.name);
         create_command(&command, http).await;
     }
     info!("Done creating command");
@@ -52,7 +57,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
     }
 
     match Command::create_global_command(http, build).await {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             error!("{} for command {}", e, command.name);
         }
@@ -65,7 +70,6 @@ async fn get_options(args: &Option<Vec<Arg>>) -> Vec<CreateCommandOption> {
     for arg in args {
         if arg.command_type == RemoteCommandOptionType::SubCommand {
             options.insert(options.len(), create_subcommand_option(arg).await);
-            trace!("{:#?}", options);
         } else if arg.command_type == RemoteCommandOptionType::SubCommandGroup {
             options.insert(options.len(), create_subcommand_group_option(arg).await);
         } else {
@@ -82,7 +86,7 @@ async fn create_subcommand_option(arg: Arg) -> CreateCommandOption {
     let mut subcommand_option = CreateCommandOption::new(
         CommandOptionType::from(arg.command_type),
         subcommand.name,
-        subcommand.desc
+        subcommand.desc,
     );
     if subcommand.arg_num > 0 {
         for arg in &subcommand.args.unwrap() {
@@ -100,14 +104,15 @@ async fn create_option(arg: Arg) -> CreateCommandOption {
     let mut option = CreateCommandOption::new(
         CommandOptionType::from(arg.command_type),
         arg.name,
-        arg.desc
-    ).set_autocomplete(arg.autocomplete)
-        .required(arg.required);
+        arg.desc,
+    )
+    .set_autocomplete(arg.autocomplete)
+    .required(arg.required);
 
     match arg.choices {
         Some(choices) => {
             for choice in choices {
-                option = option.add_string_choice(&choice.option_choice,&choice.option_choice);
+                option = option.add_string_choice(&choice.option_choice, &choice.option_choice);
             }
         }
         None => {}
@@ -124,14 +129,16 @@ async fn create_subcommand_group_option(arg: Arg) -> CreateCommandOption {
     let mut subcommand_option = CreateCommandOption::new(
         CommandOptionType::from(arg.command_type),
         subcommand.name,
-        subcommand.desc
+        subcommand.desc,
     );
     if subcommand.arg_num > 0 {
         for arg in &subcommand.args.unwrap() {
             if arg.command_type == RemoteCommandOptionType::SubCommand {
-                subcommand_option = subcommand_option.add_sub_option(create_subcommand_option(arg.clone()).await);
+                subcommand_option =
+                    subcommand_option.add_sub_option(create_subcommand_option(arg.clone()).await);
             } else {
-                subcommand_option = subcommand_option.add_sub_option( create_option(arg.clone()).await)
+                subcommand_option =
+                    subcommand_option.add_sub_option(create_option(arg.clone()).await)
             }
         }
     }
@@ -141,30 +148,38 @@ async fn create_subcommand_group_option(arg: Arg) -> CreateCommandOption {
     subcommand_option
 }
 
-async fn add_localised_option(mut command_option: CreateCommandOption, localised: Option<Vec<LocalisedArg>>) -> CreateCommandOption {
+async fn add_localised_option(
+    mut command_option: CreateCommandOption,
+    localised: Option<Vec<LocalisedArg>>,
+) -> CreateCommandOption {
     return match localised {
         Some(locals) => {
             for local in locals {
-                command_option = command_option.name_localized(&local.code, &local.name)
+                command_option = command_option
+                    .name_localized(&local.code, &local.name)
                     .description_localized(&local.code, &local.desc)
             }
             command_option
-        },
-        None => command_option
-    }
+        }
+        None => command_option,
+    };
 }
 
-async fn add_localised_command(mut command: CreateCommand, localised: &Option<Vec<Localised>>) -> CreateCommand {
+async fn add_localised_command(
+    mut command: CreateCommand,
+    localised: &Option<Vec<Localised>>,
+) -> CreateCommand {
     return match localised {
         Some(locals) => {
             for local in locals {
-                command = command.name_localized(&local.code, &local.name)
+                command = command
+                    .name_localized(&local.code, &local.name)
                     .description_localized(&local.code, &local.desc)
             }
             command
-        },
-        None => command
-    }
+        }
+        None => command,
+    };
 }
 
 async fn delete_command(http: &Arc<Http>) {

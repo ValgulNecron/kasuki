@@ -4,72 +4,107 @@ use std::env;
 use once_cell::sync::Lazy;
 use serenity::all::Colour;
 
-pub static ACTIVITY_NAME: Lazy<String> =
-    Lazy::new(|| env::var("BOT_ACTIVITY").unwrap_or("Let you get info from anilist.".to_string()));
+/// The activity name of the bot, fetched from the environment variable "BOT_ACTIVITY".
+/// If the environment variable is not set, it defaults to "Let you get info from anilist.".
+pub static ACTIVITY_NAME: Lazy<String> = Lazy::new(|| {
+    env::var("BOT_ACTIVITY").unwrap_or_else(|_| "Let you get info from anilist.".to_string())
+});
+
+/// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /*
-all delays
+All delays in seconds.
  */
-pub const DELAY_BEFORE_THREAD_SPAWN: u64 = 30;
-// 30 seconds
+/// Delay before a new thread is spawned.
+/// Delay between ping updates.
 pub const PING_UPDATE_DELAYS: u64 = 600;
-// 10 minutes
+/// Time before a server image is updated.
 pub const TIME_BEFORE_SERVER_IMAGE: u64 = 600;
-// 10 minutes
+/// Time between server image updates.
 pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 86_400;
-// 1 day
+/// Time between user color updates.
 pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 1_800;
-// 30 minutes
+/// Time between game updates.
 pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
-// 1 day
-pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200; // 3 days
+/// Time between cache updates.
+pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200;
 
 /*
-limit.
+Limits.
  */
+/// Limit for autocomplete count.
 pub const AUTOCOMPLETE_COUNT_LIMIT: u32 = 20;
+/// Limit for pass count.
 pub const PASS_LIMIT: u32 = 10;
-// min 1 max 1000
+/// Limit for member list.
 pub const MEMBER_LIST_LIMIT: u64 = 10;
+/// Limit for activity list.
 pub const ACTIVITY_LIST_LIMIT: u64 = 10;
+/// Maximum number of threads.
 pub const MAX_THREAD: usize = 5;
+
 /*
-Database path.
+Database paths.
  */
+/// Path to the data SQLite database.
 pub const DATA_SQLITE_DB: &str = "./data.db";
+/// Path to the cache SQLite database.
 pub const CACHE_SQLITE_DB: &str = "./cache.db";
+
 /*
-app embed color.
+App embed color.
  */
+/// Color for the app embed.
 pub const COLOR: Colour = Colour::FABLED_PINK;
+
 /*
 Other crate log level. Because serenity uses info to obviously trace things like heartbeat.
  */
+/// Log level for other crates.
 pub const OTHER_CRATE_LEVEL: &str = "warn";
+
 /*
-default value.
+Default value.
  */
+/// Default string value.
 pub const UNKNOWN: &str = "Unknown";
+
+/// Map of language codes to language names.
 pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
-    [
+    let languages = [
         ("en", "english"),
         ("fr", "french"),
         ("de", "german"),
         ("ja", "japanese"),
-    ]
-    .iter()
-    .cloned()
-    .collect()
+    ];
+    languages.iter().cloned().collect()
 });
 
+/// Map of app names to their respective IDs.
 pub static mut APPS: Lazy<HashMap<String, u128>> = Lazy::new(HashMap::new);
 
+/// Path to the logs.
 pub const LOGS_PATH: &str = "./logs";
-pub const LOGS_PREFIX: &str = "kasuki.log";
+/// Prefix for the logs.
+pub const LOGS_PREFIX: &str = "kasuki_";
+/// Suffix for the logs
+pub const LOGS_SUFFIX: &str = ".log";
+/// Maximum log retention days.
+pub static MAX_LOG_RETENTION_DAYS: Lazy<u64> = Lazy::new(|| {
+    env::var("MAX_LOG_RETENTION_DAYS")
+        .unwrap_or("7".to_string())
+        .parse()
+        .unwrap_or(7)
+});
+
+/// Guard for the non-blocking appender.
 pub static mut GUARD: Option<tracing_appender::non_blocking::WorkerGuard> = None;
-pub static mut MAX_LOG_RETENTION_DAYS: u64 = 7;
+
+/// Path to the server image.
 pub const SERVER_IMAGE_PATH: &str = "server_image";
+
+/// Default string value.
 pub const DEFAULT_STRING: &String = &String::new();
 
 /*
@@ -77,68 +112,80 @@ AI stuff
  */
 
 /*
-image
+Image
  */
-
+/// Base URL for the AI image API.
 pub static mut IMAGE_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
         "{}images/generations",
-        env::var("AI_IMAGE_API_BASE_URL").unwrap_or(
-            env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string())
+        env::var("AI_IMAGE_API_BASE_URL").unwrap_or_else(
+            |_| env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string())
         )
     )
 });
+
+/// Token for the AI image API.
 pub static mut IMAGE_TOKEN: Lazy<String> = Lazy::new(|| {
-    env::var("AI_IMAGE_API_TOKEN").unwrap_or(env::var("AI_API_TOKEN").unwrap_or_default())
+    env::var("AI_IMAGE_API_TOKEN").unwrap_or_else(|_| env::var("AI_API_TOKEN").unwrap_or_default())
 });
 
+/// Models for the AI image API.
 pub static mut IMAGE_MODELS: Lazy<String> =
-    Lazy::new(|| env::var("AI_IMAGE_GENERATION_MODELS").unwrap_or(String::from("dall-e-3")));
+    Lazy::new(|| env::var("AI_IMAGE_GENERATION_MODELS").unwrap_or_else(|_| "dall-e-3".to_string()));
 
 /*
-chat and translation
+Chat and translation
  */
-
+/// Base URL for the AI chat API.
 pub static mut CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
         "{}chat/completions",
-        env::var("AI_CHAT_API_BASE_URL").unwrap_or(
-            env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string())
+        env::var("AI_CHAT_API_BASE_URL").unwrap_or_else(
+            |_| env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string())
         )
     )
 });
+
+/// Token for the AI chat API.
 pub static mut CHAT_TOKEN: Lazy<String> = Lazy::new(|| {
-    env::var("AI_CHAT_API_TOKEN").unwrap_or(env::var("AI_API_TOKEN").unwrap_or_default())
+    env::var("AI_CHAT_API_TOKEN").unwrap_or_else(|_| env::var("AI_API_TOKEN").unwrap_or_default())
 });
 
+/// Models for the AI chat API.
 pub static mut CHAT_MODELS: Lazy<String> =
-    Lazy::new(|| env::var("AI_CHAT_MODEL").unwrap_or(String::from("gpt-3.5-turbo")));
+    Lazy::new(|| env::var("AI_CHAT_MODEL").unwrap_or("gpt-3.5-turbo".to_string()));
 
 /*
-transcription
+Transcription
  */
-
+/// Base URL for the AI transcription API.
 pub static mut TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
-        "{}images/generations",
-        env::var("AI_TRANSCRIPT_BASE_URL").unwrap_or(
-            env::var("AI_API_BASE_URL").unwrap_or("https://api.openai.com/v1/".to_string())
-        )
+        "{}audio/",
+        env::var("AI_TRANSCRIPT_BASE_URL")
+            .or_else(|_| env::var("AI_API_BASE_URL"))
+            .unwrap_or_else(|_| "https://api.openai.com/v1/".to_string())
     )
 });
+
+/// Token for the AI transcription API.
 pub static mut TRANSCRIPT_TOKEN: Lazy<String> = Lazy::new(|| {
-    env::var("AI_TRANSCRIPT_API_TOKEN").unwrap_or(env::var("AI_API_TOKEN").unwrap_or_default())
+    env::var("AI_TRANSCRIPT_API_TOKEN")
+        .or_else(|_| env::var("AI_API_TOKEN"))
+        .unwrap_or_default()
 });
 
+/// Models for the AI transcription API.
 pub static mut TRANSCRIPT_MODELS: Lazy<String> =
-    Lazy::new(|| env::var("AI_TRANSCRIPT_MODELS").unwrap_or(String::from("whisper-1")));
+    Lazy::new(|| env::var("AI_TRANSCRIPT_MODELS").unwrap_or_else(|_| String::from("whisper-1")));
 
 /*
-web server
+Web server
 */
-
+/// Flag to enable or disable the web server.
 pub static mut WEB_SERVER: Lazy<bool> =
-    Lazy::new(|| env::var("WEB_SERVER").unwrap_or("false".to_string()) == "true");
+    Lazy::new(|| env::var("WEB_SERVER").unwrap_or_else(|_| "false".to_string()) == "true");
 
+/// Port for the web server.
 pub static mut WEB_SERVER_PORT: Lazy<String> =
-    Lazy::new(|| env::var("WEB_SERVER_PORT").unwrap_or("8080".to_string()));
+    Lazy::new(|| env::var("WEB_SERVER_PORT").unwrap_or_else(|_| "8080".to_string()));

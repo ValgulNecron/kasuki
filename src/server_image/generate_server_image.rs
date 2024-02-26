@@ -1,7 +1,20 @@
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+use base64::engine::general_purpose;
+use base64::Engine;
+use image::codecs::png::PngEncoder;
+use image::imageops::FilterType;
+use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
+use palette::{IntoColor, Lab, Srgb};
+use serenity::all::{Context, GuildId, Member};
+use tokio::task;
+use tracing::{error, info};
+use uuid::Uuid;
+
 use crate::database::dispatcher::data_dispatch::{
     get_all_user_approximated_color, set_server_image,
 };
-
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::server_image::calculate_user_color::{
@@ -11,20 +24,6 @@ use crate::server_image::common::{
     create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
     ColorWithUrl,
 };
-use base64::engine::general_purpose;
-use base64::Engine;
-use image::codecs::png::PngEncoder;
-use image::imageops::FilterType;
-use image::{DynamicImage, GenericImage, GenericImageView, ImageEncoder};
-use palette::{IntoColor, Lab, Srgb};
-use serenity::all::{Context, GuildId, Member};
-use std::sync::{Arc, Mutex};
-use std::thread;
-
-use tokio::task;
-
-use tracing::{error, info};
-use uuid::Uuid;
 
 pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId) -> Result<(), AppError> {
     let members: Vec<Member> = get_member(ctx, &guild_id).await;
@@ -119,7 +118,7 @@ async fn generate_server_image(
             image.as_raw(),
             image.width(),
             image.height(),
-            image::ColorType::Rgba8,
+            ExtendedColorType::Rgba8,
         )
         .unwrap();
 

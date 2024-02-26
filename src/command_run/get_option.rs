@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use serenity::all::{Attachment, CommandInteraction, ResolvedOption, ResolvedValue, UserId};
-use tracing::trace;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
@@ -92,11 +91,11 @@ pub fn get_option_map_string_subcommand(
     let subcommand = &binding.first().unwrap().value;
     match subcommand {
         ResolvedValue::SubCommand(op) => {
-            for option in op{
+            for option in op {
                 let name = option.name.to_string();
                 let value = match option.value {
                     ResolvedValue::String(a) => a.to_string(),
-                    _ => String::new()
+                    _ => String::new(),
                 };
                 map.insert(name, value);
             }
@@ -114,11 +113,11 @@ pub fn get_option_map_attachment_subcommand(
     let subcommand = &binding.first().unwrap().value;
     match subcommand {
         ResolvedValue::SubCommand(op) => {
-            for option in op{
+            for option in op {
                 let name = option.name.to_string();
                 let value = match option.value {
                     ResolvedValue::Attachment(a) => Some(a.clone()),
-                    _ => None
+                    _ => None,
                 };
                 map.insert(name, value);
             }

@@ -22,7 +22,7 @@ rand = "0.9.0-alpha.0"
 chrono = "0.4.34"
 uuid = { version = "1.7.0", features = ["v4"] }
 dotenv = "0.15.0"
-image = "0.24.8"
+image = "0.25.0-preview.0"
 base64 = "0.21.7"
 tracing = { version = "0.1.40" }
 once_cell = "1.19.0"
@@ -37,7 +37,6 @@ imgur = "0.7.0"
 tracing-appender = "0.2.3"
 tonic = "0.11.0"
 prost = "0.12.3"
-async-recursion = "1.0.5"
 
 [build-dependencies]
 tonic-build = "0.11.0"

@@ -1,4 +1,4 @@
-use serenity::all::{CommandDataOption, CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context};
 
 use crate::command_run::ai::{image, question, transcript, translation};
 use crate::command_run::anilist::{
@@ -253,24 +253,28 @@ async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
     })
 }
 
-async fn ai_module(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    match command_interaction.data.options.first().unwrap().name.as_str() {
-        "image" => {
-            image::run(ctx, command_interaction).await
+async fn ai_module(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+) -> Result<(), AppError> {
+    match command_interaction
+        .data
+        .options
+        .first()
+        .unwrap()
+        .name
+        .as_str()
+    {
+        "image" => image::run(ctx, command_interaction).await,
+        "transcript" => transcript::run(ctx, command_interaction).await,
+        "translation" => translation::run(ctx, command_interaction).await,
+        "question" => question::run(ctx, command_interaction).await,
+        _ => {
+            return Err(AppError::new(
+                String::from("Command does not exist."),
+                ErrorType::Option,
+                ErrorResponseType::Message,
+            ));
         }
-        "transcript" => {
-            transcript::run(ctx, command_interaction).await
-        }
-        "translation" => {
-            translation::run(ctx, command_interaction).await
-        }
-        "question" => {
-            question::run(ctx, command_interaction).await
-        }
-        _ => return Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        ))
     }
 }

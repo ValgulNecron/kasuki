@@ -14,7 +14,10 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::command_run::get_option::{get_option_map_attachment, get_option_map_attachment_subcommand, get_option_map_string, get_option_map_string_subcommand, get_the_attachment};
+use crate::command_run::get_option::{
+    get_option_map_attachment, get_option_map_attachment_subcommand, get_option_map_string,
+    get_option_map_string_subcommand, get_the_attachment,
+};
 use crate::constant::{
     COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
 };
@@ -140,7 +143,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .text("language", lang)
         .text("response_format", "json");
 
-    let url = unsafe { format!("{}audio/transcriptions", TRANSCRIPT_BASE_URL.as_str()) };
+    let url = unsafe { format!("{}transcriptions", TRANSCRIPT_BASE_URL.as_str()) };
     let response_result = client
         .post(url)
         .headers(headers)
