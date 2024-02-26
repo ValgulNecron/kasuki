@@ -270,11 +270,11 @@ async fn ai_module(
         "translation" => translation::run(ctx, command_interaction).await,
         "question" => question::run(ctx, command_interaction).await,
         _ => {
-            return Err(AppError::new(
+            Err(AppError::new(
                 String::from("Command does not exist."),
                 ErrorType::Option,
                 ErrorResponseType::Message,
-            ));
+            ))
         }
     }
 }

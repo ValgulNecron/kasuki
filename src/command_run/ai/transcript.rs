@@ -15,7 +15,7 @@ use tracing::log::trace;
 use uuid::Uuid;
 
 use crate::command_run::get_option::{
-    get_option_map_attachment, get_option_map_attachment_subcommand, get_option_map_string,
+    get_option_map_attachment_subcommand,
     get_option_map_string_subcommand, get_the_attachment,
 };
 use crate::constant::{

@@ -5,7 +5,7 @@ use base64::engine::general_purpose;
 use base64::Engine;
 use image::codecs::png::PngEncoder;
 use image::io::Reader as ImageReader;
-use image::{DynamicImage, ExtendedColorType, GenericImageView, ImageEncoder, ImageFormat};
+use image::{DynamicImage, ExtendedColorType, GenericImageView, ImageEncoder};
 use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::time::sleep;
 use tracing::{debug, error};

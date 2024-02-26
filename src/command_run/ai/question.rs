@@ -7,7 +7,7 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::command_run::get_option::{get_option_map_string, get_option_map_string_subcommand};
+use crate::command_run::get_option::{get_option_map_string_subcommand};
 use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 

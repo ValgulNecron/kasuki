@@ -1,16 +1,16 @@
-use std::collections::HashMap;
+
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
-use serenity::all::ShardId;
-use serenity::all::ShardRunnerInfo;
+
+
 use serenity::all::{
-    ActivityData, Context, EventHandler, GatewayIntents, GuildId, Interaction, Ready, ShardManager,
+    ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready, ShardManager,
 };
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
-use tokio::sync::RwLock;
+
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
@@ -23,13 +23,11 @@ use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispat
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::ACTIVITY_NAME;
 use crate::constant::PING_UPDATE_DELAYS;
-use crate::constant::TRANSCRIPT_TOKEN;
+
 use crate::constant::{
-    CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN,
     TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
-    TRANSCRIPT_BASE_URL,
 };
-use crate::constant::{TIME_BETWEEN_GAME_UPDATE, TRANSCRIPT_MODELS};
+use crate::constant::{TIME_BETWEEN_GAME_UPDATE};
 use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;

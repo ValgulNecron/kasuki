@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use std::{env, fs};
+use std::{fs};
 
 use serenity::all::{
     Command, CommandOptionType, CreateCommand, CreateCommandOption, Http, Permissions,
@@ -41,7 +41,7 @@ async fn create_command(command: &CommandData, http: &Arc<Http>) {
         let perm_list = command.default_permissions.clone().unwrap();
         for perm in perm_list {
             let permission: Permissions = perm.permission.into();
-            perm_bit = perm_bit | permission.bits()
+            perm_bit |= permission.bits()
         }
         permission = Permissions::from_bits(perm_bit).unwrap()
     }
@@ -152,7 +152,7 @@ async fn add_localised_option(
     mut command_option: CreateCommandOption,
     localised: Option<Vec<LocalisedArg>>,
 ) -> CreateCommandOption {
-    return match localised {
+    match localised {
         Some(locals) => {
             for local in locals {
                 command_option = command_option
@@ -162,14 +162,14 @@ async fn add_localised_option(
             command_option
         }
         None => command_option,
-    };
+    }
 }
 
 async fn add_localised_command(
     mut command: CreateCommand,
     localised: &Option<Vec<Localised>>,
 ) -> CreateCommand {
-    return match localised {
+    match localised {
         Some(locals) => {
             for local in locals {
                 command = command
@@ -179,7 +179,7 @@ async fn add_localised_command(
             command
         }
         None => command,
-    };
+    }
 }
 
 async fn delete_command(http: &Arc<Http>) {
