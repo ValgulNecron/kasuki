@@ -1,25 +1,25 @@
-syntax = "proto3";
+  syntax = "proto3";
 
-package shard;
+  package shard;
 
-service Ping {
-  rpc shardCount(ShardCountRequest) returns (ShardCountResponse);
-  rpc shardInfo(ShardInfoRequest) returns (ShardInfoResponse);
-}
+  service Shard {
+    rpc ShardCount(ShardCountRequest) returns (ShardCountResponse);
+    rpc ShardInfo(ShardInfoRequest) returns (ShardInfoResponse);
+  }
 
-message ShardCountRequest {}
+  message ShardCountRequest {}
 
-message ShardCountResponse {
-  int32 count = 1;
-  repeated int32 shardIds = 2;
-}
+  message ShardCountResponse {
+    int32 count = 1;
+    repeated int32 shard_ids = 2;
+  }
 
-message ShardInfoRequest {
-  int32 shardId = 1;
-}
+  message ShardInfoRequest {
+    int32 shard_id = 1;
+  }
 
-message ShardInfoResponse {
-  int32 shardId = 1;
-  string latency = 2;
-  string stage = 3;
-}
+  message ShardInfoResponse {
+    int32 shard_id = 1;
+    string latency = 2;
+    string stage = 3;
+  }
