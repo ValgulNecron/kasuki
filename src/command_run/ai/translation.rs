@@ -15,8 +15,7 @@ use tracing::log::trace;
 use uuid::Uuid;
 
 use crate::command_run::get_option::{
-    get_option_map_attachment_subcommand,
-    get_option_map_string_subcommand,
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::constant::{
     CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL,

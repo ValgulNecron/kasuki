@@ -1,5 +1,5 @@
+use std::fs;
 use std::sync::Arc;
-use std::{fs};
 
 use serenity::all::{
     Command, CommandOptionType, CreateCommand, CreateCommandOption, Http, Permissions,

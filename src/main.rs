@@ -1,16 +1,12 @@
-
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
-
-
 
 use serenity::all::{
     ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready, ShardManager,
 };
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
-
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
@@ -23,11 +19,10 @@ use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispat
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::ACTIVITY_NAME;
 use crate::constant::PING_UPDATE_DELAYS;
-
+use crate::constant::TIME_BETWEEN_GAME_UPDATE;
 use crate::constant::{
     TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
-use crate::constant::{TIME_BETWEEN_GAME_UPDATE};
 use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
@@ -62,6 +57,25 @@ struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
+    /// This function is called when the bot joins a new guild or when it receives information about a guild it is already a part of.
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx` - A `Context` instance which provides data and functionality for the command.
+    /// * `guild` - The `Guild` that was created or updated.
+    /// * `is_new` - A boolean indicating whether the guild is new (i.e., the bot has just joined it).
+    ///
+    /// # Behavior
+    ///
+    /// If the bot has just joined a new guild, it performs color management, generates a server image, and logs a debug message.
+    /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// guild_create(&ctx, guild, is_new).await;
+    /// ```
+    ///
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
         if is_new.unwrap_or_default() {
             color_management(&ctx.cache.guilds(), &ctx).await;
@@ -72,12 +86,31 @@ impl EventHandler for Handler {
         }
     }
 
+    /// This function is called when a new member joins a guild.
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx` - A `Context` instance which provides data and functionality for the command.
+    /// * `member` - The `Member` that joined the guild.
+    ///
+    /// # Behavior
+    ///
+    /// The function performs color management, generates a server image, and logs a trace message.
+    /// If the "GAME" module is on, it calls the `new_member` function to handle the new member.
+    /// If an error occurs during the handling of the new member, it logs the error.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// guild_member_addition(&ctx, member).await;
+    /// ```
+    ///
     async fn guild_member_addition(&self, ctx: Context, mut member: Member) {
         color_management(&ctx.cache.guilds(), &ctx).await;
         server_image_management(&ctx).await;
         let guild_id = member.guild_id.to_string();
         trace!("Member {} joined guild {}", member.user.tag(), guild_id);
-        if check_if_module_is_on(guild_id, "GAME")
+        if check_if_module_is_on(guild_id, "NEW_MEMBER")
             .await
             .unwrap_or(true)
         {
@@ -87,74 +120,125 @@ impl EventHandler for Handler {
         }
     }
 
+    /// This function is called when the bot is ready.
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx` - A `Context` instance which provides data and functionality for the command.
+    /// * `ready` - The `Ready` event that was triggered.
+    ///
+    /// # Behavior
+    ///
+    /// The function performs the following actions:
+    /// 1. Spawns a new thread for managing various tasks.
+    /// 2. Sets the bot's activity.
+    /// 3. Logs a message indicating that the shard is connected.
+    /// 4. Logs the number of servers the bot is in.
+    /// 5. Loads environment variables from the .env file.
+    /// 6. Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive).
+    /// 7. Logs the value of the "REMOVE_OLD_COMMAND" environment variable.
+    /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
+    /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// ready(&ctx, ready).await;
+    /// ```
+    ///
     async fn ready(&self, ctx: Context, ready: Ready) {
-        let ctx_clone = ctx.clone();
-        tokio::spawn(async move {
-            thread_management_launcher(ctx_clone).await;
-        });
+        // Spawns a new thread for managing various tasks
+        tokio::spawn(thread_management_launcher(ctx.clone()));
 
-        let activity_type = Some(ActivityData::custom(ACTIVITY_NAME.clone()));
-        ctx.set_activity(activity_type);
+        // Sets the bot's activity
+        ctx.set_activity(Some(ActivityData::custom(ACTIVITY_NAME.clone())));
 
+        // Logs a message indicating that the shard is connected
         info!(
             "Shard {:?} of {} is connected!",
             ready.shard, ready.user.name
         );
 
-        let server_number = &ctx.cache.guilds().len();
+        // Logs the number of servers the bot is in
+        let server_number = ctx.cache.guilds().len();
         info!(server_number);
 
+        // Loads environment variables from the .env file
+        dotenv::from_path(".env").ok();
+
+        // Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
+        let remove_old_command = env::var("REMOVE_OLD_COMMAND")
+            .unwrap_or_else(|_| "false".to_string())
+            .eq_ignore_ascii_case("true");
+
+        // Logs the value of the "REMOVE_OLD_COMMAND" environment variable
+        trace!(remove_old_command);
+
+        // Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
+        creates_commands(&ctx.http, remove_old_command).await;
+        // Iterates over each guild the bot is in
         for guild in ctx.cache.guilds() {
+            // Retrieves partial guild information
             let partial_guild = guild.to_partial_guild(&ctx.http).await.unwrap();
+            // Logs the guild name and ID
             debug!(
                 "guild name {} (guild id: {})",
                 &partial_guild.name,
                 &partial_guild.id.to_string()
             )
         }
-
-        let my_path = ".env";
-        let path = std::path::Path::new(my_path);
-        let _ = dotenv::from_path(path);
-
-        let remove_old_commmand = env::var("REMOVE_OLD_COMMAND")
-            .unwrap_or("false".to_string())
-            .to_lowercase()
-            .as_str()
-            == "true";
-
-        trace!(remove_old_commmand);
-
-        creates_commands(&ctx.http, remove_old_commmand).await;
     }
 
+    /// Handles different types of interactions.
+    ///
+    /// This function is called when an interaction is created. It checks the type of the interaction
+    /// and performs the appropriate action based on the type.
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx` - A `Context` instance which provides data and functionality for the command.
+    /// * `interaction` - The `Interaction` that was created.
+    ///
+    /// # Behavior
+    ///
+    /// * `Interaction::Command` - Logs the command details and dispatches the command.
+    /// If an error occurs during dispatching, it is handled by `error_dispatch::command_dispatching`.
+    /// * `Interaction::Autocomplete` - Dispatches the autocomplete interaction.
+    /// * `Interaction::Component` - Dispatches the component interaction. If an error occurs, it is logged.
+    ///
+    /// Other types of interactions are ignored.
+    ///
+    /// # Errors
+    ///
+    /// This function does not return any errors. However, it logs errors that occur during the dispatching of commands and components.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// interaction_create(&ctx, interaction).await;
+    /// ```
+    ///
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
+            // Log the details of the command interaction
             info!(
                 "Received {} from {} in {}",
                 command_interaction.data.name,
                 command_interaction.user.name,
                 command_interaction.guild_id.unwrap().to_string()
             );
-            debug!(
-                "Received command interaction: {}, Option: {:?}, User: {}({})",
-                command_interaction.data.name,
-                command_interaction.data.options,
-                command_interaction.user.name,
-                command_interaction.user.id
-            );
-            trace!("{:?}", command_interaction.user);
-            trace!("{:?}", command_interaction.data);
-            trace!("{:?}", command_interaction.guild_id);
-            let command_version = command_interaction.version;
-            trace!(command_version);
+            // Dispatch the command
             if let Err(e) = command_dispatching(&ctx, &command_interaction).await {
+                // If an error occurs during dispatching, handle it
                 error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
             }
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
+            // Dispatch the autocomplete interaction
             autocomplete_dispatching(ctx, autocomplete_interaction).await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
+            // Dispatch the component interaction
             if let Err(e) = components_dispatching(ctx, component_interaction).await {
+                // If an error occurs, log it
                 error!("{:?}", e)
             }
         }
