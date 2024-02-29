@@ -1,5 +1,5 @@
-use log::trace;
 use serenity::all::{ComponentInteraction, Context};
+use tracing::trace;
 
 use crate::components::anilist::{list_all_activity, list_register_user};
 use crate::error_management::error_enum::AppError;

@@ -92,17 +92,17 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
     debug!("{}", average_color);
 
     let mut image_data: Vec<u8> = Vec::new();
-    let encoder = PngEncoder::new(&mut image_data);
-    encoder
+    PngEncoder::new(&mut image_data)
         .write_image(
             img.as_bytes(),
             img.width(),
             img.height(),
-            ExtendedColorType::Rgba8,
+            ExtendedColorType::Rgba16,
         )
         .unwrap();
-    let res_base64 = general_purpose::STANDARD.encode(&image_data);
-    let image = format!("data:image/png;base64,{}", res_base64);
+
+    let base64_image = general_purpose::STANDARD.encode(image_data.clone());
+    let image = format!("data:image/png;base64,{}", base64_image);
     // Return the average color
     Ok((average_color, image))
 }

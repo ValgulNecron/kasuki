@@ -393,28 +393,6 @@ pub async fn get_all_user_approximated_color_sqlite() -> Result<Vec<UserColor>, 
     Ok(row)
 }
 
-pub async fn get_data_activity_with_server_and_anime_id_sqlite(
-    anime_id: &String,
-    server_id: &String,
-) -> Result<Option<String>, AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>) = sqlx::query_as(
-        "SELECT
-       webhook
-        server_id
-       FROM activity_data WHERE server_id = ? and anime_id = ?
-   ",
-    )
-    .bind(server_id)
-    .bind(anime_id)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None));
-    pool.close().await;
-    let result = row.0;
-    Ok(result)
-}
-
 pub async fn get_data_all_activity_by_server_sqlite(
     server_id: &String,
 ) -> Result<Vec<(String, String)>, AppError> {

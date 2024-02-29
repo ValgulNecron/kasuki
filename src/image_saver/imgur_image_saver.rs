@@ -1,10 +1,11 @@
-use std::env;
+use imgurs::ImgurClient;
+use std::{env, fs};
 
 use tracing::debug;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-pub async fn upload_image_imgur(image_data: Vec<u8>) -> Result<(), AppError> {
+pub async fn upload_image_imgur(filename: String, image_data: Vec<u8>) -> Result<(), AppError> {
     let token = match env::var("TOKEN") {
         Ok(a) => a,
         Err(e) => {
@@ -15,16 +16,22 @@ pub async fn upload_image_imgur(image_data: Vec<u8>) -> Result<(), AppError> {
             ));
         }
     };
-    let upload_info = imgur::Handle::new(token).upload(&image_data).map_err(|e| {
+    fs::write(&filename, &image_data).map_err(|e| {
+        AppError::new(
+            format!("Failed to write image to file. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Unknown,
+        )
+    })?;
+    let client = ImgurClient::new(token.as_str());
+
+    let info = client.upload_image(filename.as_str()).await.map_err(|e| {
         AppError::new(
             format!("Failed to upload image to imgur.com. {}", e),
             ErrorType::File,
             ErrorResponseType::Unknown,
         )
     })?;
-    debug!(
-        "Image uploaded to imgur.com: {}",
-        upload_info.link().unwrap()
-    );
+    debug!("Image uploaded to imgur.com: {}", info.data.link);
     Ok(())
 }

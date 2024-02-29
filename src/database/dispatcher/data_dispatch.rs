@@ -3,7 +3,7 @@ use std::env;
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::database::postgresql::data::{
     get_all_server_activity_postgresql, get_all_user_approximated_color_postgres,
-    get_data_activity_postgresql, get_data_activity_with_server_and_anime_id_postgresql,
+    get_data_activity_postgresql,
     get_data_all_activity_by_server_postgresql, get_data_guild_language_postgresql,
     get_data_module_activation_kill_switch_status_postgresql,
     get_data_module_activation_status_postgresql, get_one_activity_postgresql,
@@ -16,7 +16,7 @@ use crate::database::postgresql::data::{
 };
 use crate::database::sqlite::data::{
     get_all_server_activity_sqlite, get_all_user_approximated_color_sqlite,
-    get_data_activity_sqlite, get_data_activity_with_server_and_anime_id_sqlite,
+    get_data_activity_sqlite,
     get_data_all_activity_by_server_sqlite, get_data_guild_language_sqlite,
     get_data_module_activation_kill_switch_status_sqlite, get_data_module_activation_status_sqlite,
     get_one_activity_sqlite, get_registered_user_sqlite, get_server_image_sqlite,
@@ -237,20 +237,6 @@ pub async fn get_all_server_activity(server_id: &String) -> Result<Vec<ServerAct
         get_all_server_activity_postgresql(server_id).await
     } else {
         get_all_server_activity_sqlite(server_id).await
-    }
-}
-
-pub async fn get_data_activity_with_server_and_anime_id(
-    anime_id: &String,
-    server_id: &String,
-) -> Result<Option<String>, AppError> {
-    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
-    if db_type == *"sqlite" {
-        get_data_activity_with_server_and_anime_id_sqlite(anime_id, server_id).await
-    } else if db_type == *"postgresql" {
-        get_data_activity_with_server_and_anime_id_postgresql(anime_id, server_id).await
-    } else {
-        get_data_activity_with_server_and_anime_id_sqlite(anime_id, server_id).await
     }
 }
 
