@@ -91,13 +91,15 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
     let average_color = format!("#{:02x}{:02x}{:02x}", r_avg, g_avg, b_avg);
     debug!("{}", average_color);
 
+    let img = img.to_rgba8();
+
     let mut image_data: Vec<u8> = Vec::new();
     PngEncoder::new(&mut image_data)
         .write_image(
-            img.as_bytes(),
+            img.as_raw(),
             img.width(),
             img.height(),
-            ExtendedColorType::Rgba16,
+            ExtendedColorType::Rgba8,
         )
         .unwrap();
 

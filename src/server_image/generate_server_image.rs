@@ -188,13 +188,16 @@ pub async fn generate_server_image(
         FilterType::CatmullRom,
     );
 
+    let img = image.to_rgba8();
+
+
     // Write the image
     let mut image_data: Vec<u8> = Vec::new();
     PngEncoder::new(&mut image_data)
         .write_image(
-            image.as_raw(),
-            image.width(),
-            image.height(),
+            img.as_raw(),
+            img.width(),
+            img.height(),
             ExtendedColorType::Rgb8,
         )
         .unwrap();
