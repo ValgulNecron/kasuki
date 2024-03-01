@@ -23,8 +23,9 @@ COPY ./Cargo.toml ./Cargo.toml
 
 # This dummy build helps to cache your dependencies
 # It allows Docker to cache the dependencies separately from the source code.
-RUN cargo build --release && \
-    rm -rf ./src
+RUN cargo build --release
+
+RUN rm -rf ./src
 
 # Now copy your actual source code
 # This is done after the dummy build to take advantage of Docker's layer caching.
