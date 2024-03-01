@@ -25,11 +25,12 @@ COPY ./Cargo.toml ./Cargo.toml
 # It allows Docker to cache the dependencies separately from the source code.
 RUN cargo build --release
 
-RUN rm -rf ./src
+RUN rm src/*.rs
 
 # Now copy your actual source code
 # This is done after the dummy build to take advantage of Docker's layer caching.
 COPY ./src ./src
+COPY ./proto ./proto
 
 # Build for release. Dependencies will be reused from the previous build
 # This compiles the Kasuki bot for release.
