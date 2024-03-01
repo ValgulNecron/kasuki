@@ -25,6 +25,8 @@ COPY ./Cargo.toml ./Cargo.toml
 # It allows Docker to cache the dependencies separately from the source code.
 RUN cargo build --release
 
+RUN rm /kasuki/target/release/kasuki
+
 RUN rm src/*.rs
 
 # Now copy your actual source code
