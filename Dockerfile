@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # This includes the Cargo.toml file which specifies the Rust dependencies.
 COPY ./Cargo.toml ./Cargo.toml
 COPY ./proto ./proto
+COPY ./build.rs ./build.rs
 # Build a dummy project
 # This is done to cache the dependencies.
 RUN cargo build --release
@@ -35,7 +36,6 @@ RUN rm target/release/kasuki*
 # Now copy your actual source code
 # This is done after the dummy build to take advantage of Docker's layer caching.
 COPY ./src ./src
-COPY ./proto ./proto
 
 # Build for release. Dependencies will be reused from the previous build
 # This compiles the Kasuki bot for release.
