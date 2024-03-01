@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
     ca-certificates pkg-config \
+    protobuf-compiler \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy over your manifests
