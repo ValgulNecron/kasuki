@@ -1,0 +1,512 @@
+{
+  "name": "anilist",
+  "desc": "Commands for the AniList module",
+  "dm_command": false,
+  "nsfw": true,
+  "perm": false,
+  "arg_num": 16,
+  "args": [
+    {
+      "name": "anime",
+      "desc": "Info of an anime.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/anime.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "anime",
+          "desc": "Info of an anime."
+        },
+        {
+          "code": "fr",
+          "name": "anime",
+          "desc": "Informations sur un anime."
+        },
+        {
+          "code": "de",
+          "name": "anime",
+          "desc": "Informationen zu einem Anime."
+        },
+        {
+          "code": "ja",
+          "name": "anime",
+          "desc": "アニメ情報。"
+        }
+      ]
+    },
+    {
+      "name": "character",
+      "desc": "Get information about a character.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/character.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "character",
+          "desc": "Get information about a character."
+        },
+        {
+          "code": "fr",
+          "name": "personnage",
+          "desc": "Obtenir des informations sur un personnage."
+        },
+        {
+          "code": "de",
+          "name": "zeichen",
+          "desc": "Erhalte Informationen über einen Charakter."
+        },
+        {
+          "code": "ja",
+          "name": "キャラクター",
+          "desc": "キャラクターに関する情報を取得します。"
+        }
+      ]
+    },
+    {
+      "name": "compare",
+      "desc": "Compare 2 anilist user.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/compare.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "compare",
+          "desc": "Compare 2 anilist user."
+        },
+        {
+          "code": "fr",
+          "name": "comparer",
+          "desc": "Comparer 2 utilisateurs Anilist."
+        },
+        {
+          "code": "de",
+          "name": "vergleichen",
+          "desc": "Vergleichen Sie 2 Anilist-Benutzer."
+        },
+        {
+          "code": "ja",
+          "name": "比較",
+          "desc": "2つのAnilistユーザーを比較します。"
+        }
+      ]
+    },
+    {
+      "name": "delete_activity",
+      "desc": "Delete an anime activity.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/delete_activity.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "delete_activity",
+          "desc": "Delete an anime activity."
+        },
+        {
+          "code": "fr",
+          "name": "supprimer_activite",
+          "desc": "Supprimer une activité anime."
+        },
+        {
+          "code": "de",
+          "name": "aktivitat_loeschen",
+          "desc": "Löschen Sie eine Anime-Aktivität."
+        },
+        {
+          "code": "ja",
+          "name": "katsudo_wo_sakujo",
+          "desc": "アニメ活動を削除します。"
+        }
+      ]
+    },
+    {
+      "name": "level",
+      "desc": "Get the level of a user.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/level.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "level",
+          "desc": "Get the level of a user."
+        },
+        {
+          "code": "fr",
+          "name": "level",
+          "desc": "Obtenez le niveau d'un utilisateur."
+        },
+        {
+          "code": "de",
+          "name": "level",
+          "desc": "Erhalten Sie das Level eines Benutzers."
+        },
+        {
+          "code": "ja",
+          "name": "level",
+          "desc": "ユーザーのレベルを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "list_activity",
+      "desc": "Get the list of all registered activity.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/list_activity.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "list_activity",
+          "desc": "Get the list of all registered activity."
+        },
+        {
+          "code": "fr",
+          "name": "liste_activite",
+          "desc": "Obtenir la liste de toutes les activités enregistrées."
+        },
+        {
+          "code": "de",
+          "name": "aktivitat_liste",
+          "desc": "Erhalten Sie die Liste aller registrierten Aktivitäten."
+        },
+        {
+          "code": "ja",
+          "name": "regisutaredo_katsudo_no_rireki",
+          "desc": "登録されたすべてのアクティビティのリストを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "list_user",
+      "desc": "Get the list of all registered users.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/list_user.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "list_user",
+          "desc": "Get the list of all registered users."
+        },
+        {
+          "code": "fr",
+          "name": "liste_utilisateurs",
+          "desc": "Obtenez la liste de tous les utilisateurs enregistrés."
+        },
+        {
+          "code": "de",
+          "name": "benutzerliste",
+          "desc": "Erhalten Sie die Liste aller registrierten Benutzer."
+        },
+        {
+          "code": "ja",
+          "name": "ユーザーリスト",
+          "desc": "登録されているすべてのユーザーのリストを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "ln",
+      "desc": "Info of a light novel.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/ln.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "ln",
+          "desc": "Info of a light novel."
+        },
+        {
+          "code": "fr",
+          "name": "ln",
+          "desc": "Informations sur un roman léger."
+        },
+        {
+          "code": "de",
+          "name": "ln",
+          "desc": "Informationen zu einem leichten Roman."
+        },
+        {
+          "code": "ja",
+          "name": "ln",
+          "desc": "ライトノベルの情報。"
+        }
+      ]
+    },
+    {
+      "name": "manga",
+      "desc": "Info of a manga.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/manga.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "manga",
+          "desc": "Info of a manga."
+        },
+        {
+          "code": "fr",
+          "name": "manga",
+          "desc": "Infos d'un manga."
+        },
+        {
+          "code": "de",
+          "name": "manga",
+          "desc": "Info eines Mangas."
+        },
+        {
+          "code": "ja",
+          "name": "manga",
+          "desc": "マンガの情報。"
+        }
+      ]
+    },
+    {
+      "name": "random",
+      "desc": "Get a random manga or anime.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/random.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "random",
+          "desc": "Get a random manga or anime."
+        },
+        {
+          "code": "fr",
+          "name": "random",
+          "desc": "Obtenez un manga ou un anime au hasard."
+        },
+        {
+          "code": "de",
+          "name": "random",
+          "desc": "Erhalte einen zufälligen Manga oder Anime."
+        },
+        {
+          "code": "ja",
+          "name": "random",
+          "desc": "ランダムなマンガまたはアニメを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "register",
+      "desc": "Register your Anilist username for ease of use.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/register.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "register",
+          "desc": "Register your Anilist username for ease of use."
+        },
+        {
+          "code": "fr",
+          "name": "register",
+          "desc": "Enregistrez votre nom d'utilisateur Anilist pour plus de facilité d'utilisation."
+        },
+        {
+          "code": "de",
+          "name": "register",
+          "desc": "Registriere deinen Anilist-Benutzernamen für mehr Benutzerfreundlichkeit."
+        },
+        {
+          "code": "ja",
+          "name": "register",
+          "desc": "利便性のためにAnilistユーザー名を登録してください。"
+        }
+      ]
+    },
+    {
+      "name": "search",
+      "desc": "One command that regroups all search commands.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/search.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "search",
+          "desc": "One command that regroups all search commands."
+        },
+        {
+          "code": "fr",
+          "name": "search",
+          "desc": "Une commande qui regroupe toutes les commandes de recherche."
+        },
+        {
+          "code": "de",
+          "name": "search",
+          "desc": "Ein Befehl, der alle Suchbefehle zusammenfasst."
+        },
+        {
+          "code": "ja",
+          "name": "search",
+          "desc": "すべての検索コマンドをまとめる1つのコマンド。"
+        }
+      ]
+    },
+    {
+      "name": "seiyuu",
+      "desc": "Get an image of a seiyuu with 4 of their roles.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/seiyuu.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "seiyuu",
+          "desc": "Get an image of a seiyuu with 4 of their roles."
+        },
+        {
+          "code": "fr",
+          "name": "seiyuu",
+          "desc": "Obtenez une image d'un seiyuu avec 4 de ses rôles."
+        },
+        {
+          "code": "de",
+          "name": "seiyuu",
+          "desc": "Erhalte ein Bild eines Seiyuu mit 4 seiner Rollen."
+        },
+        {
+          "code": "ja",
+          "name": "seiyuu",
+          "desc": "4つの役割を持つ声優の画像を取得します。"
+        }
+      ]
+    },
+    {
+      "name": "staff",
+      "desc": "Get info of a staff.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/staff.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "staff",
+          "desc": "Get info of a staff."
+        },
+        {
+          "code": "fr",
+          "name": "personnel",
+          "desc": "Obtenir des informations sur un membre du personnel."
+        },
+        {
+          "code": "de",
+          "name": "mitarbeiter",
+          "desc": "Informationen über ein Mitarbeiter erhalten."
+        },
+        {
+          "code": "ja",
+          "name": "スタッフ",
+          "desc": "スタッフの情報を取得します。"
+        }
+      ]
+    },
+    {
+      "name": "studio",
+      "desc": "Get info on a studio.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/studio.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "studio",
+          "desc": "Get info on a studio."
+        },
+        {
+          "code": "fr",
+          "name": "studio",
+          "desc": "Obtenez des informations sur un studio."
+        },
+        {
+          "code": "de",
+          "name": "studio",
+          "desc": "Erhalte Informationen über ein Studio."
+        },
+        {
+          "code": "ja",
+          "name": "studio",
+          "desc": "スタジオの情報を取得します。"
+        }
+      ]
+    },
+    {
+      "name": "waifu",
+      "desc": "Give you the best waifu.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/waifu.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "waifu",
+          "desc": "Give you the best waifu."
+        },
+        {
+          "code": "fr",
+          "name": "waifu",
+          "desc": "Donner la meilleure waifu."
+        },
+        {
+          "code": "de",
+          "name": "waifu",
+          "desc": "Die beste Waifu für dich."
+        },
+        {
+          "code": "ja",
+          "name": "ワイフ",
+          "desc": "最高のワイフを提供します。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "anilist",
+      "desc": "Commands for the AniList module"
+    },
+    {
+      "code": "fr",
+      "name": "anilist",
+      "desc": "Commandes pour le module AniList"
+    },
+    {
+      "code": "de",
+      "name": "anilist",
+      "desc": "Befehle für das AniList-Modul"
+    },
+    {
+      "code": "ja",
+      "name": "anilist",
+      "desc": "AniListモジュール用のコマンド"
+    }
+  ]
+}

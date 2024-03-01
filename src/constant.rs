@@ -25,7 +25,7 @@ pub const TIME_BEFORE_SERVER_IMAGE: u64 = 600;
 pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 86_400;
 /// Time between user color updates.
 pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 1_800;
-/// Time between game updates.
+/// Time between steam updates.
 pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
 /// Time between cache updates.
 pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200;

@@ -142,7 +142,7 @@ pub async fn generate_server_image(
 
     // Initialize the combined image
     let dim = 128 * 64;
-    let mut combined_image = DynamicImage::new_rgba16(dim, dim);
+    let mut combined_image = DynamicImage::new_rgba8(dim, dim);
     let vec_image = Arc::new(Mutex::new(Vec::new()));
 
     // For each pixel in the image, spawn a thread to find the closest color and push it to the vec_image
@@ -188,8 +188,7 @@ pub async fn generate_server_image(
         FilterType::CatmullRom,
     );
 
-    let img = image.to_rgba8();
-
+    let img = image;
 
     // Write the image
     let mut image_data: Vec<u8> = Vec::new();
@@ -198,7 +197,7 @@ pub async fn generate_server_image(
             img.as_raw(),
             img.width(),
             img.height(),
-            ExtendedColorType::Rgb8,
+            ExtendedColorType::Rgba8,
         )
         .unwrap();
 

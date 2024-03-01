@@ -4,13 +4,13 @@ use serenity::all::{
 };
 
 use crate::anilist_struct::run::staff::StaffWrapper;
-use crate::command_run::get_option::get_option_map_string;
+use crate::command_run::get_option::get_option_map_string_subcommand;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::staff::load_localization_staff;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("staff_name")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,

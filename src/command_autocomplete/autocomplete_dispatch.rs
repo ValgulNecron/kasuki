@@ -7,6 +7,19 @@ use crate::command_autocomplete::game::steam_game_info;
 
 pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
     match autocomplete_interaction.data.name.as_str() {
+        "anilist" => anilist_autocomplete(ctx, autocomplete_interaction).await,
+        "steam" => steam_autocomplete(ctx, autocomplete_interaction).await,
+        _ => {}
+    }
+}
+
+async fn anilist_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+    match autocomplete_interaction.data
+        .options
+        .first()
+        .unwrap()
+        .name
+        .as_str(){
         "anime" => anime::autocomplete(ctx, autocomplete_interaction).await,
         "add_activity" => anime::autocomplete(ctx, autocomplete_interaction).await,
         "ln" => ln::autocomplete(ctx, autocomplete_interaction).await,
@@ -19,8 +32,19 @@ pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: Co
         "studio" => studio::autocomplete(ctx, autocomplete_interaction).await,
         "search" => search::autocomplete(ctx, autocomplete_interaction).await,
         "seiyuu" => staff::autocomplete(ctx, autocomplete_interaction).await,
-        "steam_game" => steam_game_info::autocomplete(ctx, autocomplete_interaction).await,
         "delete_activity" => delete_activity::autocomplete(ctx, autocomplete_interaction).await,
+        _ => {}
+    }
+}
+
+async fn steam_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+    match autocomplete_interaction.data
+        .options
+        .first()
+        .unwrap()
+        .name
+        .as_str(){
+        "game" => steam_game_info::autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
 }

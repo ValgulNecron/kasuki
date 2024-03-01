@@ -9,7 +9,7 @@ use serenity::all::{
 use crate::anilist_struct::run::random::PageWrapper;
 use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper;
-use crate::command_run::get_option::get_option_map_string;
+use crate::command_run::get_option::get_option_map_string_subcommand;
 use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::trimer::trim;
 use crate::constant::COLOR;
@@ -29,7 +29,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    let map = get_option_map_string(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
     let random_type = map.get(&String::from("type")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,

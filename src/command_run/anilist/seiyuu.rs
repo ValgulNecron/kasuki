@@ -14,13 +14,13 @@ use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
-use crate::command_run::get_option::get_option_map_string;
+use crate::command_run::get_option::get_option_map_string_subcommand;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("seiyuu_name")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,

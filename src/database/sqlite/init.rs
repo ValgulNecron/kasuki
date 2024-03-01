@@ -136,7 +136,8 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
        ai_module INTEGER,
        anilist_module INTEGER,
         game_module INTEGER,
-            new_member INTEGER
+            new_member INTEGER,
+        anime INTEGER
    )",
     )
     .execute(pool)

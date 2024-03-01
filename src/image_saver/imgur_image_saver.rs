@@ -1,6 +1,6 @@
-use imgurs::ImgurClient;
 use std::{env, fs};
 
+use imgurs::ImgurClient;
 use tracing::debug;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

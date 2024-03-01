@@ -380,7 +380,7 @@ async fn thread_management_launcher(ctx: Context) {
     tokio::spawn(launch_user_color_management_thread(ctx.clone()));
     // Spawn a new thread for activity management
     tokio::spawn(launch_activity_management_thread(ctx.clone()));
-    // Spawn a new thread for game management
+    // Spawn a new thread for steam management
     tokio::spawn(launch_game_management_thread());
 
     // Sleep for a specified duration before spawning the server image management thread
@@ -422,10 +422,10 @@ async fn launch_user_color_management_thread(ctx: Context) {
     }
 }
 
-/// This function is responsible for launching the game management thread.
+/// This function is responsible for launching the steam management thread.
 /// It does not take any arguments and does not return anything.
 async fn launch_game_management_thread() {
-    info!("Launching the game management thread!");
+    info!("Launching the steam management thread!");
     loop {
         get_game().await;
         sleep(Duration::from_secs(TIME_BETWEEN_GAME_UPDATE)).await;

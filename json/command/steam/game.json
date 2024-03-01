@@ -1,9 +1,6 @@
 {
-  "name": "steam_game",
+  "name": "game",
   "desc": "Get info of a steam game.",
-  "dm_command": true,
-  "nsfw": false,
-  "perm": false,
   "arg_num": 1,
   "args": [
     {
@@ -39,22 +36,22 @@
   "localised": [
     {
       "code": "en-US",
-      "name": "steam_game",
+      "name": "game",
       "desc": "Get info of a steam game."
     },
     {
       "code": "fr",
-      "name": "jeu_steam",
+      "name": "jeu",
       "desc": "Obtenir des informations sur un jeu Steam."
     },
     {
       "code": "de",
-      "name": "steam_spiel",
+      "name": "spiel",
       "desc": "Informationen zu einem Steam-Spiel erhalten."
     },
     {
       "code": "ja",
-      "name": "suteemu_geemu_no_jouhou",
+      "name": "game",
       "desc": "Steamゲームの情報を取得します。"
     }
   ]
