@@ -21,14 +21,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # This includes the Cargo.toml file which specifies the Rust dependencies.
 COPY ./Cargo.toml ./Cargo.toml
 
-# This dummy build helps to cache your dependencies
-# It allows Docker to cache the dependencies separately from the source code.
-RUN cargo build --release
-
-RUN rm /kasuki/target/release/kasuki
-
-RUN rm src/*.rs
-
 # Now copy your actual source code
 # This is done after the dummy build to take advantage of Docker's layer caching.
 COPY ./src ./src
