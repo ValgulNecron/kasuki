@@ -17,10 +17,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+RUN rm src/*.rs
+
 # Copy over your manifests
 # This includes the Cargo.toml file which specifies the Rust dependencies.
 COPY ./Cargo.toml ./Cargo.toml
-
 # Now copy your actual source code
 # This is done after the dummy build to take advantage of Docker's layer caching.
 COPY ./src ./src
