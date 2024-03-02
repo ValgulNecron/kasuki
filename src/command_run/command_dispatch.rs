@@ -71,6 +71,13 @@ pub async fn command_dispatching(
                 return Err(ai_module_error);
             }
         }
+        "anime_nsfw" => {
+            if check_if_module_is_on(guild_id, "ANIME").await? {
+                anime(ctx, command_interaction).await?
+            } else {
+                return Err(ai_module_error);
+            }
+        }
         "anilist_admin" => {
             if check_if_module_is_on(guild_id, "ANIME").await? {
                 anime(ctx, command_interaction).await?
@@ -78,8 +85,8 @@ pub async fn command_dispatching(
                 return Err(ai_module_error);
             }
         }
-        // bot_info module
-        "bot_info" => bot_info(ctx, command_interaction).await?,
+        // bot module
+        "bot" => bot_info(ctx, command_interaction).await?,
         // general module
         "general" => general(ctx, command_interaction).await?,
         // steam module

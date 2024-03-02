@@ -14,12 +14,14 @@ pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: Co
 }
 
 async fn anilist_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    match autocomplete_interaction.data
+    match autocomplete_interaction
+        .data
         .options
         .first()
         .unwrap()
         .name
-        .as_str(){
+        .as_str()
+    {
         "anime" => anime::autocomplete(ctx, autocomplete_interaction).await,
         "add_activity" => anime::autocomplete(ctx, autocomplete_interaction).await,
         "ln" => ln::autocomplete(ctx, autocomplete_interaction).await,
@@ -38,12 +40,14 @@ async fn anilist_autocomplete(ctx: Context, autocomplete_interaction: CommandInt
 }
 
 async fn steam_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    match autocomplete_interaction.data
+    match autocomplete_interaction
+        .data
         .options
         .first()
         .unwrap()
         .name
-        .as_str(){
+        .as_str()
+    {
         "game" => steam_game_info::autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }

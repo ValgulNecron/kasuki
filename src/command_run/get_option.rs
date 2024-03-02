@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 use std::num::NonZeroU64;
 
-use serenity::all::{Attachment, CommandDataOptionValue, CommandInteraction, ResolvedOption, ResolvedValue, UserId};
 use serenity::all::InteractionType::Autocomplete;
+use serenity::all::{
+    Attachment, CommandDataOptionValue, CommandInteraction, ResolvedOption, ResolvedValue, UserId,
+};
 use tracing::trace;
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -116,14 +118,14 @@ pub fn get_option_map_string_autocomplete_subcommand(
     let subcommand = &binding.first().unwrap().value;
     match subcommand {
         ResolvedValue::SubCommand(op) => {
-        for option in op {
+            for option in op {
                 let name = option.name.to_string();
                 let value = match &option.value {
-                    ResolvedValue::Autocomplete {kind, value} => value.to_string(),
+                    ResolvedValue::Autocomplete { kind, value } => value.to_string(),
                     // Handle other types as needed
                     _ => String::new(),
                 };
-            map.insert(name, value);
+                map.insert(name, value);
             }
         }
         _ => {}
@@ -153,8 +155,6 @@ pub fn get_option_map_attachment_subcommand(
     map
 }
 
-
-
 pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashMap<String, UserId> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
@@ -175,7 +175,6 @@ pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashM
 
     map
 }
-
 
 pub fn get_option_map_bool_subcommand(interaction: &CommandInteraction) -> HashMap<String, bool> {
     let mut map = HashMap::new();

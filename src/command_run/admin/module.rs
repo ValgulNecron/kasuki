@@ -3,7 +3,9 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::command_run::get_option::{get_option_map_bool_subcommand, get_option_map_string_subcommand};
+use crate::command_run::get_option::{
+    get_option_map_bool_subcommand, get_option_map_string_subcommand,
+};
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
