@@ -13,7 +13,7 @@ struct ShardService {}
 impl Shard for ShardService {
     async fn shard_count(
         &self,
-        request: Request<proto::ShardCountRequest>,
+        _request: Request<proto::ShardCountRequest>,
     ) -> Result<Response<proto::ShardCountResponse>, Status> {
         let mut shard_id = Vec::new();
         shard_id.insert(0, 1);
@@ -26,7 +26,7 @@ impl Shard for ShardService {
 
     async fn shard_info(
         &self,
-        request: Request<proto::ShardInfoRequest>,
+        _request: Request<proto::ShardInfoRequest>,
     ) -> Result<Response<proto::ShardInfoResponse>, Status> {
         let reply = proto::ShardInfoResponse {
             shard_id: 1,

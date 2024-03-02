@@ -1,11 +1,11 @@
 use std::collections::HashMap;
-use std::num::NonZeroU64;
 
-use serenity::all::InteractionType::Autocomplete;
+
+
 use serenity::all::{
-    Attachment, CommandDataOptionValue, CommandInteraction, ResolvedOption, ResolvedValue, UserId,
+    Attachment, CommandInteraction, ResolvedOption, ResolvedValue, UserId,
 };
-use tracing::trace;
+
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
@@ -121,7 +121,7 @@ pub fn get_option_map_string_autocomplete_subcommand(
             for option in op {
                 let name = option.name.to_string();
                 let value = match &option.value {
-                    ResolvedValue::Autocomplete { kind, value } => value.to_string(),
+                    ResolvedValue::Autocomplete { kind: _, value } => value.to_string(),
                     // Handle other types as needed
                     _ => String::new(),
                 };

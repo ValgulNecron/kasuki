@@ -5,7 +5,7 @@ use serenity::all::{
 
 use crate::anilist_struct::autocomplete::character::CharacterPageWrapper;
 use crate::command_run::get_option::{
-    get_option_map_string_autocomplete_subcommand, get_option_map_string_subcommand,
+    get_option_map_string_autocomplete_subcommand,
 };
 use crate::constant::DEFAULT_STRING;
 

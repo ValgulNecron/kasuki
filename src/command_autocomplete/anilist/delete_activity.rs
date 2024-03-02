@@ -4,7 +4,7 @@ use serenity::all::{
 };
 
 use crate::command_run::get_option::{
-    get_option_map_string_autocomplete_subcommand, get_option_map_string_subcommand,
+    get_option_map_string_autocomplete_subcommand,
 };
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::database::dispatcher::data_dispatch::get_data_all_activity_by_server;
