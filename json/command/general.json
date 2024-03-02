@@ -2,7 +2,7 @@
   "name": "general",
   "desc": "General purpose commands.",
   "dm_command": false,
-  "nsfw": true,
+  "nsfw": false,
   "perm": false,
   "arg_num": 7,
   "args": [

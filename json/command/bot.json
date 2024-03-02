@@ -1,8 +1,8 @@
 {
-  "name": "bot_info",
+  "name": "bot",
   "desc": "Command to get information about the bot.",
   "dm_command": false,
-  "nsfw": true,
+  "nsfw": false,
   "perm": false,
   "arg_num": 3,
   "args": [

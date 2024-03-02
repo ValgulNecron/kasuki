@@ -131,6 +131,7 @@ the "code" field should respect discord locale https://discord.com/developers/do
     - [X] Updating to serenity 0.12.
     - [X] Support for command in dm.
     - [X] Make an anilist forum post.
+    - [ ] Rework the command registration to support sub command group and remove line duplicate.
 
 - Anime submodule:
     - [X] Finish comparison function.

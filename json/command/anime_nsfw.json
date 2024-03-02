@@ -1,38 +1,38 @@
 {
-  "name": "anime",
-  "desc": "Command from the ANIME module",
+  "name": "anime_nsfw",
+  "desc": "Nsfw command from the ANIME module",
   "dm_command": false,
-  "nsfw": false,
+  "nsfw": true,
   "perm": false,
   "arg_num": 1,
   "args": [
     {
-      "name": "random_image",
-      "desc": "Get a random anime image.",
+      "name": "random_nsfw_image",
+      "desc": "Get a random nsfw anime image.",
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anime/random_image.json",
+      "file": "anime_nsfw/random_nsfw_image.json",
       "localised_args": [
         {
           "code": "en-US",
-          "name": "random_image",
-          "desc": "Get a random anime image."
+          "name": "random_nsfw_image",
+          "desc": "Get a random nsfw anime image."
         },
         {
           "code": "fr",
-          "name": "image_aleatoire",
-          "desc": "Obtenez une image anime aléatoire."
+          "name": "image_aleatoire_nsfw",
+          "desc": "Obtenez une image nsfw anime aléatoire."
         },
         {
           "code": "de",
-          "name": "zufalliges_bild",
-          "desc": "Erhalte ein zufälliges Anime-Bild."
+          "name": "zufalliges_nsfw_bild",
+          "desc": "Erhalte ein zufälliges nsfw Anime-Bild."
         },
         {
           "code": "ja",
-          "name": "random_naime_imeji",
-          "desc": "ランダムなアニメ画像を取得します。"
+          "name": "random_nsfw_naime_imeji",
+          "desc": "ランダムな nsfw アニメ画像を取得します。"
         }
       ]
     }

@@ -2,7 +2,7 @@
   "name": "ai",
   "desc": "Command from the AI module",
   "dm_command": false,
-  "nsfw": true,
+  "nsfw": false,
   "perm": false,
   "arg_num": 4,
   "args": [

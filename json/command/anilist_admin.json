@@ -1,8 +1,8 @@
 {
   "name": "anilist_admin",
-  "desc": "Commands for the AniList module that need admin permissions.",
+  "desc": "Admin commands for the ANILIST module.",
   "dm_command": false,
-  "nsfw": true,
+  "nsfw": false,
   "perm": false,
   "arg_num": 1,
   "args": [

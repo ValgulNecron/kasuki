@@ -2,7 +2,7 @@
   "name": "anilist",
   "desc": "Commands for the AniList module",
   "dm_command": false,
-  "nsfw": true,
+  "nsfw": false,
   "perm": false,
   "arg_num": 16,
   "args": [
