@@ -23,7 +23,7 @@ chrono = "0.4.34"
 uuid = { version = "1.7.0", features = ["v4"] }
 dotenv = "0.15.0"
 image = "0.24.8"
-base64 = "0.21.7"
+base64 = "0.22.0"
 tracing = { version = "0.1.40" }
 once_cell = "1.19.0"
 tracing-subscriber = { version = "0.3.18", features = ["default", "env-filter"] }
