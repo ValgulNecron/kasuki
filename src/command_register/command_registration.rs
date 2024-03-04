@@ -109,13 +109,10 @@ async fn create_option(arg: Arg) -> CreateCommandOption {
     .set_autocomplete(arg.autocomplete)
     .required(arg.required);
 
-    match arg.choices {
-        Some(choices) => {
-            for choice in choices {
-                option = option.add_string_choice(&choice.option_choice, &choice.option_choice);
-            }
+    if let Some(choices) = arg.choices {
+        for choice in choices {
+            option = option.add_string_choice(&choice.option_choice, &choice.option_choice);
         }
-        None => {}
     }
 
     option = add_localised_option(option, arg.localised_args).await;

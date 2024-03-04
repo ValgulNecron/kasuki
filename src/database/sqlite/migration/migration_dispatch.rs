@@ -7,6 +7,8 @@ pub async fn migrate_sqlite() -> Result<(), AppError> {
     add_image_to_activity_data().await?;
     add_new_member_to_module_activation().await?;
     add_new_member_to_global_kill_switch().await?;
+    add_anime_to_global_kill_switch().await?;
+    add_anime_to_module_activation().await?;
     Ok(())
 }
 

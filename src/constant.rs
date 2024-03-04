@@ -41,9 +41,6 @@ pub const PASS_LIMIT: u32 = 10;
 pub const MEMBER_LIST_LIMIT: u64 = 10;
 /// Limit for activity list.
 pub const ACTIVITY_LIST_LIMIT: u64 = 10;
-/// Maximum number of threads.
-pub const MAX_THREAD: usize = 5;
-
 /*
 Database paths.
  */
