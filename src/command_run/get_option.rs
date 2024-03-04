@@ -7,11 +7,11 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<String, String> {
     let mut map = HashMap::new();
     for option in &interaction.data.options {
+        let name = option.name.clone();
         let value = match option.value.as_str() {
             Some(value) => value.to_string(),
             None => continue,
         };
-        let name = option.name.clone();
         map.insert(name, value);
     }
 
@@ -78,6 +78,102 @@ pub fn get_option_map_bool(interaction: &CommandInteraction) -> HashMap<String, 
         };
         let name = option.name.clone();
         map.insert(name, value);
+    }
+
+    map
+}
+
+pub fn get_option_map_string_subcommand(
+    interaction: &CommandInteraction,
+) -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    let binding = interaction.data.options();
+    let subcommand = &binding.first().unwrap().value;
+    if let ResolvedValue::SubCommand(op) = subcommand {
+        for option in op {
+            let name = option.name.to_string();
+            let value = match option.value {
+                ResolvedValue::String(a) => a.to_string(),
+                _ => String::new(),
+            };
+            map.insert(name, value);
+        }
+    }
+    map
+}
+
+pub fn get_option_map_string_autocomplete_subcommand(
+    interaction: &CommandInteraction,
+) -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    let binding = interaction.data.options();
+    let subcommand = &binding.first().unwrap().value;
+    if let ResolvedValue::SubCommand(op) = subcommand {
+        for option in op {
+            let name = option.name.to_string();
+            let value = match &option.value {
+                ResolvedValue::Autocomplete { kind: _, value } => value.to_string(),
+                // Handle other types as needed
+                _ => String::new(),
+            };
+            map.insert(name, value);
+        }
+    }
+
+    map
+}
+
+pub fn get_option_map_attachment_subcommand(
+    interaction: &CommandInteraction,
+) -> HashMap<String, Option<Attachment>> {
+    let mut map = HashMap::new();
+    let binding = interaction.data.options();
+    let subcommand = &binding.first().unwrap().value;
+    if let ResolvedValue::SubCommand(op) = subcommand {
+        for option in op {
+            let name = option.name.to_string();
+            let value = match option.value {
+                ResolvedValue::Attachment(a) => Some(a.clone()),
+                _ => None,
+            };
+            map.insert(name, value);
+        }
+    }
+
+    map
+}
+
+pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashMap<String, UserId> {
+    let mut map = HashMap::new();
+    let binding = interaction.data.options();
+    let subcommand = &binding.first().unwrap().value;
+    if let ResolvedValue::SubCommand(op) = subcommand {
+        for option in op {
+            let name = option.name.to_string();
+            let value = match option.value {
+                ResolvedValue::User(a, ..) => a.id,
+                _ => interaction.user.id,
+            };
+            map.insert(name, value);
+        }
+    }
+
+    map
+}
+
+pub fn get_option_map_bool_subcommand(interaction: &CommandInteraction) -> HashMap<String, bool> {
+    let mut map = HashMap::new();
+    let binding = interaction.data.options();
+    let subcommand = &binding.first().unwrap().value;
+    if let ResolvedValue::SubCommand(op) = subcommand {
+        for option in op {
+            let name = option.name.to_string();
+            let value = match option.value {
+                ResolvedValue::Boolean(a) => a,
+                _ => false,
+            };
+            map.insert(name, value);
+        }
     }
 
     map

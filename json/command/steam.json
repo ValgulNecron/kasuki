@@ -1,0 +1,62 @@
+{
+  "name": "steam",
+  "desc": "Steam command from the GAME module.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "game",
+      "desc": "Get info of a steam game.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "steam/game.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "game",
+          "desc": "Get info of a steam game."
+        },
+        {
+          "code": "fr",
+          "name": "jeu",
+          "desc": "Obtenir des informations sur un jeu Steam."
+        },
+        {
+          "code": "de",
+          "name": "steam",
+          "desc": "Informationen zu einem Steam-Spiel erhalten."
+        },
+        {
+          "code": "ja",
+          "name": "game",
+          "desc": "Steamゲームの情報を取得します。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "steam",
+      "desc": "Steam command from the GAME module."
+    },
+    {
+      "code": "fr",
+      "name": "steam",
+      "desc": "Commande Steam du module GAME."
+    },
+    {
+      "code": "de",
+      "name": "steam",
+      "desc": "Steam-Befehl aus dem GAME-Modul."
+    },
+    {
+      "code": "ja",
+      "name": "steam",
+      "desc": "GAMEモジュールからのSteamコマンド。"
+    }
+  ]
+}

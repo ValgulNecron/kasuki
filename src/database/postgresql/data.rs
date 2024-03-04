@@ -111,7 +111,7 @@ pub async fn get_data_module_activation_status_postgresql(
 ) -> Result<ActivationStatusModule, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module, game_module, new_member FROM DATA.module_activation WHERE guild = $1",
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime FROM DATA.module_activation WHERE guild = $1",
     )
         .bind(guild_id)
         .fetch_one(&pool)
@@ -122,6 +122,7 @@ pub async fn get_data_module_activation_status_postgresql(
             anilist_module: None,
             game_module: None,
             new_member: None,
+            anime: None,
         });
     pool.close().await;
     Ok(row)
@@ -182,7 +183,7 @@ pub async fn get_data_module_activation_kill_switch_status_postgresql(
 ) -> Result<ActivationStatusModule, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT id, ai_module, anilist_module, game_module, new_member FROM DATA.module_activation WHERE guild = $1",
+        "SELECT id, ai_module, anilist_module, game_module, new_member, anime FROM DATA.module_activation WHERE guild = $1",
     )
         .bind(1)
         .fetch_one(&pool)
@@ -193,6 +194,7 @@ pub async fn get_data_module_activation_kill_switch_status_postgresql(
             anilist_module: None,
             game_module: None,
             new_member: None,
+            anime: None,
         });
     pool.close().await;
 
@@ -327,27 +329,6 @@ pub async fn get_all_server_activity_postgresql(
 
     pool.close().await;
     Ok(rows)
-}
-
-pub async fn get_data_activity_with_server_and_anime_id_postgresql(
-    anime_id: &String,
-    server_id: &String,
-) -> Result<Option<String>, AppError> {
-    let pool = get_postgresql_pool().await?;
-    let row: (Option<String>, Option<String>) = sqlx::query_as(
-        "SELECT
-       webhook
-       FROM DATA.activity_data WHERE server_id = $1 and anime_id = $2
-   ",
-    )
-    .bind(server_id)
-    .bind(anime_id)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None));
-    pool.close().await;
-    let result = row.0;
-    Ok(result)
 }
 
 pub async fn get_data_all_activity_by_server_postgresql(

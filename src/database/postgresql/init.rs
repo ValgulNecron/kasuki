@@ -169,11 +169,12 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
-       guild_id TEXT PRIMARY KEY,
-       ai_module BIGINT,
-       anilist_module BIGINT,
+        guild_id TEXT PRIMARY KEY,
+        ai_module BIGINT,
+        anilist_module BIGINT,
         game_module BIGINT,
-            new_member BIGINT
+        new_member BIGINT,
+        anime BIGINT
    )",
     )
     .execute(pool)

@@ -1,13 +1,14 @@
-use crate::command_run::get_option::get_option_map_string;
-use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use rust_fuzzy_search::fuzzy_search_best_n;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
 
+use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
+
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let map = get_option_map_string(&autocomplete_interaction);
+    let map = get_option_map_string_subcommand(&autocomplete_interaction);
     let game_search = map
         .get(&String::from("game_name"))
         .unwrap_or(DEFAULT_STRING);

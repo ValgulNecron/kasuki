@@ -1,17 +1,20 @@
+use std::io::Cursor;
+use std::time::Duration;
+
+use base64::engine::general_purpose;
+use base64::Engine;
+use image::codecs::png::PngEncoder;
+use image::io::Reader as ImageReader;
+use image::{DynamicImage, ExtendedColorType, ImageEncoder};
+use serenity::all::{Context, GuildId, Member, UserId};
+use tokio::time::sleep;
+use tracing::{debug, error};
+
 use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
 use crate::database_struct::user_color_struct::UserColor;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use base64::engine::general_purpose;
-use base64::Engine;
-use image::io::Reader as ImageReader;
-use image::{DynamicImage, GenericImageView, ImageOutputFormat};
-use serenity::all::{Context, GuildId, Member, UserId};
-use std::io::Cursor;
-use std::time::Duration;
-use tokio::time::sleep;
-use tracing::{debug, error};
 
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
     for member in members {
@@ -67,6 +70,9 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
     let mut g_total: u32 = 0;
     let mut b_total: u32 = 0;
 
+    // convert to rgba8 so every image use the same color type.
+    let img = img.to_rgba8();
+
     // Iterate over each pixel
     for y in 0..img.height() {
         for x in 0..img.width() {
@@ -89,10 +95,17 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
     debug!("{}", average_color);
 
     let mut image_data: Vec<u8> = Vec::new();
-    img.write_to(&mut Cursor::new(&mut image_data), ImageOutputFormat::Png)
+    PngEncoder::new(&mut image_data)
+        .write_image(
+            img.as_raw(),
+            img.width(),
+            img.height(),
+            ExtendedColorType::Rgba8,
+        )
         .unwrap();
-    let res_base64 = general_purpose::STANDARD.encode(&image_data);
-    let image = format!("data:image/png;base64,{}", res_base64);
+
+    let base64_image = general_purpose::STANDARD.encode(image_data.clone());
+    let image = format!("data:image/png;base64,{}", base64_image);
     // Return the average color
     Ok((average_color, image))
 }

@@ -1,37 +1,38 @@
 {
   "name": "anime",
-  "desc": "Info of an anime.",
-  "dm_command": true,
+  "desc": "Command from the ANIME module",
+  "dm_command": false,
   "nsfw": false,
   "perm": false,
   "arg_num": 1,
   "args": [
     {
-      "name": "anime_name",
-      "desc": "Name of the anime you want to check.",
+      "name": "random_image",
+      "desc": "Get a random anime image.",
+      "command_type": "SubCommand",
       "required": true,
-      "autocomplete": true,
-      "command_type": "String",
+      "autocomplete": false,
+      "file": "anime/random_image.json",
       "localised_args": [
         {
           "code": "en-US",
-          "name": "anime_name",
-          "desc": "Name of the anime you want to check."
+          "name": "random_image",
+          "desc": "Get a random anime image."
         },
         {
           "code": "fr",
-          "name": "nom_anime",
-          "desc": "Nom de l'anime que vous voulez vérifier."
+          "name": "image_aleatoire",
+          "desc": "Obtenez une image anime aléatoire."
         },
         {
           "code": "de",
-          "name": "anime_name",
-          "desc": "Name des Animes, den Sie überprüfen möchten."
+          "name": "zufalliges_bild",
+          "desc": "Erhalte ein zufälliges Anime-Bild."
         },
         {
           "code": "ja",
-          "name": "anime_no_namae",
-          "desc": "チェックしたいアニメの名前。"
+          "name": "random_naime_imeji",
+          "desc": "ランダムなアニメ画像を取得します。"
         }
       ]
     }
@@ -40,22 +41,22 @@
     {
       "code": "en-US",
       "name": "anime",
-      "desc": "Info of an anime."
+      "desc": "Command from the ANIME module"
     },
     {
       "code": "fr",
       "name": "anime",
-      "desc": "Informations sur un anime."
+      "desc": "Commande du module ANIME"
     },
     {
       "code": "de",
       "name": "anime",
-      "desc": "Informationen zu einem Anime."
+      "desc": "Befehl aus dem ANIME-Modul"
     },
     {
       "code": "ja",
       "name": "anime",
-      "desc": "アニメ情報。"
+      "desc": "ANIME モジュールからのコマンド"
     }
   ]
 }

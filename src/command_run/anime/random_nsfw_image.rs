@@ -1,13 +1,13 @@
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessage};
 
-use crate::command_run::anilist::random_image::send_embed;
-use crate::command_run::get_option::get_option_map_string;
+use crate::command_run::anime::random_image::send_embed;
+use crate::command_run::get_option::get_option_map_string_subcommand;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::random_image_nsfw::load_localization_random_image_nsfw;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
     let image_type = map.get(&String::from("image_type")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,

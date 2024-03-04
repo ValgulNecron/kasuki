@@ -9,8 +9,6 @@ pub mod list_register_user;
 pub mod ln;
 pub mod manga;
 pub mod random;
-pub mod random_image;
-pub mod random_nsfw_image;
 pub mod register;
 pub mod search;
 pub mod seiyuu;

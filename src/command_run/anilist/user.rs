@@ -2,12 +2,12 @@ use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
 
 use crate::anilist_struct::run::user::{send_embed, UserWrapper};
-use crate::command_run::get_option::get_option_map_string;
+use crate::command_run::get_option::get_option_map_string_subcommand;
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
 
     if let Some(value) = user {

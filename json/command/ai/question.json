@@ -1,9 +1,6 @@
 {
   "name": "question",
   "desc": "Ask a question and get the response (this is not a chat it has no context).",
-  "dm_command": false,
-  "nsfw": true,
-  "perm": false,
   "arg_num": 1,
   "args": [
     {

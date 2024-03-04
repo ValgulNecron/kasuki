@@ -3,7 +3,9 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::command_run::get_option::{get_option_map_bool, get_option_map_string};
+use crate::command_run::get_option::{
+    get_option_map_bool_subcommand, get_option_map_string_subcommand,
+};
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
@@ -17,14 +19,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let map = get_option_map_string(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
     let module = map.get(&String::from("name")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,
         ErrorResponseType::Followup,
     ))?;
     let module_localised = load_localization_module_activation(guild_id.clone()).await?;
-    let map = get_option_map_bool(command_interaction);
+    let map = get_option_map_bool_subcommand(command_interaction);
     let state = *map.get(&String::from("state")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,
@@ -85,14 +87,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })
 }
 
-pub async fn check_activation_status(module: &str, guild_id: String) -> Result<bool, AppError> {
-    let row: ActivationStatusModule = get_data_module_activation_status(&guild_id).await?;
-
-    Ok(match module {
+pub async fn check_activation_status(module: &str, row: ActivationStatusModule) -> bool {
+    match module {
         "ANILIST" => row.anilist_module.unwrap_or(true),
         "AI" => row.ai_module.unwrap_or(true),
         "GAME" => row.game_module.unwrap_or(true),
         "NEW_MEMBER" => row.new_member.unwrap_or(true),
+        "ANIME" => row.anime.unwrap_or(true),
         _ => false,
-    })
+    }
 }

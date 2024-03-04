@@ -1,12 +1,13 @@
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::prelude::*;
+use std::fs;
 
 use serde::{Deserialize, Serialize};
 
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
+/// MediaLocalised struct represents a media's localized data.
+/// It contains fields for two titles, a description, and staff text.
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MediaLocalised {
     pub field1_title: String,
@@ -15,24 +16,20 @@ pub struct MediaLocalised {
     pub staff_text: String,
 }
 
+/// This function loads the localization data for a media item.
+/// It takes a guild_id as input and returns a Result containing MediaLocalised data or an AppError.
+/// The function reads a JSON file, parses it into a HashMap, and then retrieves the data based on the guild's language.
 pub async fn load_localization_media(guild_id: String) -> Result<MediaLocalised, AppError> {
-    let mut file = File::open("json/message/anilist/media.json").map_err(|e| {
+    // Read the JSON file and handle any potential errors
+    let json = fs::read_to_string("json/message/anilist/media.json").map_err(|e| {
         AppError::new(
-            format!("File media.json not found. {}", e),
+            format!("File media.json not found or can't be read. {}", e),
             ErrorType::File,
             ErrorResponseType::Unknown,
         )
     })?;
 
-    let mut json = String::new();
-    file.read_to_string(&mut json).map_err(|e| {
-        AppError::new(
-            format!("File media.json can't be read. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Unknown,
-        )
-    })?;
-
+    // Parse the JSON data into a HashMap and handle any potential errors
     let json_data: HashMap<String, MediaLocalised> = serde_json::from_str(&json).map_err(|e| {
         AppError::new(
             format!("Failing to parse media.json. {}", e),
@@ -41,13 +38,16 @@ pub async fn load_localization_media(guild_id: String) -> Result<MediaLocalised,
         )
     })?;
 
+    // Get the language choice for the guild
     let lang_choice = get_guild_langage(guild_id).await;
 
-    let localised_text = json_data.get(lang_choice.as_str()).ok_or(AppError::new(
-        "Language not found.".to_string(),
-        ErrorType::Language,
-        ErrorResponseType::Unknown,
-    ))?;
-
-    Ok(localised_text.clone())
+    // Retrieve the localized data for the media item based on the language choice
+    json_data
+        .get(lang_choice.as_str())
+        .cloned()
+        .ok_or(AppError::new(
+            "Language not found.".to_string(),
+            ErrorType::Language,
+            ErrorResponseType::Unknown,
+        ))
 }

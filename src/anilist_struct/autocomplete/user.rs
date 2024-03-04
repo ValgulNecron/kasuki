@@ -1,9 +1,9 @@
-use crate::constant::AUTOCOMPLETE_COUNT_LIMIT;
 use serde::Deserialize;
 use serde_json::json;
 use tracing::log::trace;
 
 use crate::common::make_anilist_request::make_request_anilist;
+use crate::constant::AUTOCOMPLETE_COUNT_LIMIT;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct AutocompleteUser {

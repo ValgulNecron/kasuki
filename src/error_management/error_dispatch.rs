@@ -1,10 +1,10 @@
-use crate::constant::COLOR;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::error;
 
+use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn command_dispatching(

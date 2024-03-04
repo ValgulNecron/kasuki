@@ -1,0 +1,242 @@
+{
+  "name": "general",
+  "desc": "General purpose commands.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 7,
+  "args": [
+    {
+      "name": "avatar",
+      "desc": "Get the avatar.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "general/avatar.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "avatar",
+          "desc": "Get the avatar."
+        },
+        {
+          "code": "fr",
+          "name": "avatar",
+          "desc": "Obtenir l'avatar."
+        },
+        {
+          "code": "de",
+          "name": "avatar",
+          "desc": "Holen Sie sich den Avatar."
+        },
+        {
+          "code": "ja",
+          "name": "アバター",
+          "desc": "アバターを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "banner",
+      "desc": "Get the banner.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "general/banner.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "banner",
+          "desc": "Get the banner."
+        },
+        {
+          "code": "fr",
+          "name": "bannière",
+          "desc": "Obtenez la bannière."
+        },
+        {
+          "code": "de",
+          "name": "banner",
+          "desc": "Holen Sie das Banner."
+        },
+        {
+          "code": "ja",
+          "name": "バナー",
+          "desc": "バナーを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "guild",
+      "desc": "Get information on the guild.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "general/guild.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "guild",
+          "desc": "Get information on the guild."
+        },
+        {
+          "code": "fr",
+          "name": "guilde",
+          "desc": "Obtenir des informations sur la guilde."
+        },
+        {
+          "code": "de",
+          "name": "gilde",
+          "desc": "Erhalten Sie Informationen über die Gilde."
+        },
+        {
+          "code": "ja",
+          "name": "ギルド",
+          "desc": "ギルドの情報を取得します。"
+        }
+      ]
+    },
+    {
+      "name": "guild_image",
+      "desc": "Generate an image using the guild server image and the user pfp.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "general/guild_image.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "guild_image",
+          "desc": "Generate an image using the guild server image and the user pfp."
+        },
+        {
+          "code": "fr",
+          "name": "image_guilde",
+          "desc": "Génère une image en utilisant l'image du serveur de guilde et le pfp de l'utilisateur."
+        },
+        {
+          "code": "de",
+          "name": "gildenbild",
+          "desc": "Generieren Sie ein Bild mit dem Gilden-Serverbild und dem Benutzer-Pfp."
+        },
+        {
+          "code": "ja",
+          "name": "ギルド画像",
+          "desc": "ギルドサーバー画像とユーザーpfpを使用して画像を生成します。"
+        }
+      ]
+    },
+    {
+      "name": "guild_image_g",
+      "desc": "Generate an image using the guild server image and the global pfp cache.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "general/guild_image_g.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "guild_image_g",
+          "desc": "Generate an image using the guild server image and the global pfp cache."
+        },
+        {
+          "code": "fr",
+          "name": "image_guilde_g",
+          "desc": "Créer une image avec l'image du serveur et le cache global de photos de profil."
+        },
+        {
+          "code": "de",
+          "name": "bild_gilde_g",
+          "desc": "Generiere ein Bild mit dem Serverbild der Gilde und dem globalen Profilbild-Cache."
+        },
+        {
+          "code": "ja",
+          "name": "guild_image_gを生成",
+          "desc": "ギルドサーバーの画像とグローバルpfpキャッシュを使用して画像を生成します。"
+        }
+      ]
+    },
+    {
+      "name": "profile",
+      "desc": "Show the profile of a user.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "general/profile.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "profile",
+          "desc": "Show the profile of a user."
+        },
+        {
+          "code": "fr",
+          "name": "profil",
+          "desc": "Afficher le profil d'un utilisateur."
+        },
+        {
+          "code": "de",
+          "name": "profil",
+          "desc": "Das Profil eines Benutzers anzeigen."
+        },
+        {
+          "code": "ja",
+          "name": "プロフィール",
+          "desc": "ユーザーのプロフィールを表示します。"
+        }
+      ]
+    },
+    {
+      "name": "user",
+      "desc": "Info of an anilist user.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "general/user.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "user",
+          "desc": "Info of an anilist user."
+        },
+        {
+          "code": "fr",
+          "name": "utilisateur",
+          "desc": "Informations sur un utilisateur d'Anilist."
+        },
+        {
+          "code": "de",
+          "name": "benutzer",
+          "desc": "Informationen zu einem Anilist-Benutzer."
+        },
+        {
+          "code": "ja",
+          "name": "ユーザー",
+          "desc": "アニリストユーザーの情報。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "general",
+      "desc": "General purpose commands."
+    },
+    {
+      "code": "fr",
+      "name": "général",
+      "desc": "Commandes à usage général."
+    },
+    {
+      "code": "de",
+      "name": "allgemein",
+      "desc": "Allgemeine Zweckbefehle."
+    },
+    {
+      "code": "ja",
+      "name": "一般",
+      "desc": "一般的な目的のコマンド。"
+    }
+  ]
+}

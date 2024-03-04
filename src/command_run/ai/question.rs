@@ -7,12 +7,12 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::command_run::get_option::get_option_map_string;
+use crate::command_run::get_option::get_option_map_string_subcommand;
 use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
     let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
@@ -83,7 +83,7 @@ async fn question(
         .await
         .map_err(|e| {
             AppError::new(
-                format!("error during translation. {}", e),
+                format!("error during the request to the api. {}", e),
                 ErrorType::WebRequest,
                 ErrorResponseType::Followup,
             )
@@ -92,7 +92,7 @@ async fn question(
         .await
         .map_err(|e| {
             AppError::new(
-                format!("error during translation. {}", e),
+                format!("error getting the response. {}", e),
                 ErrorType::WebRequest,
                 ErrorResponseType::Followup,
             )

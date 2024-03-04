@@ -1,14 +1,6 @@
 {
   "name": "module",
   "desc": "Turn on or off a module.",
-  "dm_command": false,
-  "nsfw": false,
-  "perm": true,
-  "default_permissions": [
-    {
-      "permission": "Administrator"
-    }
-  ],
   "arg_num": 2,
   "args": [
     {
@@ -29,6 +21,9 @@
         },
         {
           "option_choice": "NEW_MEMBER"
+        },
+        {
+          "option_choice": "ANIME"
         }
       ],
       "localised_args": [

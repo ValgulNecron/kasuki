@@ -5,4 +5,5 @@ pub struct ActivationStatusModule {
     pub anilist_module: Option<bool>,
     pub game_module: Option<bool>,
     pub new_member: Option<bool>,
+    pub anime: Option<bool>,
 }

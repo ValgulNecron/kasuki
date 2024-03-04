@@ -4,11 +4,11 @@ use serenity::all::{
 };
 
 use crate::anilist_struct::autocomplete::studio::StudioPageWrapper;
-use crate::command_run::get_option::get_option_map_string;
+use crate::command_run::get_option::get_option_map_string_autocomplete_subcommand;
 use crate::constant::DEFAULT_STRING;
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let map = get_option_map_string(&autocomplete_interaction);
+    let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let studio_search = map.get(&String::from("studio")).unwrap_or(DEFAULT_STRING);
     let data = StudioPageWrapper::new_autocomplete_staff(studio_search).await;
     let studios = data.data.page.studios.clone().unwrap();

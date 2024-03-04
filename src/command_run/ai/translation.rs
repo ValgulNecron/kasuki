@@ -14,7 +14,9 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::command_run::get_option::{get_option_map_attachment, get_option_map_string};
+use crate::command_run::get_option::{
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
+};
 use crate::constant::{
     CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL,
     TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
@@ -23,8 +25,8 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 use crate::lang_struct::ai::translation::load_localization_translation;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string(command_interaction);
-    let attachment_map = get_option_map_attachment(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
+    let attachment_map = get_option_map_attachment_subcommand(command_interaction);
     let lang = map
         .get(&String::from("prompt"))
         .unwrap_or(DEFAULT_STRING)
@@ -140,7 +142,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .text("language", lang.clone())
         .text("response_format", "json");
 
-    let url = unsafe { format!("{}audio/transcriptions", TRANSCRIPT_BASE_URL.as_str()) };
+    let url = unsafe { format!("{}translations", TRANSCRIPT_BASE_URL.as_str()) };
     let response_result = client
         .post(url)
         .headers(headers)

@@ -16,6 +16,7 @@ pub struct Arg {
     pub command_type: RemoteCommandOptionType,
     pub choices: Option<Vec<ArgChoice>>,
     pub localised_args: Option<Vec<LocalisedArg>>,
+    pub file: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -56,6 +57,15 @@ pub struct DefaultPermission {
     pub permission: RemotePermissionType,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SubCommandData {
+    pub name: String,
+    pub desc: String,
+    pub arg_num: u32,
+    pub args: Option<Vec<Arg>>,
+    pub localised: Option<Vec<Localised>>,
+}
+
 pub fn get_commands(directory: &str) -> Result<Vec<CommandData>, Error> {
     let mut commands = Vec::new();
 
@@ -73,7 +83,7 @@ pub fn get_commands(directory: &str) -> Result<Vec<CommandData>, Error> {
     Ok(commands)
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub enum RemoteCommandOptionType {
     SubCommand,
     SubCommandGroup,
@@ -128,7 +138,7 @@ impl From<CommandOptionType> for RemoteCommandOptionType {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub enum RemotePermissionType {
     CreateInstantInvite,
     KickMembers,

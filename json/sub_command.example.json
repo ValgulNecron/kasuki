@@ -1,0 +1,25 @@
+{
+  "name": "",
+  "desc": "",
+  "dm_command": false,
+  "nsfw": true,
+  "perm": false,
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "",
+      "desc": "",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "folder/file.json",
+      "localised_args": [
+        {
+          "code": "",
+          "name": "",
+          "desc": ""
+        }
+      ]
+    }
+  ]
+}

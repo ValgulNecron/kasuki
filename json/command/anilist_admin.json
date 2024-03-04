@@ -1,0 +1,62 @@
+{
+  "name": "anilist_admin",
+  "desc": "Admin commands for the ANILIST module.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "add_anime_activity",
+      "desc": "Add an anime activity.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist_admin/add_anime_activity.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "add_anime_activity",
+          "desc": "Add an anime activity."
+        },
+        {
+          "code": "fr",
+          "name": "ajouter_activite_anime",
+          "desc": "Ajouter une activité anime."
+        },
+        {
+          "code": "de",
+          "name": "anime_aktivitat_hinzufugen",
+          "desc": "Fügen Sie eine Anime-Aktivität hinzu."
+        },
+        {
+          "code": "ja",
+          "name": "anime_katsudo_wo_tsuika",
+          "desc": "アニメ活動を追加します。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "anilist_admin",
+      "desc": "Commands for the AniList module that need admin permissions."
+    },
+    {
+      "code": "fr",
+      "name": "anilist_admin",
+      "desc": "Commandes pour le module AniList qui nécessitent des autorisations d'administrateur."
+    },
+    {
+      "code": "de",
+      "name": "anilist_admin",
+      "desc": "Befehle für das AniList-Modul, die Administratorberechtigungen erfordern."
+    },
+    {
+      "code": "ja",
+      "name": "anilist_admin",
+      "desc": "管理者権限が必要なAniListモジュールのコマンド。"
+    }
+  ]
+}

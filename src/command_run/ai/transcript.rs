@@ -15,7 +15,7 @@ use tracing::log::trace;
 use uuid::Uuid;
 
 use crate::command_run::get_option::{
-    get_option_map_attachment, get_option_map_string, get_the_attachment,
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand, get_the_attachment,
 };
 use crate::constant::{
     COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
@@ -24,8 +24,8 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 use crate::lang_struct::ai::transcript::load_localization_transcript;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string(command_interaction);
-    let attachment_map = get_option_map_attachment(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
+    let attachment_map = get_option_map_attachment_subcommand(command_interaction);
     let prompt = map
         .get(&String::from("lang"))
         .unwrap_or(DEFAULT_STRING)
@@ -142,7 +142,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .text("language", lang)
         .text("response_format", "json");
 
-    let url = unsafe { format!("{}audio/transcriptions", TRANSCRIPT_BASE_URL.as_str()) };
+    let url = unsafe { format!("{}transcriptions", TRANSCRIPT_BASE_URL.as_str()) };
     let response_result = client
         .post(url)
         .headers(headers)

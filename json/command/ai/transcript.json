@@ -1,10 +1,7 @@
 {
-  "name": "translation",
-  "desc": "Generate a translation.",
-  "dm_command": false,
-  "nsfw": false,
-  "perm": false,
-  "arg_num": 2,
+  "name": "transcript",
+  "desc": "Generate a transcript from a video.",
+  "arg_num": 3,
   "args": [
     {
       "name": "video",
@@ -32,6 +29,35 @@
           "code": "ja",
           "name": "video",
           "desc": "ビデオファイルをアップロード（最大25MB）。"
+        }
+      ]
+    },
+    {
+      "name": "prompt",
+      "desc": "A guide text for audio style. Must match the audio language.",
+      "required": false,
+      "autocomplete": false,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "prompt",
+          "desc": "A guide text for audio style. Must match the audio language."
+        },
+        {
+          "code": "fr",
+          "name": "invite",
+          "desc": "Un texte de guide pour le style audio. Doit correspondre à la langue de l'audio."
+        },
+        {
+          "code": "de",
+          "name": "auffordern",
+          "desc": "Ein Leittext für den Audio-Stil. Muss der Audiosprache entsprechen."
+        },
+        {
+          "code": "ja",
+          "name": "プロンプト",
+          "desc": "オーディオスタイルのガイドテキスト。オーディオの言語と一致する必要があります。"
         }
       ]
     },
@@ -68,23 +94,23 @@
   "localised": [
     {
       "code": "en-US",
-      "name": "translation",
-      "desc": "Generate a translation."
+      "name": "transcript",
+      "desc": "Generate a transcript from a video."
     },
     {
       "code": "fr",
-      "name": "traduction",
-      "desc": "Générer une traduction."
+      "name": "transcription",
+      "desc": "Générer une transcription à partir d'une vidéo."
     },
     {
       "code": "de",
-      "name": "ubersetzung",
-      "desc": "Erzeugen Sie eine Übersetzung."
+      "name": "transkript",
+      "desc": "Erstellt ein Transkript aus einem Video."
     },
     {
       "code": "ja",
-      "name": "honyaku",
-      "desc": "翻訳を生成する。"
+      "name": "トランスクリプト",
+      "desc": "動画から脚本を生成する。"
     }
   ]
 }

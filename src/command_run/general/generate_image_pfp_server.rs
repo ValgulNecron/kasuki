@@ -6,6 +6,7 @@ use serenity::all::{
     Timestamp,
 };
 use serenity::builder::CreateInteractionResponseFollowup;
+use tracing::trace;
 use uuid::Uuid;
 
 use crate::constant::COLOR;
@@ -80,6 +81,6 @@ pub async fn send_embed(
                 ErrorResponseType::Followup,
             )
         })?;
-    log::trace!("Done");
+    trace!("Done");
     Ok(())
 }
