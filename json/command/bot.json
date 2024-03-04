@@ -12,7 +12,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "bot_info/credit.json",
+      "file": "bot/credit.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -42,7 +42,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "bot_info/info.json",
+      "file": "bot/info.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -72,7 +72,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "bot_info/ping.json",
+      "file": "bot/ping.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -100,22 +100,22 @@
   "localised": [
     {
       "code": "en-US",
-      "name": "bot_info",
+      "name": "bot",
       "desc": "Command to get information about the bot."
     },
     {
       "code": "fr",
-      "name": "bot_info",
+      "name": "bot",
       "desc": "Commande pour obtenir des informations sur le bot."
     },
     {
       "code": "de",
-      "name": "bot_info",
+      "name": "bot",
       "desc": "Befehl, um Informationen über den Bot zu erhalten."
     },
     {
       "code": "ja",
-      "name": "bot_info",
+      "name": "bot",
       "desc": "ボットに関する情報を取得するコマンド。"
     }
   ]
