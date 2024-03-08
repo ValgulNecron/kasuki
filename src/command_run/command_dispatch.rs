@@ -151,7 +151,7 @@ async fn admin(ctx: &Context, command_interaction: &CommandInteraction) -> Resul
         .name
         .as_str()
     {
-        "lang" => lang::run(&command_interaction.data.options, ctx, command_interaction).await,
+        "lang" => lang::run(ctx, command_interaction).await,
         "module" => module::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),

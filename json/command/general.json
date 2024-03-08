@@ -185,36 +185,6 @@
           "desc": "ユーザーのプロフィールを表示します。"
         }
       ]
-    },
-    {
-      "name": "user",
-      "desc": "Info of an anilist user.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "general/user.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "user",
-          "desc": "Info of an anilist user."
-        },
-        {
-          "code": "fr",
-          "name": "utilisateur",
-          "desc": "Informations sur un utilisateur d'Anilist."
-        },
-        {
-          "code": "de",
-          "name": "benutzer",
-          "desc": "Informationen zu einem Anilist-Benutzer."
-        },
-        {
-          "code": "ja",
-          "name": "ユーザー",
-          "desc": "アニリストユーザーの情報。"
-        }
-      ]
     }
   ],
   "localised": [
