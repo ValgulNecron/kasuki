@@ -12,20 +12,20 @@ pub async fn command_dispatching(
     command_interaction: &CommandInteraction,
     ctx: &Context,
 ) {
-    error!("{:?}", error);
+    error!("{}", error);
     let response_type = error.error_response_type.clone();
     match response_type {
         ErrorResponseType::Message => match send_error(error, command_interaction, ctx).await {
             Ok(_) => {}
             Err(e) => {
-                error!("{:?}", e);
+                error!("{}", e);
             }
         },
         ErrorResponseType::Followup => {
             match send_differed_error(error, command_interaction, ctx).await {
                 Ok(_) => {}
                 Err(e) => {
-                    error!("{:?}", e);
+                    error!("{}", e);
                 }
             }
         }
@@ -35,7 +35,7 @@ pub async fn command_dispatching(
                 Err(_) => match send_differed_error(error, command_interaction, ctx).await {
                     Ok(_) => {}
                     Err(e) => {
-                        error!("{:?}", e);
+                        error!("{}", e);
                     }
                 },
             }
@@ -51,7 +51,7 @@ async fn send_error(
 ) -> Result<(), AppError> {
     let error_message = format!("**This error is most likely an error on your part. \
     like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
-    error and report it to me and I will try to fix it the fastest I can**  \n{:?}", e);
+    error and report it to me and I will try to fix it the fastest I can**  \n{}", e);
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
@@ -81,7 +81,7 @@ async fn send_differed_error(
 ) -> Result<(), AppError> {
     let error_message = format!("**This error is most likely an error on your part. \
     like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
-    error and report it to me and I will try to fix it the fastest I can**  \n{:?}", e);
+    error and report it to me and I will try to fix it the fastest I can**  \n{}", e);
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)

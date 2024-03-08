@@ -13,16 +13,50 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         None => String::from("0"),
     };
     let info_localised = load_localization_info(guild_id).await?;
+    let shard_count = ctx.cache.shard_count();
+    let shard = ctx.shard_id.to_string();
+    let user_count = ctx.cache.user_count();
+    let server_count = ctx.cache.guild_count();
+    let bot = ctx.http.get_current_application_info().await.map_err(|e| {
+        AppError::new(
+            format!("Error while getting the bot info {}", e),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )
+    })?;
+    let bot_name = bot.name;
+    let bot_id = bot.id.to_string();
+    let creation_date = bot.id.created_at().to_rfc3339().unwrap_or_default();
+    let bot_icon = bot.icon.ok_or(AppError::new(
+        String::from("The bot has no avatar"),
+        ErrorType::Option,
+        ErrorResponseType::Message,
+    ))?;
+    let avatar = if bot_icon.is_animated() {
+        format!(
+            "https://cdn.discordapp.com/icons/{}/{}.gif?size=1024",
+            bot_id, bot_icon
+        )
+    } else {
+        format!(
+            "https://cdn.discordapp.com/icons/{}/{}.webp?size=1024",
+            bot_id, bot_icon
+        )
+    };
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .description(
-            info_localised
-                .desc
-                .replace("$number$", ctx.cache.guilds().len().to_string().as_str())
-                .replace("$version$", APP_VERSION),
-        )
+        .description(info_localised.desc)
+        .field(info_localised.bot_name, bot_name, true)
+        .field(info_localised.bot_id, bot_id, true)
+        .field(info_localised.version, APP_VERSION, true)
+        .field(info_localised.shard_count, shard_count.to_string(), true)
+        .field(info_localised.shard, shard, true)
+        .field(info_localised.user_count, user_count.to_string(), true)
+        .field(info_localised.server_count, server_count.to_string(), true)
+        .field(info_localised.creation_date, creation_date, true)
+        .thumbnail(avatar)
         .title(&info_localised.title)
         .footer(CreateEmbedFooter::new(&info_localised.footer));
     let mut buttons = Vec::new();

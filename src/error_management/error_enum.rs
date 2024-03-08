@@ -25,8 +25,8 @@ impl fmt::Display for AppError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Error type: {}. Error message: {}, Error response type: {}",
-            self.error_type, self.message, self.error_response_type
+            "Error type: {}. Error message: {}",
+            self.error_type, self.message
         )
     }
 }
