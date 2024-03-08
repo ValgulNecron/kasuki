@@ -30,7 +30,7 @@ pub async fn set_data_ping_history_sqlite(
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let now = Utc::now().timestamp().to_string();
-    sqlx::query("INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)")
+    let _ = sqlx::query("INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)")
         .bind(shard_id)
         .bind(now)
         .bind(latency)
@@ -83,7 +83,7 @@ pub async fn set_data_guild_language_sqlite(
     lang: &String,
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
+    let _ = sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
         .bind(guild_id)
         .bind(lang)
         .execute(&pool)
@@ -133,7 +133,7 @@ pub async fn set_data_activity_sqlite(
     server_activity_full: ServerActivityFull,
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    sqlx::query(
+    let _ = sqlx::query(
         "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )
         .bind(server_activity_full.anime_id)
@@ -289,10 +289,10 @@ pub async fn set_registered_user_sqlite(
     username: &String,
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    sqlx::query_as("INSERT OR REPLACE INTO registered_user (user_id, anilist_id) VALUES (?, ?)")
+    let _ = sqlx::query("INSERT OR REPLACE INTO registered_user (user_id, anilist_id) VALUES (?, ?)")
         .bind(user_id)
         .bind(username)
-        .fetch_one(&pool)
+        .execute(&pool)
         .await
         .map_err(|e| {
             AppError::new(

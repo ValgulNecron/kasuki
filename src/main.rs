@@ -222,10 +222,11 @@ impl EventHandler for Handler {
         if let Interaction::Command(command_interaction) = interaction.clone() {
             // Log the details of the command interaction
             info!(
-                "Received {} from {} in {}",
+                "Received {} from {} in {} with option {:?}",
                 command_interaction.data.name,
                 command_interaction.user.name,
-                command_interaction.guild_id.unwrap().to_string()
+                command_interaction.guild_id.unwrap().to_string(),
+                command_interaction.data.options
             );
             // Dispatch the command
             if let Err(e) = command_dispatching(&ctx, &command_interaction).await {

@@ -1,7 +1,8 @@
 use serenity::all::{
-    CommandDataOption, CommandDataOptionValue, CommandInteraction, Context, CreateEmbed,
+    CommandInteraction, Context, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
+use crate::command_run::get_option::get_option_map_string_subcommand;
 
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::set_data_guild_language;
@@ -9,27 +10,15 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 use crate::lang_struct::general::lang::load_localization_lang;
 
 pub async fn run(
-    options: &[CommandDataOption],
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let lang = options.first().ok_or(AppError::new(
+    let map = get_option_map_string_subcommand(command_interaction);
+    let lang = map.get(&String::from("lang_choice")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,
-        ErrorResponseType::Message,
+        ErrorResponseType::Followup,
     ))?;
-    let lang = lang.value.clone();
-
-    let lang = match lang {
-        CommandDataOptionValue::String(lang) => lang,
-        _ => {
-            return Err(AppError::new(
-                String::from("The option is not a string."),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            ));
-        }
-    };
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
