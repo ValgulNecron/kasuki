@@ -7,6 +7,12 @@ use tracing::error;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
+const ERROR_MESSAGE: &str = "**There was an error while processing the command**\
+    \n**This error is most likely an error on your part. \
+    like searching for non existent anime, requesting nsfw image to the ai, etc.**\n \
+    **but in some case it's an error on my part.\
+    in this case report it to me and I will try to fix it the fastest I can**";
+
 pub async fn command_dispatching(
     error: AppError,
     command_interaction: &CommandInteraction,
@@ -49,9 +55,7 @@ async fn send_error(
     command_interaction: &CommandInteraction,
     ctx: &Context,
 ) -> Result<(), AppError> {
-    let error_message = format!("**This error is most likely an error on your part. \
-    like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
-    error and report it to me and I will try to fix it the fastest I can**  \n{}", e);
+    let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
@@ -79,9 +83,7 @@ async fn send_differed_error(
     command_interaction: &CommandInteraction,
     ctx: &Context,
 ) -> Result<(), AppError> {
-    let error_message = format!("**This error is most likely an error on your part. \
-    like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
-    error and report it to me and I will try to fix it the fastest I can**  \n{}", e);
+    let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
