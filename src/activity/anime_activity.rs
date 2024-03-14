@@ -21,7 +21,7 @@ pub async fn manage_activity(ctx: &Context) {
     tokio::spawn(async move { send_activity(&ctx).await });
 }
 
-pub async fn send_activity(ctx: &Context) {
+async fn send_activity(ctx: &Context) {
     let now = Utc::now().timestamp().to_string();
     let rows = match get_data_activity(now.clone()).await {
         Ok(rows) => rows,
@@ -53,7 +53,7 @@ pub async fn send_activity(ctx: &Context) {
     }
 }
 
-pub async fn send_specific_activity(
+async fn send_specific_activity(
     row: ActivityData,
     guild_id: String,
     row2: ActivityData,
@@ -129,7 +129,7 @@ pub async fn send_specific_activity(
     Ok(())
 }
 
-pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().unwrap_or("0".to_string()),
     )
@@ -161,7 +161,7 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
     Ok(())
 }
 
-pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
     trace!("removing {:#?} for {}", row, guild_id);
     remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await?;
     Ok(())

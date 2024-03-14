@@ -134,7 +134,7 @@ pub static mut IMAGE_MODELS: Lazy<String> =
 Chat and translation
  */
 /// Base URL for the AI chat API.
-pub static mut CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
+pub static CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
         "{}chat/completions",
         env::var("AI_CHAT_API_BASE_URL").unwrap_or_else(
@@ -144,19 +144,19 @@ pub static mut CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
 });
 
 /// Token for the AI chat API.
-pub static mut CHAT_TOKEN: Lazy<String> = Lazy::new(|| {
+pub static CHAT_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_CHAT_API_TOKEN").unwrap_or_else(|_| env::var("AI_API_TOKEN").unwrap_or_default())
 });
 
 /// Models for the AI chat API.
-pub static mut CHAT_MODELS: Lazy<String> =
+pub static CHAT_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_CHAT_MODEL").unwrap_or("gpt-3.5-turbo".to_string()));
 
 /*
 Transcription
  */
 /// Base URL for the AI transcription API.
-pub static mut TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
+pub static TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
         "{}audio/",
         env::var("AI_TRANSCRIPT_BASE_URL")
@@ -166,23 +166,23 @@ pub static mut TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
 });
 
 /// Token for the AI transcription API.
-pub static mut TRANSCRIPT_TOKEN: Lazy<String> = Lazy::new(|| {
+pub static TRANSCRIPT_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_TRANSCRIPT_API_TOKEN")
         .or_else(|_| env::var("AI_API_TOKEN"))
         .unwrap_or_default()
 });
 
 /// Models for the AI transcription API.
-pub static mut TRANSCRIPT_MODELS: Lazy<String> =
+pub static TRANSCRIPT_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_TRANSCRIPT_MODELS").unwrap_or_else(|_| String::from("whisper-1")));
 
 /*
 Web server
 */
 /// Flag to enable or disable the web server.
-pub static mut WEB_SERVER: Lazy<bool> =
+pub static WEB_SERVER: Lazy<bool> =
     Lazy::new(|| env::var("WEB_SERVER").unwrap_or_else(|_| "false".to_string()) == "true");
 
 /// Port for the web server.
-pub static mut WEB_SERVER_PORT: Lazy<String> =
+pub static WEB_SERVER_PORT: Lazy<String> =
     Lazy::new(|| env::var("WEB_SERVER_PORT").unwrap_or_else(|_| "8080".to_string()));

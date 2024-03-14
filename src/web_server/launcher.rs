@@ -1,13 +1,21 @@
+use std::sync::Arc;
+
+use serenity::all::ShardManager;
 use tonic::{Request, Response, Status};
 
 use proto::shard_server::Shard;
+
+use crate::constant::WEB_SERVER_PORT;
+use crate::web_server::launcher::proto::shard_server::ShardServer;
 
 mod proto {
     tonic::include_proto!("shard");
 }
 
-#[derive(Debug, Default)]
-struct ShardService {}
+#[derive(Debug)]
+struct ShardService {
+    pub shard_manager: Arc<ShardManager>,
+}
 
 #[tonic::async_trait]
 impl Shard for ShardService {
@@ -37,4 +45,17 @@ impl Shard for ShardService {
     }
 }
 
-pub async fn web_server_launcher() {}
+pub async fn web_server_launcher(shard_manager: &Arc<ShardManager>) {
+    let shard_manager_arc: Arc<ShardManager> = shard_manager.clone();
+
+    let addr = format!("0.0.0.0:{}", *WEB_SERVER_PORT);
+    let shard_service = ShardService {
+        shard_manager: shard_manager_arc,
+    };
+
+    tonic::transport::Server::builder()
+        .add_service(ShardServer::new(shard_service))
+        .serve(addr.parse().unwrap())
+        .await
+        .unwrap();
+}

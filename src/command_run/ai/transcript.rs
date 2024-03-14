@@ -121,7 +121,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     })?;
     let file_to_delete = fname.clone();
 
-    let token = unsafe { TRANSCRIPT_TOKEN.as_str() };
+    let token = TRANSCRIPT_TOKEN.as_str();
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -134,7 +134,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .file_name(file_name)
         .mime_str(content_type.as_str())
         .unwrap();
-    let model = unsafe { TRANSCRIPT_MODELS.as_str() };
+    let model = TRANSCRIPT_MODELS.as_str();
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", model)
@@ -142,7 +142,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .text("language", lang)
         .text("response_format", "json");
 
-    let url = unsafe { format!("{}transcriptions", TRANSCRIPT_BASE_URL.as_str()) };
+    let url = format!("{}transcriptions", TRANSCRIPT_BASE_URL.as_str());
     let response_result = client
         .post(url)
         .headers(headers)

@@ -376,7 +376,8 @@ async fn thread_management_launcher(ctx: Context) {
     // Get the guilds from the context cache
     // Clone the context
     // Spawn a new thread for the web server
-    tokio::spawn(launch_web_server_thread());
+
+    tokio::spawn(launch_web_server_thread(ctx.clone()));
     // Spawn a new thread for user color management
     tokio::spawn(launch_user_color_management_thread(ctx.clone()));
     // Spawn a new thread for activity management
@@ -401,9 +402,16 @@ async fn thread_management_launcher(ctx: Context) {
 
 /// This function is responsible for launching the web server thread.
 /// It does not take any arguments and does not return anything.
-async fn launch_web_server_thread() {
+async fn launch_web_server_thread(ctx: Context) {
+    let data_read = ctx.data.read().await;
+    let shard_manager = match data_read.get::<ShardManagerContainer>() {
+        Some(data) => data,
+        None => {
+            return;
+        }
+    };
     info!("Launching the log web server thread!");
-    web_server_launcher().await
+    web_server_launcher(shard_manager).await
 }
 
 /// This function is responsible for launching the user color management thread.
