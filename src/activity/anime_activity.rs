@@ -12,7 +12,7 @@ use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
-use crate::database_struct::server_activity_struct::ServerActivityFull;
+use crate::database_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
@@ -31,8 +31,7 @@ async fn send_activity(ctx: &Context) {
         }
     };
     for row in rows {
-        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {
-        } else {
+        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {} else {
             let row2 = row.clone();
             let guild_id = row.server_id.clone();
             if row.delays.unwrap() != 0 {
@@ -133,7 +132,7 @@ async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().unwrap_or("0".to_string()),
     )
-    .await?;
+        .await?;
     let media = data.data.media;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
@@ -157,7 +156,7 @@ async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError
         delays: row.delays.unwrap_or(0) as i64,
         image: row.image.unwrap_or_default(),
     })
-    .await?;
+        .await?;
     Ok(())
 }
 

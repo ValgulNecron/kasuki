@@ -1,7 +1,7 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::command_run::admin::module::check_activation_status;
 use crate::command_run::admin::{lang, module};
+use crate::command_run::admin::module::check_activation_status;
 use crate::command_run::ai::{image, question, transcript, translation};
 use crate::command_run::anilist::{
     add_activity, anime, character, compare, delete_activity, level, list_all_activity,

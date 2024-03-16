@@ -37,15 +37,15 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             last_updated INTEGER NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS cache_stats (
@@ -55,15 +55,15 @@ async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             last_page INTEGER NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
     Ok(())
 }
 
@@ -81,15 +81,15 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
                     PRIMARY KEY (shard_id, timestamp)
                 )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS guild_lang (
@@ -97,96 +97,98 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
             lang TEXT NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS activity_data (
         anime_id TEXT,
-        timestamp TEXT,
         server_id TEXT,
-        webhook TEXT,
-        episode TEXT,
-        name TEXT,
+        timestamp TEXT NOT NULL,
+        webhook TEXT NOT NULL,
+        episode TEXT NOT NULL,
+        name TEXT NOT NULL,
         delays INTEGER DEFAULT 0,
-        image TEXT,
-               PRIMARY KEY (anime_id, server_id)
+        image TEXT NOT NULL,
+        PRIMARY KEY (anime_id, server_id)
     )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
-       guild_id TEXT PRIMARY KEY,
-       ai_module INTEGER,
-       anilist_module INTEGER,
-        game_module INTEGER,
-            new_member INTEGER,
-        anime INTEGER
+            guild_id TEXT PRIMARY KEY,
+            ai_module INTEGER NOT NULL,
+            anilist_module INTEGER NOT NULL,
+            game_module INTEGER NOT NULL,
+            new_member INTEGER NOT NULL,
+            anime INTEGER NOT NULL
    )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
             user_id TEXT PRIMARY KEY,
-            anilist_id TEXT
+            anilist_id TEXT NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
             id TEXT PRIMARY KEY,
-            ai_module INTEGER,
-            anilist_module INTEGER,
-            game_module INTEGER,
-            new_member INTEGER
+            ai_module INTEGER NOT NULL,
+            anilist_module INTEGER NOT NULL,
+            game_module INTEGER NOT NULL,
+            new_member INTEGER NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
-        "INSERT OR REPLACE INTO global_kill_switch (id, anilist_module, ai_module, game_module, new_member) VALUES (?, ?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO global_kill_switch
+        (id, anilist_module, ai_module, game_module, new_member)
+        VALUES (?, ?, ?, ?, ?)",
     )
         .bind("1")
         .bind(1)
@@ -209,35 +211,34 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
                 image TEXT NOT NULL
      )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS server_image (
                 server_id TEXT,
                 type TEXT,
                 image TEXT NOT NULL,
-image_url TEXT NOT NULL,
-        PRIMARY KEY (server_id, type)
-
+                image_url TEXT NOT NULL,
+                PRIMARY KEY (server_id, type)
      )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     Ok(())
 }
