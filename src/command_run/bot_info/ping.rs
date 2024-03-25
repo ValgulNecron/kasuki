@@ -25,8 +25,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             ));
         }
     }
-        .runners
-        .clone();
+    .runners
+    .clone();
     let shard_manager = shard_manager.lock().await;
 
     let shard_id = ctx.shard_id;

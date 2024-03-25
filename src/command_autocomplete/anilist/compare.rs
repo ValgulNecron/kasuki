@@ -12,9 +12,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let mut choice = Vec::new();
     trace!("{:?}", &autocomplete_interaction.data.options);
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
-    let user1 = map
-        .get(&String::from("username"))
-        .unwrap_or(DEFAULT_STRING);
+    let user1 = map.get(&String::from("username")).unwrap_or(DEFAULT_STRING);
     choice.extend(get_choices(user1).await);
     let user2 = map
         .get(&String::from("username2"))

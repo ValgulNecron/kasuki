@@ -1,8 +1,8 @@
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, PartialGuild, Timestamp, User, UserId,
 };
-use serenity::all::CreateInteractionResponse::Defer;
 use tracing::log::trace;
 
 use crate::anilist_struct::run::user::UserWrapper;
@@ -10,7 +10,7 @@ use crate::constant::{COLOR, MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::list_register_user::{
-    ListUserLocalised, load_localization_list_user,
+    load_localization_list_user, ListUserLocalised,
 };
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {

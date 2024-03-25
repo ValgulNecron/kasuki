@@ -1,6 +1,6 @@
 [package]
 name = "kasuki"
-version = "2.5.5"
+version = "2.6.0"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
@@ -12,7 +12,7 @@ license-file = "LICENSE"
 
 [dependencies]
 regex = "1.10.3"
-reqwest = { version = "0.12.1", features = ["json"] }
+reqwest = { version = "0.12.1", features = ["json", "multipart"] }
 serde = "1.0.197"
 serde_json = "1.0.114"
 serenity = { version = "0.12.1", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils", "full"] }

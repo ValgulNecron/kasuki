@@ -35,6 +35,36 @@
           "desc": "アニメ活動を追加します。"
         }
       ]
+    },
+    {
+      "name": "delete_activity",
+      "desc": "Delete an anime activity.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist/delete_activity.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "delete_activity",
+          "desc": "Delete an anime activity."
+        },
+        {
+          "code": "fr",
+          "name": "supprimer_activite",
+          "desc": "Supprimer une activité anime."
+        },
+        {
+          "code": "de",
+          "name": "aktivitat_loeschen",
+          "desc": "Löschen Sie eine Anime-Aktivität."
+        },
+        {
+          "code": "ja",
+          "name": "katsudo_wo_sakujo",
+          "desc": "アニメ活動を削除します。"
+        }
+      ]
     }
   ],
   "localised": [

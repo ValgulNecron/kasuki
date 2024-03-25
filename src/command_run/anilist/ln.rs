@@ -1,6 +1,6 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::anilist_struct::run::media::{MediaWrapper, send_embed};
+use crate::anilist_struct::run::media::{send_embed, MediaWrapper};
 use crate::command_run::get_option::get_option_map_string_subcommand;
 use crate::error_management::error_enum::AppError;
 

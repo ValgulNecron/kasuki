@@ -2,11 +2,11 @@ use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
-use serenity::{async_trait, Client};
 use serenity::all::{
     ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready, ShardManager,
 };
 use serenity::all::{Guild, Member};
+use serenity::{async_trait, Client};
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
@@ -17,12 +17,12 @@ use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching
 use crate::command_register::command_registration::creates_commands;
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{
-    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
-};
 use crate::constant::ACTIVITY_NAME;
 use crate::constant::PING_UPDATE_DELAYS;
 use crate::constant::TIME_BETWEEN_GAME_UPDATE;
+use crate::constant::{
+    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+};
 use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;

@@ -1,3 +1,4 @@
+use crate::common::default_embed::get_default_embed;
 use serde::Deserialize;
 use serde_json::json;
 use serenity::all::{
@@ -267,9 +268,7 @@ pub async fn send_embed(
         }
     }
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(get_color(user.clone()))
+    let builder_embed = get_default_embed(Some(get_color(user.clone())))
         .title(user.name.unwrap_or_default())
         .url(get_user_url(user.id.unwrap_or(0)))
         .fields(field)

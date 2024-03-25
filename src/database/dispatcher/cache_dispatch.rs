@@ -13,9 +13,7 @@ use crate::database::sqlite::cache::{
 use crate::database_struct::cache_stats::CacheStats;
 use crate::error_management::error_enum::AppError;
 
-pub async fn get_database_random_cache(
-    random_type: &str,
-) -> Result<Option<CacheStats>, AppError> {
+pub async fn get_database_random_cache(random_type: &str) -> Result<Option<CacheStats>, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
         get_database_random_cache_sqlite(random_type).await

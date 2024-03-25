@@ -1,7 +1,7 @@
 {
   "name": "steam",
   "desc": "Steam command from the GAME module.",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
   "perm": false,
   "arg_num": 1,

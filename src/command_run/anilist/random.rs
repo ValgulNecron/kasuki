@@ -1,10 +1,10 @@
 use chrono::Utc;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
-use serenity::all::CreateInteractionResponse::Defer;
 
 use crate::anilist_struct::run::random::PageWrapper;
 use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
@@ -48,8 +48,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
 
-    let row: Option<CacheStats> =
-        get_database_random_cache(random_type).await?;
+    let row: Option<CacheStats> = get_database_random_cache(random_type).await?;
     let (cached_response, last_updated, page_number) = match row {
         Some(row) => (row.response, row.last_updated, row.last_page),
         None => (String::new(), 0, 1628),
@@ -65,7 +64,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 command_interaction,
                 random_localised,
             )
-                .await;
+            .await;
         }
     }
     update_cache(
@@ -77,7 +76,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         cached_response,
         random_localised,
     )
-        .await
+    .await
 }
 
 pub async fn embed(
@@ -209,5 +208,5 @@ pub async fn update_cache(
         command_interaction,
         random_localised,
     )
-        .await
+    .await
 }

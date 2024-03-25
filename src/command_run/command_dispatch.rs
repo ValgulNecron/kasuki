@@ -1,7 +1,7 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::command_run::admin::{lang, module};
 use crate::command_run::admin::module::check_activation_status;
+use crate::command_run::admin::{lang, module};
 use crate::command_run::ai::{image, question, transcript, translation};
 use crate::command_run::anilist::{
     add_activity, anime, character, compare, delete_activity, level, list_all_activity,
@@ -56,7 +56,21 @@ pub async fn command_dispatching(
             }
         }
         // anilist module
-        "anilist" => {
+        "anilist_admin" => {
+            if check_if_module_is_on(guild_id, "ANIME").await? {
+                anime(ctx, command_interaction).await?
+            } else {
+                return Err(ai_module_error);
+            }
+        }
+        "anilist_server" => {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
+                anilist(ctx, command_interaction).await?
+            } else {
+                return Err(anilist_module_error);
+            }
+        }
+        "anilist_user" => {
             if check_if_module_is_on(guild_id, "ANILIST").await? {
                 anilist(ctx, command_interaction).await?
             } else {
@@ -78,17 +92,11 @@ pub async fn command_dispatching(
                 return Err(ai_module_error);
             }
         }
-        "anilist_admin" => {
-            if check_if_module_is_on(guild_id, "ANIME").await? {
-                anime(ctx, command_interaction).await?
-            } else {
-                return Err(ai_module_error);
-            }
-        }
         // bot module
         "bot" => bot_info(ctx, command_interaction).await?,
         // general module
-        "general" => general(ctx, command_interaction).await?,
+        "server" => general(ctx, command_interaction).await?,
+        "user" => general(ctx, command_interaction).await?,
         // steam module
         "steam" => {
             if check_if_module_is_on(guild_id, "GAME").await? {

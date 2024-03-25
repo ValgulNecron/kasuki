@@ -106,8 +106,8 @@ async fn create_option(arg: Arg) -> CreateCommandOption {
         arg.name,
         arg.desc,
     )
-        .set_autocomplete(arg.autocomplete)
-        .required(arg.required);
+    .set_autocomplete(arg.autocomplete)
+    .required(arg.required);
 
     if let Some(choices) = arg.choices {
         for choice in choices {

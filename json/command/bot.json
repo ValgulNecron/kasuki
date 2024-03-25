@@ -1,7 +1,7 @@
 {
   "name": "bot",
   "desc": "Command to get information about the bot.",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
   "perm": false,
   "arg_num": 3,

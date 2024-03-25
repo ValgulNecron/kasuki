@@ -1,7 +1,7 @@
 {
   "name": "anime_nsfw",
   "desc": "Nsfw command from the ANIME module",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": true,
   "perm": false,
   "arg_num": 1,

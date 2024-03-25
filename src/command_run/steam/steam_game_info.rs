@@ -1,8 +1,8 @@
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
-use serenity::all::CreateInteractionResponse::Defer;
 use tracing::trace;
 
 use crate::command_run::get_option::get_option_map_string_subcommand;

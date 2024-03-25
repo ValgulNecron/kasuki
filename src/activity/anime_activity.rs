@@ -31,23 +31,29 @@ async fn send_activity(ctx: &Context) {
         }
     };
     for row in rows {
-        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {} else {
-            let row2 = row.clone();
-            let guild_id = row.server_id.clone();
-            if row.delays.unwrap() != 0 {
-                let ctx = ctx.clone();
-                tokio::spawn(async move {
-                    tokio::time::sleep(Duration::from_secs(row2.delays.unwrap_or_default() as u64))
-                        .await;
-                    if let Err(e) =
-                        send_specific_activity(row, guild_id.unwrap_or_default(), row2, &ctx).await
-                    {
-                        error!("{}", e)
-                    }
-                });
-            } else if let Err(e) = send_specific_activity(row, guild_id.unwrap(), row2, ctx).await {
-                error!("{}", e);
-            }
+        if row.timestamp.is_none() {
+            continue;
+        }
+
+        if now != row.timestamp.clone().unwrap_or_default() {
+            continue;
+        }
+
+        let row2 = row.clone();
+        let guild_id = row.server_id.clone();
+        if row.delays.unwrap() != 0 {
+            let ctx = ctx.clone();
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_secs(row2.delays.unwrap_or_default() as u64))
+                    .await;
+                if let Err(e) =
+                    send_specific_activity(row, guild_id.unwrap_or_default(), row2, &ctx).await
+                {
+                    error!("{}", e)
+                }
+            });
+        } else if let Err(e) = send_specific_activity(row, guild_id.unwrap(), row2, ctx).await {
+            error!("{}", e);
         }
     }
 }
@@ -132,7 +138,7 @@ async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().unwrap_or("0".to_string()),
     )
-        .await?;
+    .await?;
     let media = data.data.media;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
@@ -156,7 +162,7 @@ async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError
         delays: row.delays.unwrap_or(0) as i64,
         image: row.image.unwrap_or_default(),
     })
-        .await?;
+    .await?;
     Ok(())
 }
 

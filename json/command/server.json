@@ -1,71 +1,11 @@
 {
-  "name": "general",
-  "desc": "General purpose commands.",
+  "name": "server",
+  "desc": "General purpose commands for server.",
   "dm_command": false,
   "nsfw": false,
   "perm": false,
   "arg_num": 7,
   "args": [
-    {
-      "name": "avatar",
-      "desc": "Get the avatar.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "general/avatar.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "avatar",
-          "desc": "Get the avatar."
-        },
-        {
-          "code": "fr",
-          "name": "avatar",
-          "desc": "Obtenir l'avatar."
-        },
-        {
-          "code": "de",
-          "name": "avatar",
-          "desc": "Holen Sie sich den Avatar."
-        },
-        {
-          "code": "ja",
-          "name": "アバター",
-          "desc": "アバターを取得します。"
-        }
-      ]
-    },
-    {
-      "name": "banner",
-      "desc": "Get the banner.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "general/banner.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "banner",
-          "desc": "Get the banner."
-        },
-        {
-          "code": "fr",
-          "name": "bannière",
-          "desc": "Obtenez la bannière."
-        },
-        {
-          "code": "de",
-          "name": "banner",
-          "desc": "Holen Sie das Banner."
-        },
-        {
-          "code": "ja",
-          "name": "バナー",
-          "desc": "バナーを取得します。"
-        }
-      ]
-    },
     {
       "name": "guild",
       "desc": "Get information on the guild.",
@@ -155,58 +95,30 @@
           "desc": "ギルドサーバーの画像とグローバルpfpキャッシュを使用して画像を生成します。"
         }
       ]
-    },
-    {
-      "name": "profile",
-      "desc": "Show the profile of a user.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "general/profile.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "profile",
-          "desc": "Show the profile of a user."
-        },
-        {
-          "code": "fr",
-          "name": "profil",
-          "desc": "Afficher le profil d'un utilisateur."
-        },
-        {
-          "code": "de",
-          "name": "profil",
-          "desc": "Das Profil eines Benutzers anzeigen."
-        },
-        {
-          "code": "ja",
-          "name": "プロフィール",
-          "desc": "ユーザーのプロフィールを表示します。"
-        }
-      ]
-    }
-  ],
-  "localised": [
-    {
-      "code": "en-US",
-      "name": "general",
-      "desc": "General purpose commands."
-    },
-    {
-      "code": "fr",
-      "name": "général",
-      "desc": "Commandes à usage général."
-    },
-    {
-      "code": "de",
-      "name": "allgemein",
-      "desc": "Allgemeine Zweckbefehle."
-    },
-    {
-      "code": "ja",
-      "name": "一般",
-      "desc": "一般的な目的のコマンド。"
     }
   ]
+}
+],
+"localised": [
+{
+"code": "en-US",
+"name": "general",
+"desc": "General purpose commands."
+},
+{
+"code": "fr",
+"name": "général",
+"desc": "Commandes à usage général."
+},
+{
+"code": "de",
+"name": "allgemein",
+"desc": "Allgemeine Zweckbefehle."
+},
+{
+"code": "ja",
+"name": "一般",
+"desc": "一般的な目的のコマンド。"
+}
+]
 }

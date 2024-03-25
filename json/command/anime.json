@@ -1,7 +1,7 @@
 {
   "name": "anime",
   "desc": "Command from the ANIME module",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
   "perm": false,
   "arg_num": 1,
