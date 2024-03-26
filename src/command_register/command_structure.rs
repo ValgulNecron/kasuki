@@ -5,6 +5,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json;
 use serenity::all::{CommandOptionType, Permissions};
+use tracing::trace;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Arg {
@@ -74,6 +75,7 @@ pub fn get_commands(directory: &str) -> Result<Vec<CommandData>, Error> {
         let path = entry.path();
 
         if path.is_file() && path.extension().unwrap_or_default() == "json" {
+            trace!("Reading file: {:?}", path);
             let json_str = fs::read_to_string(path)?;
             let command: CommandData = serde_json::from_str(&json_str)?;
             commands.push(command);
