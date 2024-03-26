@@ -6,10 +6,12 @@ use serenity::all::{
 };
 use tracing::{error, info, trace};
 
-use crate::command_register::command_structure::{
+use crate::command_register::old_command_structure::{
     get_commands, Arg, CommandData, Localised, LocalisedArg, RemoteCommandOptionType,
     SubCommandData,
 };
+
+pub mod register_command;
 
 pub async fn creates_commands(http: &Arc<Http>, is_ok: bool) {
     if is_ok {

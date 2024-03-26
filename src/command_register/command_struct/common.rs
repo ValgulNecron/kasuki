@@ -1,35 +1,14 @@
-use std::fs;
-use std::io::Error;
-
-use serde::Deserialize;
-use serde::Serialize;
-use serde_json;
+use serde::{Deserialize, Serialize};
 use serenity::all::{CommandOptionType, Permissions};
-use tracing::trace;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Arg {
     pub name: String,
     pub desc: String,
+    pub arg_type: RemoteCommandOptionType,
     pub required: bool,
-    pub autocomplete: bool,
-    #[serde(with = "RemoteCommandOptionType")]
-    pub command_type: RemoteCommandOptionType,
-    pub choices: Option<Vec<ArgChoice>>,
-    pub localised_args: Option<Vec<LocalisedArg>>,
-    pub file: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ArgChoice {
-    pub option_choice: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct LocalisedArg {
-    pub code: String,
-    pub name: String,
-    pub desc: String,
+    pub localised: Option<Vec<Localised>>,
+    pub choices: Option<Vec<Choice>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -40,49 +19,21 @@ pub struct Localised {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct CommandData {
+pub struct Choice {
+    pub option_choice: String,
+    pub option_choice_localised: Option<Vec<ChoiceLocalised>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ChoiceLocalised {
+    pub code: String,
     pub name: String,
-    pub desc: String,
-    pub arg_num: u32,
-    pub args: Option<Vec<Arg>>,
-    pub perm: bool,
-    pub default_permissions: Option<Vec<DefaultPermission>>,
-    pub localised: Option<Vec<Localised>>,
-    pub dm_command: bool,
-    pub nsfw: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DefaultPermission {
     #[serde(with = "RemotePermissionType")]
     pub permission: RemotePermissionType,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SubCommandData {
-    pub name: String,
-    pub desc: String,
-    pub arg_num: u32,
-    pub args: Option<Vec<Arg>>,
-    pub localised: Option<Vec<Localised>>,
-}
-
-pub fn get_commands(directory: &str) -> Result<Vec<CommandData>, Error> {
-    let mut commands = Vec::new();
-
-    for entry in fs::read_dir(directory)? {
-        let entry = entry?;
-        let path = entry.path();
-
-        if path.is_file() && path.extension().unwrap_or_default() == "json" {
-            trace!("Reading file: {:?}", path);
-            let json_str = fs::read_to_string(path)?;
-            let command: CommandData = serde_json::from_str(&json_str)?;
-            commands.push(command);
-        }
-    }
-
-    Ok(commands)
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
