@@ -5,7 +5,6 @@
 ![Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/master?style=plastic)
 ![Dev Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/dev?style=plastic&label=Dev)
 
-
 ![Alt](https://repobeats.axiom.co/api/embed/ce0c4fc4155948704332a4126e892cfe612ed6cb.svg "Repobeats analytics image")
 
 ![Alt](https://repobeats.axiom.co/api/embed/ce0c4fc4155948704332a4126e892cfe612ed6cb.svg "Repobeats analytics image")

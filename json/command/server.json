@@ -97,26 +97,26 @@
       ]
     }
   ],
-"localised": [
-{
-"code": "en-US",
-"name": "general",
-"desc": "General purpose commands."
-},
-{
-"code": "fr",
-"name": "général",
-"desc": "Commandes à usage général."
-},
-{
-"code": "de",
-"name": "allgemein",
-"desc": "Allgemeine Zweckbefehle."
-},
-{
-"code": "ja",
-"name": "一般",
-"desc": "一般的な目的のコマンド。"
-}
-]
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "general",
+      "desc": "General purpose commands."
+    },
+    {
+      "code": "fr",
+      "name": "général",
+      "desc": "Commandes à usage général."
+    },
+    {
+      "code": "de",
+      "name": "allgemein",
+      "desc": "Allgemeine Zweckbefehle."
+    },
+    {
+      "code": "ja",
+      "name": "一般",
+      "desc": "一般的な目的のコマンド。"
+    }
+  ]
 }

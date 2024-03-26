@@ -15,6 +15,36 @@
       "file": "anilist/anime.json",
       "localised_args": [
         {
+          "name": "compare",
+          "desc": "Compare 2 anilist user.",
+          "command_type": "SubCommand",
+          "required": true,
+          "autocomplete": false,
+          "file": "anilist/compare.json",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "compare",
+              "desc": "Compare 2 anilist user."
+            },
+            {
+              "code": "fr",
+              "name": "comparer",
+              "desc": "Comparer 2 utilisateurs Anilist."
+            },
+            {
+              "code": "de",
+              "name": "vergleichen",
+              "desc": "Vergleichen Sie 2 Anilist-Benutzer."
+            },
+            {
+              "code": "ja",
+              "name": "比較",
+              "desc": "2つのAnilistユーザーを比較します。"
+            }
+          ]
+        },
+        {
           "code": "en-US",
           "name": "anime",
           "desc": "Info of an anime."
