@@ -7,8 +7,9 @@ pub struct Arg {
     pub desc: String,
     pub arg_type: RemoteCommandOptionType,
     pub required: bool,
-    pub localised: Option<Vec<Localised>>,
+    pub autocomplete: bool,
     pub choices: Option<Vec<Choice>>,
+    pub localised: Option<Vec<Localised>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

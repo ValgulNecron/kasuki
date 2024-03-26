@@ -1,17 +1,15 @@
 use crate::command_register::command_struct::command::Command;
-use crate::command_register::command_struct::common::{Arg, ChoiceLocalised, Localised};
-use crate::command_register::registration_function::common::get_option;
+use crate::command_register::command_struct::subcommand::SubCommand;
+use crate::command_register::registration_function::common::{get_option, get_subcommand_option};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use serenity::all::{
-    CommandData, CommandOptionType, CreateCommand, CreateCommandOption, Http, Permissions,
-};
+use serenity::all::{CreateCommand, Http, Permissions};
 use std::fs;
 use std::io::BufReader;
 use std::sync::Arc;
 use tracing::error;
 
-pub async fn creates_commands(http: &Arc<Http>) {
-    let commands = match get_commands("./json/command") {
+pub async fn creates_subcommands(http: &Arc<Http>) {
+    let commands = match get_subcommands("./json/subcommand") {
         Err(e) => {
             error!("{:?}", e);
             return;
@@ -24,8 +22,8 @@ pub async fn creates_commands(http: &Arc<Http>) {
     }
 }
 
-fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
-    let mut commands = Vec::new();
+fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, AppError> {
+    let mut subcommands = Vec::new();
     let paths = fs::read_dir(path).map_err(|e| AppError {
         message: format!("Failed to read directory: {:?} with error {}", path, e),
         error_type: ErrorType::File,
@@ -37,6 +35,7 @@ fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
             error_type: ErrorType::File,
             error_response_type: ErrorResponseType::None,
         })?;
+
         let path = entry.path();
         if path.is_file() && path.extension().unwrap_or_default() == "json" {
             let file = fs::File::open(path.as_path()).map_err(|e| AppError {
@@ -45,7 +44,7 @@ fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
                 error_response_type: ErrorResponseType::None,
             })?;
             let reader = BufReader::new(file);
-            let command: Command = serde_json::from_reader(reader).map_err(|e| AppError {
+            let command: SubCommand = serde_json::from_reader(reader).map_err(|e| AppError {
                 message: format!(
                     "Failed to parse file: {:?} with error {}",
                     path.as_path(),
@@ -54,13 +53,13 @@ fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
                 error_type: ErrorType::File,
                 error_response_type: ErrorResponseType::None,
             })?;
-            commands.push(command);
+            subcommands.push(command);
         }
     }
-    Ok(commands)
+    Ok(subcommands)
 }
 
-async fn create_command(command: &Command, http: &Arc<Http>) {
+async fn create_command(command: &SubCommand, http: &Arc<Http>) {
     let mut command_build = CreateCommand::new(&command.name)
         .nsfw(command.nsfw)
         .dm_permission(command.dm_command)
@@ -76,10 +75,9 @@ async fn create_command(command: &Command, http: &Arc<Http>) {
         permission = Permissions::from_bits(perm_bit).unwrap()
     }
     command_build = command_build.default_member_permissions(permission);
-
-    command_build = match &command.args {
-        Some(args) => {
-            let options = get_option(args);
+    command_build = match &command.command {
+        Some(command) => {
+            let options = get_subcommand_option(command);
             command_build.set_options(options)
         }
         None => command_build,

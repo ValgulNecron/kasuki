@@ -9,5 +9,5 @@ pub struct Command {
     pub nsfw: bool,
     pub localised: Option<Vec<Localised>>,
     pub args: Option<Vec<Arg>>,
-    pub default_permissions: Option<Vec<DefaultPermission>>,
+    pub permissions: Option<Vec<DefaultPermission>>,
 }

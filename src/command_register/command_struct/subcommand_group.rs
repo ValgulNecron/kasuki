@@ -11,8 +11,7 @@ pub struct SubCommandGroup {
     pub localised: Option<Vec<Localised>>,
     pub subcommands: Option<Vec<SubCommand>>,
     pub command: Option<Vec<Command>>,
-    #[serde(with = "RemotePermissionType")]
-    pub permission: RemotePermissionType,
+    pub permissions: Option<Vec<DefaultPermission>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

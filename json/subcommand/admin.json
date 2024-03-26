@@ -1,0 +1,217 @@
+{
+  "name": "admin",
+  "desc": "General bot configuration configuration for admin only.",
+  "dm_command": false,
+  "nsfw": false,
+  "default_permissions": [
+    {
+      "permission": "Administrator"
+    }
+  ],
+  "command": [
+    {
+      "name": "lang",
+      "desc": "Change the language of the bot's response.",
+      "args": [
+        {
+          "name": "lang_choice",
+          "desc": "The language you want to set the response to.",
+          "required": true,
+          "autocomplete": false,
+          "arg_type": "String",
+          "choices": [
+            {
+              "option_choice": "en"
+            },
+            {
+              "option_choice": "jp"
+            },
+            {
+              "option_choice": "de"
+            },
+            {
+              "option_choice": "fr"
+            }
+          ],
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "lang_choice",
+              "desc": "Change the language of the bot's response."
+            },
+            {
+              "code": "fr",
+              "name": "lang_choice",
+              "desc": "Change the language of the bot's response."
+            },
+            {
+              "code": "de",
+              "name": "lang_choice",
+              "desc": "Change the language of the bot's response."
+            },
+            {
+              "code": "ja",
+              "name": "lang_choice",
+              "desc": "Change the language of the bot's response."
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        },
+        {
+          "code": "fr",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        },
+        {
+          "code": "de",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        },
+        {
+          "code": "ja",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        }
+      ]
+    },
+    {
+      "name": "module",
+      "desc": "Turn on or off a module.",
+      "args": [
+        {
+          "name": "name",
+          "desc": "The module you want to change the state of.",
+          "required": true,
+          "autocomplete": false,
+          "arg_type": "String",
+          "choices": [
+            {
+              "option_choice": "AI"
+            },
+            {
+              "option_choice": "ANILIST"
+            },
+            {
+              "option_choice": "GAME"
+            },
+            {
+              "option_choice": "NEW_MEMBER"
+            },
+            {
+              "option_choice": "ANIME"
+            }
+          ],
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "module_name",
+              "desc": "The module you want to change the state of."
+            },
+            {
+              "code": "fr",
+              "name": "nom_du_module",
+              "desc": "Le module dont vous voulez changer l'état."
+            },
+            {
+              "code": "de",
+              "name": "modulname",
+              "desc": "Das Modul, dessen Zustand Sie ändern möchten."
+            },
+            {
+              "code": "ja",
+              "name": "モジュール名",
+              "desc": "状態を変更したいモジュール。"
+            }
+          ]
+        },
+        {
+          "name": "state",
+          "desc": "The state you want to to.",
+          "required": true,
+          "autocomplete": false,
+          "arg_type": "Boolean",
+          "choices": [
+            {
+              "option_choice": "True"
+            },
+            {
+              "option_choice": "False"
+            }
+          ],
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "module_state",
+              "desc": "The state you want to to."
+            },
+            {
+              "code": "fr",
+              "name": "statut",
+              "desc": "L'état que vous voulez appliquer."
+            },
+            {
+              "code": "de",
+              "name": "status",
+              "desc": "Der Zustand den Sie anwenden möchten."
+            },
+            {
+              "code": "ja",
+              "name": "状態",
+              "desc": "適用したい状態。"
+            }
+          ]
+        }
+      ],
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "module",
+          "desc": "Turn on or off a module."
+        },
+        {
+          "code": "fr",
+          "name": "module",
+          "desc": "Activer ou désactiver un module."
+        },
+        {
+          "code": "de",
+          "name": "modul",
+          "desc": "Ein Modul ein- oder ausschalten."
+        },
+        {
+          "code": "ja",
+          "name": "モジュール",
+          "desc": "モジュールをオンまたはオフにします。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "admin",
+      "desc": "General bot configuration configuration for admin only."
+    },
+    {
+      "code": "fr",
+      "name": "admin",
+      "desc": "Configuration générale du bot pour les administrateurs uniquement."
+    },
+    {
+      "code": "de",
+      "name": "admin",
+      "desc": "Allgemeine Bot-Konfiguration nur für Admins."
+    },
+    {
+      "code": "ja",
+      "name": "admin",
+      "desc": "管理者専用の一般的なボット構成設定。"
+    }
+  ]
+}
