@@ -1,15 +1,15 @@
-use crate::command_register::command_struct::command::Command;
-use crate::command_register::command_struct::subcommand::SubCommand;
-use crate::command_register::registration_function::common::{get_option, get_subcommand_option};
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use serenity::all::{CreateCommand, Http, Permissions};
 use std::fs;
 use std::io::BufReader;
 use std::sync::Arc;
+use serenity::all::{CreateCommand, Http, Permissions};
 use tracing::{error, trace};
 
-pub async fn creates_subcommands(http: &Arc<Http>) {
-    let commands = match get_subcommands("./json/subcommand") {
+use crate::command_register::command_struct::subcommand_group::SubCommandGroup;
+use crate::command_register::registration_function::common::{get_subcommand_group_option, get_subcommand_option};
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+
+pub async fn creates_subcommands_group(http: &Arc<Http>) {
+    let commands = match get_subcommands_group("./json/subcommand_group") {
         Err(e) => {
             error!("{:?}", e);
             return;
@@ -22,8 +22,8 @@ pub async fn creates_subcommands(http: &Arc<Http>) {
     }
 }
 
-fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, AppError> {
-    let mut subcommands = Vec::new();
+fn get_subcommands_group(path: &str) -> Result<Vec<SubCommandGroup>, AppError> {
+    let mut subcommands_group = Vec::new();
     let paths = fs::read_dir(path).map_err(|e| AppError {
         message: format!("Failed to read directory: {:?} with error {}", path, e),
         error_type: ErrorType::File,
@@ -44,7 +44,7 @@ fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, AppError> {
                 error_response_type: ErrorResponseType::None,
             })?;
             let reader = BufReader::new(file);
-            let command: SubCommand = serde_json::from_reader(reader).map_err(|e| AppError {
+            let command: SubCommandGroup = serde_json::from_reader(reader).map_err(|e| AppError {
                 message: format!(
                     "Failed to parse file: {:?} with error {}",
                     path.as_path(),
@@ -53,16 +53,16 @@ fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, AppError> {
                 error_type: ErrorType::File,
                 error_response_type: ErrorResponseType::None,
             })?;
-            subcommands.push(command);
+            subcommands_group.push(command);
         }
     }
-    if subcommands.is_empty() {
-        trace!("No subcommands found in the directory: {:?}", path);
+    if subcommands_group.is_empty() {
+        trace!("No subcommands group found in the directory: {:?}", path);
     }
-        Ok(subcommands)
+    Ok(subcommands_group)
 }
 
-async fn create_command(command: &SubCommand, http: &Arc<Http>) {
+async fn create_command(command: &SubCommandGroup, http: &Arc<Http>) {
     let mut command_build = CreateCommand::new(&command.name)
         .nsfw(command.nsfw)
         .dm_permission(command.dm_command)
@@ -78,9 +78,18 @@ async fn create_command(command: &SubCommand, http: &Arc<Http>) {
         permission = Permissions::from_bits(perm_bit).unwrap()
     }
     command_build = command_build.default_member_permissions(permission);
+
     command_build = match &command.command {
         Some(command) => {
             let options = get_subcommand_option(command);
+            command_build.set_options(options)
+        }
+        None => command_build,
+    };
+
+    command_build = match &command.subcommands {
+        Some(subcommand) => {
+            let options = get_subcommand_group_option(subcommand);
             command_build.set_options(options)
         }
         None => command_build,

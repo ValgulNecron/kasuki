@@ -8,7 +8,7 @@ use serenity::all::{
 use std::fs;
 use std::io::BufReader;
 use std::sync::Arc;
-use tracing::error;
+use tracing::{error, trace};
 
 pub async fn creates_commands(http: &Arc<Http>) {
     let commands = match get_commands("./json/command") {
@@ -56,6 +56,9 @@ fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
             })?;
             commands.push(command);
         }
+    }
+    if commands.is_empty() {
+        trace!("No commands found in the directory: {:?}", path);
     }
     Ok(commands)
 }

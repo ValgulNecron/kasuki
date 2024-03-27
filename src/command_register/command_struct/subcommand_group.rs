@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 pub struct SubCommandGroup {
     pub name: String,
     pub desc: String,
+    pub dm_command: bool,
+    pub nsfw: bool,
     pub localised: Option<Vec<Localised>>,
     pub subcommands: Option<Vec<SubCommand>>,
     pub command: Option<Vec<Command>>,
