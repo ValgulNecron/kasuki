@@ -47,7 +47,7 @@ fn add_choices(mut option: CreateCommandOption, choices: &Vec<Choice>) -> Create
 }
 
 fn add_choices_localised(
-    mut option: CreateCommandOption,
+    option: CreateCommandOption,
     locales: &Vec<ChoiceLocalised>,
     name: &String,
 ) -> CreateCommandOption {

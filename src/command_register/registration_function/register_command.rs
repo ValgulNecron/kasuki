@@ -1,9 +1,9 @@
 use crate::command_register::command_struct::command::Command;
-use crate::command_register::command_struct::common::{Arg, ChoiceLocalised, Localised};
+
 use crate::command_register::registration_function::common::get_option;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use serenity::all::{
-    CommandData, CommandOptionType, CreateCommand, CreateCommandOption, Http, Permissions,
+    CreateCommand, Http, Permissions,
 };
 use std::fs;
 use std::io::BufReader;

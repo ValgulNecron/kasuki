@@ -2,8 +2,8 @@ use crate::common::default_embed::get_default_embed;
 use serde::Deserialize;
 use serde_json::json;
 use serenity::all::{
-    Colour, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
+    Colour, CommandInteraction, Context, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
 
 use crate::common::make_anilist_request::make_request_anilist;

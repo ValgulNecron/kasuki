@@ -1,5 +1,5 @@
 use crate::command_register::command_struct::common::{
-    Arg, DefaultPermission, Localised, RemoteCommandOptionType, RemotePermissionType,
+    Arg, DefaultPermission, Localised,
 };
 use serde::{Deserialize, Serialize};
 

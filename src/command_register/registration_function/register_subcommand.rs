@@ -1,6 +1,6 @@
-use crate::command_register::command_struct::command::Command;
+
 use crate::command_register::command_struct::subcommand::SubCommand;
-use crate::command_register::registration_function::common::{get_option, get_subcommand_option};
+use crate::command_register::registration_function::common::{get_subcommand_option};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use serenity::all::{CreateCommand, Http, Permissions};
 use std::fs;
