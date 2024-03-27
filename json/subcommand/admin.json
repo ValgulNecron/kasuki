@@ -21,38 +21,110 @@
           "arg_type": "String",
           "choices": [
             {
-              "option_choice": "en"
+              "option_choice": "en",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "English"
+                },
+                {
+                  "code": "fr",
+                  "name": "Anglais"
+                },
+                {
+                  "code": "de",
+                  "name": "Englisch"
+                },
+                {
+                  "code": "ja",
+                  "name": "英語"
+                }
+              ]
             },
             {
-              "option_choice": "jp"
+              "option_choice": "jp",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "Japanese"
+                },
+                {
+                  "code": "fr",
+                  "name": "Japonais"
+                },
+                {
+                  "code": "de",
+                  "name": "Japanisch"
+                },
+                {
+                  "code": "ja",
+                  "name": "日本語"
+                }
+              ]
             },
             {
-              "option_choice": "de"
+              "option_choice": "de",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "German"
+                },
+                {
+                  "code": "fr",
+                  "name": "Allemand"
+                },
+                {
+                  "code": "de",
+                  "name": "Deutsch"
+                },
+                {
+                  "code": "ja",
+                  "name": "ドイツ語"
+                }
+              ]
             },
             {
-              "option_choice": "fr"
+              "option_choice": "fr",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "French"
+                },
+                {
+                  "code": "fr",
+                  "name": "Français"
+                },
+                {
+                  "code": "de",
+                  "name": "Französisch"
+                },
+                {
+                  "code": "ja",
+                  "name": "フランス語"
+                }
+              ]
             }
           ],
           "localised_args": [
             {
               "code": "en-US",
               "name": "lang_choice",
-              "desc": "Change the language of the bot's response."
+              "desc": "The language you want to set the response to."
             },
             {
               "code": "fr",
-              "name": "lang_choice",
-              "desc": "Change the language of the bot's response."
+              "name": "choix_langue",
+              "desc": "La langue que vous souhaitez définir pour la réponse."
             },
             {
               "code": "de",
               "name": "lang_choice",
-              "desc": "Change the language of the bot's response."
+              "desc": "Die Sprache, die Sie für die Antwort festlegen möchten."
             },
             {
               "code": "ja",
-              "name": "lang_choice",
-              "desc": "Change the language of the bot's response."
+              "name": "言語選択",
+              "desc": "レスポンスに設定したい言語。"
             }
           ]
         }
@@ -66,17 +138,17 @@
         {
           "code": "fr",
           "name": "lang",
-          "desc": "The language you want to set the response to."
+          "desc": "La langue que vous souhaitez définir pour la réponse."
         },
         {
           "code": "de",
           "name": "lang",
-          "desc": "The language you want to set the response to."
+          "desc": "Die Sprache, die Sie für die Antwort festlegen möchten."
         },
         {
           "code": "ja",
           "name": "lang",
-          "desc": "The language you want to set the response to."
+          "desc": "レスポンスに設定したい言語。"
         }
       ]
     },
@@ -92,16 +164,62 @@
           "arg_type": "String",
           "choices": [
             {
-              "option_choice": "AI"
+              "option_choice": "AI",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "AI"
+                },
+                {
+                  "code": "fr",
+                  "name": "IA"
+                }
+              ]
             },
             {
               "option_choice": "ANILIST"
             },
             {
-              "option_choice": "GAME"
+              "option_choice": "GAME",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "Game"
+                },
+                {
+                  "code": "fr",
+                  "name": "Jeu"
+                },
+                {
+                  "code": "de",
+                  "name": "Spiel"
+                },
+                {
+                  "code": "ja",
+                  "name": "ゲーム"
+                }
+              ]
             },
             {
-              "option_choice": "NEW_MEMBER"
+              "option_choice": "NEW_MEMBER",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "New Member"
+                },
+                {
+                  "code": "fr",
+                  "name": "Nouveau Membre"
+                },
+                {
+                  "code": "de",
+                  "name": "Neues Mitglied"
+                },
+                {
+                  "code": "ja",
+                  "name": "新メンバー"
+                }
+              ]
             },
             {
               "option_choice": "ANIME"
@@ -138,10 +256,46 @@
           "arg_type": "Boolean",
           "choices": [
             {
-              "option_choice": "True"
+              "option_choice": "True",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "True"
+                },
+                {
+                  "code": "fr",
+                  "name": "Vrai"
+                },
+                {
+                  "code": "de",
+                  "name": "Wahr"
+                },
+                {
+                  "code": "ja",
+                  "name": "真"
+                }
+              ]
             },
             {
-              "option_choice": "False"
+              "option_choice": "False",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "False"
+                },
+                {
+                  "code": "fr",
+                  "name": "Faux"
+                },
+                {
+                  "code": "de",
+                  "name": "Falsch"
+                },
+                {
+                  "code": "ja",
+                  "name": "偽"
+                }
+              ]
             }
           ],
           "localised_args": [

@@ -1,9 +1,9 @@
 use crate::command_register::registration_function::register_command::creates_commands;
 use crate::command_register::registration_function::register_subcommand::creates_subcommands;
+use crate::command_register::registration_function::register_subcommand_group::creates_subcommands_group;
 use serenity::all::{Command, Http};
 use std::sync::Arc;
 use tracing::{error, info, trace};
-use crate::command_register::registration_function::register_subcommand_group::creates_subcommands_group;
 
 pub async fn command_dispatcher(http: &Arc<Http>, is_ok: bool) {
     info!("Starting to create commands...");

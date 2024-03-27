@@ -1,6 +1,4 @@
-use crate::command_register::command_struct::common::{
-    Arg, DefaultPermission, Localised,
-};
+use crate::command_register::command_struct::common::{Arg, DefaultPermission, Localised};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

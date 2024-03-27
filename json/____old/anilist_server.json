@@ -65,36 +65,6 @@
           "desc": "登録されているすべてのユーザーのリストを取得します。"
         }
       ]
-    },
-    {
-      "name": "register",
-      "desc": "Register your Anilist username for ease of use.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "anilist_server/register.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "register",
-          "desc": "Register your Anilist username for ease of use."
-        },
-        {
-          "code": "fr",
-          "name": "register",
-          "desc": "Enregistrez votre nom d'utilisateur Anilist pour plus de facilité d'utilisation."
-        },
-        {
-          "code": "de",
-          "name": "register",
-          "desc": "Registriere deinen Anilist-Benutzernamen für mehr Benutzerfreundlichkeit."
-        },
-        {
-          "code": "ja",
-          "name": "register",
-          "desc": "利便性のためにAnilistユーザー名を登録してください。"
-        }
-      ]
     }
   ],
   "localised": [

@@ -1,0 +1,201 @@
+{
+  "name": "user",
+  "desc": "General purpose commands for user.",
+  "dm_command": false,
+  "nsfw": false,
+  "command": [
+    {
+      "name": "avatar",
+      "desc": "Get the avatar.",
+      "args": [
+        {
+          "name": "username",
+          "desc": "Username of the user you want the avatar of.",
+          "required": false,
+          "autocomplete": false,
+          "arg_type": "User",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "username",
+              "desc": "Username of the user you want the avatar of."
+            },
+            {
+              "code": "fr",
+              "name": "nom_dutilisateur",
+              "desc": "Nom d'utilisateur de l'utilisateur dont vous souhaitez l'avatar."
+            },
+            {
+              "code": "de",
+              "name": "benutzername",
+              "desc": "Benutzername des Benutzers, von dem Sie den Avatar möchten."
+            },
+            {
+              "code": "ja",
+              "name": "ユーザー名",
+              "desc": "アバターを取得したいユーザーのユーザー名。"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "avatar",
+          "desc": "Get the avatar."
+        },
+        {
+          "code": "fr",
+          "name": "avatar",
+          "desc": "Obtenir l'avatar."
+        },
+        {
+          "code": "de",
+          "name": "avatar",
+          "desc": "Holen Sie sich den Avatar."
+        },
+        {
+          "code": "ja",
+          "name": "アバター",
+          "desc": "アバターを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "banner",
+      "desc": "Get the banner.",
+      "args": [
+        {
+          "name": "username",
+          "desc": "Username of the user you want the profile of.",
+          "required": false,
+          "autocomplete": false,
+          "arg_type": "User",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "username",
+              "desc": "Username of the user you want the avatar of."
+            },
+            {
+              "code": "fr",
+              "name": "nom_dutilisateur",
+              "desc": "Nom d'utilisateur de l'utilisateur dont vous souhaitez l'avatar."
+            },
+            {
+              "code": "de",
+              "name": "benutzername",
+              "desc": "Benutzername des Benutzers, von dem Sie den Avatar möchten."
+            },
+            {
+              "code": "ja",
+              "name": "ユーザー名",
+              "desc": "アバターを取得したいユーザーのユーザー名。"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "banner",
+          "desc": "Get the banner."
+        },
+        {
+          "code": "fr",
+          "name": "bannière",
+          "desc": "Obtenez la bannière."
+        },
+        {
+          "code": "de",
+          "name": "banner",
+          "desc": "Holen Sie das Banner."
+        },
+        {
+          "code": "ja",
+          "name": "バナー",
+          "desc": "バナーを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "profile",
+      "desc": "Show the profile of a user.",
+      "args": [
+        {
+          "name": "username",
+          "desc": "Username of the user you want the avatar of.",
+          "required": false,
+          "autocomplete": false,
+          "arg_type": "User",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "username",
+              "desc": "Username of the user you want the avatar of."
+            },
+            {
+              "code": "fr",
+              "name": "nom_dutilisateur",
+              "desc": "Nom d'utilisateur de l'utilisateur dont vous voulez l'avatar."
+            },
+            {
+              "code": "de",
+              "name": "benutzername",
+              "desc": "Benutzername des Benutzers, dessen Avatar Sie wollen."
+            },
+            {
+              "code": "ja",
+              "name": "ユーザー名",
+              "desc": "アバターを表示したいユーザーのユーザー名。"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "profile",
+          "desc": "Show the profile of a user."
+        },
+        {
+          "code": "fr",
+          "name": "profil",
+          "desc": "Afficher le profil d'un utilisateur."
+        },
+        {
+          "code": "de",
+          "name": "profil",
+          "desc": "Das Profil eines Benutzers anzeigen."
+        },
+        {
+          "code": "ja",
+          "name": "プロフィール",
+          "desc": "ユーザーのプロフィールを表示します。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "general",
+      "desc": "General purpose commands."
+    },
+    {
+      "code": "fr",
+      "name": "général",
+      "desc": "Commandes à usage général."
+    },
+    {
+      "code": "de",
+      "name": "allgemein",
+      "desc": "Allgemeine Zweckbefehle."
+    },
+    {
+      "code": "ja",
+      "name": "一般",
+      "desc": "一般的な目的のコマンド。"
+    }
+  ]
+}

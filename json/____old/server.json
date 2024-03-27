@@ -12,7 +12,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "general/guild.json",
+      "file": "server/guild.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -42,7 +42,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "general/guild_image.json",
+      "file": "server/guild_image.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -72,7 +72,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "general/guild_image_g.json",
+      "file": "server/guild_image_g.json",
       "localised_args": [
         {
           "code": "en-US",

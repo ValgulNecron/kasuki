@@ -12,7 +12,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "general/avatar.json",
+      "file": "user/avatar.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -42,7 +42,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "general/banner.json",
+      "file": "user/banner.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -72,7 +72,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "general/profile.json",
+      "file": "user/profile.json",
       "localised_args": [
         {
           "code": "en-US",

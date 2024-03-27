@@ -1,7 +1,7 @@
 use crate::command_register::command_struct::common::{Arg, Choice, ChoiceLocalised, Localised};
 use crate::command_register::command_struct::subcommand::Command;
-use serenity::all::{CommandOptionType, CreateCommandOption};
 use crate::command_register::command_struct::subcommand_group::SubCommand;
+use serenity::all::{CommandOptionType, CreateCommandOption};
 
 pub fn get_option(args: &Vec<Arg>) -> Vec<CreateCommandOption> {
     let mut options = Vec::new();
@@ -82,8 +82,11 @@ pub fn get_subcommand_option(commands: &Vec<Command>) -> Vec<CreateCommandOption
 pub fn get_subcommand_group_option(subcommands: &Vec<SubCommand>) -> Vec<CreateCommandOption> {
     let mut options = Vec::new();
     for subcommand in subcommands {
-        let mut option =
-            CreateCommandOption::new(CommandOptionType::SubCommand, &subcommand.name, &subcommand.desc);
+        let mut option = CreateCommandOption::new(
+            CommandOptionType::SubCommand,
+            &subcommand.name,
+            &subcommand.desc,
+        );
         option = match &subcommand.command {
             Some(command) => {
                 let options = get_subcommand_option(command);

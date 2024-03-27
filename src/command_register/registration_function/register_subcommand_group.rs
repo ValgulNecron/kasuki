@@ -1,11 +1,13 @@
+use serenity::all::{CreateCommand, Http, Permissions};
 use std::fs;
 use std::io::BufReader;
 use std::sync::Arc;
-use serenity::all::{CreateCommand, Http, Permissions};
 use tracing::{error, trace};
 
 use crate::command_register::command_struct::subcommand_group::SubCommandGroup;
-use crate::command_register::registration_function::common::{get_subcommand_group_option, get_subcommand_option};
+use crate::command_register::registration_function::common::{
+    get_subcommand_group_option, get_subcommand_option,
+};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn creates_subcommands_group(http: &Arc<Http>) {
@@ -44,15 +46,16 @@ fn get_subcommands_group(path: &str) -> Result<Vec<SubCommandGroup>, AppError> {
                 error_response_type: ErrorResponseType::None,
             })?;
             let reader = BufReader::new(file);
-            let command: SubCommandGroup = serde_json::from_reader(reader).map_err(|e| AppError {
-                message: format!(
-                    "Failed to parse file: {:?} with error {}",
-                    path.as_path(),
-                    e
-                ),
-                error_type: ErrorType::File,
-                error_response_type: ErrorResponseType::None,
-            })?;
+            let command: SubCommandGroup =
+                serde_json::from_reader(reader).map_err(|e| AppError {
+                    message: format!(
+                        "Failed to parse file: {:?} with error {}",
+                        path.as_path(),
+                        e
+                    ),
+                    error_type: ErrorType::File,
+                    error_response_type: ErrorResponseType::None,
+                })?;
             subcommands_group.push(command);
         }
     }

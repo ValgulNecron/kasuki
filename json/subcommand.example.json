@@ -15,13 +15,42 @@
           "name": "arg1",
           "desc": "The first argument",
           "arg_type": "String",
-          "required": true
+          "required": true,
+          "choices": [
+            {
+              "option_choice": "choice1",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "choice1",
+                  "desc": "The first choice"
+                },
+                {
+                  "code": "fr",
+                  "name": "choix1",
+                  "desc": "Le premier choix"
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "arg2",
           "desc": "The second argument",
           "arg_type": "Integer",
-          "required": false
+          "required": false,
+          "localised": [
+            {
+              "code": "en-US",
+              "name": "arg2",
+              "desc": "The second argument"
+            },
+            {
+              "code": "fr",
+              "name": "arg2",
+              "desc": "Le deuxième argument"
+            }
+          ]
         }
       ],
       "localised": [

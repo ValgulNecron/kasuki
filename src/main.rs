@@ -15,7 +15,6 @@ use struct_shard_manager::ShardManagerContainer;
 use crate::activity::anime_activity::manage_activity;
 use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command_register::registration_dispatcher::command_dispatcher;
-
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::ACTIVITY_NAME;
