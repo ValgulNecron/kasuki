@@ -7,7 +7,7 @@ pub struct Command {
     pub desc: String,
     pub dm_command: bool,
     pub nsfw: bool,
-    pub localised: Option<Vec<Localised>>,
-    pub args: Option<Vec<Arg>>,
     pub permissions: Option<Vec<DefaultPermission>>,
+    pub args: Option<Vec<Arg>>,
+    pub localised: Option<Vec<Localised>>,
 }

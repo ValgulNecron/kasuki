@@ -1,40 +1,35 @@
 {
-  "name": "name of the command in english no more than 50 char long and no space special char or uppercase",
-  "desc": "description of the command ",
-  "dm_command": false,
-  "nsfw": true,
-  "perm": false,
-  "default_permissions": "One of the RemotePermissionType in command_register/command_structure if perm is set to true",
-  "arg_num": 1,
+  "name": "example",
+  "desc": "An example of a command json file",
+  "dm_command": true,
+  "nsfw": false,
+  "permissions": [
+    "SEND_MESSAGES"
+  ],
   "args": [
     {
-      "name": "name of the option in english no more than 50 char long and no space special char or uppercase",
-      "desc": "description of the option ",
-      "required": true,
-      "autocomplete": false,
-      "command_type": "One of the RemoteCommandOptionType in command_register/command_structure",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "1st duplicate of the name and desc of the option in english after it the other translation",
-          "desc": "same for description"
-        }
-      ],
-      "choices": [
-        {
-          "option_choice": "one choice"
-        },
-        {
-          "option_choice": "second choice"
-        }
-      ]
+      "name": "arg1",
+      "desc": "The first argument",
+      "arg_type": "String",
+      "required": true
+    },
+    {
+      "name": "arg2",
+      "desc": "The second argument",
+      "arg_type": "Integer",
+      "required": false
     }
   ],
   "localised": [
     {
       "code": "en-US",
-      "name": "1st duplicate of the name and desc of the command in english after it the other translation",
-      "desc": "same for description"
+      "name": "example",
+      "desc": "An example of a command json file"
+    },
+    {
+      "code": "fr",
+      "name": "exemple",
+      "desc": "Un exemple de fichier json de commande"
     }
   ]
 }
