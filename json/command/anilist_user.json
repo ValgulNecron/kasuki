@@ -7,12 +7,42 @@
   "arg_num": 16,
   "args": [
     {
+      "name": "level",
+      "desc": "Get the level of a user.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist_user/level.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "level",
+          "desc": "Get the level of a user."
+        },
+        {
+          "code": "fr",
+          "name": "level",
+          "desc": "Obtenez le niveau d'un utilisateur."
+        },
+        {
+          "code": "de",
+          "name": "level",
+          "desc": "Erhalten Sie das Level eines Benutzers."
+        },
+        {
+          "code": "ja",
+          "name": "level",
+          "desc": "ユーザーのレベルを取得します。"
+        }
+      ]
+    },
+    {
       "name": "anime",
       "desc": "Info of an anime.",
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/anime.json",
+      "file": "anilist_user/anime.json",
       "localised_args": [
         {
           "name": "compare",
@@ -72,7 +102,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/character.json",
+      "file": "anilist_user/character.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -102,7 +132,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/level.json",
+      "file": "anilist_user/level.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -132,7 +162,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/ln.json",
+      "file": "anilist_user/ln.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -162,7 +192,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/manga.json",
+      "file": "anilist_user/manga.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -192,7 +222,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/random.json",
+      "file": "anilist_user/random.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -222,7 +252,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/search.json",
+      "file": "anilist_user/search.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -252,7 +282,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/seiyuu.json",
+      "file": "anilist_user/seiyuu.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -282,7 +312,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/staff.json",
+      "file": "anilist_user/staff.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -312,7 +342,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/studio.json",
+      "file": "anilist_user/studio.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -342,7 +372,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/waifu.json",
+      "file": "anilist_user/waifu.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -372,7 +402,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/user.json",
+      "file": "anilist_user/user.json",
       "localised_args": [
         {
           "code": "en-US",

@@ -42,7 +42,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/delete_activity.json",
+      "file": "anilist_admin/delete_activity.json",
       "localised_args": [
         {
           "code": "en-US",

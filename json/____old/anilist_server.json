@@ -1,0 +1,122 @@
+{
+  "name": "anilist_server",
+  "desc": "Commands for the AniList module for server",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 16,
+  "args": [
+    {
+      "name": "list_activity",
+      "desc": "Get the list of all registered activity.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist_server/list_activity.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "list_activity",
+          "desc": "Get the list of all registered activity."
+        },
+        {
+          "code": "fr",
+          "name": "liste_activite",
+          "desc": "Obtenir la liste de toutes les activités enregistrées."
+        },
+        {
+          "code": "de",
+          "name": "aktivitat_liste",
+          "desc": "Erhalten Sie die Liste aller registrierten Aktivitäten."
+        },
+        {
+          "code": "ja",
+          "name": "regisutaredo_katsudo_no_rireki",
+          "desc": "登録されたすべてのアクティビティのリストを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "list_user",
+      "desc": "Get the list of all registered users.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist_server/list_user.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "list_user",
+          "desc": "Get the list of all registered users."
+        },
+        {
+          "code": "fr",
+          "name": "liste_utilisateurs",
+          "desc": "Obtenez la liste de tous les utilisateurs enregistrés."
+        },
+        {
+          "code": "de",
+          "name": "benutzerliste",
+          "desc": "Erhalten Sie die Liste aller registrierten Benutzer."
+        },
+        {
+          "code": "ja",
+          "name": "ユーザーリスト",
+          "desc": "登録されているすべてのユーザーのリストを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "register",
+      "desc": "Register your Anilist username for ease of use.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist_server/register.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "register",
+          "desc": "Register your Anilist username for ease of use."
+        },
+        {
+          "code": "fr",
+          "name": "register",
+          "desc": "Enregistrez votre nom d'utilisateur Anilist pour plus de facilité d'utilisation."
+        },
+        {
+          "code": "de",
+          "name": "register",
+          "desc": "Registriere deinen Anilist-Benutzernamen für mehr Benutzerfreundlichkeit."
+        },
+        {
+          "code": "ja",
+          "name": "register",
+          "desc": "利便性のためにAnilistユーザー名を登録してください。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "anilist",
+      "desc": "Commands for the AniList module"
+    },
+    {
+      "code": "fr",
+      "name": "anilist",
+      "desc": "Commandes pour le module AniList"
+    },
+    {
+      "code": "de",
+      "name": "anilist",
+      "desc": "Befehle für das AniList-Modul"
+    },
+    {
+      "code": "ja",
+      "name": "anilist",
+      "desc": "AniListモジュール用のコマンド"
+    }
+  ]
+}

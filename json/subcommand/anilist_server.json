@@ -3,47 +3,11 @@
   "desc": "Commands for the AniList module for server",
   "dm_command": false,
   "nsfw": false,
-  "perm": false,
-  "arg_num": 16,
-  "args": [
-    {
-      "name": "level",
-      "desc": "Get the level of a user.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "anilist/level.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "level",
-          "desc": "Get the level of a user."
-        },
-        {
-          "code": "fr",
-          "name": "level",
-          "desc": "Obtenez le niveau d'un utilisateur."
-        },
-        {
-          "code": "de",
-          "name": "level",
-          "desc": "Erhalten Sie das Level eines Benutzers."
-        },
-        {
-          "code": "ja",
-          "name": "level",
-          "desc": "ユーザーのレベルを取得します。"
-        }
-      ]
-    },
+  "command": [
     {
       "name": "list_activity",
       "desc": "Get the list of all registered activity.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "anilist/list_activity.json",
-      "localised_args": [
+      "localised": [
         {
           "code": "en-US",
           "name": "list_activity",
@@ -69,11 +33,7 @@
     {
       "name": "list_user",
       "desc": "Get the list of all registered users.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "anilist/list_user.json",
-      "localised_args": [
+      "localised": [
         {
           "code": "en-US",
           "name": "list_user",
@@ -99,11 +59,38 @@
     {
       "name": "register",
       "desc": "Register your Anilist username for ease of use.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "anilist/register.json",
-      "localised_args": [
+      "args": [
+        {
+          "name": "username",
+          "desc": "Your Anilist username.",
+          "required": true,
+          "autocomplete": true,
+          "arg_type": "String",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "username",
+              "desc": "Your Anilist username."
+            },
+            {
+              "code": "fr",
+              "name": "username",
+              "desc": "Votre nom d'utilisateur Anilist."
+            },
+            {
+              "code": "de",
+              "name": "username",
+              "desc": "Dein Anilist-Benutzername."
+            },
+            {
+              "code": "ja",
+              "name": "username",
+              "desc": "あなたのAnilistユーザー名。"
+            }
+          ]
+        }
+      ],
+      "localised": [
         {
           "code": "en-US",
           "name": "register",
