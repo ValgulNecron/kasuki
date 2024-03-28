@@ -12,6 +12,7 @@
       "desc": "The first argument",
       "arg_type": "String",
       "required": true,
+      "autocomplete": true,
       "choices": [
         {
           "option_choice": "choice1",
@@ -35,6 +36,8 @@
       "desc": "The second argument",
       "arg_type": "Integer",
       "required": false,
+                "autocomplete": false,
+
       "localised": [
         {
           "code": "en-US",

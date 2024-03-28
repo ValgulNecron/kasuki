@@ -8,10 +8,10 @@ pub struct SubCommandGroup {
     pub desc: String,
     pub dm_command: bool,
     pub nsfw: bool,
-    pub localised: Option<Vec<Localised>>,
     pub subcommands: Option<Vec<SubCommand>>,
     pub command: Option<Vec<Command>>,
     pub permissions: Option<Vec<DefaultPermission>>,
+    pub localised: Option<Vec<Localised>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
