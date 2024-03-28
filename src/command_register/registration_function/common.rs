@@ -49,7 +49,7 @@ fn add_choices(mut option: CreateCommandOption, choices: &Vec<Choice>) -> Create
 
 fn add_choices_localised(
     option: CreateCommandOption,
-    locales: &Vec<ChoiceLocalised>,
+    locales: &[ChoiceLocalised],
     name: &String,
 ) -> CreateCommandOption {
     let vec = locales

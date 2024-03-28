@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serenity::all::ShardManager;
+use serenity::all::{ShardId, ShardManager};
 use tonic::{Request, Response, Status};
 
 use proto::shard_server::Shard;
@@ -23,23 +23,34 @@ impl Shard for ShardService {
         &self,
         _request: Request<proto::ShardCountRequest>,
     ) -> Result<Response<proto::ShardCountResponse>, Status> {
-        let mut shard_id = Vec::new();
-        shard_id.insert(0, 1);
+        let shard_manager = self.shard_manager.clone();
+        let mut shard_ids = Vec::new();
+        for (shard_id, _) in shard_manager.runners.lock().await.iter() {
+            shard_ids.push(shard_id.0 as i32);
+        }
         let reply = proto::ShardCountResponse {
-            count: 1,
-            shard_ids: shard_id,
+            count: shard_ids.len() as i32,
+            shard_ids,
         };
         Ok(Response::new(reply))
     }
 
     async fn shard_info(
         &self,
-        _request: Request<proto::ShardInfoRequest>,
+        request: Request<proto::ShardInfoRequest>,
     ) -> Result<Response<proto::ShardInfoResponse>, Status> {
+        let data = request.into_inner();
+        let id = data.shard_id;
+        let shard_manager = self.shard_manager.clone();
+        let runners = shard_manager.runners.lock().await;
+        if !runners.contains_key(&ShardId(id as u32)) {
+            return Err(Status::not_found("Shard not found"));
+        }
+        let shard = runners.get(&ShardId(id as u32)).unwrap();
         let reply = proto::ShardInfoResponse {
-            shard_id: 1,
-            latency: "shard1".to_string(),
-            stage: "2".to_string(),
+            shard_id: id,
+            latency: shard.latency.unwrap_or_default().as_millis().to_string(),
+            stage: shard.stage.to_string(),
         };
         Ok(Response::new(reply))
     }
