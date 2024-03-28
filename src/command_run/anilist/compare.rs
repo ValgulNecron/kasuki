@@ -10,7 +10,7 @@ use crate::anilist_struct::run::user::{
     Anime, Genre, Manga, Statistics, Statuses, Tag, UserWrapper,
 };
 use crate::command_run::anilist::user::get_user_data;
-use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::compare::load_localization_compare;
@@ -127,7 +127,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     let genre = get_genre(&user.statistics.anime.genres);
@@ -142,7 +142,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     match user
@@ -229,7 +229,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     let genre = get_genre(&user.statistics.manga.genres);
@@ -244,7 +244,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             &username,
             &username2,
         )
-        .as_str(),
+            .as_str(),
     );
 
     let builder_embed = CreateEmbed::new()

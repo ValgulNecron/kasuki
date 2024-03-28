@@ -1,7 +1,8 @@
+use serenity::all::{CommandOptionType, CreateCommandOption};
+
 use crate::command_register::command_struct::common::{Arg, Choice, ChoiceLocalised, Localised};
 use crate::command_register::command_struct::subcommand::Command;
 use crate::command_register::command_struct::subcommand_group::SubCommand;
-use serenity::all::{CommandOptionType, CreateCommandOption};
 
 pub fn get_option(args: &Vec<Arg>) -> Vec<CreateCommandOption> {
     let mut options = Vec::new();

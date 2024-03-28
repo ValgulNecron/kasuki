@@ -4,7 +4,7 @@ use serenity::all::{
 };
 
 use crate::anilist_struct::run::staff::StaffWrapper;
-use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::staff::load_localization_staff;

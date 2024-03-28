@@ -1,21 +1,21 @@
 use std::io::{Cursor, Read};
 
+use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
-use base64::Engine as _;
+use image::{GenericImageView, guess_format, ImageFormat};
 use image::imageops::FilterType;
-use image::{guess_format, GenericImageView, ImageFormat};
 use reqwest::get;
 use serde_json::json;
-use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     ChannelId, CommandInteraction, Context, CreateAttachment, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, Timestamp,
 };
+use serenity::all::CreateInteractionResponse::Defer;
 use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
-use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::common::trimer::trim_webhook;
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
@@ -145,7 +145,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             delays: delay,
             image: base64,
         })
-        .await?;
+            .await?;
 
         let builder_embed = CreateEmbed::new()
             .timestamp(Timestamp::now())

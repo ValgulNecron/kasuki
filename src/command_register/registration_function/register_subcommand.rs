@@ -1,11 +1,13 @@
-use crate::command_register::command_struct::subcommand::SubCommand;
-use crate::command_register::registration_function::common::get_subcommand_option;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use serenity::all::{CreateCommand, Http, Permissions};
 use std::fs;
 use std::io::BufReader;
 use std::sync::Arc;
+
+use serenity::all::{CreateCommand, Http, Permissions};
 use tracing::{error, trace};
+
+use crate::command_register::command_struct::subcommand::SubCommand;
+use crate::command_register::registration_function::common::get_subcommand_option;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn creates_subcommands(http: &Arc<Http>) {
     let commands = match get_subcommands("./json/subcommand") {

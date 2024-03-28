@@ -33,18 +33,18 @@ pub async fn set_data_ping_history_sqlite(
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)",
     )
-    .bind(shard_id)
-    .bind(now)
-    .bind(latency)
-    .execute(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to insert into the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::Unknown,
-        )
-    })?;
+        .bind(shard_id)
+        .bind(now)
+        .bind(latency)
+        .execute(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            )
+        })?;
     pool.close().await;
     Ok(())
 }
@@ -229,8 +229,7 @@ pub async fn remove_data_activity_status_sqlite(
     Ok(())
 }
 
-pub async fn get_data_module_activation_kill_switch_status_sqlite(
-) -> Result<ActivationStatusModule, AppError> {
+pub async fn get_data_module_activation_kill_switch_status_sqlite() -> Result<ActivationStatusModule, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: ActivationStatusModule = sqlx::query_as(
         "SELECT id, ai_module, anilist_module, game_module, new_member, anime FROM module_activation WHERE guild = 1",
@@ -319,19 +318,19 @@ pub async fn set_user_approximated_color_sqlite(
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO user_color (user_id, color, pfp_url, image) VALUES (?, ?, ?, ?)",
     )
-    .bind(user_id)
-    .bind(color)
-    .bind(pfp_url)
-    .bind(image)
-    .execute(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to insert into the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::Unknown,
-        )
-    })?;
+        .bind(user_id)
+        .bind(color)
+        .bind(pfp_url)
+        .bind(image)
+        .execute(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::Unknown,
+            )
+        })?;
     pool.close().await;
 
     Ok(())
@@ -371,10 +370,10 @@ pub async fn get_all_server_activity_sqlite(
        FROM activity_data WHERE server_id = ?
    ",
     )
-    .bind(server_id)
-    .fetch_all(&pool)
-    .await
-    .unwrap_or_default();
+        .bind(server_id)
+        .fetch_all(&pool)
+        .await
+        .unwrap_or_default();
 
     //.map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
 
@@ -408,10 +407,10 @@ pub async fn get_data_all_activity_by_server_sqlite(
            FROM activity_data WHERE server_id = ?
        ",
     )
-    .bind(server_id)
-    .fetch_all(&pool)
-    .await
-    .unwrap_or_default();
+        .bind(server_id)
+        .fetch_all(&pool)
+        .await
+        .unwrap_or_default();
     pool.close().await;
 
     Ok(rows)
@@ -453,11 +452,11 @@ pub async fn get_server_image_sqlite(
     let row: (Option<String>, Option<String>) = sqlx::query_as(
         "SELECT image_url, image FROM server_image WHERE server_id = ? and type = ?",
     )
-    .bind(server_id)
-    .bind(image_type)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None));
+        .bind(server_id)
+        .bind(image_type)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None));
     pool.close().await;
     Ok(row)
 }

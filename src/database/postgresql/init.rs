@@ -17,7 +17,7 @@ pub async fn init_postgres() -> Result<(), AppError> {
 
 async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
     // Check if the database exists
-    let exists: (bool,) =
+    let exists: (bool, ) =
         sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)")
             .bind("CACHE")
             .fetch_one(pool)
@@ -51,15 +51,15 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
            last_updated BIGINT NOT NULL
        )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS cache_stats (
@@ -69,21 +69,21 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
            last_page BIGINT NOT NULL
        )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
     Ok(())
 }
 
 async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     // Check if the database exists
-    let exists: (bool,) =
+    let exists: (bool, ) =
         sqlx::query_as("SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)")
             .bind("DATA")
             .fetch_one(pool)
@@ -118,15 +118,15 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
                     PRIMARY KEY (shard_id, timestamp)
                 )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS guild_lang (
@@ -134,15 +134,15 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             lang TEXT NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS activity_data (
@@ -157,15 +157,15 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         PRIMARY KEY (anime_id, server_id)
     )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
@@ -177,15 +177,15 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         anime BIGINT NOT NULL
    )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
@@ -193,15 +193,15 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             anilist_id TEXT NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
@@ -212,15 +212,15 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             new_member BIGINT NOT NULL
         )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "INSERT INTO global_kill_switch
@@ -233,20 +233,20 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             game_module = excluded.game_module,
             new_member = excluded.new_member",
     )
-    .bind("1")
-    .bind(1)
-    .bind(1)
-    .bind(1)
-    .bind(1)
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to insert into the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .bind("1")
+        .bind(1)
+        .bind(1)
+        .bind(1)
+        .bind(1)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to insert into the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_color (
@@ -256,15 +256,15 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             image TEXT NOT NULL
      )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS server_image (
@@ -274,15 +274,15 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
             image_url TEXT NOT NULL
      )",
     )
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to create the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to create the table. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     Ok(())
 }

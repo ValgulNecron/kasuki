@@ -3,20 +3,18 @@ use std::fs::File;
 use std::io::copy;
 use std::path::Path;
 
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use serde_json::Value;
-use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
+use serenity::all::CreateInteractionResponse::Defer;
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::command_run::get_option::{
-    get_option_map_attachment_subcommand, get_option_map_string_subcommand, get_the_attachment,
-};
+use crate::common::get_option::subcommand::{get_option_map_attachment_subcommand, get_option_map_string_subcommand};
 use crate::constant::{
     COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
 };
@@ -34,9 +32,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .get(&String::from("prompt"))
         .unwrap_or(DEFAULT_STRING)
         .clone();
-    let attachment = attachment_map.get(&String::from("video"));
-
-    let attachment = get_the_attachment(attachment)?;
+    let attachment = attachment_map.get(&String::from("video")).ok_or(AppError::new(
+        String::from("There is no attachment"),
+        ErrorType::Option,
+        ErrorResponseType::Message,
+    ))?;
 
     let content_type = attachment.content_type.clone().ok_or(AppError::new(
         String::from("Error getting content type"),

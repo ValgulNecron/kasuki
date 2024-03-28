@@ -1,16 +1,16 @@
 use chrono::Utc;
-use rand::{thread_rng, Rng};
-use serenity::all::CreateInteractionResponse::Defer;
+use rand::{Rng, thread_rng};
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
+use serenity::all::CreateInteractionResponse::Defer;
 
 use crate::anilist_struct::run::random::PageWrapper;
 use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper;
-use crate::command_run::get_option::get_option_map_string_subcommand;
 use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::common::trimer::trim;
 use crate::constant::COLOR;
 use crate::database::dispatcher::cache_dispatch::{
@@ -64,7 +64,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 command_interaction,
                 random_localised,
             )
-            .await;
+                .await;
         }
     }
     update_cache(
@@ -76,7 +76,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         cached_response,
         random_localised,
     )
-    .await
+        .await
 }
 
 pub async fn embed(
@@ -208,5 +208,5 @@ pub async fn update_cache(
         command_interaction,
         random_localised,
     )
-    .await
+        .await
 }

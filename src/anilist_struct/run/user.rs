@@ -1,4 +1,3 @@
-use crate::common::default_embed::get_default_embed;
 use serde::Deserialize;
 use serde_json::json;
 use serenity::all::{
@@ -6,6 +5,7 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 
+use crate::common::default_embed::get_default_embed;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};

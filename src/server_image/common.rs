@@ -1,7 +1,7 @@
 use std::num::ParseIntError;
 
-use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
+use base64::engine::general_purpose::STANDARD as BASE64;
 use image::DynamicImage;
 use palette::{IntoColor, Lab, Srgb};
 

@@ -1,5 +1,6 @@
-use crate::command_register::command_struct::common::{Arg, DefaultPermission, Localised};
 use serde::{Deserialize, Serialize};
+
+use crate::command_register::command_struct::common::{Arg, DefaultPermission, Localised};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SubCommand {

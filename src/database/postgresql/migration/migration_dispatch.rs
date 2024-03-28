@@ -15,7 +15,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "image" column exists in the "activity_data" table
-    let row: (bool,) = sqlx::query_as(
+    let row: (bool, ) = sqlx::query_as(
         r#"
         SELECT EXISTS (
             SELECT 1 
@@ -24,15 +24,15 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
         )
         "#,
     )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to check existence of column. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     // If the "image" column doesn't exist, add it
     if !row.0 {
@@ -56,7 +56,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "new_member" column exists in the "global_kill_switch" table
-    let row: (bool,) = sqlx::query_as(
+    let row: (bool, ) = sqlx::query_as(
         r#"
         SELECT EXISTS (
             SELECT  1
@@ -65,15 +65,15 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
         )
         "#,
     )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to check existence of column. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     // If the "new_member" column doesn't exist, add it
     if !row.0 {
@@ -97,7 +97,7 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "new_column" column exists in the "module_activation" table
-    let row: (bool,) = sqlx::query_as(
+    let row: (bool, ) = sqlx::query_as(
         r#"
         SELECT EXISTS (
             SELECT  1
@@ -106,15 +106,15 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
         )
         "#,
     )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to check existence of column. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     // If the "new_column" column doesn't exist, add it
     if !row.0 {
@@ -138,7 +138,7 @@ pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "anime" column exists in the "module_activation" table
-    let row: (bool,) = sqlx::query_as(
+    let row: (bool, ) = sqlx::query_as(
         r#"
         SELECT EXISTS (
             SELECT  1
@@ -147,15 +147,15 @@ pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
         )
         "#,
     )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to check existence of column. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     // If the "anime" column doesn't exist, add it
     if !row.0 {
@@ -179,7 +179,7 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "anime" column exists in the "global_kill_switch" table
-    let row: (bool,) = sqlx::query_as(
+    let row: (bool, ) = sqlx::query_as(
         r#"
         SELECT EXISTS (
             SELECT  1
@@ -188,15 +188,15 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
         )
         "#,
     )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to check existence of column. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
 
     // If the "anime" column doesn't exist, add it
     if !row.0 {

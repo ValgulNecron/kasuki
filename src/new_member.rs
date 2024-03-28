@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::Path;
 
+use image::{DynamicImage, imageops, Rgba};
 use image::io::Reader;
-use image::{imageops, DynamicImage, Rgba};
 use serenity::all::{ChannelId, Context, CreateAttachment, CreateMessage, Member, PartialGuild};
 use uuid::Uuid;
 

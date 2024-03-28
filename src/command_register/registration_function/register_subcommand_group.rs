@@ -1,7 +1,8 @@
-use serenity::all::{CreateCommand, Http, Permissions};
 use std::fs;
 use std::io::BufReader;
 use std::sync::Arc;
+
+use serenity::all::{CreateCommand, Http, Permissions};
 use tracing::{error, trace};
 
 use crate::command_register::command_struct::subcommand_group::SubCommandGroup;

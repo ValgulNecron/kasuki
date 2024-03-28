@@ -138,7 +138,7 @@ async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().unwrap_or("0".to_string()),
     )
-    .await?;
+        .await?;
     let media = data.data.media;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
@@ -162,7 +162,7 @@ async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError
         delays: row.delays.unwrap_or(0) as i64,
         image: row.image.unwrap_or_default(),
     })
-    .await?;
+        .await?;
     Ok(())
 }
 

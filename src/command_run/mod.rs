@@ -5,5 +5,4 @@ pub mod anime;
 pub mod bot_info;
 pub mod command_dispatch;
 pub mod general;
-pub mod get_option;
 pub mod steam;

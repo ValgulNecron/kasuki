@@ -179,8 +179,7 @@ pub async fn remove_data_activity_status_postgresql(
     Ok(())
 }
 
-pub async fn get_data_module_activation_kill_switch_status_postgresql(
-) -> Result<ActivationStatusModule, AppError> {
+pub async fn get_data_module_activation_kill_switch_status_postgresql() -> Result<ActivationStatusModule, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: ActivationStatusModule = sqlx::query_as(
         "SELECT id, ai_module, anilist_module, game_module, new_member, anime FROM DATA.module_activation WHERE guild = $1",
@@ -292,15 +291,15 @@ pub async fn get_user_approximated_color_postgresql(
     let row: UserColor = sqlx::query_as(
         "SELECT user_id, color, pfp_url, image FROM DATA.user_color WHERE user_id = $1",
     )
-    .bind(user_id)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or(UserColor {
-        user_id: None,
-        color: None,
-        pfp_url: None,
-        image: None,
-    });
+        .bind(user_id)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or(UserColor {
+            user_id: None,
+            color: None,
+            pfp_url: None,
+            image: None,
+        });
     pool.close().await;
 
     Ok(row)
@@ -322,10 +321,10 @@ pub async fn get_all_server_activity_postgresql(
        FROM DATA.activity_data WHERE server_id = $1
    ",
     )
-    .bind(server_id)
-    .fetch_all(&pool)
-    .await
-    .unwrap_or_default();
+        .bind(server_id)
+        .fetch_all(&pool)
+        .await
+        .unwrap_or_default();
 
     pool.close().await;
     Ok(rows)
@@ -341,10 +340,10 @@ pub async fn get_data_all_activity_by_server_postgresql(
        FROM DATA.activity_data WHERE server_id = $1
    ",
     )
-    .bind(server_id)
-    .fetch_all(&pool)
-    .await
-    .unwrap_or_default();
+        .bind(server_id)
+        .fetch_all(&pool)
+        .await
+        .unwrap_or_default();
     pool.close().await;
 
     Ok(rows)
@@ -402,11 +401,11 @@ pub async fn get_server_image_postgresql(
     let row: (Option<String>, Option<String>) = sqlx::query_as(
         "SELECT image_url, image FROM DATA.server_image WHERE server_id = $1 and image_type = $2",
     )
-    .bind(server_id)
-    .bind(image_type)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None));
+        .bind(server_id)
+        .bind(image_type)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None));
     pool.close().await;
     Ok(row)
 }

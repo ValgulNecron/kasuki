@@ -3,9 +3,7 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::command_run::get_option::{
-    get_option_map_bool_subcommand, get_option_map_string_subcommand,
-};
+use crate::common::get_option::subcommand::{get_option_map_boolean_subcommand, get_option_map_string_subcommand};
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
@@ -26,7 +24,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         ErrorResponseType::Followup,
     ))?;
     let module_localised = load_localization_module_activation(guild_id.clone()).await?;
-    let map = get_option_map_bool_subcommand(command_interaction);
+    let map = get_option_map_boolean_subcommand(command_interaction);
     let state = *map.get(&String::from("state")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,
@@ -58,7 +56,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         game_value,
         new_member_value,
     )
-    .await?;
+        .await?;
     let desc = if state {
         &module_localised.on
     } else {

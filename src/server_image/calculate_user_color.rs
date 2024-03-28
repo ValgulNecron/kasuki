@@ -1,11 +1,11 @@
 use std::io::Cursor;
 use std::time::Duration;
 
-use base64::engine::general_purpose;
 use base64::Engine;
+use base64::engine::general_purpose;
+use image::{DynamicImage, ExtendedColorType, ImageEncoder};
 use image::codecs::png::PngEncoder;
 use image::io::Reader as ImageReader;
-use image::{DynamicImage, ExtendedColorType, ImageEncoder};
 use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::time::sleep;
 use tracing::{debug, error};
