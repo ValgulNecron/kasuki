@@ -4,7 +4,9 @@
   "dm_command": true,
   "nsfw": false,
   "permissions": [
-    "SEND_MESSAGES"
+    {
+      "permission": "SendMessages"
+    }
   ],
   "args": [
     {
@@ -36,8 +38,7 @@
       "desc": "The second argument",
       "arg_type": "Integer",
       "required": false,
-                "autocomplete": false,
-
+      "autocomplete": false,
       "localised": [
         {
           "code": "en-US",

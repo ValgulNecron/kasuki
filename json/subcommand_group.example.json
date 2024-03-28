@@ -13,8 +13,7 @@
           "desc": "The first argument",
           "arg_type": "String",
           "required": true,
-                          "autocomplete": false,
-
+          "autocomplete": false,
           "choices": [
             {
               "option_choice": "choice1",
@@ -38,8 +37,7 @@
           "desc": "The second argument",
           "arg_type": "Integer",
           "required": false,
-                          "autocomplete": true,
-
+          "autocomplete": true,
           "localised": [
             {
               "code": "en-US",
@@ -105,7 +103,9 @@
     }
   ],
   "permissions": [
-    "SEND_MESSAGES"
+    {
+      "permission": "SendMessages"
+    }
   ],
   "localised": [
     {

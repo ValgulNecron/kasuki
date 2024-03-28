@@ -83,7 +83,7 @@ pub fn get_subcommand_group_option(subcommands: &Vec<SubCommand>) -> Vec<CreateC
     let mut options = Vec::new();
     for subcommand in subcommands {
         let mut option = CreateCommandOption::new(
-            CommandOptionType::SubCommand,
+            CommandOptionType::SubCommandGroup,
             &subcommand.name,
             &subcommand.desc,
         );
