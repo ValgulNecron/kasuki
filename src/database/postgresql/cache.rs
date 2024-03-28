@@ -2,20 +2,21 @@ use chrono::Utc;
 use serde_json::Value;
 
 use crate::database::postgresql::pool::get_postgresql_pool;
+use crate::database_struct::cache_stats::CacheStats;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn get_database_random_cache_postgresql(
     random_type: &str,
-) -> Result<(Option<String>, Option<i64>, Option<i64>), AppError> {
+) -> Result<Option<CacheStats>, AppError> {
     let pool = get_postgresql_pool().await?;
 
-    let row: (Option<String>, Option<i64>, Option<i64>) = sqlx::query_as(
+    let row: Option<CacheStats> = sqlx::query_as(
         "SELECT response, last_updated, last_page FROM CACHE.cache_stats WHERE key = $1",
     )
     .bind(random_type)
-    .fetch_one(&pool)
+    .fetch_optional(&pool)
     .await
-    .unwrap_or((None, None, None));
+    .unwrap_or(None);
 
     pool.close().await;
     Ok(row)

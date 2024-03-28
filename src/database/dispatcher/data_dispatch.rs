@@ -24,8 +24,8 @@ use crate::database::sqlite::data::{
     set_registered_user_sqlite, set_server_image_sqlite, set_user_approximated_color_sqlite,
 };
 use crate::database_struct::module_status::ActivationStatusModule;
-use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
-use crate::database_struct::user_color_struct::UserColor;
+use crate::database_struct::server_activity::{ServerActivity, ServerActivityFull};
+use crate::database_struct::user_color::UserColor;
 use crate::error_management::error_enum::AppError;
 
 pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<(), AppError> {

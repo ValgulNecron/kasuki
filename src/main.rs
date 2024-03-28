@@ -14,7 +14,7 @@ use struct_shard_manager::ShardManagerContainer;
 
 use crate::activity::anime_activity::manage_activity;
 use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::command_register::command_registration::creates_commands;
+use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::ACTIVITY_NAME;
@@ -175,7 +175,7 @@ impl EventHandler for Handler {
         trace!(remove_old_command);
 
         // Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
-        creates_commands(&ctx.http, remove_old_command).await;
+        command_dispatcher(&ctx.http, remove_old_command).await;
         // Iterates over each guild the bot is in
         for guild in ctx.cache.guilds() {
             // Retrieves partial guild information
@@ -376,7 +376,8 @@ async fn thread_management_launcher(ctx: Context) {
     // Get the guilds from the context cache
     // Clone the context
     // Spawn a new thread for the web server
-    tokio::spawn(launch_web_server_thread());
+
+    tokio::spawn(launch_web_server_thread(ctx.clone()));
     // Spawn a new thread for user color management
     tokio::spawn(launch_user_color_management_thread(ctx.clone()));
     // Spawn a new thread for activity management
@@ -401,9 +402,16 @@ async fn thread_management_launcher(ctx: Context) {
 
 /// This function is responsible for launching the web server thread.
 /// It does not take any arguments and does not return anything.
-async fn launch_web_server_thread() {
+async fn launch_web_server_thread(ctx: Context) {
+    let data_read = ctx.data.read().await;
+    let shard_manager = match data_read.get::<ShardManagerContainer>() {
+        Some(data) => data,
+        None => {
+            return;
+        }
+    };
     info!("Launching the log web server thread!");
-    web_server_launcher().await
+    web_server_launcher(shard_manager).await
 }
 
 /// This function is responsible for launching the user color management thread.

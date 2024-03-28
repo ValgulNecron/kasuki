@@ -5,6 +5,10 @@
 ![Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/master?style=plastic)
 ![Dev Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/dev?style=plastic&label=Dev)
 
+![Alt](https://repobeats.axiom.co/api/embed/ce0c4fc4155948704332a4126e892cfe612ed6cb.svg "Repobeats analytics image")
+
+![Alt](https://repobeats.axiom.co/api/embed/ce0c4fc4155948704332a4126e892cfe612ed6cb.svg "Repobeats analytics image")
+
 # Vision
 
 The bot is in the first place,
@@ -121,7 +125,7 @@ the "code" field should respect discord locale https://discord.com/developers/do
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
       size.
     - [X] Better error handling.
-    - [ ] Doing something with error else than logging it.
+    - [X] Doing something with error else than logging it.
     - [X] Localisation for response.
     - [X] Localisation for command.
     - [ ] Rename for better clarity.
@@ -165,10 +169,10 @@ the "code" field should respect discord locale https://discord.com/developers/do
     - [X] Video translation.
     - [X] Ask a question and reply the response.
 - Games module :
-    - [X] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found),
+    - [ ] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found),
       etc…)
       Get the currency and language from the server language setting.
-      Steam done.
+    - [X] Search for a steam game.
     - [ ] get player stat
     - [ ] get free promotion notification
 

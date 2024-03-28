@@ -1,0 +1,86 @@
+{
+  "name": "example",
+  "desc": "An example of a subcommand json file",
+  "dm_command": true,
+  "nsfw": false,
+  "permissions": [
+    {
+      "permission": "SendMessages"
+    }
+  ],
+  "command": [
+    {
+      "name": "example",
+      "desc": "An example of a subcommand json file",
+      "args": [
+        {
+          "name": "arg1",
+          "desc": "The first argument",
+          "arg_type": "String",
+          "required": true,
+          "autocomplete": true,
+          "choices": [
+            {
+              "option_choice": "choice1",
+              "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "choice1",
+                  "desc": "The first choice"
+                },
+                {
+                  "code": "fr",
+                  "name": "choix1",
+                  "desc": "Le premier choix"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "arg2",
+          "desc": "The second argument",
+          "arg_type": "Integer",
+          "required": false,
+          "autocomplete": false,
+          "localised": [
+            {
+              "code": "en-US",
+              "name": "arg2",
+              "desc": "The second argument"
+            },
+            {
+              "code": "fr",
+              "name": "arg2",
+              "desc": "Le deuxième argument"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "example",
+          "desc": "An example of a subcommand json file"
+        },
+        {
+          "code": "fr",
+          "name": "exemple",
+          "desc": "Un exemple de fichier json de sous-commande"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "example",
+      "desc": "An example of a subcommand json file"
+    },
+    {
+      "code": "fr",
+      "name": "exemple",
+      "desc": "Un exemple de fichier json de sous-commande"
+    }
+  ]
+}

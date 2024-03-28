@@ -5,7 +5,7 @@ use base64::engine::Engine as _;
 use image::DynamicImage;
 use palette::{IntoColor, Lab, Srgb};
 
-use crate::database_struct::user_color_struct::UserColor;
+use crate::database_struct::user_color::UserColor;
 
 /// `Color` is a struct that represents a color in the CIELAB color space.
 /// It contains a single field, `cielab`, which is a `Lab` object from the `palette` crate.

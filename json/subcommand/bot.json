@@ -1,19 +1,13 @@
 {
   "name": "bot",
   "desc": "Command to get information about the bot.",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
-  "perm": false,
-  "arg_num": 3,
-  "args": [
+  "command": [
     {
       "name": "credit",
       "desc": "Get the credit of the app.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "bot/credit.json",
-      "localised_args": [
+      "localised": [
         {
           "code": "en-US",
           "name": "credit",
@@ -39,11 +33,7 @@
     {
       "name": "info",
       "desc": "Get information on the bot.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "bot/info.json",
-      "localised_args": [
+      "localised": [
         {
           "code": "en-US",
           "name": "info",
@@ -69,11 +59,7 @@
     {
       "name": "ping",
       "desc": "Get the ping of the bot (and the shard id).",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "bot/ping.json",
-      "localised_args": [
+      "localised": [
         {
           "code": "en-US",
           "name": "ping",

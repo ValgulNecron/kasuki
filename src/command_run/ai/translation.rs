@@ -123,7 +123,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
-    let token = unsafe { TRANSCRIPT_TOKEN.as_str() };
+    let token = TRANSCRIPT_TOKEN.as_str();
 
     headers.insert(
         AUTHORIZATION,
@@ -135,14 +135,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .file_name(file_name)
         .mime_str(content_type.as_str())
         .unwrap();
-    let model = unsafe { TRANSCRIPT_MODELS.as_str() };
+    let model = TRANSCRIPT_MODELS.as_str();
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", model)
         .text("language", lang.clone())
         .text("response_format", "json");
 
-    let url = unsafe { format!("{}translations", TRANSCRIPT_BASE_URL.as_str()) };
+    let url = format!("{}translations", TRANSCRIPT_BASE_URL.as_str());
     let response_result = client
         .post(url)
         .headers(headers)
@@ -172,9 +172,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     trace!("{}", text);
 
     let text = if lang != "en" {
-        let api_key = unsafe { CHAT_TOKEN.clone() };
-        let api_base_url = unsafe { CHAT_BASE_URL.clone() };
-        let model = unsafe { CHAT_MODELS.clone() };
+        let api_key = CHAT_TOKEN.clone();
+        let api_base_url = CHAT_BASE_URL.clone();
+        let model = CHAT_MODELS.clone();
         translation(lang, text.to_string(), api_key, api_base_url, model).await?
     } else {
         String::from(text)

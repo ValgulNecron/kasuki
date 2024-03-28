@@ -1,11 +1,11 @@
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
 use crate::anilist_struct::run::user::{get_color, get_user_url, UserWrapper};
 use crate::command_run::anilist::user::get_user_data;
 use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::common::default_embed::get_default_embed;
 use crate::database::dispatcher::data_dispatch::set_registered_user;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::register::load_localization_register;
@@ -43,9 +43,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             user_data.name.clone().unwrap_or_default().as_str(),
         );
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(get_color(user_data.clone()))
+    let builder_embed = get_default_embed(Some(get_color(user_data.clone())))
         .title(user_data.name.unwrap_or_default())
         .url(get_user_url(user_data.id.unwrap_or(0)))
         .thumbnail(user_data.avatar.large.unwrap())

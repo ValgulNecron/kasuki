@@ -4,8 +4,8 @@ use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
 use crate::database::sqlite::pool::get_sqlite_pool;
 use crate::database_struct::module_status::ActivationStatusModule;
-use crate::database_struct::server_activity_struct::{ServerActivity, ServerActivityFull};
-use crate::database_struct::user_color_struct::UserColor;
+use crate::database_struct::server_activity::{ServerActivity, ServerActivityFull};
+use crate::database_struct::user_color::UserColor;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
@@ -30,19 +30,21 @@ pub async fn set_data_ping_history_sqlite(
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let now = Utc::now().timestamp().to_string();
-    let _ = sqlx::query("INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)")
-        .bind(shard_id)
-        .bind(now)
-        .bind(latency)
-        .execute(&pool)
-        .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to insert into the table. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::Unknown,
-            )
-        })?;
+    let _ = sqlx::query(
+        "INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)",
+    )
+    .bind(shard_id)
+    .bind(now)
+    .bind(latency)
+    .execute(&pool)
+    .await
+    .map_err(|e| {
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        )
+    })?;
     pool.close().await;
     Ok(())
 }
@@ -289,18 +291,19 @@ pub async fn set_registered_user_sqlite(
     username: &String,
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let _ = sqlx::query("INSERT OR REPLACE INTO registered_user (user_id, anilist_id) VALUES (?, ?)")
-        .bind(user_id)
-        .bind(username)
-        .execute(&pool)
-        .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to insert into the table. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::Unknown,
-            )
-        })?;
+    let _ =
+        sqlx::query("INSERT OR REPLACE INTO registered_user (user_id, anilist_id) VALUES (?, ?)")
+            .bind(user_id)
+            .bind(username)
+            .execute(&pool)
+            .await
+            .map_err(|e| {
+                AppError::new(
+                    format!("Failed to insert into the table. {}", e),
+                    ErrorType::Database,
+                    ErrorResponseType::Unknown,
+                )
+            })?;
     pool.close().await;
 
     Ok(())

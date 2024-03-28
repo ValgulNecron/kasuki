@@ -88,3 +88,6 @@ fabric.properties
 # MSVC Windows builds of rustc generate these, which store debugging information
 
 target/
+
+# ignore .gitkeep file in json directory and all its subdirectories
+json/**/.gitkeep

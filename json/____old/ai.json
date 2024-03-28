@@ -1,7 +1,7 @@
 {
   "name": "ai",
   "desc": "Command from the AI module",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
   "perm": false,
   "arg_num": 4,

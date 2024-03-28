@@ -1,19 +1,79 @@
 {
-  "name": "anilist",
-  "desc": "Commands for the AniList module",
+  "name": "anilist_user",
+  "desc": "Commands for the AniList module for user",
   "dm_command": false,
   "nsfw": false,
   "perm": false,
   "arg_num": 16,
   "args": [
     {
+      "name": "level",
+      "desc": "Get the level of a user.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist_user/level.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "level",
+          "desc": "Get the level of a user."
+        },
+        {
+          "code": "fr",
+          "name": "level",
+          "desc": "Obtenez le niveau d'un utilisateur."
+        },
+        {
+          "code": "de",
+          "name": "level",
+          "desc": "Erhalten Sie das Level eines Benutzers."
+        },
+        {
+          "code": "ja",
+          "name": "level",
+          "desc": "ユーザーのレベルを取得します。"
+        }
+      ]
+    },
+    {
       "name": "anime",
       "desc": "Info of an anime.",
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/anime.json",
+      "file": "anilist_user/anime.json",
       "localised_args": [
+        {
+          "name": "compare",
+          "desc": "Compare 2 anilist user.",
+          "command_type": "SubCommand",
+          "required": true,
+          "autocomplete": false,
+          "file": "anilist/compare.json",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "compare",
+              "desc": "Compare 2 anilist user."
+            },
+            {
+              "code": "fr",
+              "name": "comparer",
+              "desc": "Comparer 2 utilisateurs Anilist."
+            },
+            {
+              "code": "de",
+              "name": "vergleichen",
+              "desc": "Vergleichen Sie 2 Anilist-Benutzer."
+            },
+            {
+              "code": "ja",
+              "name": "比較",
+              "desc": "2つのAnilistユーザーを比較します。"
+            }
+          ]
+        },
         {
           "code": "en-US",
           "name": "anime",
@@ -42,7 +102,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/character.json",
+      "file": "anilist_user/character.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -67,72 +127,12 @@
       ]
     },
     {
-      "name": "compare",
-      "desc": "Compare 2 anilist user.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "anilist/compare.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "compare",
-          "desc": "Compare 2 anilist user."
-        },
-        {
-          "code": "fr",
-          "name": "comparer",
-          "desc": "Comparer 2 utilisateurs Anilist."
-        },
-        {
-          "code": "de",
-          "name": "vergleichen",
-          "desc": "Vergleichen Sie 2 Anilist-Benutzer."
-        },
-        {
-          "code": "ja",
-          "name": "比較",
-          "desc": "2つのAnilistユーザーを比較します。"
-        }
-      ]
-    },
-    {
-      "name": "delete_activity",
-      "desc": "Delete an anime activity.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "anilist/delete_activity.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "delete_activity",
-          "desc": "Delete an anime activity."
-        },
-        {
-          "code": "fr",
-          "name": "supprimer_activite",
-          "desc": "Supprimer une activité anime."
-        },
-        {
-          "code": "de",
-          "name": "aktivitat_loeschen",
-          "desc": "Löschen Sie eine Anime-Aktivität."
-        },
-        {
-          "code": "ja",
-          "name": "katsudo_wo_sakujo",
-          "desc": "アニメ活動を削除します。"
-        }
-      ]
-    },
-    {
       "name": "level",
       "desc": "Get the level of a user.",
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/level.json",
+      "file": "anilist_user/level.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -157,72 +157,12 @@
       ]
     },
     {
-      "name": "list_activity",
-      "desc": "Get the list of all registered activity.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "anilist/list_activity.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "list_activity",
-          "desc": "Get the list of all registered activity."
-        },
-        {
-          "code": "fr",
-          "name": "liste_activite",
-          "desc": "Obtenir la liste de toutes les activités enregistrées."
-        },
-        {
-          "code": "de",
-          "name": "aktivitat_liste",
-          "desc": "Erhalten Sie die Liste aller registrierten Aktivitäten."
-        },
-        {
-          "code": "ja",
-          "name": "regisutaredo_katsudo_no_rireki",
-          "desc": "登録されたすべてのアクティビティのリストを取得します。"
-        }
-      ]
-    },
-    {
-      "name": "list_user",
-      "desc": "Get the list of all registered users.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "anilist/list_user.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "list_user",
-          "desc": "Get the list of all registered users."
-        },
-        {
-          "code": "fr",
-          "name": "liste_utilisateurs",
-          "desc": "Obtenez la liste de tous les utilisateurs enregistrés."
-        },
-        {
-          "code": "de",
-          "name": "benutzerliste",
-          "desc": "Erhalten Sie die Liste aller registrierten Benutzer."
-        },
-        {
-          "code": "ja",
-          "name": "ユーザーリスト",
-          "desc": "登録されているすべてのユーザーのリストを取得します。"
-        }
-      ]
-    },
-    {
       "name": "ln",
       "desc": "Info of a light novel.",
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/ln.json",
+      "file": "anilist_user/ln.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -252,7 +192,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/manga.json",
+      "file": "anilist_user/manga.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -282,7 +222,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/random.json",
+      "file": "anilist_user/random.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -307,42 +247,12 @@
       ]
     },
     {
-      "name": "register",
-      "desc": "Register your Anilist username for ease of use.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "anilist/register.json",
-      "localised_args": [
-        {
-          "code": "en-US",
-          "name": "register",
-          "desc": "Register your Anilist username for ease of use."
-        },
-        {
-          "code": "fr",
-          "name": "register",
-          "desc": "Enregistrez votre nom d'utilisateur Anilist pour plus de facilité d'utilisation."
-        },
-        {
-          "code": "de",
-          "name": "register",
-          "desc": "Registriere deinen Anilist-Benutzernamen für mehr Benutzerfreundlichkeit."
-        },
-        {
-          "code": "ja",
-          "name": "register",
-          "desc": "利便性のためにAnilistユーザー名を登録してください。"
-        }
-      ]
-    },
-    {
       "name": "search",
       "desc": "One command that regroups all search commands.",
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/search.json",
+      "file": "anilist_user/search.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -372,7 +282,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/seiyuu.json",
+      "file": "anilist_user/seiyuu.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -402,7 +312,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/staff.json",
+      "file": "anilist_user/staff.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -432,7 +342,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/studio.json",
+      "file": "anilist_user/studio.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -462,7 +372,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/waifu.json",
+      "file": "anilist_user/waifu.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -492,7 +402,7 @@
       "command_type": "SubCommand",
       "required": true,
       "autocomplete": false,
-      "file": "anilist/user.json",
+      "file": "anilist_user/user.json",
       "localised_args": [
         {
           "code": "en-US",
@@ -513,6 +423,36 @@
           "code": "ja",
           "name": "ユーザー",
           "desc": "アニリストユーザーの情報。"
+        }
+      ]
+    },
+    {
+      "name": "register",
+      "desc": "Register your Anilist username for ease of use.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "anilist_user/register.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "register",
+          "desc": "Register your Anilist username for ease of use."
+        },
+        {
+          "code": "fr",
+          "name": "register",
+          "desc": "Enregistrez votre nom d'utilisateur Anilist pour plus de facilité d'utilisation."
+        },
+        {
+          "code": "de",
+          "name": "register",
+          "desc": "Registriere deinen Anilist-Benutzernamen für mehr Benutzerfreundlichkeit."
+        },
+        {
+          "code": "ja",
+          "name": "register",
+          "desc": "利便性のためにAnilistユーザー名を登録してください。"
         }
       ]
     }

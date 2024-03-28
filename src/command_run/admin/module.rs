@@ -37,7 +37,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let mut ai_value = row.ai_module.unwrap_or(true);
     let mut anilist_value = row.anilist_module.unwrap_or(true);
     let mut game_value = row.game_module.unwrap_or(true);
-    let mut new_member_value = row.new_member.unwrap_or(true);
+    let mut new_member_value = row.new_member.unwrap_or(false);
     match module.as_str() {
         "ANILIST" => anilist_value = state,
         "AI" => ai_value = state,

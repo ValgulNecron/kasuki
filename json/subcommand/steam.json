@@ -1,19 +1,44 @@
 {
   "name": "steam",
   "desc": "Steam command from the GAME module.",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
-  "perm": false,
-  "arg_num": 1,
-  "args": [
+  "command": [
     {
       "name": "game",
       "desc": "Get info of a steam game.",
-      "command_type": "SubCommand",
-      "required": true,
-      "autocomplete": false,
-      "file": "steam/game.json",
-      "localised_args": [
+      "args": [
+        {
+          "name": "game_name",
+          "desc": "Name of the game you want info about.",
+          "required": true,
+          "autocomplete": true,
+          "arg_type": "String",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "game_name",
+              "desc": "Name of the game you want info about."
+            },
+            {
+              "code": "fr",
+              "name": "nom_du_jeu",
+              "desc": "Nom du jeu dont vous souhaitez obtenir des informations."
+            },
+            {
+              "code": "de",
+              "name": "spiel_name",
+              "desc": "Name des Spiels, für das Sie Informationen möchten."
+            },
+            {
+              "code": "ja",
+              "name": "geemu_no_namae",
+              "desc": "情報を取得したいゲームの名前。"
+            }
+          ]
+        }
+      ],
+      "localised": [
         {
           "code": "en-US",
           "name": "game",
@@ -26,7 +51,7 @@
         },
         {
           "code": "de",
-          "name": "steam",
+          "name": "spiel",
           "desc": "Informationen zu einem Steam-Spiel erhalten."
         },
         {
