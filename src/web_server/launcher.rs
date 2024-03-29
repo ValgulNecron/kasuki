@@ -10,6 +10,9 @@ use crate::web_server::launcher::proto::shard_server::ShardServer;
 
 mod proto {
     tonic::include_proto!("shard");
+
+    pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
+        tonic::include_file_descriptor_set!("shard_descriptor");
 }
 
 #[derive(Debug)]
@@ -64,8 +67,12 @@ pub async fn web_server_launcher(shard_manager: &Arc<ShardManager>) {
         shard_manager: shard_manager_arc,
     };
 
+    let reflection = tonic_reflection::server::Builder::configure()
+        .register_encoded_file_descriptor_set(proto::FILE_DESCRIPTOR_SET).build().unwrap();
+
     tonic::transport::Server::builder()
         .add_service(ShardServer::new(shard_service))
+        .add_service(reflection)
         .serve(addr.parse().unwrap())
         .await
         .unwrap();
