@@ -43,10 +43,16 @@ services:
       - DB_TYPE="sqlite" # Type of database to use; either 'sqlite' or 'postgres'
       - MAX_LOG_RETENTION_DAYS=30 # Maximum number of days to retain logs
 
+      # Web Server Configuration
+      - WEB_SERVER="true" # Whether to enable the web server for serving images and other content
+      - WEB_PORT=8080 # Port number for the web server to listen on
+
       # Media Saving Configuration
       - SAVE_IMAGE="local" # Location to save images; can be 'local', 'remote', or 'false' to disable
       - SAVE_SERVER="imgur" # Server to save media to; either 'imgur' or 'catbox'
       - TOKEN="ImgurClientIDOrCatboxUserHash" # Authentication token for the chosen media saving server
+    ports:
+      - "8080:8080"
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db
