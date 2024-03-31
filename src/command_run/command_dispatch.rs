@@ -35,6 +35,12 @@ pub async fn command_dispatching(
         ErrorResponseType::Message,
     );
 
+    let anime_module_error = AppError::new(
+        String::from("Anime module is off."),
+        ErrorType::Module,
+        ErrorResponseType::Message,
+    );
+
     let game_module_error = AppError::new(
         String::from("Game module is off."),
         ErrorType::Module,
@@ -60,7 +66,7 @@ pub async fn command_dispatching(
             if check_if_module_is_on(guild_id, "ANIME").await? {
                 anime(ctx, command_interaction).await?
             } else {
-                return Err(ai_module_error);
+                return Err(anilist_module_error);
             }
         }
         "anilist_server" => {
@@ -82,14 +88,14 @@ pub async fn command_dispatching(
             if check_if_module_is_on(guild_id, "ANIME").await? {
                 anime(ctx, command_interaction).await?
             } else {
-                return Err(ai_module_error);
+                return Err(anime_module_error);
             }
         }
         "anime_nsfw" => {
             if check_if_module_is_on(guild_id, "ANIME").await? {
                 anime(ctx, command_interaction).await?
             } else {
-                return Err(ai_module_error);
+                return Err(anime_module_error);
             }
         }
         // bot module
