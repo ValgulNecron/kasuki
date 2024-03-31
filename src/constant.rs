@@ -180,9 +180,9 @@ pub static TRANSCRIPT_MODELS: Lazy<String> =
 Web server
 */
 /// Flag to enable or disable the web server.
-pub static WEB_SERVER: Lazy<bool> =
+pub static GRPC_IS_ON: Lazy<bool> =
     Lazy::new(|| env::var("WEB_SERVER").unwrap_or_else(|_| "false".to_string()) == "true");
 
 /// Port for the web server.
-pub static WEB_SERVER_PORT: Lazy<String> =
-    Lazy::new(|| env::var("WEB_SERVER_PORT").unwrap_or_else(|_| "8080".to_string()));
+pub static GRPC_SERVER_PORT: Lazy<String> =
+    Lazy::new(|| env::var("WEB_SERVER_PORT").unwrap_or_else(|_| "8888".to_string()));

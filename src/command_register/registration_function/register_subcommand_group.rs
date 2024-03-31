@@ -72,16 +72,18 @@ async fn create_command(command: &SubCommandGroup, http: &Arc<Http>) {
         .dm_permission(command.dm_command)
         .description(&command.desc);
 
-    let mut permission = Permissions::empty();
-    if let Some(permissions) = &command.permissions {
-        let mut perm_bit: u64 = 0;
-        for perm in permissions {
-            let permission: Permissions = perm.permission.into();
-            perm_bit |= permission.bits()
+    command_build = match &command.permissions {
+        Some(permissions) => {
+            let mut perm_bit: u64 = 0;
+            for perm in permissions {
+                let permission: Permissions = perm.permission.into();
+                perm_bit |= permission.bits()
+            }
+            let permission = Permissions::from_bits(perm_bit).unwrap();
+            command_build.default_member_permissions(permission)
         }
-        permission = Permissions::from_bits(perm_bit).unwrap()
-    }
-    command_build = command_build.default_member_permissions(permission);
+        None => command_build,
+    };
 
     command_build = match &command.command {
         Some(command) => {

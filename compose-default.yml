@@ -45,7 +45,6 @@ services:
 
       # Web Server Configuration
       - WEB_SERVER="true" # Whether to enable the web server for serving images and other content
-      - WEB_PORT=8080 # Port number for the web server to listen on
 
       # Media Saving Configuration
       - SAVE_IMAGE="local" # Location to save images; can be 'local', 'remote', or 'false' to disable

@@ -8,10 +8,10 @@ use crate::command_register::registration_function::register_subcommand::creates
 use crate::command_register::registration_function::register_subcommand_group::creates_subcommands_group;
 
 pub async fn command_dispatcher(http: &Arc<Http>, is_ok: bool) {
-    info!("Starting to create commands...");
     if is_ok {
         delete_command(http).await;
     }
+    info!("Starting to create commands...");
 
     creates_commands(http).await;
     creates_subcommands(http).await;
