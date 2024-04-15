@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sqlite3 curl zsh vim \
     git gnupg2 jq sudo \
     build-essential openssl \
+    protobuf-compiler \
     && rm -rf /var/lib/apt/lists/*
     
 WORKDIR /home/
