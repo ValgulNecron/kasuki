@@ -17,7 +17,11 @@
       },
       "extensions": [
         "rust-analyzer.rust-analyzer",
-        "streetsidesoftware.code-spell-checker"
+        "1YiB.rust-bundle",
+        "dustypomerleau.rust-syntax",
+        "swellaby.vscode-rust-test-adapter",
+        "GitHub.vscode-github-actions",
+        "ms-azuretools.vscode-docker"
       ]
     }
   }
