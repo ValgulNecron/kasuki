@@ -8,7 +8,12 @@
         "extensions.ignoreRecommendations": false,
         "rust-analyzer.completion.autoimport": true,
         "rust-analyzer.lru.capacity": 10,
-        "rust-analyzer.completion.postfix.enable": true
+        "rust-analyzer.completion.postfix.enable": true,
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        }
       },
       "extensions": [
         "rust-analyzer.rust-analyzer",
