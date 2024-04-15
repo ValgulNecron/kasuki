@@ -181,8 +181,8 @@ Web server
 */
 /// Flag to enable or disable the web server.
 pub static GRPC_IS_ON: Lazy<bool> =
-    Lazy::new(|| env::var("WEB_SERVER").unwrap_or_else(|_| "false".to_string()) == "true");
+    Lazy::new(|| env::var("GRPC_IS_ON").unwrap_or_else(|_| "false".to_string()) == "true");
 
 /// Port for the web server.
 pub static GRPC_SERVER_PORT: Lazy<String> =
-    Lazy::new(|| env::var("WEB_SERVER_PORT").unwrap_or_else(|_| "8888".to_string()));
+    Lazy::new(|| env::var("GRPC_SERVER_PORT").unwrap_or_else(|_| "8080  ".to_string()));

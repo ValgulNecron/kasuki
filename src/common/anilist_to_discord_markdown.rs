@@ -23,13 +23,16 @@ pub fn convert_anilist_flavored_to_discord_flavored_markdown(value: String) -> S
     result = convert_strikethrough(result);
     result = remove_p_align(result);
     result = convert_blockquote(result);
-
-    result = convert_html_entity_to_real_char(result);
     result = convert_link_to_discord_markdown(result);
+    result = remove_image(result);
+    result = convert_h_header(result);
+    result = remove_horizontal_line(result);
+    result = convert_list(result);
+    result = remove_code_block(result);
+    result = convert_spoiler(result);
+    result = convert_html_entity_to_real_char(result);
     result = add_anti_slash(result);
     result = convert_html_line_break_to_line_break(result);
-    result = convert_spoiler(result);
-    result = convert_h_header(result);
 
     result
 }
@@ -232,13 +235,18 @@ pub fn convert_strikethrough(value: String) -> String {
 }
 
 pub fn convert_blockquote(value: String) -> String {
-    value
+    let mut value = value
         .replace("<blockquote>", "> ")
-        .replace("</blockquote>", "> ")
+        .replace("</blockquote>", "> ");
+
+    let re = Regex::new(r#">+"#).unwrap();
+    value = re.replace_all(value.as_str(), ">").to_string();
+
+    value
 }
 
 pub fn convert_h_header(value: String) -> String {
-    value
+    let mut value = value
         .replace("<h1>", "# ")
         .replace("</h1>", " ")
         .replace("<h2>", "## ")
@@ -250,14 +258,89 @@ pub fn convert_h_header(value: String) -> String {
         .replace("<h5>", "##### ")
         .replace("</h5>", " ")
         .replace("<h6>", "###### ")
-        .replace("</h6>", " ")
+        .replace("</h6>", " ");
+    // replace multiple = or - with # or ##
+    let re = Regex::new(r#"^=+$"#).unwrap();
+    value = re.replace_all(value.as_str(), "#").to_string();
+    let re = Regex::new(r#"^-+$"#).unwrap();
+    value = re.replace_all(value.as_str(), "##").to_string();
+
+    value
 }
 
-pub fn remove_p_align(value: String) -> String {
+fn remove_p_align(value: String) -> String {
     value
         .replace("<p align=\"left\">", "")
         .replace("<p align=\"center\">", "")
         .replace("<p align=\"right\">", "")
         .replace("<p align=\"justify\">", "")
         .replace("</p>", "")
+}
+
+fn remove_image(mut value: String) -> String {
+    // remove ![*](*)
+    let re = Regex::new(r#"!\[[^]]*]\([^)]*\)"#).unwrap();
+    re.replace_all(value.as_str(), "").to_string();
+    // also remove <img alt="fallback text" src="https://anilist.co/img/icons/icon.svg">
+    let re = Regex::new(r#"<img[^>]*>"#).unwrap();
+    value = re.replace_all(value.as_str(), "").to_string();
+
+    // also remove img###(https://anilist.co/img/icons/icon.svg) where ### is any number
+    let re = Regex::new(r#"img\d+"#).unwrap();
+    value = re.replace_all(value.as_str(), "").to_string();
+
+    value
+}
+
+fn remove_horizontal_line(mut value: String) -> String {
+    let re = Regex::new(r#"<hr>"#).unwrap();
+    re.replace_all(value.as_str(), "").to_string();
+    // also remove <hr />
+    let re = Regex::new(r#"<hr\s*/>"#).unwrap();
+    value = re.replace_all(value.as_str(), "").to_string();
+    // if there is --- or *** can be 3 or more
+    let re = Regex::new(r#"^-{3,}$"#).unwrap();
+    value = re.replace_all(value.as_str(), "").to_string();
+    let re = Regex::new(r#"^\*{3,}$"#).unwrap();
+    value = re.replace_all(value.as_str(), "").to_string();
+
+    value
+}
+
+fn convert_list(value: String) -> String {
+    let mut value = value
+        .replace("<ul>", "")
+        .replace("</ul>", "")
+        .replace("<ol>", "")
+        .replace("</ol>", "")
+        .replace("<li>", "- ")
+        .replace("</li>", "");
+
+    let re = Regex::new(r#"<li[^>]*>"#).unwrap();
+    value = re.replace_all(value.as_str(), "- ").to_string();
+
+    // replace single - or * or + with -
+    let re = Regex::new(r#"^[-*+]"#).unwrap();
+    value = re.replace_all(value.as_str(), "- ").to_string();
+    value
+}
+
+fn remove_code_block(value: String) -> String {
+    // <code> or <pre> or </code> or </pre>
+    let re = Regex::new(r#"<code[^>]*>"#).unwrap();
+    re.replace_all(value.as_str(), "").to_string();
+    let re = Regex::new(r#"<pre[^>]*>"#).unwrap();
+    re.replace_all(value.as_str(), "").to_string();
+    let re = Regex::new(r#"</code>"#).unwrap();
+    re.replace_all(value.as_str(), "").to_string();
+    let re = Regex::new(r#"</pre>"#).unwrap();
+    re.replace_all(value.as_str(), "").to_string();
+
+    // remove ` or ```
+    let re = Regex::new(r#"`"#).unwrap();
+    re.replace_all(value.as_str(), "").to_string();
+    let re = Regex::new(r#"```"#).unwrap();
+    re.replace_all(value.as_str(), "").to_string();
+
+    value
 }

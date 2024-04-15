@@ -44,7 +44,8 @@ services:
       - MAX_LOG_RETENTION_DAYS=30 # Maximum number of days to retain logs
 
       # Web Server Configuration
-      - WEB_SERVER="true" # Whether to enable the web server for serving images and other content
+      - GRPC_IS_ON="true" # Whether to enable the web server for serving images and other content
+      - GRPC_PORT=8080 # Port to use for the web server (if enabled) (don't change this unless you know what you're doing)
 
       # Media Saving Configuration
       - SAVE_IMAGE="local" # Location to save images; can be 'local', 'remote', or 'false' to disable

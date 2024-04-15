@@ -6,7 +6,7 @@ use tonic::{Request, Response, Status};
 use proto::shard_server::Shard;
 
 use crate::constant::GRPC_SERVER_PORT;
-use crate::web_server::launcher::proto::shard_server::ShardServer;
+use crate::grpc_server::launcher::proto::shard_server::ShardServer;
 
 mod proto {
     tonic::include_proto!("shard");
@@ -59,7 +59,7 @@ impl Shard for ShardService {
     }
 }
 
-pub async fn web_server_launcher(shard_manager: &Arc<ShardManager>) {
+pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
     let shard_manager_arc: Arc<ShardManager> = shard_manager.clone();
 
     let addr = format!("0.0.0.0:{}", *GRPC_SERVER_PORT);

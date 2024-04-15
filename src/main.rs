@@ -17,9 +17,7 @@ use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{
-    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
-};
+use crate::constant::{GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE};
 use crate::constant::ACTIVITY_NAME;
 use crate::constant::PING_UPDATE_DELAYS;
 use crate::constant::TIME_BETWEEN_GAME_UPDATE;
@@ -31,7 +29,7 @@ use crate::logger::{create_log_directory, init_logger};
 use crate::new_member::new_member;
 use crate::server_image::calculate_user_color::color_management;
 use crate::server_image::generate_server_image::server_image_management;
-use crate::web_server::launcher::web_server_launcher;
+use crate::grpc_server::launcher::grpc_server_launcher;
 
 mod activity;
 mod anilist_struct;
@@ -51,7 +49,7 @@ mod logger;
 mod new_member;
 mod server_image;
 pub mod struct_shard_manager;
-mod web_server;
+mod grpc_server;
 
 struct Handler;
 
@@ -387,15 +385,7 @@ async fn thread_management_launcher(ctx: Context) {
 
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
-    let ctx_clone = ctx.clone();
-    // Spawn a new thread for server image management
-    tokio::spawn(async move {
-        info!("Launching the server image management thread!");
-        loop {
-            server_image_management(&ctx_clone).await;
-            sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE)).await;
-        }
-    });
+    tokio::spawn(launch_server_image_management_thread(ctx.clone()));
 
     info!("Done spawning thread manager.");
 }
@@ -410,8 +400,12 @@ async fn launch_web_server_thread(ctx: Context) {
             return;
         }
     };
-    info!("Launching the log web server thread!");
-    web_server_launcher(shard_manager).await
+    if *GRPC_IS_ON {
+        info!("GRPC is on, launching the GRPC server thread!");
+        grpc_server_launcher(shard_manager).await
+    } else {
+        info!("GRPC is off, skipping the GRPC server thread!");
+    }
 }
 
 /// This function is responsible for launching the user color management thread.
@@ -474,5 +468,20 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>) {
         set_data_ping_history(shard_id.to_string(), latency)
             .await
             .unwrap();
+    }
+}
+
+/// This function is responsible for launching the server image management thread.
+/// It takes a `Context` as an argument.
+///
+/// # Arguments
+///
+/// * `ctx` - A `Context` instance which is used in the server image management function.
+///
+async fn launch_server_image_management_thread(ctx: Context) {
+    info!("Launching the server image management thread!");
+    loop {
+        server_image_management(&ctx).await;
+        sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE)).await;
     }
 }
