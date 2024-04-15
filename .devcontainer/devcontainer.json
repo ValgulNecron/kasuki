@@ -9,7 +9,11 @@
         "rust-analyzer.completion.autoimport": true,
         "rust-analyzer.lru.capacity": 10,
         "rust-analyzer.completion.postfix.enable": true
-      }
+      },
+      "extensions": [
+        "rust-analyzer.rust-analyzer",
+        "streetsidesoftware.code-spell-checker"
+      ]
     }
   }
 }
