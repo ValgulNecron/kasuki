@@ -115,7 +115,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
-    let token = TRANSCRIPT_TOKEN.as_str();
+    let token = TRANSCRIPT_TOKEN;
+    let token = token.as_str();
 
     headers.insert(
         AUTHORIZATION,
@@ -127,7 +128,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .file_name(file_name)
         .mime_str(content_type.as_str())
         .unwrap();
-    let model = TRANSCRIPT_MODELS.as_str();
+    let model = TRANSCRIPT_MODELS.to_string();
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", model)

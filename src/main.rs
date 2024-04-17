@@ -17,7 +17,7 @@ use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE};
+use crate::constant::{DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE};
 use crate::constant::ACTIVITY_NAME;
 use crate::constant::PING_UPDATE_DELAYS;
 use crate::constant::TIME_BETWEEN_GAME_UPDATE;
@@ -286,12 +286,6 @@ async fn main() {
     // Log a message indicating the bot is starting.
     info!("starting the bot.");
 
-    // Get the Discord token from the environment variable "DISCORD_TOKEN".
-    // If the variable is not set, log an error and exit the process.
-    let token = env::var("DISCORD_TOKEN").unwrap_or_else(|_| {
-        error!("Env variable not set exiting.");
-        std::process::exit(1);
-    });
     // Get all the non-privileged intent.
     let gateway_intent_non_privileged = GatewayIntents::GUILDS
         | GatewayIntents::GUILD_INTEGRATIONS
@@ -319,7 +313,7 @@ async fn main() {
     // Create a new client instance using the provided token and gateway intents.
     // The client is built with an event handler of type `Handler`.
     // If the client creation fails, log the error and exit the process.
-    let mut client = Client::builder(token, gateway_intent)
+    let mut client = Client::builder(DISCORD_TOKEN.to_string(), gateway_intent)
         .event_handler(Handler)
         .await
         .unwrap_or_else(|e| {

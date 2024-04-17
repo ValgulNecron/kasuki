@@ -4,14 +4,15 @@ use std::env;
 use once_cell::sync::Lazy;
 use serenity::all::Colour;
 
-/// The activity name of the bot, fetched from the environment variable "BOT_ACTIVITY".
-/// If the environment variable is not set, it defaults to "Let you get info from anilist.".
-pub static ACTIVITY_NAME: Lazy<String> = Lazy::new(|| {
-    env::var("BOT_ACTIVITY").unwrap_or_else(|_| "Let you get info from anilist.".to_string())
+pub const DISCORD_TOKEN: Lazy<String> = Lazy::new(|| {
+    env::var("DISCORD_TOKEN").expect("Expected a token in the environment")
 });
 
-/// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
-pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+/// The activity name of the bot, fetched from the environment variable "BOT_ACTIVITY".
+/// If the environment variable is not set, it defaults to "Let you get info from anilist.".
+pub const ACTIVITY_NAME: Lazy<String> = Lazy::new(|| {
+    env::var("BOT_ACTIVITY").unwrap_or_else(|_| "Let you get info from anilist.".to_string())
+});
 
 /*
 All delays in seconds.
@@ -112,7 +113,7 @@ AI stuff
 Image
  */
 /// Base URL for the AI image API.
-pub static mut IMAGE_BASE_URL: Lazy<String> = Lazy::new(|| {
+pub const IMAGE_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
         "{}images/generations",
         env::var("AI_IMAGE_API_BASE_URL").unwrap_or_else(
@@ -122,19 +123,19 @@ pub static mut IMAGE_BASE_URL: Lazy<String> = Lazy::new(|| {
 });
 
 /// Token for the AI image API.
-pub static mut IMAGE_TOKEN: Lazy<String> = Lazy::new(|| {
+pub const IMAGE_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_IMAGE_API_TOKEN").unwrap_or_else(|_| env::var("AI_API_TOKEN").unwrap_or_default())
 });
 
 /// Models for the AI image API.
-pub static mut IMAGE_MODELS: Lazy<String> =
+pub const IMAGE_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_IMAGE_GENERATION_MODELS").unwrap_or_else(|_| "dall-e-3".to_string()));
 
 /*
 Chat and translation
  */
 /// Base URL for the AI chat API.
-pub static CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
+pub const CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
         "{}chat/completions",
         env::var("AI_CHAT_API_BASE_URL").unwrap_or_else(
@@ -144,19 +145,19 @@ pub static CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
 });
 
 /// Token for the AI chat API.
-pub static CHAT_TOKEN: Lazy<String> = Lazy::new(|| {
+pub const CHAT_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_CHAT_API_TOKEN").unwrap_or_else(|_| env::var("AI_API_TOKEN").unwrap_or_default())
 });
 
 /// Models for the AI chat API.
-pub static CHAT_MODELS: Lazy<String> =
+pub const CHAT_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_CHAT_MODEL").unwrap_or("gpt-3.5-turbo".to_string()));
 
 /*
 Transcription
  */
 /// Base URL for the AI transcription API.
-pub static TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
+pub const TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
         "{}audio/",
         env::var("AI_TRANSCRIPT_BASE_URL")
@@ -166,23 +167,27 @@ pub static TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
 });
 
 /// Token for the AI transcription API.
-pub static TRANSCRIPT_TOKEN: Lazy<String> = Lazy::new(|| {
+pub const TRANSCRIPT_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_TRANSCRIPT_API_TOKEN")
         .or_else(|_| env::var("AI_API_TOKEN"))
         .unwrap_or_default()
 });
 
 /// Models for the AI transcription API.
-pub static TRANSCRIPT_MODELS: Lazy<String> =
+pub const TRANSCRIPT_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_TRANSCRIPT_MODELS").unwrap_or_else(|_| String::from("whisper-1")));
 
 /*
 Web server
 */
 /// Flag to enable or disable the web server.
-pub static GRPC_IS_ON: Lazy<bool> =
+pub const GRPC_IS_ON: Lazy<bool> =
     Lazy::new(|| env::var("GRPC_IS_ON").unwrap_or_else(|_| "false".to_string()) == "true");
 
 /// Port for the web server.
-pub static GRPC_SERVER_PORT: Lazy<String> =
+pub const GRPC_SERVER_PORT: Lazy<String> =
     Lazy::new(|| env::var("GRPC_SERVER_PORT").unwrap_or_else(|_| "8080  ".to_string()));
+
+
+/// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
+pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
