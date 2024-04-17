@@ -23,9 +23,7 @@
           "zsh": {
             "path": "/bin/zsh"
           }
-        },
-        "workbench.colorTheme": "Catppuccin.macchiato",
-        "workbench.iconTheme": "Catppuccin"
+        }
       }
     }
   },

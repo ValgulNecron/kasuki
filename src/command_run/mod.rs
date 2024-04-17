@@ -6,3 +6,4 @@ pub mod bot_info;
 pub mod command_dispatch;
 pub mod general;
 pub mod steam;
+pub mod epic;
