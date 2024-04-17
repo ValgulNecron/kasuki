@@ -3,6 +3,16 @@
   "dockerFile": "Dockerfile",
   "customizations": {
     "vscode": {
+      "extensions": [
+        "rust-analyzer.rust-analyzer",
+        "1YiB.rust-bundle",
+        "dustypomerleau.rust-syntax",
+        "swellaby.vscode-rust-test-adapter",
+        "GitHub.vscode-github-actions",
+        "ms-azuretools.vscode-docker",
+        "Catppuccin.catppuccin-vsc-icons",
+        "Catppuccin.catppuccin-vsc"
+      ],
       "settings": {
         "editor.formatOnSave": true,
         "extensions.ignoreRecommendations": false,
@@ -13,16 +23,10 @@
           "zsh": {
             "path": "/bin/zsh"
           }
-        }
-      },
-      "extensions": [
-        "rust-analyzer.rust-analyzer",
-        "1YiB.rust-bundle",
-        "dustypomerleau.rust-syntax",
-        "swellaby.vscode-rust-test-adapter",
-        "GitHub.vscode-github-actions",
-        "ms-azuretools.vscode-docker"
-      ]
+        },
+        "workbench.colorTheme": "Catppuccin.macchiato",
+        "workbench.iconTheme": "Catppuccin"
+      }
     }
   },
   "features": {
