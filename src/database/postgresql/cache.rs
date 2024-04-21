@@ -13,10 +13,10 @@ pub async fn get_database_random_cache_postgresql(
     let row: Option<CacheStats> = sqlx::query_as(
         "SELECT response, last_updated, last_page FROM CACHE.cache_stats WHERE key = $1",
     )
-        .bind(random_type)
-        .fetch_optional(&pool)
-        .await
-        .unwrap_or(None);
+    .bind(random_type)
+    .fetch_optional(&pool)
+    .await
+    .unwrap_or(None);
 
     pool.close().await;
     Ok(row)
@@ -55,10 +55,10 @@ pub async fn get_database_cache_postgresql(
     let row: (Option<String>, Option<String>, Option<i64>) = sqlx::query_as(
         "SELECT json, response, last_updated FROM CACHE.request_cache WHERE json = $1",
     )
-        .bind(json.clone())
-        .fetch_one(&pool)
-        .await
-        .unwrap_or((None, None, None));
+    .bind(json.clone())
+    .fetch_one(&pool)
+    .await
+    .unwrap_or((None, None, None));
 
     pool.close().await;
     Ok(row)

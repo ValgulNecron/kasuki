@@ -1,10 +1,10 @@
-use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::engine::Engine as _;
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseMessage,
     Timestamp,
 };
-use serenity::all::CreateInteractionResponse::Defer;
 use serenity::builder::CreateInteractionResponseFollowup;
 use tracing::trace;
 use uuid::Uuid;

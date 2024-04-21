@@ -1,11 +1,11 @@
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use base64::Engine;
 use base64::engine::general_purpose;
-use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
+use base64::Engine;
 use image::codecs::png::PngEncoder;
 use image::imageops::FilterType;
+use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
 use palette::{IntoColor, Lab, Srgb};
 use serenity::all::{Context, GuildId, Member};
 use tokio::task;
@@ -21,8 +21,8 @@ use crate::server_image::calculate_user_color::{
     get_image_from_url, get_member, return_average_user_color,
 };
 use crate::server_image::common::{
-    Color, ColorWithUrl, create_color_vector_from_tuple, create_color_vector_from_user_color,
-    find_closest_color,
+    create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
+    ColorWithUrl,
 };
 
 /// This function generates a local server image.

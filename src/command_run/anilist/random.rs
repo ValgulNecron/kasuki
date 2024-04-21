@@ -1,10 +1,10 @@
 use chrono::Utc;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
-use serenity::all::CreateInteractionResponse::Defer;
 
 use crate::anilist_struct::run::random::PageWrapper;
 use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
@@ -64,7 +64,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 command_interaction,
                 random_localised,
             )
-                .await;
+            .await;
         }
     }
     update_cache(
@@ -76,7 +76,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         cached_response,
         random_localised,
     )
-        .await
+    .await
 }
 
 pub async fn embed(
@@ -208,5 +208,5 @@ pub async fn update_cache(
         command_interaction,
         random_localised,
     )
-        .await
+    .await
 }

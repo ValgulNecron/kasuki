@@ -1,6 +1,6 @@
 [package]
 name = "kasuki"
-version = "2.7.0"
+version = "2.8.0"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
@@ -37,6 +37,10 @@ tracing-appender = "0.2.3"
 tonic = "0.11.0"
 prost = "0.12.3"
 tonic-reflection = "0.11.0"
+ratatui = "0.26.2"
+crossterm = "0.27.0"
+sysinfo = "0.30.11"
+tui-logger = "0.11.0"
 
 [build-dependencies]
 tonic-build = "0.11.0"

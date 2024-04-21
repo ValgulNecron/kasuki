@@ -3,7 +3,9 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::common::get_option::subcommand::{get_option_map_boolean_subcommand, get_option_map_string_subcommand};
+use crate::common::get_option::subcommand::{
+    get_option_map_boolean_subcommand, get_option_map_string_subcommand,
+};
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
@@ -56,7 +58,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         game_value,
         new_member_value,
     )
-        .await?;
+    .await?;
     let desc = if state {
         &module_localised.on
     } else {

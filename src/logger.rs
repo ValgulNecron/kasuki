@@ -7,7 +7,7 @@ use tracing_subscriber::fmt;
 use tracing_subscriber::layer::SubscriberExt;
 
 use crate::constant::{
-    GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, MAX_LOG_RETENTION_DAYS, OTHER_CRATE_LEVEL,
+    APP_TUI, GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, MAX_LOG_RETENTION_DAYS, OTHER_CRATE_LEVEL,
 };
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
@@ -79,22 +79,38 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
 
     let format = fmt::layer().with_ansi(true);
 
-    let registry = tracing_subscriber::registry()
-        .with(filter)
-        .with(format)
-        .with(
+    if *APP_TUI {
+        let registry = tracing_subscriber::registry().with(filter).with(
             tracing_subscriber::fmt::layer()
                 .with_writer(file_appender_non_blocking)
                 .with_ansi(false),
         );
 
-    tracing::subscriber::set_global_default(registry).map_err(|e| {
-        AppError::new(
-            format!("Error creating the Logger. {}", e),
-            ErrorType::Logging,
-            ErrorResponseType::None,
-        )
-    })?;
+        tracing::subscriber::set_global_default(registry).map_err(|e| {
+            AppError::new(
+                format!("Error creating the Logger. {}", e),
+                ErrorType::Logging,
+                ErrorResponseType::None,
+            )
+        })?;
+    } else {
+        let registry = tracing_subscriber::registry()
+            .with(filter)
+            .with(format)
+            .with(
+                tracing_subscriber::fmt::layer()
+                    .with_writer(file_appender_non_blocking)
+                    .with_ansi(false),
+            );
+
+        tracing::subscriber::set_global_default(registry).map_err(|e| {
+            AppError::new(
+                format!("Error creating the Logger. {}", e),
+                ErrorType::Logging,
+                ErrorResponseType::None,
+            )
+        })?;
+    }
 
     Ok(())
 }

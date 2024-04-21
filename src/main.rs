@@ -2,11 +2,12 @@ use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
-use serenity::{async_trait, Client};
+use once_cell::sync::Lazy;
 use serenity::all::{
     ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready, ShardManager,
 };
 use serenity::all::{Guild, Member};
+use serenity::{async_trait, Client};
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
@@ -17,19 +18,23 @@ use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE};
 use crate::constant::ACTIVITY_NAME;
 use crate::constant::PING_UPDATE_DELAYS;
 use crate::constant::TIME_BETWEEN_GAME_UPDATE;
+use crate::constant::{
+    APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
+    TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+};
 use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::game_struct::steam_game_id_struct::get_game;
+use crate::grpc_server::launcher::grpc_server_launcher;
 use crate::logger::{create_log_directory, init_logger};
 use crate::new_member::new_member;
 use crate::server_image::calculate_user_color::color_management;
 use crate::server_image::generate_server_image::server_image_management;
-use crate::grpc_server::launcher::grpc_server_launcher;
 
 mod activity;
 mod anilist_struct;
@@ -43,13 +48,14 @@ mod database;
 mod database_struct;
 mod error_management;
 mod game_struct;
+mod grpc_server;
 mod image_saver;
 mod lang_struct;
 mod logger;
 mod new_member;
 mod server_image;
 pub mod struct_shard_manager;
-mod grpc_server;
+mod tui;
 
 struct Handler;
 
@@ -145,6 +151,11 @@ impl EventHandler for Handler {
     /// ```
     ///
     async fn ready(&self, ctx: Context, ready: Ready) {
+        let bot = ctx.http.get_current_application_info().await.unwrap();
+        unsafe {
+            *BOT_INFO = Some(bot);
+        }
+
         // Spawns a new thread for managing various tasks
         tokio::spawn(thread_management_launcher(ctx.clone()));
 
@@ -249,11 +260,11 @@ impl EventHandler for Handler {
 /// It initializes the logger, the SQL database, and the bot client.
 /// It also spawns asynchronous tasks for managing the ping of the shards and starting the client.
 async fn main() {
+    let _ = dotenv::from_path(".env");
+
     // Print a message indicating the bot is starting.
     println!("Bot starting please wait.");
-
     // Load environment variables from the .env file.
-    let _ = dotenv::from_path(".env");
 
     // Get the log level from the environment variable "RUST_LOG".
     // If the variable is not set, default to "info".
@@ -274,6 +285,13 @@ async fn main() {
     if let Err(e) = init_logger(log) {
         eprintln!("{:?}", e);
         return;
+    }
+
+    if *APP_TUI {
+        // create a new tui in a new thread
+        tokio::spawn(async {
+            tui::create_tui().await.unwrap();
+        });
     }
 
     // Initialize the SQL database.
@@ -323,7 +341,7 @@ async fn main() {
 
     // Clone the shard manager from the client.
     let shard_manager = client.shard_manager.clone();
-
+    let shutdown = shard_manager.clone();
     // Insert the cloned shard manager into the client's data.
     // This allows for the shard manager to be accessed from the context in event handlers.
     client
@@ -352,8 +370,9 @@ async fn main() {
 
     // Wait for a Ctrl-C signal.
     // If received, print a shutdown message.
-    let _signal_err = tokio::signal::ctrl_c().await;
-    println!("Received Ctrl-C, shutting down.");
+    tokio::signal::ctrl_c().await.unwrap();
+    ShardManager::shutdown_all(&shutdown).await;
+    info!("Received bot shutdown signal. Shutting down bot.");
 }
 
 /// This function is responsible for launching various threads for different tasks.

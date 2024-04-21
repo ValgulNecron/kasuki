@@ -1,10 +1,10 @@
 use std::num::ParseIntError;
 
-use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::engine::Engine as _;
 use image::DynamicImage;
-use palette::{IntoColor, Lab, Srgb};
 use palette::color_difference::ImprovedDeltaE;
+use palette::{IntoColor, Lab, Srgb};
 
 use crate::database_struct::user_color::UserColor;
 

@@ -21,9 +21,7 @@ pub fn get_option_map_string_subcommand(
     map
 }
 
-pub fn get_option_map_integer_subcommand(
-    interaction: &CommandInteraction,
-) -> HashMap<String, i64> {
+pub fn get_option_map_integer_subcommand(interaction: &CommandInteraction) -> HashMap<String, i64> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
     let subcommand = &binding.first().unwrap().value;
@@ -59,9 +57,7 @@ pub fn get_option_map_boolean_subcommand(
     map
 }
 
-pub fn get_option_map_user_subcommand(
-    interaction: &CommandInteraction,
-) -> HashMap<String, UserId> {
+pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashMap<String, UserId> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
     let subcommand = &binding.first().unwrap().value;
@@ -114,9 +110,7 @@ pub fn get_option_map_role_subcommand(interaction: &CommandInteraction) -> HashM
     map
 }
 
-pub fn get_option_map_number_subcommand(
-    interaction: &CommandInteraction,
-) -> HashMap<String, f64> {
+pub fn get_option_map_number_subcommand(interaction: &CommandInteraction) -> HashMap<String, f64> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
     let subcommand = &binding.first().unwrap().value;

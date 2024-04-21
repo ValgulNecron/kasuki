@@ -115,7 +115,8 @@ fn censor_url_and_token(error_message: String) -> String {
     let image_token = IMAGE_TOKEN.to_string();
     let transcript_token = TRANSCRIPT_TOKEN.to_string();
     let chat_token = CHAT_TOKEN.to_string();
-    error_message = error_message.replace(&discord_token, "[REDACTED]")
+    error_message = error_message
+        .replace(&discord_token, "[REDACTED]")
         .replace(&image_token, "[REDACTED]")
         .replace(&transcript_token, "[REDACTED]")
         .replace(&chat_token, "[REDACTED]");

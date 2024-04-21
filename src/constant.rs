@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::env;
 
 use once_cell::sync::Lazy;
-use serenity::all::Colour;
+use ratatui::style::Color;
+use serenity::all::{Colour, CurrentApplicationInfo};
 
-pub const DISCORD_TOKEN: Lazy<String> = Lazy::new(|| {
-    env::var("DISCORD_TOKEN").expect("Expected a token in the environment")
-});
+pub const DISCORD_TOKEN: Lazy<String> =
+    Lazy::new(|| env::var("DISCORD_TOKEN").expect("Expected a token in the environment"));
 
 /// The activity name of the bot, fetched from the environment variable "BOT_ACTIVITY".
 /// If the environment variable is not set, it defaults to "Let you get info from anilist.".
@@ -55,6 +55,7 @@ App embed color.
  */
 /// Color for the app embed.
 pub const COLOR: Colour = Colour::FABLED_PINK;
+pub const TUI_FG_COLOR: Color = Color::Rgb(250, 177, 237);
 
 /*
 Other crate log level. Because serenity uses info to obviously trace things like heartbeat.
@@ -87,7 +88,7 @@ pub const LOGS_PATH: &str = "./logs";
 /// Prefix for the logs.
 pub const LOGS_PREFIX: &str = "kasuki_";
 /// Suffix for the logs
-pub const LOGS_SUFFIX: &str = ".log";
+pub const LOGS_SUFFIX: &str = "log";
 /// Maximum log retention days.
 pub static MAX_LOG_RETENTION_DAYS: Lazy<u64> = Lazy::new(|| {
     env::var("MAX_LOG_RETENTION_DAYS")
@@ -188,6 +189,24 @@ pub const GRPC_IS_ON: Lazy<bool> =
 pub const GRPC_SERVER_PORT: Lazy<String> =
     Lazy::new(|| env::var("GRPC_SERVER_PORT").unwrap_or_else(|_| "8080  ".to_string()));
 
-
 /// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/*
+Application
+ */
+
+/// If the application tui is enabled.
+pub const APP_TUI: Lazy<bool> = Lazy::new(|| {
+    println!("TUI: {:?}", env::var("TUI"));
+    let is_on = env::var("TUI").unwrap_or_else(|_| "false".to_string());
+    println!("TUI: {}", is_on);
+    is_on.to_lowercase() == "true"
+});
+
+/*
+bot info
+ */
+
+/// The bot's name.
+pub static mut BOT_INFO: Lazy<Option<CurrentApplicationInfo>> = Lazy::new(|| None);

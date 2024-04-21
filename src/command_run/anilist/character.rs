@@ -1,6 +1,6 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::anilist_struct::run::character::{CharacterWrapper, send_embed};
+use crate::anilist_struct::run::character::{send_embed, CharacterWrapper};
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::error_management::error_enum::AppError;
 

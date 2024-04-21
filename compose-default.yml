@@ -51,6 +51,9 @@ services:
       - SAVE_IMAGE="local" # Location to save images; can be 'local', 'remote', or 'false' to disable
       - SAVE_SERVER="imgur" # Server to save media to; either 'imgur' or 'catbox'
       - TOKEN="ImgurClientIDOrCatboxUserHash" # Authentication token for the chosen media saving server
+
+      # application configuration
+      - TUI="false" # Enable the TUI interface
     ports:
       - "8080:8080"
     volumes:

@@ -1,5 +1,5 @@
-use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessage};
 use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessage};
 
 use crate::command_run::anime::random_image::send_embed;
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
@@ -38,5 +38,5 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         random_image_nsfw_localised.title,
         "nsfw",
     )
-        .await
+    .await
 }

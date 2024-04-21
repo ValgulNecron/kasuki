@@ -68,7 +68,9 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
     };
 
     let reflection = tonic_reflection::server::Builder::configure()
-        .register_encoded_file_descriptor_set(proto::FILE_DESCRIPTOR_SET).build().unwrap();
+        .register_encoded_file_descriptor_set(proto::FILE_DESCRIPTOR_SET)
+        .build()
+        .unwrap();
 
     tonic::transport::Server::builder()
         .add_service(ShardServer::new(shard_service))

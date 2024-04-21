@@ -100,7 +100,9 @@ pub fn get_option_map_number(interaction: &CommandInteraction) -> HashMap<String
     map
 }
 
-pub fn get_option_map_attachment(interaction: &CommandInteraction) -> HashMap<String, AttachmentId> {
+pub fn get_option_map_attachment(
+    interaction: &CommandInteraction,
+) -> HashMap<String, AttachmentId> {
     let mut map = HashMap::new();
     for option in &interaction.data.options {
         let name = option.name.clone();

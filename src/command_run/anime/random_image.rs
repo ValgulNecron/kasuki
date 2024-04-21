@@ -1,8 +1,8 @@
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, Timestamp,
 };
-use serenity::all::CreateInteractionResponse::Defer;
 use uuid::Uuid;
 
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
@@ -43,7 +43,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         random_image_localised.title,
         "sfw",
     )
-        .await
+    .await
 }
 
 pub async fn send_embed(
