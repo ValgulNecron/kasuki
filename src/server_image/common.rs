@@ -4,6 +4,7 @@ use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use image::DynamicImage;
 use palette::{IntoColor, Lab, Srgb};
+use palette::color_difference::ImprovedDeltaE;
 
 use crate::database_struct::user_color::UserColor;
 
@@ -92,28 +93,11 @@ pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<Col
     colors
         .iter()
         .min_by(|&a, &b| {
-            let delta_e_a = calculate_delta_e(&a.cielab, &target.cielab);
-            let delta_e_b = calculate_delta_e(&b.cielab, &target.cielab);
+            let delta_e_a = a.cielab.improved_delta_e(target.cielab);
+            let delta_e_b = a.cielab.improved_delta_e(target.cielab);
             delta_e_a.partial_cmp(&delta_e_b).unwrap()
         })
         .cloned()
-}
-
-/// This function calculates the Euclidean distance between two colors in the CIELAB color space.
-///
-/// # Arguments
-///
-/// * `cielab1` - A reference to the first `Lab` object.
-/// * `cielab2` - A reference to the second `Lab` object.
-///
-/// # Returns
-///
-/// * `f32` - Returns the Euclidean distance as a floating point number.
-fn calculate_delta_e(cielab1: &Lab, cielab2: &Lab) -> f32 {
-    let delta_l = (cielab1.l - cielab2.l).abs();
-    let delta_a = (cielab1.a - cielab2.a).abs();
-    let delta_b = (cielab1.b - cielab2.b).abs();
-    (delta_l.powi(2) + delta_a.powi(2) + delta_b.powi(2)).sqrt()
 }
 
 /// This function creates a `ColorWithUrl` object from an image and RGB color values.

@@ -1,4 +1,5 @@
 use serenity::all::{CommandInteraction, Context};
+use tracing::trace;
 
 use crate::command_run::admin::{lang, module};
 use crate::command_run::admin::module::check_activation_status;
@@ -233,13 +234,15 @@ async fn bot_info(ctx: &Context, command_interaction: &CommandInteraction) -> Re
 }
 
 async fn general(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    match command_interaction
+    let sub_command = command_interaction
         .data
         .options
         .first()
         .unwrap()
         .name
-        .as_str()
+        .as_str();
+    trace!(sub_command);
+    match sub_command
     {
         "avatar" => avatar::run(ctx, command_interaction).await,
         "banner" => banner::run(ctx, command_interaction).await,
