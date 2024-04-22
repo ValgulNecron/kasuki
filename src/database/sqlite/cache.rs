@@ -3,6 +3,7 @@ use serde_json::Value;
 
 use crate::constant::CACHE_SQLITE_DB;
 use crate::database::sqlite::pool::get_sqlite_pool;
+use crate::database_struct::cache_stats::CacheStats;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Retrieves the cache statistics for a given random type from a SQLite database using a connection pool.
@@ -12,21 +13,21 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 ///
 /// # Arguments
 ///
-/// * `random_type` - The random type to retrieve cache statistics for.
+/// * `random_type` - The rand  om type to retrieve cache statistics for.
 ///
 /// # Returns
 ///
 /// A tuple containing the response, last updated timestamp, and last page of the cache statistics.
 pub async fn get_database_random_cache_sqlite(
     random_type: &str,
-) -> Result<(Option<String>, Option<i64>, Option<i64>), AppError> {
+) -> Result<Option<CacheStats>, AppError> {
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
-    let row: (Option<String>, Option<i64>, Option<i64>) =
+    let row: Option<CacheStats> =
         sqlx::query_as("SELECT response, last_updated, last_page FROM cache_stats WHERE key = ?")
             .bind(random_type)
-            .fetch_one(&pool)
+            .fetch_optional(&pool)
             .await
-            .unwrap_or((None, None, None));
+            .unwrap_or(None);
     pool.close().await;
     Ok(row)
 }

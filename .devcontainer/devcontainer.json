@@ -3,13 +3,43 @@
   "dockerFile": "Dockerfile",
   "customizations": {
     "vscode": {
+      "extensions": [
+        "rust-analyzer.rust-analyzer",
+        "1YiB.rust-bundle",
+        "dustypomerleau.rust-syntax",
+        "swellaby.vscode-rust-test-adapter",
+        "GitHub.vscode-github-actions",
+        "ms-azuretools.vscode-docker",
+        "Catppuccin.catppuccin-vsc-icons",
+        "Catppuccin.catppuccin-vsc"
+      ],
       "settings": {
         "editor.formatOnSave": true,
         "extensions.ignoreRecommendations": false,
         "rust-analyzer.completion.autoimport": true,
         "rust-analyzer.lru.capacity": 10,
-        "rust-analyzer.completion.postfix.enable": true
+        "rust-analyzer.completion.postfix.enable": true,
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        }
       }
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "latest",
+      "profile": "complete"
+    },
+    "ghcr.io/lee-orr/rusty-dev-containers/rust_windows_msvc:0": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": true,
+      "azureDnsAutoDetection": true,
+      "installDockerBuildx": true,
+      "installDockerComposeSwitch": true,
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
     }
   }
 }

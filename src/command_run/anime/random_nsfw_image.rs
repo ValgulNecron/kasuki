@@ -2,7 +2,7 @@ use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessage};
 
 use crate::command_run::anime::random_image::send_embed;
-use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::random_image_nsfw::load_localization_random_image_nsfw;
 

@@ -15,11 +15,11 @@ use serenity::all::{
 use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
-use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::common::trimer::trim_webhook;
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
-use crate::database_struct::server_activity_struct::ServerActivityFull;
+use crate::database_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
 

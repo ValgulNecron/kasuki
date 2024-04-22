@@ -147,13 +147,13 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS activity_data (
         anime_id TEXT,
-        timestamp TEXT,
         server_id TEXT,
-        webhook TEXT,
-        episode TEXT,
-        name TEXT,
+        timestamp TEXT NOT NULL,
+        webhook TEXT NOT NULL,
+        episode TEXT NOT NULL,
+        name TEXT NOT NULL,
         delays BIGINT DEFAULT 0,
-        image TEXT,
+        image TEXT NOT NULL,
         PRIMARY KEY (anime_id, server_id)
     )",
     )
@@ -170,11 +170,11 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS module_activation (
         guild_id TEXT PRIMARY KEY,
-        ai_module BIGINT,
-        anilist_module BIGINT,
-        game_module BIGINT,
-        new_member BIGINT,
-        anime BIGINT
+        ai_module BIGINT NOT NULL,
+        anilist_module BIGINT NOT NULL,
+        game_module BIGINT NOT NULL,
+        new_member BIGINT NOT NULL,
+        anime BIGINT NOT NULL
    )",
     )
     .execute(pool)
@@ -190,7 +190,7 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS registered_user  (
             user_id TEXT PRIMARY KEY,
-            anilist_id TEXT
+            anilist_id TEXT NOT NULL
         )",
     )
     .execute(pool)
@@ -206,10 +206,10 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
             id TEXT PRIMARY KEY,
-            ai_module BIGINT,
-            anilist_module BIGINT,
-            game_module BIGINT,
-            new_member BIGINT
+            ai_module BIGINT NOT NULL,
+            anilist_module BIGINT NOT NULL,
+            game_module BIGINT NOT NULL,
+            new_member BIGINT NOT NULL
         )",
     )
     .execute(pool)
@@ -223,21 +223,30 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     })?;
 
     sqlx::query(
-        "INSERT INTO global_kill_switch (id, anilist_module, ai_module, game_module, new_member) VALUES ($1, $2, $3, $4, $5)
-    ON CONFLICT (id) DO UPDATE SET anilist_module = excluded.anilist_module, ai_module = excluded.ai_module, game_module = excluded.game_module, new_member = excluded.new_member",
+        "INSERT INTO global_kill_switch
+        (id, anilist_module, ai_module, game_module, new_member)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (id)
+            DO UPDATE
+            SET anilist_module = excluded.anilist_module,
+            ai_module = excluded.ai_module,
+            game_module = excluded.game_module,
+            new_member = excluded.new_member",
     )
-        .bind("1")
-        .bind(1)
-        .bind(1)
-        .bind(1)
-        .bind(1)
-        .execute(pool)
-        .await.map_err(|e|
+    .bind("1")
+    .bind(1)
+    .bind(1)
+    .bind(1)
+    .bind(1)
+    .execute(pool)
+    .await
+    .map_err(|e| {
         AppError::new(
             format!("Failed to insert into the table. {}", e),
             ErrorType::Database,
             ErrorResponseType::None,
-        ))?;
+        )
+    })?;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_color (
@@ -259,10 +268,10 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS server_image (
-                server_id TEXT PRIMARY KEY,
-                type TEXT PRIMARY KEY,
-                image TEXT NOT NULL,
-image_url TEXT NOT NULL
+            server_id TEXT PRIMARY KEY,
+            type TEXT PRIMARY KEY,
+            image TEXT NOT NULL,
+            image_url TEXT NOT NULL
      )",
     )
     .execute(pool)

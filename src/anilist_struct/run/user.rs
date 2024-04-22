@@ -1,10 +1,11 @@
 use serde::Deserialize;
 use serde_json::json;
 use serenity::all::{
-    Colour, CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
+    Colour, CommandInteraction, Context, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
 
+use crate::common::default_embed::get_default_embed;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
@@ -267,9 +268,7 @@ pub async fn send_embed(
         }
     }
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(get_color(user.clone()))
+    let builder_embed = get_default_embed(Some(get_color(user.clone())))
         .title(user.name.unwrap_or_default())
         .url(get_user_url(user.id.unwrap_or(0)))
         .fields(field)

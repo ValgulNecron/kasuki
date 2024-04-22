@@ -1,0 +1,108 @@
+{
+  "name": "bot",
+  "desc": "Command to get information about the bot.",
+  "dm_command": true,
+  "nsfw": false,
+  "command": [
+    {
+      "name": "credit",
+      "desc": "Get the credit of the app.",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "credit",
+          "desc": "Get the credit of the app."
+        },
+        {
+          "code": "fr",
+          "name": "credit",
+          "desc": "Obtenir le crédit de l'application."
+        },
+        {
+          "code": "de",
+          "name": "kredit",
+          "desc": "Holen Sie sich das Kredit der App."
+        },
+        {
+          "code": "ja",
+          "name": "クレジット",
+          "desc": "アプリのクレジットを取得します。"
+        }
+      ]
+    },
+    {
+      "name": "info",
+      "desc": "Get information on the bot.",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "info",
+          "desc": "Get information on the bot."
+        },
+        {
+          "code": "fr",
+          "name": "info",
+          "desc": "Obtenez des informations sur le bot."
+        },
+        {
+          "code": "de",
+          "name": "info",
+          "desc": "Holen Sie sich Informationen über den Bot."
+        },
+        {
+          "code": "ja",
+          "name": "info",
+          "desc": "ボットの情報を取得します。"
+        }
+      ]
+    },
+    {
+      "name": "ping",
+      "desc": "Get the ping of the bot (and the shard id).",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "ping",
+          "desc": "Get the ping of the bot (and the shard id)."
+        },
+        {
+          "code": "fr",
+          "name": "ping",
+          "desc": "Obtenez le ping du bot (et l'id du shard)."
+        },
+        {
+          "code": "de",
+          "name": "ping",
+          "desc": "Holen Sie sich den Ping des Bots (und die Shard-ID)."
+        },
+        {
+          "code": "ja",
+          "name": "ping",
+          "desc": "ボットのピング（およびシャードID）を取得します。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "bot",
+      "desc": "Command to get information about the bot."
+    },
+    {
+      "code": "fr",
+      "name": "bot",
+      "desc": "Commande pour obtenir des informations sur le bot."
+    },
+    {
+      "code": "de",
+      "name": "bot",
+      "desc": "Befehl, um Informationen über den Bot zu erhalten."
+    },
+    {
+      "code": "ja",
+      "name": "bot",
+      "desc": "ボットに関する情報を取得するコマンド。"
+    }
+  ]
+}

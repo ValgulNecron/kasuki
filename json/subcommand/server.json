@@ -1,0 +1,108 @@
+{
+  "name": "server",
+  "desc": "General purpose commands for server.",
+  "dm_command": false,
+  "nsfw": false,
+  "command": [
+    {
+      "name": "guild",
+      "desc": "Get information on the guild.",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "guild",
+          "desc": "Get information on the guild."
+        },
+        {
+          "code": "fr",
+          "name": "guilde",
+          "desc": "Obtenir des informations sur la guilde."
+        },
+        {
+          "code": "de",
+          "name": "gilde",
+          "desc": "Erhalten Sie Informationen über die Gilde."
+        },
+        {
+          "code": "ja",
+          "name": "ギルド",
+          "desc": "ギルドの情報を取得します。"
+        }
+      ]
+    },
+    {
+      "name": "guild_image",
+      "desc": "Generate an image using the guild server image and the user pfp.",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "guild_image",
+          "desc": "Generate an image using the guild server image and the user pfp."
+        },
+        {
+          "code": "fr",
+          "name": "image_guilde",
+          "desc": "Génère une image en utilisant l'image du serveur de guilde et le pfp de l'utilisateur."
+        },
+        {
+          "code": "de",
+          "name": "gildenbild",
+          "desc": "Generieren Sie ein Bild mit dem Gilden-Serverbild und dem Benutzer-Pfp."
+        },
+        {
+          "code": "ja",
+          "name": "ギルド画像",
+          "desc": "ギルドサーバー画像とユーザーpfpを使用して画像を生成します。"
+        }
+      ]
+    },
+    {
+      "name": "guild_image_g",
+      "desc": "Generate an image using the guild server image and the global pfp cache.",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "guild_image_g",
+          "desc": "Generate an image using the guild server image and the global pfp cache."
+        },
+        {
+          "code": "fr",
+          "name": "image_guilde_g",
+          "desc": "Créer une image avec l'image du serveur et le cache global de photos de profil."
+        },
+        {
+          "code": "de",
+          "name": "bild_gilde_g",
+          "desc": "Generiere ein Bild mit dem Serverbild der Gilde und dem globalen Profilbild-Cache."
+        },
+        {
+          "code": "ja",
+          "name": "guild_image_gを生成",
+          "desc": "ギルドサーバーの画像とグローバルpfpキャッシュを使用して画像を生成します。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "server",
+      "desc": "General purpose commands for server."
+    },
+    {
+      "code": "fr",
+      "name": "serveur",
+      "desc": "Commandes à usage général pour le serveur."
+    },
+    {
+      "code": "de",
+      "name": "Server",
+      "desc": "Allgemeine Zweckbefehle für den Server."
+    },
+    {
+      "code": "ja",
+      "name": "サーバー",
+      "desc": "サーバー用の汎用コマンド。"
+    }
+  ]
+}

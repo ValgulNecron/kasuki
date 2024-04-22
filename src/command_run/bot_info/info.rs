@@ -26,7 +26,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     })?;
     let bot_name = bot.name;
     let bot_id = bot.id.to_string();
-    let creation_date = bot.id.created_at().to_rfc3339().unwrap_or_default();
+    let creation_date = format!("<t:{}:F>", bot.id.created_at().unix_timestamp());
     let bot_icon = bot.icon.ok_or(AppError::new(
         String::from("The bot has no avatar"),
         ErrorType::Option,

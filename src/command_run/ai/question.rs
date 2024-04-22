@@ -7,7 +7,7 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
@@ -27,9 +27,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
 
-    let api_key = unsafe { CHAT_TOKEN.clone() };
-    let api_base_url = unsafe { CHAT_BASE_URL.clone() };
-    let model = unsafe { CHAT_MODELS.clone() };
+    let api_key = CHAT_TOKEN.clone();
+    let api_base_url = CHAT_BASE_URL.clone();
+    let model = CHAT_MODELS.clone();
 
     let text = question(prompt, api_key, api_base_url, model).await?;
 

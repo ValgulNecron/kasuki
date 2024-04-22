@@ -9,13 +9,14 @@ use serenity::all::{
 use crate::anilist_struct::run::random::PageWrapper;
 use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper;
-use crate::command_run::get_option::get_option_map_string_subcommand;
 use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::common::trimer::trim;
 use crate::constant::COLOR;
 use crate::database::dispatcher::cache_dispatch::{
     get_database_random_cache, set_database_random_cache,
 };
+use crate::database_struct::cache_stats::CacheStats;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::random::{load_localization_random, RandomLocalised};
 
@@ -27,14 +28,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let random_localised = load_localization_random(guild_id).await?;
 
-    let builder_message = Defer(CreateInteractionResponseMessage::new());
-
     let map = get_option_map_string_subcommand(command_interaction);
     let random_type = map.get(&String::from("type")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,
         ErrorResponseType::Message,
     ))?;
+
+    let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
         .create_response(&ctx.http, builder_message)
@@ -47,15 +48,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
 
-    let row: (Option<String>, Option<i64>, Option<i64>) =
-        get_database_random_cache(random_type).await?;
-    let (response, last_updated, last_page): (Option<String>, Option<i64>, Option<i64>) = row;
-    let page_number = last_page.unwrap_or(1628); // This is as today date the last page,
-                                                 // I will update it sometime.
+    let row: Option<CacheStats> = get_database_random_cache(random_type).await?;
+    let (cached_response, last_updated, page_number) = match row {
+        Some(row) => (row.response, row.last_updated, row.last_page),
+        None => (String::new(), 0, 1628),
+    };
     let previous_page = page_number - 1;
-    let cached_response = response.unwrap_or("Nothing".to_string());
-    if let Some(updated) = last_updated {
-        let duration_since_updated = Utc::now().timestamp() - updated;
+    if last_updated != 0 {
+        let duration_since_updated = Utc::now().timestamp() - last_updated;
         if duration_since_updated < 24 * 60 * 60 {
             return embed(
                 page_number,

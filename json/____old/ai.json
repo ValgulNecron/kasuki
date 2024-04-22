@@ -1,0 +1,152 @@
+{
+  "name": "ai",
+  "desc": "Command from the AI module",
+  "dm_command": true,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 4,
+  "args": [
+    {
+      "name": "image",
+      "desc": "Generate an image.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "ai/image.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "image",
+          "desc": "Generate an image."
+        },
+        {
+          "code": "fr",
+          "name": "image",
+          "desc": "Générer une image."
+        },
+        {
+          "code": "de",
+          "name": "bild",
+          "desc": "Ein Bild generieren."
+        },
+        {
+          "code": "ja",
+          "name": "画像",
+          "desc": "画像を生成する。"
+        }
+      ]
+    },
+    {
+      "name": "question",
+      "desc": "Ask a question and get the response (this is not a chat it has no context).",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "ai/question.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "question",
+          "desc": "Ask a question and get the response (this is not a chat it has no context)."
+        },
+        {
+          "code": "fr",
+          "name": "question",
+          "desc": "Poser une question et obtenir une réponse (ce n'est pas une conversation, cela n'a pas de contexte)."
+        },
+        {
+          "code": "de",
+          "name": "question",
+          "desc": "Eine Frage stellen und eine Antwort erhalten (dies ist keine Unterhaltung, es gibt keinen Kontext)."
+        },
+        {
+          "code": "ja",
+          "name": "question",
+          "desc": "質問をすると回答が得られます（これはチャットではなく、コンテキストがありません）。"
+        }
+      ]
+    },
+    {
+      "name": "translation",
+      "desc": "Generate a translation.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "ai/translation.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "translation",
+          "desc": "Generate a translation."
+        },
+        {
+          "code": "fr",
+          "name": "traduction",
+          "desc": "Générer une traduction."
+        },
+        {
+          "code": "de",
+          "name": "ubersetzung",
+          "desc": "Erzeugen Sie eine Übersetzung."
+        },
+        {
+          "code": "ja",
+          "name": "honyaku",
+          "desc": "翻訳を生成する。"
+        }
+      ]
+    },
+    {
+      "name": "transcript",
+      "desc": "Generate a transcript from a video.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "ai/transcript.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "transcript",
+          "desc": "Generate a transcript from a video."
+        },
+        {
+          "code": "fr",
+          "name": "transcription",
+          "desc": "Générer une transcription à partir d'une vidéo."
+        },
+        {
+          "code": "de",
+          "name": "transkript",
+          "desc": "Erstellt ein Transkript aus einem Video."
+        },
+        {
+          "code": "ja",
+          "name": "トランスクリプト",
+          "desc": "動画から脚本を生成する。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "ai",
+      "desc": "Command from the AI module"
+    },
+    {
+      "code": "fr",
+      "name": "ai",
+      "desc": "Commande du module AI"
+    },
+    {
+      "code": "de",
+      "name": "ai",
+      "desc": "Befehl aus dem AI-Modul"
+    },
+    {
+      "code": "ja",
+      "name": "ai",
+      "desc": "AIモジュールからのコマンド"
+    }
+  ]
+}

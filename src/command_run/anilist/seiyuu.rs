@@ -14,7 +14,7 @@ use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
-use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::seiyuu::load_localization_seiyuu;

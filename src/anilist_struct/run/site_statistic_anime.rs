@@ -73,7 +73,7 @@ impl SiteStatisticsAnimeWrapper {
             AppError::new(
                 format!("Error getting the anime page {}. {}", page_number, e),
                 ErrorType::WebRequest,
-                ErrorResponseType::Message,
+                ErrorResponseType::Followup,
             )
         })?;
         Ok((api_response, res))

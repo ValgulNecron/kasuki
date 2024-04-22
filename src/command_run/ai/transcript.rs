@@ -14,8 +14,8 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::command_run::get_option::{
-    get_option_map_attachment_subcommand, get_option_map_string_subcommand, get_the_attachment,
+use crate::common::get_option::subcommand::{
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::constant::{
     COLOR, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
@@ -34,9 +34,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .get(&String::from("prompt"))
         .unwrap_or(DEFAULT_STRING)
         .clone();
-    let attachment = attachment_map.get(&String::from("video"));
-
-    let attachment = get_the_attachment(attachment)?;
+    let attachment = attachment_map
+        .get(&String::from("video"))
+        .ok_or(AppError::new(
+            String::from("There is no attachment"),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        ))?;
 
     let content_type = attachment.content_type.clone().ok_or(AppError::new(
         String::from("Error getting content type"),
@@ -121,7 +125,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     })?;
     let file_to_delete = fname.clone();
 
-    let token = unsafe { TRANSCRIPT_TOKEN.as_str() };
+    let token = TRANSCRIPT_TOKEN;
+    let token = token.as_str();
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -134,7 +139,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .file_name(file_name)
         .mime_str(content_type.as_str())
         .unwrap();
-    let model = unsafe { TRANSCRIPT_MODELS.as_str() };
+    let model = TRANSCRIPT_MODELS.to_string();
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", model)
@@ -142,7 +147,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .text("language", lang)
         .text("response_format", "json");
 
-    let url = unsafe { format!("{}transcriptions", TRANSCRIPT_BASE_URL.as_str()) };
+    let url = format!("{}transcriptions", TRANSCRIPT_BASE_URL.as_str());
     let response_result = client
         .post(url)
         .headers(headers)

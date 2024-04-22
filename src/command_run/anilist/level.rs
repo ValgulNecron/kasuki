@@ -7,7 +7,7 @@ use tracing::trace;
 
 use crate::anilist_struct::run::user::{get_color, get_completed, get_user_url, UserWrapper};
 use crate::command_run::anilist::user::get_user_data;
-use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::level::load_localization_level;

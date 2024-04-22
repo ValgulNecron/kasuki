@@ -1,11 +1,18 @@
+use regex::Regex;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::error;
 
-use crate::constant::COLOR;
+use crate::constant::{CHAT_TOKEN, COLOR, DISCORD_TOKEN, IMAGE_TOKEN, TRANSCRIPT_TOKEN};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+
+const ERROR_MESSAGE: &str = "**There was an error while processing the command**\
+    \n**This error is most likely an input error** \
+    **like searching for non existent anime, requesting nsfw image to the ai, etc.**\n \
+    **but in some case it's a server or programming error**.\
+    in this case report it to me and I will try to fix it the fastest I can**";
 
 pub async fn command_dispatching(
     error: AppError,
@@ -49,9 +56,9 @@ async fn send_error(
     command_interaction: &CommandInteraction,
     ctx: &Context,
 ) -> Result<(), AppError> {
-    let error_message = format!("**This error is most likely an error on your part. \
-    like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
-    error and report it to me and I will try to fix it the fastest I can**  \n{}", e);
+    let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
+    // censor url and token in the error message
+    let error_message = censor_url_and_token(error_message);
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
@@ -79,9 +86,7 @@ async fn send_differed_error(
     command_interaction: &CommandInteraction,
     ctx: &Context,
 ) -> Result<(), AppError> {
-    let error_message = format!("**This error is most likely an error on your part. \
-    like you asking the bot to find unknown stuff or other. but in some case it's an error on my part juts check the \
-    error and report it to me and I will try to fix it the fastest I can**  \n{}", e);
+    let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
@@ -102,4 +107,21 @@ async fn send_differed_error(
         });
 
     Ok(())
+}
+
+fn censor_url_and_token(error_message: String) -> String {
+    let mut error_message = error_message;
+    let discord_token = DISCORD_TOKEN.to_string();
+    let image_token = IMAGE_TOKEN.to_string();
+    let transcript_token = TRANSCRIPT_TOKEN.to_string();
+    let chat_token = CHAT_TOKEN.to_string();
+    error_message = error_message
+        .replace(&discord_token, "[REDACTED]")
+        .replace(&image_token, "[REDACTED]")
+        .replace(&transcript_token, "[REDACTED]")
+        .replace(&chat_token, "[REDACTED]");
+    let re = Regex::new(r"^(https?://)[^/]+").unwrap();
+    error_message = re.replace(&error_message, "$1[REDACTED]").to_string();
+
+    error_message
 }

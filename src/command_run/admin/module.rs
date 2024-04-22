@@ -3,8 +3,8 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp,
 };
 
-use crate::command_run::get_option::{
-    get_option_map_bool_subcommand, get_option_map_string_subcommand,
+use crate::common::get_option::subcommand::{
+    get_option_map_boolean_subcommand, get_option_map_string_subcommand,
 };
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
@@ -26,7 +26,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         ErrorResponseType::Followup,
     ))?;
     let module_localised = load_localization_module_activation(guild_id.clone()).await?;
-    let map = get_option_map_bool_subcommand(command_interaction);
+    let map = get_option_map_boolean_subcommand(command_interaction);
     let state = *map.get(&String::from("state")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,
@@ -37,7 +37,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let mut ai_value = row.ai_module.unwrap_or(true);
     let mut anilist_value = row.anilist_module.unwrap_or(true);
     let mut game_value = row.game_module.unwrap_or(true);
-    let mut new_member_value = row.new_member.unwrap_or(true);
+    let mut new_member_value = row.new_member.unwrap_or(false);
     match module.as_str() {
         "ANILIST" => anilist_value = state,
         "AI" => ai_value = state,

@@ -14,7 +14,7 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::command_run::get_option::{
+use crate::common::get_option::subcommand::{
     get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::constant::{
@@ -31,18 +31,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .get(&String::from("prompt"))
         .unwrap_or(DEFAULT_STRING)
         .clone();
-    let attachment = attachment_map.get(&String::from("video"));
 
-    let attachment = match attachment {
-        Some(Some(att)) => att,
-        _ => {
-            return Err(AppError::new(
-                String::from("The command contain no attachment."),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            ));
-        }
-    };
+    let attachment = attachment_map
+        .get(&String::from("video"))
+        .ok_or(AppError::new(
+            String::from("There is no attachment"),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        ))?;
 
     let content_type = attachment.content_type.clone().ok_or(AppError::new(
         String::from("Error getting content type"),
@@ -123,7 +119,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
-    let token = unsafe { TRANSCRIPT_TOKEN.as_str() };
+    let token = TRANSCRIPT_TOKEN;
+    let token = token.as_str();
 
     headers.insert(
         AUTHORIZATION,
@@ -135,14 +132,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .file_name(file_name)
         .mime_str(content_type.as_str())
         .unwrap();
-    let model = unsafe { TRANSCRIPT_MODELS.as_str() };
+    let model = TRANSCRIPT_MODELS.to_string();
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", model)
         .text("language", lang.clone())
         .text("response_format", "json");
 
-    let url = unsafe { format!("{}translations", TRANSCRIPT_BASE_URL.as_str()) };
+    let url = format!("{}translations", TRANSCRIPT_BASE_URL.as_str());
     let response_result = client
         .post(url)
         .headers(headers)
@@ -172,9 +169,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     trace!("{}", text);
 
     let text = if lang != "en" {
-        let api_key = unsafe { CHAT_TOKEN.clone() };
-        let api_base_url = unsafe { CHAT_BASE_URL.clone() };
-        let model = unsafe { CHAT_MODELS.clone() };
+        let api_key = CHAT_TOKEN.clone();
+        let api_base_url = CHAT_BASE_URL.clone();
+        let model = CHAT_MODELS.clone();
         translation(lang, text.to_string(), api_key, api_base_url, model).await?
     } else {
         String::from(text)

@@ -1,4 +1,5 @@
 use serenity::all::{CommandInteraction, Context};
+use tracing::trace;
 
 use crate::command_run::admin::module::check_activation_status;
 use crate::command_run::admin::{lang, module};
@@ -35,6 +36,12 @@ pub async fn command_dispatching(
         ErrorResponseType::Message,
     );
 
+    let anime_module_error = AppError::new(
+        String::from("Anime module is off."),
+        ErrorType::Module,
+        ErrorResponseType::Message,
+    );
+
     let game_module_error = AppError::new(
         String::from("Game module is off."),
         ErrorType::Module,
@@ -56,7 +63,21 @@ pub async fn command_dispatching(
             }
         }
         // anilist module
-        "anilist" => {
+        "anilist_admin" => {
+            if check_if_module_is_on(guild_id, "ANIME").await? {
+                anime(ctx, command_interaction).await?
+            } else {
+                return Err(anilist_module_error);
+            }
+        }
+        "anilist_server" => {
+            if check_if_module_is_on(guild_id, "ANILIST").await? {
+                anilist(ctx, command_interaction).await?
+            } else {
+                return Err(anilist_module_error);
+            }
+        }
+        "anilist_user" => {
             if check_if_module_is_on(guild_id, "ANILIST").await? {
                 anilist(ctx, command_interaction).await?
             } else {
@@ -68,27 +89,21 @@ pub async fn command_dispatching(
             if check_if_module_is_on(guild_id, "ANIME").await? {
                 anime(ctx, command_interaction).await?
             } else {
-                return Err(ai_module_error);
+                return Err(anime_module_error);
             }
         }
         "anime_nsfw" => {
             if check_if_module_is_on(guild_id, "ANIME").await? {
                 anime(ctx, command_interaction).await?
             } else {
-                return Err(ai_module_error);
-            }
-        }
-        "anilist_admin" => {
-            if check_if_module_is_on(guild_id, "ANIME").await? {
-                anime(ctx, command_interaction).await?
-            } else {
-                return Err(ai_module_error);
+                return Err(anime_module_error);
             }
         }
         // bot module
         "bot" => bot_info(ctx, command_interaction).await?,
         // general module
-        "general" => general(ctx, command_interaction).await?,
+        "server" => general(ctx, command_interaction).await?,
+        "user" => general(ctx, command_interaction).await?,
         // steam module
         "steam" => {
             if check_if_module_is_on(guild_id, "GAME").await? {
@@ -219,14 +234,15 @@ async fn bot_info(ctx: &Context, command_interaction: &CommandInteraction) -> Re
 }
 
 async fn general(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    match command_interaction
+    let sub_command = command_interaction
         .data
         .options
         .first()
         .unwrap()
         .name
-        .as_str()
-    {
+        .as_str();
+    trace!(sub_command);
+    match sub_command {
         "avatar" => avatar::run(ctx, command_interaction).await,
         "banner" => banner::run(ctx, command_interaction).await,
         "profile" => profile::run(ctx, command_interaction).await,

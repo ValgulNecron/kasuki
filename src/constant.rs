@@ -2,16 +2,17 @@ use std::collections::HashMap;
 use std::env;
 
 use once_cell::sync::Lazy;
-use serenity::all::Colour;
+use ratatui::style::Color;
+use serenity::all::{Colour, CurrentApplicationInfo};
+
+pub const DISCORD_TOKEN: Lazy<String> =
+    Lazy::new(|| env::var("DISCORD_TOKEN").expect("Expected a token in the environment"));
 
 /// The activity name of the bot, fetched from the environment variable "BOT_ACTIVITY".
 /// If the environment variable is not set, it defaults to "Let you get info from anilist.".
-pub static ACTIVITY_NAME: Lazy<String> = Lazy::new(|| {
+pub const ACTIVITY_NAME: Lazy<String> = Lazy::new(|| {
     env::var("BOT_ACTIVITY").unwrap_or_else(|_| "Let you get info from anilist.".to_string())
 });
-
-/// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
-pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /*
 All delays in seconds.
@@ -54,6 +55,7 @@ App embed color.
  */
 /// Color for the app embed.
 pub const COLOR: Colour = Colour::FABLED_PINK;
+pub const TUI_FG_COLOR: Color = Color::Rgb(250, 177, 237);
 
 /*
 Other crate log level. Because serenity uses info to obviously trace things like heartbeat.
@@ -86,7 +88,7 @@ pub const LOGS_PATH: &str = "./logs";
 /// Prefix for the logs.
 pub const LOGS_PREFIX: &str = "kasuki_";
 /// Suffix for the logs
-pub const LOGS_SUFFIX: &str = ".log";
+pub const LOGS_SUFFIX: &str = "log";
 /// Maximum log retention days.
 pub static MAX_LOG_RETENTION_DAYS: Lazy<u64> = Lazy::new(|| {
     env::var("MAX_LOG_RETENTION_DAYS")
@@ -112,7 +114,7 @@ AI stuff
 Image
  */
 /// Base URL for the AI image API.
-pub static mut IMAGE_BASE_URL: Lazy<String> = Lazy::new(|| {
+pub const IMAGE_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
         "{}images/generations",
         env::var("AI_IMAGE_API_BASE_URL").unwrap_or_else(
@@ -122,19 +124,19 @@ pub static mut IMAGE_BASE_URL: Lazy<String> = Lazy::new(|| {
 });
 
 /// Token for the AI image API.
-pub static mut IMAGE_TOKEN: Lazy<String> = Lazy::new(|| {
+pub const IMAGE_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_IMAGE_API_TOKEN").unwrap_or_else(|_| env::var("AI_API_TOKEN").unwrap_or_default())
 });
 
 /// Models for the AI image API.
-pub static mut IMAGE_MODELS: Lazy<String> =
+pub const IMAGE_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_IMAGE_GENERATION_MODELS").unwrap_or_else(|_| "dall-e-3".to_string()));
 
 /*
 Chat and translation
  */
 /// Base URL for the AI chat API.
-pub static mut CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
+pub const CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
         "{}chat/completions",
         env::var("AI_CHAT_API_BASE_URL").unwrap_or_else(
@@ -144,19 +146,19 @@ pub static mut CHAT_BASE_URL: Lazy<String> = Lazy::new(|| {
 });
 
 /// Token for the AI chat API.
-pub static mut CHAT_TOKEN: Lazy<String> = Lazy::new(|| {
+pub const CHAT_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_CHAT_API_TOKEN").unwrap_or_else(|_| env::var("AI_API_TOKEN").unwrap_or_default())
 });
 
 /// Models for the AI chat API.
-pub static mut CHAT_MODELS: Lazy<String> =
+pub const CHAT_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_CHAT_MODEL").unwrap_or("gpt-3.5-turbo".to_string()));
 
 /*
 Transcription
  */
 /// Base URL for the AI transcription API.
-pub static mut TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
+pub const TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
     format!(
         "{}audio/",
         env::var("AI_TRANSCRIPT_BASE_URL")
@@ -166,23 +168,45 @@ pub static mut TRANSCRIPT_BASE_URL: Lazy<String> = Lazy::new(|| {
 });
 
 /// Token for the AI transcription API.
-pub static mut TRANSCRIPT_TOKEN: Lazy<String> = Lazy::new(|| {
+pub const TRANSCRIPT_TOKEN: Lazy<String> = Lazy::new(|| {
     env::var("AI_TRANSCRIPT_API_TOKEN")
         .or_else(|_| env::var("AI_API_TOKEN"))
         .unwrap_or_default()
 });
 
 /// Models for the AI transcription API.
-pub static mut TRANSCRIPT_MODELS: Lazy<String> =
+pub const TRANSCRIPT_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_TRANSCRIPT_MODELS").unwrap_or_else(|_| String::from("whisper-1")));
 
 /*
 Web server
 */
 /// Flag to enable or disable the web server.
-pub static mut WEB_SERVER: Lazy<bool> =
-    Lazy::new(|| env::var("WEB_SERVER").unwrap_or_else(|_| "false".to_string()) == "true");
+pub const GRPC_IS_ON: Lazy<bool> =
+    Lazy::new(|| env::var("GRPC_IS_ON").unwrap_or_else(|_| "false".to_string()) == "true");
 
 /// Port for the web server.
-pub static mut WEB_SERVER_PORT: Lazy<String> =
-    Lazy::new(|| env::var("WEB_SERVER_PORT").unwrap_or_else(|_| "8080".to_string()));
+pub const GRPC_SERVER_PORT: Lazy<String> =
+    Lazy::new(|| env::var("GRPC_SERVER_PORT").unwrap_or_else(|_| "8080  ".to_string()));
+
+/// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
+pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/*
+Application
+ */
+
+/// If the application tui is enabled.
+pub const APP_TUI: Lazy<bool> = Lazy::new(|| {
+    println!("TUI: {:?}", env::var("TUI"));
+    let is_on = env::var("TUI").unwrap_or_else(|_| "false".to_string());
+    println!("TUI: {}", is_on);
+    is_on.to_lowercase() == "true"
+});
+
+/*
+bot info
+ */
+
+/// The bot's name.
+pub static mut BOT_INFO: Lazy<Option<CurrentApplicationInfo>> = Lazy::new(|| None);

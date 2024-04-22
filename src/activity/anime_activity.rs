@@ -12,7 +12,7 @@ use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
-use crate::database_struct::server_activity_struct::ServerActivityFull;
+use crate::database_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
@@ -21,7 +21,7 @@ pub async fn manage_activity(ctx: &Context) {
     tokio::spawn(async move { send_activity(&ctx).await });
 }
 
-pub async fn send_activity(ctx: &Context) {
+async fn send_activity(ctx: &Context) {
     let now = Utc::now().timestamp().to_string();
     let rows = match get_data_activity(now.clone()).await {
         Ok(rows) => rows,
@@ -31,29 +31,34 @@ pub async fn send_activity(ctx: &Context) {
         }
     };
     for row in rows {
-        if Utc::now().timestamp().to_string() != row.timestamp.clone().unwrap_or_default() {
-        } else {
-            let row2 = row.clone();
-            let guild_id = row.server_id.clone();
-            if row.delays.unwrap() != 0 {
-                let ctx = ctx.clone();
-                tokio::spawn(async move {
-                    tokio::time::sleep(Duration::from_secs(row2.delays.unwrap_or_default() as u64))
-                        .await;
-                    if let Err(e) =
-                        send_specific_activity(row, guild_id.unwrap_or_default(), row2, &ctx).await
-                    {
-                        error!("{}", e)
-                    }
-                });
-            } else if let Err(e) = send_specific_activity(row, guild_id.unwrap(), row2, ctx).await {
-                error!("{}", e);
-            }
+        if row.timestamp.is_none() {
+            continue;
+        }
+
+        if now != row.timestamp.clone().unwrap_or_default() {
+            continue;
+        }
+
+        let row2 = row.clone();
+        let guild_id = row.server_id.clone();
+        if row.delays.unwrap() != 0 {
+            let ctx = ctx.clone();
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_secs(row2.delays.unwrap_or_default() as u64))
+                    .await;
+                if let Err(e) =
+                    send_specific_activity(row, guild_id.unwrap_or_default(), row2, &ctx).await
+                {
+                    error!("{}", e)
+                }
+            });
+        } else if let Err(e) = send_specific_activity(row, guild_id.unwrap(), row2, ctx).await {
+            error!("{}", e);
         }
     }
 }
 
-pub async fn send_specific_activity(
+async fn send_specific_activity(
     row: ActivityData,
     guild_id: String,
     row2: ActivityData,
@@ -129,7 +134,7 @@ pub async fn send_specific_activity(
     Ok(())
 }
 
-pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().unwrap_or("0".to_string()),
     )
@@ -161,7 +166,7 @@ pub async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppE
     Ok(())
 }
 
-pub async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
     trace!("removing {:#?} for {}", row, guild_id);
     remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await?;
     Ok(())

@@ -10,7 +10,7 @@ use serenity::all::{
 use tracing::{info, trace};
 use uuid::Uuid;
 
-use crate::command_run::get_option::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::constant::{COLOR, DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::image_saver::general_image_saver::image_saver;
@@ -48,7 +48,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.png", uuid_name);
 
-    let model = unsafe { IMAGE_MODELS.as_str() };
+    let model = IMAGE_MODELS;
+    let model = model.as_str();
     info!("{}", model);
 
     let quality = match env::var("AI_IMAGE_QUALITY") {
@@ -109,7 +110,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let client = reqwest::Client::new();
 
-    let token = unsafe { IMAGE_TOKEN.as_str() };
+    let token = IMAGE_TOKEN;
+    let token = token.as_str();
     trace!("{}", token);
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -128,7 +130,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
     trace!("{:#?}", data);
-    let url = unsafe { IMAGE_BASE_URL.as_str() };
+    let url = IMAGE_BASE_URL;
+    let url = url.as_str();
+    trace!(token);
     trace!("{}", url);
     let res: Value = client
         .post(url)

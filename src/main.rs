@@ -2,6 +2,7 @@ use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
+use once_cell::sync::Lazy;
 use serenity::all::{
     ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready, ShardManager,
 };
@@ -14,24 +15,26 @@ use struct_shard_manager::ShardManagerContainer;
 
 use crate::activity::anime_activity::manage_activity;
 use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::command_register::command_registration::creates_commands;
+use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::ACTIVITY_NAME;
 use crate::constant::PING_UPDATE_DELAYS;
 use crate::constant::TIME_BETWEEN_GAME_UPDATE;
 use crate::constant::{
-    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+    APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
+    TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
 use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::game_struct::steam_game_id_struct::get_game;
+use crate::grpc_server::launcher::grpc_server_launcher;
 use crate::logger::{create_log_directory, init_logger};
 use crate::new_member::new_member;
 use crate::server_image::calculate_user_color::color_management;
 use crate::server_image::generate_server_image::server_image_management;
-use crate::web_server::launcher::web_server_launcher;
 
 mod activity;
 mod anilist_struct;
@@ -45,13 +48,14 @@ mod database;
 mod database_struct;
 mod error_management;
 mod game_struct;
+mod grpc_server;
 mod image_saver;
 mod lang_struct;
 mod logger;
 mod new_member;
 mod server_image;
 pub mod struct_shard_manager;
-mod web_server;
+mod tui;
 
 struct Handler;
 
@@ -147,6 +151,11 @@ impl EventHandler for Handler {
     /// ```
     ///
     async fn ready(&self, ctx: Context, ready: Ready) {
+        let bot = ctx.http.get_current_application_info().await.unwrap();
+        unsafe {
+            *BOT_INFO = Some(bot);
+        }
+
         // Spawns a new thread for managing various tasks
         tokio::spawn(thread_management_launcher(ctx.clone()));
 
@@ -175,7 +184,7 @@ impl EventHandler for Handler {
         trace!(remove_old_command);
 
         // Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
-        creates_commands(&ctx.http, remove_old_command).await;
+        command_dispatcher(&ctx.http, remove_old_command).await;
         // Iterates over each guild the bot is in
         for guild in ctx.cache.guilds() {
             // Retrieves partial guild information
@@ -251,11 +260,11 @@ impl EventHandler for Handler {
 /// It initializes the logger, the SQL database, and the bot client.
 /// It also spawns asynchronous tasks for managing the ping of the shards and starting the client.
 async fn main() {
+    let _ = dotenv::from_path(".env");
+
     // Print a message indicating the bot is starting.
     println!("Bot starting please wait.");
-
     // Load environment variables from the .env file.
-    let _ = dotenv::from_path(".env");
 
     // Get the log level from the environment variable "RUST_LOG".
     // If the variable is not set, default to "info".
@@ -278,6 +287,13 @@ async fn main() {
         return;
     }
 
+    if *APP_TUI {
+        // create a new tui in a new thread
+        tokio::spawn(async {
+            tui::create_tui().await.unwrap();
+        });
+    }
+
     // Initialize the SQL database.
     // If an error occurs, log the error and return.
     if let Err(e) = init_sql_database().await {
@@ -288,12 +304,6 @@ async fn main() {
     // Log a message indicating the bot is starting.
     info!("starting the bot.");
 
-    // Get the Discord token from the environment variable "DISCORD_TOKEN".
-    // If the variable is not set, log an error and exit the process.
-    let token = env::var("DISCORD_TOKEN").unwrap_or_else(|_| {
-        error!("Env variable not set exiting.");
-        std::process::exit(1);
-    });
     // Get all the non-privileged intent.
     let gateway_intent_non_privileged = GatewayIntents::GUILDS
         | GatewayIntents::GUILD_INTEGRATIONS
@@ -321,7 +331,7 @@ async fn main() {
     // Create a new client instance using the provided token and gateway intents.
     // The client is built with an event handler of type `Handler`.
     // If the client creation fails, log the error and exit the process.
-    let mut client = Client::builder(token, gateway_intent)
+    let mut client = Client::builder(DISCORD_TOKEN.to_string(), gateway_intent)
         .event_handler(Handler)
         .await
         .unwrap_or_else(|e| {
@@ -331,7 +341,7 @@ async fn main() {
 
     // Clone the shard manager from the client.
     let shard_manager = client.shard_manager.clone();
-
+    let shutdown = shard_manager.clone();
     // Insert the cloned shard manager into the client's data.
     // This allows for the shard manager to be accessed from the context in event handlers.
     client
@@ -360,8 +370,9 @@ async fn main() {
 
     // Wait for a Ctrl-C signal.
     // If received, print a shutdown message.
-    let _signal_err = tokio::signal::ctrl_c().await;
-    println!("Received Ctrl-C, shutting down.");
+    tokio::signal::ctrl_c().await.unwrap();
+    ShardManager::shutdown_all(&shutdown).await;
+    info!("Received bot shutdown signal. Shutting down bot.");
 }
 
 /// This function is responsible for launching various threads for different tasks.
@@ -376,7 +387,8 @@ async fn thread_management_launcher(ctx: Context) {
     // Get the guilds from the context cache
     // Clone the context
     // Spawn a new thread for the web server
-    tokio::spawn(launch_web_server_thread());
+
+    tokio::spawn(launch_web_server_thread(ctx.clone()));
     // Spawn a new thread for user color management
     tokio::spawn(launch_user_color_management_thread(ctx.clone()));
     // Spawn a new thread for activity management
@@ -386,24 +398,27 @@ async fn thread_management_launcher(ctx: Context) {
 
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
-    let ctx_clone = ctx.clone();
-    // Spawn a new thread for server image management
-    tokio::spawn(async move {
-        info!("Launching the server image management thread!");
-        loop {
-            server_image_management(&ctx_clone).await;
-            sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE)).await;
-        }
-    });
+    tokio::spawn(launch_server_image_management_thread(ctx.clone()));
 
     info!("Done spawning thread manager.");
 }
 
 /// This function is responsible for launching the web server thread.
 /// It does not take any arguments and does not return anything.
-async fn launch_web_server_thread() {
-    info!("Launching the log web server thread!");
-    web_server_launcher().await
+async fn launch_web_server_thread(ctx: Context) {
+    let data_read = ctx.data.read().await;
+    let shard_manager = match data_read.get::<ShardManagerContainer>() {
+        Some(data) => data,
+        None => {
+            return;
+        }
+    };
+    if *GRPC_IS_ON {
+        info!("GRPC is on, launching the GRPC server thread!");
+        grpc_server_launcher(shard_manager).await
+    } else {
+        info!("GRPC is off, skipping the GRPC server thread!");
+    }
 }
 
 /// This function is responsible for launching the user color management thread.
@@ -466,5 +481,20 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>) {
         set_data_ping_history(shard_id.to_string(), latency)
             .await
             .unwrap();
+    }
+}
+
+/// This function is responsible for launching the server image management thread.
+/// It takes a `Context` as an argument.
+///
+/// # Arguments
+///
+/// * `ctx` - A `Context` instance which is used in the server image management function.
+///
+async fn launch_server_image_management_thread(ctx: Context) {
+    info!("Launching the server image management thread!");
+    loop {
+        server_image_management(&ctx).await;
+        sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE)).await;
     }
 }
