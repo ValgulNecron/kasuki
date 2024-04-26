@@ -2,7 +2,7 @@ use std::fs;
 use std::io::BufReader;
 use std::sync::Arc;
 
-use serenity::all::{CreateCommand, Http, Permissions};
+use serenity::all::{CommandType, CreateCommand, Http, Permissions};
 use tracing::{error, trace};
 
 use crate::command_register::command_struct::command::Command;
@@ -65,6 +65,7 @@ fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
 async fn create_command(command: &Command, http: &Arc<Http>) {
     let mut command_build = CreateCommand::new(&command.name)
         .nsfw(command.nsfw)
+        .kind(CommandType::ChatInput)
         .dm_permission(command.dm_command)
         .description(&command.desc);
 
@@ -88,6 +89,17 @@ async fn create_command(command: &Command, http: &Arc<Http>) {
         }
         None => command_build,
     };
+    match &command.localised {
+        Some(locale) => {
+            for locale in locale {
+                command_build = command_build
+                    .name_localized(&locale.code, &locale.name)
+                    .description_localized(&locale.code, &locale.desc);
+            }
+        }
+        None => {}
+    }
+
 
     let e = http.create_global_command(&command_build).await;
     match e {

@@ -1,14 +1,18 @@
 {
   "en": {
-    "title": "Here's the avatar of $user$"
+    "title": "Here's the avatar of $user$",
+    "server_title": "Here's the avatar of $user$ for this server"
   },
   "fr": {
-    "title": "Voici l'avatar de $user$"
+    "title": "Voici l'avatar de $user$",
+    "server_title": "Voici l'avatar de $user$ pour ce serveur"
   },
   "jp": {
-    "title": "$user$のアバターはこちらです"
+    "title": "$user$のアバターはこちらです",
+    "server_title": "$user$のサーバー用アバターはこちらです"
   },
   "de": {
-    "title": "Hier ist der Avatar von $user$"
+    "title": "Hier ist der Avatar von $user$",
+    "server_title": "Hier ist der Avatar von $user$ für diesen Server"
   }
 }

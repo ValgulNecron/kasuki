@@ -13,7 +13,6 @@ use ratatui::text::{Span, Text};
 use ratatui::widgets::{Block, Borders, LineGauge, Paragraph, Wrap};
 use ratatui::{symbols, Frame, Terminal};
 use sysinfo::System;
-use tracing::trace;
 
 use crate::constant::{APP_VERSION, BOT_INFO, LOGS_PATH, TUI_FG_COLOR};
 
@@ -52,9 +51,7 @@ fn ui(frame: &mut Frame) {
     let pid = &sysinfo::get_current_pid().unwrap();
     let process = processes.get(&pid).unwrap();
     let app_cpu_usage = process.cpu_usage();
-    let total_memory = sys.total_memory();
     let memory_usage = process.memory();
-    let memory_ratio = memory_usage as f64 / total_memory as f64;
     let app_cpu_usage = app_cpu_usage / total_cpu_core as f32;
     let app_cpu_usage = format!("{:.2}%", app_cpu_usage);
     let app_memory_usage = format!("{:.2}Mb", memory_usage / 1024 / 1024);

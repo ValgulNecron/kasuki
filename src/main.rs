@@ -2,10 +2,7 @@ use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
-use once_cell::sync::Lazy;
-use serenity::all::{
-    ActivityData, Context, EventHandler, GatewayIntents, Interaction, Ready, ShardManager,
-};
+use serenity::all::{ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready, ShardManager};
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
 use tokio::time::sleep;
@@ -29,12 +26,13 @@ use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::game_struct::steam_game_id_struct::get_game;
+use crate::game_struct::steam_game_id_struct::{App, get_game};
 use crate::grpc_server::launcher::grpc_server_launcher;
 use crate::logger::{create_log_directory, init_logger};
 use crate::new_member::new_member;
 use crate::server_image::calculate_user_color::color_management;
 use crate::server_image::generate_server_image::server_image_management;
+use crate::user_command_run::dispatch::dispatch_user_command;
 
 mod activity;
 mod anilist_struct;
@@ -56,6 +54,7 @@ mod new_member;
 mod server_image;
 pub mod struct_shard_manager;
 mod tui;
+mod user_command_run;
 
 struct Handler;
 
@@ -229,17 +228,33 @@ impl EventHandler for Handler {
     ///
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
-            // Log the details of the command interaction
-            info!(
+            if command_interaction.data.kind == CommandType::ChatInput {
+                // Log the details of the command interaction
+                info!(
                 "Received {} from {} in {} with option {:?}",
                 command_interaction.data.name,
                 command_interaction.user.name,
                 command_interaction.guild_id.unwrap().to_string(),
                 command_interaction.data.options
             );
-            // Dispatch the command
-            if let Err(e) = command_dispatching(&ctx, &command_interaction).await {
-                // If an error occurs during dispatching, handle it
+                // Dispatch the command
+                if let Err(e) = command_dispatching(&ctx, &command_interaction).await {
+                    // If an error occurs during dispatching, handle it
+                    error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
+                }
+            } else if command_interaction.data.kind == CommandType::User {
+                if let Err(e) = dispatch_user_command(&ctx, &command_interaction).await {
+                    // If an error occurs during dispatching, handle it
+                    error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
+                }
+            } else if command_interaction.data.kind == CommandType::Message {
+                trace!("{:?}", command_interaction)
+            } else {
+                let e = AppError {
+                    message: "Command kind invalid".to_string(),
+                    error_type: ErrorType::Command,
+                    error_response_type: ErrorResponseType::Message,
+                };
                 error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
             }
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {

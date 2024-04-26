@@ -1,18 +1,14 @@
 use std::fs;
 use std::io::BufReader;
 use std::sync::Arc;
-
 use serenity::all::{CommandType, CreateCommand, Http, Permissions};
 use tracing::{error, trace};
-
 use crate::command_register::command_struct::subcommand_group::SubCommandGroup;
-use crate::command_register::registration_function::common::{
-    get_subcommand_group_option, get_subcommand_option,
-};
+use crate::command_register::command_struct::user_command::UserCommand;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-pub async fn creates_subcommands_group(http: &Arc<Http>) {
-    let commands = match get_subcommands_group("./json/subcommand_group") {
+pub async fn creates_user_command(http: &Arc<Http>) {
+    let commands = match get_user_command("./json/user_command") {
         Err(e) => {
             error!("{:?}", e);
             return;
@@ -25,7 +21,7 @@ pub async fn creates_subcommands_group(http: &Arc<Http>) {
     }
 }
 
-fn get_subcommands_group(path: &str) -> Result<Vec<SubCommandGroup>, AppError> {
+fn get_user_command(path: &str) -> Result<Vec<UserCommand>, AppError> {
     let mut subcommands_group = Vec::new();
     let paths = fs::read_dir(path).map_err(|e| AppError {
         message: format!("Failed to read directory: {:?} with error {}", path, e),
@@ -47,7 +43,7 @@ fn get_subcommands_group(path: &str) -> Result<Vec<SubCommandGroup>, AppError> {
                 error_response_type: ErrorResponseType::None,
             })?;
             let reader = BufReader::new(file);
-            let command: SubCommandGroup =
+            let command: UserCommand =
                 serde_json::from_reader(reader).map_err(|e| AppError {
                     message: format!(
                         "Failed to parse file: {:?} with error {}",
@@ -61,17 +57,15 @@ fn get_subcommands_group(path: &str) -> Result<Vec<SubCommandGroup>, AppError> {
         }
     }
     if subcommands_group.is_empty() {
-        trace!("No subcommands group found in the directory: {:?}", path);
+        trace!("No user command found in the directory: {:?}", path);
     }
     Ok(subcommands_group)
 }
 
-async fn create_command(command: &SubCommandGroup, http: &Arc<Http>) {
+async fn create_command(command: &UserCommand, http: &Arc<Http>) {
     let mut command_build = CreateCommand::new(&command.name)
-        .nsfw(command.nsfw)
-        .kind(CommandType::ChatInput)
-        .dm_permission(command.dm_command)
-        .description(&command.desc);
+        .kind(CommandType::User)
+        .name(&command.name);
 
     command_build = match &command.permissions {
         Some(permissions) => {
@@ -82,22 +76,6 @@ async fn create_command(command: &SubCommandGroup, http: &Arc<Http>) {
             }
             let permission = Permissions::from_bits(perm_bit).unwrap();
             command_build.default_member_permissions(permission)
-        }
-        None => command_build,
-    };
-
-    command_build = match &command.command {
-        Some(command) => {
-            let options = get_subcommand_option(command);
-            command_build.set_options(options)
-        }
-        None => command_build,
-    };
-
-    command_build = match &command.subcommands {
-        Some(subcommand) => {
-            let options = get_subcommand_group_option(subcommand);
-            command_build.set_options(options)
         }
         None => command_build,
     };

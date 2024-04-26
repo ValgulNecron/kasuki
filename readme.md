@@ -28,9 +28,11 @@ with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445
 
 linux: ubuntu 22.04.2 x86-64
 
-Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates
+Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates pkg-config protobuf-compiler libopus-dev youtube-dl
 
 windows: windows 10 and 11
+
+Requirement: cmake youtube-dl
 
 ### Docker
 

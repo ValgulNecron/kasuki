@@ -91,6 +91,7 @@
         - [X] Command
         - [X] Subcommand
         - [X] Subcommand group
-        - [ ] User command
+        - [X] User command
         - [ ] Message command
+        - [ ] User installed app (waiting on serenity to support it).
     
