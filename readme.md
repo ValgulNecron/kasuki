@@ -28,9 +28,9 @@ with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445
 
 linux: ubuntu 22.04.2 x86-64
 
-Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates pkg-config protobuf-compiler libopus-dev youtube-dl
+Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates pkg-config protobuf-compiler
 
-windows: windows 10 and 11
+windows: rust but not anything else atm
 
 Requirement: cmake youtube-dl
 
