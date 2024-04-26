@@ -100,5 +100,8 @@ async fn question(
     trace!("{:?}", res);
     let content = res["choices"][0]["message"]["content"].to_string();
 
+    // replace the first and last " in the string
+    let content = content[1..content.len() - 1].to_string();
+
     Ok(content.replace("\\n", " \n "))
 }

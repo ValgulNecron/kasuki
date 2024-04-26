@@ -94,7 +94,7 @@ pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<Col
         .iter()
         .min_by(|&a, &b| {
             let delta_e_a = a.cielab.improved_delta_e(target.cielab);
-            let delta_e_b = a.cielab.improved_delta_e(target.cielab);
+            let delta_e_b = b.cielab.improved_delta_e(target.cielab);
             delta_e_a.partial_cmp(&delta_e_b).unwrap()
         })
         .cloned()

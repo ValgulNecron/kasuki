@@ -55,8 +55,6 @@ fn ui(frame: &mut Frame) {
     let total_memory = sys.total_memory();
     let memory_usage = process.memory();
     let memory_ratio = memory_usage as f64 / total_memory as f64;
-    // normalizing the memory usage to a value between 0 and 1
-    let app_memory_ratio = memory_ratio.min(1.0).max(0.0);
     let app_cpu_usage = app_cpu_usage / total_cpu_core as f32;
     let app_cpu_usage = format!("{:.2}%", app_cpu_usage);
     let app_memory_usage = format!("{:.2}Mb", memory_usage / 1024 / 1024);
