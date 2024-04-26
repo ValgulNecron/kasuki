@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::command_register::command_struct::common::DefaultPermission;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserCommand {
@@ -12,5 +12,4 @@ pub struct UserCommand {
 pub struct Localised {
     pub code: String,
     pub name: String,
-
 }

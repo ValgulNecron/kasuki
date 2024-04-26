@@ -198,9 +198,7 @@ Application
 
 /// If the application tui is enabled.
 pub const APP_TUI: Lazy<bool> = Lazy::new(|| {
-    println!("TUI: {:?}", env::var("TUI"));
     let is_on = env::var("TUI").unwrap_or_else(|_| "false".to_string());
-    println!("TUI: {}", is_on);
     is_on.to_lowercase() == "true"
 });
 

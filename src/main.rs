@@ -2,7 +2,10 @@ use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
-use serenity::all::{ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready, ShardManager};
+use serenity::all::{
+    ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready,
+    ShardManager,
+};
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
 use tokio::time::sleep;
@@ -26,7 +29,7 @@ use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::game_struct::steam_game_id_struct::{App, get_game};
+use crate::game_struct::steam_game_id_struct::{get_game, App};
 use crate::grpc_server::launcher::grpc_server_launcher;
 use crate::logger::{create_log_directory, init_logger};
 use crate::new_member::new_member;
@@ -231,20 +234,17 @@ impl EventHandler for Handler {
             if command_interaction.data.kind == CommandType::ChatInput {
                 // Log the details of the command interaction
                 info!(
-                "Received {} from {} in {} with option {:?}",
-                command_interaction.data.name,
-                command_interaction.user.name,
-                command_interaction.guild_id.unwrap().to_string(),
-                command_interaction.data.options
-            );
-                // Dispatch the command
+                    "Received {} from {} in {} with option {:?}",
+                    command_interaction.data.name,
+                    command_interaction.user.name,
+                    command_interaction.guild_id.unwrap().to_string(),
+                    command_interaction.data.options
+                );
                 if let Err(e) = command_dispatching(&ctx, &command_interaction).await {
-                    // If an error occurs during dispatching, handle it
                     error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
                 }
             } else if command_interaction.data.kind == CommandType::User {
                 if let Err(e) = dispatch_user_command(&ctx, &command_interaction).await {
-                    // If an error occurs during dispatching, handle it
                     error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
                 }
             } else if command_interaction.data.kind == CommandType::Message {

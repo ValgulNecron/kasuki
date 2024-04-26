@@ -64,7 +64,7 @@ pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashM
     if let ResolvedValue::SubCommand(op) = subcommand {
         for option in op {
             let name = option.name.to_string();
-            let value = match option.value {
+            let value = match &option.value {
                 ResolvedValue::User(user, _partial_member) => user.id,
                 _ => UserId::new(1),
             };
@@ -83,7 +83,7 @@ pub fn get_option_map_channel_subcommand(
     if let ResolvedValue::SubCommand(op) = subcommand {
         for option in op {
             let name = option.name.to_string();
-            let value = match option.value {
+            let value = match &option.value {
                 ResolvedValue::Channel(a) => a.id,
                 _ => ChannelId::new(1),
             };
@@ -100,7 +100,7 @@ pub fn get_option_map_role_subcommand(interaction: &CommandInteraction) -> HashM
     if let ResolvedValue::SubCommand(op) = subcommand {
         for option in op {
             let name = option.name.to_string();
-            let value = match option.value {
+            let value = match &option.value {
                 ResolvedValue::Role(a) => a.id,
                 _ => RoleId::new(1),
             };
@@ -117,8 +117,8 @@ pub fn get_option_map_number_subcommand(interaction: &CommandInteraction) -> Has
     if let ResolvedValue::SubCommand(op) = subcommand {
         for option in op {
             let name = option.name.to_string();
-            let value = match option.value {
-                ResolvedValue::Number(a) => a,
+            let value = match &option.value {
+                ResolvedValue::Number(a) => a.clone(),
                 _ => 0.0,
             };
             map.insert(name, value);
@@ -136,8 +136,8 @@ pub fn get_option_map_attachment_subcommand(
     if let ResolvedValue::SubCommand(op) = subcommand {
         for option in op {
             let name = option.name.to_string();
-            let value = match option.value {
-                ResolvedValue::Attachment(a) => a.clone(),
+            let value = match &option.value{
+                ResolvedValue::Attachment(a) => a.clone().clone(),
                 _ => continue,
             };
             map.insert(name, value);

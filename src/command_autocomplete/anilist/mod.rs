@@ -8,3 +8,4 @@ pub mod search;
 pub mod staff;
 pub mod studio;
 pub mod user;
+pub mod anime_group;

@@ -194,7 +194,7 @@ fn ui(frame: &mut Frame) {
     );
     frame.render_widget(
         Paragraph::new(Span::styled(
-            app_memory_usage    .to_string(),
+            app_memory_usage.to_string(),
             Style::default().fg(TUI_FG_COLOR),
         ))
         .block(

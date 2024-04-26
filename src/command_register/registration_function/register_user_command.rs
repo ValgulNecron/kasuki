@@ -1,11 +1,11 @@
-use std::fs;
-use std::io::BufReader;
-use std::sync::Arc;
-use serenity::all::{CommandType, CreateCommand, Http, Permissions};
-use tracing::{error, trace};
 use crate::command_register::command_struct::subcommand_group::SubCommandGroup;
 use crate::command_register::command_struct::user_command::UserCommand;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use serenity::all::{CommandType, CreateCommand, Http, Permissions};
+use std::fs;
+use std::io::BufReader;
+use std::sync::Arc;
+use tracing::{error, trace};
 
 pub async fn creates_user_command(http: &Arc<Http>) {
     let commands = match get_user_command("./json/user_command") {
@@ -43,16 +43,15 @@ fn get_user_command(path: &str) -> Result<Vec<UserCommand>, AppError> {
                 error_response_type: ErrorResponseType::None,
             })?;
             let reader = BufReader::new(file);
-            let command: UserCommand =
-                serde_json::from_reader(reader).map_err(|e| AppError {
-                    message: format!(
-                        "Failed to parse file: {:?} with error {}",
-                        path.as_path(),
-                        e
-                    ),
-                    error_type: ErrorType::File,
-                    error_response_type: ErrorResponseType::None,
-                })?;
+            let command: UserCommand = serde_json::from_reader(reader).map_err(|e| AppError {
+                message: format!(
+                    "Failed to parse file: {:?} with error {}",
+                    path.as_path(),
+                    e
+                ),
+                error_type: ErrorType::File,
+                error_response_type: ErrorResponseType::None,
+            })?;
             subcommands_group.push(command);
         }
     }

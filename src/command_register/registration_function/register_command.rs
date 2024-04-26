@@ -100,7 +100,6 @@ async fn create_command(command: &Command, http: &Arc<Http>) {
         None => {}
     }
 
-
     let e = http.create_global_command(&command_build).await;
     match e {
         Ok(_) => (),

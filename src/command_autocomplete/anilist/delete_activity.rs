@@ -3,12 +3,12 @@ use serenity::all::{
     CreateInteractionResponse,
 };
 
-use crate::common::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
+use crate::common::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::database::dispatcher::data_dispatch::get_data_all_activity_by_server;
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+    let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
     let activity_search = map
         .get(&String::from("anime_name"))
         .unwrap_or(DEFAULT_STRING);

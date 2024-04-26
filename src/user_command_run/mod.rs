@@ -1,2 +1,2 @@
-pub mod dispatch;
 pub mod avatar;
+pub mod dispatch;

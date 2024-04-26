@@ -1,4 +1,5 @@
-use serenity::all::{CommandInteraction, Context};
+use serde::de::Unexpected::Str;
+use serenity::all::{CommandInteraction, Context, ResolvedValue};
 use tracing::trace;
 
 use crate::command_run::admin::module::check_activation_status;
@@ -14,6 +15,7 @@ use crate::command_run::general::{
     avatar, banner, generate_image_pfp_server, generate_image_pfp_server_global, guild, profile,
 };
 use crate::command_run::steam::steam_game_info;
+use crate::common::get_option::subcommand_group::get_subcommand;
 use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
 };
@@ -24,94 +26,32 @@ pub async fn command_dispatching(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let ai_module_error = AppError::new(
-        String::from("AI module is off."),
-        ErrorType::Module,
-        ErrorResponseType::Message,
-    );
-
-    let anilist_module_error = AppError::new(
-        String::from("Anilist module is off."),
-        ErrorType::Module,
-        ErrorResponseType::Message,
-    );
-
-    let anime_module_error = AppError::new(
-        String::from("Anime module is off."),
-        ErrorType::Module,
-        ErrorResponseType::Message,
-    );
-
-    let game_module_error = AppError::new(
-        String::from("Game module is off."),
-        ErrorType::Module,
-        ErrorResponseType::Message,
-    );
-    let guild_id = match command_interaction.guild_id {
-        Some(id) => id.to_string(),
-        None => "0".to_string(),
+    let ai_module_error: AppError = AppError {
+        message: String::from("AI module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
     };
+    let anilist_module_error: AppError = AppError {
+        message: String::from("Anilist module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
+    };
+    let game_module_error: AppError = AppError {
+        message: String::from("Game module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
+    };
+    let command_name = command_interaction
+        .data
+        .options
+        .first()
+        .unwrap()
+        .name
+        .as_str();
     match command_interaction.data.name.as_str() {
         // admin module
-        "admin" => admin(ctx, command_interaction).await?,
-        // ai module
-        "ai" => {
-            if check_if_module_is_on(guild_id, "AI").await? {
-                ai(ctx, command_interaction).await?
-            } else {
-                return Err(ai_module_error);
-            }
-        }
-        // anilist module
-        "anilist_admin" => {
-            if check_if_module_is_on(guild_id, "ANIME").await? {
-                anime(ctx, command_interaction).await?
-            } else {
-                return Err(anilist_module_error);
-            }
-        }
-        "anilist_server" => {
-            if check_if_module_is_on(guild_id, "ANILIST").await? {
-                anilist(ctx, command_interaction).await?
-            } else {
-                return Err(anilist_module_error);
-            }
-        }
-        "anilist_user" => {
-            if check_if_module_is_on(guild_id, "ANILIST").await? {
-                anilist(ctx, command_interaction).await?
-            } else {
-                return Err(anilist_module_error);
-            }
-        }
-        // anime module
-        "anime" => {
-            if check_if_module_is_on(guild_id, "ANIME").await? {
-                anime(ctx, command_interaction).await?
-            } else {
-                return Err(anime_module_error);
-            }
-        }
-        "anime_nsfw" => {
-            if check_if_module_is_on(guild_id, "ANIME").await? {
-                anime(ctx, command_interaction).await?
-            } else {
-                return Err(anime_module_error);
-            }
-        }
-        // bot module
-        "bot" => bot_info(ctx, command_interaction).await?,
-        // general module
-        "server" => general(ctx, command_interaction).await?,
-        "user" => general(ctx, command_interaction).await?,
-        // steam module
-        "steam" => {
-            if check_if_module_is_on(guild_id, "GAME").await? {
-                steam(ctx, command_interaction).await?
-            } else {
-                return Err(game_module_error);
-            }
-        }
+        "admin" => admin(ctx, command_interaction, command_name).await?,
+
         _ => {
             return Err(AppError::new(
                 String::from("Command does not exist."),
@@ -136,15 +76,63 @@ async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
     Ok(check_activation_status(module, row).await)
 }
 
-async fn ai(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    match command_interaction
-        .data
-        .options
-        .first()
-        .unwrap()
-        .name
-        .as_str()
-    {
+async fn admin(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => "0".to_string(),
+    };
+    let anime_module_error: AppError = AppError {
+        message: String::from("Anime module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
+    };
+    match command_name {
+        "lang" => lang::run(ctx, command_interaction).await,
+        "module" => module::run(ctx, command_interaction).await,
+        "anilist" => {
+            if check_if_module_is_on(guild_id, "ANIME").await? {
+                let subcommand = get_subcommand(command_interaction).unwrap();
+                trace!("{:#?}", subcommand);
+                let subcommand_name = subcommand.name;
+                anilist_admin(ctx, command_interaction, subcommand_name).await
+            } else {
+                return Err(anime_module_error.clone());
+            }
+        }
+        _ => Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
+    }
+}
+
+async fn anilist_admin(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    match command_name {
+        "add_anime_activity" => add_activity::run(ctx, command_interaction).await,
+        "delete_activity" => delete_activity::run(ctx, command_interaction).await,
+        _ => Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
+    }
+}
+
+async fn ai(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    match command_name {
         "image" => image::run(ctx, command_interaction).await,
         "transcript" => transcript::run(ctx, command_interaction).await,
         "translation" => translation::run(ctx, command_interaction).await,
@@ -157,34 +145,12 @@ async fn ai(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(
     }
 }
 
-async fn admin(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    match command_interaction
-        .data
-        .options
-        .first()
-        .unwrap()
-        .name
-        .as_str()
-    {
-        "lang" => lang::run(ctx, command_interaction).await,
-        "module" => module::run(ctx, command_interaction).await,
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
-    }
-}
-
-async fn anime(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    match command_interaction
-        .data
-        .options
-        .first()
-        .unwrap()
-        .name
-        .as_str()
-    {
+async fn anime(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    match command_name {
         "random_image" => random_image::run(ctx, command_interaction).await,
         "random_nsfw_image" => random_nsfw_image::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
@@ -195,15 +161,12 @@ async fn anime(ctx: &Context, command_interaction: &CommandInteraction) -> Resul
     }
 }
 
-async fn steam(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    match command_interaction
-        .data
-        .options
-        .first()
-        .unwrap()
-        .name
-        .as_str()
-    {
+async fn steam(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    match command_name {
         "game" => steam_game_info::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
@@ -213,15 +176,12 @@ async fn steam(ctx: &Context, command_interaction: &CommandInteraction) -> Resul
     }
 }
 
-async fn bot_info(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    match command_interaction
-        .data
-        .options
-        .first()
-        .unwrap()
-        .name
-        .as_str()
-    {
+async fn bot_info(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    match command_name {
         "credit" => credit::run(ctx, command_interaction).await,
         "info" => info::run(ctx, command_interaction).await,
         "ping" => ping::run(ctx, command_interaction).await,
@@ -233,16 +193,12 @@ async fn bot_info(ctx: &Context, command_interaction: &CommandInteraction) -> Re
     }
 }
 
-async fn general(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let sub_command = command_interaction
-        .data
-        .options
-        .first()
-        .unwrap()
-        .name
-        .as_str();
-    trace!(sub_command);
-    match sub_command {
+async fn general(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    match command_name {
         "avatar" => avatar::run(ctx, command_interaction).await,
         "banner" => banner::run(ctx, command_interaction).await,
         "profile" => profile::run(ctx, command_interaction).await,
@@ -258,19 +214,16 @@ async fn general(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     }
 }
 
-async fn anilist(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    match command_interaction
-        .data
-        .options
-        .first()
-        .unwrap()
-        .name
-        .as_str()
-    {
+async fn anilist(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    match command_name {
         "anime" => anime::run(ctx, command_interaction).await,
         "ln" => ln::run(ctx, command_interaction).await,
         "manga" => manga::run(ctx, command_interaction).await,
-        "add_anime_activity" => add_activity::run(ctx, command_interaction).await,
+
         "user" => user::run(ctx, command_interaction).await,
         "character" => character::run(ctx, command_interaction).await,
         "waifu" => waifu::run(ctx, command_interaction).await,
@@ -285,7 +238,6 @@ async fn anilist(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         "list_user" => list_register_user::run(ctx, command_interaction).await,
         "random_image" => random_image::run(ctx, command_interaction).await,
         "random_nsfw_image" => random_nsfw_image::run(ctx, command_interaction).await,
-        "delete_activity" => delete_activity::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
