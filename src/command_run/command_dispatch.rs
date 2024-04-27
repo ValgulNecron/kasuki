@@ -51,7 +51,9 @@ pub async fn command_dispatching(
     match command_interaction.data.name.as_str() {
         // admin module
         "admin" => admin(ctx, command_interaction, command_name).await?,
-
+        "ai" => ai(ctx, command_interaction, command_name).await?,
+        "anilist_server" => anilist_server(ctx, command_interaction, command_name).await?,
+        "anilist_user" => anilist_user(ctx, command_interaction, command_name).await?,
         _ => {
             return Err(AppError::new(
                 String::from("Command does not exist."),
@@ -132,11 +134,91 @@ async fn ai(
     command_interaction: &CommandInteraction,
     command_name: &str,
 ) -> Result<(), AppError> {
+    let ai_module_error: AppError = AppError {
+        message: String::from("AI module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
+    };
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => "0".to_string(),
+    };
+    if !check_if_module_is_on(guild_id, "AI").await? {
+        return Err(ai_module_error);
+    }
     match command_name {
         "image" => image::run(ctx, command_interaction).await,
         "transcript" => transcript::run(ctx, command_interaction).await,
         "translation" => translation::run(ctx, command_interaction).await,
         "question" => question::run(ctx, command_interaction).await,
+        _ => Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
+    }
+}
+
+async fn anilist_server(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    let anilist_module_error: AppError = AppError {
+        message: String::from("Anilist module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
+    };
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => "0".to_string(),
+    };
+    if !check_if_module_is_on(guild_id, "ANIME").await? {
+        return Err(anilist_module_error);
+    }
+    match command_name {
+        "list_user" => list_register_user::run(ctx, command_interaction).await,
+        "list_activity" => list_all_activity::run(ctx, command_interaction).await,
+        _ => Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
+    }
+}
+
+async fn anilist_user(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    let anilist_module_error: AppError = AppError {
+        message: String::from("Anilist module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
+    };
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => "0".to_string(),
+    };
+    if !check_if_module_is_on(guild_id, "ANIME").await? {
+        return Err(anilist_module_error);
+    }
+    match command_name {
+        "anime" => anime::run(ctx, command_interaction).await,
+        "ln" => ln::run(ctx, command_interaction).await,
+        "manga" => manga::run(ctx, command_interaction).await,
+        "user" => user::run(ctx, command_interaction).await,
+        "character" => character::run(ctx, command_interaction).await,
+        "waifu" => waifu::run(ctx, command_interaction).await,
+        "compare" => compare::run(ctx, command_interaction).await,
+        "random" => random::run(ctx, command_interaction).await,
+        "register" => register::run(ctx, command_interaction).await,
+        "staff" => staff::run(ctx, command_interaction).await,
+        "studio" => studio::run(ctx, command_interaction).await,
+        "search" => search::run(ctx, command_interaction).await,
+        "seiyuu" => seiyuu::run(ctx, command_interaction).await,
+        "level" => level::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -206,38 +288,6 @@ async fn general(
         "guild_image" => generate_image_pfp_server::run(ctx, command_interaction).await,
         "list_activity" => list_all_activity::run(ctx, command_interaction).await,
         "guild_image_g" => generate_image_pfp_server_global::run(ctx, command_interaction).await,
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
-    }
-}
-
-async fn anilist(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    command_name: &str,
-) -> Result<(), AppError> {
-    match command_name {
-        "anime" => anime::run(ctx, command_interaction).await,
-        "ln" => ln::run(ctx, command_interaction).await,
-        "manga" => manga::run(ctx, command_interaction).await,
-
-        "user" => user::run(ctx, command_interaction).await,
-        "character" => character::run(ctx, command_interaction).await,
-        "waifu" => waifu::run(ctx, command_interaction).await,
-        "compare" => compare::run(ctx, command_interaction).await,
-        "random" => random::run(ctx, command_interaction).await,
-        "register" => register::run(ctx, command_interaction).await,
-        "staff" => staff::run(ctx, command_interaction).await,
-        "studio" => studio::run(ctx, command_interaction).await,
-        "search" => search::run(ctx, command_interaction).await,
-        "seiyuu" => seiyuu::run(ctx, command_interaction).await,
-        "level" => level::run(ctx, command_interaction).await,
-        "list_user" => list_register_user::run(ctx, command_interaction).await,
-        "random_image" => random_image::run(ctx, command_interaction).await,
-        "random_nsfw_image" => random_nsfw_image::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,

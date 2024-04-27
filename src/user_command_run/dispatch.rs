@@ -1,6 +1,7 @@
+use serenity::all::{CommandInteraction, Context};
+
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::user_command_run::avatar::send_user_avatar;
-use serenity::all::{CommandInteraction, Context};
 
 pub async fn dispatch_user_command(
     ctx: &Context,
@@ -13,7 +14,7 @@ pub async fn dispatch_user_command(
                 String::from("Command does not exist."),
                 ErrorType::Option,
                 ErrorResponseType::Message,
-            ))
+            ));
         }
     }
 }

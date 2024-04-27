@@ -1,11 +1,13 @@
-use serenity::all::{Attachment, ChannelId, CommandDataOption, CommandInteraction, ResolvedOption, ResolvedValue, RoleId, UserId};
 use std::collections::HashMap;
-use tracing::trace;
+
+use serenity::all::{
+    Attachment, ChannelId, CommandInteraction, ResolvedOption, ResolvedValue, RoleId, UserId,
+};
 
 pub fn get_subcommand(interaction: &CommandInteraction) -> Option<ResolvedOption<'_>> {
     let subcommand_group_value = interaction.data.options().first().unwrap().clone();
     if let ResolvedValue::SubCommandGroup(subcommand_group_options) = subcommand_group_value.value {
-        return Some(subcommand_group_options.first().unwrap().clone())
+        return Some(subcommand_group_options.first().unwrap().clone());
     };
     None
 }
@@ -32,7 +34,6 @@ pub fn get_option_map_string_subcommand_group(
     }
     map
 }
-
 
 pub fn get_option_map_integer_subcommand_group(
     interaction: &CommandInteraction,
@@ -204,14 +205,14 @@ pub fn get_option_map_string_autocomplete_subcommand_group(
     if let ResolvedValue::SubCommandGroup(subcommand_group_options) = subcommand_group {
         for option in subcommand_group_options {
             if let ResolvedValue::SubCommand(subcommand_options) = &option.value {
-                    for option2 in subcommand_options {
-                        let name = option2.name.to_string();
-                        let value = match option2.value {
-                            ResolvedValue::Autocomplete { kind: _, value } => value.to_string(),
-                            _ => String::new(),
-                        };
-                        map.insert(name, value);
-                    }
+                for option2 in subcommand_options {
+                    let name = option2.name.to_string();
+                    let value = match option2.value {
+                        ResolvedValue::Autocomplete { kind: _, value } => value.to_string(),
+                        _ => String::new(),
+                    };
+                    map.insert(name, value);
+                }
             }
         }
     }

@@ -473,7 +473,7 @@ async fn launch_game_management_thread() {
 async fn launch_activity_management_thread(ctx: Context) {
     info!("Launching the activity management thread!");
     loop {
-        manage_activity(&ctx).await;
+        tokio::spawn(manage_activity(ctx.clone()));
         sleep(Duration::from_secs(1)).await;
     }
 }

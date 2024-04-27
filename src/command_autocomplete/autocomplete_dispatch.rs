@@ -1,7 +1,8 @@
 use serenity::all::{CommandInteraction, Context};
-use tracing::trace;
 
-use crate::command_autocomplete::anilist::{anime, anime_group, character, compare, delete_activity, ln, manga, search, staff, studio, user};
+use crate::command_autocomplete::anilist::{
+    anime, anime_group, character, compare, delete_activity, ln, manga, search, staff, studio, user,
+};
 use crate::command_autocomplete::game::steam_game_info;
 use crate::common::get_option::subcommand_group::get_subcommand;
 
@@ -35,7 +36,6 @@ async fn anilist_admin_autocomplete(ctx: Context, autocomplete_interaction: Comm
         "delete_activity" => delete_activity::autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
-
 }
 
 async fn anilist_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {

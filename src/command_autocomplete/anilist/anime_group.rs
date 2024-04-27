@@ -1,5 +1,4 @@
 use serenity::all::{CommandInteraction, Context};
-use tracing::trace;
 
 use crate::anilist_struct::autocomplete::media::{send_auto_complete, MediaPageWrapper};
 use crate::common::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;

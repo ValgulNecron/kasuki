@@ -136,7 +136,7 @@ pub fn get_option_map_attachment_subcommand(
     if let ResolvedValue::SubCommand(op) = subcommand {
         for option in op {
             let name = option.name.to_string();
-            let value = match &option.value{
+            let value = match &option.value {
                 ResolvedValue::Attachment(a) => a.clone().clone(),
                 _ => continue,
             };

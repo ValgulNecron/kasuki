@@ -10,7 +10,7 @@ use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::remove_data_activity_status;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist::delete_activity::load_localization_delete_activity;
+use crate::lang_struct::admin::anilist::delete_activity::load_localization_delete_activity;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand(command_interaction);

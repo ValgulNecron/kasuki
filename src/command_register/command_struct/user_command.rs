@@ -1,5 +1,6 @@
-use crate::command_register::command_struct::common::DefaultPermission;
 use serde::{Deserialize, Serialize};
+
+use crate::command_register::command_struct::common::DefaultPermission;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserCommand {

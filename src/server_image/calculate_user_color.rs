@@ -1,11 +1,6 @@
 use std::io::Cursor;
 use std::time::Duration;
 
-use crate::database::dispatcher::data_dispatch::{
-    get_user_approximated_color, set_user_approximated_color,
-};
-use crate::database_struct::user_color::UserColor;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::codecs::png::PngEncoder;
@@ -16,6 +11,12 @@ use rayon::iter::ParallelIterator;
 use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::time::sleep;
 use tracing::{debug, error};
+
+use crate::database::dispatcher::data_dispatch::{
+    get_user_approximated_color, set_user_approximated_color,
+};
+use crate::database_struct::user_color::UserColor;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
     for member in members {
