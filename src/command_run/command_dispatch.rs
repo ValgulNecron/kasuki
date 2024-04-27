@@ -54,6 +54,12 @@ pub async fn command_dispatching(
         "ai" => ai(ctx, command_interaction, command_name).await?,
         "anilist_server" => anilist_server(ctx, command_interaction, command_name).await?,
         "anilist_user" => anilist_user(ctx, command_interaction, command_name).await?,
+        "anime" => anime(ctx, command_interaction, command_name).await?,
+        "anime_nsfw" => anime_nsfw(ctx, command_interaction, command_name).await?,
+        "bot" => bot(ctx, command_interaction, command_name).await?,
+        "server" => server(ctx, command_interaction, command_name).await?,
+        "steam" => steam(ctx, command_interaction, command_name).await?,
+        "user" => user(ctx, command_interaction, command_name).await?,
         _ => {
             return Err(AppError::new(
                 String::from("Command does not exist."),
@@ -232,8 +238,46 @@ async fn anime(
     command_interaction: &CommandInteraction,
     command_name: &str,
 ) -> Result<(), AppError> {
+    let anime_module_error: AppError = AppError {
+        message: String::from("Anime module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
+    };
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => "0".to_string(),
+    };
+    if !check_if_module_is_on(guild_id, "ANIME").await? {
+        return Err(anime_module_error);
+    }
     match command_name {
         "random_image" => random_image::run(ctx, command_interaction).await,
+        _ => Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
+    }
+}
+
+async fn anime_nsfw(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    let anime_module_error: AppError = AppError {
+        message: String::from("Anime module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
+    };
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => "0".to_string(),
+    };
+    if !check_if_module_is_on(guild_id, "ANIME").await? {
+        return Err(anime_module_error);
+    }
+    match command_name {
         "random_nsfw_image" => random_nsfw_image::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
@@ -243,22 +287,7 @@ async fn anime(
     }
 }
 
-async fn steam(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    command_name: &str,
-) -> Result<(), AppError> {
-    match command_name {
-        "game" => steam_game_info::run(ctx, command_interaction).await,
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
-    }
-}
-
-async fn bot_info(
+async fn bot(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
@@ -275,7 +304,51 @@ async fn bot_info(
     }
 }
 
-async fn general(
+async fn server(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+
+    match command_name {
+        "guild" => guild::run(ctx, command_interaction).await,
+        "guild_image" => generate_image_pfp_server::run(ctx, command_interaction).await,
+        "guild_image_g" => generate_image_pfp_server_global::run(ctx, command_interaction).await,
+        _ => Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
+    }
+}
+async fn steam(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    let game_module_error: AppError = AppError {
+        message: String::from("Game module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
+    };
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => "0".to_string(),
+    };
+    if !check_if_module_is_on(guild_id, "GAME").await? {
+        return Err(game_module_error);
+    }
+    match command_name {
+        "game" => steam_game_info::run(ctx, command_interaction).await,
+        _ => Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
+    }
+}
+
+async fn user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
@@ -284,10 +357,6 @@ async fn general(
         "avatar" => avatar::run(ctx, command_interaction).await,
         "banner" => banner::run(ctx, command_interaction).await,
         "profile" => profile::run(ctx, command_interaction).await,
-        "guild" => guild::run(ctx, command_interaction).await,
-        "guild_image" => generate_image_pfp_server::run(ctx, command_interaction).await,
-        "list_activity" => list_all_activity::run(ctx, command_interaction).await,
-        "guild_image_g" => generate_image_pfp_server_global::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
