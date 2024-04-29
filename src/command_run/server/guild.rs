@@ -37,7 +37,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let max_member = guild.max_members.unwrap_or_default();
     let actual_member = guild.approximate_member_count.unwrap_or_default();
     let online_member = guild.approximate_presence_count.unwrap_or_default();
-    let max_online = guild.max_presences.unwrap_or_default();
+    let max_online = guild.max_presences.unwrap_or(25000);
     let guild_banner = guild.banner_url();
     let guild_avatar = guild.icon_url();
     let guild_lang = guild.preferred_locale;
