@@ -1,6 +1,6 @@
 [package]
 name = "kasuki"
-version = "2.8.4"
+version = "2.8.6"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
@@ -28,9 +28,9 @@ tracing = { version = "0.1.40" }
 once_cell = "1.19.0"
 tracing-subscriber = { version = "0.3.18", features = ["default", "env-filter"] }
 tracing-core = "0.1.32"
-serde_with = { version = "3.8.0", features = ["macros"] }
+serde_with = { version = "3.8.1", features = ["macros"] }
 rust-fuzzy-search = "0.1.1"
-palette = "0.7.5"
+palette = "0.7.6"
 catbox = "0.8.2"
 imgurs = "0.11.2"
 tracing-appender = "0.2.3"
