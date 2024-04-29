@@ -14,7 +14,7 @@ use crate::database::dispatcher::data_dispatch::{
 };
 use crate::database_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
+use crate::lang_struct::anilist_user::send_activity::load_localization_send_activity;
 
 pub async fn manage_activity(ctx: Context) {
     send_activity(&ctx).await;

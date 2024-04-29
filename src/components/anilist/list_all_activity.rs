@@ -7,7 +7,7 @@ use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::database_struct::server_activity::ServerActivity;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist::list_all_activity::load_localization_list_activity;
+use crate::lang_struct::anilist_server::list_all_activity::load_localization_list_activity;
 
 pub async fn update(
     ctx: &Context,
@@ -79,7 +79,7 @@ pub fn get_formatted_activity_list(list: Vec<ServerActivity>, actual_page: u64) 
             let anime_id = activity.anime_id;
             let name = activity.name;
             format!(
-                "[{}](https://anilist.co/anime/{})",
+                "[{}](https://anilist_user.co/anime/{})",
                 name.unwrap_or_default(),
                 anime_id.unwrap_or_default()
             )

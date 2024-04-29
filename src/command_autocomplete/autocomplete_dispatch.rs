@@ -8,8 +8,8 @@ use crate::common::get_option::subcommand_group::get_subcommand;
 
 pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
     match autocomplete_interaction.data.name.as_str() {
-        "admin" => admin_autocomplete(ctx, autocomplete_interaction).await,
-        "anilist" => anilist_autocomplete(ctx, autocomplete_interaction).await,
+        "anilist_user" => admin_autocomplete(ctx, autocomplete_interaction).await,
+        "anilist_user" => anilist_autocomplete(ctx, autocomplete_interaction).await,
         "steam" => steam_autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
@@ -24,7 +24,7 @@ async fn admin_autocomplete(ctx: Context, autocomplete_interaction: CommandInter
         .name
         .as_str()
     {
-        "anilist" => anilist_admin_autocomplete(ctx, autocomplete_interaction).await,
+        "anilist_user" => anilist_admin_autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
 }

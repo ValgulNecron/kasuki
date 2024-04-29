@@ -4,15 +4,19 @@ use tracing::trace;
 
 use crate::command_run::admin::module::check_activation_status;
 use crate::command_run::admin::{lang, module};
+use crate::command_run::admin::anilist::{add_activity, delete_activity};
 use crate::command_run::ai::{image, question, transcript, translation};
-use crate::command_run::anilist::{
-    add_activity, anime, character, compare, delete_activity, level, list_all_activity,
-    list_register_user, ln, manga, random, register, search, seiyuu, staff, studio, user, waifu,
+use crate::command_run::anilist_server::{list_all_activity, list_register_user};
+use crate::command_run::anilist_user::{
+     anime, character, compare,  level,
+     ln, manga, random, register, search, seiyuu, staff, studio, user, waifu,
 };
-use crate::command_run::anime::{random_image, random_nsfw_image};
-use crate::command_run::bot_info::{credit, info, ping};
-use crate::command_run::general::{
-    avatar, banner, generate_image_pfp_server, generate_image_pfp_server_global, guild, profile,
+use crate::command_run::anime::{random_image};
+use crate::command_run::anime_nsfw::random_nsfw_image;
+use crate::command_run::bot::{credit, info, ping};
+use crate::command_run::server::{generate_image_pfp_server, generate_image_pfp_server_global, guild};
+use crate::command_run::user::{
+    avatar, banner, profile,
 };
 use crate::command_run::steam::steam_game_info;
 use crate::common::get_option::subcommand_group::get_subcommand;
@@ -49,8 +53,8 @@ pub async fn command_dispatching(
         .name
         .as_str();
     match command_interaction.data.name.as_str() {
-        // admin module
-        "admin" => admin(ctx, command_interaction, command_name).await?,
+        // anilist_user module
+        "anilist_user" => admin(ctx, command_interaction, command_name).await?,
         "ai" => ai(ctx, command_interaction, command_name).await?,
         "anilist_server" => anilist_server(ctx, command_interaction, command_name).await?,
         "anilist_user" => anilist_user(ctx, command_interaction, command_name).await?,
@@ -101,7 +105,7 @@ async fn admin(
     match command_name {
         "lang" => lang::run(ctx, command_interaction).await,
         "module" => module::run(ctx, command_interaction).await,
-        "anilist" => {
+        "anilist_user" => {
             if check_if_module_is_on(guild_id, "ANIME").await? {
                 let subcommand = get_subcommand(command_interaction).unwrap();
                 trace!("{:#?}", subcommand);

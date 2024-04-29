@@ -11,6 +11,7 @@ use rayon::iter::ParallelIterator;
 use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::time::sleep;
 use tracing::{debug, error};
+use crate::constant::USER_BLACKLIST_SERVER_IMAGE;
 
 use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
@@ -19,7 +20,11 @@ use crate::database_struct::user_color::UserColor;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
+    let local_copy_user_blacklist = unsafe { USER_BLACKLIST_SERVER_IMAGE.read().unwrap().clone() };
     for member in members {
+        if local_copy_user_blacklist.contains(&member.user.id.to_string()) {
+            continue;
+        }
         let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://cdn.discordapp.com/avatars/260706120086192129/ec231a35c9a33dd29ea4819d29d06056.webp?size=64"))
             .replace("?size=1024", "?size=64");
 

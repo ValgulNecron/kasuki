@@ -8,7 +8,7 @@ use serenity::all::{
 use crate::common::default_embed::get_default_embed;
 use crate::common::make_anilist_request::make_request_anilist;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist::user::{load_localization_user, UserLocalised};
+use crate::lang_struct::anilist_user::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct UserWrapper {
