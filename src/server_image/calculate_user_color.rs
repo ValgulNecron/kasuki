@@ -1,6 +1,7 @@
 use std::io::Cursor;
 use std::time::Duration;
 
+use crate::constant::USER_BLACKLIST_SERVER_IMAGE;
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::codecs::png::PngEncoder;
@@ -11,7 +12,6 @@ use rayon::iter::ParallelIterator;
 use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::time::sleep;
 use tracing::{debug, error};
-use crate::constant::USER_BLACKLIST_SERVER_IMAGE;
 
 use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
@@ -67,8 +67,7 @@ pub async fn return_average_user_color(
 }
 
 async fn calculate_user_color(member: Member) -> Result<(String, String), AppError> {
-    let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://cdn.discordapp.com/avatars/260706120086192129/ec231a35c9a33dd29ea4819d29d06056.webp?size=64"))
-        .replace("?size=1024", "?size=64");
+    let pfp_url = member.user.face().replace("?size=1024", "?size=64");
 
     let img = get_image_from_url(pfp_url).await?;
 
@@ -114,7 +113,7 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
 
 pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
     // Fetch the image data
-    let resp = reqwest::get(url)
+    let resp = reqwest::get(&url)
         .await
         .map_err(|e| {
             AppError::new(
@@ -138,7 +137,7 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
         .with_guessed_format()
         .map_err(|e| {
             AppError::new(
-                format!("Failed to load image. {}", e),
+                format!("Failed to load image. {} for image {}", e, &url),
                 ErrorType::File,
                 ErrorResponseType::None,
             )
@@ -146,7 +145,7 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
         .decode()
         .map_err(|e| {
             AppError::new(
-                format!("Failed to decode image. {}", e),
+                format!("Failed to decode image. {} for image {}", e, &url),
                 ErrorType::File,
                 ErrorResponseType::None,
             )

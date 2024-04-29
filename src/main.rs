@@ -1,7 +1,7 @@
+use serde_json::Value;
 use std::env;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use serde_json::Value;
 
 use serenity::all::{
     ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready,
@@ -19,9 +19,9 @@ use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{ACTIVITY_NAME, USER_BLACKLIST_SERVER_IMAGE};
 use crate::constant::PING_UPDATE_DELAYS;
 use crate::constant::TIME_BETWEEN_GAME_UPDATE;
+use crate::constant::{ACTIVITY_NAME, USER_BLACKLIST_SERVER_IMAGE};
 use crate::constant::{
     APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
@@ -522,11 +522,16 @@ async fn update_user_blacklist() {
             // get a write lock on USER_BLACKLIST_SERVER_IMAGE
             let mut user_blacklist = USER_BLACKLIST_SERVER_IMAGE.write().unwrap();
             // get the new blacklist
-            let file_url = "https://raw.githubusercontent.com/ValgulNecron/kasuki/dev/blacklist.json";
-            let blacklist = reqwest::get(file_url).await
-                .unwrap().json().await.unwrap();
+            let file_url =
+                "https://raw.githubusercontent.com/ValgulNecron/kasuki/dev/blacklist.json";
+            let blacklist = reqwest::get(file_url).await.unwrap().json().await.unwrap();
             let parsed_json: Value = serde_json::from_value(blacklist).unwrap();
-            let user_ids: Vec<String> = parsed_json["user_id"].as_array().unwrap().iter().map(|x| x.as_str().unwrap().to_string()).collect();
+            let user_ids: Vec<String> = parsed_json["user_id"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|x| x.as_str().unwrap().to_string())
+                .collect();
             // update the USER_BLACKLIST_SERVER_IMAGE
             *user_blacklist = user_ids;
             sleep(Duration::from_secs(3600)).await;
