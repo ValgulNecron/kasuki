@@ -12,7 +12,7 @@ use crate::database::dispatcher::data_dispatch::{
 };
 use crate::database_struct::module_status::ActivationStatusModule;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::general::module::load_localization_module_activation;
+use crate::lang_struct::admin::module::load_localization_module_activation;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {

@@ -1,14 +1,39 @@
 use serenity::all::{CommandInteraction, Context};
 
 use crate::command_autocomplete::anilist::{
-    anime, character, compare, delete_activity, ln, manga, search, staff, studio, user,
+    anime, anime_group, character, compare, delete_activity, ln, manga, search, staff, studio, user,
 };
 use crate::command_autocomplete::game::steam_game_info;
+use crate::common::get_option::subcommand_group::get_subcommand;
 
 pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
     match autocomplete_interaction.data.name.as_str() {
+        "admin" => admin_autocomplete(ctx, autocomplete_interaction).await,
         "anilist" => anilist_autocomplete(ctx, autocomplete_interaction).await,
         "steam" => steam_autocomplete(ctx, autocomplete_interaction).await,
+        _ => {}
+    }
+}
+
+async fn admin_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+    match autocomplete_interaction
+        .data
+        .options
+        .first()
+        .unwrap()
+        .name
+        .as_str()
+    {
+        "anilist" => anilist_admin_autocomplete(ctx, autocomplete_interaction).await,
+        _ => {}
+    }
+}
+
+async fn anilist_admin_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+    let subcommand = get_subcommand(&autocomplete_interaction).unwrap().name;
+    match subcommand {
+        "add_anime_activity" => anime_group::autocomplete(ctx, autocomplete_interaction).await,
+        "delete_activity" => delete_activity::autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
 }
@@ -23,7 +48,6 @@ async fn anilist_autocomplete(ctx: Context, autocomplete_interaction: CommandInt
         .as_str()
     {
         "anime" => anime::autocomplete(ctx, autocomplete_interaction).await,
-        "add_activity" => anime::autocomplete(ctx, autocomplete_interaction).await,
         "ln" => ln::autocomplete(ctx, autocomplete_interaction).await,
         "manga" => manga::autocomplete(ctx, autocomplete_interaction).await,
         "user" => user::autocomplete(ctx, autocomplete_interaction).await,
@@ -34,7 +58,6 @@ async fn anilist_autocomplete(ctx: Context, autocomplete_interaction: CommandInt
         "studio" => studio::autocomplete(ctx, autocomplete_interaction).await,
         "search" => search::autocomplete(ctx, autocomplete_interaction).await,
         "seiyuu" => staff::autocomplete(ctx, autocomplete_interaction).await,
-        "delete_activity" => delete_activity::autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
 }

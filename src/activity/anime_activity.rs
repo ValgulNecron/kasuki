@@ -16,9 +16,8 @@ use crate::database_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
 
-pub async fn manage_activity(ctx: &Context) {
-    let ctx = ctx.clone();
-    tokio::spawn(async move { send_activity(&ctx).await });
+pub async fn manage_activity(ctx: Context) {
+    send_activity(&ctx).await;
 }
 
 async fn send_activity(ctx: &Context) {
@@ -41,7 +40,14 @@ async fn send_activity(ctx: &Context) {
 
         let row2 = row.clone();
         let guild_id = row.server_id.clone();
-        if row.delays.unwrap() != 0 {
+        let ctx = ctx.clone();
+        if row.delays.is_none() {
+            tokio::spawn(async move {
+                if let Err(e) = send_specific_activity(row, guild_id.unwrap(), row2, &ctx).await {
+                    error!("{}", e);
+                }
+            });
+        } else if row.delays.unwrap() != 0 {
             let ctx = ctx.clone();
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs(row2.delays.unwrap_or_default() as u64))
@@ -52,8 +58,12 @@ async fn send_activity(ctx: &Context) {
                     error!("{}", e)
                 }
             });
-        } else if let Err(e) = send_specific_activity(row, guild_id.unwrap(), row2, ctx).await {
-            error!("{}", e);
+        } else {
+            tokio::spawn(async move {
+                if let Err(e) = send_specific_activity(row, guild_id.unwrap(), row2, &ctx).await {
+                    error!("{}", e);
+                }
+            });
         }
     }
 }

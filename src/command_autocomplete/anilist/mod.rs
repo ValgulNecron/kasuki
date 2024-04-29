@@ -1,4 +1,5 @@
 pub mod anime;
+pub mod anime_group;
 pub mod character;
 pub mod compare;
 pub mod delete_activity;

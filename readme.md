@@ -7,8 +7,6 @@
 
 ![Alt](https://repobeats.axiom.co/api/embed/ce0c4fc4155948704332a4126e892cfe612ed6cb.svg "Repobeats analytics image")
 
-![Alt](https://repobeats.axiom.co/api/embed/ce0c4fc4155948704332a4126e892cfe612ed6cb.svg "Repobeats analytics image")
-
 # Vision
 
 The bot is in the first place,
@@ -30,9 +28,11 @@ with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445
 
 linux: ubuntu 22.04.2 x86-64
 
-Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates
+Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates pkg-config protobuf-compiler
 
-windows: windows 10 and 11
+windows: rust but not anything else atm
+
+Requirement: cmake youtube-dl
 
 ### Docker
 

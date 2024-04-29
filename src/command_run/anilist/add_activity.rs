@@ -16,15 +16,16 @@ use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::common::trimer::trim_webhook;
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
 use crate::database_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist::add_activity::load_localization_add_activity;
+use crate::lang_struct::admin::anilist::add_activity::load_localization_add_activity;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string_subcommand_group(command_interaction);
     let delay = map
         .get(&String::from("delay"))
         .unwrap_or(&String::from("0"))
@@ -34,6 +35,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .get(&String::from("anime_name"))
         .cloned()
         .unwrap_or(String::new());
+    trace!(anime);
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

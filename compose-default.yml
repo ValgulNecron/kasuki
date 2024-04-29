@@ -39,9 +39,11 @@ services:
 
       # Logging and Debugging Configuration
       - RUST_LOG="info" # Logging level for the application; can be 'trace', 'debug', 'info', 'warn', or 'error'
+      - MAX_LOG_RETENTION_DAYS=30 # Maximum number of days to retain logs
+
+      # Bot configuration
       - REMOVE_OLD_COMMAND=false # Whether to remove old commands when the bot starts up
       - DB_TYPE="sqlite" # Type of database to use; either 'sqlite' or 'postgres'
-      - MAX_LOG_RETENTION_DAYS=30 # Maximum number of days to retain logs
 
       # Web Server Configuration
       - GRPC_IS_ON="true" # Whether to enable the web server for serving images and other content

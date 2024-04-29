@@ -12,6 +12,7 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AvatarLocalised {
     pub title: String,
+    pub server_title: String,
 }
 
 /// `load_localization_avatar` is an asynchronous function that loads the localized avatar.

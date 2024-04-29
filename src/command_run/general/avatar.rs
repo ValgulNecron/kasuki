@@ -35,13 +35,26 @@ async fn avatar_without_user(
     avatar_with_user(ctx, command_interaction, &user).await
 }
 
-async fn avatar_with_user(
+pub async fn avatar_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
 ) -> Result<(), AppError> {
     let avatar_url = user.face();
-    send_embed(avatar_url, ctx, command_interaction, user.name.clone()).await
+    let guild_id = command_interaction.guild_id.unwrap_or_default();
+    let user_id = user.id;
+    let server_avatar = match guild_id.member(&ctx.http, user_id).await {
+        Ok(member) => member.avatar_url(),
+        Err(_) => None,
+    };
+    send_embed(
+        avatar_url,
+        ctx,
+        command_interaction,
+        user.name.clone(),
+        server_avatar,
+    )
+    .await
 }
 
 pub async fn send_embed(
@@ -49,6 +62,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     username: String,
+    server_avatar: Option<String>,
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -63,7 +77,21 @@ pub async fn send_embed(
         .image(avatar_url)
         .title(avatar_localised.title.replace("$user$", username.as_str()));
 
-    let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
+    let builder_message = if server_avatar.is_none() {
+        CreateInteractionResponseMessage::new().embed(builder_embed)
+    } else {
+        let second_builder_embed = CreateEmbed::new()
+            .timestamp(Timestamp::now())
+            .color(COLOR)
+            .image(server_avatar.unwrap())
+            .title(
+                avatar_localised
+                    .server_title
+                    .replace("$user$", username.as_str()),
+            );
+        let embeds = vec![builder_embed, second_builder_embed];
+        CreateInteractionResponseMessage::new().embeds(embeds)
+    };
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
