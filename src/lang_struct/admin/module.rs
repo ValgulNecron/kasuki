@@ -26,7 +26,7 @@ pub async fn load_localization_module_activation(
     guild_id: String,
 ) -> Result<ModuleLocalised, AppError> {
     // Read the JSON file into a String.
-    let json = fs::read_to_string("json/message/general/module.json").map_err(|e| {
+    let json = fs::read_to_string("json/message/admin/module.json").map_err(|e| {
         AppError::new(
             format!("File module.json not found. {}", e),
             ErrorType::File,

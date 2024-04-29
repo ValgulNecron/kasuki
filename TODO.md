@@ -35,6 +35,8 @@
       Get the currency and language from the server language setting.
     - [ ] get player stat
     - [ ] get free promotion notification
+    - [ ] get game release notification
+    - [ ] get game update notification
 
 - AI submodule:
     - [X] Image generation with AI.
@@ -42,7 +44,7 @@
     - [X] Video translation.
     - [X] Ask a question and reply the response.
 
-- Music module:
+- Music module: (Not sure if I will do this one.)
     - [ ] Play music from youtube.
     - [ ] Play music from file upload.
     - [ ] Play music from a link.
@@ -62,7 +64,6 @@
     - [X] Get guild info.
     - [X] Profile command.
     - [ ] Upgrade get guild info to show more info.
-    - [ ] Poll feature with custom choice and a graph afterward for comparison.
 
 
 - General part:

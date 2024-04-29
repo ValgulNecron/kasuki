@@ -9,11 +9,19 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 
 /// `GuildLocalised` is a struct that represents a guild's localized data.
 /// It contains two fields `title` and `desc` which are both Strings.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GuildLocalised {
-    pub title: String,
-    pub desc: String,
+	pub guild_id: String,
+	pub guild_name: String,
+	pub member: String,
+	pub online: String,
+	pub lang: String,
+	pub premium: String,
+	pub sub: String,
+	pub nsfw: String,
+	pub creation_date: String,
 }
+
 
 /// `load_localization_guild` is an asynchronous function that loads the localized data for a guild.
 /// It takes a `guild_id` as a parameter which is a String.
@@ -24,7 +32,7 @@ pub struct GuildLocalised {
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
 pub async fn load_localization_guild(guild_id: String) -> Result<GuildLocalised, AppError> {
     // Read the JSON file into a String.
-    let json = fs::read_to_string("json/message/general/guild.json").map_err(|e| {
+    let json = fs::read_to_string("json/message/server/guild.json").map_err(|e| {
         AppError::new(
             format!("File guild.json not found. {}", e),
             ErrorType::File,

@@ -14,7 +14,7 @@ pub struct CharacterLocalised {
 }
 
 pub async fn load_localization_character(guild_id: String) -> Result<CharacterLocalised, AppError> {
-    let mut file = File::open("json/message/anilist/character.json").map_err(|e| {
+    let mut file = File::open("json/message/anilist_user/character.json").map_err(|e| {
         AppError::new(
             format!("File character.json not found. {}", e),
             ErrorType::File,

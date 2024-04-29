@@ -18,7 +18,7 @@ pub struct StudioLocalised {
 /// The function reads a JSON file, parses it into a HashMap, and then retrieves the data based on the guild's language.
 pub async fn load_localization_studio(guild_id: String) -> Result<StudioLocalised, AppError> {
     // Read the JSON file and handle any potential errors
-    let json = fs::read_to_string("json/message/anilist/studio.json").map_err(|e| {
+    let json = fs::read_to_string("json/message/anilist_user/studio.json").map_err(|e| {
         AppError::new(
             format!("File studio.json not found or can't be read. {}", e),
             ErrorType::File,

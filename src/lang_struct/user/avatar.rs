@@ -24,7 +24,7 @@ pub struct AvatarLocalised {
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
 pub async fn load_localization_avatar(guild_id: String) -> Result<AvatarLocalised, AppError> {
     // Read the JSON file into a String.
-    let json = fs::read_to_string("json/message/general/avatar.json").map_err(|e| {
+    let json = fs::read_to_string("json/message/user/avatar.json").map_err(|e| {
         AppError::new(
             format!("File avatar.json not found. {}", e),
             ErrorType::File,

@@ -24,7 +24,7 @@ pub struct PingLocalised {
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
 pub async fn load_localization_ping(guild_id: String) -> Result<PingLocalised, AppError> {
     // Read the JSON file into a String.
-    let json = fs::read_to_string("json/message/general/ping.json").map_err(|e| {
+    let json = fs::read_to_string("json/message/bot/ping.json").map_err(|e| {
         AppError::new(
             format!("File ping.json not found. {}", e),
             ErrorType::File,

@@ -29,7 +29,7 @@ pub struct CompareLocalised {
 }
 
 pub async fn load_localization_compare(guild_id: String) -> Result<CompareLocalised, AppError> {
-    let mut file = File::open("json/message/anilist/compare.json").map_err(|e| {
+    let mut file = File::open("json/message/anilist_user/compare.json").map_err(|e| {
         AppError::new(
             format!("File compare.json not found. {}", e),
             ErrorType::File,

@@ -1,0 +1,19 @@
+{
+  "en": {
+    "guild_id": "Guild id",
+    "guild_name": "Guild name",
+    "member": "Member",
+    "online": "Online",
+    "lang": "Guild locale",
+    "premium": "Boost level",
+    "sub": "Guild boost",
+    "nsfw": "NSFW level",
+    "creation_date": "Date of creation"
+  },
+  "fr": {
+  },
+  "jp": {
+  },
+  "de": {
+  }
+}

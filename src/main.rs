@@ -176,7 +176,7 @@ impl EventHandler for Handler {
         info!(server_number);
 
         // Loads environment variables from the .env file
-        dotenv::from_path(".env").ok();
+        dotenvy::from_path(".env").ok();
 
         // Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
         let remove_old_command = env::var("REMOVE_OLD_COMMAND")
@@ -276,7 +276,7 @@ impl EventHandler for Handler {
 /// It initializes the logger, the SQL database, and the bot client.
 /// It also spawns asynchronous tasks for managing the ping of the shards and starting the client.
 async fn main() {
-    let _ = dotenv::from_path(".env");
+    let _ = dotenvy::from_path(".env");
 
     // Print a message indicating the bot is starting.
     println!("Bot starting please wait.");

@@ -26,7 +26,7 @@ pub async fn load_localization_pfp_server_image(
 ) -> Result<PFPServerLocalisedImage, AppError> {
     // Read the JSON file into a String.
     let json =
-        fs::read_to_string("json/message/general/generate_image_pfp_server.json").map_err(|e| {
+        fs::read_to_string("json/message/server/generate_image_pfp_server.json").map_err(|e| {
             AppError::new(
                 format!("File generate_image_pfp_server.json not found. {}", e),
                 ErrorType::File,

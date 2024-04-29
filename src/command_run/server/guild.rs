@@ -5,7 +5,7 @@ use serenity::all::{
 
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::server::guild::load_localization_guild;
+        use crate::lang_struct::server::guild::load_localization_guild;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -32,48 +32,42 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
 
+    let guild_id = guild.id;
     let guild_name = guild.name.clone();
-    let created_date = guild
-        .id
-        .created_at()
-        .clone()
-        .format("%Y-%m-%d %H:%M:%S")
-        .to_string();
-    let number_of_member = guild.approximate_member_count.unwrap_or(0).to_string();
-    let max_member = match guild.max_members {
-        Some(max) => max.to_string(),
-        None => String::from("Unknown"),
-    };
+    let max_member = guild.max_members.unwrap_or_default();
+    let actual_member = guild.approximate_member_count.unwrap_or_default();
+    let online_member = guild.approximate_presence_count.unwrap_or_default();
+    let max_online = guild.max_presences.unwrap_or_default();
+    let guild_banner = guild.banner_url();
+    let guild_avatar = guild.icon_url();
+    let guild_lang = guild.preferred_locale;
+    let guild_premium = guild.premium_tier;
+    let guild_sub = guild.premium_subscription_count.unwrap_or_default();
+    let guild_nsfw = guild.nsfw_level;
+    let creation_date = format!("<t:{}:F>", guild.id.created_at().unix_timestamp());
+    let mut fields:Vec<(String, String, bool)> = Vec::new();
 
-    let desc = guild_localised
-        .desc
-        .replace("$name$", guild_name.as_str())
-        .replace("$date$", created_date.as_str())
-        .replace("$number$", number_of_member.as_str())
-        .replace("$max$", max_member.as_str());
+    fields.push((guild_localised.guild_id, guild_id.to_string(), true));
+    fields.push((guild_localised.guild_name, guild_name, true));
+    fields.push((guild_localised.member, format!("{}/{}", actual_member, max_member), true));
+    fields.push((guild_localised.online, format!("{}/{}", online_member, max_online), true));
+    fields.push((guild_localised.creation_date, creation_date, true));
+    fields.push((guild_localised.lang, guild_lang, true));
+    fields.push((guild_localised.premium, format!("{:?}", guild_premium), true));
+    fields.push((guild_localised.sub, guild_sub.to_string(), true));
+    fields.push((guild_localised.nsfw, format!("{:?}", guild_nsfw), true));
 
     let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .description(desc)
-        .title(&guild_localised.title);
+        .fields(fields);
 
-    match guild.icon_hash {
-        Some(hash) => {
-            let icon_url = format!("https://cdn.discordapp.com/icons/{}/{}.png", guild.id, hash);
-            builder_embed = builder_embed.thumbnail(icon_url)
-        }
-        None => {
-            if let Some(hash) = guild.icon {
-                let icon_url =
-                    format!("https://cdn.discordapp.com/icons/{}/{}.png", guild.id, hash);
-                builder_embed = builder_embed.thumbnail(icon_url)
-            }
-        }
-    };
+    if guild_avatar.is_some() {
+        builder_embed = builder_embed.thumbnail(guild_avatar.unwrap())
+    }
 
-    if let Some(banner) = guild.banner {
-        builder_embed = builder_embed.image(banner)
+    if guild_banner.is_some() {
+        builder_embed = builder_embed.image(guild_banner.unwrap())
     }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);

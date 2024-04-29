@@ -38,7 +38,7 @@ pub struct InfoLocalised {
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
 pub async fn load_localization_info(guild_id: String) -> Result<InfoLocalised, AppError> {
     // Read the JSON file into a String.
-    let json = fs::read_to_string("json/message/general/info.json").map_err(|e| {
+    let json = fs::read_to_string("json/message/bot/info.json").map_err(|e| {
         AppError::new(
             format!("File info.json not found. {}", e),
             ErrorType::File,

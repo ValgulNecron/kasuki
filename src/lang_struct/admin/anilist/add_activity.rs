@@ -18,7 +18,7 @@ pub struct AddActivityLocalised {
 pub async fn load_localization_add_activity(
     guild_id: String,
 ) -> Result<AddActivityLocalised, AppError> {
-    let mut file = File::open("json/message/anilist/add_activity.json").map_err(|e| {
+    let mut file = File::open("json/message/admin/anilist/add_activity.json").map_err(|e| {
         AppError::new(
             format!("File add_activity.json not found. {}", e),
             ErrorType::File,

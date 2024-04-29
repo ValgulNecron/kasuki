@@ -22,7 +22,7 @@ pub async fn load_localization_list_activity(
     guild_id: String,
 ) -> Result<ListActivityLocalised, AppError> {
     // Read the JSON file and handle any potential errors
-    let json = fs::read_to_string("json/message/anilist/list_all_activity.json").map_err(|e| {
+    let json = fs::read_to_string("json/message/anilist_user/list_all_activity.json").map_err(|e| {
         AppError::new(
             format!(
                 "File list_all_activity.json not found or can't be read. {}",
