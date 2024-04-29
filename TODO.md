@@ -63,7 +63,7 @@
     - [X] Command to recreate the server image from member off all guild the bot is on.
     - [X] Get guild info.
     - [X] Profile command.
-    - [ ] Upgrade get guild info to show more info.
+    - [X] Upgrade get guild info to show more info.
 
 
 - General part:
