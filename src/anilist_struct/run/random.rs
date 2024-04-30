@@ -53,7 +53,26 @@ pub struct CoverImage {
     pub extra_large: String,
 }
 
+/// `PageWrapper` is an implementation block for the `PageWrapper` struct.
 impl PageWrapper {
+    /// `new_anime_page` is an asynchronous function that creates a new anime page.
+    /// It takes a `number` as a parameter.
+    /// `number` is a 64-bit integer that represents the page number.
+    /// It returns a `Result` that contains a `PageWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes a `number` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `number` variable is set to the `number` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `PageWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `number` - A 64-bit integer that represents the page number.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<PageWrapper, AppError>` - A Result that contains a `PageWrapper` or an `AppError`.
     pub async fn new_anime_page(number: i64) -> Result<PageWrapper, AppError> {
         let query = "
                     query($anime_page: Int){
@@ -91,6 +110,24 @@ impl PageWrapper {
         Ok(res)
     }
 
+    /// `new_manga_page` is an asynchronous function that creates a new manga page.
+    /// It takes a `number` as a parameter.
+    /// `number` is a 64-bit integer that represents the page number.
+    /// It returns a `Result` that contains a `PageWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes a `number` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `number` variable is set to the `number` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `PageWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `number` - A 64-bit integer that represents the page number.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<PageWrapper, AppError>` - A Result that contains a `PageWrapper` or an `AppError`.
     pub async fn new_manga_page(number: i64) -> Result<PageWrapper, AppError> {
         let query = "
                     query($manga_page: Int){

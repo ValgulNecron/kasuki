@@ -61,7 +61,26 @@ pub struct Image {
     pub large: String,
 }
 
+/// `CharacterWrapper` is an implementation block for the `CharacterWrapper` struct.
 impl CharacterWrapper {
+    /// `new_character_by_id` is an asynchronous function that creates a new character by ID.
+    /// It takes an `id` as a parameter.
+    /// `id` is an integer that represents the ID of the character.
+    /// It returns a `Result` that contains a `CharacterWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes an `id` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `id` variable is set to the `id` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `CharacterWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - An integer that represents the ID of the character.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<CharacterWrapper, AppError>` - A Result that contains a `CharacterWrapper` or an `AppError`.
     pub async fn new_character_by_id(id: i32) -> Result<CharacterWrapper, AppError> {
         let query_id: &str = "
         query ($name: Int) {
@@ -100,6 +119,24 @@ impl CharacterWrapper {
         })
     }
 
+    /// `new_character_by_search` is an asynchronous function that creates a new character by search.
+    /// It takes a `search` as a parameter.
+    /// `search` is a reference to a String that represents the search query.
+    /// It returns a `Result` that contains a `CharacterWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes a `search` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `search` variable is set to the `search` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `CharacterWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `search` - A reference to a String that represents the search query.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<CharacterWrapper, AppError>` - A Result that contains a `CharacterWrapper` or an `AppError`.
     pub async fn new_character_by_search(search: &String) -> Result<CharacterWrapper, AppError> {
         let query_string: &str = "
 query ($name: String) {
@@ -139,6 +176,35 @@ query ($name: String) {
     }
 }
 
+/// `send_embed` is an asynchronous function that sends an embed message.
+/// It takes `ctx`, `command_interaction`, and `data` as parameters.
+/// `ctx` is a Context that represents the context.
+/// `command_interaction` is a CommandInteraction that represents the command interaction.
+/// `data` is a CharacterWrapper that represents the character wrapper.
+///
+/// This function first gets the guild ID from the `command_interaction`.
+/// It then clones the character from the `data`.
+/// It loads the localized character using the guild ID.
+/// It clones the date of birth data from the character.
+/// It creates a date of birth string from the date of birth data.
+/// It replaces the placeholders in the description of the localized character with the actual data from the character.
+/// It converts the AniList flavored markdown in the description to Discord flavored markdown.
+/// It trims the description if it exceeds the limit.
+/// It gets the native name and the user preferred name from the character and formats them into a character name.
+/// It creates a new embed with the description, the thumbnail, the title, and the URL of the character.
+/// It creates a new interaction response message with the embed.
+/// It creates a new interaction response with the interaction response message.
+/// It then sends the interaction response using the `command_interaction`.
+///
+/// # Arguments
+///
+/// * `ctx` - A Context that represents the context.
+/// * `command_interaction` - A CommandInteraction that represents the command interaction.
+/// * `data` - A CharacterWrapper that represents the character wrapper.
+///
+/// # Returns
+///
+/// * `Result<(), AppError>` - A Result that represents the result of the function. It returns an empty Ok if the function is successful, otherwise it returns an Err with an AppError.
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,

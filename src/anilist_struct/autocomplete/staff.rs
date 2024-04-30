@@ -34,7 +34,27 @@ pub struct StaffPageWrapper {
     pub data: StaffPageData,
 }
 
+/// `StaffPageWrapper` is an implementation block for the `StaffPageWrapper` struct.
 impl StaffPageWrapper {
+    /// `new_autocomplete_staff` is an asynchronous function that creates a new autocomplete staff.
+    /// It takes a `search` as a parameter.
+    /// `search` is a reference to a String that represents the search query.
+    /// It returns a `StaffPageWrapper`.
+    ///
+    /// This function first defines a GraphQL query string that takes a `search` and `count` as variables.
+    /// It then creates a JSON object with the query string and the variables.
+    /// The `search` variable is set to the `search` parameter and the `count` variable is set to `AUTOCOMPLETE_COUNT_LIMIT`.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then traces the response and deserializes it into a `StaffPageWrapper`.
+    /// It traces the deserialized data and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `search` - A reference to a String that represents the search query.
+    ///
+    /// # Returns
+    ///
+    /// * `StaffPageWrapper` - A `StaffPageWrapper` that represents the page wrapper of the staff.
     pub async fn new_autocomplete_staff(search: &String) -> StaffPageWrapper {
         let query_str = "query ($search: String, $count: Int) {
           Page(perPage: $count) {
