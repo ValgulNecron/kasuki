@@ -84,7 +84,7 @@
     - [ ] Rename function and variable for better clarity.
     - [ ] Add docs to every public function.
       (Run, Register and Autocomplete don’t need this.).
-      (Not done between command_autocomplete and database).
+      (Not done between command_register and database).
     - [X] Logging
     - [X] Updating to serenity 0.12.
     - [X] Support for command in dm.

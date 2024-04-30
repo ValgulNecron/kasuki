@@ -54,7 +54,7 @@ pub async fn command_dispatching(
         .as_str();
     match command_interaction.data.name.as_str() {
         // anilist_user module
-        "anilist_user" => admin(ctx, command_interaction, command_name).await?,
+        "admin" => admin(ctx, command_interaction, command_name).await?,
         "ai" => ai(ctx, command_interaction, command_name).await?,
         "anilist_server" => anilist_server(ctx, command_interaction, command_name).await?,
         "anilist_user" => anilist_user(ctx, command_interaction, command_name).await?,
@@ -103,9 +103,12 @@ async fn admin(
         error_response_type: ErrorResponseType::Message,
     };
     match command_name {
-        "lang" => lang::run(ctx, command_interaction).await,
-        "module" => module::run(ctx, command_interaction).await,
-        "anilist_user" => {
+        "general" => {
+            let subcommand = get_subcommand(command_interaction).unwrap();
+            let subcommand_name = subcommand.name;
+            anilist_admin(ctx, command_interaction, subcommand_name).await
+        },
+        "anilist" => {
             if check_if_module_is_on(guild_id, "ANIME").await? {
                 let subcommand = get_subcommand(command_interaction).unwrap();
                 trace!("{:#?}", subcommand);
@@ -127,6 +130,21 @@ async fn anilist_admin(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+) -> Result<(), AppError> {
+    match command_name {
+        "lang" => lang::run(ctx, command_interaction).await,
+        "module" => module::run(ctx, command_interaction).await,
+        _ => Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
+    }
+}
+
+async fn general_admin(ctx: &Context,
+                       command_interaction: &CommandInteraction,
+                       command_name: &str,
 ) -> Result<(), AppError> {
     match command_name {
         "add_anime_activity" => add_activity::run(ctx, command_interaction).await,
