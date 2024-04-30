@@ -16,22 +16,68 @@ use sysinfo::System;
 
 use crate::constant::{APP_VERSION, BOT_INFO, LOGS_PATH, TUI_FG_COLOR};
 
+/// This function is responsible for creating the terminal user interface (TUI).
+/// It sets up the terminal, creates a new terminal instance, and enters a loop
+/// where it continually draws the UI and handles events until a quit condition is met.
+/// After the loop, it cleans up by disabling raw mode and leaving the alternate screen.
+///
+/// # Errors
+/// This function will return an error if there's a problem enabling/disabling raw mode,
+/// executing terminal commands, creating the terminal, drawing the UI, or handling events.
+///
+/// # Example
+/// ```
+/// let result = create_tui().await;
+/// if let Err(e) = result {
+///     println!("Error creating TUI: {}", e);
+/// }
+/// ```
 pub async fn create_tui() -> io::Result<()> {
+    // Enable raw mode for the terminal
     enable_raw_mode()?;
+
+    // Enter the alternate screen for the terminal
     stdout().execute(EnterAlternateScreen)?;
+
+    // Create a new terminal instance
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
 
+    // Initialize the quit condition
     let mut should_quit = false;
+
+    // Main loop for the TUI
     while !should_quit {
+        // Draw the UI
         terminal.draw(ui)?;
+
+        // Handle events and update the quit condition
         should_quit = handle_events()?;
     }
 
+    // Clean up after the main loop
+    // Disable raw mode for the terminal
     disable_raw_mode()?;
+
+    // Leave the alternate screen for the terminal
     stdout().execute(LeaveAlternateScreen)?;
+
+    // Return Ok if everything went well
     Ok(())
 }
 
+/// Handles events from the user during the execution of the terminal user interface.
+///
+/// This function polls for an event from the user every 50 milliseconds. If an event is detected,
+/// it checks if the event is a key press event and if the key pressed is 'q'. If so, it returns `Ok(true)`,
+/// indicating that the user wants to quit the application.
+///
+/// # Returns
+/// * `Ok(true)` if the user pressed 'q'
+/// * `Ok(false)` if no event was detected or the event was not a 'q' key press
+/// * `Err` if there was an error polling for an event or reading the event
+///
+/// # Errors
+/// This function will return an error if there's a problem polling for an event or reading the event.
 fn handle_events() -> io::Result<bool> {
     if event::poll(std::time::Duration::from_millis(50))? {
         if let Event::Key(key) = event::read()? {
@@ -43,7 +89,20 @@ fn handle_events() -> io::Result<bool> {
     Ok(false)
 }
 
+/// The `ui` function is responsible for rendering the user interface of the application.
+///
+/// It first gathers system and process information, such as CPU and memory usage, and disk read/write statistics.
+/// Then, it creates a layout for the terminal user interface and populates it with widgets that display the gathered information.
+///
+/// # Arguments
+///
+/// * `frame` - A mutable reference to the Frame in which the UI will be drawn.
+///
+/// # Panics
+///
+/// This function will panic if it fails to read the logs or if it fails to get the current process ID.
 fn ui(frame: &mut Frame) {
+    // Gather system and process information
     let mut sys = System::new_all();
     sys.refresh_all();
     let total_cpu_core = sys.cpus().len();
@@ -56,6 +115,7 @@ fn ui(frame: &mut Frame) {
     let app_cpu_usage = format!("{:.2}%", app_cpu_usage);
     let app_memory_usage = format!("{:.2}Mb", memory_usage / 1024 / 1024);
 
+    // Calculate system CPU and memory usage
     let mut system_cpu_usage: f64 = 0.0;
     for cpu in sys.cpus() {
         system_cpu_usage += cpu.cpu_usage() as f64
@@ -68,16 +128,20 @@ fn ui(frame: &mut Frame) {
     let disk_read = process.disk_usage().total_read_bytes;
     let disk_write = process.disk_usage().total_written_bytes;
 
+    // Create the main layout for the terminal user interface
     let main_layout = Layout::new(
         Direction::Vertical,
         [Constraint::Min(3), Constraint::Fill(99)],
     )
     .split(frame.size());
 
+    // Read the logs and calculate the number of lines
     let logs = read_logs().unwrap_or_else(|e| format!("Error reading logs: {}", e));
     let lines_count = logs.lines().count() as u16; // Calculate the total number of lines
     let offset = lines_count - frame.size().height;
     let text = Text::from(logs).style(Style::default().fg(TUI_FG_COLOR));
+
+    // Render the logs widget
     frame.render_widget(
         Paragraph::new(text)
             .block(
@@ -91,6 +155,7 @@ fn ui(frame: &mut Frame) {
         main_layout[1],
     );
 
+    // Create the inner layout for the CPU and memory usage widgets
     let inner_layout = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
@@ -100,6 +165,7 @@ fn ui(frame: &mut Frame) {
         ])
         .split(main_layout[0]);
 
+    // Render the CPU usage widget
     frame.render_widget(
         LineGauge::default()
             .block(
@@ -114,6 +180,8 @@ fn ui(frame: &mut Frame) {
             .ratio(system_cpu_ratio),
         inner_layout[0],
     );
+
+    // Render the memory usage widget
     frame.render_widget(
         LineGauge::default()
             .block(
@@ -131,11 +199,15 @@ fn ui(frame: &mut Frame) {
             .ratio(system_memory_ratio),
         inner_layout[1],
     );
+
+    // Get the bot name
     let bot = unsafe { BOT_INFO.clone() };
     let name = match bot {
         Some(bot) => bot.name,
         None => process.name().to_string(),
     };
+
+    // Create the second inner layout for the bot information widgets
     let second_inner_layout = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
@@ -148,6 +220,8 @@ fn ui(frame: &mut Frame) {
             Constraint::Fill(1),
         ])
         .split(inner_layout[2]);
+
+    // Render the bot information widgets
     frame.render_widget(
         Paragraph::new(Span::styled(name, Style::default().fg(TUI_FG_COLOR))).block(
             Block::default()
@@ -236,6 +310,18 @@ fn ui(frame: &mut Frame) {
     );
 }
 
+/// Reads the latest logs from the logs directory.
+///
+/// This function first lists the contents of the logs directory. Then it iterates over each file
+/// in the directory, checking the last modified time of each file to find the latest one.
+/// Once the latest file is found, it reads the contents of the file and returns it as a string.
+///
+/// # Returns
+/// * `Ok(String)` if the logs were successfully read
+/// * `Err(io::Error)` if there was an error reading the directory or the file
+///
+/// # Errors
+/// This function will return an error if there's a problem reading the directory or the file.
 fn read_logs() -> Result<String, io::Error> {
     // read the latest logs from the logs directory
     // first list the contents of the logs directory

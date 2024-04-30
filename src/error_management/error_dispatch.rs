@@ -8,12 +8,23 @@ use tracing::error;
 use crate::constant::{CHAT_TOKEN, COLOR, DISCORD_TOKEN, IMAGE_TOKEN, TRANSCRIPT_TOKEN};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
+/// ERROR_MESSAGE is a constant string that contains the default error message
 const ERROR_MESSAGE: &str = "**There was an error while processing the command**\
     \n**This error is most likely an input error** \
     **like searching for non existent anime, requesting nsfw image to the ai, etc.**\n \
     **but in some case it's a server or programming error**.\
     **in this case report it to me and I will try to fix it the fastest I can**";
 
+/// `command_dispatching` is an asynchronous function that handles the dispatching of commands.
+/// It takes an `error`, `command_interaction`, and `ctx` as parameters.
+/// `error` is an AppError, `command_interaction` is a reference to a CommandInteraction, and `ctx` is a reference to a Context.
+/// It does not return a value.
+///
+/// # Arguments
+///
+/// * `error` - An AppError that represents the error.
+/// * `command_interaction` - A reference to a CommandInteraction that represents the command interaction.
+/// * `ctx` - A reference to a Context that represents the context.
 pub async fn command_dispatching(
     error: AppError,
     command_interaction: &CommandInteraction,
@@ -51,6 +62,20 @@ pub async fn command_dispatching(
     }
 }
 
+/// `send_error` is an asynchronous function that sends an error message.
+/// It takes an `e`, `command_interaction`, and `ctx` as parameters.
+/// `e` is an AppError, `command_interaction` is a reference to a CommandInteraction, and `ctx` is a reference to a Context.
+/// It returns a Result which is either an empty tuple or an AppError.
+///
+/// # Arguments
+///
+/// * `e` - An AppError that represents the error.
+/// * `command_interaction` - A reference to a CommandInteraction that represents the command interaction.
+/// * `ctx` - A reference to a Context that represents the context.
+///
+/// # Returns
+///
+/// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 async fn send_error(
     e: AppError,
     command_interaction: &CommandInteraction,
@@ -81,6 +106,20 @@ async fn send_error(
     Ok(())
 }
 
+/// `send_differed_error` is an asynchronous function that sends a differed error message.
+/// It takes an `e`, `command_interaction`, and `ctx` as parameters.
+/// `e` is an AppError, `command_interaction` is a reference to a CommandInteraction, and `ctx` is a reference to a Context.
+/// It returns a Result which is either an empty tuple or an AppError.
+///
+/// # Arguments
+///
+/// * `e` - An AppError that represents the error.
+/// * `command_interaction` - A reference to a CommandInteraction that represents the command interaction.
+/// * `ctx` - A reference to a Context that represents the context.
+///
+/// # Returns
+///
+/// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 async fn send_differed_error(
     e: AppError,
     command_interaction: &CommandInteraction,
@@ -109,6 +148,18 @@ async fn send_differed_error(
     Ok(())
 }
 
+/// `censor_url_and_token` is a function that censors URLs and tokens in the given error message.
+/// It takes an `error_message` as a parameter.
+/// `error_message` is a String.
+/// It returns a String which is the censored error message.
+///
+/// # Arguments
+///
+/// * `error_message` - A String that represents the error message.
+///
+/// # Returns
+///
+/// * `String` - A String which is the censored error message.
 fn censor_url_and_token(error_message: String) -> String {
     let mut error_message = error_message;
     let discord_token = DISCORD_TOKEN.to_string();

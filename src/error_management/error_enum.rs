@@ -1,13 +1,31 @@
 use std::fmt;
 
+// AppError is a struct that represents an application error
 #[derive(Debug, Clone)]
 pub struct AppError {
+    // message is a String that contains the error message
     pub message: String,
+    // error_type is an ErrorType that represents the type of the error
     pub error_type: ErrorType,
+    // error_response_type is an ErrorResponseType that represents the type of the error response
     pub error_response_type: ErrorResponseType,
 }
 
 impl AppError {
+    /// `new` is a function that creates a new `AppError`.
+    /// It takes a `message`, `error_type`, and `error_response_type` as parameters.
+    /// `message` is a String, `error_type` is an ErrorType, and `error_response_type` is an ErrorResponseType.
+    /// It returns a new `AppError`.
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - A String that represents the error message.
+    /// * `error_type` - An ErrorType that represents the type of the error.
+    /// * `error_response_type` - An ErrorResponseType that represents the type of the error response.
+    ///
+    /// # Returns
+    ///
+    /// * `AppError` - A new `AppError`.
     pub fn new(
         message: String,
         error_type: ErrorType,
@@ -31,6 +49,7 @@ impl fmt::Display for AppError {
     }
 }
 
+// ErrorType is an enum that represents the type of an error
 #[derive(Debug, Clone)]
 pub enum ErrorType {
     Command,
@@ -66,6 +85,7 @@ impl fmt::Display for ErrorType {
     }
 }
 
+// ErrorResponseType is an enum that represents the type of an error response
 #[derive(Debug, Clone)]
 pub enum ErrorResponseType {
     Message,

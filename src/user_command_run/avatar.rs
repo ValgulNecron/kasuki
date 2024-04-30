@@ -3,7 +3,7 @@ use serenity::all::{CommandInteraction, Context};
 use crate::command_run::user::avatar::avatar_with_user;
 use crate::error_management::error_enum::AppError;
 
-pub async fn send_user_avatar(
+pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {

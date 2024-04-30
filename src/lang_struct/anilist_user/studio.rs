@@ -1,13 +1,15 @@
+// Importing necessary libraries and modules
 use std::collections::HashMap;
 use std::fs;
-
 use serde::{Deserialize, Serialize};
-
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// StudioLocalised struct represents a studio's localized data.
 /// It contains a field for description.
+///
+/// # Fields
+/// * `desc`: A string representing the description related data.
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct StudioLocalised {
     pub desc: String,
@@ -16,6 +18,14 @@ pub struct StudioLocalised {
 /// This function loads the localization data for a studio.
 /// It takes a guild_id as input and returns a Result containing StudioLocalised data or an AppError.
 /// The function reads a JSON file, parses it into a HashMap, and then retrieves the data based on the guild's language.
+///
+/// # Arguments
+///
+/// * `guild_id`: A string representing the guild id.
+///
+/// # Returns
+///
+/// * `Result<StudioLocalised, AppError>`: A Result containing StudioLocalised data or an AppError.
 pub async fn load_localization_studio(guild_id: String) -> Result<StudioLocalised, AppError> {
     // Read the JSON file and handle any potential errors
     let json = fs::read_to_string("json/message/anilist_user/studio.json").map_err(|e| {

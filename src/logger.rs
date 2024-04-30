@@ -13,41 +13,22 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 
 /// Initializes the logger for the application.
 ///
+/// This function sets up the logger based on the provided log level. It creates a filter for the log level,
+/// sets up a file appender for writing logs to a file, and sets the global default subscriber for the application.
+///
 /// # Arguments
 ///
-/// * `log` - A string slice that holds the log level for the kasuki crate.
-///
-/// # Description
-///
-/// The function first creates a filter string for the kasuki crate based on the `log` argument.
-/// It then gets the directive for the other crates and the kasuki crate.
-/// The function sets up a daily rolling file appender and a non-blocking writer for the logs.
-/// It also stores the guard for the non-blocking writer in a global static variable.
-/// Finally,
-/// it sets up the global default subscriber for the tracing crate with the created filter and format layer.
+/// * `log` - A string slice that holds the log level. It can be "warn", "error", "debug", "trace", or any other value (which defaults to "info").
 ///
 /// # Returns
 ///
 /// * `Result<(), AppError>` - On success, the function returns `Ok(())`.
-///   If the function fails at any point
-/// (e.g., getting the directive, setting the global default subscriber),
-/// it returns `Err(AppError)`
-///   containing the details of the failure.
+///   If the function fails to initialize the logger, it returns `Err(AppError)`.
 ///
 /// # Errors
 ///
-/// This function will return an error if the `get_directive`
-/// function or the `tracing::subscriber::set_global_default`
-/// function fails.
-/// The error is of type `AppError` with a message indicating the failure reason,
-/// an `ErrorType::Logging`, and an `ErrorResponseType::None`.
-///
-/// # Example
-///
-/// ```
-/// let result = init_logger("warn");
-/// assert!(result.is_ok());
-/// ```
+/// This function will return an error if there's a problem creating the directives for the log levels,
+/// building the file appender, or setting the global default subscriber.
 pub fn init_logger(log: &str) -> Result<(), AppError> {
     let kasuki_filter = match log {
         "warn" => "kasuki=warn",
@@ -127,13 +108,6 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
 ///
 /// This function will return an error if the `fs::create_dir_all`
 /// function fails to create the directory.
-///
-/// # Example
-///
-/// ```
-/// let result = create_log_directory();
-/// assert!(result.is_ok());
-/// ```
 pub fn create_log_directory() -> std::io::Result<()> {
     fs::create_dir_all("./logs")
 }
@@ -155,13 +129,6 @@ pub fn create_log_directory() -> std::io::Result<()> {
 /// fails to create a `Directive` from the filter string.
 /// The error is of type `AppError` with a message indicating the failure reason,
 /// an `ErrorType::Logging`, and an `ErrorResponseType::None`.
-///
-/// # Example
-///
-/// ```
-/// let directive = get_directive("warn");
-/// assert!(directive.is_ok());
-/// ```
 fn get_directive(filter: &str) -> Result<Directive, AppError> {
     Directive::from_str(filter).map_err(|e| {
         eprintln!("{}", e);

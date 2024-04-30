@@ -79,9 +79,6 @@ pub async fn banner_with_user(
         Some(banner) => banner,
         None => return no_banner(ctx, command_interaction, &user.name).await,
     };
-    let guild_id = command_interaction.guild_id.unwrap_or_default();
-    let user_id = user.id;
-    let server_banner: Option<String> = None;
     send_embed(ctx, command_interaction, banner_url, &user.name).await
 }
 

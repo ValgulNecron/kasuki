@@ -3,15 +3,13 @@ use std::sync::Arc;
 use serenity::all::ShardManager;
 use serenity::prelude::TypeMapKey;
 
-// Define a public struct `ShardManagerContainer`
+/// `ShardManagerContainer` is a struct that does not hold any data itself.
+/// It is used as a key to access the `ShardManager` in the `TypeMap` of the `Context` data.
 pub struct ShardManagerContainer;
 
-// Implement the `TypeMapKey` trait for `ShardManagerContainer`
-// This allows `ShardManagerContainer` to be used as a key in Serenity's TypeMap
+/// This implementation allows `ShardManagerContainer` to be used as a key in `TypeMap`.
+/// The associated `Value` type is `Arc<ShardManager>`, which means that the value
+/// that will be stored in the `TypeMap` under this key is an `Arc<ShardManager>`.
 impl TypeMapKey for ShardManagerContainer {
-    // Define the associated type `Value` for the `TypeMapKey` trait
-    // In this case, the value is an `Arc<ShardManager>`
-    // `Arc` is a thread-safe reference-counting pointer
-    // `ShardManager` is a struct provided by Serenity that allows for managing shard connections
     type Value = Arc<ShardManager>;
 }

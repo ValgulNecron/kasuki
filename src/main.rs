@@ -76,13 +76,6 @@ impl EventHandler for Handler {
     ///
     /// If the bot has just joined a new guild, it performs color management, generates a server image, and logs a debug message.
     /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// guild_create(&ctx, guild, is_new).await;
-    /// ```
-    ///
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
         if is_new.unwrap_or_default() {
             color_management(&ctx.cache.guilds(), &ctx).await;
@@ -103,28 +96,22 @@ impl EventHandler for Handler {
     /// # Behavior
     ///
     /// The function performs color management, generates a server image, and logs a trace message.
-    /// If the "GAME" module is on, it calls the `new_member` function to handle the new member.
+    /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// guild_member_addition(&ctx, member).await;
-    /// ```
-    ///
     async fn guild_member_addition(&self, ctx: Context, mut member: Member) {
-        color_management(&ctx.cache.guilds(), &ctx).await;
-        server_image_management(&ctx).await;
         let guild_id = member.guild_id.to_string();
         trace!("Member {} joined guild {}", member.user.tag(), guild_id);
         if check_if_module_is_on(guild_id, "NEW_MEMBER")
             .await
             .unwrap_or(true)
         {
-            if let Err(e) = new_member(ctx, &mut member).await {
+            let ctx2 = ctx.clone();
+            if let Err(e) = new_member(ctx2, &mut member).await {
                 error!("{:?}", e)
             }
         }
+        color_management(&ctx.cache.guilds(), &ctx).await;
+        server_image_management(&ctx).await;
     }
 
     /// This function is called when the bot is ready.
@@ -146,13 +133,6 @@ impl EventHandler for Handler {
     /// 7. Logs the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// ready(&ctx, ready).await;
-    /// ```
-    ///
     async fn ready(&self, ctx: Context, ready: Ready) {
         let bot = ctx.http.get_current_application_info().await.unwrap();
         unsafe {
@@ -223,13 +203,6 @@ impl EventHandler for Handler {
     /// # Errors
     ///
     /// This function does not return any errors. However, it logs errors that occur during the dispatching of commands and components.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// interaction_create(&ctx, interaction).await;
-    /// ```
-    ///
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
             if command_interaction.data.kind == CommandType::ChatInput {

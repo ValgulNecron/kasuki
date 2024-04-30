@@ -1,13 +1,24 @@
+// Importing necessary libraries and modules
 use std::collections::HashMap;
 use std::fs;
-
 use serde::{Deserialize, Serialize};
-
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// UserLocalised struct represents a user's localized data.
 /// It contains fields for manga, anime, week, day, hour, minute, weeks, days, hours, and minutes.
+///
+/// # Fields
+/// * `manga`: A string representing the manga related data.
+/// * `anime`: A string representing the anime related data.
+/// * `week`: A string representing the week related data.
+/// * `day`: A string representing the day related data.
+/// * `hour`: A string representing the hour related data.
+/// * `minute`: A string representing the minute related data.
+/// * `weeks`: A string representing the weeks related data.
+/// * `days`: A string representing the days related data.
+/// * `hours`: A string representing the hours related data.
+/// * `minutes`: A string representing the minutes related data.
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct UserLocalised {
     pub manga: String,
@@ -25,6 +36,14 @@ pub struct UserLocalised {
 /// This function loads the localization data for a user.
 /// It takes a guild_id as input and returns a Result containing UserLocalised data or an AppError.
 /// The function reads a JSON file, parses it into a HashMap, and then retrieves the data based on the guild's language.
+///
+/// # Arguments
+///
+/// * `guild_id`: A string representing the guild id.
+///
+/// # Returns
+///
+/// * `Result<UserLocalised, AppError>`: A Result containing UserLocalised data or an AppError.
 pub async fn load_localization_user(guild_id: String) -> Result<UserLocalised, AppError> {
     // Read the JSON file and handle any potential errors
     let json = fs::read_to_string("json/message/anilist_user/user.json").map_err(|e| {

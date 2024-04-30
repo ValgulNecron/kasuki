@@ -1,13 +1,19 @@
+// Importing necessary libraries and modules
 use std::collections::HashMap;
 use std::fs;
-
 use serde::{Deserialize, Serialize};
-
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// StaffLocalised struct represents a staff's localized data.
 /// It contains fields for two titles, description, date of birth, and date of death.
+///
+/// # Fields
+/// * `field1_title`: A string representing the first title related data.
+/// * `field2_title`: A string representing the second title related data.
+/// * `desc`: A string representing the description related data.
+/// * `date_of_birth`: A string representing the date of birth related data.
+/// * `date_of_death`: A string representing the date of death related data.
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct StaffLocalised {
     pub field1_title: String,
@@ -20,6 +26,14 @@ pub struct StaffLocalised {
 /// This function loads the localization data for a staff.
 /// It takes a guild_id as input and returns a Result containing StaffLocalised data or an AppError.
 /// The function reads a JSON file, parses it into a HashMap, and then retrieves the data based on the guild's language.
+///
+/// # Arguments
+///
+/// * `guild_id`: A string representing the guild id.
+///
+/// # Returns
+///
+/// * `Result<StaffLocalised, AppError>`: A Result containing StaffLocalised data or an AppError.
 pub async fn load_localization_staff(guild_id: String) -> Result<StaffLocalised, AppError> {
     // Read the JSON file and handle any potential errors
     let json = fs::read_to_string("json/message/anilist_user/staff.json").map_err(|e| {
