@@ -11,9 +11,36 @@
     "creation_date": "Date of creation"
   },
   "fr": {
+    "guild_id": "ID de serveur",
+    "guild_name": "Nom du serveur",
+    "member": "Membre",
+    "online": "En ligne",
+    "lang": "Langue du serveur",
+    "premium": "Niveau de boost",
+    "sub": "Boost du serveur",
+    "nsfw": "Niveau NSFW",
+    "creation_date": "Date de création"
   },
   "jp": {
+    "guild_id": "ギルドID",
+    "guild_name": "ギルド名",
+    "member": "メンバー",
+    "online": "オンライン",
+    "lang": "ギルドロケール",
+    "premium": "ブーストレベル",
+    "sub": "ギルドブースト",
+    "nsfw": "NSFWレベル",
+    "creation_date": "作成日"
   },
   "de": {
+    "guild_id": "Server-ID",
+    "guild_name": "Servername",
+    "member": "Mitglied",
+    "online": "Online",
+    "lang": "Serversprache",
+    "premium": "Boost-Level",
+    "sub": "Server-Boost",
+  "nsfw": "NSFW-Level",
+    "creation_date": "Erstellungsdatum"
   }
 }
