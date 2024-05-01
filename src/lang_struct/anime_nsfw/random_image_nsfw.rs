@@ -37,16 +37,17 @@ pub async fn load_localization_random_image_nsfw(
     guild_id: String,
 ) -> Result<RandomImageNSFWLocalised, AppError> {
     // Read the JSON file into a String.
-    let json = fs::read_to_string("json/message/anilist_user/random_image_nsfw.json").map_err(|e| {
-        AppError::new(
-            format!(
-                "File random_image_nsfw.json not found or can't be read. {}",
-                e
-            ),
-            ErrorType::File,
-            ErrorResponseType::Unknown,
-        )
-    })?;
+    let json =
+        fs::read_to_string("json/message/anime_nsfw/random_image_nsfw.json").map_err(|e| {
+            AppError::new(
+                format!(
+                    "File random_image_nsfw.json not found or can't be read. {}",
+                    e
+                ),
+                ErrorType::File,
+                ErrorResponseType::Unknown,
+            )
+        })?;
 
     // Parse the JSON string into a HashMap.
     let json_data: HashMap<String, RandomImageNSFWLocalised> = serde_json::from_str(&json)

@@ -38,16 +38,17 @@ pub struct ListUserLocalised {
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
 pub async fn load_localization_list_user(guild_id: String) -> Result<ListUserLocalised, AppError> {
     // Read the JSON file and handle any potential errors
-    let json = fs::read_to_string("json/message/anilist_user/list_register_user.json").map_err(|e| {
-        AppError::new(
-            format!(
-                "File list_register_user.json not found or can't be read. {}",
-                e
-            ),
-            ErrorType::File,
-            ErrorResponseType::Unknown,
-        )
-    })?;
+    let json =
+        fs::read_to_string("json/message/anilist_server/list_register_user.json").map_err(|e| {
+            AppError::new(
+                format!(
+                    "File list_register_user.json not found or can't be read. {}",
+                    e
+                ),
+                ErrorType::File,
+                ErrorResponseType::Unknown,
+            )
+        })?;
 
     // Parse the JSON data into a HashMap and handle any potential errors
     let json_data: HashMap<String, ListUserLocalised> =

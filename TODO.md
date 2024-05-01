@@ -64,6 +64,7 @@
     - [X] Get guild info.
     - [X] Profile command.
     - [X] Upgrade get guild info to show more info.
+    - [ ] Make the user profile better.
 
 
 - General part:
@@ -96,4 +97,12 @@
         - [X] User command
         - [ ] Message command
         - [ ] User installed app (waiting on serenity to support it).
-    
+
+
+- Fixing list:
+    - [ ] admin anilist delete
+    - [ ] transcriptn, translation
+    - [ ] autocomplete steam game
+
+- Optimisation needed:
+    - [ ] anilist_server list_user  

@@ -5,7 +5,7 @@ use serenity::all::{
 
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-        use crate::lang_struct::server::guild::load_localization_guild;
+use crate::lang_struct::server::guild::load_localization_guild;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
@@ -45,15 +45,27 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let guild_sub = guild.premium_subscription_count.unwrap_or_default();
     let guild_nsfw = guild.nsfw_level;
     let creation_date = format!("<t:{}:F>", guild.id.created_at().unix_timestamp());
-    let mut fields:Vec<(String, String, bool)> = Vec::new();
+    let mut fields: Vec<(String, String, bool)> = Vec::new();
 
     fields.push((guild_localised.guild_id, guild_id.to_string(), true));
     fields.push((guild_localised.guild_name, guild_name, true));
-    fields.push((guild_localised.member, format!("{}/{}", actual_member, max_member), true));
-    fields.push((guild_localised.online, format!("{}/{}", online_member, max_online), true));
+    fields.push((
+        guild_localised.member,
+        format!("{}/{}", actual_member, max_member),
+        true,
+    ));
+    fields.push((
+        guild_localised.online,
+        format!("{}/{}", online_member, max_online),
+        true,
+    ));
     fields.push((guild_localised.creation_date, creation_date, true));
     fields.push((guild_localised.lang, guild_lang, true));
-    fields.push((guild_localised.premium, format!("{:?}", guild_premium), true));
+    fields.push((
+        guild_localised.premium,
+        format!("{:?}", guild_premium),
+        true,
+    ));
     fields.push((guild_localised.sub, guild_sub.to_string(), true));
     fields.push((guild_localised.nsfw, format!("{:?}", guild_nsfw), true));
 

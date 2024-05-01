@@ -39,16 +39,17 @@ pub async fn load_localization_delete_activity(
     guild_id: String,
 ) -> Result<DeleteActivityLocalised, AppError> {
     // Read the JSON file and handle any potential errors
-    let json = fs::read_to_string("json/message/admin/anilist/delete_activity.json").map_err(|e| {
-        AppError::new(
-            format!(
-                "File delete_activity.json not found or can't be read. {}",
-                e
-            ),
-            ErrorType::File,
-            ErrorResponseType::Unknown,
-        )
-    })?;
+    let json =
+        fs::read_to_string("json/message/admin/anilist/delete_activity.json").map_err(|e| {
+            AppError::new(
+                format!(
+                    "File delete_activity.json not found or can't be read. {}",
+                    e
+                ),
+                ErrorType::File,
+                ErrorResponseType::Unknown,
+            )
+        })?;
 
     // Parse the JSON data into a HashMap and handle any potential errors
     let json_data: HashMap<String, DeleteActivityLocalised> =

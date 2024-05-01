@@ -11,6 +11,7 @@ use tracing::{info, trace};
 use uuid::Uuid;
 
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::constant::{COLOR, DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::image_saver::general_image_saver::image_saver;
@@ -22,7 +23,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         None => String::from("0"),
     };
 
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string_subcommand_group(command_interaction);
     trace!("{:#?}", map);
     let prompt = map
         .get(&String::from("description"))

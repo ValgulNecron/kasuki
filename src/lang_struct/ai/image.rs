@@ -56,14 +56,13 @@ pub async fn load_localization_image(guild_id: String) -> Result<ImageLocalised,
     })?;
 
     // Parse the JSON data into a HashMap and handle any potential errors
-    let json_data: HashMap<String, ImageLocalised> =
-        serde_json::from_str(&json).map_err(|e| {
-            AppError::new(
-                format!("Failing to parse image.json. {}", e),
-                ErrorType::File,
-                ErrorResponseType::Unknown,
-            )
-        })?;
+    let json_data: HashMap<String, ImageLocalised> = serde_json::from_str(&json).map_err(|e| {
+        AppError::new(
+            format!("Failing to parse image.json. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Unknown,
+        )
+    })?;
 
     // Get the language choice for the guild
     let lang_choice = get_guild_langage(guild_id).await;

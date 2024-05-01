@@ -161,6 +161,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             ErrorResponseType::Followup,
         )
     })?;
+    trace!("{:?}", response);
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
     let res = res_result.map_err(|e| {

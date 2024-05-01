@@ -37,7 +37,7 @@ pub async fn load_localization_random_image(
     guild_id: String,
 ) -> Result<RandomImageLocalised, AppError> {
     // Read the JSON file into a String.
-    let json = fs::read_to_string("json/message/anilist_user/random_image.json").map_err(|e| {
+    let json = fs::read_to_string("json/message/anime/random_image.json").map_err(|e| {
         AppError::new(
             format!("File random_image.json not found or can't be read. {}", e),
             ErrorType::File,

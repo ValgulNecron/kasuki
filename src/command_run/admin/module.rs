@@ -6,6 +6,9 @@ use serenity::all::{
 use crate::common::get_option::subcommand::{
     get_option_map_boolean_subcommand, get_option_map_string_subcommand,
 };
+use crate::common::get_option::subcommand_group::{
+    get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
+};
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
@@ -19,16 +22,16 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string_subcommand_group(command_interaction);
     let module = map.get(&String::from("name")).ok_or(AppError::new(
-        String::from("There is no option"),
+        String::from("There is no option 1"),
         ErrorType::Option,
         ErrorResponseType::Followup,
     ))?;
     let module_localised = load_localization_module_activation(guild_id.clone()).await?;
-    let map = get_option_map_boolean_subcommand(command_interaction);
+    let map = get_option_map_boolean_subcommand_group(command_interaction);
     let state = *map.get(&String::from("state")).ok_or(AppError::new(
-        String::from("There is no option"),
+        String::from("There is no option 2"),
         ErrorType::Option,
         ErrorResponseType::Followup,
     ))?;

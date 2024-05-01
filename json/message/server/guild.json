@@ -40,7 +40,7 @@
     "lang": "Serversprache",
     "premium": "Boost-Level",
     "sub": "Server-Boost",
-  "nsfw": "NSFW-Level",
+    "nsfw": "NSFW-Level",
     "creation_date": "Erstellungsdatum"
   }
 }

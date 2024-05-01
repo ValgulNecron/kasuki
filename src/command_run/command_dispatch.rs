@@ -102,12 +102,13 @@ async fn admin(
         error_type: ErrorType::Module,
         error_response_type: ErrorResponseType::Message,
     };
+    trace!(command_name);
     match command_name {
         "general" => {
             let subcommand = get_subcommand(command_interaction).unwrap();
             let subcommand_name = subcommand.name;
-            anilist_admin(ctx, command_interaction, subcommand_name).await
-        },
+            general_admin(ctx, command_interaction, subcommand_name).await
+        }
         "anilist" => {
             if check_if_module_is_on(guild_id, "ANIME").await? {
                 let subcommand = get_subcommand(command_interaction).unwrap();
@@ -132,8 +133,8 @@ async fn anilist_admin(
     command_name: &str,
 ) -> Result<(), AppError> {
     match command_name {
-        "lang" => lang::run(ctx, command_interaction).await,
-        "module" => module::run(ctx, command_interaction).await,
+        "add_anime_activity" => add_activity::run(ctx, command_interaction).await,
+        "delete_activity" => delete_activity::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -142,13 +143,14 @@ async fn anilist_admin(
     }
 }
 
-async fn general_admin(ctx: &Context,
-                       command_interaction: &CommandInteraction,
-                       command_name: &str,
+async fn general_admin(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
 ) -> Result<(), AppError> {
     match command_name {
-        "add_anime_activity" => add_activity::run(ctx, command_interaction).await,
-        "delete_activity" => delete_activity::run(ctx, command_interaction).await,
+        "lang" => lang::run(ctx, command_interaction).await,
+        "module" => module::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,

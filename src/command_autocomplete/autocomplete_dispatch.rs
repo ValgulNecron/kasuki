@@ -4,7 +4,7 @@ use crate::command_autocomplete::anilist::{
     anime, anime_group, character, compare, delete_activity, ln, manga, search, staff, studio, user,
 };
 use crate::command_autocomplete::game::steam_game_info;
-use crate::common::get_option::subcommand_group::{get_subcommand};
+use crate::common::get_option::subcommand_group::get_subcommand;
 
 pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
     match autocomplete_interaction.data.name.as_str() {
@@ -29,10 +29,9 @@ async fn admin_autocomplete(ctx: Context, autocomplete_interaction: CommandInter
     }
 }
 
-
 async fn anilist_admin_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let subcommand = get_subcommand(&autocomplete_interaction).unwrap();
-    let subcommand_name = subcommand.name;;
+    let subcommand_name = subcommand.name;
     match subcommand_name {
         "add_anime_activity" => anime_group::autocomplete(ctx, autocomplete_interaction).await,
         "delete_activity" => delete_activity::autocomplete(ctx, autocomplete_interaction).await,

@@ -5,6 +5,7 @@ use serenity::all::{
 };
 
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for game search.
@@ -35,7 +36,7 @@ use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 ///
 /// This function uses `unsafe` to access the global `APPS` array. The safety of this function depends on the correct usage of the `APPS` array.
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let map = get_option_map_string_subcommand(&autocomplete_interaction);
+    let map = get_option_map_string_subcommand_group(&autocomplete_interaction);
     let game_search = map
         .get(&String::from("game_name"))
         .unwrap_or(DEFAULT_STRING);
