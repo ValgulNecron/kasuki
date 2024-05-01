@@ -1,6 +1,6 @@
 [package]
 name = "kasuki"
-version = "2.8.4"
+version = "2.8.6"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
@@ -12,7 +12,7 @@ license-file = "LICENSE"
 
 [dependencies]
 regex = "1.10.4"
-reqwest = { version = "0.12.4", features = ["json", "multipart"] }
+reqwest = { version = "0.12.4", features = ["json", "multipart", "blocking"] }
 serde = "1.0.199"
 serde_json = "1.0.116"
 serenity = { version = "0.12.1", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils", "full"] }
@@ -21,16 +21,16 @@ sqlx = { version = "0.7.4", features = ["sqlite", "runtime-tokio-native-tls", "p
 rand = "0.9.0-alpha.1"
 chrono = "0.4.38"
 uuid = { version = "1.8.0", features = ["v4"] }
-dotenv = "0.15.0"
+dotenvy = "0.15.7"
 image = "0.25.1"
 base64 = "0.22.0"
 tracing = { version = "0.1.40" }
 once_cell = "1.19.0"
 tracing-subscriber = { version = "0.3.18", features = ["default", "env-filter"] }
 tracing-core = "0.1.32"
-serde_with = { version = "3.8.0", features = ["macros"] }
+serde_with = { version = "3.8.1", features = ["macros"] }
 rust-fuzzy-search = "0.1.1"
-palette = "0.7.5"
+palette = "0.7.6"
 catbox = "0.8.2"
 imgurs = "0.11.2"
 tracing-appender = "0.2.3"

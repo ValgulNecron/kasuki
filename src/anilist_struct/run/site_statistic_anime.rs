@@ -45,7 +45,26 @@ pub struct SiteStatisticsAnimeNode {
     pub change: i32,
 }
 
+/// `SiteStatisticsAnimeWrapper` is an implementation block for the `SiteStatisticsAnimeWrapper` struct.
 impl SiteStatisticsAnimeWrapper {
+    /// `new_anime` is an asynchronous function that creates a new anime site statistics.
+    /// It takes a `page_number` as a parameter.
+    /// `page_number` is a 64-bit integer that represents the page number.
+    /// It returns a `Result` that contains a tuple of `SiteStatisticsAnimeWrapper` and a `String`, or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes a `page_number` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `page_number` variable is set to the `page_number` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `SiteStatisticsAnimeWrapper` and returns it along with the response string.
+    ///
+    /// # Arguments
+    ///
+    /// * `page_number` - A 64-bit integer that represents the page number.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(SiteStatisticsAnimeWrapper, String), AppError>` - A Result that contains a tuple of `SiteStatisticsAnimeWrapper` and a `String`, or an `AppError`.
     pub async fn new_anime(
         page_number: i64,
     ) -> Result<(SiteStatisticsAnimeWrapper, String), AppError> {
@@ -78,6 +97,16 @@ impl SiteStatisticsAnimeWrapper {
         })?;
         Ok((api_response, res))
     }
+
+    /// `has_next_page` is a function that checks if there is a next page.
+    /// It takes no parameters.
+    /// It returns a boolean that represents if there is a next page.
+    ///
+    /// This function gets the `has_next_page` field from the `page_info` of the `anime` in the `site_statistics` of the `data` and returns it.
+    ///
+    /// # Returns
+    ///
+    /// * `bool` - A boolean that represents if there is a next page.
     pub fn has_next_page(&self) -> bool {
         self.data.site_statistics.anime.page_info.has_next_page
     }

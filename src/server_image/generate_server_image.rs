@@ -39,18 +39,6 @@ use crate::server_image::common::{
 /// # Errors
 ///
 /// This function will return an error if there is a problem with fetching the members of the guild, calculating the average color, or generating the server image.
-///
-/// # Example
-///
-/// ```no_run
-/// let ctx: Context = ...;
-/// let guild_id: GuildId = ...;
-/// let result = generate_local_server_image(&ctx, guild_id).await;
-/// match result {
-///     Ok(_) => println!("Image generated successfully"),
-///     Err(e) => println!("Failed to generate image: {:?}", e),
-/// }
-/// ```
 pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId) -> Result<(), AppError> {
     // Fetch the members of the guild
     let members: Vec<Member> = get_member(ctx, &guild_id).await;
@@ -76,18 +64,6 @@ pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId) -> Re
 /// # Errors
 ///
 /// This function will return an error if there is a problem with fetching the approximated colors of all users, creating a color vector from user colors, or generating the server image.
-///
-/// # Example
-///
-/// ```no_run
-/// let ctx: Context = ...;
-/// let guild_id: GuildId = ...;
-/// let result = generate_global_server_image(&ctx, guild_id).await;
-/// match result {
-///     Ok(_) => println!("Global image generated successfully"),
-///     Err(e) => println!("Failed to generate global image: {:?}", e),
-/// }
-/// ```
 pub async fn generate_global_server_image(
     ctx: &Context,
     guild_id: GuildId,
@@ -224,13 +200,6 @@ pub async fn generate_server_image(
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
-///
-/// # Example
-///
-/// ```no_run
-/// let ctx: Context = ...;
-/// server_image_management(&ctx).await;
-/// ```
 pub async fn server_image_management(ctx: &Context) {
     for guild in ctx.cache.guilds() {
         let ctx_clone = ctx.clone();

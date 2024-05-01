@@ -4,13 +4,14 @@ use serenity::all::{
 };
 
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
+use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::set_data_guild_language;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::admin::lang::load_localization_lang;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string_subcommand_group(command_interaction);
     let lang = map.get(&String::from("lang_choice")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,

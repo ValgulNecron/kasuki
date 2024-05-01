@@ -183,6 +183,23 @@ pub struct ContentDescriptors {
 }
 
 impl SteamGameWrapper {
+    /// `new_steam_game_by_id` is an asynchronous function that creates a new `SteamGameWrapper` by the given app id.
+    /// It takes an `appid` and `guild_id` as parameters.
+    /// `appid` is a u128, and `guild_id` is a String.
+    /// It returns a Result which is either a `SteamGameWrapper` or an `AppError`.
+    ///
+    /// # Arguments
+    ///
+    /// * `appid` - A u128 that represents the app id.
+    /// * `guild_id` - A String that represents the guild id.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<SteamGameWrapper, AppError>` - A Result type which is either a `SteamGameWrapper` or an `AppError`.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an `AppError` if it encounters any issues while building the client, making the HTTP request, getting the text data, or parsing the JSON.
     pub async fn new_steam_game_by_id(
         appid: u128,
         guild_id: String,
@@ -252,6 +269,23 @@ impl SteamGameWrapper {
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }
 
+    /// `new_steam_game_by_search` is an asynchronous function that creates a new `SteamGameWrapper` by searching for the given string.
+    /// It takes a `search` and `guild_id` as parameters.
+    /// `search` is a reference to a str, and `guild_id` is a String.
+    /// It returns a Result which is either a `SteamGameWrapper` or an `AppError`.
+    ///
+    /// # Arguments
+    ///
+    /// * `search` - A reference to a str that represents the search string.
+    /// * `guild_id` - A String that represents the guild id.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<SteamGameWrapper, AppError>` - A Result type which is either a `SteamGameWrapper` or an `AppError`.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an `AppError` if it encounters any issues while searching for the game.
     pub async fn new_steam_game_by_search(
         search: &str,
         guild_id: String,

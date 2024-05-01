@@ -40,11 +40,11 @@ pub fn get_option_map_integer_subcommand_group(
 ) -> HashMap<String, i64> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
-    let subcommand = &binding.first().unwrap().value;
-    if let ResolvedValue::SubCommandGroup(op) = subcommand {
-        for option in op {
-            if let ResolvedValue::SubCommandGroup(op2) = &option.value {
-                for option2 in op2 {
+    let subcommand_group = &binding.first().unwrap().value;
+    if let ResolvedValue::SubCommandGroup(subcommand_group_options) = subcommand_group {
+        for option in subcommand_group_options {
+            if let ResolvedValue::SubCommand(subcommand_options) = &option.value {
+                for option2 in subcommand_options {
                     let name = option2.name.to_string();
                     let value = match option2.value {
                         ResolvedValue::Integer(a) => a,
@@ -63,11 +63,11 @@ pub fn get_option_map_boolean_subcommand_group(
 ) -> HashMap<String, bool> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
-    let subcommand = &binding.first().unwrap().value;
-    if let ResolvedValue::SubCommandGroup(op) = subcommand {
-        for option in op {
-            if let ResolvedValue::SubCommandGroup(op2) = &option.value {
-                for option2 in op2 {
+    let subcommand_group = &binding.first().unwrap().value;
+    if let ResolvedValue::SubCommandGroup(subcommand_group_options) = subcommand_group {
+        for option in subcommand_group_options {
+            if let ResolvedValue::SubCommand(subcommand_options) = &option.value {
+                for option2 in subcommand_options {
                     let name = option2.name.to_string();
                     let value = match option2.value {
                         ResolvedValue::Boolean(a) => a,

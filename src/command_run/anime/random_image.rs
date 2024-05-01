@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist::random_image::load_localization_random_image;
+use crate::lang_struct::anime::random_image::load_localization_random_image;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand(command_interaction);

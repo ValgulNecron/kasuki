@@ -7,20 +7,28 @@ use serde_json::from_str;
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-/// `NewMemberLocalised` is a struct that represents a new member's localized data.
-/// It contains a single field `welcome` which is a String.
+/// Represents the localized messages for a new member.
+///
+/// This struct is used to deserialize the JSON data from the localization file.
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NewMemberLocalised {
+    /// The welcome message for the new member.
     pub welcome: String,
 }
 
-/// `load_localization_new_member` is an asynchronous function that loads the localized data for a new member.
-/// It takes a `guild_id` as a parameter which is a String.
-/// It returns a Result which is either a `NewMemberLocalised` struct or an `AppError`.
+/// Loads the localized messages for a new member.
 ///
-/// # Errors
-/// This function will return an `AppError` if it encounters any issues while reading or parsing the JSON file.
-/// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
+/// This function reads the localization data from a JSON file, parses it into a HashMap,
+/// and then returns the localized messages for the specified guild.
+///
+/// # Arguments
+///
+/// * `guild_id` - The ID of the guild for which to load the localized messages.
+///
+/// # Returns
+///
+/// * `Result<NewMemberLocalised, AppError>` - The localized messages for the new member,
+///   or an error if the file could not be read, the JSON could not be parsed, or the language could not be found.
 pub async fn load_localization_new_member(
     guild_id: String,
 ) -> Result<NewMemberLocalised, AppError> {

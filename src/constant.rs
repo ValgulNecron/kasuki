@@ -1,17 +1,19 @@
 use std::collections::HashMap;
 use std::env;
+use std::sync::RwLock;
 
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
+use serde_json::Value;
 use serenity::all::{Colour, CurrentApplicationInfo};
 
 pub const DISCORD_TOKEN: Lazy<String> =
     Lazy::new(|| env::var("DISCORD_TOKEN").expect("Expected a token in the environment"));
 
 /// The activity name of the bot, fetched from the environment variable "BOT_ACTIVITY".
-/// If the environment variable is not set, it defaults to "Let you get info from anilist.".
+/// If the environment variable is not set, it defaults to "Let you get info from anilist_user.".
 pub const ACTIVITY_NAME: Lazy<String> = Lazy::new(|| {
-    env::var("BOT_ACTIVITY").unwrap_or_else(|_| "Let you get info from anilist.".to_string())
+    env::var("BOT_ACTIVITY").unwrap_or_else(|_| "Let you get info from anilist_user.".to_string())
 });
 
 /*
@@ -202,9 +204,15 @@ pub const APP_TUI: Lazy<bool> = Lazy::new(|| {
     is_on.to_lowercase() == "true"
 });
 
+/// User blacklist for the server image.
+pub static mut USER_BLACKLIST_SERVER_IMAGE: Lazy<RwLock<Vec<String>>> = Lazy::new(|| {
+    let user_ids: Vec<String> = Vec::new();
+    RwLock::from(user_ids)
+});
+
 /*
 bot info
  */
 
-/// The bot's name.
+/// The bot's information.
 pub static mut BOT_INFO: Lazy<Option<CurrentApplicationInfo>> = Lazy::new(|| None);

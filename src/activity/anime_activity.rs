@@ -14,12 +14,36 @@ use crate::database::dispatcher::data_dispatch::{
 };
 use crate::database_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist::send_activity::load_localization_send_activity;
+use crate::lang_struct::anilist_user::send_activity::load_localization_send_activity;
 
+/// `manage_activity` is an asynchronous function that manages activities.
+/// It takes a `ctx` as a parameter.
+/// `ctx` is a Context that represents the context.
+///
+/// This function calls the `send_activity` function with the context.
+///
+/// # Arguments
+///
+/// * `ctx` - A Context that represents the context.
 pub async fn manage_activity(ctx: Context) {
     send_activity(&ctx).await;
 }
 
+/// `send_activity` is an asynchronous function that sends activities.
+/// It takes a `ctx` as a parameter.
+/// `ctx` is a reference to the Context.
+///
+/// This function first gets the current timestamp and retrieves the activity data based on the timestamp.
+/// It then iterates over the retrieved activity data.
+/// If the timestamp of the activity data is not set or does not match the current timestamp, it skips the activity data.
+/// Otherwise, it clones the activity data and the guild ID from the activity data and clones the context.
+/// If the delays of the activity data is not set, it spawns a new task to send the specific activity.
+/// If the delays of the activity data is not zero, it spawns a new task to sleep for the delay duration and then send the specific activity.
+/// If the delays of the activity data is zero, it spawns a new task to send the specific activity.
+///
+/// # Arguments
+///
+/// * `ctx` - A reference to the Context.
 async fn send_activity(ctx: &Context) {
     let now = Utc::now().timestamp().to_string();
     let rows = match get_data_activity(now.clone()).await {
@@ -68,6 +92,32 @@ async fn send_activity(ctx: &Context) {
     }
 }
 
+/// `send_specific_activity` is an asynchronous function that sends a specific activity.
+/// It takes `row`, `guild_id`, `row2`, and `ctx` as parameters.
+/// `row` is an ActivityData that represents the activity data.
+/// `guild_id` is a String that represents the ID of the guild.
+/// `row2` is another ActivityData that represents the activity data.
+/// `ctx` is a reference to the Context.
+/// It returns a Result which is either an empty tuple or an AppError.
+///
+/// This function first loads the localized send activity text based on the guild ID.
+/// It then retrieves the webhook URL from the `row` and creates a webhook from the URL.
+/// It decodes the image from the `row` and creates an attachment from the decoded bytes.
+/// The webhook is then edited to have the name from the `row` and the created attachment as the avatar.
+/// An embed is created with the color, description, URL, and title set.
+/// The embed is then sent using the webhook.
+/// Finally, it spawns a new task to update the information of the activity.
+///
+/// # Arguments
+///
+/// * `row` - An ActivityData that represents the activity data.
+/// * `guild_id` - A String that represents the ID of the guild.
+/// * `row2` - Another ActivityData that represents the activity data.
+/// * `ctx` - A reference to the Context.
+///
+/// # Returns
+///
+/// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 async fn send_specific_activity(
     row: ActivityData,
     guild_id: String,
@@ -144,6 +194,26 @@ async fn send_specific_activity(
     Ok(())
 }
 
+/// `update_info` is an asynchronous function that updates the information of an activity.
+/// It takes a `row` and `guild_id` as parameters.
+/// `row` is an ActivityData that represents the activity data.
+/// `guild_id` is a String that represents the ID of the guild.
+/// It returns a Result which is either an empty tuple or an AppError.
+///
+/// This function first retrieves the minimal anime data by the anime ID from the `row`.
+/// It then checks if there is a next airing episode for the anime.
+/// If there is no next airing episode, it removes the activity and returns.
+/// If there is a next airing episode, it retrieves the title of the anime and sets the name of the activity to the English title if it exists, otherwise it sets it to the Romaji title.
+/// It then sets the activity data with the updated information.
+///
+/// # Arguments
+///
+/// * `row` - An ActivityData that represents the activity data.
+/// * `guild_id` - A String that represents the ID of the guild.
+///
+/// # Returns
+///
+/// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
     let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
         row.anime_id.clone().unwrap_or("0".to_string()),
@@ -176,6 +246,20 @@ async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError
     Ok(())
 }
 
+/// `remove_activity` is an asynchronous function that removes an activity.
+/// It takes a `row` and `guild_id` as parameters.
+/// `row` is an ActivityData that represents the activity data.
+/// `guild_id` is a String that represents the ID of the guild.
+/// It returns a Result which is either an empty tuple or an AppError.
+///
+/// # Arguments
+///
+/// * `row` - An ActivityData that represents the activity data.
+/// * `guild_id` - A String that represents the ID of the guild.
+///
+/// # Returns
+///
+/// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
     trace!("removing {:#?} for {}", row, guild_id);
     remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await?;

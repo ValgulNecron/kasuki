@@ -1,5 +1,6 @@
+use serde_json::Value;
 use std::env;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 use serenity::all::{
@@ -18,9 +19,9 @@ use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::ACTIVITY_NAME;
 use crate::constant::PING_UPDATE_DELAYS;
 use crate::constant::TIME_BETWEEN_GAME_UPDATE;
+use crate::constant::{ACTIVITY_NAME, USER_BLACKLIST_SERVER_IMAGE};
 use crate::constant::{
     APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
@@ -75,13 +76,6 @@ impl EventHandler for Handler {
     ///
     /// If the bot has just joined a new guild, it performs color management, generates a server image, and logs a debug message.
     /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// guild_create(&ctx, guild, is_new).await;
-    /// ```
-    ///
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
         if is_new.unwrap_or_default() {
             color_management(&ctx.cache.guilds(), &ctx).await;
@@ -102,28 +96,22 @@ impl EventHandler for Handler {
     /// # Behavior
     ///
     /// The function performs color management, generates a server image, and logs a trace message.
-    /// If the "GAME" module is on, it calls the `new_member` function to handle the new member.
+    /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// guild_member_addition(&ctx, member).await;
-    /// ```
-    ///
     async fn guild_member_addition(&self, ctx: Context, mut member: Member) {
-        color_management(&ctx.cache.guilds(), &ctx).await;
-        server_image_management(&ctx).await;
         let guild_id = member.guild_id.to_string();
         trace!("Member {} joined guild {}", member.user.tag(), guild_id);
         if check_if_module_is_on(guild_id, "NEW_MEMBER")
             .await
             .unwrap_or(true)
         {
-            if let Err(e) = new_member(ctx, &mut member).await {
+            let ctx2 = ctx.clone();
+            if let Err(e) = new_member(ctx2, &mut member).await {
                 error!("{:?}", e)
             }
         }
+        color_management(&ctx.cache.guilds(), &ctx).await;
+        server_image_management(&ctx).await;
     }
 
     /// This function is called when the bot is ready.
@@ -145,13 +133,6 @@ impl EventHandler for Handler {
     /// 7. Logs the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// ready(&ctx, ready).await;
-    /// ```
-    ///
     async fn ready(&self, ctx: Context, ready: Ready) {
         let bot = ctx.http.get_current_application_info().await.unwrap();
         unsafe {
@@ -175,7 +156,7 @@ impl EventHandler for Handler {
         info!(server_number);
 
         // Loads environment variables from the .env file
-        dotenv::from_path(".env").ok();
+        dotenvy::from_path(".env").ok();
 
         // Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
         let remove_old_command = env::var("REMOVE_OLD_COMMAND")
@@ -222,13 +203,6 @@ impl EventHandler for Handler {
     /// # Errors
     ///
     /// This function does not return any errors. However, it logs errors that occur during the dispatching of commands and components.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// interaction_create(&ctx, interaction).await;
-    /// ```
-    ///
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
             if command_interaction.data.kind == CommandType::ChatInput {
@@ -275,7 +249,7 @@ impl EventHandler for Handler {
 /// It initializes the logger, the SQL database, and the bot client.
 /// It also spawns asynchronous tasks for managing the ping of the shards and starting the client.
 async fn main() {
-    let _ = dotenv::from_path(".env");
+    let _ = dotenvy::from_path(".env");
 
     // Print a message indicating the bot is starting.
     println!("Bot starting please wait.");
@@ -511,5 +485,29 @@ async fn launch_server_image_management_thread(ctx: Context) {
     loop {
         server_image_management(&ctx).await;
         sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE)).await;
+    }
+}
+
+async fn update_user_blacklist() {
+    info!("Launching the user blacklist update thread!");
+    unsafe {
+        loop {
+            // get a write lock on USER_BLACKLIST_SERVER_IMAGE
+            let mut user_blacklist = USER_BLACKLIST_SERVER_IMAGE.write().unwrap();
+            // get the new blacklist
+            let file_url =
+                "https://raw.githubusercontent.com/ValgulNecron/kasuki/dev/blacklist.json";
+            let blacklist = reqwest::get(file_url).await.unwrap().json().await.unwrap();
+            let parsed_json: Value = serde_json::from_value(blacklist).unwrap();
+            let user_ids: Vec<String> = parsed_json["user_id"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|x| x.as_str().unwrap().to_string())
+                .collect();
+            // update the USER_BLACKLIST_SERVER_IMAGE
+            *user_blacklist = user_ids;
+            sleep(Duration::from_secs(3600)).await;
+        }
     }
 }

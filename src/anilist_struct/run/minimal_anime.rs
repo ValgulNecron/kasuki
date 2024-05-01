@@ -48,7 +48,24 @@ pub struct CoverImage {
     pub extra_large: Option<String>,
 }
 
+/// `MinimalAnimeWrapper` is an implementation block for the `MinimalAnimeWrapper` struct.
 impl MinimalAnimeWrapper {
+    /// `get_date` is a function that gets the date.
+    /// It takes a `date` as a parameter.
+    /// `date` is a reference to a `StartEndDate` that represents the start or end date.
+    /// It returns a String that represents the date.
+    ///
+    /// This function first gets the year, the day, and the month from the `date`.
+    /// If the year, the day, and the month are all 0, it returns a default date.
+    /// Otherwise, it formats the year, the day, and the month into a date string.
+    ///
+    /// # Arguments
+    ///
+    /// * `date` - A reference to a `StartEndDate` that represents the start or end date.
+    ///
+    /// # Returns
+    ///
+    /// * `String` - A String that represents the date.
     pub async fn new_minimal_anime_by_id(id: String) -> Result<MinimalAnimeWrapper, AppError> {
         let query = "
                 query ($name: Int) {
@@ -83,6 +100,24 @@ impl MinimalAnimeWrapper {
         Ok(data)
     }
 
+    /// `new_minimal_anime_by_search` is an asynchronous function that creates a new minimal anime by search.
+    /// It takes a `search` as a parameter.
+    /// `search` is a String that represents the search query.
+    /// It returns a `Result` that contains a `MinimalAnimeWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes a `search` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `search` variable is set to the `search` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `MinimalAnimeWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `search` - A String that represents the search query.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<MinimalAnimeWrapper, AppError>` - A Result that contains a `MinimalAnimeWrapper` or an `AppError`.
     pub async fn new_minimal_anime_by_search(
         search: String,
     ) -> Result<MinimalAnimeWrapper, AppError> {

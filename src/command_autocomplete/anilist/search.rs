@@ -4,6 +4,25 @@ use crate::command_autocomplete::anilist::{anime, character, ln, manga, staff, s
 use crate::common::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::constant::DEFAULT_STRING;
 
+/// `autocomplete` is an asynchronous function that handles the autocomplete feature for various search types.
+/// It takes a `Context` and a `CommandInteraction` as parameters.
+/// `ctx` is the context in which this function is called.
+/// `autocomplete_interaction` is the command interaction that triggered this function.
+///
+/// This function first gets the map of options from the command interaction.
+/// It then gets the search type from the map of options.
+/// If the search type is not found in the map, it defaults to a predefined string.
+/// It then matches the search type to the corresponding autocomplete function.
+/// If the search type does not match any of the predefined types, it does nothing.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this function is called.
+/// * `autocomplete_interaction` - The command interaction that triggered this function.
+///
+/// # Async
+///
+/// This function is asynchronous. It awaits the execution of the corresponding autocomplete function.
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let search_type = map.get(&String::from("type")).unwrap_or(DEFAULT_STRING);

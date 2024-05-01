@@ -11,7 +11,7 @@ use crate::common::make_anilist_request::make_request_anilist;
 use crate::common::trimer::trim;
 use crate::constant::{COLOR, UNKNOWN};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist::media::{load_localization_media, MediaLocalised};
+use crate::lang_struct::anilist_user::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct MediaWrapper {
@@ -110,7 +110,26 @@ pub struct Name {
     pub user_preferred: Option<String>,
 }
 
+/// `MediaWrapper` is an implementation block for the `MediaWrapper` struct.
 impl MediaWrapper {
+    /// `new_anime_by_id` is an asynchronous function that creates a new anime by ID.
+    /// It takes an `id` as a parameter.
+    /// `id` is a String that represents the ID of the anime.
+    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes an `id` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `id` variable is set to the `id` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `MediaWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - A String that represents the ID of the anime.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
     pub async fn new_anime_by_id(id: String) -> Result<MediaWrapper, AppError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5) {
@@ -180,6 +199,24 @@ impl MediaWrapper {
         })
     }
 
+    /// `new_anime_by_search` is an asynchronous function that creates a new anime by search.
+    /// It takes a `search` as a parameter.
+    /// `search` is a reference to a String that represents the search query.
+    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes a `search` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `search` variable is set to the `search` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `MediaWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `search` - A reference to a String that represents the search query.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
     pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, AppError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5) {
@@ -248,6 +285,24 @@ impl MediaWrapper {
         })
     }
 
+    /// `new_manga_by_id` is an asynchronous function that creates a new manga by ID.
+    /// It takes an `id` as a parameter.
+    /// `id` is a String that represents the ID of the manga.
+    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes an `id` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `id` variable is set to the `id` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `MediaWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - A String that represents the ID of the manga.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
     pub async fn new_manga_by_id(id: String) -> Result<MediaWrapper, AppError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
@@ -317,6 +372,24 @@ impl MediaWrapper {
         })
     }
 
+    /// `new_manga_by_search` is an asynchronous function that creates a new manga by search.
+    /// It takes a `search` as a parameter.
+    /// `search` is a reference to a String that represents the search query.
+    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes a `search` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `search` variable is set to the `search` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `MediaWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `search` - A reference to a String that represents the search query.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
     pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, AppError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
@@ -385,6 +458,24 @@ impl MediaWrapper {
         })
     }
 
+    /// `new_ln_by_id` is an asynchronous function that creates a new light novel by ID.
+    /// It takes an `id` as a parameter.
+    /// `id` is a String that represents the ID of the light novel.
+    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes an `id` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `id` variable is set to the `id` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `MediaWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - A String that represents the ID of the light novel.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
     pub async fn new_ln_by_id(id: String) -> Result<MediaWrapper, AppError> {
         let query_id: &str = "
     query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
@@ -454,6 +545,24 @@ impl MediaWrapper {
         })
     }
 
+    /// `new_ln_by_search` is an asynchronous function that creates a new light novel by search.
+    /// It takes a `search` as a parameter.
+    /// `search` is a reference to a String that represents the search query.
+    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
+    ///
+    /// This function first defines a GraphQL query string that takes a `search` as a variable.
+    /// It then creates a JSON object with the query string and the variable.
+    /// The `search` variable is set to the `search` parameter.
+    /// It makes a request to AniList with the JSON object and waits for the response.
+    /// It then deserializes the response into a `MediaWrapper` and returns it.
+    ///
+    /// # Arguments
+    ///
+    /// * `search` - A reference to a String that represents the search query.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
     pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, AppError> {
         let query_string: &str = "
     query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
@@ -524,6 +633,23 @@ impl MediaWrapper {
     }
 }
 
+/// `embed_title` is a function that creates a title for the embed.
+/// It takes a `data` as a parameter.
+/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
+/// It returns a String that represents the title of the embed.
+///
+/// This function first gets the English and Romaji titles from the `data`.
+/// It then checks if the English title is not empty and adds it to the title.
+/// It also checks if the Romaji title is not empty and adds it to the title.
+/// If the English title is not empty and the Romaji title is not empty, it separates them with a slash.
+///
+/// # Arguments
+///
+/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the title of the embed.
 fn embed_title(data: &MediaWrapper) -> String {
     let en = data.data.media.title.english.clone();
     let rj = data.data.media.title.romaji.clone();
@@ -554,6 +680,23 @@ fn embed_title(data: &MediaWrapper) -> String {
     title
 }
 
+/// `embed_desc` is a function that creates a description for the embed.
+/// It takes a `data` as a parameter.
+/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
+/// It returns a String that represents the description of the embed.
+///
+/// This function first gets the description from the `data`.
+/// It then converts the AniList flavored markdown in the description to Discord flavored markdown.
+/// It checks if the length of the description exceeds the limit.
+/// If it does, it trims the description to fit the limit.
+///
+/// # Arguments
+///
+/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the description of the embed.
 fn embed_desc(data: &MediaWrapper) -> String {
     let mut desc = data.data.media.description.clone().unwrap_or_default();
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
@@ -564,6 +707,22 @@ fn embed_desc(data: &MediaWrapper) -> String {
     desc
 }
 
+/// `get_genre` is a function that gets the genres of the media.
+/// It takes a `data` as a parameter.
+/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
+/// It returns a String that represents the genres of the media.
+///
+/// This function first gets the genres from the `data`.
+/// It then filters the genres that are not None and converts them to a string.
+/// It takes the first 5 genres and joins them with a newline.
+///
+/// # Arguments
+///
+/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the genres of the media.
 fn get_genre(data: &MediaWrapper) -> String {
     data.data
         .media
@@ -576,6 +735,22 @@ fn get_genre(data: &MediaWrapper) -> String {
         .join("\n")
 }
 
+/// `get_tag` is a function that gets the tags of the media.
+/// It takes a `data` as a parameter.
+/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
+/// It returns a String that represents the tags of the media.
+///
+/// This function first gets the tags from the `data`.
+/// It then filters the tags that are not None and converts them to a string.
+/// It takes the first 5 tags and joins them with a newline.
+///
+/// # Arguments
+///
+/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the tags of the media.
 fn get_tag(data: &MediaWrapper) -> String {
     data.data
         .media
@@ -588,6 +763,21 @@ fn get_tag(data: &MediaWrapper) -> String {
         .join("\n")
 }
 
+/// `get_url` is a function that gets the URL of the media.
+/// It takes a `data` as a parameter.
+/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
+/// It returns a String that represents the URL of the media.
+///
+/// This function first gets the URL from the `data`.
+/// If the URL is None, it returns a default URL.
+///
+/// # Arguments
+///
+/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the URL of the media.
 fn get_url(data: &MediaWrapper) -> String {
     data.data
         .media
@@ -596,15 +786,64 @@ fn get_url(data: &MediaWrapper) -> String {
         .unwrap_or("https://example.com".to_string())
 }
 
+/// `get_thumbnail` is a function that gets the thumbnail of the media.
+/// It takes a `data` as a parameter.
+/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
+/// It returns a String that represents the thumbnail of the media.
+///
+/// This function first gets the thumbnail from the `data`.
+/// If the thumbnail is None, it returns a default thumbnail.
+///
+/// # Arguments
+///
+/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the thumbnail of the media.
 fn get_thumbnail(data: &MediaWrapper) -> String {
     data.data.media.cover_image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
     bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string())
 }
 
+/// `get_banner` is a function that gets the banner of the media.
+/// It takes a `data` as a parameter.
+/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
+/// It returns a String that represents the banner of the media.
+///
+/// This function first gets the ID of the media from the `data`.
+/// It then formats the ID into a URL that represents the banner of the media.
+///
+/// # Arguments
+///
+/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the banner of the media.
 pub fn get_banner(data: &MediaWrapper) -> String {
     format!("https://img.anili.st/media/{}", data.data.media.id)
 }
 
+/// `media_info` is a function that gets the information of the media.
+/// It takes `data` and `media_localised` as parameters.
+/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
+/// `media_localised` is a reference to a `MediaLocalised` that represents the localized media.
+/// It returns a String that represents the information of the media.
+///
+/// This function first gets the description and the information of the media from the `data`.
+/// It then converts the AniList flavored markdown in the description to Discord flavored markdown.
+/// It checks if the length of the description exceeds the limit.
+/// If it does, it trims the description to fit the limit.
+///
+/// # Arguments
+///
+/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
+/// * `media_localised` - A reference to a `MediaLocalised` that represents the localized media.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the information of the media.
 fn media_info(data: &MediaWrapper, media_localised: &MediaLocalised) -> String {
     let mut desc = format!(
         "{} \n\n\
@@ -620,6 +859,23 @@ fn media_info(data: &MediaWrapper, media_localised: &MediaLocalised) -> String {
     desc
 }
 
+/// `get_info` is a function that gets the information of the media.
+/// It takes `data` and `media_localised` as parameters.
+/// `data` is a reference to a `Media` that represents the media.
+/// `media_localised` is a reference to a `MediaLocalised` that represents the localized media.
+/// It returns a String that represents the information of the media.
+///
+/// This function first gets the text, the format, and the source from the `media_localised`.
+/// It then replaces the placeholders in the text with the format, the source, the start date, the end date, and the staff list.
+///
+/// # Arguments
+///
+/// * `data` - A reference to a `Media` that represents the media.
+/// * `media_localised` - A reference to a `MediaLocalised` that represents the localized media.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the information of the media.
 fn get_info(data: &Media, media_localised: &MediaLocalised) -> String {
     let text = media_localised.desc.clone();
     let format = data.format.clone();
@@ -634,6 +890,22 @@ fn get_info(data: &Media, media_localised: &MediaLocalised) -> String {
         )
 }
 
+/// `get_date` is a function that gets the date.
+/// It takes a `date` as a parameter.
+/// `date` is a reference to a `StartEndDate` that represents the start or end date.
+/// It returns a String that represents the date.
+///
+/// This function first gets the year, the day, and the month from the `date`.
+/// If the year, the day, and the month are all 0, it returns a default date.
+/// Otherwise, it formats the year, the day, and the month into a date string.
+///
+/// # Arguments
+///
+/// * `date` - A reference to a `StartEndDate` that represents the start or end date.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the date.
 fn get_date(date: &StartEndDate) -> String {
     let date_y = date.year.unwrap_or(0);
     let date_d = date.day.unwrap_or(0);
@@ -670,6 +942,27 @@ fn get_date(date: &StartEndDate) -> String {
     }
 }
 
+/// `get_staff` is a function that gets the staff of the media.
+/// It takes `staff` and `staff_string` as parameters.
+/// `staff` is a reference to a vector of `Edge` that represents the staff.
+/// `staff_string` is a reference to a string that represents the staff string.
+/// It returns a String that represents the staff of the media.
+///
+/// This function first creates a new string for the staff text.
+/// It then iterates over the staff and gets the node and the name from each staff.
+/// It gets the full name and the user preferred name from the name.
+/// It sets the staff name to the user preferred name if it is not None, otherwise it sets it to the full name.
+/// It gets the role from the staff and sets it to a default string if it is None.
+/// It then replaces the placeholders in the staff string with the staff name and the role and adds it to the staff text.
+///
+/// # Arguments
+///
+/// * `staff` - A reference to a vector of `Edge` that represents the staff.
+/// * `staff_string` - A reference to a string that represents the staff string.
+///
+/// # Returns
+///
+/// * `String` - A String that represents the staff of the media.
 fn get_staff(staff: &Vec<Edge>, staff_string: &str) -> String {
     let mut staff_text = String::new();
     for s in staff {
@@ -691,6 +984,30 @@ fn get_staff(staff: &Vec<Edge>, staff_string: &str) -> String {
     staff_text
 }
 
+/// `send_embed` is an asynchronous function that sends an embed.
+/// It takes `ctx`, `command_interaction`, and `data` as parameters.
+/// `ctx` is a Context that represents the context.
+/// `command_interaction` is a CommandInteraction that represents the command interaction.
+/// `data` is a MediaWrapper that represents the media wrapper.
+///
+/// This function first checks if the media is adult and if the channel is not NSFW.
+/// If it is, it returns an error.
+/// It then gets the guild ID from the `command_interaction`.
+/// It loads the localized media using the guild ID.
+/// It creates a new embed with the description, the title, the URL, the genre, the tag, the thumbnail, and the image of the media.
+/// It creates a new interaction response message with the embed.
+/// It creates a new interaction response with the interaction response message.
+/// It then sends the interaction response using the `command_interaction`.
+///
+/// # Arguments
+///
+/// * `ctx` - A Context that represents the context.
+/// * `command_interaction` - A CommandInteraction that represents the command interaction.
+/// * `data` - A MediaWrapper that represents the media wrapper.
+///
+/// # Returns
+///
+/// * `Result<(), AppError>` - A Result that represents the result of the function. It returns an empty Ok if the function is successful, otherwise it returns an Err with an AppError.
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,

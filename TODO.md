@@ -35,6 +35,8 @@
       Get the currency and language from the server language setting.
     - [ ] get player stat
     - [ ] get free promotion notification
+    - [ ] get game release notification
+    - [ ] get game update notification
 
 - AI submodule:
     - [X] Image generation with AI.
@@ -42,7 +44,7 @@
     - [X] Video translation.
     - [X] Ask a question and reply the response.
 
-- Music module:
+- Music module: (Not sure if I will do this one.)
     - [ ] Play music from youtube.
     - [ ] Play music from file upload.
     - [ ] Play music from a link.
@@ -61,8 +63,8 @@
     - [X] Command to recreate the server image from member off all guild the bot is on.
     - [X] Get guild info.
     - [X] Profile command.
-    - [ ] Upgrade get guild info to show more info.
-    - [ ] Poll feature with custom choice and a graph afterward for comparison.
+    - [X] Upgrade get guild info to show more info.
+    - [ ] Make the user profile better.
 
 
 - General part:
@@ -83,6 +85,7 @@
     - [ ] Rename function and variable for better clarity.
     - [ ] Add docs to every public function.
       (Run, Register and Autocomplete don’t need this.).
+      (Not done between command_register and database).
     - [X] Logging
     - [X] Updating to serenity 0.12.
     - [X] Support for command in dm.
@@ -94,4 +97,12 @@
         - [X] User command
         - [ ] Message command
         - [ ] User installed app (waiting on serenity to support it).
-    
+
+
+- Fixing list:
+    - [ ] admin anilist delete
+    - [ ] transcriptn, translation
+    - [ ] autocomplete steam game
+
+- Optimisation needed:
+    - [ ] anilist_server list_user  
