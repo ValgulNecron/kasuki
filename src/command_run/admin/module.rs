@@ -1,15 +1,13 @@
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
+use crate::common::default_embed::get_default_embed;
 
-use crate::common::get_option::subcommand::{
-    get_option_map_boolean_subcommand, get_option_map_string_subcommand,
-};
+
 use crate::common::get_option::subcommand_group::{
     get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
-use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
 };
@@ -17,6 +15,35 @@ use crate::database_struct::module_status::ActivationStatusModule;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::admin::module::load_localization_module_activation;
 
+/// This asynchronous function runs the command interaction for setting the activation status of a module.
+///
+/// It first retrieves the guild ID from the command interaction. If the command interaction does not have a guild ID, it uses "0" as the guild ID.
+///
+/// It retrieves the module name and state from the command interaction options. If either option is not found, it returns an `AppError`.
+///
+/// It retrieves the localized module activation data for the guild.
+///
+/// It retrieves the current module activation status from the database.
+///
+/// It sets the new module activation status based on the module name and state retrieved from the command interaction options.
+/// If the module name does not match any of the known modules, it returns an `AppError` indicating that the module does not exist.
+///
+/// It sets the new module activation status in the database.
+///
+/// It creates an embed for the response message, including the module name and a description indicating whether the module is on or off.
+///
+/// It creates a response message with the embed.
+///
+/// It sends the response to the command interaction. If an error occurs during this process, it returns an `AppError` indicating that there was an error while sending the command.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this function is being called.
+/// * `command_interaction` - The command interaction that triggered this function.
+///
+/// # Returns
+///
+/// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -68,9 +95,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         &module_localised.off
     };
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(COLOR)
+    let builder_embed = get_default_embed(None)
         .description(desc)
         .title(module);
 
@@ -90,6 +115,18 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })
 }
 
+/// This asynchronous function checks the activation status of a module.
+///
+/// It checks the activation status of the module based on the module name. If the module name does not match any of the known modules, it returns false.
+///
+/// # Arguments
+///
+/// * `module` - The name of the module to check.
+/// * `row` - The current module activation status.
+///
+/// # Returns
+///
+/// A boolean indicating whether the module is activated.
 pub async fn check_activation_status(module: &str, row: ActivationStatusModule) -> bool {
     match module {
         "ANILIST" => row.anilist_module.unwrap_or(true),
