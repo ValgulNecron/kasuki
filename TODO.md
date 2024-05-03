@@ -86,9 +86,8 @@
     - [X] Better error handling.
     - [X] Doing something with error else than logging it.
     - [ ] Rename function and variable for better clarity.
-    - [ ] Add docs to every public function.
+    - [X] Add docs to every public function.
       (Run, Register and Autocomplete don’t need this.).
-      (Not done database).
     - [X] Logging
     - [X] Updating to serenity 0.12.
     - [X] Support for command in dm.

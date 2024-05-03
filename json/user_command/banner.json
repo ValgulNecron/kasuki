@@ -1,0 +1,21 @@
+{
+  "name": "banner",
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "banner"
+    },
+    {
+      "code": "fr",
+      "name": "bannière"
+    },
+    {
+      "code": "de",
+      "name": "banner"
+    },
+    {
+      "code": "ja",
+      "name": "バナー"
+    }
+  ]
+}

@@ -81,7 +81,7 @@ async fn profile_without_user(
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-async fn profile_with_user(
+pub async fn profile_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
