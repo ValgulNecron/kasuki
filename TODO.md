@@ -72,8 +72,11 @@
         - [X] Localisation for response.
         - [X] Localisation for command.
     - [X] Find a name for the bot.
-    - [x] Add a sqlite database.
-    - [X] Add postgres database choices.
+    - [ ] Database
+      - [x] Add a sqlite database.
+      - [X] Add postgres database choices.
+      - [X] Add redis for cache.
+      - [ ] Rework the database to be more efficient.
     - [X] Create a parser because some description uses html and not markdown.
         - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases
           are

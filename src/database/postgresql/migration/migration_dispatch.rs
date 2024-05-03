@@ -1,6 +1,22 @@
 use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
+/// Migrates the PostgreSQL database.
+///
+/// This function does not take any parameters.
+/// It sequentially calls other functions to add new columns to various tables in the database.
+/// These functions are used to update the database when new rows are added to a table.
+///
+/// The functions called are:
+/// * `add_image_to_activity_data` - Adds an "image" column to the "activity_data" table.
+/// * `add_new_member_to_global_kill_switch` - Adds a "new_member" column to the "global_kill_switch" table.
+/// * `add_new_member_to_module_activation` - Adds a "new_member" column to the "module_activation" table.
+/// * `add_anime_to_global_kill_switch` - Adds an "anime" column to the "global_kill_switch" table.
+/// * `add_anime_to_module_activation` - Adds an "anime" column to the "module_activation" table.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn migrate_postgres() -> Result<(), AppError> {
     // used to update the database when new row are added to a table.
     add_image_to_activity_data().await?;
@@ -11,6 +27,15 @@ pub async fn migrate_postgres() -> Result<(), AppError> {
     Ok(())
 }
 
+/// Adds an "image" column to the "activity_data" table in the PostgreSQL database.
+///
+/// This function does not take any parameters.
+/// It first checks if the "image" column already exists in the "activity_data" table.
+/// If the "image" column does not exist, it adds the column.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
@@ -18,8 +43,8 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     let row: (bool,) = sqlx::query_as(
         r#"
         SELECT EXISTS (
-            SELECT 1 
-            FROM information_schema.columns 
+            SELECT 1
+            FROM information_schema.columns
             WHERE table_name='activity_data' AND column_name='image'
         )
         "#,
@@ -52,6 +77,15 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     Ok(())
 }
 
+/// Adds a "new_member" column to the "global_kill_switch" table in the PostgreSQL database.
+///
+/// This function does not take any parameters.
+/// It first checks if the "new_member" column already exists in the "global_kill_switch" table.
+/// If the "new_member" column does not exist, it adds the column.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
@@ -93,10 +127,19 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
     Ok(())
 }
 
+/// Adds a "new_member" column to the "module_activation" table in the PostgreSQL database.
+///
+/// This function does not take any parameters.
+/// It first checks if the "new_member" column already exists in the "module_activation" table.
+/// If the "new_member" column does not exist, it adds the column.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
-    // Check if the "new_column" column exists in the "module_activation" table
+    // Check if the "new_member" column exists in the "module_activation" table
     let row: (bool,) = sqlx::query_as(
         r#"
         SELECT EXISTS (
@@ -116,7 +159,7 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
         )
     })?;
 
-    // If the "new_column" column doesn't exist, add it
+    // If the "new_member" column doesn't exist, add it
     if !row.0 {
         sqlx::query("ALTER TABLE module_activation ADD COLUMN new_member BIGINT")
             .execute(&pool)
@@ -134,6 +177,15 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
     Ok(())
 }
 
+/// Adds an "anime" column to the "module_activation" table in the PostgreSQL database.
+///
+/// This function does not take any parameters.
+/// It first checks if the "anime" column already exists in the "module_activation" table.
+/// If the "anime" column does not exist, it adds the column.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 
@@ -175,6 +227,15 @@ pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
     Ok(())
 }
 
+/// Adds an "anime" column to the "global_kill_switch" table in the PostgreSQL database.
+///
+/// This function does not take any parameters.
+/// It first checks if the "anime" column already exists in the "global_kill_switch" table.
+/// If the "anime" column does not exist, it adds the column.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
 

@@ -479,7 +479,10 @@ mod tests {
     fn line_break_conversion_handles_html_line_breaks() {
         let input = String::from("Hello<br>World");
         let expected_output = String::from("Hello\nWorld");
-        assert_eq!(convert_html_line_break_to_line_break(input), expected_output);
+        assert_eq!(
+            convert_html_line_break_to_line_break(input),
+            expected_output
+        );
     }
 
     #[test]

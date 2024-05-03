@@ -43,27 +43,39 @@ mod tests {
     fn convert_steam_to_discord_flavored_markdown_converts_italic_text() {
         let input = String::from("_italic_");
         let expected_output = String::from("_italic_");
-        assert_eq!(convert_steam_to_discord_flavored_markdown(input), expected_output);
+        assert_eq!(
+            convert_steam_to_discord_flavored_markdown(input),
+            expected_output
+        );
     }
 
     #[test]
     fn convert_steam_to_discord_flavored_markdown_converts_bold_text() {
         let input = String::from("**bold**");
         let expected_output = String::from("**bold**");
-        assert_eq!(convert_steam_to_discord_flavored_markdown(input), expected_output);
+        assert_eq!(
+            convert_steam_to_discord_flavored_markdown(input),
+            expected_output
+        );
     }
 
     #[test]
     fn convert_steam_to_discord_flavored_markdown_converts_html_entities() {
         let input = String::from("&amp;");
         let expected_output = String::from("&");
-        assert_eq!(convert_steam_to_discord_flavored_markdown(input), expected_output);
+        assert_eq!(
+            convert_steam_to_discord_flavored_markdown(input),
+            expected_output
+        );
     }
 
     #[test]
     fn convert_steam_to_discord_flavored_markdown_converts_links() {
         let input = String::from("<a href=\"https://example.com\">link</a>");
         let expected_output = String::from("[link](https://example.com)");
-        assert_eq!(convert_steam_to_discord_flavored_markdown(input), expected_output);
+        assert_eq!(
+            convert_steam_to_discord_flavored_markdown(input),
+            expected_output
+        );
     }
 }

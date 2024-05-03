@@ -28,6 +28,20 @@ use crate::database_struct::server_activity::{ServerActivity, ServerActivityFull
 use crate::database_struct::user_color::UserColor;
 use crate::error_management::error_enum::AppError;
 
+/// Sets the ping history in the database.
+///
+/// This function takes a shard ID and a latency as parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to set the ping history.
+///
+/// # Arguments
+///
+/// * `shard_id` - A string that represents the shard ID.
+/// * `latency` - A string that represents the latency.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
@@ -39,6 +53,19 @@ pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<
     }
 }
 
+/// Retrieves the guild language from the database.
+///
+/// This function takes a guild ID as a parameter.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get the guild language.
+///
+/// # Arguments
+///
+/// * `guild_id` - A string that represents the guild ID.
+///
+/// # Returns
+///
+/// * A Result that is either an Option variant containing the guild language if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_guild_language(
     guild_id: String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
@@ -52,6 +79,20 @@ pub async fn get_data_guild_language(
     }
 }
 
+/// Sets the guild language in the database.
+///
+/// This function takes a guild ID and a language as parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to set the guild language.
+///
+/// # Arguments
+///
+/// * `guild_id` - A string that represents the guild ID.
+/// * `lang` - A string that represents the language.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_data_guild_language(guild_id: &String, lang: &String) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
@@ -63,6 +104,19 @@ pub async fn set_data_guild_language(guild_id: &String, lang: &String) -> Result
     }
 }
 
+/// Retrieves the activity data from the database.
+///
+/// This function takes a timestamp as a parameter.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get the activity data.
+///
+/// # Arguments
+///
+/// * `now` - A string that represents the current timestamp.
+///
+/// # Returns
+///
+/// * A Result that is either a Vec variant containing the activity data if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
@@ -74,6 +128,19 @@ pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, AppErro
     }
 }
 
+/// Sets the activity data in the database.
+///
+/// This function takes a ServerActivityFull object as a parameter.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to set the activity data.
+///
+/// # Arguments
+///
+/// * `server_activity_full` - A ServerActivityFull object that represents the activity data.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_data_activity(server_activity_full: ServerActivityFull) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
@@ -85,6 +152,19 @@ pub async fn set_data_activity(server_activity_full: ServerActivityFull) -> Resu
     }
 }
 
+/// Retrieves the module activation status from the database.
+///
+/// This function takes a guild ID as a parameter.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get the module activation status.
+///
+/// # Arguments
+///
+/// * `guild_id` - A string that represents the guild ID.
+///
+/// # Returns
+///
+/// * A Result that is either an ActivationStatusModule variant if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_module_activation_status(
     guild_id: &String,
 ) -> Result<ActivationStatusModule, AppError> {
@@ -98,6 +178,23 @@ pub async fn get_data_module_activation_status(
     }
 }
 
+/// Sets the module activation status in the database.
+///
+/// This function takes a guild ID and the activation status of various modules as parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to set the module activation status.
+///
+/// # Arguments
+///
+/// * `guild_id` - A string that represents the guild ID.
+/// * `anilist_value` - A boolean that represents the activation status of the Anilist module.
+/// * `ai_value` - A boolean that represents the activation status of the AI module.
+/// * `game_value` - A boolean that represents the activation status of the Game module.
+/// * `new_member_value` - A boolean that represents the activation status of the New Member module.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_data_module_activation_status(
     guild_id: &String,
     anilist_value: bool,
@@ -136,6 +233,20 @@ pub async fn set_data_module_activation_status(
     }
 }
 
+/// Retrieves a specific activity from the database.
+///
+/// This function takes an anime ID and a server ID as parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get the activity.
+///
+/// # Arguments
+///
+/// * `anime_id` - An i32 that represents the anime ID.
+/// * `server_id` - A string that represents the server ID.
+///
+/// # Returns
+///
+/// * A Result that is either a tuple containing the Option variants of the activity if the operation was successful, or an Err variant with an AppError.
 pub async fn get_one_activity(
     anime_id: i32,
     server_id: String,
@@ -150,6 +261,19 @@ pub async fn get_one_activity(
     }
 }
 
+/// Retrieves a registered user from the database.
+///
+/// This function takes a user ID as a parameter.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get the registered user.
+///
+/// # Arguments
+///
+/// * `user_id` - A string that represents the user ID.
+///
+/// # Returns
+///
+/// * A Result that is either a tuple containing the Option variants of the registered user if the operation was successful, or an Err variant with an AppError.
 pub async fn get_registered_user(
     user_id: &String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
@@ -163,6 +287,20 @@ pub async fn get_registered_user(
     }
 }
 
+/// Registers a user in the database.
+///
+/// This function takes a user ID and a username as parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to register the user.
+///
+/// # Arguments
+///
+/// * `user_id` - A string that represents the user ID.
+/// * `username` - A string that represents the username.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_registered_user(user_id: &String, username: &String) -> Result<(), AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
@@ -174,6 +312,15 @@ pub async fn set_registered_user(user_id: &String, username: &String) -> Result<
     }
 }
 
+/// Retrieves the module activation kill switch status from the database.
+///
+/// This function does not take any parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get the module activation kill switch status.
+///
+/// # Returns
+///
+/// * A Result that is either an ActivationStatusModule variant if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_module_activation_kill_switch_status(
 ) -> Result<ActivationStatusModule, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
@@ -186,6 +333,20 @@ pub async fn get_data_module_activation_kill_switch_status(
     }
 }
 
+/// Removes an activity status from the database.
+///
+/// This function takes a server ID and an anime ID as parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to remove the activity status.
+///
+/// # Arguments
+///
+/// * `server_id` - A string that represents the server ID.
+/// * `anime_id` - A string that represents the anime ID.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn remove_data_activity_status(
     server_id: String,
     anime_id: String,
@@ -200,6 +361,22 @@ pub async fn remove_data_activity_status(
     }
 }
 
+/// Sets the approximated color for a user in the database.
+///
+/// This function takes a user ID, color, profile picture URL, and image as parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to set the user's approximated color.
+///
+/// # Arguments
+///
+/// * `user_id` - A string that represents the user ID.
+/// * `color` - A string that represents the approximated color.
+/// * `pfp_url` - A string that represents the URL of the user's profile picture.
+/// * `image` - A string that represents the image.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_user_approximated_color(
     user_id: &String,
     color: &String,
@@ -216,6 +393,19 @@ pub async fn set_user_approximated_color(
     }
 }
 
+/// Retrieves the approximated color for a user from the database.
+///
+/// This function takes a user ID as a parameter.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get the user's approximated color.
+///
+/// # Arguments
+///
+/// * `user_id` - A string that represents the user ID.
+///
+/// # Returns
+///
+/// * A Result that is either a UserColor variant if the operation was successful, or an Err variant with an AppError.
 pub async fn get_user_approximated_color(user_id: &String) -> Result<UserColor, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
@@ -227,6 +417,19 @@ pub async fn get_user_approximated_color(user_id: &String) -> Result<UserColor, 
     }
 }
 
+/// Retrieves all server activity from the database.
+///
+/// This function takes a server ID as a parameter.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get all server activity.
+///
+/// # Arguments
+///
+/// * `server_id` - A string that represents the server ID.
+///
+/// # Returns
+///
+/// * A Result that is either a Vec variant containing the ServerActivity if the operation was successful, or an Err variant with an AppError.
 pub async fn get_all_server_activity(server_id: &String) -> Result<Vec<ServerActivity>, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
@@ -238,6 +441,19 @@ pub async fn get_all_server_activity(server_id: &String) -> Result<Vec<ServerAct
     }
 }
 
+/// Retrieves all activity by server from the database.
+///
+/// This function takes a server ID as a parameter.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get all activity by server.
+///
+/// # Arguments
+///
+/// * `server_id` - A string that represents the server ID.
+///
+/// # Returns
+///
+/// * A Result that is either a Vec variant containing tuples of String if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_all_activity_by_server(
     server_id: &String,
 ) -> Result<Vec<(String, String)>, AppError> {
@@ -251,6 +467,15 @@ pub async fn get_data_all_activity_by_server(
     }
 }
 
+/// Retrieves all user approximated colors from the database.
+///
+/// This function does not take any parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get all user approximated colors.
+///
+/// # Returns
+///
+/// * A Result that is either a Vec variant containing UserColor if the operation was successful, or an Err variant with an AppError.
 pub async fn get_all_user_approximated_color() -> Result<Vec<UserColor>, AppError> {
     let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
     if db_type == *"sqlite" {
@@ -262,6 +487,22 @@ pub async fn get_all_user_approximated_color() -> Result<Vec<UserColor>, AppErro
     }
 }
 
+/// Sets the server image in the database.
+///
+/// This function takes a server ID, image type, image, and image URL as parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to set the server image.
+///
+/// # Arguments
+///
+/// * `server_id` - A string that represents the server ID.
+/// * `image_type` - A string that represents the type of the image.
+/// * `image` - A string that represents the image.
+/// * `image_url` - A string that represents the URL of the image.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_server_image(
     server_id: &String,
     image_type: &String,
@@ -278,6 +519,20 @@ pub async fn set_server_image(
     }
 }
 
+/// Retrieves the server image from the database.
+///
+/// This function takes a server ID and an image type as parameters.
+/// It retrieves the type of the database from the environment variables and defaults to "sqlite" if it is not set.
+/// Depending on the type of the database, it calls the corresponding function to get the server image.
+///
+/// # Arguments
+///
+/// * `server_id` - A string that represents the server ID.
+/// * `image_type` - A string that represents the type of the image.
+///
+/// # Returns
+///
+/// * A Result that is either a tuple containing the Option variants of the image and its URL if the operation was successful, or an Err variant with an AppError.
 pub async fn get_server_image(
     server_id: &String,
     image_type: &String,

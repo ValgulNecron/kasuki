@@ -4,6 +4,20 @@ use crate::database::postgresql::migration::migration_dispatch::migrate_postgres
 use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
+/// Initializes the PostgreSQL database.
+///
+/// This function performs the following operations in order:
+/// 1. Calls the `migrate_postgres` function to migrate the PostgreSQL database.
+/// 2. Retrieves a connection pool to the PostgreSQL database using the `get_postgresql_pool` function.
+/// 3. Calls the `init_postgres_cache` function to initialize the cache in the PostgreSQL database.
+/// 4. Closes the connection pool.
+/// 5. Retrieves a new connection pool to the PostgreSQL database using the `get_postgresql_pool` function.
+/// 6. Calls the `init_postgres_data` function to initialize the data in the PostgreSQL database.
+/// 7. Closes the connection pool.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn init_postgres() -> Result<(), AppError> {
     migrate_postgres().await?;
     let pool = get_postgresql_pool().await?;
@@ -15,6 +29,28 @@ pub async fn init_postgres() -> Result<(), AppError> {
     Ok(())
 }
 
+/// Initializes the cache in the PostgreSQL database.
+///
+/// This function performs the following operations in order:
+/// 1. Checks if the `CACHE` database exists.
+/// 2. If the `CACHE` database does not exist, it creates it.
+/// 3. Creates the `request_cache` table if it does not exist. This table has the following fields:
+///    * `json`: A TEXT field that is the primary key.
+///    * `response`: A TEXT field that is not nullable.
+///    * `last_updated`: A BIGINT field that is not nullable.
+/// 4. Creates the `cache_stats` table if it does not exist. This table has the following fields:
+///    * `key`: A TEXT field that is the primary key.
+///    * `response`: A TEXT field that is not nullable.
+///    * `last_updated`: A BIGINT field that is not nullable.
+///    * `last_page`: A BIGINT field that is not nullable.
+///
+/// # Parameters
+///
+/// * `pool`: A `Pool<Postgres>` reference that represents the connection pool to the PostgreSQL database.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
     // Check if the database exists
     let exists: (bool,) =
@@ -81,6 +117,21 @@ async fn init_postgres_cache(pool: &Pool<Postgres>) -> Result<(), AppError> {
     Ok(())
 }
 
+/// Initializes the data in the PostgreSQL database.
+///
+/// This function performs the following operations in order:
+/// 1. Checks if the `DATA` database exists.
+/// 2. If the `DATA` database does not exist, it creates it.
+/// 3. Creates the `ping_history`, `guild_lang`, `activity_data`, `module_activation`, `registered_user`, `global_kill_switch`, `user_color`, and `server_image` tables if they do not exist.
+/// 4. Inserts default values into the `global_kill_switch` table if they do not exist.
+///
+/// # Parameters
+///
+/// * `pool`: A `Pool<Postgres>` reference that represents the connection pool to the PostgreSQL database.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     // Check if the database exists
     let exists: (bool,) =

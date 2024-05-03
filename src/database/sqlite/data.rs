@@ -157,6 +157,20 @@ pub async fn set_data_activity_sqlite(
     Ok(())
 }
 
+/// Retrieves the activation status of various modules for a given guild from the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to fetch the activation status of various modules for the given guild.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `guild_id` - A reference to a String representing the ID of the guild.
+///
+/// # Returns
+///
+/// * A Result that is either an Ok variant containing an `ActivationStatusModule` struct if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_data_module_activation_status_sqlite(
     guild_id: &String,
 ) -> Result<ActivationStatusModule, AppError> {
@@ -179,6 +193,24 @@ pub async fn get_data_module_activation_status_sqlite(
     Ok(row)
 }
 
+/// Sets the activation status of various modules for a given guild in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to set the activation status of various modules for the given guild.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `guild_id` - A reference to a String representing the ID of the guild.
+/// * `anilist_value` - A boolean representing the activation status of the Anilist module.
+/// * `ai_value` - A boolean representing the activation status of the AI module.
+/// * `game_value` - A boolean representing the activation status of the Game module.
+/// * `new_member_value` - A boolean representing the activation status of the New Member module.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn set_data_module_activation_status_sqlite(
     guild_id: &String,
     anilist_value: bool,
@@ -207,6 +239,21 @@ pub async fn set_data_module_activation_status_sqlite(
     Ok(())
 }
 
+/// Removes a record from the `activity_data` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to delete a record from the `activity_data` table where the `anime_id` and `server_id` match the provided values.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `server_id` - A String representing the ID of the server.
+/// * `anime_id` - A String representing the ID of the anime.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn remove_data_activity_status_sqlite(
     server_id: String,
     anime_id: String,
@@ -229,6 +276,16 @@ pub async fn remove_data_activity_status_sqlite(
     Ok(())
 }
 
+/// Retrieves the activation status of various modules for a specific guild from the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to fetch the activation status of various modules for the guild with ID 1.
+/// 3. Closes the connection pool.
+///
+/// # Returns
+///
+/// * A Result that is either an Ok variant containing an `ActivationStatusModule` struct if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_data_module_activation_kill_switch_status_sqlite(
 ) -> Result<ActivationStatusModule, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
@@ -252,6 +309,21 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
     Ok(row)
 }
 
+/// Retrieves a specific activity from the `activity_data` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to fetch a specific activity from the `activity_data` table where the `anime_id` and `server_id` match the provided values.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `server_id` - A String representing the ID of the server.
+/// * `anime_id` - An integer representing the ID of the anime.
+///
+/// # Returns
+///
+/// * A Result that is either an Ok variant containing a tuple of optional Strings if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_one_activity_sqlite(
     server_id: String,
     anime_id: i32,
@@ -271,6 +343,20 @@ pub async fn get_one_activity_sqlite(
     Ok(row)
 }
 
+/// Retrieves a registered user from the `registered_user` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to fetch a registered user from the `registered_user` table where the `user_id` matches the provided value.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `user_id` - A reference to a String representing the ID of the user.
+///
+/// # Returns
+///
+/// * A Result that is either an Ok variant containing a tuple of optional Strings if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_registered_user_sqlite(
     user_id: &String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
@@ -286,6 +372,21 @@ pub async fn get_registered_user_sqlite(
     Ok(row)
 }
 
+/// Inserts or replaces a record in the `registered_user` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to insert or replace a record in the `registered_user` table where the `user_id` and `anilist_id` match the provided values.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `user_id` - A reference to a String representing the ID of the user.
+/// * `username` - A reference to a String representing the username of the user.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn set_registered_user_sqlite(
     user_id: &String,
     username: &String,
@@ -309,6 +410,23 @@ pub async fn set_registered_user_sqlite(
     Ok(())
 }
 
+/// Inserts or replaces a record in the `user_color` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to insert or replace a record in the `user_color` table where the `user_id`, `color`, `pfp_url`, and `image` match the provided values.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `user_id` - A reference to a String representing the ID of the user.
+/// * `color` - A reference to a String representing the color associated with the user.
+/// * `pfp_url` - A reference to a String representing the URL of the user's profile picture.
+/// * `image` - A reference to a String representing the image associated with the user.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn set_user_approximated_color_sqlite(
     user_id: &String,
     color: &String,
@@ -337,6 +455,20 @@ pub async fn set_user_approximated_color_sqlite(
     Ok(())
 }
 
+/// Retrieves the approximated color for a user from the `user_color` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to fetch a user's approximated color from the `user_color` table where the `user_id` matches the provided value.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `user_id` - A reference to a String representing the ID of the user.
+///
+/// # Returns
+///
+/// * A Result that is either an Ok variant containing a `UserColor` struct if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_user_approximated_color_sqlite(user_id: &String) -> Result<UserColor, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: UserColor =
@@ -355,6 +487,20 @@ pub async fn get_user_approximated_color_sqlite(user_id: &String) -> Result<User
     Ok(row)
 }
 
+/// Retrieves all server activity for a specific server from the `activity_data` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to fetch all server activity from the `activity_data` table where the `server_id` matches the provided value.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `server_id` - A reference to a String representing the ID of the server.
+///
+/// # Returns
+///
+/// * A Result that is either an Ok variant containing a vector of `ServerActivity` structs if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_all_server_activity_sqlite(
     server_id: &String,
 ) -> Result<Vec<ServerActivity>, AppError> {
@@ -376,11 +522,19 @@ pub async fn get_all_server_activity_sqlite(
     .await
     .unwrap_or_default();
 
-    //.map_err(|_| SqlSelectError(String::from("Failed to select from the table.")))?;
-
     Ok(rows)
 }
 
+/// Retrieves all user approximated colors from the `user_color` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to fetch all user approximated colors from the `user_color` table.
+/// 3. Closes the connection pool.
+///
+/// # Returns
+///
+/// * A Result that is either an Ok variant containing a vector of `UserColor` structs if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_all_user_approximated_color_sqlite() -> Result<Vec<UserColor>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: Vec<UserColor> =
@@ -398,6 +552,20 @@ pub async fn get_all_user_approximated_color_sqlite() -> Result<Vec<UserColor>, 
     Ok(row)
 }
 
+/// Retrieves all activity data for a specific server from the `activity_data` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to fetch all activity data from the `activity_data` table where the `server_id` matches the provided value.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `server_id` - A reference to a String representing the ID of the server.
+///
+/// # Returns
+///
+/// * A Result that is either an Ok variant containing a vector of tuples (each containing a String representing the anime ID and a String representing the name) if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_data_all_activity_by_server_sqlite(
     server_id: &String,
 ) -> Result<Vec<(String, String)>, AppError> {
@@ -417,6 +585,23 @@ pub async fn get_data_all_activity_by_server_sqlite(
     Ok(rows)
 }
 
+/// Inserts or replaces a record in the `server_image` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to insert or replace a record in the `server_image` table where the `server_id`, `type`, `image`, and `image_url` match the provided values.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `server_id` - A reference to a String representing the ID of the server.
+/// * `image_type` - A reference to a String representing the type of the image.
+/// * `image` - A reference to a String representing the image.
+/// * `image_url` - A reference to a String representing the URL of the image.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn set_server_image_sqlite(
     server_id: &String,
     image_type: &String,
@@ -445,6 +630,21 @@ pub async fn set_server_image_sqlite(
     Ok(())
 }
 
+/// Retrieves an image for a specific server from the `server_image` table in the SQLite database.
+///
+/// This function performs the following operations in order:
+/// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.
+/// 2. Executes a SQL query to fetch an image from the `server_image` table where the `server_id` and `type` match the provided values.
+/// 3. Closes the connection pool.
+///
+/// # Arguments
+///
+/// * `server_id` - A reference to a String representing the ID of the server.
+/// * `image_type` - A reference to a String representing the type of the image.
+///
+/// # Returns
+///
+/// * A Result that is either an Ok variant containing a tuple of optional Strings (representing the image URL and the image) if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_server_image_sqlite(
     server_id: &String,
     image_type: &String,
