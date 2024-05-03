@@ -14,6 +14,7 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
+use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand::{
     get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
@@ -24,6 +25,31 @@ use crate::constant::{
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::ai::translation::load_localization_translation;
 
+/// This asynchronous function runs the command interaction for transcribing an audio or video file.
+///
+/// It first retrieves the language and prompt for the transcription from the command interaction options.
+/// It also retrieves the attachment to be transcribed.
+///
+/// It checks the content type of the attachment and returns an error if it is not an audio or video file.
+///
+/// It sends a deferred response to the command interaction.
+///
+/// It downloads the attachment and saves it to a local file.
+///
+/// It sends a request to the OpenAI API to transcribe the file.
+///
+/// It retrieves the transcription from the API response and sends a followup message with the transcription.
+///
+/// It handles any errors that occur during the process and returns an `AppError` if an error occurs.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this function is being called.
+/// * `command_interaction` - The command interaction that triggered this function.
+///
+/// # Returns
+///
+/// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand(command_interaction);
     let attachment_map = get_option_map_attachment_subcommand(command_interaction);
@@ -177,9 +203,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         String::from(text)
     };
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(COLOR)
+    let builder_embed = get_default_embed(None)
         .title(translation_localised.title)
         .description(text);
 
@@ -199,6 +223,31 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     Ok(())
 }
 
+/// This asynchronous function runs the command interaction for transcribing an audio or video file.
+///
+/// It first retrieves the language and prompt for the transcription from the command interaction options.
+/// It also retrieves the attachment to be transcribed.
+///
+/// It checks the content type of the attachment and returns an error if it is not an audio or video file.
+///
+/// It sends a deferred response to the command interaction.
+///
+/// It downloads the attachment and saves it to a local file.
+///
+/// It sends a request to the OpenAI API to transcribe the file.
+///
+/// It retrieves the transcription from the API response and sends a followup message with the transcription.
+///
+/// It handles any errors that occur during the process and returns an `AppError` if an error occurs.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this function is being called.
+/// * `command_interaction` - The command interaction that triggered this function.
+///
+/// # Returns
+///
+/// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
 pub async fn translation(
     lang: String,
     text: String,

@@ -34,7 +34,7 @@ pub async fn image_saver(
     // If the saver type is local, save the image locally
     if saver_type == *"local" {
         local_image_save(guild_id, filename, image_data).await
-    // If the saver type is remote, save the image remotely
+        // If the saver type is remote, save the image remotely
     } else if saver_type == *"remote" {
         remote_saver(filename, image_data).await
     } else {
@@ -65,10 +65,10 @@ pub async fn remote_saver(filename: String, image_data: Vec<u8>) -> Result<(), A
     // If the server is catbox, upload the image to catbox
     if saver_server == *"catbox" {
         upload_image_catbox(filename, image_data).await
-    // If the server is imgur, upload the image to imgur
+        // If the server is imgur, upload the image to imgur
     } else if saver_server == *"imgur" {
         upload_image_imgur(filename, image_data).await
-    // If the server is not specified, upload the image to catbox by default
+        // If the server is not specified, upload the image to catbox by default
     } else {
         upload_image_catbox(filename, image_data).await
     }

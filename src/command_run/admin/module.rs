@@ -1,10 +1,8 @@
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse,
-    CreateInteractionResponseMessage,
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+
 use crate::common::default_embed::get_default_embed;
-
-
 use crate::common::get_option::subcommand_group::{
     get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
@@ -95,9 +93,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         &module_localised.off
     };
 
-    let builder_embed = get_default_embed(None)
-        .description(desc)
-        .title(module);
+    let builder_embed = get_default_embed(None).description(desc).title(module);
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

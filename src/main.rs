@@ -1,8 +1,8 @@
-use serde_json::Value;
 use std::env;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
+use serde_json::Value;
 use serenity::all::{
     ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready,
     ShardManager,

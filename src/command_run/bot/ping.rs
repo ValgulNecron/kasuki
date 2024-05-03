@@ -1,19 +1,36 @@
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::constant::COLOR;
+use crate::common::default_embed::get_default_embed;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::bot::ping::load_localization_ping;
 use crate::struct_shard_manager::ShardManagerContainer;
 
+/// Executes the command to display the bot's ping.
+///
+/// This function retrieves the localized ping strings and formats them into a response to the command interaction.
+/// The response includes the bot's shard ID, latency, and status, which are sent as an embed.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+
+    // Load the localized ping strings
     let ping_localised = load_localization_ping(guild_id).await?;
+
+    // Retrieve the shard manager from the context data
     let data_read = ctx.data.read().await;
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
@@ -27,10 +44,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     }
     .runners
     .clone();
+
+    // Lock the shard manager for exclusive access
     let shard_manager = shard_manager.lock().await;
 
+    // Retrieve the shard ID from the context
     let shard_id = ctx.shard_id;
 
+    // Retrieve the shard runner info from the shard manager
     let shard_runner_info = match shard_manager.get(&shard_id) {
         Some(data) => data,
         None => {
@@ -42,16 +63,17 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         }
     };
 
+    // Format the latency as a string
     let latency = match shard_runner_info.latency {
         Some(latency) => format!("{:.2}ms", latency.as_millis()),
         None => "?,??ms".to_string(),
     };
 
+    // Retrieve the stage of the shard runner
     let stage = &shard_runner_info.stage.to_string();
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(COLOR)
+    // Construct the embed for the response
+    let builder_embed = get_default_embed(None)
         .description(
             ping_localised
                 .desc
@@ -61,10 +83,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
         .title(&ping_localised.title);
 
+    // Construct the message for the response
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 
+    // Construct the response
     let builder = CreateInteractionResponse::Message(builder_message);
 
+    // Send the response to the command interaction
     command_interaction
         .create_response(&ctx.http, builder)
         .await

@@ -1,9 +1,11 @@
+use std::collections::HashMap;
+use std::fs;
+
+use serde::{Deserialize, Serialize};
+
 // Importing necessary libraries and modules
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::fs;
 
 /// UserLocalised struct represents a user's localized data.
 /// It contains fields for manga, anime, week, day, hour, minute, weeks, days, hours, and minutes.

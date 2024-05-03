@@ -1,9 +1,8 @@
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
-use crate::common::default_embed::get_default_embed;
 
+use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::database::dispatcher::data_dispatch::set_data_guild_language;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

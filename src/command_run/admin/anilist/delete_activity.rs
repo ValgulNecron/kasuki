@@ -1,14 +1,13 @@
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
 };
 
 use crate::anilist_struct::run::minimal_anime::MinimalAnimeWrapper;
 use crate::command_run::admin::anilist::add_activity::get_name;
 use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
-use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::remove_data_activity_status;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::admin::anilist::delete_activity::load_localization_delete_activity;

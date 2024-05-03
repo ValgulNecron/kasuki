@@ -1,7 +1,6 @@
 use std::io::Cursor;
 use std::time::Duration;
 
-use crate::constant::USER_BLACKLIST_SERVER_IMAGE;
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::codecs::png::PngEncoder;
@@ -13,6 +12,7 @@ use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::time::sleep;
 use tracing::{debug, error};
 
+use crate::constant::USER_BLACKLIST_SERVER_IMAGE;
 use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
@@ -105,6 +105,7 @@ pub async fn return_average_user_color(
 
     Ok(average_colors)
 }
+
 /// Calculates the average color of a user's profile picture.
 ///
 /// This function retrieves the user's profile picture URL, downloads the image, and calculates the average color.

@@ -4,7 +4,6 @@ use std::sync::RwLock;
 
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
-use serde_json::Value;
 use serenity::all::{Colour, CurrentApplicationInfo};
 
 pub const DISCORD_TOKEN: Lazy<String> =

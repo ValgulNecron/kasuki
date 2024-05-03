@@ -1,18 +1,38 @@
 use serenity::all::{
-    ButtonStyle, CommandInteraction, Context, CreateActionRow, CreateButton, CreateEmbed,
-    CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
+    ButtonStyle, CommandInteraction, Context, CreateActionRow, CreateButton, CreateEmbedFooter,
+    CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::constant::{APP_VERSION, COLOR};
+use crate::common::default_embed::get_default_embed;
+use crate::constant::APP_VERSION;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::bot::info::load_localization_info;
 
+/// Executes the command to display the bot's information.
+///
+/// This function retrieves the localized information strings and formats them into a response to the command interaction.
+/// The response includes the bot's name, ID, creation date, avatar, and other details, which are sent as an embed.
+/// It also includes buttons for various actions such as visiting the bot's GitHub page, official website, and Discord server.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+
+    // Load the localized information strings
     let info_localised = load_localization_info(guild_id).await?;
+
+    // Retrieve various details about the bot and the server
     let shard_count = ctx.cache.shard_count();
     let shard = ctx.shard_id.to_string();
     let user_count = ctx.cache.user_count();
@@ -27,6 +47,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let bot_name = bot.name;
     let bot_id = bot.id.to_string();
     let creation_date = format!("<t:{}:F>", bot.id.created_at().unix_timestamp());
+
+    // Retrieve the bot's avatar
     let bot_icon = bot.icon.ok_or(AppError::new(
         String::from("The bot has no avatar"),
         ErrorType::Option,
@@ -44,9 +66,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
     };
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(COLOR)
+    // Construct the embed for the response
+    let builder_embed = get_default_embed(None)
         .description(info_localised.desc)
         .field(info_localised.bot_name, bot_name, true)
         .field(info_localised.bot_id, bot_id, true)
@@ -59,9 +80,12 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .thumbnail(avatar)
         .title(&info_localised.title)
         .footer(CreateEmbedFooter::new(&info_localised.footer));
+
+    // Initialize the buttons and components for the response
     let mut buttons = Vec::new();
     let mut components = Vec::new();
 
+    // Add buttons for various actions
     let button = CreateButton::new_link("https://github.com/ValgulNecron/kasuki")
         .style(ButtonStyle::Primary)
         .label(&info_localised.button_see_on_github);
@@ -86,12 +110,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     buttons.push(button);
     components.push(CreateActionRow::Buttons(buttons));
 
+    // Construct the message for the response
     let builder_message = CreateInteractionResponseMessage::new()
         .embed(builder_embed)
         .components(components);
 
+    // Construct the response
     let builder = CreateInteractionResponse::Message(builder_message);
 
+    // Send the response to the command interaction
     command_interaction
         .create_response(&ctx.http, builder)
         .await

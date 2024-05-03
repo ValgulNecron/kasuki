@@ -5,12 +5,38 @@ use serenity::all::{
 };
 use tracing::trace;
 
+use crate::common::default_embed::get_default_embed;
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist_server::list_all_activity::load_localization_list_activity;
 
+/// This asynchronous function runs the command interaction for transcribing an audio or video file.
+///
+/// It first retrieves the language and prompt for the transcription from the command interaction options.
+/// It also retrieves the attachment to be transcribed.
+///
+/// It checks the content type of the attachment and returns an error if it is not an audio or video file.
+///
+/// It sends a deferred response to the command interaction.
+///
+/// It downloads the attachment and saves it to a local file.
+///
+/// It sends a request to the OpenAI API to transcribe the file.
+///
+/// It retrieves the transcription from the API response and sends a followup message with the transcription.
+///
+/// It handles any errors that occur during the process and returns an `AppError` if an error occurs.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this function is being called.
+/// * `command_interaction` - The command interaction that triggered this function.
+///
+/// # Returns
+///
+/// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -45,9 +71,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let join_activity = activity.join("\n");
 
-    let builder_message = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(COLOR)
+    let builder_message = get_default_embed(None)
         .title(list_activity_localised_text.title)
         .description(join_activity);
 
