@@ -174,7 +174,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let (width, height) = images[0].dimensions();
     let sub_image = images[0].to_owned().crop(0, 0, width, height);
     let aspect_ratio = width as f32 / height as f32;
-    let new_height = 3000;
+    let x = 3;
+    let new_height = 1000*x;
     let new_width = (new_height as f32 * aspect_ratio) as u32;
 
     let smaller_height = new_height / 3;
@@ -187,17 +188,12 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let resized_img =
         image::imageops::resize(&sub_image, new_width, new_height, FilterType::CatmullRom);
     combined_image.copy_from(&resized_img, 0, 0).unwrap();
-    let pos_list = [
-        (new_width, 0),
-        (new_width + smaller_width, 0),
-        (new_width + smaller_width * 2, 0),
-        (new_width, smaller_height),
-        (new_width + smaller_width, smaller_height),
-        (new_width + smaller_width * 2, smaller_height),
-        (new_width, smaller_height * 2),
-        (new_width + smaller_width, smaller_height * 2),
-        (new_width + smaller_width * 2, smaller_height * 2),
-    ];
+    let mut pos_list = Vec::new();
+    for x in (0..3) {
+        for y in (0..3) {
+            pos_list.push((new_width + (smaller_width * y), smaller_height*x))
+        }
+    }
     images.remove(0);
     for (i, img) in images.iter().enumerate() {
         let (width, height) = img.dimensions();
