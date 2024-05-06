@@ -1,4 +1,5 @@
 use serenity::all::{CommandInteraction, Context};
+
 use crate::command_run::user::profile::profile_with_user;
 use crate::error_management::error_enum::AppError;
 

@@ -3,24 +3,24 @@
 /// # Arguments
 ///
 /// * `desc` - An input string that needs to be trimmed.
-/// * `lenght_diff` - The difference in the length for trimming the string. If the difference is less than or equal to 0, trimming will occur based on this difference.
+/// * `length_diff` - The difference in the length for trimming the string. If the difference is less than or equal to 0, trimming will occur based on this difference.
 ///
 /// # Returns
 ///
-/// This function returns a trimmed version of the `desc` input string. If `lenght_diff` is less than or equal to 0, the string is trimmed depending on the absolute difference.
+/// This function returns a trimmed version of the `desc` input string. If `length_diff` is less than or equal to 0, the string is trimmed depending on the absolute difference.
 ///
 /// In the case when the number of substring "||" is odd in the trimmed string, it trims the original string up to an additional two characters from the end and adds "||..."
-/// to the end. The function returns the original string if `lenght_diff` is more than 0.
+/// to the end. The function returns the original string if `length_diff` is more than 0.
 ///
-pub fn trim(desc: String, lenght_diff: i32) -> String {
-    if lenght_diff <= 0 {
+pub fn trim(desc: String, length_diff: i32) -> String {
+    if length_diff <= 0 {
         let mut desc_trim;
-        let trim_length = desc.len() - ((-lenght_diff) as usize + 3);
+        let trim_length = desc.len() - ((-length_diff) as usize + 3);
         desc_trim = format!("{}...", &desc[..trim_length]);
 
         let count = desc_trim.matches("||").count();
         if count % 2 != 0 {
-            let trim_length = desc.len() - ((-lenght_diff) as usize + 5);
+            let trim_length = desc.len() - ((-length_diff) as usize + 5);
             desc_trim = format!("{}||...", &desc[..trim_length])
         }
         desc_trim.clone()

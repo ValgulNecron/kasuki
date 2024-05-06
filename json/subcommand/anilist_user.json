@@ -689,7 +689,7 @@
       "desc": "Get an image of a seiyuu with 4 of their roles.",
       "args": [
         {
-          "name": "seiyuu_name",
+          "name": "staff_name",
           "desc": "Name of the seiyuu.",
           "required": true,
           "autocomplete": true,

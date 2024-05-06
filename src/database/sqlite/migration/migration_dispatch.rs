@@ -70,7 +70,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     Ok(())
 }
 
-    /// Adds a "new_member" column to the "module_activation" table in the SQLite database if it does not exist.
+/// Adds a "new_member" column to the "module_activation" table in the SQLite database if it does not exist.
 ///
 /// This function performs the following operations in order:
 /// 1. Retrieves a connection pool to the SQLite database using the `get_sqlite_pool` function.

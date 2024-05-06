@@ -36,7 +36,7 @@ use crate::lang_struct::anilist_user::seiyuu::load_localization_seiyuu;
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand(command_interaction);
-    let value = map.get(&String::from("seiyuu_name")).ok_or(AppError::new(
+    let value = map.get(&String::from("staff_name")).ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,
         ErrorResponseType::Message,
@@ -68,7 +68,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
     let mut uuids: Vec<Uuid> = Vec::new();
-    for _ in 0..5 {
+    for _ in 0..10 {
         let uuid = Uuid::new_v4();
         uuids.push(uuid)
     }
@@ -174,15 +174,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let (width, height) = images[0].dimensions();
     let sub_image = images[0].to_owned().crop(0, 0, width, height);
     let aspect_ratio = width as f32 / height as f32;
-    let new_height = 2000;
+    let new_height = 3000;
     let new_width = (new_height as f32 * aspect_ratio) as u32;
 
-    let smaller_height = new_height / 2;
-    let smaller_width = new_width / 2;
+    let smaller_height = new_height / 3;
+    let smaller_width = new_width / 3;
 
-    let total_width = smaller_width * 2 + new_width;
+    let total_width = smaller_width * 3 + new_width;
 
-    let mut combined_image = DynamicImage::new_rgba16(total_width, 2000);
+    let mut combined_image = DynamicImage::new_rgba16(total_width, new_height);
 
     let resized_img =
         image::imageops::resize(&sub_image, new_width, new_height, FilterType::CatmullRom);
@@ -190,8 +190,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let pos_list = [
         (new_width, 0),
         (new_width + smaller_width, 0),
+        (new_width + smaller_width * 2, 0),
         (new_width, smaller_height),
         (new_width + smaller_width, smaller_height),
+        (new_width + smaller_width * 2, smaller_height),
+        (new_width, smaller_height * 2),
+        (new_width + smaller_width, smaller_height * 2),
+        (new_width + smaller_width * 2, smaller_height * 2),
     ];
     images.remove(0);
     for (i, img) in images.iter().enumerate() {
