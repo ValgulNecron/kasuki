@@ -1,14 +1,13 @@
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context,  CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
 };
 use tracing::trace;
 
 use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::common::steam_to_discord_markdown::convert_steam_to_discord_flavored_markdown;
-use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::game_struct::run::steam_game::SteamGameWrapper;
 use crate::lang_struct::game::steam_game_info::{

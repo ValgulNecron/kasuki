@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
 use tracing::trace;
 

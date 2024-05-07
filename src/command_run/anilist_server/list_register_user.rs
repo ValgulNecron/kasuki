@@ -1,13 +1,13 @@
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, PartialGuild, Timestamp, User, UserId,
+    CreateInteractionResponseMessage, PartialGuild, User, UserId,
 };
 use tracing::log::trace;
 
 use crate::anilist_struct::run::user::UserWrapper;
 use crate::common::default_embed::get_default_embed;
-use crate::constant::{COLOR, MEMBER_LIST_LIMIT, PASS_LIMIT};
+use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist_server::list_register_user::{

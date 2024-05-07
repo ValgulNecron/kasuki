@@ -2,14 +2,14 @@ use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
 };
 use tracing::trace;
 
 use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
-use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, COLOR, DEFAULT_STRING};
+use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, DEFAULT_STRING};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// This asynchronous function runs the command interaction for asking a question to the AI.

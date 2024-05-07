@@ -148,7 +148,7 @@ pub fn get_option_map_boolean_subcommand_group(
 /// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_user_subcommand_group(
     interaction: &CommandInteraction,
-) -> HashMap<String, serenity::model::id::UserId> {
+) -> HashMap<String, UserId> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
     let subcommand = &binding.first().unwrap().value;
@@ -184,7 +184,7 @@ pub fn get_option_map_user_subcommand_group(
 /// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_channel_subcommand_group(
     interaction: &CommandInteraction,
-) -> HashMap<String, serenity::model::id::ChannelId> {
+) -> HashMap<String, ChannelId> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
     let subcommand = &binding.first().unwrap().value;

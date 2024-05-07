@@ -1,9 +1,8 @@
 use std::collections::HashSet;
 
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
-};
+    CommandInteraction, Context, CreateInteractionResponse,
+    CreateInteractionResponseMessage, };
 use tracing::trace;
 
 use crate::anilist_struct::run::user::{
@@ -12,7 +11,6 @@ use crate::anilist_struct::run::user::{
 use crate::command_run::anilist_user::user::get_user_data;
 use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
-use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist_user::compare::load_localization_compare;
 

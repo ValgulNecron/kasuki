@@ -2,15 +2,13 @@ use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseMessage,
-    Timestamp,
+    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseMessage,
 };
 use serenity::builder::CreateInteractionResponseFollowup;
 use tracing::trace;
 use uuid::Uuid;
 
 use crate::common::default_embed::get_default_embed;
-use crate::constant::COLOR;
 use crate::database::dispatcher::data_dispatch::get_server_image;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::server::generate_image_pfp_server::load_localization_pfp_server_image;

@@ -6,17 +6,13 @@ use std::path::Path;
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView};
 use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, Timestamp,
-};
+use serenity::all::{CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup, CreateInteractionResponseMessage};
 use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
 use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
-use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist_user::seiyuu::load_localization_seiyuu;
 
@@ -189,8 +185,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         image::imageops::resize(&sub_image, new_width, new_height, FilterType::CatmullRom);
     combined_image.copy_from(&resized_img, 0, 0).unwrap();
     let mut pos_list = Vec::new();
-    for x in (0..3) {
-        for y in (0..3) {
+    for x in 0..3 {
+        for y in 0..3 {
             pos_list.push((new_width + (smaller_width * y), smaller_height*x))
         }
     }

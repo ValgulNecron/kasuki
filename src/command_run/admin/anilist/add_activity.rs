@@ -16,7 +16,6 @@ use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
 use crate::common::default_embed::get_default_embed;
-use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::common::trimer::trim_webhook;
 use crate::constant::COLOR;

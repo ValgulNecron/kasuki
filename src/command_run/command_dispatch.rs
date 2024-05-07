@@ -1,5 +1,4 @@
-use serde::de::Unexpected::Str;
-use serenity::all::{CommandInteraction, Context, ResolvedValue};
+use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
 
 use crate::command_run::admin::anilist::{add_activity, delete_activity};

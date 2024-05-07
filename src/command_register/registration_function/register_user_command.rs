@@ -2,10 +2,9 @@ use std::fs;
 use std::io::BufReader;
 use std::sync::Arc;
 
-use serenity::all::{CommandType, CreateCommand, Http, Permissions};
+use serenity::all::{CommandType, CreateCommand, Http};
 use tracing::{error, trace};
 
-use crate::command_register::command_struct::subcommand_group::SubCommandGroup;
 use crate::command_register::command_struct::user_command::UserCommand;
 use crate::command_register::registration_function::common::get_permission;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

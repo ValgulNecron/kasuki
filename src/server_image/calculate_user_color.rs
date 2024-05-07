@@ -41,7 +41,7 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 /// This function will return an error if there's a problem retrieving the user's color from the database,
 /// calculating the user's color, or updating the user's color in the database.
 pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
-    let local_copy_user_blacklist = unsafe { USER_BLACKLIST_SERVER_IMAGE.read().unwrap().clone() };
+    let local_copy_user_blacklist = unsafe { USER_BLACKLIST_SERVER_IMAGE.read().await.clone() };
     for member in members {
         if local_copy_user_blacklist.contains(&member.user.id.to_string()) {
             continue;
