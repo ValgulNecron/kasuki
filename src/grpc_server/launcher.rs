@@ -9,7 +9,7 @@ use proto::shard_server::Shard;
 use crate::constant::{ACTIVITY_NAME, APP_VERSION, BOT_INFO, GRPC_SERVER_PORT};
 use crate::grpc_server::launcher::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::launcher::proto::shard_server::ShardServer;
-use crate::grpc_server::launcher::proto::{InfoData, InfoRequest, InfoResponse};
+use crate::grpc_server::launcher::proto::{BotInfoData, InfoRequest, InfoResponse, SystemInfoData};
 
 // Proto module contains the protobuf definitions for the shard service
 mod proto {
@@ -111,6 +111,7 @@ impl Info for InfoService {
             Ok(mut guard) => guard.refresh_all(),
             _ => {}
         }
+
         let mut sys = sys.read().unwrap();
         let processes = sys.processes();
         let pid = match sysinfo::get_current_pid() {
@@ -121,11 +122,8 @@ impl Info for InfoService {
             Some(proc) => proc,
             _ => return Err(Status::internal("Failed to get the process.")),
         };
-        let memory_usage = process.memory();
-        let bot_name = bot_info.name.clone();
-        let version = APP_VERSION.to_string();
-        let cpu = format!("{}%", process.cpu_usage());
-        let memory = format!("{:.2}Mb", memory_usage / 1024 / 1024);
+
+        // system info
         let os = format!(
             "{}, {} {} {} {} {}",
             info.os_type(),
@@ -135,34 +133,51 @@ impl Info for InfoService {
             info.architecture().unwrap_or_default(),
             info.edition().unwrap_or_default()
         );
-        let uptime = process.run_time();
-        let uptime = format!("{}s", uptime);
+        let system_total_memory = format!("{}Gb", sys.total_memory() / 1024 / 1024 / 1024);
+        let system_used_memory = format!("{}Gb", sys.used_memory() / 1024 / 1024 / 1024);
+        let system_cpu_usage = format!("{}%", sys.global_cpu_info().cpu_usage());
+
+        let app_cpu = format!("{}%", process.cpu_usage());
+        let app_memory = process.memory();
+        let app_memory = format!("{:.2}Mb", app_memory / 1024 / 1024);
+
+
+        // bot info
+        let bot_name = bot_info.name.clone();
+        let version = APP_VERSION.to_string();
         let bot_id = bot_info.id.to_string();
         let bot_owner = match bot_info.owner.clone(){
             Some(owner) => owner.name,
             _ => return Err(Status::internal("Failed to get the bot owner.")),
         };
         let bot_activity = ACTIVITY_NAME.to_string();
-        let system_total_memory = format!("{}Gb", sys.total_memory() / 1024 / 1024 / 1024);
-        let system_used_memory = format!("{}Gb", sys.used_memory() / 1024 / 1024 / 1024);
-        let system_cpu_usage = format!("{}%", sys.global_cpu_info().cpu_usage());
+        let description = bot_info.description.clone();
+        let uptime = process.run_time();
+        let bot_uptime = format!("{}s", uptime);
 
-        let info_data = InfoData {
+        let bot_info_data = BotInfoData {
             bot_name,
             version,
-            cpu,
-            memory,
-            os,
-            uptime,
+            bot_uptime,
             bot_id,
             bot_owner,
             bot_activity,
+            description,
+        };
+
+        let sys_info_data = SystemInfoData {
+            app_cpu,
+            app_memory,
+            os,
             system_total_memory,
             system_used_memory,
             system_cpu_usage,
         };
+
+
         let info_response = InfoResponse {
-            info: Option::from(info_data),
+            bot_info: Option::from(bot_info_data),
+            sys_info: Option::from(sys_info_data),
         };
         trace!("Completed a info request");
         Ok(Response::new(info_response))
