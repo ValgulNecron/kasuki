@@ -105,14 +105,14 @@ impl Info for InfoService {
     ) -> Result<Response<InfoResponse>, Status> {
         trace!("Got a info request");
         let bot_info = self.bot_info.clone();
-        let mut sys = self.sys.clone();
+        let sys = self.sys.clone();
         let info = self.os_info.clone();
         match sys.write() {
             Ok(mut guard) => guard.refresh_all(),
             _ => {}
         }
 
-        let mut sys = sys.read().unwrap();
+        let sys = sys.read().unwrap();
         let processes = sys.processes();
         let pid = match sysinfo::get_current_pid() {
             Ok(pid) => pid.clone(),
