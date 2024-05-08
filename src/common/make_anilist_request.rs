@@ -3,7 +3,7 @@ use reqwest::Client;
 use serde_json::Value;
 
 use crate::constant::TIME_BETWEEN_CACHE_UPDATE;
-use crate::database::dispatcher::cache_dispatch::{get_database_cache, set_database_cache};
+use crate::cache::manage::cache_dispatch::{get_database_cache, set_database_cache};
 
 /// Makes a request to Anilist's GraphQL API.
 ///

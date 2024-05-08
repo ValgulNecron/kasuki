@@ -57,9 +57,10 @@ mod lang_struct;
 mod logger;
 mod new_member;
 mod server_image;
-pub mod struct_shard_manager;
+mod struct_shard_manager;
 mod tui;
 mod user_command_run;
+mod cache;
 
 struct Handler;
 

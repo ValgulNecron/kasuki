@@ -29,13 +29,75 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn init_sqlite() -> Result<(), AppError> {
+    create_sqlite_file(DATA_SQLITE_DB)?;
     create_sqlite_file(CACHE_SQLITE_DB)?;
     if let Err(e) = migrate_sqlite().await {
         error!("{:?}", e);
     };
+    let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
+    init_sqlite_cache(&pool).await?;
+    pool.close().await;
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     init_sqlite_data(&pool).await?;
     pool.close().await;
+    Ok(())
+}
+
+/// Initializes the SQLite cache database.
+///
+/// This function creates two tables in the SQLite cache database if they do not already exist:
+/// 1. `request_cache` - This table stores cached responses to requests. It has three columns:
+///     * `json` - The JSON representation of the request. This is the primary key of the table.
+///     * `response` - The cached response to the request.
+///     * `last_updated` - The timestamp of when the cached response was last updated.
+/// 2. `cache_stats` - This table stores statistics about the cache. It has four columns:
+///     * `key` - The key associated with the cache statistics. This is the primary key of the table.
+///     * `response` - The cached response associated with the key.
+///     * `last_updated` - The timestamp of when the cached response was last updated.
+///     * `last_page` - The last page that was cached for the key.
+///
+/// # Arguments
+///
+/// * `pool` - A reference to the SQLite connection pool.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
+async fn init_sqlite_cache(pool: &Pool<Sqlite>) -> Result<(), AppError> {
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS request_cache (
+            json TEXT PRIMARY KEY,
+            response TEXT NOT NULL,
+            last_updated INTEGER NOT NULL
+        )",
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        AppError::new(
+            format!("Failed to create the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::None,
+        )
+    })?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS cache_stats (
+            key TEXT PRIMARY KEY,
+            response TEXT NOT NULL,
+            last_updated INTEGER NOT NULL,
+            last_page INTEGER NOT NULL
+        )",
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        AppError::new(
+            format!("Failed to create the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::None,
+        )
+    })?;
     Ok(())
 }
 
@@ -280,7 +342,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
-pub fn create_sqlite_file(path: &str) -> Result<(), AppError> {
+fn create_sqlite_file(path: &str) -> Result<(), AppError> {
     let p = Path::new(path);
     if !p.exists() {
         match File::create(p) {

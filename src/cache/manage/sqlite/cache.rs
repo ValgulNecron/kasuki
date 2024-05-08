@@ -3,7 +3,7 @@ use serde_json::Value;
 
 use crate::constant::CACHE_SQLITE_DB;
 use crate::database::sqlite::pool::get_sqlite_pool;
-use crate::database_struct::cache_stats::CacheStats;
+use crate::cache::cache_struct::cache_stats::CacheStats;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Retrieves the cache statistics for a given random type from a SQLite database using a connection pool.

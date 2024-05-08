@@ -1,5 +1,4 @@
 use serenity::all::{CommandInteraction, Context, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Member, Timestamp, User};
-use crate::command_run::user::banner::no_banner;
 
 use crate::common::get_option::subcommand::get_option_map_user_subcommand;
 use crate::constant::COLOR;
