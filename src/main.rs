@@ -296,22 +296,7 @@ async fn main() {
     info!("starting the bot.");
 
     // Get all the non-privileged intent.
-    let gateway_intent_non_privileged = GatewayIntents::GUILDS
-        | GatewayIntents::GUILD_INTEGRATIONS
-        | GatewayIntents::GUILD_INVITES
-        | GatewayIntents::GUILD_EMOJIS_AND_STICKERS
-        | GatewayIntents::GUILD_MESSAGE_REACTIONS
-        | GatewayIntents::GUILD_MESSAGE_TYPING
-        | GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::GUILD_MODERATION
-        | GatewayIntents::GUILD_SCHEDULED_EVENTS
-        | GatewayIntents::GUILD_VOICE_STATES
-        | GatewayIntents::GUILD_WEBHOOKS
-        | GatewayIntents::DIRECT_MESSAGE_REACTIONS
-        | GatewayIntents::DIRECT_MESSAGES
-        | GatewayIntents::DIRECT_MESSAGE_TYPING
-        | GatewayIntents::AUTO_MODERATION_CONFIGURATION
-        | GatewayIntents::AUTO_MODERATION_EXECUTION;
+    let gateway_intent_non_privileged = GatewayIntents::non_privileged();
     // Get the needed privileged intent.
     let gateway_intent_privileged = GatewayIntents::GUILD_PRESENCES
         | GatewayIntents::GUILD_MEMBERS

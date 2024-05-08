@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use serenity::all::{CurrentApplicationInfo, ShardId, ShardManager};
 use std::sync::Arc;
 use sysinfo::System;
@@ -93,6 +94,8 @@ impl Shard for ShardService {
 
 pub struct InfoService {
     pub bot_info: Arc<CurrentApplicationInfo>,
+    pub sys: Arc<RefCell<System>>,
+    pub os_info: Arc<os_info::Info>,
 }
 
 #[tonic::async_trait]
@@ -103,9 +106,8 @@ impl Info for InfoService {
     ) -> Result<Response<InfoResponse>, Status> {
         trace!("Got a info request");
         let bot_info = self.bot_info.clone();
-        let mut sys = System::new_all();
-        sys.refresh_all();
-        tokio::time::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL).await;
+        let mut sys = self.sys.clone();
+        let info = self.os_info.clone();
         sys.refresh_all();
         let processes = sys.processes();
         let pid = match sysinfo::get_current_pid() {
@@ -117,8 +119,6 @@ impl Info for InfoService {
             _ => return Err(Status::internal("Failed to get the process.")),
         };
         let memory_usage = process.memory();
-        let info = os_info::get();
-
         let bot_name = bot_info.name.clone();
         let version = APP_VERSION.to_string();
         let cpu = format!("{}%", process.cpu_usage());
@@ -190,6 +190,8 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
     let info_service = unsafe {
         InfoService {
             bot_info: Arc::new(BOT_INFO.clone().unwrap()),
+            sys: Arc::new(RefCell::new(System::new_all())),
+            os_info: Arc::new(os_info::get()),
         }
     };
 
