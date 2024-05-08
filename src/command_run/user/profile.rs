@@ -1,7 +1,5 @@
-use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp, User,
-};
+use serenity::all::{CommandInteraction, Context, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Member, Timestamp, User};
+use crate::command_run::user::banner::no_banner;
 
 use crate::common::get_option::subcommand::get_option_map_user_subcommand;
 use crate::constant::COLOR;
@@ -15,7 +13,7 @@ use crate::lang_struct::user::profile::load_localization_profile;
 ///
 /// # Arguments
 ///
-/// * `ctx` - The context in which this command is being executed.
+/// * `ctx` -() The context in which this command is being executed.
 /// * `command_interaction` - The interaction that triggered this command.
 ///
 /// # Returns
@@ -121,32 +119,85 @@ pub async fn send_embed(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+    let mut fields = Vec::new();
 
     // Load the localized profile
     let profile_localised = load_localization_profile(guild_id).await?;
 
-    // Retrieve the member from the command interaction
-    let member = &command_interaction.member.clone().ok_or(AppError::new(
-        String::from("There is no member in the option"),
-        ErrorType::Option,
-        ErrorResponseType::Message,
-    ))?;
+    let member: Option<Member> = {
+        match command_interaction.guild_id {
+            Some(guild_id) => {
+                match guild_id.member(&ctx.http, user.id).await {
+                    Ok(member) => Some(member),
+                    Err(_) => None,
+                }
+            }
+            None => None,
+        }
+    };
+
+    fields.push((
+        profile_localised.id,
+        user.id.clone().to_string(),
+        true,
+    ));
+    fields.push((
+        profile_localised.creation_date,
+                format!(
+                    "<t:{}>",
+                    user.created_at().timestamp()
+                ),
+        true,
+    ));
+    match member {
+        Some(member) => match member.joined_at {
+            Some(joined_at) => {
+                fields.push((
+                    profile_localised.joined_date,
+                    format!(
+                        "<t:{}>",
+                        joined_at.timestamp()
+                    ),
+                    true,
+                ));
+            }
+            None => {},
+        },
+        None => {},
+    }
+
+    fields.push((
+        profile_localised.bot,
+        user.bot.to_string(),
+        true,
+    ));
+    fields.push((
+        profile_localised.system,
+        user.system.to_string(),
+        true,
+    ));
+
 
     // Check if there are any public flags for the user
-    let public_flag = match user.public_flags {
+    match user.public_flags {
         Some(public_flag) => {
             let mut user_flags = Vec::new();
             // If there are, iterate over the flags and add them to a vector
             for (flag, _) in public_flag.iter_names() {
                 user_flags.push(flag)
             }
-            user_flags.join(" / ")
+            if !user_flags.is_empty() {
+                fields.push((
+                    profile_localised.public_flag,
+                    user_flags.join(" / "),
+                    false,
+                ));
+            }
         }
-        None => "None".to_string(),
+        None => {},
     };
-
     // Create an embed with the user's profile information
-    let builder_embed = CreateEmbed::new()
+    let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
         .thumbnail(avatar_url)
@@ -155,29 +206,14 @@ pub async fn send_embed(
                 .title
                 .replace("$user$", user.name.as_str()),
         )
-        .description(
-            profile_localised
-                .desc
-                .replace("$user$", user.name.as_str())
-                .replace("$id$", user.id.to_string().as_str())
-                .replace("$creation_date$", user.created_at().to_string().as_str())
-                .replace(
-                    "$joined_date$",
-                    member
-                        .joined_at
-                        .ok_or(AppError::new(
-                            String::from("There is no joined date for the user"),
-                            ErrorType::Option,
-                            ErrorResponseType::Message,
-                        ))?
-                        .to_string()
-                        .as_str(),
-                )
-                .replace("$bot$", user.bot.to_string().as_str())
-                .replace("$public_flag$", public_flag.as_str())
-                .replace("$nitro$", format!("{:?}", user.premium_type).as_str())
-                .replace("$system$", user.system.to_string().as_str()),
-        );
+        .fields(fields);
+
+    match user.banner_url() {
+        Some(banner) => {
+            builder_embed = builder_embed.image(banner);
+        },
+        None => {},
+    };
 
     // Create a message with the embed
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);

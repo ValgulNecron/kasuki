@@ -1,18 +1,42 @@
 {
   "en": {
     "title": "Here's the profile of $user$",
-    "desc": "The user id of $user$ is $id$. \n Here the account creation date $creation_date$. \n Here when the user joined $joined_date$. \n Is this user a bot? $bot$. \n Here all the public flag of the user $public_flag$. \n Here the nitro type of the user $nitro$. \n Is the user system? $system$"
+    "id": "User ID",
+    "creation_date": "Account Creation Date",
+    "joined_date": "Joined Date",
+    "bot": "Is a bot",
+    "nitro": "Nitro Type",
+    "system": "Is system",
+    "public_flag": "Public Flag"
   },
   "fr": {
     "title": "Voici le profil de $user$",
-    "desc": "L'identifiant utilisateur de $user$ est $id$. \n Voici la date de création du compte $creation_date$. \n Voici la date d'entrée de l'utilisateur $joined_date$. \n Cet utilisateur est-il un bot? $bot$. \n Voici tous les drapeaux publics de l'utilisateur $public_flag$."
+    "id": "ID de l'utilisateur",
+    "creation_date": "Date de création du compte",
+    "joined_date": "Date d'adhésion",
+    "bot": "Est un bot",
+    "nitro": "Type de Nitro",
+    "system": "Est un système",
+    "public_flag": "Drapeau public"
   },
   "jp": {
-    "title": "$user$のプロフィールはこちら",
-    "desc": "$user$のユーザーIDは$id$です。 \n アカウント作成日$creation_date$です。 \n ユーザーが入会したのは$joined_date$です。 \n このユーザーはボットですか？ $bot$。 \n ユーザーの全ての公開フラグは$public_flag$です。"
+    "title": "$user$のプロフィールです",
+    "id": "ユーザーID",
+    "creation_date": "アカウントの作成日",
+    "joined_date": "参加日",
+    "bot": "ボットです",
+    "nitro": "Nitroの種類",
+    "system": "システムです",
+    "public_flag": "公開フラグ"
   },
   "de": {
     "title": "Hier ist das Profil von $user$",
-    "desc": "Die Benutzer-ID von $user$ ist $id$. \n Hier ist das Erstellungsdatum des Kontos $creation_date$. \n Hier ist das Beitrittsdatum des Benutzers $joined_date$. \n Ist dieser Benutzer ein Bot? $bot$. \n Hier sind alle öffentlichen Flags des Benutzers $public_flag$."
+    "id": "Benutzer ID",
+    "creation_date": "Erstellungsdatum des Kontos",
+    "joined_date": "Beitrittsdatum",
+    "bot": "Ist ein Bot",
+    "nitro": "Nitro Typ",
+    "system": "Ist ein System",
+    "public_flag": "Öffentliche Flagge"
   }
 }
