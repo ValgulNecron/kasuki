@@ -1,4 +1,7 @@
-use serenity::all::{CommandInteraction, Context, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Member, Timestamp, User};
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Member, Timestamp, User,
+};
 
 use crate::common::get_option::subcommand::get_option_map_user_subcommand;
 use crate::constant::COLOR;
@@ -125,27 +128,18 @@ pub async fn send_embed(
 
     let member: Option<Member> = {
         match command_interaction.guild_id {
-            Some(guild_id) => {
-                match guild_id.member(&ctx.http, user.id).await {
-                    Ok(member) => Some(member),
-                    Err(_) => None,
-                }
-            }
+            Some(guild_id) => match guild_id.member(&ctx.http, user.id).await {
+                Ok(member) => Some(member),
+                Err(_) => None,
+            },
             None => None,
         }
     };
 
-    fields.push((
-        profile_localised.id,
-        user.id.clone().to_string(),
-        true,
-    ));
+    fields.push((profile_localised.id, user.id.clone().to_string(), true));
     fields.push((
         profile_localised.creation_date,
-                format!(
-                    "<t:{}>",
-                    user.created_at().timestamp()
-                ),
+        format!("<t:{}>", user.created_at().timestamp()),
         true,
     ));
     match member {
@@ -153,29 +147,17 @@ pub async fn send_embed(
             Some(joined_at) => {
                 fields.push((
                     profile_localised.joined_date,
-                    format!(
-                        "<t:{}>",
-                        joined_at.timestamp()
-                    ),
+                    format!("<t:{}>", joined_at.timestamp()),
                     true,
                 ));
             }
-            None => {},
+            None => {}
         },
-        None => {},
+        None => {}
     }
 
-    fields.push((
-        profile_localised.bot,
-        user.bot.to_string(),
-        true,
-    ));
-    fields.push((
-        profile_localised.system,
-        user.system.to_string(),
-        true,
-    ));
-
+    fields.push((profile_localised.bot, user.bot.to_string(), true));
+    fields.push((profile_localised.system, user.system.to_string(), true));
 
     // Check if there are any public flags for the user
     match user.public_flags {
@@ -186,14 +168,10 @@ pub async fn send_embed(
                 user_flags.push(flag)
             }
             if !user_flags.is_empty() {
-                fields.push((
-                    profile_localised.public_flag,
-                    user_flags.join(" / "),
-                    false,
-                ));
+                fields.push((profile_localised.public_flag, user_flags.join(" / "), false));
             }
         }
-        None => {},
+        None => {}
     };
     // Create an embed with the user's profile information
     let mut builder_embed = CreateEmbed::new()
@@ -210,8 +188,8 @@ pub async fn send_embed(
     match user.banner_url() {
         Some(banner) => {
             builder_embed = builder_embed.image(banner);
-        },
-        None => {},
+        }
+        None => {}
     };
 
     // Create a message with the embed

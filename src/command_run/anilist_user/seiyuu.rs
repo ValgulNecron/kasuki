@@ -6,7 +6,10 @@ use std::path::Path;
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView};
 use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup, CreateInteractionResponseMessage};
+use serenity::all::{
+    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
+};
 use tracing::{debug, error};
 use uuid::Uuid;
 
@@ -171,7 +174,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let sub_image = images[0].to_owned().crop(0, 0, width, height);
     let aspect_ratio = width as f32 / height as f32;
     let x = 3;
-    let new_height = 1000*x;
+    let new_height = 1000 * x;
     let new_width = (new_height as f32 * aspect_ratio) as u32;
 
     let smaller_height = new_height / 3;
@@ -187,7 +190,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let mut pos_list = Vec::new();
     for x in 0..3 {
         for y in 0..3 {
-            pos_list.push((new_width + (smaller_width * y), smaller_height*x))
+            pos_list.push((new_width + (smaller_width * y), smaller_height * x))
         }
     }
     images.remove(0);

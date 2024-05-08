@@ -2,7 +2,7 @@ use std::fs;
 use std::io::BufReader;
 use std::sync::Arc;
 
-use serenity::all::{CommandType, CreateCommand, Http,};
+use serenity::all::{CommandType, CreateCommand, Http};
 use tracing::{error, trace};
 
 use crate::command_register::command_struct::command::Command;

@@ -9,14 +9,12 @@ use serenity::all::{
 use crate::anilist_struct::run::random::PageWrapper;
 use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
 use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper;
+use crate::cache::cache_struct::cache_stats::CacheStats;
+use crate::cache::manage::cache_dispatch::{get_database_random_cache, set_database_random_cache};
 use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::common::trimer::trim;
-use crate::cache::manage::cache_dispatch::{
-    get_database_random_cache, set_database_random_cache,
-};
-use crate::cache::cache_struct::cache_stats::CacheStats;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist_user::random::{load_localization_random, RandomLocalised};
 

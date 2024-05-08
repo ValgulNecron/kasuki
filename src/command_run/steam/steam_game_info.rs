@@ -1,6 +1,6 @@
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context,  CreateInteractionResponseFollowup,
+    CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
 use tracing::trace;

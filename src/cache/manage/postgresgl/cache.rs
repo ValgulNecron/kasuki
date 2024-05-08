@@ -1,8 +1,8 @@
 use chrono::Utc;
 use serde_json::Value;
 
-use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::cache::cache_struct::cache_stats::CacheStats;
+use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Retrieves a random cache entry from the PostgreSQL database.

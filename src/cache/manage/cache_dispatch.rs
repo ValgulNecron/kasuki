@@ -2,6 +2,7 @@ use std::env;
 
 use serde_json::Value;
 
+use crate::cache::cache_struct::cache_stats::CacheStats;
 use crate::cache::manage::postgresgl::cache::{
     get_database_cache_postgresql, get_database_random_cache_postgresql,
     set_database_cache_postgresql, set_database_random_cache_postgres,
@@ -10,7 +11,6 @@ use crate::cache::manage::sqlite::cache::{
     get_database_cache_sqlite, get_database_random_cache_sqlite, set_database_cache_sqlite,
     set_database_random_cache_sqlite,
 };
-use crate::cache::cache_struct::cache_stats::CacheStats;
 use crate::error_management::error_enum::AppError;
 
 /// Retrieves a random cache entry from the database.

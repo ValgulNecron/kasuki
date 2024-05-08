@@ -13,16 +13,15 @@ use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType
 /// It contains two fields `title` and `desc` which are both Strings.
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ProfileLocalised {
-	pub title: String,
-	pub id: String,
-	pub creation_date: String,
-	pub joined_date: String,
-	pub bot: String,
-	pub nitro: String,
-	pub system: String,
-	pub public_flag: String,
+    pub title: String,
+    pub id: String,
+    pub creation_date: String,
+    pub joined_date: String,
+    pub bot: String,
+    pub nitro: String,
+    pub system: String,
+    pub public_flag: String,
 }
-
 
 /// Loads the localized profile data.
 ///

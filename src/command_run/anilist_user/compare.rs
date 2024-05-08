@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse,
-    CreateInteractionResponseMessage, };
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+};
 use tracing::trace;
 
 use crate::anilist_struct::run::user::{

@@ -19,8 +19,8 @@ use crate::common::get_option::subcommand::{
     get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::constant::{
-    CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, DEFAULT_STRING, TRANSCRIPT_BASE_URL,
-    TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN,
+    CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS,
+    TRANSCRIPT_TOKEN,
 };
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::ai::translation::load_localization_translation;
