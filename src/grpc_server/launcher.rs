@@ -189,7 +189,7 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
     };
     let info_service = unsafe {
         InfoService {
-            bot_info: Arc::new(*BOT_INFO.clone()),
+            bot_info: Arc::new(BOT_INFO.clone().unwrap()),
         }
     };
 
