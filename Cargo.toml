@@ -42,6 +42,7 @@ crossterm = "0.27.0"
 sysinfo = "0.30.11"
 tui-logger = "0.11.1"
 rayon = "1.10.0"
+os_info = "3.8.2"
 
 [build-dependencies]
 tonic-build = "0.11.0"

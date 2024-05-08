@@ -4,11 +4,11 @@ use std::time::Duration;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use chrono::Utc;
-use serenity::all::{Context, CreateAttachment, CreateEmbed, EditWebhook, ExecuteWebhook, Webhook};
+use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webhook};
 use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrapper};
-use crate::constant::COLOR;
+use crate::common::default_embed::get_default_embed;
 use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
@@ -54,25 +54,14 @@ async fn send_activity(ctx: &Context) {
         }
     };
     for row in rows {
-        if row.timestamp.is_none() {
-            continue;
-        }
-
-        if now != row.timestamp.clone().unwrap_or_default() {
+        if row.timestamp.is_none() || now != row.timestamp.clone().unwrap_or_default() {
             continue;
         }
 
         let row2 = row.clone();
         let guild_id = row.server_id.clone();
         let ctx = ctx.clone();
-        if row.delays.is_none() {
-            tokio::spawn(async move {
-                if let Err(e) = send_specific_activity(row, guild_id.unwrap(), row2, &ctx).await {
-                    error!("{}", e);
-                }
-            });
-        } else if row.delays.unwrap() != 0 {
-            let ctx = ctx.clone();
+        if row.delays.is_some() || row.delays.unwrap_or_default() != 0 {
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs(row2.delays.unwrap_or_default() as u64))
                     .await;
@@ -163,8 +152,7 @@ async fn send_specific_activity(
         )
     })?;
 
-    let embed = CreateEmbed::new()
-        .color(COLOR)
+    let embed = get_default_embed(None)
         .description(
             localised_text
                 .desc

@@ -1,21 +1,25 @@
 use std::sync::Arc;
-
-use serenity::all::{ShardId, ShardManager};
+use serenity::all::{CurrentApplicationInfo, ShardId, ShardManager};
+use sysinfo::System;
 use tonic::{Request, Response, Status};
 
 use proto::shard_server::Shard;
 
-use crate::constant::GRPC_SERVER_PORT;
+use crate::constant::{ACTIVITY_NAME, APP_VERSION, GRPC_SERVER_PORT};
+use crate::grpc_server::launcher::proto::info_server::Info;
+use crate::grpc_server::launcher::proto::{InfoData, InfoRequest, InfoResponse};
 use crate::grpc_server::launcher::proto::shard_server::ShardServer;
 
 // Proto module contains the protobuf definitions for the shard service
 mod proto {
     // Include the protobuf definitions for the shard service
     tonic::include_proto!("shard");
-
+    tonic::include_proto!("info");
     // FILE_DESCRIPTOR_SET is a constant byte array that contains the file descriptor set for the shard service
-    pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
+    pub(crate) const SHARD_FILE_DESCRIPTOR_SET: &[u8] =
         tonic::include_file_descriptor_set!("shard_descriptor");
+    pub(crate) const INFO_FILE_DESCRIPTOR_SET: &[u8] =
+        tonic::include_file_descriptor_set!("INFO_descriptor");
 }
 
 // ShardService is a struct that contains a reference to the ShardManager
@@ -82,6 +86,66 @@ impl Shard for ShardService {
     }
 }
 
+pub struct InfoService {
+    pub bot_info: Arc<CurrentApplicationInfo>,
+}
+
+#[tonic::async_trait]
+impl Info for InfoService {
+    async fn get_info(&self, _request: Request<InfoRequest>) -> Result<Response<InfoResponse>, Status> {
+        let bot_info = self.bot_info.clone();
+        let mut sys = System::new_all();
+        sys.refresh_all();
+        tokio::time::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL).await;
+        sys.refresh_all();
+        let processes = sys.processes();
+        let pid = match sysinfo::get_current_pid() {
+            Ok(pid) => pid.clone(),
+            _ => return Err(Status::internal("Process not found."))
+        };
+        let process = match processes.get(&pid) {
+            Some(proc) => proc,
+            _ => return Err(Status::internal("Failed to get the process."))
+        };
+        let memory_usage = process.memory();
+        let info = os_info::get();
+
+        let bot_name = bot_info.name.clone();
+        let version = APP_VERSION.to_string();
+        let cpu = format!("{}%", process.cpu_usage());
+        let memory = format!("{:.2}Mb", memory_usage / 1024 / 1024);
+        let os = format!("{}, {} {} {} {} {}", info.os_type(), info.bitness(), info.version(), info.codename().unwrap_or_default(), info.architecture().unwrap_or_default(), info.edition().unwrap_or_default());
+        let uptime = process.run_time();
+        let uptime = format!("{}s", uptime);
+        let bot_id = bot_info.id.to_string();
+        let bot_owner = bot_info.owner.clone().unwrap().name;
+        let bot_activity = ACTIVITY_NAME.to_string();
+        let system_total_memory = format!("{}Gb", sys.total_memory() / 1024 / 1024/ 1024);
+        let system_used_memory = format!("{}Gb", sys.used_memory() / 1024 / 1024/ 1024);
+        let system_cpu_usage = format!("{}%", sys.global_cpu_info().cpu_usage());
+
+        let info_data = InfoData {
+            bot_name,
+            version,
+            cpu,
+            memory,
+            os,
+            uptime,
+            bot_id,
+            bot_owner,
+            bot_activity,
+            system_total_memory,
+            system_used_memory,
+            system_cpu_usage,
+        };
+        let info_response = InfoResponse {
+            info: Option::from(info_data)
+        };
+
+        Ok(Response::new(info_response))
+    }
+}
+
 /// `grpc_server_launcher` is an asynchronous function that launches the gRPC server for the shard service.
 /// It takes a reference to an `Arc<ShardManager>` as a parameter.
 /// It does not return a value.
@@ -106,7 +170,8 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
 
     // Configure the reflection service and register the file descriptor set for the shard service
     let reflection = tonic_reflection::server::Builder::configure()
-        .register_encoded_file_descriptor_set(proto::FILE_DESCRIPTOR_SET)
+        .register_encoded_file_descriptor_set(proto::SHARD_FILE_DESCRIPTOR_SET)
+        .register_encoded_file_descriptor_set(proto::INFO_FILE_DESCRIPTOR_SET)
         .build()
         .unwrap();
 
@@ -118,3 +183,4 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
         .await
         .unwrap();
 }
+
