@@ -2,11 +2,12 @@ use serenity::all::{CurrentApplicationInfo, ShardId, ShardManager};
 use std::sync::Arc;
 use sysinfo::System;
 use tonic::{Request, Response, Status};
+use tracing::trace;
 
 use proto::shard_server::Shard;
 
-use crate::constant::{ACTIVITY_NAME, APP_VERSION, GRPC_SERVER_PORT};
-use crate::grpc_server::launcher::proto::info_server::Info;
+use crate::constant::{ACTIVITY_NAME, APP_VERSION, BOT_INFO, GRPC_SERVER_PORT};
+use crate::grpc_server::launcher::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::launcher::proto::shard_server::ShardServer;
 use crate::grpc_server::launcher::proto::{InfoData, InfoRequest, InfoResponse};
 
@@ -38,6 +39,7 @@ impl Shard for ShardService {
         &self,
         _request: Request<proto::ShardCountRequest>,
     ) -> Result<Response<proto::ShardCountResponse>, Status> {
+        trace!("Got a shard count request");
         // Clone the shard_manager
         let shard_manager = self.shard_manager.clone();
         // Initialize an empty vector for the shard ids
@@ -51,6 +53,7 @@ impl Shard for ShardService {
             count: shard_ids.len() as i32,
             shard_ids,
         };
+        trace!("Completed a shard count request");
         // Return the ShardCountResponse
         Ok(Response::new(reply))
     }
@@ -61,6 +64,7 @@ impl Shard for ShardService {
         &self,
         request: Request<proto::ShardInfoRequest>,
     ) -> Result<Response<proto::ShardInfoResponse>, Status> {
+        trace!("Got a shard info request");
         // Get the data from the request
         let data = request.into_inner();
         // Get the id of the shard
@@ -81,6 +85,7 @@ impl Shard for ShardService {
             latency: shard.latency.unwrap_or_default().as_millis().to_string(),
             stage: shard.stage.to_string(),
         };
+        trace!("Completed a shard info request");
         // Return the ShardInfoResponse
         Ok(Response::new(reply))
     }
@@ -96,6 +101,7 @@ impl Info for InfoService {
         &self,
         _request: Request<InfoRequest>,
     ) -> Result<Response<InfoResponse>, Status> {
+        trace!("Got a info request");
         let bot_info = self.bot_info.clone();
         let mut sys = System::new_all();
         sys.refresh_all();
@@ -129,7 +135,10 @@ impl Info for InfoService {
         let uptime = process.run_time();
         let uptime = format!("{}s", uptime);
         let bot_id = bot_info.id.to_string();
-        let bot_owner = bot_info.owner.clone().unwrap().name;
+        let bot_owner = match bot_info.owner.clone(){
+            Some(owner) => owner.name,
+            _ => return Err(Status::internal("Failed to get the bot owner.")),
+        };
         let bot_activity = ACTIVITY_NAME.to_string();
         let system_total_memory = format!("{}Gb", sys.total_memory() / 1024 / 1024 / 1024);
         let system_used_memory = format!("{}Gb", sys.used_memory() / 1024 / 1024 / 1024);
@@ -152,7 +161,7 @@ impl Info for InfoService {
         let info_response = InfoResponse {
             info: Option::from(info_data),
         };
-
+        trace!("Completed a info request");
         Ok(Response::new(info_response))
     }
 }
@@ -178,6 +187,11 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
     let shard_service = ShardService {
         shard_manager: shard_manager_arc,
     };
+    let info_service = unsafe {
+        InfoService {
+            bot_info: Arc::new(*BOT_INFO.clone()),
+        }
+    };
 
     // Configure the reflection service and register the file descriptor set for the shard service
     let reflection = tonic_reflection::server::Builder::configure()
@@ -189,6 +203,7 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
     // Build the gRPC server, add the ShardService and the reflection service, and serve the gRPC server
     tonic::transport::Server::builder()
         .add_service(ShardServer::new(shard_service))
+        .add_service(InfoServer::new(info_service))
         .add_service(reflection)
         .serve(addr.parse().unwrap())
         .await
