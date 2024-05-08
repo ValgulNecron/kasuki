@@ -58,7 +58,7 @@ impl StaffImageWrapper {
     /// * `Result<StaffImageWrapper, AppError>` - A Result that contains a `StaffImageWrapper` or an `AppError`.
     pub async fn new_staff_by_id(id: i32) -> Result<StaffImageWrapper, AppError> {
         let query_id: &str = "
-        query ($name: Int, $limit: Int = 4) {
+        query ($name: Int, $limit: Int = 9) {
 	Staff(id: $name){
     image{
       large
@@ -104,7 +104,7 @@ impl StaffImageWrapper {
     /// * `Result<StaffImageWrapper, AppError>` - A Result that contains a `StaffImageWrapper` or an `AppError`.
     pub async fn new_staff_by_search(search: &String) -> Result<StaffImageWrapper, AppError> {
         let query_string: &str = "
-query ($name: String, $limit: Int = 4) {
+query ($name: String, $limit: Int = 9) {
 	Staff(search: $name){
     image{
       large

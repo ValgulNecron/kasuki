@@ -4,19 +4,41 @@ use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateEmbed, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
 };
 use tracing::{info, trace};
 use uuid::Uuid;
 
-use crate::common::get_option::subcommand::get_option_map_string_subcommand;
+use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
-use crate::constant::{COLOR, DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
+use crate::constant::{DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::image_saver::general_image_saver::image_saver;
 use crate::lang_struct::ai::image::load_localization_image;
 
+/// This module contains the implementation of the `run` function for handling AI image generation.
+///
+/// The `run` function is an asynchronous function that handles a command interaction for generating an AI image.
+/// It retrieves the description for the image from the command interaction options and sends a deferred response to the command interaction.
+/// It then generates an AI image based on the description using the OpenAI API and sends a followup message with the generated image.
+///
+/// The `run` function uses several helper functions and constants defined in other modules.
+/// It uses the `get_option_map_string_subcommand_group` function to retrieve the description from the command interaction options.
+/// It uses the `load_localization_image` function to load the localized language data for the guild.
+/// It uses the `image_saver` function to save the generated image.
+/// It uses the `IMAGE_MODELS`, `IMAGE_TOKEN`, and `IMAGE_BASE_URL` constants for the OpenAI API request.
+///
+/// The `run` function handles any errors that occur during the process and returns an `AppError` if an error occurs.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this function is being called.
+/// * `command_interaction` - The command interaction that triggered this function.
+///
+/// # Returns
+///
+/// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -200,9 +222,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
     })?;
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(COLOR)
+    let builder_embed = get_default_embed(None)
         .image(format!("attachment://{}", &filename))
         .title(image_localised.title);
 

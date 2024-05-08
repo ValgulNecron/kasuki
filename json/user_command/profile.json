@@ -1,0 +1,21 @@
+{
+  "name": "profile",
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "profile"
+    },
+    {
+      "code": "fr",
+      "name": "profil"
+    },
+    {
+      "code": "de",
+      "name": "profil"
+    },
+    {
+      "code": "ja",
+      "name": "プロフィール"
+    }
+  ]
+}

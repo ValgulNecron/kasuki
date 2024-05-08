@@ -1,14 +1,27 @@
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
 use crate::anilist_struct::run::staff::StaffWrapper;
+use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand::get_option_map_string_subcommand;
-use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist_user::staff::load_localization_staff;
 
+/// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
+///
+/// This function retrieves the name or ID of the seiyuu from the command interaction and fetches the seiyuu's data from AniList.
+/// It then creates a combined image of the seiyuu and the characters they have voiced, and sends this image as a response to the command interaction.
+/// The function also handles errors that may occur during the execution of the command, such as errors in fetching data from AniList, creating the image, or sending the response.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("staff_name")).ok_or(AppError::new(
@@ -131,9 +144,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .collect::<Vec<String>>()
         .join("\n");
 
-    let builder_embed = CreateEmbed::new()
-        .timestamp(Timestamp::now())
-        .color(COLOR)
+    let builder_embed = get_default_embed(None)
         .description(desc)
         .title(name)
         .url(staff.site_url)
@@ -156,6 +167,21 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })
 }
 
+/// Formats the full name of a character or staff member.
+///
+/// This function takes the English and native names of a character or staff member and formats them into a single string.
+/// If both names are available, they are combined with a slash in between.
+/// If only one name is available, that name is returned.
+/// If neither name is available, `None` is returned.
+///
+/// # Arguments
+///
+/// * `a` - The English name of the character or staff member.
+/// * `b` - The native name of the character or staff member.
+///
+/// # Returns
+///
+/// A `Option<String>` that contains the formatted full name of the character or staff member, or `None` if neither name is available.
 fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {
     match (a, b) {
         (Some(a), Some(b)) => Some(format!("{}/{}", a, b)),

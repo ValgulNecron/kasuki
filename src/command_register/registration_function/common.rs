@@ -1,9 +1,23 @@
-use serenity::all::{CommandOptionType, CreateCommandOption};
+use serenity::all::{CommandOptionType, CreateCommand, CreateCommandOption, Permissions};
 
-use crate::command_register::command_struct::common::{Arg, Choice, ChoiceLocalised, Localised};
+use crate::command_register::command_struct::common::{
+    Arg, Choice, ChoiceLocalised, DefaultPermission, Localised,
+};
 use crate::command_register::command_struct::subcommand::Command;
 use crate::command_register::command_struct::subcommand_group::SubCommand;
 
+/// This function takes a vector of `Arg` structs and returns a vector of `CreateCommandOption` structs.
+/// Each `Arg` struct is converted into a `CreateCommandOption` with the `CommandOptionType` from the `Arg` type.
+/// If the `Arg` has choices, they are converted into `CreateCommandOption` structs and set as sub-options.
+/// If the `Arg` has localised versions, they are added to the `CreateCommandOption`.
+///
+/// # Arguments
+///
+/// * `args` - A vector of `Arg` structs.
+///
+/// # Returns
+///
+/// A vector of `CreateCommandOption` structs.
 pub fn get_option(args: &Vec<Arg>) -> Vec<CreateCommandOption> {
     let mut options = Vec::new();
     for arg in args {
@@ -27,6 +41,16 @@ pub fn get_option(args: &Vec<Arg>) -> Vec<CreateCommandOption> {
     options
 }
 
+/// This function takes a `CreateCommandOption` and a vector of `Localised` structs and returns a `CreateCommandOption` with the localised versions added.
+///
+/// # Arguments
+///
+/// * `option` - A `CreateCommandOption` struct.
+/// * `locales` - A vector of `Localised` structs.
+///
+/// # Returns
+///
+/// A `CreateCommandOption` struct with the localised versions added.
 fn add_localised(mut option: CreateCommandOption, locales: &Vec<Localised>) -> CreateCommandOption {
     for locale in locales {
         option = option
@@ -36,6 +60,16 @@ fn add_localised(mut option: CreateCommandOption, locales: &Vec<Localised>) -> C
     option
 }
 
+/// This function takes a `CreateCommandOption` and a vector of `Choice` structs and returns a `CreateCommandOption` with the choices added.
+///
+/// # Arguments
+///
+/// * `option` - A `CreateCommandOption` struct.
+/// * `choices` - A vector of `Choice` structs.
+///
+/// # Returns
+///
+/// A `CreateCommandOption` struct with the choices added.
 fn add_choices(mut option: CreateCommandOption, choices: &Vec<Choice>) -> CreateCommandOption {
     for choice in choices {
         option = option.add_string_choice(&choice.option_choice, &choice.option_choice);
@@ -47,6 +81,17 @@ fn add_choices(mut option: CreateCommandOption, choices: &Vec<Choice>) -> Create
     option
 }
 
+/// This function takes a `CreateCommandOption`, a slice of `ChoiceLocalised` structs, and a `String` and returns a `CreateCommandOption` with the localised choices added.
+///
+/// # Arguments
+///
+/// * `option` - A `CreateCommandOption` struct.
+/// * `locales` - A slice of `ChoiceLocalised` structs.
+/// * `name` - A `String` representing the name of the choice.
+///
+/// # Returns
+///
+/// A `CreateCommandOption` struct with the localised choices added.
 fn add_choices_localised(
     option: CreateCommandOption,
     locales: &[ChoiceLocalised],
@@ -59,6 +104,18 @@ fn add_choices_localised(
     option.add_string_choice_localized(name, name, vec)
 }
 
+/// This function takes a vector of `Command` structs and returns a vector of `CreateCommandOption` structs.
+/// Each `Command` struct is converted into a `CreateCommandOption` with the `CommandOptionType::SubCommand` type.
+/// If the `Command` has arguments, they are converted into `CreateCommandOption` structs and set as sub-options.
+/// If the `Command` has localised versions, they are added to the `CreateCommandOption`.
+///
+/// # Arguments
+///
+/// * `commands` - A vector of `Command` structs.
+///
+/// # Returns
+///
+/// A vector of `CreateCommandOption` structs.
 pub fn get_subcommand_option(commands: &Vec<Command>) -> Vec<CreateCommandOption> {
     let mut options = Vec::new();
     for command in commands {
@@ -80,6 +137,18 @@ pub fn get_subcommand_option(commands: &Vec<Command>) -> Vec<CreateCommandOption
     options
 }
 
+/// This function takes a vector of `SubCommand` structs and returns a vector of `CreateCommandOption` structs.
+/// Each `SubCommand` struct is converted into a `CreateCommandOption` with the `CommandOptionType::SubCommandGroup` type.
+/// If the `SubCommand` has commands, they are converted into `CreateCommandOption` structs and set as sub-options.
+/// If the `SubCommand` has localised versions, they are added to the `CreateCommandOption`.
+///
+/// # Arguments
+///
+/// * `subcommands` - A vector of `SubCommand` structs.
+///
+/// # Returns
+///
+/// A vector of `CreateCommandOption` structs.
 pub fn get_subcommand_group_option(subcommands: &Vec<SubCommand>) -> Vec<CreateCommandOption> {
     let mut options = Vec::new();
     for subcommand in subcommands {
@@ -102,4 +171,39 @@ pub fn get_subcommand_group_option(subcommands: &Vec<SubCommand>) -> Vec<CreateC
         options.push(option);
     }
     options
+}
+
+/// This function takes an `Option` containing a vector of `DefaultPermission` structs and a `CreateCommand` struct,
+/// and returns a `CreateCommand` with the default member permissions set.
+///
+/// If the `Option` is `Some`, it iterates over the `DefaultPermission` structs, converts each one into a `Permissions` struct,
+/// and combines them using bitwise OR. The combined permissions are then set as the default member permissions of the `CreateCommand`.
+///
+/// If the `Option` is `None`, it returns the `CreateCommand` without modifying it.
+///
+/// # Arguments
+///
+/// * `permissions` - An `Option` containing a vector of `DefaultPermission` structs.
+/// * `command_build` - A `CreateCommand` struct.
+///
+/// # Returns
+///
+/// A `CreateCommand` struct with the default member permissions set.
+pub fn get_permission(
+    permissions: &Option<Vec<DefaultPermission>>,
+    mut command_build: CreateCommand,
+) -> CreateCommand {
+    command_build = match permissions {
+        Some(permissions) => {
+            let mut perm_bit: u64 = 0;
+            for perm in permissions {
+                let permission: Permissions = perm.permission.into();
+                perm_bit |= permission.bits()
+            }
+            let permission = Permissions::from_bits(perm_bit).unwrap();
+            command_build.default_member_permissions(permission)
+        }
+        None => command_build,
+    };
+    command_build
 }

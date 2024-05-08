@@ -8,6 +8,19 @@ use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::user::banner::load_localization_banner;
 
+/// Executes the command to display a user's banner.
+///
+/// This function retrieves the user's name from the command interaction, checks if the user exists,
+/// and then calls the appropriate function to display the banner based on whether the user exists or not.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_user_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
@@ -27,6 +40,20 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     }
 }
 
+/// Sends a response indicating that the user does not have a banner.
+///
+/// This function is called when a user does not have a banner. It creates an embed with a message indicating that the user does not have a banner
+/// and sends it as a response to the command interaction.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `username` - The name of the user.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn no_banner(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -60,6 +87,18 @@ pub async fn no_banner(
         })
 }
 
+/// Executes the command to display a user's banner when no user is specified.
+///
+/// This function retrieves the user who triggered the command and calls the `banner_with_user` function to display their banner.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn banner_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -69,6 +108,20 @@ pub async fn banner_without_user(
     banner_with_user(ctx, command_interaction, user).await
 }
 
+/// Executes the command to display a specified user's banner.
+///
+/// This function retrieves the banner URL of the specified user and calls the `send_embed` function to send an embed with the user's banner.
+/// If the user does not have a banner, it calls the `no_banner` function to send a response indicating that the user does not have a banner.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `user_data` - The user whose banner is to be displayed.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn banner_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -82,6 +135,20 @@ pub async fn banner_with_user(
     send_embed(ctx, command_interaction, banner_url, &user.name).await
 }
 
+/// Sends an embed with a user's banner.
+///
+/// This function creates an embed with the user's banner and sends it as a response to the command interaction.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `banner` - The URL of the user's banner.
+/// * `username` - The name of the user.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,

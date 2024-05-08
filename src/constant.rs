@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::env;
-use std::sync::RwLock;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
-use serde_json::Value;
 use serenity::all::{Colour, CurrentApplicationInfo};
 
 pub const DISCORD_TOKEN: Lazy<String> =
@@ -205,9 +205,9 @@ pub const APP_TUI: Lazy<bool> = Lazy::new(|| {
 });
 
 /// User blacklist for the server image.
-pub static mut USER_BLACKLIST_SERVER_IMAGE: Lazy<RwLock<Vec<String>>> = Lazy::new(|| {
+pub static mut USER_BLACKLIST_SERVER_IMAGE: Lazy<Arc<RwLock<Vec<String>>>> = Lazy::new(|| {
     let user_ids: Vec<String> = Vec::new();
-    RwLock::from(user_ids)
+    Arc::from(RwLock::from(user_ids))
 });
 
 /*

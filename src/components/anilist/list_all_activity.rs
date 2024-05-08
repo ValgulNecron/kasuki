@@ -9,6 +9,23 @@ use crate::database_struct::server_activity::ServerActivity;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist_server::list_all_activity::load_localization_list_activity;
 
+/// Updates the activity list in the server.
+///
+/// This function takes a context, a component interaction, and a page number as parameters.
+/// It retrieves the guild ID from the component interaction and loads the localized activity list.
+/// It then retrieves all server activities and formats them into a list.
+/// The function creates an embed message with the activity list and updates the message with the embed.
+/// If there are more activities than the limit, it adds a button to the message to go to the next page.
+///
+/// # Arguments
+///
+/// * `ctx` - A reference to the context.
+/// * `component_interaction` - A reference to the component interaction.
+/// * `page_number` - A string that represents the current page number.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn update(
     ctx: &Context,
     component_interaction: &ComponentInteraction,
@@ -73,6 +90,20 @@ pub async fn update(
     })
 }
 
+/// Formats a list of server activities into a list of strings.
+///
+/// This function takes a list of server activities and a page number as parameters.
+/// It iterates over the list and formats each activity into a string.
+/// It then skips the activities that are not on the current page and takes the activities that are on the current page.
+///
+/// # Arguments
+///
+/// * `list` - A vector of ServerActivity.
+/// * `actual_page` - A u64 that represents the current page number.
+///
+/// # Returns
+///
+/// * A vector of strings where each string represents a formatted server activity.
 pub fn get_formatted_activity_list(list: Vec<ServerActivity>, actual_page: u64) -> Vec<String> {
     list.into_iter()
         .map(|activity| {

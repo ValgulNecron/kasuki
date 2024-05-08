@@ -1,5 +1,4 @@
-use serde::de::Unexpected::Str;
-use serenity::all::{CommandInteraction, Context, ResolvedValue};
+use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
 
 use crate::command_run::admin::anilist::{add_activity, delete_activity};
@@ -26,25 +25,24 @@ use crate::database::dispatcher::data_dispatch::{
 use crate::database_struct::module_status::ActivationStatusModule;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
+/// Dispatches the command to the appropriate function based on the command name.
+///
+/// This function retrieves the command name from the command interaction and matches it to the appropriate function.
+/// If the command name does not match any of the specified commands, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 pub async fn command_dispatching(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
-    let ai_module_error: AppError = AppError {
-        message: String::from("AI module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
-    let anilist_module_error: AppError = AppError {
-        message: String::from("Anilist module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
-    let game_module_error: AppError = AppError {
-        message: String::from("Game module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
+    // Retrieve the command name from the command interaction
     let command_name = command_interaction
         .data
         .options
@@ -52,6 +50,7 @@ pub async fn command_dispatching(
         .unwrap()
         .name
         .as_str();
+    // Match the command name to the appropriate function
     match command_interaction.data.name.as_str() {
         // anilist_user module
         "admin" => admin(ctx, command_interaction, command_name).await?,
@@ -64,6 +63,7 @@ pub async fn command_dispatching(
         "server" => server(ctx, command_interaction, command_name).await?,
         "steam" => steam(ctx, command_interaction, command_name).await?,
         "user" => user(ctx, command_interaction, command_name).await?,
+        // If the command name does not match any of the specified commands, return an error
         _ => {
             return Err(AppError::new(
                 String::from("Command does not exist."),
@@ -76,6 +76,19 @@ pub async fn command_dispatching(
     Ok(())
 }
 
+/// Checks if a module is activated.
+///
+/// This function retrieves the activation status of a module for a specific guild.
+/// It checks both the activation status and the kill switch status of the module.
+///
+/// # Arguments
+///
+/// * `guild_id` - The ID of the guild.
+/// * `module` - The name of the module.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the module is activated, or `Err` if an error occurred.
 pub async fn check_if_module_is_on(guild_id: String, module: &str) -> Result<bool, AppError> {
     let row: ActivationStatusModule = get_data_module_activation_status(&guild_id).await?;
     let state = check_activation_status(module, row).await;
@@ -83,11 +96,36 @@ pub async fn check_if_module_is_on(guild_id: String, module: &str) -> Result<boo
     Ok(state)
 }
 
+/// Checks the kill switch status of a module.
+///
+/// This function retrieves the kill switch status of a module.
+///
+/// # Arguments
+///
+/// * `module` - The name of the module.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the kill switch is not activated, or `Err` if an error occurred.
 async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
     let row: ActivationStatusModule = get_data_module_activation_kill_switch_status().await?;
     Ok(check_activation_status(module, row).await)
 }
 
+/// Executes the admin command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn admin(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -127,6 +165,20 @@ async fn admin(
     }
 }
 
+/// Executes the admin command for the Anilist module.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn anilist_admin(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -143,6 +195,20 @@ async fn anilist_admin(
     }
 }
 
+/// Executes the general admin command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn general_admin(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -159,28 +225,48 @@ async fn general_admin(
     }
 }
 
+/// Executes the AI command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+/// It also checks if the AI module is activated for the guild. If not, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn ai(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
 ) -> Result<(), AppError> {
+    // Define the error for when the AI module is off
     let ai_module_error: AppError = AppError {
         message: String::from("AI module is off."),
         error_type: ErrorType::Module,
         error_response_type: ErrorResponseType::Message,
     };
+    // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
+    // Check if the AI module is on for the guild
     if !check_if_module_is_on(guild_id, "AI").await? {
         return Err(ai_module_error);
     }
+    // Match the command name to the appropriate function
     match command_name {
         "image" => image::run(ctx, command_interaction).await,
         "transcript" => transcript::run(ctx, command_interaction).await,
         "translation" => translation::run(ctx, command_interaction).await,
         "question" => question::run(ctx, command_interaction).await,
+        // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -189,26 +275,46 @@ async fn ai(
     }
 }
 
+/// Executes the Anilist server command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+/// It also checks if the Anilist module is activated for the guild. If not, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn anilist_server(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
 ) -> Result<(), AppError> {
+    // Define the error for when the Anilist module is off
     let anilist_module_error: AppError = AppError {
         message: String::from("Anilist module is off."),
         error_type: ErrorType::Module,
         error_response_type: ErrorResponseType::Message,
     };
+    // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
+    // Check if the Anilist module is on for the guild
     if !check_if_module_is_on(guild_id, "ANIME").await? {
         return Err(anilist_module_error);
     }
+    // Match the command name to the appropriate function
     match command_name {
         "list_user" => list_register_user::run(ctx, command_interaction).await,
         "list_activity" => list_all_activity::run(ctx, command_interaction).await,
+        // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -217,23 +323,42 @@ async fn anilist_server(
     }
 }
 
+/// Executes the Anilist user command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+/// It also checks if the Anilist module is activated for the guild. If not, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn anilist_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
 ) -> Result<(), AppError> {
+    // Define the error for when the Anilist module is off
     let anilist_module_error: AppError = AppError {
         message: String::from("Anilist module is off."),
         error_type: ErrorType::Module,
         error_response_type: ErrorResponseType::Message,
     };
+    // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
+    // Check if the Anilist module is on for the guild
     if !check_if_module_is_on(guild_id, "ANIME").await? {
         return Err(anilist_module_error);
     }
+    // Match the command name to the appropriate function
     match command_name {
         "anime" => anime::run(ctx, command_interaction).await,
         "ln" => ln::run(ctx, command_interaction).await,
@@ -249,6 +374,7 @@ async fn anilist_user(
         "search" => search::run(ctx, command_interaction).await,
         "seiyuu" => seiyuu::run(ctx, command_interaction).await,
         "level" => level::run(ctx, command_interaction).await,
+        // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -257,25 +383,45 @@ async fn anilist_user(
     }
 }
 
+/// Executes the Anime command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+/// It also checks if the Anime module is activated for the guild. If not, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn anime(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
 ) -> Result<(), AppError> {
+    // Define the error for when the Anime module is off
     let anime_module_error: AppError = AppError {
         message: String::from("Anime module is off."),
         error_type: ErrorType::Module,
         error_response_type: ErrorResponseType::Message,
     };
+    // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
+    // Check if the Anime module is on for the guild
     if !check_if_module_is_on(guild_id, "ANIME").await? {
         return Err(anime_module_error);
     }
+    // Match the command name to the appropriate function
     match command_name {
         "random_image" => random_image::run(ctx, command_interaction).await,
+        // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -284,25 +430,45 @@ async fn anime(
     }
 }
 
+/// Executes the Anime NSFW command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+/// It also checks if the Anime NSFW module is activated for the guild. If not, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn anime_nsfw(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
 ) -> Result<(), AppError> {
+    // Define the error for when the Anime NSFW module is off
     let anime_module_error: AppError = AppError {
         message: String::from("Anime module is off."),
         error_type: ErrorType::Module,
         error_response_type: ErrorResponseType::Message,
     };
+    // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
+    // Check if the Anime NSFW module is on for the guild
     if !check_if_module_is_on(guild_id, "ANIME").await? {
         return Err(anime_module_error);
     }
+    // Match the command name to the appropriate function
     match command_name {
         "random_nsfw_image" => random_nsfw_image::run(ctx, command_interaction).await,
+        // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -311,15 +477,31 @@ async fn anime_nsfw(
     }
 }
 
+/// Executes the Bot command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn bot(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
 ) -> Result<(), AppError> {
+    // Match the command name to the appropriate function
     match command_name {
         "credit" => credit::run(ctx, command_interaction).await,
         "info" => info::run(ctx, command_interaction).await,
         "ping" => ping::run(ctx, command_interaction).await,
+        // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -328,6 +510,20 @@ async fn bot(
     }
 }
 
+/// Executes the server command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn server(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -344,6 +540,22 @@ async fn server(
         )),
     }
 }
+
+/// Executes the steam command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+/// It also checks if the Game module is activated for the guild. If not, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn steam(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -371,6 +583,20 @@ async fn steam(
     }
 }
 
+/// Executes the user command.
+///
+/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
+/// If the subcommand does not match any of the specified subcommands, it returns an error.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `command_name` - The name of the command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn user(
     ctx: &Context,
     command_interaction: &CommandInteraction,

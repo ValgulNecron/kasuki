@@ -7,6 +7,19 @@ use crate::database_struct::server_activity::{ServerActivity, ServerActivityFull
 use crate::database_struct::user_color::UserColor;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
+/// Inserts or updates a ping history record in the PostgreSQL database.
+///
+/// This function takes two parameters: `shard_id` and `latency`.
+/// It inserts these values into the `DATA.ping_history` table. If a record with the same `shard_id` already exists, it updates the existing record with the new values.
+///
+/// # Parameters
+///
+/// * `shard_id`: A `String` that represents the shard id of the ping history record.
+/// * `latency`: A `String` that represents the latency of the ping history record.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_ping_history_postgresql(
     shard_id: String,
     latency: String,
@@ -31,6 +44,18 @@ pub async fn set_data_ping_history_postgresql(
     Ok(())
 }
 
+/// Retrieves a guild language record from the PostgreSQL database.
+///
+/// This function takes a `guild_id` parameter which is used to query the database.
+/// It fetches the `lang` and `guild` fields from the `DATA.guild_lang` table where the `guild` matches the input `guild_id`.
+///
+/// # Parameters
+///
+/// * `guild_id`: A `String` that represents the guild id of the guild language record.
+///
+/// # Returns
+///
+/// * A Result that is either a tuple containing Option<String>, Option<String> if the operation was successful and the guild language record exists, or (None, None) if the guild language record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_guild_language_postgresql(
     guild_id: String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
@@ -45,6 +70,19 @@ pub async fn get_data_guild_language_postgresql(
     Ok(row)
 }
 
+/// Sets a guild language record in the PostgreSQL database.
+///
+/// This function takes two parameters: `guild_id` and `lang`.
+/// It inserts these values into the `DATA.guild_lang` table. If a record with the same `guild_id` already exists, it updates the existing record with the new `lang`.
+///
+/// # Parameters
+///
+/// * `guild_id`: A `String` reference that represents the guild id of the guild language record.
+/// * `lang`: A `String` reference that represents the language of the guild language record.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_guild_language_postgresql(
     guild_id: &String,
     lang: &String,
@@ -67,6 +105,18 @@ pub async fn set_data_guild_language_postgresql(
     Ok(())
 }
 
+/// Retrieves activity data records from the PostgreSQL database.
+///
+/// This function takes a `now` parameter which is used to query the database.
+/// It fetches all fields from the `DATA.activity_data` table where the `timestamp` matches the input `now`.
+///
+/// # Parameters
+///
+/// * `now`: A `String` that represents the timestamp of the activity data records.
+///
+/// # Returns
+///
+/// * A Result that is either a Vec<ActivityData> if the operation was successful and the activity data records exist, or an empty Vec<ActivityData> if the activity data records do not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_activity_postgresql(now: String) -> Result<Vec<ActivityData>, AppError> {
     let pool = get_postgresql_pool().await?;
     let rows: Vec<ActivityData> = sqlx::query_as(
@@ -79,6 +129,18 @@ pub async fn get_data_activity_postgresql(now: String) -> Result<Vec<ActivityDat
     Ok(rows)
 }
 
+/// Inserts or updates an activity data record in the PostgreSQL database.
+///
+/// This function takes a `server_activity_full` parameter of type `ServerActivityFull`.
+/// It inserts these values into the `DATA.activity_data` table. If a record with the same `anime_id` already exists, it updates the existing record with the new values.
+///
+/// # Parameters
+///
+/// * `server_activity_full`: A `ServerActivityFull` that represents the activity data record.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_activity_postgresql(
     server_activity_full: ServerActivityFull,
 ) -> Result<(), AppError> {
@@ -106,6 +168,18 @@ pub async fn set_data_activity_postgresql(
     Ok(())
 }
 
+/// Retrieves a module activation status record from the PostgreSQL database.
+///
+/// This function takes a `guild_id` parameter which is used to query the database.
+/// It fetches all fields from the `DATA.module_activation` table where the `guild` matches the input `guild_id`.
+///
+/// # Parameters
+///
+/// * `guild_id`: A `String` reference that represents the guild id of the module activation status record.
+///
+/// # Returns
+///
+/// * A Result that is either an ActivationStatusModule if the operation was successful and the module activation status record exists, or an ActivationStatusModule with None fields if the module activation status record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_module_activation_status_postgresql(
     guild_id: &String,
 ) -> Result<ActivationStatusModule, AppError> {
@@ -128,6 +202,22 @@ pub async fn get_data_module_activation_status_postgresql(
     Ok(row)
 }
 
+/// Sets a module activation status record in the PostgreSQL database.
+///
+/// This function takes four parameters: `guild_id`, `anilist_value`, `ai_value`, `game_value`, and `new_member_value`.
+/// It inserts these values into the `DATA.module_activation` table. If a record with the same `guild_id` already exists, it updates the existing record with the new values.
+///
+/// # Parameters
+///
+/// * `guild_id`: A `String` reference that represents the guild id of the module activation status record.
+/// * `anilist_value`: A `bool` that represents the activation status of the Anilist module.
+/// * `ai_value`: A `bool` that represents the activation status of the AI module.
+/// * `game_value`: A `bool` that represents the activation status of the Game module.
+/// * `new_member_value`: A `bool` that represents the activation status of the New Member module.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_module_activation_status_postgresql(
     guild_id: &String,
     anilist_value: bool,
@@ -157,6 +247,19 @@ pub async fn set_data_module_activation_status_postgresql(
     Ok(())
 }
 
+/// Removes an activity data record from the PostgreSQL database.
+///
+/// This function takes two parameters: `server_id` and `anime_id`.
+/// It deletes the record from the `DATA.activity_data` table where the `anime_id` and `server_id` match the input parameters.
+///
+/// # Parameters
+///
+/// * `server_id`: A `String` that represents the server id of the activity data record.
+/// * `anime_id`: A `String` that represents the anime id of the activity data record.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn remove_data_activity_status_postgresql(
     server_id: String,
     anime_id: String,
@@ -179,6 +282,13 @@ pub async fn remove_data_activity_status_postgresql(
     Ok(())
 }
 
+/// Retrieves the module activation status for the kill switch from the PostgreSQL database.
+///
+/// This function queries the `DATA.module_activation` table where the `guild` is 1 (representing the kill switch).
+///
+/// # Returns
+///
+/// * A Result that is either an ActivationStatusModule if the operation was successful and the module activation status record exists, or an ActivationStatusModule with None fields if the module activation status record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_module_activation_kill_switch_status_postgresql(
 ) -> Result<ActivationStatusModule, AppError> {
     let pool = get_postgresql_pool().await?;
@@ -201,6 +311,19 @@ pub async fn get_data_module_activation_kill_switch_status_postgresql(
     Ok(row)
 }
 
+/// Retrieves a specific activity data record from the PostgreSQL database.
+///
+/// This function takes two parameters: `server_id` and `anime_id`.
+/// It fetches the `anime_id`, `timestamp`, and `server_id` fields from the `DATA.activity_data` table where the `anime_id` and `server_id` match the input parameters.
+///
+/// # Parameters
+///
+/// * `server_id`: A `String` that represents the server id of the activity data record.
+/// * `anime_id`: An `i32` that represents the anime id of the activity data record.
+///
+/// # Returns
+///
+/// * A Result that is either a tuple containing Option<String>, Option<String>, Option<String> if the operation was successful and the activity data record exists, or (None, None, None) if the activity data record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_one_activity_postgresql(
     server_id: String,
     anime_id: i32,
@@ -220,6 +343,18 @@ pub async fn get_one_activity_postgresql(
     Ok(row)
 }
 
+/// Retrieves a registered user record from the PostgreSQL database.
+///
+/// This function takes a `user_id` parameter which is used to query the database.
+/// It fetches the `anilist_id` and `user_id` fields from the `DATA.registered_user` table where the `user_id` matches the input `user_id`.
+///
+/// # Parameters
+///
+/// * `user_id`: A `String` reference that represents the user id of the registered user record.
+///
+/// # Returns
+///
+/// * A Result that is either a tuple containing Option<String>, Option<String> if the operation was successful and the registered user record exists, or (None, None) if the registered user record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_registered_user_postgresql(
     user_id: &String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
@@ -235,6 +370,19 @@ pub async fn get_registered_user_postgresql(
     Ok(row)
 }
 
+/// Sets a registered user record in the PostgreSQL database.
+///
+/// This function takes two parameters: `user_id` and `username`.
+/// It inserts these values into the `DATA.registered_user` table. If a record with the same `user_id` already exists, it updates the existing record with the new `username`.
+///
+/// # Parameters
+///
+/// * `user_id`: A `String` reference that represents the user id of the registered user record.
+/// * `username`: A `String` reference that represents the username of the registered user record.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_registered_user_postgresql(
     user_id: &String,
     username: &String,
@@ -258,6 +406,21 @@ pub async fn set_registered_user_postgresql(
     Ok(())
 }
 
+/// Sets a user's approximated color record in the PostgreSQL database.
+///
+/// This function takes four parameters: `user_id`, `color`, `pfp_url`, and `image`.
+/// It inserts these values into the `DATA.user_color` table. If a record with the same `user_id` already exists, it updates the existing record with the new values.
+///
+/// # Parameters
+///
+/// * `user_id`: A `String` reference that represents the user id of the user color record.
+/// * `color`: A `String` reference that represents the approximated color of the user.
+/// * `pfp_url`: A `String` reference that represents the profile picture URL of the user.
+/// * `image`: A `String` reference that represents the image of the user.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_user_approximated_color_postgresql(
     user_id: &String,
     color: &String,
@@ -285,6 +448,18 @@ pub async fn set_user_approximated_color_postgresql(
     Ok(())
 }
 
+/// Retrieves a user's approximated color record from the PostgreSQL database.
+///
+/// This function takes a `user_id` parameter which is used to query the database.
+/// It fetches the `user_id`, `color`, `pfp_url`, and `image` fields from the `DATA.user_color` table where the `user_id` matches the input `user_id`.
+///
+/// # Parameters
+///
+/// * `user_id`: A `String` reference that represents the user id of the user color record.
+///
+/// # Returns
+///
+/// * A Result that is either a UserColor if the operation was successful and the user color record exists, or a UserColor with None fields if the user color record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_user_approximated_color_postgresql(
     user_id: &String,
 ) -> Result<UserColor, AppError> {
@@ -306,6 +481,18 @@ pub async fn get_user_approximated_color_postgresql(
     Ok(row)
 }
 
+/// Retrieves all server activity records associated with a specific server from the PostgreSQL database.
+///
+/// This function takes a `server_id` parameter which is used to query the database.
+/// It fetches all fields from the `DATA.activity_data` table where the `server_id` matches the input `server_id`.
+///
+/// # Parameters
+///
+/// * `server_id`: A `String` reference that represents the server id of the activity data records.
+///
+/// # Returns
+///
+/// * A Result that is either a Vec<ServerActivity> if the operation was successful and the activity data records exist, or an empty Vec<ServerActivity> if the activity data records do not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_all_server_activity_postgresql(
     server_id: &String,
 ) -> Result<Vec<ServerActivity>, AppError> {
@@ -331,6 +518,18 @@ pub async fn get_all_server_activity_postgresql(
     Ok(rows)
 }
 
+/// Retrieves all activity data records associated with a specific server from the PostgreSQL database.
+///
+/// This function takes a `server_id` parameter which is used to query the database.
+/// It fetches the `anime_id` and `name` fields from the `DATA.activity_data` table where the `server_id` matches the input `server_id`.
+///
+/// # Parameters
+///
+/// * `server_id`: A `String` reference that represents the server id of the activity data records.
+///
+/// # Returns
+///
+/// * A Result that is either a Vec<(String, String)> if the operation was successful and the activity data records exist, or an empty Vec<(String, String)> if the activity data records do not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_all_activity_by_server_postgresql(
     server_id: &String,
 ) -> Result<Vec<(String, String)>, AppError> {
@@ -350,6 +549,13 @@ pub async fn get_data_all_activity_by_server_postgresql(
     Ok(rows)
 }
 
+/// Retrieves all user's approximated color records from the PostgreSQL database.
+///
+/// This function queries the `DATA.user_color` table and fetches all records.
+///
+/// # Returns
+///
+/// * A Result that is either a Vec<UserColor> if the operation was successful and the user color records exist, or a Vec<UserColor> with None fields if the user color records do not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_all_user_approximated_color_postgres() -> Result<Vec<UserColor>, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: Vec<UserColor> =
@@ -367,6 +573,21 @@ pub async fn get_all_user_approximated_color_postgres() -> Result<Vec<UserColor>
     Ok(row)
 }
 
+/// Sets a server image record in the PostgreSQL database.
+///
+/// This function takes four parameters: `server_id`, `image_type`, `image`, and `image_url`.
+/// It inserts these values into the `DATA.server_image` table. If a record with the same `server_id` and `image_type` already exists, it updates the existing record with the new `image`.
+///
+/// # Parameters
+///
+/// * `server_id`: A `String` reference that represents the server id of the server image record.
+/// * `image_type`: A `String` reference that represents the type of the server image record.
+/// * `image`: A `String` reference that represents the image of the server image record.
+/// * `image_url`: A `String` reference that represents the image URL of the server image record.
+///
+/// # Returns
+///
+/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_server_image_postgresql(
     server_id: &String,
     image_type: &String,
@@ -394,6 +615,19 @@ pub async fn set_server_image_postgresql(
     Ok(())
 }
 
+/// Retrieves a server image record from the PostgreSQL database.
+///
+/// This function takes two parameters: `server_id` and `image_type`.
+/// It fetches the `image_url` and `image` fields from the `DATA.server_image` table where the `server_id` and `image_type` match the input parameters.
+///
+/// # Parameters
+///
+/// * `server_id`: A `String` reference that represents the server id of the server image record.
+/// * `image_type`: A `String` reference that represents the type of the server image record.
+///
+/// # Returns
+///
+/// * A Result that is either a tuple containing Option<String>, Option<String> if the operation was successful and the server image record exists, or (None, None) if the server image record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_server_image_postgresql(
     server_id: &String,
     image_type: &String,

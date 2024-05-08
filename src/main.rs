@@ -1,8 +1,9 @@
-use serde_json::Value;
 use std::env;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use std::time::Duration;
+use tokio::sync::RwLock;
 
+use serde_json::Value;
 use serenity::all::{
     ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready,
     ShardManager,
@@ -30,7 +31,7 @@ use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::game_struct::steam_game_id_struct::{get_game, App};
+use crate::game_struct::steam_game_id_struct::get_game;
 use crate::grpc_server::launcher::grpc_server_launcher;
 use crate::logger::{create_log_directory, init_logger};
 use crate::new_member::new_member;
@@ -40,6 +41,7 @@ use crate::user_command_run::dispatch::dispatch_user_command;
 
 mod activity;
 mod anilist_struct;
+mod cache;
 mod command_autocomplete;
 mod command_register;
 mod command_run;
@@ -56,7 +58,7 @@ mod lang_struct;
 mod logger;
 mod new_member;
 mod server_image;
-pub mod struct_shard_manager;
+mod struct_shard_manager;
 mod tui;
 mod user_command_run;
 
@@ -384,6 +386,11 @@ async fn thread_management_launcher(ctx: Context) {
     tokio::spawn(launch_activity_management_thread(ctx.clone()));
     // Spawn a new thread for steam management
     tokio::spawn(launch_game_management_thread());
+    // Spawn a new thread for updating the user blacklist
+    unsafe {
+        let local_user_blacklist = USER_BLACKLIST_SERVER_IMAGE.clone();
+        tokio::spawn(update_user_blacklist(local_user_blacklist));
+    }
 
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
@@ -488,26 +495,34 @@ async fn launch_server_image_management_thread(ctx: Context) {
     }
 }
 
-async fn update_user_blacklist() {
+async fn update_user_blacklist(user_blacklist_server_image: Arc<RwLock<Vec<String>>>) {
     info!("Launching the user blacklist update thread!");
-    unsafe {
-        loop {
-            // get a write lock on USER_BLACKLIST_SERVER_IMAGE
-            let mut user_blacklist = USER_BLACKLIST_SERVER_IMAGE.write().unwrap();
-            // get the new blacklist
-            let file_url =
-                "https://raw.githubusercontent.com/ValgulNecron/kasuki/dev/blacklist.json";
-            let blacklist = reqwest::get(file_url).await.unwrap().json().await.unwrap();
-            let parsed_json: Value = serde_json::from_value(blacklist).unwrap();
-            let user_ids: Vec<String> = parsed_json["user_id"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .map(|x| x.as_str().unwrap().to_string())
-                .collect();
-            // update the USER_BLACKLIST_SERVER_IMAGE
-            *user_blacklist = user_ids;
-            sleep(Duration::from_secs(3600)).await;
-        }
+
+    loop {
+        // Get a write lock on USER_BLACKLIST_SERVER_IMAGE
+        let mut user_blacklist = user_blacklist_server_image.write().await;
+
+        // Perform operations on the data while holding the lock
+        let file_url = "https://raw.githubusercontent.com/ValgulNecron/kasuki/dev/blacklist.json";
+        let blacklist = reqwest::get(file_url)
+            .await
+            .unwrap()
+            .json::<Value>()
+            .await
+            .unwrap();
+        let user_ids: Vec<String> = blacklist["user_id"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|x| x.as_str().unwrap().to_string())
+            .collect();
+
+        // Update the USER_BLACKLIST_SERVER_IMAGE
+        *user_blacklist = user_ids;
+
+        // Release the lock before sleeping
+        drop(user_blacklist);
+
+        sleep(Duration::from_secs(3600)).await;
     }
 }

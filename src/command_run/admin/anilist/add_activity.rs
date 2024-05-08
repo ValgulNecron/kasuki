@@ -15,7 +15,7 @@ use serenity::all::{
 use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
-use crate::common::get_option::subcommand::get_option_map_string_subcommand;
+use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::common::trimer::trim_webhook;
 use crate::constant::COLOR;
@@ -24,6 +24,22 @@ use crate::database_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::admin::anilist::add_activity::load_localization_add_activity;
 
+/// This asynchronous function gets or creates a webhook for a given channel.
+///
+/// It first checks if a webhook already exists for the channel. If it does, it returns the URL of the existing webhook.
+/// If a webhook does not exist, it creates a new one with the given image and name, and returns its URL.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this function is being called.
+/// * `channel_id` - The ID of the channel for which to get or create the webhook.
+/// * `image` - The image to use for the webhook.
+/// * `base64` - The base64 representation of the image.
+/// * `anime_name` - The name to use for the webhook.
+///
+/// # Returns
+///
+/// A `Result` containing either the URL of the webhook if it is successfully retrieved or created, or an `AppError` if an error occurs.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand_group(command_interaction);
     let delay = map
@@ -149,9 +165,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })
         .await?;
 
-        let builder_embed = CreateEmbed::new()
-            .timestamp(Timestamp::now())
-            .color(COLOR)
+        let builder_embed = get_default_embed(None)
             .title(&add_activity_localised.success)
             .url(format!("https://anilist.co/anime/{}", media.id))
             .description(
@@ -176,6 +190,19 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     }
 }
 
+/// This asynchronous function checks if an activity exists for a given anime and server.
+///
+/// It first calls the `get_one_activity` function to retrieve the activity for the given anime and server.
+/// If the activity exists, it returns true. If the activity does not exist, it returns false.
+///
+/// # Arguments
+///
+/// * `anime_id` - The ID of the anime to check.
+/// * `server_id` - The ID of the server to check.
+///
+/// # Returns
+///
+/// A boolean indicating whether the activity exists.
 async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
     let row: (Option<String>, Option<String>, Option<String>) =
         get_one_activity(anime_id, server_id)
@@ -184,6 +211,18 @@ async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
     !(row.0.is_none() && row.1.is_none() && row.2.is_none())
 }
 
+/// This function gets the name of an anime from a `Title` struct.
+///
+/// It first checks if the English and Romaji titles exist. If they do, it concatenates them with a " / " separator.
+/// If only one of them exists, it returns that one. If neither exist, it returns an empty string.
+///
+/// # Arguments
+///
+/// * `title` - A `Title` struct containing the English and Romaji titles of the anime.
+///
+/// # Returns
+///
+/// A string representing the name of the anime.
 pub fn get_name(title: Title) -> String {
     let en = title.english.clone();
     let rj = title.romaji.clone();
@@ -213,6 +252,22 @@ pub fn get_name(title: Title) -> String {
     title
 }
 
+/// This asynchronous function gets or creates a webhook for a given channel.
+///
+/// It first checks if a webhook already exists for the channel. If it does, it returns the URL of the existing webhook.
+/// If a webhook does not exist, it creates a new one with the given image and name, and returns its URL.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this function is being called.
+/// * `channel_id` - The ID of the channel for which to get or create the webhook.
+/// * `image` - The image to use for the webhook.
+/// * `base64` - The base64 representation of the image.
+/// * `anime_name` - The name to use for the webhook.
+///
+/// # Returns
+///
+/// A `Result` containing either the URL of the webhook if it is successfully retrieved or created, or an `AppError` if an error occurs.
 async fn get_webhook(
     ctx: &Context,
     channel_id: ChannelId,

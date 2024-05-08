@@ -1,6 +1,18 @@
 use serde::{Deserialize, Serialize};
 use serenity::all::{CommandOptionType, Permissions};
 
+/// The `Arg` struct represents an argument that a command can accept.
+/// It is derived from `Debug`, `Serialize`, `Deserialize`, and `Clone` traits.
+///
+/// # Fields
+///
+/// * `name` - The name of the argument as a `String`.
+/// * `desc` - The description of the argument as a `String`.
+/// * `arg_type` - The type of the argument as a `RemoteCommandOptionType`.
+/// * `required` - A `bool` indicating whether the argument is required.
+/// * `autocomplete` - A `bool` indicating whether the argument supports autocomplete.
+/// * `choices` - An `Option` containing a `Vec` of `Choice` which represents the choices that the argument can accept.
+/// * `localised` - An `Option` containing a `Vec` of `Localised` which represents the localised versions of the argument.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Arg {
     pub name: String,
@@ -12,6 +24,14 @@ pub struct Arg {
     pub localised: Option<Vec<Localised>>,
 }
 
+/// The `Localised` struct represents a localised version of a command or an argument.
+/// It is derived from `Debug`, `Serialize`, `Deserialize`, and `Clone` traits.
+///
+/// # Fields
+///
+/// * `code` - The language code as a `String`.
+/// * `name` - The name in the localised language as a `String`.
+/// * `desc` - The description in the localised language as a `String`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Localised {
     pub code: String,
@@ -19,24 +39,46 @@ pub struct Localised {
     pub desc: String,
 }
 
+/// The `Choice` struct represents a choice that an argument can accept.
+/// It is derived from `Debug`, `Serialize`, `Deserialize`, and `Clone` traits.
+///
+/// # Fields
+///
+/// * `option_choice` - The choice as a `String`.
+/// * `option_choice_localised` - An `Option` containing a `Vec` of `ChoiceLocalised` which represents the localised versions of the choice.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Choice {
     pub option_choice: String,
     pub option_choice_localised: Option<Vec<ChoiceLocalised>>,
 }
 
+/// The `ChoiceLocalised` struct represents a localised version of a choice.
+/// It is derived from `Debug`, `Serialize`, `Deserialize`, and `Clone` traits.
+///
+/// # Fields
+///
+/// * `code` - The language code as a `String`.
+/// * `name` - The choice in the localised language as a `String`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChoiceLocalised {
     pub code: String,
     pub name: String,
 }
 
+/// The `DefaultPermission` struct represents a permission required to execute a command.
+/// It is derived from `Debug`, `Serialize`, `Deserialize`, and `Clone` traits.
+///
+/// # Fields
+///
+/// * `permission` - The permission as a `RemotePermissionType`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DefaultPermission {
     #[serde(with = "RemotePermissionType")]
     pub permission: RemotePermissionType,
 }
 
+/// The `RemoteCommandOptionType` enum represents the type of an argument.
+/// It is derived from `Debug`, `Serialize`, `Deserialize`, `Clone`, `Copy`, and `PartialEq` traits.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub enum RemoteCommandOptionType {
     SubCommand,
@@ -53,6 +95,16 @@ pub enum RemoteCommandOptionType {
     Unknown(u8),
 }
 
+/// Implementation of the `From` trait for `RemoteCommandOptionType` to `CommandOptionType`.
+/// This allows for easy conversion from `RemoteCommandOptionType` to `CommandOptionType`.
+///
+/// # Arguments
+///
+/// * `remote` - A `RemoteCommandOptionType` that will be converted to `CommandOptionType`.
+///
+/// # Returns
+///
+/// A `CommandOptionType` that corresponds to the given `RemoteCommandOptionType`.
 impl From<RemoteCommandOptionType> for CommandOptionType {
     fn from(remote: RemoteCommandOptionType) -> Self {
         match remote {
@@ -72,6 +124,17 @@ impl From<RemoteCommandOptionType> for CommandOptionType {
     }
 }
 
+/// Implementation of the `From` trait for `CommandOptionType` to `RemoteCommandOptionType`.
+/// This allows for easy conversion from `CommandOptionType` to `RemoteCommandOptionType`.
+///
+/// # Arguments
+///
+/// * `original` - A `CommandOptionType` that will be converted to `RemoteCommandOptionType`.
+///
+/// # Returns
+///
+/// A `RemoteCommandOptionType` that corresponds to the given `CommandOptionType`.
+/// If the `CommandOptionType` does not have a corresponding `RemoteCommandOptionType`, it defaults to `RemoteCommandOptionType::String`.
 impl From<CommandOptionType> for RemoteCommandOptionType {
     fn from(original: CommandOptionType) -> Self {
         match original {
@@ -92,6 +155,8 @@ impl From<CommandOptionType> for RemoteCommandOptionType {
     }
 }
 
+/// The `RemotePermissionType` enum represents the type of a permission.
+/// It is derived from `Debug`, `Serialize`, `Deserialize`, `Clone`, `Copy`, and `PartialEq` traits.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub enum RemotePermissionType {
     CreateInstantInvite,
@@ -145,6 +210,18 @@ pub enum RemotePermissionType {
     Unknown,
 }
 
+/// Implementation of the `From` trait for `RemotePermissionType` to `Permissions`.
+/// This allows for easy conversion from `RemotePermissionType` to `Permissions`.
+///
+/// # Arguments
+///
+/// * `remote` - A `RemotePermissionType` that will be converted to `Permissions`.
+///
+/// # Returns
+///
+/// A `Permissions` that corresponds to the given `RemotePermissionType`.
+/// The conversion is done by matching each variant of `RemotePermissionType` to its corresponding variant in `Permissions`.
+/// If the `RemotePermissionType` is `Unknown`, it returns an empty `Permissions`.
 impl From<RemotePermissionType> for Permissions {
     fn from(remote: RemotePermissionType) -> Self {
         match remote {

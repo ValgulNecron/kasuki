@@ -1,9 +1,11 @@
+use std::collections::HashMap;
+use std::fs;
+
+use serde::{Deserialize, Serialize};
+
 // Importing necessary libraries and modules
 use crate::common::get_guild_lang::get_guild_langage;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::fs;
 
 /// StaffLocalised struct represents a staff's localized data.
 /// It contains fields for two titles, description, date of birth, and date of death.

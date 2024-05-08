@@ -8,6 +8,20 @@ use crate::command_register::registration_function::register_subcommand::creates
 use crate::command_register::registration_function::register_subcommand_group::creates_subcommands_group;
 use crate::command_register::registration_function::register_user_command::creates_user_command;
 
+/// This asynchronous function dispatches the creation and deletion of commands in Discord.
+///
+/// If the `is_ok` parameter is true, it first calls the `delete_command` function to delete all existing global commands in Discord.
+///
+/// It then logs a message indicating that it is starting to create commands.
+///
+/// It calls the `creates_commands`, `creates_subcommands`, `creates_subcommands_group`, and `creates_user_command` functions in order to create global commands, subcommands, subcommand groups, and user commands in Discord, respectively.
+///
+/// Finally, it logs a message indicating that it has finished creating commands.
+///
+/// # Arguments
+///
+/// * `http` - An `Arc<Http>` instance used to send the commands to the Discord API.
+/// * `is_ok` - A boolean indicating whether to delete all existing global commands in Discord before creating new ones.
 pub async fn command_dispatcher(http: &Arc<Http>, is_ok: bool) {
     if is_ok {
         delete_command(http).await;
@@ -22,6 +36,19 @@ pub async fn command_dispatcher(http: &Arc<Http>, is_ok: bool) {
     info!("Done creating commands")
 }
 
+/// This asynchronous function deletes all existing global commands in Discord.
+///
+/// It first logs a message indicating that it is starting to delete commands.
+///
+/// It then retrieves all existing global commands in Discord and iterates over each one.
+/// For each command, it logs a trace message indicating that it is removing the command and then calls the `delete_global_command` function to delete the command.
+/// If an error occurs during this process, it logs the error and returns early.
+///
+/// Finally, it logs a message indicating that it has finished deleting commands.
+///
+/// # Arguments
+///
+/// * `http` - An `Arc<Http>` instance used to send the delete command requests to the Discord API.
 async fn delete_command(http: &Arc<Http>) {
     info!("Started deleting command");
     let cmds = Command::get_global_commands(http).await.unwrap();

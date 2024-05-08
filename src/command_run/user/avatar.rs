@@ -3,17 +3,34 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp, User,
 };
 
+use crate::common::default_embed::get_default_embed;
 use crate::common::get_option::subcommand::get_option_map_user_subcommand;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::user::avatar::load_localization_avatar;
 
+/// Executes the command to display a user's avatar.
+///
+/// This function retrieves the user's name from the command interaction, checks if the user exists,
+/// and then calls the appropriate function to display the avatar based on whether the user exists or not.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+    // Retrieve the user's name from the command interaction
     let map = get_option_map_user_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
 
+    // Check if the user exists
     match user {
         Some(user) => {
+            // If the user exists, retrieve the user's information and display their avatar
             let user = user.to_user(&ctx.http).await.map_err(|e| {
                 AppError::new(
                     format!("Could not get the user. {}", e),
@@ -23,18 +40,49 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             })?;
             avatar_with_user(ctx, command_interaction, &user).await
         }
-        None => avatar_without_user(ctx, command_interaction).await,
+        None => {
+            // If the user does not exist, display the avatar of the user who triggered the command
+            avatar_without_user(ctx, command_interaction).await
+        }
     }
 }
 
+/// Displays the avatar of the user who triggered the command.
+///
+/// This function retrieves the user who triggered the command and calls the function to display their avatar.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 async fn avatar_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<(), AppError> {
+    // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
+    // Display the user's avatar
     avatar_with_user(ctx, command_interaction, &user).await
 }
 
+/// Displays the avatar of a specified user.
+///
+/// This function retrieves the avatar URL of the specified user and the server avatar of the user if they are a member of the guild.
+/// It then calls the `send_embed` function to send an embed with the user's avatar.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `user` - The user whose avatar is to be displayed.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn avatar_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -57,6 +105,22 @@ pub async fn avatar_with_user(
     .await
 }
 
+/// Sends an embed with a user's avatar.
+///
+/// This function creates an embed with the user's avatar and sends it as a response to the command interaction.
+/// If the user has a server avatar, it creates a second embed with the server avatar and sends it as well.
+///
+/// # Arguments
+///
+/// * `avatar_url` - The URL of the user's avatar.
+/// * `ctx` - The context in which this command is being executed.
+/// * `command_interaction` - The interaction that triggered this command.
+/// * `username` - The name of the user.
+/// * `server_avatar` - The URL of the user's server avatar, if they have one.
+///
+/// # Returns
+///
+/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn send_embed(
     avatar_url: String,
     ctx: &Context,
@@ -80,15 +144,11 @@ pub async fn send_embed(
     let builder_message = if server_avatar.is_none() {
         CreateInteractionResponseMessage::new().embed(builder_embed)
     } else {
-        let second_builder_embed = CreateEmbed::new()
-            .timestamp(Timestamp::now())
-            .color(COLOR)
-            .image(server_avatar.unwrap())
-            .title(
-                avatar_localised
-                    .server_title
-                    .replace("$user$", username.as_str()),
-            );
+        let second_builder_embed = get_default_embed(None).image(server_avatar.unwrap()).title(
+            avatar_localised
+                .server_title
+                .replace("$user$", username.as_str()),
+        );
         let embeds = vec![builder_embed, second_builder_embed];
         CreateInteractionResponseMessage::new().embeds(embeds)
     };

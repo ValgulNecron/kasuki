@@ -2,6 +2,19 @@ use std::collections::HashMap;
 
 use serenity::all::{Attachment, ChannelId, CommandInteraction, ResolvedValue, RoleId, UserId};
 
+/// Retrieves the string options from the subcommand in the command interaction and returns them as a HashMap.
+///
+/// This function first retrieves the subcommand from the command interaction.
+/// It then iterates over the options in the subcommand and extracts the string options.
+/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
+///
+/// # Arguments
+///
+/// * `interaction` - The command interaction from which to extract the options.
+///
+/// # Returns
+///
+/// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_string_subcommand(
     interaction: &CommandInteraction,
 ) -> HashMap<String, String> {
@@ -21,6 +34,19 @@ pub fn get_option_map_string_subcommand(
     map
 }
 
+/// Retrieves the integer options from the subcommand in the command interaction and returns them as a HashMap.
+///
+/// This function first retrieves the subcommand from the command interaction.
+/// It then iterates over the options in the subcommand and extracts the integer options.
+/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
+///
+/// # Arguments
+///
+/// * `interaction` - The command interaction from which to extract the options.
+///
+/// # Returns
+///
+/// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_integer_subcommand(interaction: &CommandInteraction) -> HashMap<String, i64> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
@@ -38,6 +64,19 @@ pub fn get_option_map_integer_subcommand(interaction: &CommandInteraction) -> Ha
     map
 }
 
+/// Retrieves the boolean options from the subcommand in the command interaction and returns them as a HashMap.
+///
+/// This function first retrieves the subcommand from the command interaction.
+/// It then iterates over the options in the subcommand and extracts the boolean options.
+/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
+///
+/// # Arguments
+///
+/// * `interaction` - The command interaction from which to extract the options.
+///
+/// # Returns
+///
+/// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_boolean_subcommand(
     interaction: &CommandInteraction,
 ) -> HashMap<String, bool> {
@@ -57,6 +96,19 @@ pub fn get_option_map_boolean_subcommand(
     map
 }
 
+/// Retrieves the user options from the subcommand in the command interaction and returns them as a HashMap.
+///
+/// This function first retrieves the subcommand from the command interaction.
+/// It then iterates over the options in the subcommand and extracts the user options.
+/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
+///
+/// # Arguments
+///
+/// * `interaction` - The command interaction from which to extract the options.
+///
+/// # Returns
+///
+/// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashMap<String, UserId> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
@@ -74,6 +126,19 @@ pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashM
     map
 }
 
+/// Retrieves the channel options from the subcommand in the command interaction and returns them as a HashMap.
+///
+/// This function first retrieves the subcommand from the command interaction.
+/// It then iterates over the options in the subcommand and extracts the channel options.
+/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
+///
+/// # Arguments
+///
+/// * `interaction` - The command interaction from which to extract the options.
+///
+/// # Returns
+///
+/// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_channel_subcommand(
     interaction: &CommandInteraction,
 ) -> HashMap<String, ChannelId> {
@@ -93,6 +158,19 @@ pub fn get_option_map_channel_subcommand(
     map
 }
 
+/// Retrieves the role options from the subcommand in the command interaction and returns them as a HashMap.
+///
+/// This function first retrieves the subcommand from the command interaction.
+/// It then iterates over the options in the subcommand and extracts the role options.
+/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
+///
+/// # Arguments
+///
+/// * `interaction` - The command interaction from which to extract the options.
+///
+/// # Returns
+///
+/// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_role_subcommand(interaction: &CommandInteraction) -> HashMap<String, RoleId> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
@@ -110,6 +188,19 @@ pub fn get_option_map_role_subcommand(interaction: &CommandInteraction) -> HashM
     map
 }
 
+/// Retrieves the number options from the subcommand in the command interaction and returns them as a HashMap.
+///
+/// This function first retrieves the subcommand from the command interaction.
+/// It then iterates over the options in the subcommand and extracts the number options.
+/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
+///
+/// # Arguments
+///
+/// * `interaction` - The command interaction from which to extract the options.
+///
+/// # Returns
+///
+/// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_number_subcommand(interaction: &CommandInteraction) -> HashMap<String, f64> {
     let mut map = HashMap::new();
     let binding = interaction.data.options();
@@ -127,6 +218,19 @@ pub fn get_option_map_number_subcommand(interaction: &CommandInteraction) -> Has
     map
 }
 
+/// Retrieves the attachment options from the subcommand in the command interaction and returns them as a HashMap.
+///
+/// This function first retrieves the subcommand from the command interaction.
+/// It then iterates over the options in the subcommand and extracts the attachment options.
+/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
+///
+/// # Arguments
+///
+/// * `interaction` - The command interaction from which to extract the options.
+///
+/// # Returns
+///
+/// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_attachment_subcommand(
     interaction: &CommandInteraction,
 ) -> HashMap<String, Attachment> {
@@ -146,6 +250,19 @@ pub fn get_option_map_attachment_subcommand(
     map
 }
 
+/// Retrieves the string options from the autocomplete subcommand in the command interaction and returns them as a HashMap.
+///
+/// This function first retrieves the subcommand from the command interaction.
+/// It then iterates over the options in the subcommand and extracts the string options from the autocomplete subcommand.
+/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
+///
+/// # Arguments
+///
+/// * `interaction` - The command interaction from which to extract the options.
+///
+/// # Returns
+///
+/// A `HashMap` where the keys are the option names and the values are the option values.
 pub fn get_option_map_string_autocomplete_subcommand(
     interaction: &CommandInteraction,
 ) -> HashMap<String, String> {

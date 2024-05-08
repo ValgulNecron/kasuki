@@ -4,7 +4,6 @@ use serenity::all::{
     CreateInteractionResponse,
 };
 
-use crate::common::get_option::subcommand::get_option_map_string_subcommand;
 use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 

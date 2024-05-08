@@ -72,8 +72,11 @@
         - [X] Localisation for response.
         - [X] Localisation for command.
     - [X] Find a name for the bot.
-    - [x] Add a sqlite database.
-    - [X] Add postgres database choices.
+    - [ ] Database
+        - [x] Add a sqlite database.
+        - [X] Add postgres database choices.
+        - [X] Add redis for cache.
+        - [ ] Rework the database to be more efficient.
     - [X] Create a parser because some description uses html and not markdown.
         - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases
           are
@@ -83,9 +86,8 @@
     - [X] Better error handling.
     - [X] Doing something with error else than logging it.
     - [ ] Rename function and variable for better clarity.
-    - [ ] Add docs to every public function.
+    - [X] Add docs to every public function.
       (Run, Register and Autocomplete don’t need this.).
-      (Not done between command_register and database).
     - [X] Logging
     - [X] Updating to serenity 0.12.
     - [X] Support for command in dm.
