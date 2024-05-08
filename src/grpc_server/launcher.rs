@@ -19,7 +19,7 @@ mod proto {
     pub(crate) const SHARD_FILE_DESCRIPTOR_SET: &[u8] =
         tonic::include_file_descriptor_set!("shard_descriptor");
     pub(crate) const INFO_FILE_DESCRIPTOR_SET: &[u8] =
-        tonic::include_file_descriptor_set!("INFO_descriptor");
+        tonic::include_file_descriptor_set!("info_descriptor");
 }
 
 // ShardService is a struct that contains a reference to the ShardManager
