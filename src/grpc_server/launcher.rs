@@ -1,6 +1,5 @@
-use std::cell::RefCell;
 use serenity::all::{CurrentApplicationInfo, ShardId, ShardManager};
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use sysinfo::System;
 use tonic::{Request, Response, Status};
 use tracing::trace;
@@ -94,7 +93,7 @@ impl Shard for ShardService {
 
 pub struct InfoService {
     pub bot_info: Arc<CurrentApplicationInfo>,
-    pub sys: Arc<RefCell<System>>,
+    pub sys: Arc<RwLock<System>>,
     pub os_info: Arc<os_info::Info>,
 }
 
@@ -108,7 +107,11 @@ impl Info for InfoService {
         let bot_info = self.bot_info.clone();
         let mut sys = self.sys.clone();
         let info = self.os_info.clone();
-        sys.refresh_all();
+        match sys.write() {
+            Ok(mut guard) => guard.refresh_all(),
+            _ => {}
+        }
+        let mut sys = sys.read().unwrap();
         let processes = sys.processes();
         let pid = match sysinfo::get_current_pid() {
             Ok(pid) => pid.clone(),
@@ -190,7 +193,7 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
     let info_service = unsafe {
         InfoService {
             bot_info: Arc::new(BOT_INFO.clone().unwrap()),
-            sys: Arc::new(RefCell::new(System::new_all())),
+            sys: Arc::new(RwLock::new(System::new_all())),
             os_info: Arc::new(os_info::get()),
         }
     };
