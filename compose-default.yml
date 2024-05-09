@@ -45,9 +45,12 @@ services:
       - REMOVE_OLD_COMMAND=false # Whether to remove old commands when the bot starts up
       - DB_TYPE="sqlite" # Type of database to use; either 'sqlite' or 'postgres'
 
-      # Web Server Configuration
-      - GRPC_IS_ON="true" # Whether to enable the web server for serving images and other content
-      - GRPC_PORT=8080 # Port to use for the web server (if enabled) (don't change this unless you know what you're doing)
+      # gRPC server configuration
+      - GRPC_IS_ON="true" # Whether to enable the gRPC server for serving images and other content
+      - GRPC_PORT=443 # Port to use for the gRPC server (if enabled) (don't change this unless you know what you're doing)
+      - USE_SSL="true" # Use SSL for gRPC server (don't change this unless you know what you're doing)
+      - SSL_CERT_PATH="cert/cert.pem" # Path to SSL certificate (don't change this unless you know what you're doing)
+      - SSL_KEY_PATH="cert/key.pem" # Path to SSL key (don't change this unless you know what you're doing)
 
       # Media Saving Configuration
       - SAVE_IMAGE="local" # Location to save images; can be 'local', 'remote', or 'false' to disable
@@ -57,10 +60,11 @@ services:
       # application configuration
       - TUI="false" # Enable the TUI interface
     ports:
-      - "8080:8080"
+      - "443:443"
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db
       - ./logs/:/kasuki/logs/
       - ./server_image:/kasuki/server_image/
+      - ./cert:/kasuki/cert/
       - /etc/localtime:/etc/localtime:ro

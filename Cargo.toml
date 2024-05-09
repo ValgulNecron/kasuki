@@ -34,7 +34,7 @@ palette = "0.7.6"
 catbox = "0.8.2"
 imgurs = "0.11.2"
 tracing-appender = "0.2.3"
-tonic = "0.11.0"
+tonic = { version = "0.11.0", features = ["tls"] }
 prost = "0.12.4"
 tonic-reflection = "0.11.0"
 ratatui = "0.27.0-alpha.5"
@@ -43,6 +43,7 @@ sysinfo = "0.30.11"
 tui-logger = "0.11.1"
 rayon = "1.10.0"
 os_info = "3.8.2"
+rcgen = "0.13.1"
 
 [build-dependencies]
 tonic-build = "0.11.0"

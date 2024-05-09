@@ -181,15 +181,24 @@ pub const TRANSCRIPT_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_TRANSCRIPT_MODELS").unwrap_or_else(|_| String::from("whisper-1")));
 
 /*
-Web server
+gRPC server
 */
-/// Flag to enable or disable the web server.
+/// Flag to enable or disable the gRPC server.
 pub const GRPC_IS_ON: Lazy<bool> =
     Lazy::new(|| env::var("GRPC_IS_ON").unwrap_or_else(|_| "false".to_string()) == "true");
 
-/// Port for the web server.
+/// Port for the gRPC server.
 pub const GRPC_SERVER_PORT: Lazy<String> =
     Lazy::new(|| env::var("GRPC_SERVER_PORT").unwrap_or_else(|_| "8080  ".to_string()));
+/// If the gRPC server should use TLS.
+pub const GRPC_USE_TLS: Lazy<bool> =
+    Lazy::new(|| env::var("GRPC_USE_TLS").unwrap_or_else(|_| "false".to_string()) == "true");
+/// Path to the gRPC server certificate.
+pub const GRPC_CERT_PATH: Lazy<String> =
+    Lazy::new(|| env::var("GRPC_CERT_PATH").unwrap_or_else(|_| "cert/cert.pem".to_string()));
+/// Path to the gRPC server key.
+pub const GRPC_KEY_PATH: Lazy<String> =
+    Lazy::new(|| env::var("GRPC_KEY_PATH").unwrap_or_else(|_| "cert/key.pem".to_string()));
 
 /// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");

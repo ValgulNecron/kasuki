@@ -6,7 +6,7 @@ use tracing::trace;
 
 use proto::shard_server::Shard;
 
-use crate::constant::{ACTIVITY_NAME, APP_VERSION, BOT_INFO, GRPC_SERVER_PORT};
+use crate::constant::{ACTIVITY_NAME, APP_VERSION, BOT_INFO, GRPC_KEY_PATH, GRPC_SERVER_PORT, GRPC_USE_TLS};
 use crate::grpc_server::launcher::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::launcher::proto::shard_server::ShardServer;
 use crate::grpc_server::launcher::proto::{BotInfoData, InfoRequest, InfoResponse, SystemInfoData};
@@ -220,12 +220,56 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
         .build()
         .unwrap();
 
-    // Build the gRPC server, add the ShardService and the reflection service, and serve the gRPC server
-    tonic::transport::Server::builder()
-        .add_service(ShardServer::new(shard_service))
-        .add_service(InfoServer::new(info_service))
-        .add_service(reflection)
-        .serve(addr.parse().unwrap())
-        .await
-        .unwrap();
+    if !std::path::Path::new(&*GRPC_KEY_PATH).exists() {
+        generate_key();
+    }
+
+    if *GRPC_USE_TLS {
+        // Load the server's key and certificate
+        let key = tokio::fs::read(GRPC_KEY_PATH.clone()).await.unwrap();
+        let cert = tokio::fs::read(GRPC_KEY_PATH.clone()).await.unwrap();
+        // Build the gRPC server with TLS, add the ShardService and the reflection service, and serve the gRPC server
+        let identity = tonic::transport::Identity::from_pem(cert, key);
+        let tls_config = tonic::transport::ServerTlsConfig::new()
+            .identity(identity);
+        tonic::transport::Server::builder()
+            .tls_config(tls_config)
+            .unwrap()
+            .add_service(ShardServer::new(shard_service))
+            .add_service(InfoServer::new(info_service))
+            .add_service(reflection)
+            .serve(addr.parse().unwrap())
+            .await
+            .unwrap();
+    } else {
+        // Build the gRPC server, add the ShardService and the reflection service, and serve the gRPC server
+        tonic::transport::Server::builder()
+            .add_service(ShardServer::new(shard_service))
+            .add_service(InfoServer::new(info_service))
+            .add_service(reflection)
+            .serve(addr.parse().unwrap())
+            .await
+            .unwrap();
+    }
+}
+
+use rcgen::generate_simple_self_signed;
+use reqwest::tls;
+
+fn generate_key() {
+    // Specify the subject alternative names. Since we're not using a domain,
+    // we'll just use "localhost" as an example.
+    let subject_alt_names = vec!["localhost".to_string()];
+
+    // Generate the certificate and private key
+    let cert = generate_simple_self_signed(subject_alt_names).unwrap();
+
+    let public_key = cert.key_pair.public_key_pem();
+    let certificate = cert.cert.pem();
+
+    let pub_key_path = GRPC_KEY_PATH.clone();
+    let cert_path = GRPC_KEY_PATH.clone();
+
+    std::fs::write(pub_key_path, public_key).unwrap();
+    std::fs::write(cert_path, certificate).unwrap();
 }
