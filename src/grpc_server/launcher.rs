@@ -224,12 +224,20 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
         generate_key();
     }
 
-    if *GRPC_USE_TLS {
+    let is_tls = *GRPC_USE_TLS;
+    trace!("TLS: {}", is_tls);
+    if is_tls {
         // Load the server's key and certificate
         let key = tokio::fs::read(GRPC_KEY_PATH.clone()).await.unwrap();
-        let cert = tokio::fs::read(GRPC_KEY_PATH.clone()).await.unwrap();
+        let cert = tokio::fs::read(GRPC_CERT_PATH.clone()).await.unwrap();
+        // Convert to a string
+        let key = String::from_utf8(key).unwrap();
+        let cert = String::from_utf8(cert).unwrap();
+        trace!("Key: {:?}", key);
+        trace!("Cert: {:?}", cert);
         // Build the gRPC server with TLS, add the ShardService and the reflection service, and serve the gRPC server
         let identity = tonic::transport::Identity::from_pem(cert, key);
+        trace!("Identity: {:?}", identity);
         let tls_config = tonic::transport::ServerTlsConfig::new()
             .identity(identity);
         tonic::transport::Server::builder()
@@ -253,20 +261,19 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
     }
 }
 
-use rcgen::generate_simple_self_signed;
 use reqwest::tls;
 
 fn generate_key() {
     // Specify the subject alternative names. Since we're not using a domain,
     // we'll just use "localhost" as an example.
-    let subject_alt_names = vec!["localhost".to_string()];
+    let subject_alt_names = vec!["127.0.0.1".to_string(), "localhost".to_string(), "*.localhost".to_string(), "*.kasuki.moe".to_string()];
 
     // Generate the certificate and private key
-    let cert = generate_simple_self_signed(subject_alt_names).unwrap();
+    let cert = rcgen::generate_simple_self_signed(subject_alt_names).unwrap();
 
-    let public_key = cert.key_pair.public_key_pem();
+    let private_key = cert.key_pair.serialize_pem();
     let certificate = cert.cert.pem();
-    trace!("Public key: {}", public_key);
+    trace!("Private key: {}", private_key);
     trace!("Certificate: {}", certificate);
 
     let pub_key_path = GRPC_KEY_PATH.clone();
@@ -277,6 +284,6 @@ fn generate_key() {
         std::fs::create_dir("cert").unwrap();
     }
 
-    std::fs::write(pub_key_path, public_key).unwrap();
+    std::fs::write(pub_key_path, private_key).unwrap();
     std::fs::write(cert_path, certificate).unwrap();
 }
