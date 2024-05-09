@@ -6,7 +6,7 @@ use tracing::trace;
 
 use proto::shard_server::Shard;
 
-use crate::constant::{ACTIVITY_NAME, APP_VERSION, BOT_INFO, GRPC_KEY_PATH, GRPC_SERVER_PORT, GRPC_USE_TLS};
+use crate::constant::{ACTIVITY_NAME, APP_VERSION, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH, GRPC_SERVER_PORT, GRPC_USE_TLS};
 use crate::grpc_server::launcher::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::launcher::proto::shard_server::ShardServer;
 use crate::grpc_server::launcher::proto::{BotInfoData, InfoRequest, InfoResponse, SystemInfoData};
@@ -266,9 +266,11 @@ fn generate_key() {
 
     let public_key = cert.key_pair.public_key_pem();
     let certificate = cert.cert.pem();
+    trace!("Public key: {}", public_key);
+    trace!("Certificate: {}", certificate);
 
     let pub_key_path = GRPC_KEY_PATH.clone();
-    let cert_path = GRPC_KEY_PATH.clone();
+    let cert_path = GRPC_CERT_PATH.clone();
 
     std::fs::write(pub_key_path, public_key).unwrap();
     std::fs::write(cert_path, certificate).unwrap();
