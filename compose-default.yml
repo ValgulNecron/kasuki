@@ -12,53 +12,53 @@ services:
     tty: true
     environment:
       # Discord Bot Configuration
-      - DISCORD_TOKEN="YourDiscordTokenHere" # Discord bot token used for authentication [0][2]
-      - BOT_ACTIVITY="Let you get info from anilist_user." # Status message displayed when the bot is active
+      - DISCORD_TOKEN=YourDiscordTokenHere # Discord bot token used for authentication [0][2]
+      - BOT_ACTIVITY=Let you get info from anilist_user. # Status message displayed when the bot is active
 
       # OpenAI API Tokens and Base URLs
-      - AI_API_TOKEN="YourOpenAITokenHere" # Token for making requests to the OpenAI API [12]
-      - AI_API_BASE_URL="https://api.openai.com/v1/" # Base URL for API requests; must end with a slash [12]
+      - AI_API_TOKEN=YourOpenAITokenHere # Token for making requests to the OpenAI API [12]
+      - AI_API_BASE_URL=https://api.openai.com/v1/ # Base URL for API requests; must end with a slash [12]
 
       # Image Generation Settings
-      - AI_IMAGE_API_TOKEN="${AI_API_TOKEN}" # Token specifically for image-related AI requests; defaults to AI_API_TOKEN if unset
-      - AI_IMAGE_API_BASE_URL="${AI_API_BASE_URL}" # Base URL for image-related API requests; defaults to AI_API_BASE_URL if unset
-      - AI_IMAGE_GENERATION_MODELS="dall-e-3" # AI model(s) used for generating images; default is 'dall-e-3' [12]
-      - AI_IMAGE_QUALITY="hd" # Quality level for generated images; typical options are 'ld', 'sd', 'hd', etc.
-      - AI_IMAGE_STYLE="vivid" # Style preference for generated images; can vary depending on the model used
-      - AI_IMAGE_SIZE="1024x1024" # Dimensions of generated images; default is '1024x1024'
+      - AI_IMAGE_API_TOKEN=${AI_API_TOKEN} # Token specifically for image-related AI requests; defaults to AI_API_TOKEN if unset
+      - AI_IMAGE_API_BASE_URL=${AI_API_BASE_URL} # Base URL for image-related API requests; defaults to AI_API_BASE_URL if unset
+      - AI_IMAGE_GENERATION_MODELS=dall-e-3 # AI model(s) used for generating images; default is 'dall-e-3' [12]
+      - AI_IMAGE_QUALITY=hd # Quality level for generated images; typical options are 'ld', 'sd', 'hd', etc.
+      - AI_IMAGE_STYLE=vivid # Style preference for generated images; can vary depending on the model used
+      - AI_IMAGE_SIZE=1024x1024 # Dimensions of generated images; default is '1024x1024'
 
       # Chatbot Configuration
-      - AI_CHAT_API_TOKEN="${AI_API_TOKEN}" # Token for chat-related AI requests; defaults to AI_API_TOKEN if unset
-      - AI_CHAT_API_BASE_URL="${AI_API_BASE_URL}" # Base URL for chat-related API requests; defaults to AI_API_BASE_URL if unset
-      - AI_CHAT_MODEL="gpt-3.5-turbo" # AI model used for chat generation; default is 'gpt-3.5-turbo' [12]
+      - AI_CHAT_API_TOKEN=${AI_API_TOKEN} # Token for chat-related AI requests; defaults to AI_API_TOKEN if unset
+      - AI_CHAT_API_BASE_URL=${AI_API_BASE_URL} # Base URL for chat-related API requests; defaults to AI_API_BASE_URL if unset
+      - AI_CHAT_MODEL=gpt-3.5-turbo # AI model used for chat generation; default is 'gpt-3.5-turbo' [12]
 
       # Transcription Configuration
-      - AI_TRANSCRIPT_API_TOKEN="${AI_API_TOKEN}" # Token for transcription-related AI requests; defaults to AI_API_TOKEN if unset
-      - AI_TRANSCRIPT_BASE_URL="${AI_API_BASE_URL}" # Base URL for transcription-related API requests; defaults to AI_API_BASE_URL if unset
-      - AI_TRANSCRIPT_MODELS="whisper-1" # AI model used for transcription generation; default is 'whisper-1' [12]
+      - AI_TRANSCRIPT_API_TOKEN=${AI_API_TOKEN} # Token for transcription-related AI requests; defaults to AI_API_TOKEN if unset
+      - AI_TRANSCRIPT_BASE_URL=${AI_API_BASE_URL} # Base URL for transcription-related API requests; defaults to AI_API_BASE_URL if unset
+      - AI_TRANSCRIPT_MODELS=whisper-1 # AI model used for transcription generation; default is 'whisper-1' [12]
 
       # Logging and Debugging Configuration
-      - RUST_LOG="info" # Logging level for the application; can be 'trace', 'debug', 'info', 'warn', or 'error'
+      - RUST_LOG=info # Logging level for the application; can be 'trace', 'debug', 'info', 'warn', or 'error'
       - MAX_LOG_RETENTION_DAYS=30 # Maximum number of days to retain logs
 
       # Bot configuration
       - REMOVE_OLD_COMMAND=false # Whether to remove old commands when the bot starts up
-      - DB_TYPE="sqlite" # Type of database to use; either 'sqlite' or 'postgres'
+      - DB_TYPE=sqlite # Type of database to use; either 'sqlite' or 'postgres'
 
       # gRPC server configuration
-      - GRPC_IS_ON="true" # Whether to enable the gRPC server for serving images and other content
+      - GRPC_IS_ON=true # Whether to enable the gRPC server for serving images and other content
       - GRPC_PORT=443 # Port to use for the gRPC server (if enabled) (don't change this unless you know what you're doing)
-      - USE_SSL="true" # Use SSL for gRPC server (don't change this unless you know what you're doing)
-      - SSL_CERT_PATH="cert/cert.pem" # Path to SSL certificate (don't change this unless you know what you're doing)
-      - SSL_KEY_PATH="cert/key.pem" # Path to SSL key (don't change this unless you know what you're doing)
+      - USE_SSL=true # Use SSL for gRPC server (don't change this unless you know what you're doing)
+      - SSL_CERT_PATH=cert/cert.pem # Path to SSL certificate (don't change this unless you know what you're doing)
+      - SSL_KEY_PATH=cert/key.pem # Path to SSL key (don't change this unless you know what you're doing)
 
       # Media Saving Configuration
-      - SAVE_IMAGE="local" # Location to save images; can be 'local', 'remote', or 'false' to disable
-      - SAVE_SERVER="imgur" # Server to save media to; either 'imgur' or 'catbox'
-      - TOKEN="ImgurClientIDOrCatboxUserHash" # Authentication token for the chosen media saving server
+      - SAVE_IMAGE=local # Location to save images; can be 'local', 'remote', or 'false' to disable
+      - SAVE_SERVER=imgur # Server to save media to; either 'imgur' or 'catbox'
+      - TOKEN=ImgurClientIDOrCatboxUserHash # Authentication token for the chosen media saving server
 
       # application configuration
-      - TUI="false" # Enable the TUI interface
+      - TUI=false # Enable the TUI interface
     ports:
       - "443:443"
     volumes:
