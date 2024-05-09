@@ -1,4 +1,4 @@
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context, User};
 
 use crate::command_run::user::profile::profile_with_user;
 use crate::error_management::error_enum::AppError;
@@ -22,16 +22,21 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let users = &command_interaction.data.resolved.users;
 
     // Initialize a mutable reference to a default user
-    let mut user = &Default::default();
+    let mut user: Option<User> = None;
+    let mut command_user: Option<User> = None;
 
     // Iterate over the users
     for (user_id, u) in users {
         // If the user_id is not the same as the id of the user who invoked the command, assign the user to u and break the loop
         if user_id != &command_interaction.user.id {
-            user = u;
+            user = Some(u.clone());
             break;
+        } else {
+            user = Some(u.clone());
         }
     }
+
+    let user = user.unwrap_or(command_user.unwrap());
 
     // Call the profile_with_user function with the context, command interaction, and user
     profile_with_user(ctx, command_interaction, user).await
