@@ -39,5 +39,5 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let user = user.unwrap_or(command_user.unwrap());
 
     // Call the profile_with_user function with the context, command interaction, and user
-    profile_with_user(ctx, command_interaction, user).await
+    profile_with_user(ctx, command_interaction, &user).await
 }
