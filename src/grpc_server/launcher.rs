@@ -220,16 +220,15 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
         .build()
         .unwrap();
 
-    if !std::path::Path::new(&*GRPC_KEY_PATH).exists() {
-        generate_key();
-    }
-
     let is_tls = *GRPC_USE_TLS;
     trace!("TLS: {}", is_tls);
     if is_tls {
+        generate_key();
+        let private_key_path = GRPC_KEY_PATH.clone();
+        let cert_path = GRPC_CERT_PATH.clone();
         // Load the server's key and certificate
-        let key = tokio::fs::read(GRPC_KEY_PATH.clone()).await.unwrap();
-        let cert = tokio::fs::read(GRPC_CERT_PATH.clone()).await.unwrap();
+        let key = tokio::fs::read(private_key_path).await.unwrap();
+        let cert = tokio::fs::read(cert_path).await.unwrap();
         // Convert to a string
         let key = String::from_utf8(key).unwrap();
         let cert = String::from_utf8(cert).unwrap();
@@ -276,14 +275,16 @@ fn generate_key() {
     trace!("Private key: {}", private_key);
     trace!("Certificate: {}", certificate);
 
-    let pub_key_path = GRPC_KEY_PATH.clone();
+    let private_key_path = GRPC_KEY_PATH.clone();
     let cert_path = GRPC_CERT_PATH.clone();
 
-    // check if the directory exists
-    if !std::path::Path::new("cert").exists() {
-        std::fs::create_dir("cert").unwrap();
-    }
+    // create all the directories in the path if they don't exist except the last one
+    let parent = std::path::Path::new(&private_key_path).parent().unwrap();
+    std::fs::create_dir_all(parent).unwrap();
+    // do the same for the cert path
+    let parent = std::path::Path::new(&cert_path).parent().unwrap();
+    std::fs::create_dir_all(parent).unwrap();
 
-    std::fs::write(pub_key_path, private_key).unwrap();
+    std::fs::write(private_key_path, private_key).unwrap();
     std::fs::write(cert_path, certificate).unwrap();
 }
