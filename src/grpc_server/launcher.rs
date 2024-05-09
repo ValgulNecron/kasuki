@@ -272,6 +272,11 @@ fn generate_key() {
     let pub_key_path = GRPC_KEY_PATH.clone();
     let cert_path = GRPC_CERT_PATH.clone();
 
+    // check if the directory exists
+    if !std::path::Path::new("cert").exists() {
+        std::fs::create_dir("cert").unwrap();
+    }
+
     std::fs::write(pub_key_path, public_key).unwrap();
     std::fs::write(cert_path, certificate).unwrap();
 }
