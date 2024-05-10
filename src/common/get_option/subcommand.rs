@@ -209,7 +209,7 @@ pub fn get_option_map_number_subcommand(interaction: &CommandInteraction) -> Has
         for option in op {
             let name = option.name.to_string();
             let value = match &option.value {
-                ResolvedValue::Number(a) => a.clone(),
+                ResolvedValue::Number(a) => *a,
                 _ => 0.0,
             };
             map.insert(name, value);

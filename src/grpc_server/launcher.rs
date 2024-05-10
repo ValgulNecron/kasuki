@@ -1,6 +1,5 @@
 use std::sync::{Arc, RwLock};
 
-use reqwest::tls;
 use serenity::all::{CurrentApplicationInfo, ShardId, ShardManager};
 use sysinfo::System;
 use tonic::{Request, Response, Status};
@@ -120,7 +119,7 @@ impl Info for InfoService {
         let sys = sys.read().unwrap();
         let processes = sys.processes();
         let pid = match sysinfo::get_current_pid() {
-            Ok(pid) => pid.clone(),
+            Ok(pid) => pid,
             _ => return Err(Status::internal("Process not found.")),
         };
         let process = match processes.get(&pid) {

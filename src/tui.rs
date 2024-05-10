@@ -108,7 +108,7 @@ fn ui(frame: &mut Frame) {
     let total_cpu_core = sys.cpus().len();
     let processes = sys.processes();
     let pid = &sysinfo::get_current_pid().unwrap();
-    let process = processes.get(&pid).unwrap();
+    let process = processes.get(pid).unwrap();
     let app_cpu_usage = process.cpu_usage();
     let memory_usage = process.memory();
     let app_cpu_usage = app_cpu_usage / total_cpu_core as f32;
@@ -120,7 +120,7 @@ fn ui(frame: &mut Frame) {
     for cpu in sys.cpus() {
         system_cpu_usage += cpu.cpu_usage() as f64
     }
-    system_cpu_usage = system_cpu_usage / total_cpu_core as f64;
+    system_cpu_usage /= total_cpu_core as f64;
     let system_memory_usage = sys.used_memory();
     let system_total_memory = sys.total_memory();
     let system_memory_ratio = system_memory_usage as f64 / system_total_memory as f64;

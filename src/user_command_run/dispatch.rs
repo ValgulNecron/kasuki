@@ -32,11 +32,11 @@ pub async fn dispatch_user_command(
         "banner" => banner::run(ctx, command_interaction).await,
         "profile" => profile::run(ctx, command_interaction).await,
         _ => {
-            return Err(AppError::new(
+            Err(AppError::new(
                 String::from("Command does not exist."),
                 ErrorType::Option,
                 ErrorResponseType::Message,
-            ));
+            ))
         }
     }
 }

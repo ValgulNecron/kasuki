@@ -154,7 +154,7 @@ async fn admin(
                 let subcommand_name = subcommand.name;
                 anilist_admin(ctx, command_interaction, subcommand_name).await
             } else {
-                return Err(anime_module_error.clone());
+                Err(anime_module_error.clone())
             }
         }
         _ => Err(AppError::new(
