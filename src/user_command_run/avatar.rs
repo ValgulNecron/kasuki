@@ -1,7 +1,7 @@
 use serenity::all::{CommandInteraction, Context, User};
 
 use crate::command_run::user::avatar::avatar_with_user;
-use crate::error_management::error_enum::AppError;
+use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// This function is responsible for running the avatar command.
 ///
@@ -23,7 +23,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     // Initialize a mutable reference to a default user
     let mut user: Option<User> = None;
-    let mut command_user: Option<User> = None;
+    let command_user = command_interaction.user.clone();
 
     // Iterate over the users
     for (user_id, u) in users {
@@ -31,12 +31,17 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         if user_id != &command_interaction.user.id {
             user = Some(u.clone());
             break;
-        } else {
-            user = Some(u.clone());
         }
     }
 
-    let user = user.unwrap_or(command_user.unwrap());
+    let user = user.unwrap_or(command_user);
+    let user = user.id.to_user(&ctx.http).await.map_err(|e| {
+        AppError::new(
+            format!("Could not get the user. {}", e),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )
+    })?;
 
     // Call the avatar_with_user function with the context, command interaction, and user
     avatar_with_user(ctx, command_interaction, &user).await

@@ -1,5 +1,4 @@
-use std::env;
-
+use crate::constant::DB_TYPE;
 use crate::database::postgresql::init::init_postgres;
 use crate::database::sqlite::init::init_sqlite;
 use crate::error_management::error_enum::AppError;
@@ -14,10 +13,11 @@ use crate::error_management::error_enum::AppError;
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn init_sql_database() -> Result<(), AppError> {
-    let db_type = env::var("DB_TYPE").unwrap_or("sqlite".to_string());
-    if db_type == *"sqlite" {
+    let db_type = DB_TYPE.clone();
+    let db_type = db_type.as_str();
+    if db_type == "sqlite" {
         init_sqlite().await
-    } else if db_type == *"postgresql" {
+    } else if db_type == "postgresql" {
         init_postgres().await
     } else {
         init_sqlite().await

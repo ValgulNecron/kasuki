@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
 use serenity::all::{Colour, CurrentApplicationInfo};
+use tokio::sync::RwLock;
 
 pub const DISCORD_TOKEN: Lazy<String> =
     Lazy::new(|| env::var("DISCORD_TOKEN").expect("Expected a token in the environment"));
@@ -218,6 +218,12 @@ pub static mut USER_BLACKLIST_SERVER_IMAGE: Lazy<Arc<RwLock<Vec<String>>>> = Laz
     let user_ids: Vec<String> = Vec::new();
     Arc::from(RwLock::from(user_ids))
 });
+/// Db type.
+pub const DB_TYPE: Lazy<String> =
+    Lazy::new(|| env::var("DB_TYPE").unwrap_or_else(|_| "sqlite".to_string()));
+/// Cache type.
+pub const CACHE_TYPE: Lazy<String> =
+    Lazy::new(|| env::var("CACHE_TYPE").unwrap_or_else(|_| "sqlite".to_string()));
 
 /*
 bot info

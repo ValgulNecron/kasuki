@@ -1,7 +1,6 @@
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::RwLock;
 
 use serde_json::Value;
 use serenity::all::{
@@ -10,6 +9,7 @@ use serenity::all::{
 };
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
+use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 

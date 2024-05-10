@@ -1,12 +1,17 @@
-use serenity::all::{CurrentApplicationInfo, ShardId, ShardManager};
 use std::sync::{Arc, RwLock};
+
+use reqwest::tls;
+use serenity::all::{CurrentApplicationInfo, ShardId, ShardManager};
 use sysinfo::System;
 use tonic::{Request, Response, Status};
 use tracing::trace;
 
 use proto::shard_server::Shard;
 
-use crate::constant::{ACTIVITY_NAME, APP_VERSION, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH, GRPC_SERVER_PORT, GRPC_USE_TLS};
+use crate::constant::{
+    ACTIVITY_NAME, APP_VERSION, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH, GRPC_SERVER_PORT,
+    GRPC_USE_TLS,
+};
 use crate::grpc_server::launcher::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::launcher::proto::shard_server::ShardServer;
 use crate::grpc_server::launcher::proto::{BotInfoData, InfoRequest, InfoResponse, SystemInfoData};
@@ -141,12 +146,11 @@ impl Info for InfoService {
         let app_memory = process.memory();
         let app_memory = format!("{:.2}Mb", app_memory / 1024 / 1024);
 
-
         // bot info
         let bot_name = bot_info.name.clone();
         let version = APP_VERSION.to_string();
         let bot_id = bot_info.id.to_string();
-        let bot_owner = match bot_info.owner.clone(){
+        let bot_owner = match bot_info.owner.clone() {
             Some(owner) => owner.name,
             _ => return Err(Status::internal("Failed to get the bot owner.")),
         };
@@ -173,7 +177,6 @@ impl Info for InfoService {
             system_used_memory,
             system_cpu_usage,
         };
-
 
         let info_response = InfoResponse {
             bot_info: Option::from(bot_info_data),
@@ -237,8 +240,7 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
         // Build the gRPC server with TLS, add the ShardService and the reflection service, and serve the gRPC server
         let identity = tonic::transport::Identity::from_pem(cert, key);
         trace!("Identity: {:?}", identity);
-        let tls_config = tonic::transport::ServerTlsConfig::new()
-            .identity(identity);
+        let tls_config = tonic::transport::ServerTlsConfig::new().identity(identity);
         tonic::transport::Server::builder()
             .tls_config(tls_config)
             .unwrap()
@@ -260,12 +262,15 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
     }
 }
 
-use reqwest::tls;
-
 fn generate_key() {
     // Specify the subject alternative names. Since we're not using a domain,
     // we'll just use "localhost" as an example.
-    let subject_alt_names = vec!["127.0.0.1".to_string(), "localhost".to_string(), "*.localhost".to_string(), "*.kasuki.moe".to_string()];
+    let subject_alt_names = vec![
+        "127.0.0.1".to_string(),
+        "localhost".to_string(),
+        "*.localhost".to_string(),
+        "*.kasuki.moe".to_string(),
+    ];
 
     // Generate the certificate and private key
     let cert = rcgen::generate_simple_self_signed(subject_alt_names).unwrap();

@@ -3,14 +3,14 @@ syntax = "proto3";
 package info;
 
 service Info {
-  rpc GetInfo (InfoRequest) returns (InfoResponse);
+    rpc GetInfo (InfoRequest) returns (InfoResponse);
 }
 
 message InfoRequest {
 }
 
 message InfoResponse {
-  BotInfoData bot_info = 1;
+    BotInfoData bot_info = 1;
     SystemInfoData sys_info = 2;
 }
 
