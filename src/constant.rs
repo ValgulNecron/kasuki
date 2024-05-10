@@ -6,6 +6,7 @@ use once_cell::sync::Lazy;
 use ratatui::style::Color;
 use serenity::all::{Colour, CurrentApplicationInfo};
 use tokio::sync::RwLock;
+use crate::grpc_server::command_list::CommandItem;
 
 pub const DISCORD_TOKEN: Lazy<String> =
     Lazy::new(|| env::var("DISCORD_TOKEN").expect("Expected a token in the environment"));
@@ -231,3 +232,5 @@ bot info
 
 /// The bot's information.
 pub static mut BOT_INFO: Lazy<Option<CurrentApplicationInfo>> = Lazy::new(|| None);
+/// Vec of all available bot commands.
+pub static mut BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(Vec::new);

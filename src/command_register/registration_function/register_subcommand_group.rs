@@ -50,7 +50,7 @@ pub async fn creates_subcommands_group(http: &Arc<Http>) {
 /// # Returns
 ///
 /// A `Result` containing either a vector of `SubCommandGroup` structs if the subcommand groups are successfully read, or an `AppError` if an error occurs.
-fn get_subcommands_group(path: &str) -> Result<Vec<SubCommandGroup>, AppError> {
+pub(crate) fn get_subcommands_group(path: &str) -> Result<Vec<SubCommandGroup>, AppError> {
     let mut subcommands_group = Vec::new();
     let paths = fs::read_dir(path).map_err(|e| AppError {
         message: format!("Failed to read directory: {:?} with error {}", path, e),

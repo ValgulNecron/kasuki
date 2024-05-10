@@ -20,9 +20,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         .file_descriptor_set_path(out_dir.join("shard_descriptor.bin"))
         .compile(&["proto/shard.proto"], &["proto"])?;
     tonic_build::compile_protos("proto/shard.proto")?;
+
     tonic_build::configure()
         .file_descriptor_set_path(out_dir.join("info_descriptor.bin"))
         .compile(&["proto/info.proto"], &["proto"])?;
     tonic_build::compile_protos("proto/info.proto")?;
+
+    tonic_build::configure()
+        .file_descriptor_set_path(out_dir.join("command_descriptor.bin"))
+        .compile(&["proto/command.proto"], &["proto"])?;
+    tonic_build::compile_protos("proto/command.proto")?;
     Ok(())
 }

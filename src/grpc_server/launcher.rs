@@ -7,24 +7,27 @@ use tracing::trace;
 
 use proto::shard_server::Shard;
 
-use crate::constant::{
-    ACTIVITY_NAME, APP_VERSION, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH, GRPC_SERVER_PORT,
-    GRPC_USE_TLS,
-};
+use crate::constant::{ACTIVITY_NAME, APP_VERSION, BOT_COMMANDS, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH, GRPC_SERVER_PORT, GRPC_USE_TLS};
+use crate::grpc_server::command_list::{Arg, Command, CommandItem, get_command_list, SubCommand, SubCommandGroup};
 use crate::grpc_server::launcher::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::launcher::proto::shard_server::ShardServer;
-use crate::grpc_server::launcher::proto::{BotInfoData, InfoRequest, InfoResponse, SystemInfoData};
+use crate::grpc_server::launcher::proto::{BotInfoData, CommandListRequest, CommandListResponse, InfoRequest, InfoResponse, SystemInfoData};
+use crate::grpc_server::launcher::proto::command_service_server::{CommandService, CommandServiceServer};
 
 // Proto module contains the protobuf definitions for the shard service
 mod proto {
     // Include the protobuf definitions for the shard service
     tonic::include_proto!("shard");
     tonic::include_proto!("info");
+    tonic::include_proto!("command");
     // FILE_DESCRIPTOR_SET is a constant byte array that contains the file descriptor set for the shard service
     pub(crate) const SHARD_FILE_DESCRIPTOR_SET: &[u8] =
         tonic::include_file_descriptor_set!("shard_descriptor");
     pub(crate) const INFO_FILE_DESCRIPTOR_SET: &[u8] =
         tonic::include_file_descriptor_set!("info_descriptor");
+
+    pub(crate) const COMMAND_FILE_DESCRIPTOR_SET: &[u8] =
+        tonic::include_file_descriptor_set!("command_descriptor");
 }
 
 // ShardService is a struct that contains a reference to the ShardManager
@@ -186,6 +189,40 @@ impl Info for InfoService {
     }
 }
 
+pub struct CommandServices {
+    pub command_list: Arc<Vec<CommandItem>>,
+}
+
+#[tonic::async_trait]
+impl CommandService for CommandServices {
+    async fn command_list(&self, _request: Request<CommandListRequest>) -> Result<Response<CommandListResponse>, Status> {
+        let cmd_list = &self.command_list.clone();
+        let cm_count = cmd_list.len();
+        let mut commands = Vec::new();
+        let mut sub_commands = Vec::new();
+        let mut sub_command_groups = Vec::new();
+        for cmd in cmd_list.iter() {
+            match cmd {
+                CommandItem::Command(c) => {
+                    commands.push(c.into());
+                }
+                CommandItem::Subcommand(s) => {
+                    sub_commands.push(s.into());
+                }
+                CommandItem::SubcommandGroup(sg) => {
+                    sub_command_groups.push(sg.into());
+                }
+            }
+        }
+        let response = CommandListResponse {
+            command_count: cm_count as i64,
+            commands,
+            sub_commands,
+            sub_command_groups,
+        };
+        Ok(Response::new(response))
+    }
+}
 /// `grpc_server_launcher` is an asynchronous function that launches the gRPC server for the shard service.
 /// It takes a reference to an `Arc<ShardManager>` as a parameter.
 /// It does not return a value.
@@ -198,6 +235,7 @@ impl Info for InfoService {
 ///
 /// This function will panic if it fails to build the reflection service or if it fails to serve the gRPC server.
 pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
+    get_command_list();
     // Clone the Arc<ShardManager>
     let shard_manager_arc: Arc<ShardManager> = shard_manager.clone();
 
@@ -214,11 +252,15 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
             os_info: Arc::new(os_info::get()),
         }
     };
+    let command_service = unsafe { CommandServices {
+        command_list: Arc::new(BOT_COMMANDS.clone()),
+    }};
 
     // Configure the reflection service and register the file descriptor set for the shard service
     let reflection = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(proto::SHARD_FILE_DESCRIPTOR_SET)
         .register_encoded_file_descriptor_set(proto::INFO_FILE_DESCRIPTOR_SET)
+        .register_encoded_file_descriptor_set(proto::COMMAND_FILE_DESCRIPTOR_SET)
         .build()
         .unwrap();
 
@@ -245,6 +287,7 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
             .unwrap()
             .add_service(ShardServer::new(shard_service))
             .add_service(InfoServer::new(info_service))
+            .add_service(CommandServiceServer::new(command_service))
             .add_service(reflection)
             .serve(addr.parse().unwrap())
             .await
@@ -254,6 +297,7 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
         tonic::transport::Server::builder()
             .add_service(ShardServer::new(shard_service))
             .add_service(InfoServer::new(info_service))
+            .add_service(CommandServiceServer::new(command_service))
             .add_service(reflection)
             .serve(addr.parse().unwrap())
             .await
@@ -291,4 +335,46 @@ fn generate_key() {
 
     std::fs::write(private_key_path, private_key).unwrap();
     std::fs::write(cert_path, certificate).unwrap();
+}
+
+impl From<&Command> for proto::Command {
+    fn from(command: &Command) -> Self {
+        proto::Command {
+            name: command.name.clone(),
+            description: command.desc.clone(),
+            args: command.args.clone().into_iter().map(|arg| (&arg).into()).collect(),
+        }
+    }
+}
+
+impl From<&Arg> for proto::Arg {
+    fn from(arg: &Arg) -> Self {
+        proto::Arg {
+            name: arg.name.clone(),
+            description: arg.desc.clone(),
+            required: arg.required.clone(),
+            choices: arg.choices.clone(),
+        }
+    }
+}
+
+impl From<&SubCommand> for proto::SubCommand {
+    fn from(subcommand: &SubCommand) -> Self {
+        proto::SubCommand {
+            name: subcommand.name.clone(),
+            description: subcommand.desc.clone(),
+            commands: subcommand.commands.clone().into_iter().map(|commands| (&commands).into()).collect(),
+        }
+    }
+}
+
+impl From<&SubCommandGroup> for proto::SubCommandGroup {
+    fn from(subcommand_group: &SubCommandGroup) -> Self {
+        proto::SubCommandGroup {
+            name: subcommand_group.name.clone(),
+            description: subcommand_group.desc.clone(),
+            sub_commands: subcommand_group.subcommands.clone().into_iter().map(|subcommands| (&subcommands).into()).collect(),
+            commands: subcommand_group.commands.clone().into_iter().map(|commands| (&commands).into()).collect(),
+        }
+    }
 }

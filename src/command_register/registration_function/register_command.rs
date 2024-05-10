@@ -48,7 +48,7 @@ pub async fn creates_commands(http: &Arc<Http>) {
 /// # Returns
 ///
 /// A `Result` containing either a vector of `Command` structs if the commands are successfully read, or an `AppError` if an error occurs.
-fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
+pub(crate) fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
     let mut commands = Vec::new();
     let paths = fs::read_dir(path).map_err(|e| AppError {
         message: format!("Failed to read directory: {:?} with error {}", path, e),
