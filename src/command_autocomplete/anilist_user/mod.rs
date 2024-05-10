@@ -1,8 +1,6 @@
 pub mod anime;
-pub mod anime_group;
 pub mod character;
 pub mod compare;
-pub mod delete_activity;
 pub mod ln;
 pub mod manga;
 pub mod search;

@@ -1,6 +1,6 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::command_autocomplete::anilist::{anime, character, ln, manga, staff, studio, user};
+use crate::command_autocomplete::anilist_user::{anime, character, ln, manga, staff, studio, user};
 use crate::common::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::constant::DEFAULT_STRING;
 

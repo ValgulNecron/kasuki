@@ -1,10 +1,7 @@
-use std::fs::File;
-use std::path::Path;
-
 use sqlx::{Pool, Sqlite};
 use tracing::error;
 
-use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};
+use crate::constant::CACHE_SQLITE_DB;
 use crate::database::sqlite::init::create_sqlite_file;
 use crate::database::sqlite::migration::migration_dispatch::migrate_sqlite;
 use crate::database::sqlite::pool::get_sqlite_pool;
