@@ -2,9 +2,9 @@
 use std::env;
 
 use crate::error_management::error_enum::AppError;
-use crate::image_saver::catbox_image_saver::upload_image_catbox;
-use crate::image_saver::imgur_image_saver::upload_image_imgur;
-use crate::image_saver::local_image_saver::local_image_save;
+use crate::helper::image_saver::catbox_image_saver::upload_image_catbox;
+use crate::helper::image_saver::imgur_image_saver::upload_image_imgur;
+use crate::helper::image_saver::local_image_saver::local_image_save;
 
 /// `image_saver` is an asynchronous function that saves an image either locally or remotely.
 /// It takes a `guild_id`, `filename`, and `image_data` as parameters.

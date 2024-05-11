@@ -8,7 +8,7 @@ use tracing::trace;
 use crate::anilist_struct::run::user::{
     Anime, Genre, Manga, Statistics, Statuses, Tag, UserWrapper,
 };
-use crate::command_run::anilist_user::user::get_user_data;
+use crate::command::run::anilist_user::user::get_user_data;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

@@ -1,6 +1,6 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::command_run::server::generate_image_pfp_server::send_embed;
+use crate::command::run::server::generate_image_pfp_server::send_embed;
 use crate::error_management::error_enum::AppError;
 
 /// Executes the command to send an embed with the global server's profile picture.

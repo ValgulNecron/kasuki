@@ -1,6 +1,6 @@
 use serenity::all::{CommandInteraction, Context, User};
 
-use crate::command_run::user::banner::banner_with_user;
+use crate::command::run::user::banner::banner_with_user;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// This function is responsible for running the banner command.

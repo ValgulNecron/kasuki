@@ -1,7 +1,7 @@
 use serenity::all::{CommandInteraction, Context};
 
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::user_command_run::{avatar, banner, profile};
+use crate::command::user_run::{avatar, banner, profile};
 
 /// Dispatches the user command received from the Discord interaction.
 ///

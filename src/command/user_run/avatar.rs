@@ -1,9 +1,9 @@
 use serenity::all::{CommandInteraction, Context, User};
 
-use crate::command_run::user::profile::profile_with_user;
+use crate::command::run::user::avatar::avatar_with_user;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-/// This function is responsible for running the profile command.
+/// This function is responsible for running the avatar command.
 ///
 /// # Arguments
 ///
@@ -43,6 +43,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
     })?;
 
-    // Call the profile_with_user function with the context, command interaction, and user
-    profile_with_user(ctx, command_interaction, &user).await
+    // Call the avatar_with_user function with the context, command interaction, and user
+    avatar_with_user(ctx, command_interaction, &user).await
 }

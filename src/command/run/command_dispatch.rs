@@ -1,23 +1,23 @@
 use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
 
-use crate::command_run::admin::anilist::{add_activity, delete_activity};
-use crate::command_run::admin::module::check_activation_status;
-use crate::command_run::admin::{lang, module};
-use crate::command_run::ai::{image, question, transcript, translation};
-use crate::command_run::anilist_server::{list_all_activity, list_register_user};
-use crate::command_run::anilist_user::{
+use crate::command::run::admin::anilist::{add_activity, delete_activity};
+use crate::command::run::admin::module::check_activation_status;
+use crate::command::run::admin::{lang, module};
+use crate::command::run::ai::{image, question, transcript, translation};
+use crate::command::run::anilist_server::{list_all_activity, list_register_user};
+use crate::command::run::anilist_user::{
     anime, character, compare, level, ln, manga, random, register, search, seiyuu, staff, studio,
     user, waifu,
 };
-use crate::command_run::anime::random_image;
-use crate::command_run::anime_nsfw::random_nsfw_image;
-use crate::command_run::bot::{credit, info, ping};
-use crate::command_run::server::{
+use crate::command::run::anime::random_image;
+use crate::command::run::anime_nsfw::random_nsfw_image;
+use crate::command::run::bot::{credit, info, ping};
+use crate::command::run::server::{
     generate_image_pfp_server, generate_image_pfp_server_global, guild,
 };
-use crate::command_run::steam::steam_game_info;
-use crate::command_run::user::{avatar, banner, profile};
+use crate::command::run::steam::steam_game_info;
+use crate::command::run::user::{avatar, banner, profile};
 use crate::helper::get_option::subcommand_group::get_subcommand;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
