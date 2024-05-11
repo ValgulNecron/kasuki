@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::read_file::read_file_as_string;
 
 /// Represents a random NSFW image's localized data.
 ///
@@ -36,19 +37,8 @@ pub struct RandomImageNSFWLocalised {
 pub async fn load_localization_random_image_nsfw(
     guild_id: String,
 ) -> Result<RandomImageNSFWLocalised, AppError> {
-    // Read the JSON file into a String.
-    let json =
-        fs::read_to_string("json/message/anime_nsfw/random_image_nsfw.json").map_err(|e| {
-            AppError::new(
-                format!(
-                    "File random_image_nsfw.json not found or can't be read. {}",
-                    e
-                ),
-                ErrorType::File,
-                ErrorResponseType::Unknown,
-            )
-        })?;
-
+    let path = "json/message/anime_nsfw/random_image_nsfw.json";
+    let json = read_file_as_string(path)?;
     // Parse the JSON string into a HashMap.
     let json_data: HashMap<String, RandomImageNSFWLocalised> = serde_json::from_str(&json)
         .map_err(|e| {
@@ -62,13 +52,8 @@ pub async fn load_localization_random_image_nsfw(
     // Get the language choice based on the guild_id.
     let lang_choice = get_guild_language(guild_id).await;
 
-    // Return the localized data for the random NSFW image or an error if the language is not found.
-    json_data
-        .get(lang_choice.as_str())
-        .cloned()
-        .ok_or(AppError::new(
-            "Language not found.".to_string(),
-            ErrorType::Language,
-            ErrorResponseType::Unknown,
-        ))
+    // Return the localized data for the language or an error if the language is not found.
+    json_data.get(lang_choice.as_str()).cloned().ok_or_else(|| {
+        json_data.get("en").unwrap().cloned()
+    })
 }

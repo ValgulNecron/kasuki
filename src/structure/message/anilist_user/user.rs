@@ -47,15 +47,7 @@ pub struct UserLocalised {
 ///
 /// * `Result<UserLocalised, AppError>`: A Result containing UserLocalised data or an AppError.
 pub async fn load_localization_user(guild_id: String) -> Result<UserLocalised, AppError> {
-    // Read the JSON file and handle any potential errors
-    let json = fs::read_to_string("json/message/anilist_user/user.json").map_err(|e| {
-        AppError::new(
-            format!("File user.json not found or can't be read. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Unknown,
-        )
-    })?;
-
+    let path = "json/message/anilist_user/user.json";
     // Parse the JSON data into a HashMap and handle any potential errors
     let json_data: HashMap<String, UserLocalised> = serde_json::from_str(&json).map_err(|e| {
         AppError::new(
@@ -68,13 +60,8 @@ pub async fn load_localization_user(guild_id: String) -> Result<UserLocalised, A
     // Get the language choice for the guild
     let lang_choice = get_guild_language(guild_id).await;
 
-    // Retrieve the localized data for the user based on the language choice
-    json_data
-        .get(lang_choice.as_str())
-        .cloned()
-        .ok_or(AppError::new(
-            "Language not found.".to_string(),
-            ErrorType::Language,
-            ErrorResponseType::Unknown,
-        ))
+    // Return the localized data for the language or an error if the language is not found.
+    json_data.get(lang_choice.as_str()).cloned().ok_or_else(|| {
+        json_data.get("en").unwrap().cloned()
+    })
 }

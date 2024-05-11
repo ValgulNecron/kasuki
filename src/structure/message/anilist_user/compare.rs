@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::read_file::read_file_as_string;
 
 /// CompareLocalised struct represents a comparison's localized data.
 /// It contains fields for affinity, more_anime, same_anime, more_watch_time, same_watch_time, genre_anime, same_genre_anime, tag_anime, same_tag_anime, more_manga, same_manga, genre_manga, same_genre_manga, tag_manga, same_tag_manga, more_manga_chapter, same_manga_chapter.
@@ -66,27 +67,8 @@ pub struct CompareLocalised {
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
 pub async fn load_localization_compare(guild_id: String) -> Result<CompareLocalised, AppError> {
-    // Open the JSON file and handle any potential errors
-    let mut file = File::open("json/message/anilist_user/compare.json").map_err(|e| {
-        AppError::new(
-            format!("File compare.json not found. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Unknown,
-        )
-    })?;
-
-    // Initialize a new String to hold the JSON data
-    let mut json = String::new();
-
-    // Read the JSON file into the String and handle any potential errors
-    file.read_to_string(&mut json).map_err(|e| {
-        AppError::new(
-            format!("File compare.json can't be read. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Unknown,
-        )
-    })?;
-
+    let path = "json/message/anilist_user/compare.json";
+    let json = read_file_as_string(path)?;
     // Parse the JSON data into a HashMap and handle any potential errors
     let json_data: HashMap<String, CompareLocalised> =
         serde_json::from_str(&json).map_err(|e| {
@@ -100,13 +82,8 @@ pub async fn load_localization_compare(guild_id: String) -> Result<CompareLocali
     // Get the language choice for the guild
     let lang_choice = get_guild_language(guild_id).await;
 
-    // Retrieve the localized data for the comparison based on the language choice
-    let localised_text = json_data.get(lang_choice.as_str()).ok_or(AppError::new(
-        "Language not found.".to_string(),
-        ErrorType::Language,
-        ErrorResponseType::Unknown,
-    ))?;
-
-    // Return the localized data
-    Ok(localised_text.clone())
+    // Return the localized data for the language or an error if the language is not found.
+    json_data.get(lang_choice.as_str()).cloned().ok_or_else(|| {
+        json_data.get("en").unwrap().cloned()
+    })
 }

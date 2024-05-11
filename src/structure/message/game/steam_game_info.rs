@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::read_file::read_file_as_string;
 
 /// `SteamGameInfoLocalised` is a struct that represents a Steam game's localized data.
 /// It contains several fields which are all Strings.
@@ -44,15 +45,8 @@ pub struct SteamGameInfoLocalised {
 pub async fn load_localization_steam_game_info(
     guild_id: String,
 ) -> Result<SteamGameInfoLocalised, AppError> {
-    // Read the JSON file into a String and handle any potential errors
-    let json = fs::read_to_string("json/message/game/steam_game_info.json").map_err(|e| {
-        AppError::new(
-            format!("File steam_game_info.json not found. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Unknown,
-        )
-    })?;
-
+    let path = "json/message/game/steam_game_info.json";
+    let json = read_file_as_string(path)?;
     // Parse the JSON data into a HashMap and handle any potential errors
     let json_data: std::collections::HashMap<String, SteamGameInfoLocalised> =
         serde_json::from_str(&json).map_err(|e| {
@@ -66,13 +60,8 @@ pub async fn load_localization_steam_game_info(
     // Get the language choice for the guild
     let lang_choice = get_guild_language(guild_id).await;
 
-    // Retrieve the localized data for the Steam game based on the language choice
-    json_data
-        .get(lang_choice.as_str())
-        .cloned()
-        .ok_or(AppError::new(
-            "Language not found.".to_string(),
-            ErrorType::Language,
-            ErrorResponseType::Unknown,
-        ))
+    // Return the localized data for the language or an error if the language is not found.
+    json_data.get(lang_choice.as_str()).cloned().ok_or_else(|| {
+        json_data.get("en").unwrap().cloned()
+    })
 }

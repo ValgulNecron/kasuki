@@ -7,3 +7,4 @@ pub mod make_anilist_cached_request;
 pub mod trimer;
 pub mod image_saver;
 pub mod error_management;
+pub mod read_file;

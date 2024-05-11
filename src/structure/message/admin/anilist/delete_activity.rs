@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::read_file::read_file_as_string;
 
 /// `DeleteActivityLocalised` is a struct that represents a delete activity's localized data.
 /// It contains two fields `success` and `success_desc` which are both Strings.
@@ -38,19 +39,8 @@ pub struct DeleteActivityLocalised {
 pub async fn load_localization_delete_activity(
     guild_id: String,
 ) -> Result<DeleteActivityLocalised, AppError> {
-    // Read the JSON file and handle any potential errors
-    let json =
-        fs::read_to_string("json/message/admin/anilist/delete_activity.json").map_err(|e| {
-            AppError::new(
-                format!(
-                    "File delete_activity.json not found or can't be read. {}",
-                    e
-                ),
-                ErrorType::File,
-                ErrorResponseType::Unknown,
-            )
-        })?;
-
+    let path = "json/message/admin/anilist/delete_activity.json";
+    let json = read_file_as_string(path)?;
     // Parse the JSON data into a HashMap and handle any potential errors
     let json_data: HashMap<String, DeleteActivityLocalised> =
         serde_json::from_str(&json).map_err(|e| {
@@ -65,12 +55,8 @@ pub async fn load_localization_delete_activity(
     let lang_choice = get_guild_language(guild_id).await;
 
     // Retrieve the localized data for the delete activity based on the language choice
-    json_data
-        .get(lang_choice.as_str())
-        .cloned()
-        .ok_or(AppError::new(
-            "Language not found.".to_string(),
-            ErrorType::Language,
-            ErrorResponseType::Unknown,
-        ))
+    // Return the localized data for the language or an error if the language is not found.
+    json_data.get(lang_choice.as_str()).cloned().ok_or_else(|| {
+        json_data.get("en").unwrap().cloned()
+    })
 }
