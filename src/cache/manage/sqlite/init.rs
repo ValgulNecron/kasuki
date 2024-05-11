@@ -5,7 +5,7 @@ use crate::constant::CACHE_SQLITE_DB;
 use crate::database::manage::sqlite::init::create_sqlite_file;
 use crate::database::manage::sqlite::migration::migration_dispatch::migrate_sqlite;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Initializes SQLite database.
 ///

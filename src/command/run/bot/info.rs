@@ -5,7 +5,7 @@ use serenity::all::{
 
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::constant::APP_VERSION;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::bot::info::load_localization_info;
 
 /// Executes the command to display the bot's information.

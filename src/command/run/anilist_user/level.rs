@@ -9,7 +9,7 @@ use crate::command::run::anilist_user::user::get_user_data;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::level::load_localization_level;
 
 /// Executes the command to display a user's level based on their anime and manga statistics.

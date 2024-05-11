@@ -1,7 +1,7 @@
 use crate::cache::manage::postgresgl::init::init_postgres;
 use crate::cache::manage::sqlite::init::init_sqlite;
 use crate::constant::CACHE_TYPE;
-use crate::error_management::error_enum::AppError;
+use crate::helper::error_management::error_enum::AppError;
 
 /// Initializes the Cache database.
 ///

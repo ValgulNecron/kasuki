@@ -3,7 +3,7 @@ use serde_json::Value;
 
 use crate::cache::cache_struct::cache_stats::CacheStats;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Retrieves a random cache entry from the PostgreSQL database.
 ///

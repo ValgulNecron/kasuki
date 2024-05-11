@@ -1,7 +1,7 @@
 // Importing necessary libraries and modules
 use std::env;
 
-use crate::error_management::error_enum::AppError;
+use crate::helper::error_management::error_enum::AppError;
 use crate::helper::image_saver::catbox_image_saver::upload_image_catbox;
 use crate::helper::image_saver::imgur_image_saver::upload_image_imgur;
 use crate::helper::image_saver::local_image_saver::local_image_save;

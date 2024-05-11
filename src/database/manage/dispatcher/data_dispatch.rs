@@ -25,7 +25,7 @@ use crate::database::manage::sqlite::data::{
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
 use crate::database::data_struct::user_color::UserColor;
-use crate::error_management::error_enum::AppError;
+use crate::helper::error_management::error_enum::AppError;
 
 /// Sets the ping history in the database.
 ///

@@ -6,7 +6,7 @@ use std::io::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::helper::get_guild_lang::get_guild_language;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// CompareLocalised struct represents a comparison's localized data.
 /// It contains fields for affinity, more_anime, same_anime, more_watch_time, same_watch_time, genre_anime, same_genre_anime, tag_anime, same_tag_anime, more_manga, same_manga, genre_manga, same_genre_manga, tag_manga, same_tag_manga, more_manga_chapter, same_manga_chapter.

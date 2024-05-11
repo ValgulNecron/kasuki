@@ -10,7 +10,7 @@ use tracing::trace;
 
 use crate::constant::{APPS, LANG_MAP};
 use crate::database::manage::dispatcher::data_dispatch::get_data_guild_language;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]

@@ -5,7 +5,7 @@ use serenity::all::{
 use crate::anilist_struct::run::studio::StudioWrapper;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::studio::load_localization_studio;
 
 /// Executes the command to fetch and display information about a studio from AniList.

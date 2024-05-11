@@ -9,7 +9,7 @@ use crate::anilist_struct::run::user::UserWrapper;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_server::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };

@@ -7,7 +7,7 @@ use tracing::{error, trace};
 
 use crate::command_register::command_struct::command::Command;
 use crate::command_register::registration_function::common::{get_option, get_permission};
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// This asynchronous function creates commands by reading from a JSON file and sending them to the Discord API.
 ///

@@ -6,3 +6,4 @@ pub mod get_option;
 pub mod make_anilist_cached_request;
 pub mod trimer;
 pub mod image_saver;
+pub mod error_management;

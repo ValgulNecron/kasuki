@@ -17,7 +17,7 @@ use crate::database::manage::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
 use crate::database::data_struct::user_color::UserColor;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Calculates the color for each user in a list of members.
 ///

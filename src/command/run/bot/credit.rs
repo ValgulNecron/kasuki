@@ -3,7 +3,7 @@ use serenity::all::{
 };
 
 use crate::helper::create_normalise_embed::get_default_embed;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::bot::credit::load_localization_credit;
 
 /// Executes the command to display the bot's credits.

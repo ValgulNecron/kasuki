@@ -4,7 +4,7 @@ use std::{env, fs};
 use imgurs::ImgurClient;
 use tracing::debug;
 
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// `upload_image_imgur` is an asynchronous function that uploads an image to imgur.com.
 /// It takes a `filename` and `image_data` as parameters.

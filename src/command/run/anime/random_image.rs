@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anime::random_image::load_localization_random_image;
 
 /// Executes the command to fetch and display a random image from the waifu.pics API.

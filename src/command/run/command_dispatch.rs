@@ -23,7 +23,7 @@ use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
 };
 use crate::database::data_struct::module_status::ActivationStatusModule;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Dispatches the command to the appropriate function based on the command name.
 ///

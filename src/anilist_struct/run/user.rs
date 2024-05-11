@@ -7,7 +7,7 @@ use serenity::all::{
 
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::make_anilist_cached_request::make_request_anilist;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
 
 #[derive(Debug, Deserialize, Clone)]

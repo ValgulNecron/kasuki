@@ -10,7 +10,7 @@ use tracing::trace;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, DEFAULT_STRING};
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// This asynchronous function runs the command interaction for asking a question to the AI.
 ///

@@ -15,7 +15,7 @@ use uuid::Uuid;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_all_user_approximated_color, set_server_image,
 };
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::background_task::server_image::calculate_user_color::{
     get_image_from_url, get_member, return_average_user_color,

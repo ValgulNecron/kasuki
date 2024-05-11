@@ -8,8 +8,8 @@ use tracing::trace;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::game_struct::run::steam_game::SteamGameWrapper;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::structure::run::game::steam_game::SteamGameWrapper;
 use crate::structure::message::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
 };

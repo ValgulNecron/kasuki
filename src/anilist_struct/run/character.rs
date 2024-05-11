@@ -10,7 +10,7 @@ use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discor
 use crate::helper::make_anilist_cached_request::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::constant::COLOR;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]

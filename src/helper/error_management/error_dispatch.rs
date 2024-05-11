@@ -6,7 +6,7 @@ use serenity::all::{
 use tracing::error;
 
 use crate::constant::{CHAT_TOKEN, COLOR, DISCORD_TOKEN, IMAGE_TOKEN, TRANSCRIPT_TOKEN};
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// ERROR_MESSAGE is a constant string that contains the default error message
 const ERROR_MESSAGE: &str = "**There was an error while processing the command**\

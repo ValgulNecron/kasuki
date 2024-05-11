@@ -5,7 +5,7 @@ use std::fs;
 use serde::{Deserialize, Serialize};
 
 use crate::helper::get_guild_lang::get_guild_language;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// `DeleteActivityLocalised` is a struct that represents a delete activity's localized data.
 /// It contains two fields `success` and `success_desc` which are both Strings.

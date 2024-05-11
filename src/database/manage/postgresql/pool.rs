@@ -1,7 +1,7 @@
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Retrieves a connection pool to the PostgreSQL database.
 ///

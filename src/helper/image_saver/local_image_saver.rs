@@ -4,7 +4,7 @@ use std::path::Path;
 
 use chrono::Local;
 
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// `local_image_save` is an asynchronous function that saves an image locally.
 /// It takes a `guild_id`, `filename`, and `image_data` as parameters.

@@ -13,7 +13,7 @@ use crate::database::manage::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
 use crate::database::data_struct::server_activity::ServerActivityFull;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
 
 /// `manage_activity` is an asynchronous function that manages activities.

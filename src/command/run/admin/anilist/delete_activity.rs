@@ -9,7 +9,7 @@ use crate::command::run::admin::anilist::add_activity::get_name;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::database::manage::dispatcher::data_dispatch::remove_data_activity_status;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
 
 /// This asynchronous function runs the command interaction for deleting an anime activity.

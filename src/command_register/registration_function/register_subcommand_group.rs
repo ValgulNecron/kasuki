@@ -9,7 +9,7 @@ use crate::command_register::command_struct::subcommand_group::SubCommandGroup;
 use crate::command_register::registration_function::common::{
     get_permission, get_subcommand_group_option, get_subcommand_option,
 };
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// This asynchronous function creates subcommand groups in Discord by reading from a JSON file and sending them to the Discord API.
 ///

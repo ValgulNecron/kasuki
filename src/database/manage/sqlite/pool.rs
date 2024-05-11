@@ -1,6 +1,6 @@
 use sqlx::{Pool, Sqlite, SqlitePool};
 
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Establishes a connection to a SQLite database and returns a connection pool.
 ///

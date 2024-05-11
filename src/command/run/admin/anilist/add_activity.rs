@@ -21,7 +21,7 @@ use crate::helper::trimer::trim_webhook;
 use crate::constant::COLOR;
 use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
 use crate::database::data_struct::server_activity::ServerActivityFull;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
 
 /// This asynchronous function gets or creates a webhook for a given channel.

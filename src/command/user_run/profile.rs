@@ -1,7 +1,7 @@
 use serenity::all::{CommandInteraction, Context, User};
 
 use crate::command::run::user::profile::profile_with_user;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// This function is responsible for running the profile command.
 ///

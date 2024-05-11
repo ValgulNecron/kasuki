@@ -2,7 +2,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::helper::make_anilist_cached_request::make_request_anilist;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Title {

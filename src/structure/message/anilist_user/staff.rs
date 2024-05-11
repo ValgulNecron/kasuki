@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 // Importing necessary libraries and modules
 use crate::helper::get_guild_lang::get_guild_language;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// StaffLocalised struct represents a staff's localized data.
 /// It contains fields for two titles, description, date of birth, and date of death.

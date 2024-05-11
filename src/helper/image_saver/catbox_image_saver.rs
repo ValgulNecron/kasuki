@@ -3,7 +3,7 @@ use std::{env, fs};
 
 use tracing::debug;
 
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// `upload_image_catbox` is an asynchronous function that uploads an image to catbox.moe.
 /// It takes a `filename` and `image_data` as parameters.

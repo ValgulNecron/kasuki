@@ -17,7 +17,7 @@ use uuid::Uuid;
 use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.

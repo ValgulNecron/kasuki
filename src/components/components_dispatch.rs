@@ -2,7 +2,7 @@ use serenity::all::{ComponentInteraction, Context};
 use tracing::trace;
 
 use crate::components::anilist::{list_all_activity, list_register_user};
-use crate::error_management::error_enum::AppError;
+use crate::helper::error_management::error_enum::AppError;
 
 /// Dispatches component interactions based on their custom ID.
 ///
