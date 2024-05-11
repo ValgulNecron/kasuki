@@ -1,10 +1,11 @@
 use std::fs;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{Cursor, Read, Write};
 use std::path::Path;
 
 use image::imageops::FilterType;
-use image::{DynamicImage, GenericImage, GenericImageView};
+use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
+use prost::bytes::Bytes;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
@@ -66,11 +67,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Message,
             )
         })?;
-    let mut uuids: Vec<Uuid> = Vec::new();
-    for _ in 0..10 {
-        let uuid = Uuid::new_v4();
-        uuids.push(uuid)
-    }
+    let mut buffers: Vec<Bytes> = Vec::new();
 
     let url = get_staff_image(data.clone());
     let response = reqwest::get(url).await.map_err(|e| {
@@ -87,21 +84,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             ErrorResponseType::Followup,
         )
     })?;
-    let mut buffer = File::create(format!("{}.png", uuids[0])).map_err(|e| {
-        AppError::new(
-            format!("Failed to write the file bytes. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Followup,
-        )
-    })?;
-    buffer.write_all(&bytes).map_err(|e| {
-        AppError::new(
-            format!("Failed to write the file bytes. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Followup,
-        )
-    })?;
-    let mut i = 1;
+    buffers.push(bytes);
     let characters_images_url = get_characters_image(data.clone());
     for character_image in characters_images_url {
         let response = reqwest::get(&character_image.image.large)
@@ -121,47 +104,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Followup,
             )
         })?;
-        let mut buffer = File::create(format!("{}.png", uuids[i])).map_err(|e| {
-            AppError::new(
-                format!("Failed to write the file bytes. {}", e),
-                ErrorType::File,
-                ErrorResponseType::Followup,
-            )
-        })?;
-        buffer.write_all(&bytes).map_err(|e| {
-            AppError::new(
-                format!("Failed to write the file bytes. {}", e),
-                ErrorType::File,
-                ErrorResponseType::Followup,
-            )
-        })?;
-        i += 1
+        buffers.push(bytes);
     }
 
     let mut images: Vec<DynamicImage> = Vec::new();
-    for uuid in &uuids {
-        let path = format!("{}.png", uuid);
-        let img_path = Path::new(&path);
-        // Read the image file into a byte vector
-        let mut file = match File::open(img_path) {
-            Ok(f) => f,
-            Err(e) => {
-                error!("{}", e);
-                continue;
-            }
-        };
-
-        let mut buffer = Vec::new();
-        match file.read_to_end(&mut buffer) {
-            Ok(f) => f,
-            Err(e) => {
-                error!("{}", e);
-                continue;
-            }
-        };
-
+    for bytes in &buffers {
         // Load the image from the byte vector
-        images.push(image::load_from_memory(&buffer).map_err(|e| {
+        images.push(image::load_from_memory(&bytes).map_err(|e| {
             AppError::new(
                 format!("Failed to create the image from the file. {}", e),
                 ErrorType::Image,
@@ -216,29 +165,24 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     }
 
     let combined_uuid = Uuid::new_v4();
-    combined_image
-        .save(format!("{}.png", combined_uuid))
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to write the file bytes. {}", e),
-                ErrorType::File,
-                ErrorResponseType::Followup,
-            )
-        })?;
-    uuids.push(combined_uuid);
     let image_path = &format!("{}.png", combined_uuid);
 
     let builder_embed = get_default_embed(None)
         .image(format!("attachment://{}", &image_path))
         .title(&seiyuu_localised.title);
 
-    let attachment = CreateAttachment::path(&image_path).await.map_err(|e| {
-        AppError::new(
-            format!("Error while uploading the attachment {}", e),
-            ErrorType::Command,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let rgba8_image = combined_image.to_rgba8();
+    let mut bytes: Vec<u8> = Vec::new();
+    rgba8_image .write_to(&mut Cursor::new(&mut bytes), ImageFormat::WebP).map_err(
+        |e| {
+            AppError::new(
+                format!("Failed to write the image to the buffer. {}", e),
+                ErrorType::Image,
+                ErrorResponseType::Followup,
+            )
+        },
+    )?;
+    let attachment = CreateAttachment::bytes(bytes, image_path.to_string());
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -254,14 +198,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Followup,
             )
         })?;
-
-    for uuid in uuids {
-        let path = format!("{}.png", uuid);
-        match fs::remove_file(path) {
-            Ok(_) => debug!("File {} has been removed successfully", uuid),
-            Err(e) => error!("Failed to remove file {}: {}", uuid, e),
-        }
-    }
     Ok(())
 }
 
