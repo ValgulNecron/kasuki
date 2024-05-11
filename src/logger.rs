@@ -9,7 +9,7 @@ use tracing_subscriber::layer::SubscriberExt;
 use crate::constant::{
     APP_TUI, GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, MAX_LOG_RETENTION_DAYS, OTHER_CRATE_LEVEL,
 };
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Initializes the logger for the application.
 ///

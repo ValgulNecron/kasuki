@@ -3,27 +3,32 @@ syntax = "proto3";
 package info;
 
 service Info {
-  rpc GetInfo (InfoRequest) returns (InfoResponse);
+    rpc GetInfo (InfoRequest) returns (InfoResponse);
 }
 
 message InfoRequest {
 }
 
 message InfoResponse {
-  InfoData info = 1;
+    BotInfoData bot_info = 1;
+    SystemInfoData sys_info = 2;
 }
 
-message InfoData {
+message BotInfoData {
     string bot_name = 1;
     string version = 2;
-    string cpu = 3;
-    string memory = 4;
-    string os = 5;
-    string uptime = 6;
-    string bot_id = 7;
-    string bot_owner = 8;
-    string bot_activity = 9;
-    string system_total_memory = 10;
-    string system_used_memory = 11;
-    string system_cpu_usage = 12;
+    string bot_uptime = 3;
+    string bot_id = 4;
+    string bot_owner = 5;
+    string bot_activity = 6;
+    string description = 7;
+}
+
+message SystemInfoData {
+    string app_cpu = 1;
+    string app_memory = 2;
+    string os = 3;
+    string system_total_memory = 4;
+    string system_used_memory = 5;
+    string system_cpu_usage = 6;
 }

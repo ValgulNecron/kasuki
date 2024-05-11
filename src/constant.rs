@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
+use crate::grpc_server::command_list::CommandItem;
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
 use serenity::all::{Colour, CurrentApplicationInfo};
+use tokio::sync::RwLock;
 
 pub const DISCORD_TOKEN: Lazy<String> =
     Lazy::new(|| env::var("DISCORD_TOKEN").expect("Expected a token in the environment"));
@@ -181,15 +182,24 @@ pub const TRANSCRIPT_MODELS: Lazy<String> =
     Lazy::new(|| env::var("AI_TRANSCRIPT_MODELS").unwrap_or_else(|_| String::from("whisper-1")));
 
 /*
-Web server
+gRPC server
 */
-/// Flag to enable or disable the web server.
+/// Flag to enable or disable the gRPC server.
 pub const GRPC_IS_ON: Lazy<bool> =
     Lazy::new(|| env::var("GRPC_IS_ON").unwrap_or_else(|_| "false".to_string()) == "true");
 
-/// Port for the web server.
+/// Port for the gRPC server.
 pub const GRPC_SERVER_PORT: Lazy<String> =
     Lazy::new(|| env::var("GRPC_SERVER_PORT").unwrap_or_else(|_| "8080  ".to_string()));
+/// If the gRPC server should use TLS.
+pub const GRPC_USE_TLS: Lazy<bool> =
+    Lazy::new(|| env::var("USE_SSL").unwrap_or_else(|_| "false".to_string()) == "true");
+/// Path to the gRPC server certificate.
+pub const GRPC_CERT_PATH: Lazy<String> =
+    Lazy::new(|| env::var("SSL_CERT_PATH").unwrap_or_else(|_| "cert/cert.pem".to_string()));
+/// Path to the gRPC server key.
+pub const GRPC_KEY_PATH: Lazy<String> =
+    Lazy::new(|| env::var("SSL_KEY_PATH").unwrap_or_else(|_| "cert/key.pem".to_string()));
 
 /// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -209,6 +219,12 @@ pub static mut USER_BLACKLIST_SERVER_IMAGE: Lazy<Arc<RwLock<Vec<String>>>> = Laz
     let user_ids: Vec<String> = Vec::new();
     Arc::from(RwLock::from(user_ids))
 });
+/// Db type.
+pub const DB_TYPE: Lazy<String> =
+    Lazy::new(|| env::var("DB_TYPE").unwrap_or_else(|_| "sqlite".to_string()));
+/// Cache type.
+pub const CACHE_TYPE: Lazy<String> =
+    Lazy::new(|| env::var("CACHE_TYPE").unwrap_or_else(|_| "sqlite".to_string()));
 
 /*
 bot info
@@ -216,3 +232,5 @@ bot info
 
 /// The bot's information.
 pub static mut BOT_INFO: Lazy<Option<CurrentApplicationInfo>> = Lazy::new(|| None);
+/// Vec of all available bot commands.
+pub static mut BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(Vec::new);

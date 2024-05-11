@@ -570,22 +570,22 @@
   "localised": [
     {
       "code": "en-US",
-      "name": "admin",
+      "name": "general",
       "desc": "Bot configuration configuration for admin only."
     },
     {
       "code": "fr",
-      "name": "admin",
+      "name": "general",
       "desc": "Configuration du bot pour les administrateurs uniquement."
     },
     {
       "code": "de",
-      "name": "admin",
+      "name": "general",
       "desc": "Allgemeine Bot-Konfiguration nur für Admins."
     },
     {
       "code": "ja",
-      "name": "admin",
+      "name": "general",
       "desc": "管理者専用の一般的なボット構成設定。"
     }
   ]

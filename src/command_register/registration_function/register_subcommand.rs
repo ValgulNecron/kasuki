@@ -9,7 +9,7 @@ use crate::command_register::command_struct::subcommand::SubCommand;
 use crate::command_register::registration_function::common::{
     get_permission, get_subcommand_option,
 };
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// This asynchronous function creates subcommands in Discord by reading from a JSON file and sending them to the Discord API.
 ///
@@ -50,7 +50,7 @@ pub async fn creates_subcommands(http: &Arc<Http>) {
 /// # Returns
 ///
 /// A `Result` containing either a vector of `SubCommand` structs if the subcommands are successfully read, or an `AppError` if an error occurs.
-fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, AppError> {
+pub(crate) fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, AppError> {
     let mut subcommands = Vec::new();
     let paths = fs::read_dir(path).map_err(|e| AppError {
         message: format!("Failed to read directory: {:?} with error {}", path, e),

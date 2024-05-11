@@ -3,10 +3,10 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::command_run::anilist_server::list_register_user::get_the_list;
+use crate::command::run::anilist_server::list_register_user::get_the_list;
 use crate::constant::MEMBER_LIST_LIMIT;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist_server::list_register_user::load_localization_list_user;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 
 /// Updates the user list in the server.
 ///

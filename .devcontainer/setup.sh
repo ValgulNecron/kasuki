@@ -1,4 +1,4 @@
-## Install rustup and common components
+## Install rustup and helper components
 curl https://sh.rustup.rs -sSf | sh -s -- -y 
 rustup install stable
 rustup component add rustfmt

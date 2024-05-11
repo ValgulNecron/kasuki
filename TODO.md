@@ -64,7 +64,7 @@
     - [X] Get guild info.
     - [X] Profile command.
     - [X] Upgrade get guild info to show more info.
-    - [ ] Make the user profile better.
+    - [X] Make the user profile better.
 
 
 - General part:
@@ -75,7 +75,8 @@
     - [ ] Database
         - [x] Add a sqlite database.
         - [X] Add postgres database choices.
-        - [X] Add redis for cache.
+        - [ ] Add redis for cache.
+        - [ ] In memory cache.
         - [ ] Rework the database to be more efficient.
     - [X] Create a parser because some description uses html and not markdown.
         - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases

@@ -1,7 +1,6 @@
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::RwLock;
 
 use serde_json::Value;
 use serenity::all::{
@@ -10,15 +9,19 @@ use serenity::all::{
 };
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
+use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
 use struct_shard_manager::ShardManagerContainer;
 
-use crate::activity::anime_activity::manage_activity;
-use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
+use crate::background_task::activity::anime_activity::manage_activity;
+use crate::background_task::server_image::calculate_user_color::color_management;
+use crate::background_task::server_image::generate_server_image::server_image_management;
+use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
+use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispatching};
+use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_dispatcher;
-use crate::command_run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::PING_UPDATE_DELAYS;
 use crate::constant::TIME_BETWEEN_GAME_UPDATE;
@@ -27,40 +30,29 @@ use crate::constant::{
     APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
-use crate::database::dispatcher::data_dispatch::set_data_ping_history;
-use crate::database::dispatcher::init_dispatch::init_sql_database;
-use crate::error_management::error_dispatch;
-use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::game_struct::steam_game_id_struct::get_game;
+use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
+use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::grpc_server::launcher::grpc_server_launcher;
+use crate::helper::error_management::error_dispatch;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::logger::{create_log_directory, init_logger};
 use crate::new_member::new_member;
-use crate::server_image::calculate_user_color::color_management;
-use crate::server_image::generate_server_image::server_image_management;
-use crate::user_command_run::dispatch::dispatch_user_command;
+use crate::structure::steam_game_id_struct::get_game;
 
-mod activity;
-mod anilist_struct;
+mod background_task;
 mod cache;
-mod command_autocomplete;
+mod command;
 mod command_register;
-mod command_run;
-mod common;
 mod components;
-mod constant;
+pub(crate) mod constant;
 mod database;
-mod database_struct;
-mod error_management;
-mod game_struct;
 mod grpc_server;
-mod image_saver;
-mod lang_struct;
+mod helper;
 mod logger;
 mod new_member;
-mod server_image;
 mod struct_shard_manager;
+mod structure;
 mod tui;
-mod user_command_run;
 
 struct Handler;
 
@@ -296,22 +288,7 @@ async fn main() {
     info!("starting the bot.");
 
     // Get all the non-privileged intent.
-    let gateway_intent_non_privileged = GatewayIntents::GUILDS
-        | GatewayIntents::GUILD_INTEGRATIONS
-        | GatewayIntents::GUILD_INVITES
-        | GatewayIntents::GUILD_EMOJIS_AND_STICKERS
-        | GatewayIntents::GUILD_MESSAGE_REACTIONS
-        | GatewayIntents::GUILD_MESSAGE_TYPING
-        | GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::GUILD_MODERATION
-        | GatewayIntents::GUILD_SCHEDULED_EVENTS
-        | GatewayIntents::GUILD_VOICE_STATES
-        | GatewayIntents::GUILD_WEBHOOKS
-        | GatewayIntents::DIRECT_MESSAGE_REACTIONS
-        | GatewayIntents::DIRECT_MESSAGES
-        | GatewayIntents::DIRECT_MESSAGE_TYPING
-        | GatewayIntents::AUTO_MODERATION_CONFIGURATION
-        | GatewayIntents::AUTO_MODERATION_EXECUTION;
+    let gateway_intent_non_privileged = GatewayIntents::non_privileged();
     // Get the needed privileged intent.
     let gateway_intent_privileged = GatewayIntents::GUILD_PRESENCES
         | GatewayIntents::GUILD_MEMBERS
