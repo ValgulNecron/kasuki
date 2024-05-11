@@ -4,7 +4,7 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 
-use crate::anilist_struct::run::minimal_anime::MinimalAnimeWrapper;
+use crate::structure::run::anilist::minimal_anime::MinimalAnimeWrapper;
 use crate::command::run::admin::anilist::add_activity::get_name;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;

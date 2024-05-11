@@ -5,7 +5,7 @@ use serenity::all::{
 };
 use tracing::log::trace;
 
-use crate::anilist_struct::run::user::UserWrapper;
+use crate::structure::run::anilist::user::UserWrapper;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;

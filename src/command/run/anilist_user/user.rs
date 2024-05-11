@@ -1,7 +1,7 @@
 use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
 
-use crate::anilist_struct::run::user::{send_embed, UserWrapper};
+use crate::structure::run::anilist::user::{send_embed, UserWrapper};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

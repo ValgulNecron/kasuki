@@ -4,7 +4,7 @@ use serenity::all::{
 };
 use tracing::log::trace;
 
-use crate::anilist_struct::autocomplete::user::UserPageWrapper;
+use crate::structure::autocomplete::anilist::user::UserPageWrapper;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::constant::DEFAULT_STRING;
 

@@ -1,6 +1,6 @@
 use chrono::Utc;
 
-use crate::anilist_struct::run::minimal_anime::ActivityData;
+use crate::structure::run::anilist::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::database::data_struct::module_status::ActivationStatusModule;

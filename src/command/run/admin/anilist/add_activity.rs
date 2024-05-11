@@ -14,7 +14,7 @@ use serenity::all::{
 };
 use tracing::{error, trace};
 
-use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
+use crate::structure::run::anilist::minimal_anime::{MinimalAnimeWrapper, Title};
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::trimer::trim_webhook;

@@ -7,7 +7,7 @@ use chrono::Utc;
 use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webhook};
 use tracing::{error, trace};
 
-use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrapper};
+use crate::structure::run::anilist::minimal_anime::{ActivityData, MinimalAnimeWrapper};
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,

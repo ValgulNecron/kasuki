@@ -1,6 +1,6 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::anilist_struct::autocomplete::media::{send_auto_complete, MediaPageWrapper};
+use crate::structure::autocomplete::anilist::media::{send_auto_complete, MediaPageWrapper};
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::constant::DEFAULT_STRING;
 

@@ -1,6 +1,6 @@
 use chrono::Utc;
 
-use crate::anilist_struct::run::minimal_anime::ActivityData;
+use crate::structure::run::anilist::minimal_anime::ActivityData;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};

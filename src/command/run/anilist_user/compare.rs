@@ -5,7 +5,7 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::anilist_struct::run::user::{
+use crate::structure::run::anilist::user::{
     Anime, Genre, Manga, Statistics, Statuses, Tag, UserWrapper,
 };
 use crate::command::run::anilist_user::user::get_user_data;

@@ -14,7 +14,7 @@ use serenity::all::{
 use tracing::{debug, error};
 use uuid::Uuid;
 
-use crate::anilist_struct::run::seiyuu::{StaffImageNodes, StaffImageWrapper};
+use crate::structure::run::anilist::seiyuu::{StaffImageNodes, StaffImageWrapper};
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

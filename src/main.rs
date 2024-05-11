@@ -15,8 +15,8 @@ use tracing::{debug, error, info, trace};
 
 use struct_shard_manager::ShardManagerContainer;
 
-use crate::activity::anime_activity::manage_activity;
-use crate::command_autocomplete::autocomplete_dispatch::autocomplete_dispatching;
+use crate::background_task::activity::anime_activity::manage_activity;
+use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::components::components_dispatch::components_dispatching;
@@ -39,13 +39,10 @@ use crate::background_task::server_image::calculate_user_color::color_management
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::command::user_run::dispatch::dispatch_user_command;
 
-mod activity;
-mod anilist_struct;
 mod cache;
-mod command_autocomplete;
 mod command_register;
-mod helper;
 mod components;
+mod helper;
 pub(crate) mod constant;
 mod database;
 mod grpc_server;

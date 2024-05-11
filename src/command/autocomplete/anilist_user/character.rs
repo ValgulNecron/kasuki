@@ -3,7 +3,7 @@ use serenity::all::{
     CreateInteractionResponse,
 };
 
-use crate::anilist_struct::autocomplete::character::CharacterPageWrapper;
+use crate::structure::autocomplete::anilist::character::CharacterPageWrapper;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::constant::DEFAULT_STRING;
 

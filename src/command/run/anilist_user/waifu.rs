@@ -1,6 +1,6 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::anilist_struct::run::character::{send_embed, CharacterWrapper};
+use crate::structure::run::anilist::character::{send_embed, CharacterWrapper};
 use crate::helper::error_management::error_enum::AppError;
 
 /// Executes the command to fetch and display information about a specific character from AniList.

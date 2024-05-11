@@ -6,9 +6,9 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 
-use crate::anilist_struct::run::random::PageWrapper;
-use crate::anilist_struct::run::site_statistic_anime::SiteStatisticsAnimeWrapper;
-use crate::anilist_struct::run::site_statistic_manga::SiteStatisticsMangaWrapper;
+use crate::structure::run::anilist::random::PageWrapper;
+use crate::structure::run::anilist::site_statistic_anime::SiteStatisticsAnimeWrapper;
+use crate::structure::run::anilist::site_statistic_manga::SiteStatisticsMangaWrapper;
 use crate::cache::cache_struct::cache_stats::CacheStats;
 use crate::cache::manage::cache_dispatch::{get_database_random_cache, set_database_random_cache};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;

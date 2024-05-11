@@ -1,4 +1,4 @@
-use crate::anilist_struct::run::minimal_anime::ActivityData;
+use crate::structure::run::anilist::minimal_anime::ActivityData;
 use crate::constant::DB_TYPE;
 use crate::database::manage::postgresql::data::{
     get_all_server_activity_postgresql, get_all_user_approximated_color_postgres,

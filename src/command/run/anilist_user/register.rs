@@ -2,7 +2,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::anilist_struct::run::user::{get_color, get_user_url, UserWrapper};
+use crate::structure::run::anilist::user::{get_color, get_user_url, UserWrapper};
 use crate::command::run::anilist_user::user::get_user_data;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
