@@ -4,8 +4,8 @@ use std::fs;
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
-use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::read_file::read_file_as_string;
 
 /// Represents a localized line of credit.
@@ -61,7 +61,8 @@ pub async fn load_localization_credit(guild_id: String) -> Result<CreditLocalise
     let lang_choice = get_guild_language(guild_id).await;
 
     // Return the localized data for the language or an error if the language is not found.
-    json_data.get(lang_choice.as_str()).cloned().ok_or_else(|| {
-        json_data.get("en").unwrap().cloned()
-    })
+    Ok(json_data
+        .get(lang_choice.as_str())
+        .cloned()
+        .unwrap_or(json_data.get("en").unwrap().clone()))
 }

@@ -3,8 +3,8 @@ use serde_json::json;
 use sqlx::FromRow;
 use tracing::log::trace;
 
-use crate::helper::make_anilist_cached_request::make_request_anilist;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::make_anilist_cached_request::make_request_anilist;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NextAiringEpisode {

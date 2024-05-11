@@ -1,5 +1,7 @@
-use crate::structure::run::anilist::minimal_anime::ActivityData;
 use crate::constant::DB_TYPE;
+use crate::database::data_struct::module_status::ActivationStatusModule;
+use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
+use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::postgresql::data::{
     get_all_server_activity_postgresql, get_all_user_approximated_color_postgres,
     get_data_activity_postgresql, get_data_all_activity_by_server_postgresql,
@@ -22,10 +24,8 @@ use crate::database::manage::sqlite::data::{
     set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
     set_registered_user_sqlite, set_server_image_sqlite, set_user_approximated_color_sqlite,
 };
-use crate::database::data_struct::module_status::ActivationStatusModule;
-use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
-use crate::database::data_struct::user_color::UserColor;
 use crate::helper::error_management::error_enum::AppError;
+use crate::structure::run::anilist::minimal_anime::ActivityData;
 
 /// Sets the ping history in the database.
 ///

@@ -1,8 +1,8 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::structure::run::anilist::media::{send_embed, MediaWrapper};
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::error_management::error_enum::AppError;
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::structure::run::anilist::media::{send_embed, MediaWrapper};
 
 /// This asynchronous function runs the command interaction for retrieving information about an anime.
 ///

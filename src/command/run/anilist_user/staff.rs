@@ -2,11 +2,11 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::structure::run::anilist::staff::StaffWrapper;
 use crate::helper::create_normalise_embed::get_default_embed;
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::staff::load_localization_staff;
+use crate::structure::run::anilist::staff::StaffWrapper;
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///

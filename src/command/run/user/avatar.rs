@@ -3,10 +3,10 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp, User,
 };
 
-use crate::helper::create_normalise_embed::get_default_embed;
-use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::constant::COLOR;
+use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::structure::message::user::avatar::load_localization_avatar;
 
 /// Executes the command to display a user's avatar.

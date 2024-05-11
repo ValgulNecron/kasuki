@@ -2,11 +2,11 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::structure::run::anilist::studio::StudioWrapper;
 use crate::helper::create_normalise_embed::get_default_embed;
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::studio::load_localization_studio;
+use crate::structure::run::anilist::studio::StudioWrapper;
 
 /// Executes the command to fetch and display information about a studio from AniList.
 ///

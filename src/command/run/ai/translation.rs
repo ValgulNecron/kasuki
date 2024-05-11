@@ -14,15 +14,15 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::helper::create_normalise_embed::get_default_embed;
-use crate::helper::get_option::subcommand::{
-    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
-};
 use crate::constant::{
     CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS,
     TRANSCRIPT_TOKEN,
 };
+use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::{
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
+};
 use crate::structure::message::ai::translation::load_localization_translation;
 
 /// This asynchronous function runs the command interaction for transcribing an audio or video file.

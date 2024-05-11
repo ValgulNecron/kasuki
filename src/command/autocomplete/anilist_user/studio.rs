@@ -3,9 +3,9 @@ use serenity::all::{
     CreateInteractionResponse,
 };
 
-use crate::structure::autocomplete::anilist::studio::StudioPageWrapper;
-use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::constant::DEFAULT_STRING;
+use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
+use crate::structure::autocomplete::anilist::studio::StudioPageWrapper;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for studio search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.

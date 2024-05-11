@@ -10,11 +10,11 @@ use serenity::all::{
 };
 use uuid::Uuid;
 
-use crate::structure::run::anilist::seiyuu::{StaffImageNodes, StaffImageWrapper};
 use crate::helper::create_normalise_embed::get_default_embed;
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
+use crate::structure::run::anilist::seiyuu::{StaffImageNodes, StaffImageWrapper};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -169,15 +169,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let rgba8_image = combined_image.to_rgba8();
     let mut bytes: Vec<u8> = Vec::new();
-    rgba8_image .write_to(&mut Cursor::new(&mut bytes), ImageFormat::WebP).map_err(
-        |e| {
+    rgba8_image
+        .write_to(&mut Cursor::new(&mut bytes), ImageFormat::WebP)
+        .map_err(|e| {
             AppError::new(
                 format!("Failed to write the image to the buffer. {}", e),
                 ErrorType::Image,
                 ErrorResponseType::Followup,
             )
-        },
-    )?;
+        })?;
     let attachment = CreateAttachment::bytes(bytes, image_path.to_string());
 
     let builder_message = CreateInteractionResponseFollowup::new()

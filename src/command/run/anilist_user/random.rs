@@ -6,17 +6,17 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 
-use crate::structure::run::anilist::random::PageWrapper;
-use crate::structure::run::anilist::site_statistic_anime::SiteStatisticsAnimeWrapper;
-use crate::structure::run::anilist::site_statistic_manga::SiteStatisticsMangaWrapper;
 use crate::cache::cache_struct::cache_stats::CacheStats;
 use crate::cache::manage::cache_dispatch::{get_database_random_cache, set_database_random_cache};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::trimer::trim;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::random::{load_localization_random, RandomLocalised};
+use crate::structure::run::anilist::random::PageWrapper;
+use crate::structure::run::anilist::site_statistic_anime::SiteStatisticsAnimeWrapper;
+use crate::structure::run::anilist::site_statistic_manga::SiteStatisticsMangaWrapper;
 
 /// Executes the command to fetch and display a random anime or manga based on the type specified in the command interaction.
 ///

@@ -7,12 +7,21 @@ use tracing::trace;
 
 use proto::shard_server::Shard;
 
-use crate::constant::{ACTIVITY_NAME, APP_VERSION, BOT_COMMANDS, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH, GRPC_SERVER_PORT, GRPC_USE_TLS};
-use crate::grpc_server::command_list::{Arg, Command, CommandItem, get_command_list, SubCommand, SubCommandGroup};
+use crate::constant::{
+    ACTIVITY_NAME, APP_VERSION, BOT_COMMANDS, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH,
+    GRPC_SERVER_PORT, GRPC_USE_TLS,
+};
+use crate::grpc_server::command_list::{
+    get_command_list, Arg, Command, CommandItem, SubCommand, SubCommandGroup,
+};
+use crate::grpc_server::launcher::proto::command_service_server::{
+    CommandService, CommandServiceServer,
+};
 use crate::grpc_server::launcher::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::launcher::proto::shard_server::ShardServer;
-use crate::grpc_server::launcher::proto::{BotInfoData, CommandListRequest, CommandListResponse, InfoRequest, InfoResponse, SystemInfoData};
-use crate::grpc_server::launcher::proto::command_service_server::{CommandService, CommandServiceServer};
+use crate::grpc_server::launcher::proto::{
+    BotInfoData, CommandListRequest, CommandListResponse, InfoRequest, InfoResponse, SystemInfoData,
+};
 
 // Proto module contains the protobuf definitions for the shard service
 mod proto {
@@ -195,7 +204,10 @@ pub struct CommandServices {
 
 #[tonic::async_trait]
 impl CommandService for CommandServices {
-    async fn command_list(&self, _request: Request<CommandListRequest>) -> Result<Response<CommandListResponse>, Status> {
+    async fn command_list(
+        &self,
+        _request: Request<CommandListRequest>,
+    ) -> Result<Response<CommandListResponse>, Status> {
         let cmd_list = &self.command_list.clone();
         let cm_count = cmd_list.len();
         let mut commands = Vec::new();
@@ -252,9 +264,11 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
             os_info: Arc::new(os_info::get()),
         }
     };
-    let command_service = unsafe { CommandServices {
-        command_list: Arc::new(BOT_COMMANDS.clone()),
-    }};
+    let command_service = unsafe {
+        CommandServices {
+            command_list: Arc::new(BOT_COMMANDS.clone()),
+        }
+    };
 
     // Configure the reflection service and register the file descriptor set for the shard service
     let reflection = tonic_reflection::server::Builder::configure()
@@ -342,7 +356,12 @@ impl From<&Command> for proto::Command {
         proto::Command {
             name: command.name.clone(),
             description: command.desc.clone(),
-            args: command.args.clone().into_iter().map(|arg| (&arg).into()).collect(),
+            args: command
+                .args
+                .clone()
+                .into_iter()
+                .map(|arg| (&arg).into())
+                .collect(),
         }
     }
 }
@@ -363,7 +382,12 @@ impl From<&SubCommand> for proto::SubCommand {
         proto::SubCommand {
             name: subcommand.name.clone(),
             description: subcommand.desc.clone(),
-            commands: subcommand.commands.clone().into_iter().map(|commands| (&commands).into()).collect(),
+            commands: subcommand
+                .commands
+                .clone()
+                .into_iter()
+                .map(|commands| (&commands).into())
+                .collect(),
         }
     }
 }
@@ -373,8 +397,18 @@ impl From<&SubCommandGroup> for proto::SubCommandGroup {
         proto::SubCommandGroup {
             name: subcommand_group.name.clone(),
             description: subcommand_group.desc.clone(),
-            sub_commands: subcommand_group.subcommands.clone().into_iter().map(|subcommands| (&subcommands).into()).collect(),
-            commands: subcommand_group.commands.clone().into_iter().map(|commands| (&commands).into()).collect(),
+            sub_commands: subcommand_group
+                .subcommands
+                .clone()
+                .into_iter()
+                .map(|subcommands| (&subcommands).into())
+                .collect(),
+            commands: subcommand_group
+                .commands
+                .clone()
+                .into_iter()
+                .map(|commands| (&commands).into())
+                .collect(),
         }
     }
 }

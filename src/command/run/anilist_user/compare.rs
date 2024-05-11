@@ -5,14 +5,14 @@ use serenity::all::{
 };
 use tracing::trace;
 
+use crate::command::run::anilist_user::user::get_user_data;
+use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::structure::message::anilist_user::compare::load_localization_compare;
 use crate::structure::run::anilist::user::{
     Anime, Genre, Manga, Statistics, Statuses, Tag, UserWrapper,
 };
-use crate::command::run::anilist_user::user::get_user_data;
-use crate::helper::create_normalise_embed::get_default_embed;
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::structure::message::anilist_user::compare::load_localization_compare;
 
 /// Executes the comparison between two users' anime and manga statistics.
 ///

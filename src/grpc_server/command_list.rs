@@ -1,10 +1,10 @@
-use tracing::error;
-use crate::command_register::command_struct::{command, common, subcommand, subcommand_group};
 use crate::command_register::command_struct::common::Choice;
+use crate::command_register::command_struct::{command, common, subcommand, subcommand_group};
 use crate::command_register::registration_function::register_command::get_commands;
 use crate::command_register::registration_function::register_subcommand::get_subcommands;
 use crate::command_register::registration_function::register_subcommand_group::get_subcommands_group;
 use crate::constant::BOT_COMMANDS;
+use tracing::error;
 
 #[derive(Clone)]
 pub enum CommandItem {
@@ -76,9 +76,7 @@ pub fn get_command_list() {
         commands_item.push(CommandItem::SubcommandGroup(subcom_group));
     }
 
-    unsafe {
-        *BOT_COMMANDS = commands_item
-    }
+    unsafe { *BOT_COMMANDS = commands_item }
 }
 
 fn create_com(command: command::Command) -> Command {
@@ -86,7 +84,7 @@ fn create_com(command: command::Command) -> Command {
     if let Some(command_args) = command.args {
         args = create_arg(command_args);
     }
-    
+
     Command {
         name: command.name,
         desc: command.desc,
@@ -105,7 +103,7 @@ fn create_arg(command_args: Vec<common::Arg>) -> Vec<Arg> {
             name: arg.name,
             desc: arg.desc,
             required: arg.required,
-            choices:choices_list,
+            choices: choices_list,
         };
         args.push(arg);
     }
@@ -125,7 +123,7 @@ fn create_subcom_com(command: subcommand::Command) -> Command {
     if let Some(command_args) = command.args {
         args = create_arg(command_args);
     }
-    
+
     Command {
         name: command.name,
         desc: command.desc,
@@ -139,14 +137,13 @@ fn create_subcom(subcommand: subcommand::SubCommand) -> SubCommand {
         let com = create_subcom_com(command);
         commands.push(com);
     }
-    
+
     SubCommand {
         name: subcommand.name,
         desc: subcommand.desc,
-        commands
+        commands,
     }
 }
-
 
 fn create_subcom_group_subcom(subcommand: subcommand_group::SubCommand) -> SubCommand {
     let mut commands = Vec::new();
@@ -154,11 +151,11 @@ fn create_subcom_group_subcom(subcommand: subcommand_group::SubCommand) -> SubCo
         let com = create_subcom_com(command);
         commands.push(com);
     }
-    
+
     SubCommand {
         name: subcommand.name,
         desc: subcommand.desc,
-        commands
+        commands,
     }
 }
 fn create_subcom_group(sub_command_group: subcommand_group::SubCommandGroup) -> SubCommandGroup {
@@ -172,7 +169,7 @@ fn create_subcom_group(sub_command_group: subcommand_group::SubCommandGroup) -> 
         let com = create_subcom_group_subcom(subcommand);
         subcommands.push(com);
     }
-    
+
     SubCommandGroup {
         name: sub_command_group.name,
         desc: sub_command_group.desc,

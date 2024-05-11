@@ -4,13 +4,13 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 
-use crate::structure::run::anilist::minimal_anime::MinimalAnimeWrapper;
 use crate::command::run::admin::anilist::add_activity::get_name;
-use crate::helper::create_normalise_embed::get_default_embed;
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::database::manage::dispatcher::data_dispatch::remove_data_activity_status;
+use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
+use crate::structure::run::anilist::minimal_anime::MinimalAnimeWrapper;
 
 /// This asynchronous function runs the command interaction for deleting an anime activity.
 ///

@@ -13,10 +13,10 @@ use tokio::time::sleep;
 use tracing::{debug, error};
 
 use crate::constant::USER_BLACKLIST_SERVER_IMAGE;
+use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
-use crate::database::data_struct::user_color::UserColor;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Calculates the color for each user in a list of members.

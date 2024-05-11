@@ -5,9 +5,9 @@ use std::io::Read;
 
 use serde::{Deserialize, Serialize};
 
-use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::read_file::{read_file_as_json, read_file_as_string};
+use crate::helper::get_guild_lang::get_guild_language;
+use crate::helper::read_file::read_file_as_string;
 
 /// `AddActivityLocalised` is a struct that represents an add activity's localized data.
 /// It contains four fields `success`, `fail`, `fail_desc` and `success_desc` which are all Strings.
@@ -60,8 +60,8 @@ pub async fn load_localization_add_activity(
     let lang_choice = get_guild_language(guild_id).await;
 
     // Retrieve the localized data for the add activity based on the language choice
-    // Return the localized data for the language or an error if the language is not found.
-    json_data.get(lang_choice.as_str()).cloned().ok_or_else(|| {
-        json_data.get("en").unwrap().cloned()
-    })
+    Ok(json_data
+        .get(lang_choice.as_str())
+        .cloned()
+        .unwrap_or(json_data.get("en").unwrap().clone()))
 }

@@ -1,2 +1,2 @@
-pub mod game;
 pub mod anilist;
+pub mod game;

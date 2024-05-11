@@ -1,8 +1,10 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::command::autocomplete::anilist_user::{anime, character, ln, manga, staff, studio, user};
-use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
+use crate::command::autocomplete::anilist_user::{
+    anime, character, ln, manga, staff, studio, user,
+};
 use crate::constant::DEFAULT_STRING;
+use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for various search types.
 /// It takes a `Context` and a `CommandInteraction` as parameters.

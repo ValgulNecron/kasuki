@@ -4,8 +4,8 @@ use serenity::all::{
     CreateInteractionResponse,
 };
 
-use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
+use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for game search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.

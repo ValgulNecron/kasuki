@@ -12,11 +12,6 @@ use tokio::task;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::database::manage::dispatcher::data_dispatch::{
-    get_all_user_approximated_color, set_server_image,
-};
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::background_task::server_image::calculate_user_color::{
     get_image_from_url, get_member, return_average_user_color,
 };
@@ -24,6 +19,11 @@ use crate::background_task::server_image::common::{
     create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
     ColorWithUrl,
 };
+use crate::database::manage::dispatcher::data_dispatch::{
+    get_all_user_approximated_color, set_server_image,
+};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::image_saver::general_image_saver::image_saver;
 
 /// This function generates a local server image.
 ///

@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
 
+use crate::grpc_server::command_list::CommandItem;
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
 use serenity::all::{Colour, CurrentApplicationInfo};
 use tokio::sync::RwLock;
-use crate::grpc_server::command_list::CommandItem;
 
 pub const DISCORD_TOKEN: Lazy<String> =
     Lazy::new(|| env::var("DISCORD_TOKEN").expect("Expected a token in the environment"));

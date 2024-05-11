@@ -1,12 +1,12 @@
 use chrono::Utc;
 
-use crate::structure::run::anilist::minimal_anime::ActivityData;
 use crate::constant::DATA_SQLITE_DB;
-use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
 use crate::database::data_struct::user_color::UserColor;
+use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::structure::run::anilist::minimal_anime::ActivityData;
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
 ///

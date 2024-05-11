@@ -2,15 +2,15 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::helper::create_normalise_embed::get_default_embed;
-use crate::helper::get_option::subcommand_group::{
-    get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
-};
+use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
 };
-use crate::database::data_struct::module_status::ActivationStatusModule;
+use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand_group::{
+    get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
+};
 use crate::structure::message::admin::module::load_localization_module_activation;
 
 /// This asynchronous function runs the command interaction for setting the activation status of a module.

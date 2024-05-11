@@ -4,9 +4,9 @@ use serenity::all::{
 };
 use tracing::log::trace;
 
-use crate::structure::autocomplete::anilist::user::UserPageWrapper;
-use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::constant::DEFAULT_STRING;
+use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
+use crate::structure::autocomplete::anilist::user::UserPageWrapper;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for user comparison.
 /// It takes a `Context` and a `CommandInteraction` as parameters.

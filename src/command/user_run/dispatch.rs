@@ -1,7 +1,7 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::command::user_run::{avatar, banner, profile};
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Dispatches the user command received from the Discord interaction.
 ///
@@ -31,12 +31,10 @@ pub async fn dispatch_user_command(
         "avatar" => avatar::run(ctx, command_interaction).await,
         "banner" => banner::run(ctx, command_interaction).await,
         "profile" => profile::run(ctx, command_interaction).await,
-        _ => {
-            Err(AppError::new(
-                String::from("Command does not exist."),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            ))
-        }
+        _ => Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
     }
 }

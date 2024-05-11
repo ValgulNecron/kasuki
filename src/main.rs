@@ -16,9 +16,12 @@ use tracing::{debug, error, info, trace};
 use struct_shard_manager::ShardManagerContainer;
 
 use crate::background_task::activity::anime_activity::manage_activity;
+use crate::background_task::server_image::calculate_user_color::color_management;
+use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispatching};
+use crate::command::user_run::dispatch::dispatch_user_command;
+use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::PING_UPDATE_DELAYS;
 use crate::constant::TIME_BETWEEN_GAME_UPDATE;
@@ -29,30 +32,27 @@ use crate::constant::{
 };
 use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
+use crate::grpc_server::launcher::grpc_server_launcher;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::structure::steam_game_id_struct::get_game;
-use crate::grpc_server::launcher::grpc_server_launcher;
 use crate::logger::{create_log_directory, init_logger};
 use crate::new_member::new_member;
-use crate::background_task::server_image::calculate_user_color::color_management;
-use crate::background_task::server_image::generate_server_image::server_image_management;
-use crate::command::user_run::dispatch::dispatch_user_command;
+use crate::structure::steam_game_id_struct::get_game;
 
+mod background_task;
 mod cache;
+mod command;
 mod command_register;
 mod components;
-mod helper;
 pub(crate) mod constant;
 mod database;
 mod grpc_server;
+mod helper;
 mod logger;
 mod new_member;
 mod struct_shard_manager;
-mod tui;
-mod command;
-mod background_task;
 mod structure;
+mod tui;
 
 struct Handler;
 
