@@ -74,7 +74,7 @@ fn add_choices(mut option: CreateCommandOption, choices: &Vec<Choice>) -> Create
     for choice in choices {
         option = match &choice.option_choice_localised {
             Some(localised) => add_choices_localised(option, localised, &choice.option_choice),
-            None => option,
+            None => option.add_string_choice(&choice.option_choice, &choice.option_choice),
         }
     }
     option
