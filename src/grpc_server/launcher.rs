@@ -352,7 +352,7 @@ impl From<&Arg> for proto::Arg {
         proto::Arg {
             name: arg.name.clone(),
             description: arg.desc.clone(),
-            required: arg.required.clone(),
+            required: arg.required,
             choices: arg.choices.clone(),
         }
     }

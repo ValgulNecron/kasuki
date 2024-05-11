@@ -1,7 +1,4 @@
-use std::fs;
-use std::fs::File;
-use std::io::{Cursor, Read, Write};
-use std::path::Path;
+use std::io::{Cursor, Read};
 
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
@@ -11,7 +8,6 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::structure::run::anilist::seiyuu::{StaffImageNodes, StaffImageWrapper};
@@ -110,7 +106,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let mut images: Vec<DynamicImage> = Vec::new();
     for bytes in &buffers {
         // Load the image from the byte vector
-        images.push(image::load_from_memory(&bytes).map_err(|e| {
+        images.push(image::load_from_memory(bytes).map_err(|e| {
             AppError::new(
                 format!("Failed to create the image from the file. {}", e),
                 ErrorType::Image,

@@ -86,12 +86,12 @@ fn create_com(command: command::Command) -> Command {
     if let Some(command_args) = command.args {
         args = create_arg(command_args);
     }
-    let com = Command {
+    
+    Command {
         name: command.name,
         desc: command.desc,
         args,
-    };
-    com
+    }
 }
 
 fn create_arg(command_args: Vec<common::Arg>) -> Vec<Arg> {
@@ -125,12 +125,12 @@ fn create_subcom_com(command: subcommand::Command) -> Command {
     if let Some(command_args) = command.args {
         args = create_arg(command_args);
     }
-    let com = Command {
+    
+    Command {
         name: command.name,
         desc: command.desc,
         args,
-    };
-    com
+    }
 }
 
 fn create_subcom(subcommand: subcommand::SubCommand) -> SubCommand {
@@ -139,12 +139,12 @@ fn create_subcom(subcommand: subcommand::SubCommand) -> SubCommand {
         let com = create_subcom_com(command);
         commands.push(com);
     }
-    let subcom = SubCommand {
+    
+    SubCommand {
         name: subcommand.name,
         desc: subcommand.desc,
         commands
-    };
-    subcom
+    }
 }
 
 
@@ -154,12 +154,12 @@ fn create_subcom_group_subcom(subcommand: subcommand_group::SubCommand) -> SubCo
         let com = create_subcom_com(command);
         commands.push(com);
     }
-    let subcom = SubCommand {
+    
+    SubCommand {
         name: subcommand.name,
         desc: subcommand.desc,
         commands
-    };
-    subcom
+    }
 }
 fn create_subcom_group(sub_command_group: subcommand_group::SubCommandGroup) -> SubCommandGroup {
     let mut commands = Vec::new();
@@ -172,11 +172,11 @@ fn create_subcom_group(sub_command_group: subcommand_group::SubCommandGroup) -> 
         let com = create_subcom_group_subcom(subcommand);
         subcommands.push(com);
     }
-    let subcom = SubCommandGroup {
+    
+    SubCommandGroup {
         name: sub_command_group.name,
         desc: sub_command_group.desc,
         commands,
         subcommands,
-    };
-    subcom
+    }
 }
