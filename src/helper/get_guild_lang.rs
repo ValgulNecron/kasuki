@@ -1,4 +1,4 @@
-use crate::database::dispatcher::data_dispatch::get_data_guild_language;
+use crate::database::manage::dispatcher::data_dispatch::get_data_guild_language;
 
 /// Retrieves the language setting for a given guild.
 ///
@@ -14,7 +14,7 @@ use crate::database::dispatcher::data_dispatch::get_data_guild_language;
 /// # Returns
 ///
 /// * A string representing the language setting for the given guild. If no language setting is found, it returns "en".
-pub async fn get_guild_langage(guild_id: String) -> String {
+pub async fn get_guild_language(guild_id: String) -> String {
     if guild_id == *"0" {
         return String::from("en");
     };

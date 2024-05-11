@@ -1,7 +1,7 @@
 use serenity::all::{CommandInteraction, Context};
 
 use crate::anilist_struct::autocomplete::media::{send_auto_complete, MediaPageWrapper};
-use crate::common::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
+use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::constant::DEFAULT_STRING;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for anime search.

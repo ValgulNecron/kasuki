@@ -10,8 +10,8 @@ use serenity::all::{
 use tracing::{info, trace};
 use uuid::Uuid;
 
-use crate::common::default_embed::get_default_embed;
-use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
+use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::constant::{DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::image_saver::general_image_saver::image_saver;

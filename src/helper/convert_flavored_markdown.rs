@@ -37,6 +37,37 @@ pub fn convert_anilist_flavored_to_discord_flavored_markdown(value: String) -> S
     result
 }
 
+/// Converts the given string into Discord-flavored markdown
+///
+/// This function applies a series of transformations to a given string to
+/// represent it in a format compatible with Discord's flavor of markdown. It will
+/// convert italicized text, translate HTML entities into their actual characters,
+/// convert hyperlink formats, add an anti-slash (backslash) where necessary,
+/// convert HTML style line breaks to natural line breaks, convert bold text,
+/// wrap spoilers in appropriate tags, and format strikethrough text.
+///
+/// # Arguments
+///
+/// - `value` - A `String` that represents the text to be converted to Discord-flavored markdown.
+///
+/// # Returns
+///
+/// A `String` that represents the text in Discord-flavored markdown.
+pub fn convert_steam_to_discord_flavored_markdown(value: String) -> String {
+    let mut result = value;
+    result = add_anti_slash(result);
+    result = convert_html_entity_to_real_char(result);
+    result = convert_link_to_discord_markdown(result);
+    result = convert_html_line_break_to_line_break(result);
+    result = convert_bold(result);
+    result = convert_strikethrough(result);
+    result = convert_blockquote(result);
+    result = convert_h_header(result);
+    result = convert_italic(result);
+
+    result
+}
+
 /// Converts the HTML tags '<i>' and '<em>' (including their ending tags) in a given string to underscore, '_'
 ///
 /// # Arguments
@@ -553,5 +584,45 @@ mod tests {
         let input = String::from("<code>Hello</code>");
         let expected_output = String::from("Hello");
         assert_eq!(remove_code_block(input), expected_output);
+    }
+
+    #[test]
+    fn convert_steam_to_discord_flavored_markdown_converts_italic_text() {
+        let input = String::from("_italic_");
+        let expected_output = String::from("_italic_");
+        assert_eq!(
+            convert_steam_to_discord_flavored_markdown(input),
+            expected_output
+        );
+    }
+
+    #[test]
+    fn convert_steam_to_discord_flavored_markdown_converts_bold_text() {
+        let input = String::from("**bold**");
+        let expected_output = String::from("**bold**");
+        assert_eq!(
+            convert_steam_to_discord_flavored_markdown(input),
+            expected_output
+        );
+    }
+
+    #[test]
+    fn convert_steam_to_discord_flavored_markdown_converts_html_entities() {
+        let input = String::from("&amp;");
+        let expected_output = String::from("&");
+        assert_eq!(
+            convert_steam_to_discord_flavored_markdown(input),
+            expected_output
+        );
+    }
+
+    #[test]
+    fn convert_steam_to_discord_flavored_markdown_converts_links() {
+        let input = String::from("<a href=\"https://example.com\">link</a>");
+        let expected_output = String::from("[link](https://example.com)");
+        assert_eq!(
+            convert_steam_to_discord_flavored_markdown(input),
+            expected_output
+        );
     }
 }

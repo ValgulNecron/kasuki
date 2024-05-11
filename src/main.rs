@@ -27,8 +27,8 @@ use crate::constant::{
     APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
-use crate::database::dispatcher::data_dispatch::set_data_ping_history;
-use crate::database::dispatcher::init_dispatch::init_sql_database;
+use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
+use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::error_management::error_dispatch;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::game_struct::steam_game_id_struct::get_game;
@@ -45,11 +45,10 @@ mod cache;
 mod command_autocomplete;
 mod command_register;
 mod command_run;
-mod common;
+mod helper;
 mod components;
 mod constant;
 mod database;
-mod database_struct;
 mod error_management;
 mod game_struct;
 mod grpc_server;

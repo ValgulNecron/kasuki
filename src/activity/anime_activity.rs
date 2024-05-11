@@ -8,11 +8,11 @@ use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webh
 use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{ActivityData, MinimalAnimeWrapper};
-use crate::common::default_embed::get_default_embed;
-use crate::database::dispatcher::data_dispatch::{
+use crate::helper::create_normalise_embed::get_default_embed;
+use crate::database::manage::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
-use crate::database_struct::server_activity::ServerActivityFull;
+use crate::database::data_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist_user::send_activity::load_localization_send_activity;
 

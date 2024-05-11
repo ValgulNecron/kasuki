@@ -1,10 +1,10 @@
 use chrono::Utc;
 
 use crate::anilist_struct::run::minimal_anime::ActivityData;
-use crate::database::postgresql::pool::get_postgresql_pool;
-use crate::database_struct::module_status::ActivationStatusModule;
-use crate::database_struct::server_activity::{ServerActivity, ServerActivityFull};
-use crate::database_struct::user_color::UserColor;
+use crate::database::manage::postgresql::pool::get_postgresql_pool;
+use crate::database::data_struct::module_status::ActivationStatusModule;
+use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
+use crate::database::data_struct::user_color::UserColor;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Inserts or updates a ping history record in the PostgreSQL database.

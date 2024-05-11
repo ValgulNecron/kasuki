@@ -12,7 +12,7 @@ use tokio::task;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::database::dispatcher::data_dispatch::{
+use crate::database::manage::dispatcher::data_dispatch::{
     get_all_user_approximated_color, set_server_image,
 };
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

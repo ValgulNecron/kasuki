@@ -14,8 +14,8 @@ use serenity::all::{
 use tracing::log::trace;
 use uuid::Uuid;
 
-use crate::common::default_embed::get_default_embed;
-use crate::common::get_option::subcommand::{
+use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::get_option::subcommand::{
     get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::constant::{

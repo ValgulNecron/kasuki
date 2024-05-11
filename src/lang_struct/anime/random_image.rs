@@ -3,7 +3,7 @@ use std::fs;
 
 use serde::{Deserialize, Serialize};
 
-use crate::common::get_guild_lang::get_guild_langage;
+use crate::helper::get_guild_lang::get_guild_language;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Represents a random image's localized data.
@@ -56,7 +56,7 @@ pub async fn load_localization_random_image(
         })?;
 
     // Get the language choice based on the guild_id.
-    let lang_choice = get_guild_langage(guild_id).await;
+    let lang_choice = get_guild_language(guild_id).await;
 
     // Return the localized data for the random image or an error if the language is not found.
     json_data

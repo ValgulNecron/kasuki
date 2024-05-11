@@ -4,7 +4,7 @@ use std::fs;
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
-use crate::common::get_guild_lang::get_guild_langage;
+use crate::helper::get_guild_lang::get_guild_language;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Represents the localized banner data.
@@ -56,7 +56,7 @@ pub async fn load_localization_banner(guild_id: String) -> Result<BannerLocalise
     })?;
 
     // Get the language choice based on the guild_id.
-    let lang_choice = get_guild_langage(guild_id).await;
+    let lang_choice = get_guild_language(guild_id).await;
 
     // Return the localized banner or an error if the language is not found.
     json_data.get(lang_choice.as_str()).cloned().ok_or_else(|| {

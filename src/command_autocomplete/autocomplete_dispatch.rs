@@ -5,7 +5,7 @@ use crate::command_autocomplete::anilist_user::{
     anime, character, compare, ln, manga, search, staff, studio, user,
 };
 use crate::command_autocomplete::game::steam_game_info;
-use crate::common::get_option::subcommand_group::get_subcommand;
+use crate::helper::get_option::subcommand_group::get_subcommand;
 
 pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
     match autocomplete_interaction.data.name.as_str() {

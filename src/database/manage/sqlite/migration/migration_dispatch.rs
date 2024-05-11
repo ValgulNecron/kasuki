@@ -1,5 +1,5 @@
 use crate::constant::DATA_SQLITE_DB;
-use crate::database::sqlite::pool::get_sqlite_pool;
+use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Migrates the SQLite database.

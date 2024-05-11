@@ -2,7 +2,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::common::default_embed::get_default_embed;
+use crate::helper::create_normalise_embed::get_default_embed;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::bot::ping::load_localization_ping;
 use crate::struct_shard_manager::ShardManagerContainer;

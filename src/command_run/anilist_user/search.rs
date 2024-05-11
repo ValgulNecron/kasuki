@@ -1,7 +1,7 @@
 use serenity::all::{CommandInteraction, Context};
 
 use crate::command_run::anilist_user::{anime, character, ln, manga, staff, studio, user};
-use crate::common::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Executes the command to search for a specific type of AniList data.

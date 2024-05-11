@@ -2,14 +2,14 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::common::default_embed::get_default_embed;
-use crate::common::get_option::subcommand_group::{
+use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::get_option::subcommand_group::{
     get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
-use crate::database::dispatcher::data_dispatch::{
+use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
 };
-use crate::database_struct::module_status::ActivationStatusModule;
+use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::admin::module::load_localization_module_activation;
 

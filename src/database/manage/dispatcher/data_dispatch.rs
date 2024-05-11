@@ -1,6 +1,6 @@
 use crate::anilist_struct::run::minimal_anime::ActivityData;
 use crate::constant::DB_TYPE;
-use crate::database::postgresql::data::{
+use crate::database::manage::postgresql::data::{
     get_all_server_activity_postgresql, get_all_user_approximated_color_postgres,
     get_data_activity_postgresql, get_data_all_activity_by_server_postgresql,
     get_data_guild_language_postgresql, get_data_module_activation_kill_switch_status_postgresql,
@@ -12,7 +12,7 @@ use crate::database::postgresql::data::{
     set_registered_user_postgresql, set_server_image_postgresql,
     set_user_approximated_color_postgresql,
 };
-use crate::database::sqlite::data::{
+use crate::database::manage::sqlite::data::{
     get_all_server_activity_sqlite, get_all_user_approximated_color_sqlite,
     get_data_activity_sqlite, get_data_all_activity_by_server_sqlite,
     get_data_guild_language_sqlite, get_data_module_activation_kill_switch_status_sqlite,
@@ -22,9 +22,9 @@ use crate::database::sqlite::data::{
     set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
     set_registered_user_sqlite, set_server_image_sqlite, set_user_approximated_color_sqlite,
 };
-use crate::database_struct::module_status::ActivationStatusModule;
-use crate::database_struct::server_activity::{ServerActivity, ServerActivityFull};
-use crate::database_struct::user_color::UserColor;
+use crate::database::data_struct::module_status::ActivationStatusModule;
+use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
+use crate::database::data_struct::user_color::UserColor;
 use crate::error_management::error_enum::AppError;
 
 /// Sets the ping history in the database.

@@ -4,8 +4,8 @@ use serenity::all::{
 use tracing::trace;
 
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
-use crate::database::dispatcher::data_dispatch::get_all_server_activity;
-use crate::database_struct::server_activity::ServerActivity;
+use crate::database::manage::dispatcher::data_dispatch::get_all_server_activity;
+use crate::database::data_struct::server_activity::ServerActivity;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist_server::list_all_activity::load_localization_list_activity;
 

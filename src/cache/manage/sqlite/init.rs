@@ -2,9 +2,9 @@ use sqlx::{Pool, Sqlite};
 use tracing::error;
 
 use crate::constant::CACHE_SQLITE_DB;
-use crate::database::sqlite::init::create_sqlite_file;
-use crate::database::sqlite::migration::migration_dispatch::migrate_sqlite;
-use crate::database::sqlite::pool::get_sqlite_pool;
+use crate::database::manage::sqlite::init::create_sqlite_file;
+use crate::database::manage::sqlite::migration::migration_dispatch::migrate_sqlite;
+use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Initializes SQLite database.

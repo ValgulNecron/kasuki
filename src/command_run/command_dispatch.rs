@@ -18,11 +18,11 @@ use crate::command_run::server::{
 };
 use crate::command_run::steam::steam_game_info;
 use crate::command_run::user::{avatar, banner, profile};
-use crate::common::get_option::subcommand_group::get_subcommand;
-use crate::database::dispatcher::data_dispatch::{
+use crate::helper::get_option::subcommand_group::get_subcommand;
+use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
 };
-use crate::database_struct::module_status::ActivationStatusModule;
+use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Dispatches the command to the appropriate function based on the command name.

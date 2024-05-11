@@ -6,9 +6,9 @@ use serenity::all::{
 };
 use tracing::log::trace;
 
-use crate::common::anilist_to_discord_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::common::make_anilist_request::make_request_anilist;
-use crate::common::trimer::trim;
+use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
+use crate::helper::make_anilist_cached_request::make_request_anilist;
+use crate::helper::trimer::trim;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::anilist_user::character::load_localization_character;

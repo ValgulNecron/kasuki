@@ -1,6 +1,6 @@
 use crate::constant::DB_TYPE;
-use crate::database::postgresql::init::init_postgres;
-use crate::database::sqlite::init::init_sqlite;
+use crate::database::manage::postgresql::init::init_postgres;
+use crate::database::manage::sqlite::init::init_sqlite;
 use crate::error_management::error_enum::AppError;
 
 /// Initializes the SQL database.

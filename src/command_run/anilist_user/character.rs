@@ -1,7 +1,7 @@
 use serenity::all::{CommandInteraction, Context};
 
 use crate::anilist_struct::run::character::{send_embed, CharacterWrapper};
-use crate::common::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::error_management::error_enum::AppError;
 
 /// This asynchronous function runs the command interaction for retrieving information about a character.

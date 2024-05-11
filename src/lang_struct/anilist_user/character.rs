@@ -5,7 +5,7 @@ use std::io::prelude::*;
 
 use serde::{Deserialize, Serialize};
 
-use crate::common::get_guild_lang::get_guild_langage;
+use crate::helper::get_guild_lang::get_guild_language;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// CharacterLocalised struct represents a character's localized data.
@@ -68,7 +68,7 @@ pub async fn load_localization_character(guild_id: String) -> Result<CharacterLo
         })?;
 
     // Get the language choice for the guild
-    let lang_choice = get_guild_langage(guild_id).await;
+    let lang_choice = get_guild_language(guild_id).await;
 
     // Retrieve the localized data for the character based on the language choice
     let localised_text = json_data.get(lang_choice.as_str()).ok_or(AppError::new(

@@ -15,12 +15,12 @@ use serenity::all::{
 use tracing::{error, trace};
 
 use crate::anilist_struct::run::minimal_anime::{MinimalAnimeWrapper, Title};
-use crate::common::default_embed::get_default_embed;
-use crate::common::get_option::subcommand_group::get_option_map_string_subcommand_group;
-use crate::common::trimer::trim_webhook;
+use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
+use crate::helper::trimer::trim_webhook;
 use crate::constant::COLOR;
-use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
-use crate::database_struct::server_activity::ServerActivityFull;
+use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
+use crate::database::data_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::lang_struct::admin::anilist::add_activity::load_localization_add_activity;
 

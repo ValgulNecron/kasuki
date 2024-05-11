@@ -4,7 +4,7 @@ use std::fs;
 use serde::{Deserialize, Serialize};
 
 // Importing necessary libraries and modules
-use crate::common::get_guild_lang::get_guild_langage;
+use crate::helper::get_guild_lang::get_guild_language;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// StaffLocalised struct represents a staff's localized data.
@@ -56,7 +56,7 @@ pub async fn load_localization_staff(guild_id: String) -> Result<StaffLocalised,
     })?;
 
     // Get the language choice for the guild
-    let lang_choice = get_guild_langage(guild_id).await;
+    let lang_choice = get_guild_language(guild_id).await;
 
     // Retrieve the localized data for the staff based on the language choice
     json_data
