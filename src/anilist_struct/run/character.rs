@@ -11,7 +11,7 @@ use crate::helper::make_anilist_cached_request::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::constant::COLOR;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist_user::character::load_localization_character;
+use crate::structure::message::anilist_user::character::load_localization_character;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct CharacterWrapper {

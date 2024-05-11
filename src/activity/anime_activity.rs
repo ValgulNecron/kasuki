@@ -14,7 +14,7 @@ use crate::database::manage::dispatcher::data_dispatch::{
 };
 use crate::database::data_struct::server_activity::ServerActivityFull;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist_user::send_activity::load_localization_send_activity;
+use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
 
 /// `manage_activity` is an asynchronous function that manages activities.
 /// It takes a `ctx` as a parameter.

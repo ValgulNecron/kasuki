@@ -51,13 +51,13 @@ mod database;
 mod error_management;
 mod game_struct;
 mod grpc_server;
-mod lang_struct;
 mod logger;
 mod new_member;
 mod struct_shard_manager;
 mod tui;
 mod command;
 mod background_task;
+mod structure;
 
 struct Handler;
 

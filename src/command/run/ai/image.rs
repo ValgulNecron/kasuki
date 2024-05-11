@@ -15,7 +15,7 @@ use crate::helper::get_option::subcommand_group::get_option_map_string_subcomman
 use crate::constant::{DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::image_saver::general_image_saver::image_saver;
-use crate::lang_struct::ai::image::load_localization_image;
+use crate::structure::message::ai::image::load_localization_image;
 
 /// This module contains the implementation of the `run` function for handling AI image generation.
 ///

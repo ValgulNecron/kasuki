@@ -12,7 +12,7 @@ use crate::command::run::anilist_user::user::get_user_data;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist_user::compare::load_localization_compare;
+use crate::structure::message::anilist_user::compare::load_localization_compare;
 
 /// Executes the comparison between two users' anime and manga statistics.
 ///

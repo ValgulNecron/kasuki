@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::command::run::command_dispatch::check_if_module_is_on;
 use crate::constant::SERVER_IMAGE_PATH;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::new_member::{load_localization_new_member, NewMemberLocalised};
+use crate::structure::message::new_member::{load_localization_new_member, NewMemberLocalised};
 use crate::background_task::server_image::calculate_user_color::get_image_from_url;
 
 /// Main function to handle new member joining the server

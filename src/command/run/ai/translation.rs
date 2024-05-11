@@ -23,7 +23,7 @@ use crate::constant::{
     TRANSCRIPT_TOKEN,
 };
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::ai::translation::load_localization_translation;
+use crate::structure::message::ai::translation::load_localization_translation;
 
 /// This asynchronous function runs the command interaction for transcribing an audio or video file.
 ///

@@ -20,7 +20,7 @@ use crate::helper::get_option::subcommand::{
 };
 use crate::constant::{DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::ai::transcript::load_localization_transcript;
+use crate::structure::message::ai::transcript::load_localization_transcript;
 
 /// This asynchronous function runs the command interaction for transcribing an audio or video file.
 ///

@@ -4,7 +4,7 @@ use serenity::all::{
 
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::bot::ping::load_localization_ping;
+use crate::structure::message::bot::ping::load_localization_ping;
 use crate::struct_shard_manager::ShardManagerContainer;
 
 /// Executes the command to display the bot's ping.

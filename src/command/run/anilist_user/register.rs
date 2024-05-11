@@ -8,7 +8,7 @@ use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::database::manage::dispatcher::data_dispatch::set_registered_user;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist_user::register::load_localization_register;
+use crate::structure::message::anilist_user::register::load_localization_register;
 
 /// Executes the command to register a user's AniList account.
 ///

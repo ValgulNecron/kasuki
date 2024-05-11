@@ -11,7 +11,7 @@ use crate::helper::make_anilist_cached_request::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::constant::{COLOR, UNKNOWN};
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anilist_user::media::{load_localization_media, MediaLocalised};
+use crate::structure::message::anilist_user::media::{load_localization_media, MediaLocalised};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct MediaWrapper {

@@ -4,7 +4,7 @@ use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessag
 use crate::command::run::anime::random_image::send_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
+use crate::structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
 
 /// Executes the command to fetch and display a random NSFW image from the waifu.pics API.
 ///

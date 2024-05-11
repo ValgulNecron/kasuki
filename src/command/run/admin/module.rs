@@ -11,7 +11,7 @@ use crate::database::manage::dispatcher::data_dispatch::{
 };
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::admin::module::load_localization_module_activation;
+use crate::structure::message::admin::module::load_localization_module_activation;
 
 /// This asynchronous function runs the command interaction for setting the activation status of a module.
 ///

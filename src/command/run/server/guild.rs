@@ -4,7 +4,7 @@ use serenity::all::{
 
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::lang_struct::server::guild::load_localization_guild;
+use crate::structure::message::server::guild::load_localization_guild;
 
 /// Executes the command to display the guild's information.
 ///
