@@ -72,7 +72,6 @@ fn add_localised(mut option: CreateCommandOption, locales: &Vec<Localised>) -> C
 /// A `CreateCommandOption` struct with the choices added.
 fn add_choices(mut option: CreateCommandOption, choices: &Vec<Choice>) -> CreateCommandOption {
     for choice in choices {
-        option = option.add_string_choice(&choice.option_choice, &choice.option_choice);
         option = match &choice.option_choice_localised {
             Some(localised) => add_choices_localised(option, localised, &choice.option_choice),
             None => option,
