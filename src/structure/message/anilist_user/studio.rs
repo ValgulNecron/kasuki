@@ -1,11 +1,8 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
 // Importing necessary libraries and modules
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_guild_lang::get_guild_language;
-use crate::helper::read_file::read_file_as_string;
+use crate::helper::error_management::error_enum::{AppError};
 use crate::structure::message::common::load_localization;
 
 /// StudioLocalised struct represents a studio's localized data.

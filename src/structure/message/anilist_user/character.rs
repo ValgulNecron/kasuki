@@ -1,11 +1,8 @@
 // Importing necessary libraries and modules
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_guild_lang::get_guild_language;
-use crate::helper::read_file::read_file_as_string;
+use crate::helper::error_management::error_enum::{AppError};
 use crate::structure::message::common::load_localization;
 
 /// CharacterLocalised struct represents a character's localized data.

@@ -1,5 +1,3 @@
-use std::fs;
-use std::io::BufReader;
 use std::sync::Arc;
 
 use serenity::all::{CommandType, CreateCommand, Http};
@@ -7,8 +5,7 @@ use tracing::{error, trace};
 
 use crate::command_register::command_struct::user_command::UserCommand;
 use crate::command_register::registration_function::common::{get_permission, get_vec};
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::read_file::read_file_as_string;
+use crate::helper::error_management::error_enum::{AppError};
 
 /// This asynchronous function creates user commands in Discord by reading from a JSON file and sending them to the Discord API.
 ///

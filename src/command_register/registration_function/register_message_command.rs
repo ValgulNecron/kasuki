@@ -1,14 +1,9 @@
-use std::fs;
-use std::io::BufReader;
 use std::sync::Arc;
 use serenity::all::Http;
 use tracing::{error, trace};
-use crate::command_register::command_struct::command::Command;
 use crate::command_register::command_struct::message_command::MessageCommand;
-use crate::command_register::command_struct::user_command::UserCommand;
 use crate::command_register::registration_function::common::get_vec;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::read_file::read_file_as_string;
+use crate::helper::error_management::error_enum::{AppError};
 
 pub async fn creates_message_command(http: &Arc<Http>) {
     let commands = match get_message_command("./json/message_command") {

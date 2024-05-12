@@ -1,16 +1,15 @@
 use std::sync::{Arc, RwLock};
 
-use serenity::all::{CurrentApplicationInfo, ShardId, ShardManager};
+use serenity::all::{ShardManager};
 use sysinfo::System;
-use tonic::{Request, Response, Status};
 use tracing::trace;
 
 use crate::constant::{
-    ACTIVITY_NAME, APP_VERSION, BOT_COMMANDS, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH,
+    BOT_COMMANDS, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH,
     GRPC_SERVER_PORT, GRPC_USE_TLS,
 };
 use crate::grpc_server::command_list::{
-    get_list_of_all_command, Arg, Command, CommandItem, SubCommand, SubCommandGroup,
+    get_list_of_all_command,
 };
 use crate::grpc_server::service;
 use crate::grpc_server::service::command::{CommandServices, get_command_server};
