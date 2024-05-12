@@ -243,8 +243,8 @@ pub fn get_option_map_attachment_subcommand(
             let value = match &option.value {
                 ResolvedValue::Attachment(a) => {
                     let att = *a;
-                    let att = att.clone();
-                    att
+                    
+                    att.clone()
                 },
                 _ => continue,
             };

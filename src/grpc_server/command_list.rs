@@ -39,7 +39,7 @@ pub struct Arg {
     pub choices: Vec<String>,
 }
 
-pub fn get_command_list() {
+pub fn get_list_of_all_command() {
     let mut commands_item = Vec::new();
     let commands = match get_commands("./json/command") {
         Err(e) => {
@@ -64,25 +64,25 @@ pub fn get_command_list() {
     };
 
     for command in commands {
-        let com = create_com(command);
+        let com = create_command_list(command);
         commands_item.push(CommandItem::Command(com));
     }
     for subcommand in subcommands {
-        let subcom = create_subcom(subcommand);
+        let subcom = create_subcommand_list(subcommand);
         commands_item.push(CommandItem::Subcommand(subcom));
     }
     for subcommand_group in subcommands_group {
-        let subcom_group = create_subcom_group(subcommand_group);
+        let subcom_group = create_subcommand_group_list(subcommand_group);
         commands_item.push(CommandItem::SubcommandGroup(subcom_group));
     }
 
     unsafe { *BOT_COMMANDS = commands_item }
 }
 
-fn create_com(command: command::Command) -> Command {
+fn create_command_list(command: command::Command) -> Command {
     let mut args = Vec::new();
     if let Some(command_args) = command.args {
-        args = create_arg(command_args);
+        args = create_argument_list(command_args);
     }
 
     Command {
@@ -92,12 +92,12 @@ fn create_com(command: command::Command) -> Command {
     }
 }
 
-fn create_arg(command_args: Vec<common::Arg>) -> Vec<Arg> {
+fn create_argument_list(command_args: Vec<common::Arg>) -> Vec<Arg> {
     let mut args = Vec::new();
     for arg in command_args {
         let mut choices_list = Vec::new();
         if let Some(choices) = arg.choices {
-            choices_list = create_choice(choices);
+            choices_list = create_choice_list(choices);
         }
         let arg = Arg {
             name: arg.name,
@@ -110,7 +110,7 @@ fn create_arg(command_args: Vec<common::Arg>) -> Vec<Arg> {
     args
 }
 
-fn create_choice(choices: Vec<Choice>) -> Vec<String> {
+fn create_choice_list(choices: Vec<Choice>) -> Vec<String> {
     let mut choices_list = Vec::new();
     for choice in choices {
         choices_list.push(choice.option_choice);
@@ -118,10 +118,10 @@ fn create_choice(choices: Vec<Choice>) -> Vec<String> {
     choices_list
 }
 
-fn create_subcom_com(command: subcommand::Command) -> Command {
+fn create_subcommand_command_list(command: subcommand::Command) -> Command {
     let mut args = Vec::new();
     if let Some(command_args) = command.args {
-        args = create_arg(command_args);
+        args = create_argument_list(command_args);
     }
 
     Command {
@@ -131,10 +131,10 @@ fn create_subcom_com(command: subcommand::Command) -> Command {
     }
 }
 
-fn create_subcom(subcommand: subcommand::SubCommand) -> SubCommand {
+fn create_subcommand_list(subcommand: subcommand::SubCommand) -> SubCommand {
     let mut commands = Vec::new();
     for command in subcommand.command.unwrap_or_default() {
-        let com = create_subcom_com(command);
+        let com = create_subcommand_command_list(command);
         commands.push(com);
     }
 
@@ -145,10 +145,10 @@ fn create_subcom(subcommand: subcommand::SubCommand) -> SubCommand {
     }
 }
 
-fn create_subcom_group_subcom(subcommand: subcommand_group::SubCommand) -> SubCommand {
+fn create_subcommand_group_subcommand_list(subcommand: subcommand_group::SubCommand) -> SubCommand {
     let mut commands = Vec::new();
     for command in subcommand.command.unwrap_or_default() {
-        let com = create_subcom_com(command);
+        let com = create_subcommand_command_list(command);
         commands.push(com);
     }
 
@@ -158,15 +158,15 @@ fn create_subcom_group_subcom(subcommand: subcommand_group::SubCommand) -> SubCo
         commands,
     }
 }
-fn create_subcom_group(sub_command_group: subcommand_group::SubCommandGroup) -> SubCommandGroup {
+fn create_subcommand_group_list(sub_command_group: subcommand_group::SubCommandGroup) -> SubCommandGroup {
     let mut commands = Vec::new();
     for command in sub_command_group.command.unwrap_or_default() {
-        let com = create_subcom_com(command);
+        let com = create_subcommand_command_list(command);
         commands.push(com);
     }
     let mut subcommands = Vec::new();
     for subcommand in sub_command_group.subcommands.unwrap_or_default() {
-        let com = create_subcom_group_subcom(subcommand);
+        let com = create_subcommand_group_subcommand_list(subcommand);
         subcommands.push(com);
     }
 
