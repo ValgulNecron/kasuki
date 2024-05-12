@@ -9,3 +9,4 @@ pub mod game;
 pub mod new_member;
 pub mod server;
 pub mod user;
+pub mod common;

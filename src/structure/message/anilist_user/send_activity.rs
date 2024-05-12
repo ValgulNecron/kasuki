@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::read_file::read_file_as_string;
+use crate::structure::message::common::load_localization;
 
 /// SendActivityLocalised struct represents a send activity's localized data.
 /// It contains fields for title and description.
@@ -34,23 +35,6 @@ pub async fn load_localization_send_activity(
     guild_id: String,
 ) -> Result<SendActivityLocalised, AppError> {
     let path = "json/message/anilist_user/send_activity.json";
-    let json = read_file_as_string(path)?;
-    // Parse the JSON data into a HashMap and handle any potential errors
-    let json_data: HashMap<String, SendActivityLocalised> =
-        serde_json::from_str(&json).map_err(|e| {
-            AppError::new(
-                format!("Failing to parse send_activity.json. {}", e),
-                ErrorType::File,
-                ErrorResponseType::Unknown,
-            )
-        })?;
+    load_localization(guild_id, path).await
 
-    // Get the language choice for the guild
-    let lang_choice = get_guild_language(guild_id).await;
-
-    // Return the localized data for the language or an error if the language is not found.
-    Ok(json_data
-        .get(lang_choice.as_str())
-        .cloned()
-        .unwrap_or(json_data.get("en").unwrap().clone()))
 }

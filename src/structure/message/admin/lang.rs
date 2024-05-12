@@ -7,6 +7,7 @@ use serde_json::from_str;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::read_file::read_file_as_string;
+use crate::structure::message::common::load_localization;
 
 /// `LangLocalised` is a struct that represents a language's localized data.
 /// It contains two fields `title` and `desc` which are both Strings.
@@ -38,22 +39,6 @@ pub struct LangLocalised {
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
 pub async fn load_localization_lang(guild_id: String) -> Result<LangLocalised, AppError> {
     let path = "json/message/admin/lang.json";
-    let json = read_file_as_string(path)?;
-    // Parse the JSON string into a HashMap.
-    let json_data: HashMap<String, LangLocalised> = from_str(&json).map_err(|e| {
-        AppError::new(
-            format!("Failing to parse lang.json. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Unknown,
-        )
-    })?;
+    load_localization(guild_id, path).await
 
-    // Get the language choice based on the guild_id.
-    let lang_choice = get_guild_language(guild_id).await;
-
-    // Return the localized data for the language or an error if the language is not found.
-    Ok(json_data
-        .get(lang_choice.as_str())
-        .cloned()
-        .unwrap_or(json_data.get("en").unwrap().clone()))
 }
