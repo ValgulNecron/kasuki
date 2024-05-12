@@ -336,11 +336,37 @@ async fn main() {
         }
     });
 
-    // Wait for a Ctrl-C signal.
-    // If received, print a shutdown message.
-    tokio::signal::ctrl_c().await.unwrap();
-    ShardManager::shutdown_all(&shutdown).await;
-    info!("Received bot shutdown signal. Shutting down bot.");
+    #[cfg(unix)]
+    {
+        // Create a signal handler for "all" signals in unix.
+        // If a signal is received, print a shutdown message.
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::all())
+            .unwrap()
+            .recv()
+            .await;
+        ShardManager::shutdown_all(&shutdown).await;
+        info!("Received bot shutdown signal. Shutting down bot.");
+    }
+    #[cfg(windows)]
+    {
+        // Create a signal handler for "all" signals in windows.
+        // If a signal is received, print a shutdown message.
+        // All signals and not only ctrl-c
+        let mut ctrl_break = tokio::signal::windows::ctrl_break().unwrap();
+        let mut ctrl_c = tokio::signal::windows::ctrl_c().unwrap();
+        let mut ctrl_close = tokio::signal::windows::ctrl_close().unwrap();
+        let mut ctrl_logoff = tokio::signal::windows::ctrl_logoff().unwrap();
+        let mut ctrl_shutdown = tokio::signal::windows::ctrl_shutdown().unwrap();
+        tokio::select! {
+            _ = ctrl_break.recv() => {},
+            _ = ctrl_c.recv() => {},
+            _ = ctrl_close.recv() => {},
+            _ = ctrl_logoff.recv() => {},
+            _ = ctrl_shutdown.recv() => {},
+        }
+        ShardManager::shutdown_all(&shutdown).await;
+        info!("Received bot shutdown signal. Shutting down bot.");
+    }
 }
 
 /// This function is responsible for launching various threads for different tasks.
