@@ -6,8 +6,9 @@ use serenity::all::{CommandType, CreateCommand, Http};
 use tracing::{error, trace};
 
 use crate::command_register::command_struct::command::Command;
-use crate::command_register::registration_function::common::{get_option, get_permission};
+use crate::command_register::registration_function::common::{get_option, get_permission, get_vec};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::read_file::read_file_as_string;
 
 /// This asynchronous function creates commands by reading from a JSON file and sending them to the Discord API.
 ///
@@ -48,39 +49,8 @@ pub async fn creates_commands(http: &Arc<Http>) {
 /// # Returns
 ///
 /// A `Result` containing either a vector of `Command` structs if the commands are successfully read, or an `AppError` if an error occurs.
-pub(crate) fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
-    let mut commands = Vec::new();
-    let paths = fs::read_dir(path).map_err(|e| AppError {
-        message: format!("Failed to read directory: {:?} with error {}", path, e),
-        error_type: ErrorType::File,
-        error_response_type: ErrorResponseType::None,
-    })?;
-    for entry in paths {
-        let entry = entry.map_err(|e| AppError {
-            message: format!("Failed to read path with error {}", e),
-            error_type: ErrorType::File,
-            error_response_type: ErrorResponseType::None,
-        })?;
-        let path = entry.path();
-        if path.is_file() && path.extension().unwrap_or_default() == "json" {
-            let file = fs::File::open(path.as_path()).map_err(|e| AppError {
-                message: format!("Failed to open file: {:?} with error {}", path.as_path(), e),
-                error_type: ErrorType::File,
-                error_response_type: ErrorResponseType::None,
-            })?;
-            let reader = BufReader::new(file);
-            let command: Command = serde_json::from_reader(reader).map_err(|e| AppError {
-                message: format!(
-                    "Failed to parse file: {:?} with error {}",
-                    path.as_path(),
-                    e
-                ),
-                error_type: ErrorType::File,
-                error_response_type: ErrorResponseType::None,
-            })?;
-            commands.push(command);
-        }
-    }
+pub fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
+    let commands: Vec<Command> = get_vec(path)?;
     if commands.is_empty() {
         trace!("No commands found in the directory: {:?}", path);
     }
