@@ -340,10 +340,24 @@ async fn main() {
     {
         // Create a signal handler for "all" signals in unix.
         // If a signal is received, print a shutdown message.
-        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::all())
-            .unwrap()
-            .recv()
-            .await;
+        // All signals and not only ctrl-c
+        let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
+            .unwrap();
+        let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .unwrap();
+        let mut sigquit = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit())
+            .unwrap();
+        let mut sigusr1 = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined1())
+            .unwrap();
+        let mut sigusr2 = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined2())
+            .unwrap();
+        tokio::select! {
+            _ = sigint.recv() => {},
+            _ = sigterm.recv() => {},
+            _ = sigquit.recv() => {},
+            _ = sigusr1.recv() => {},
+            _ = sigusr2.recv() => {},
+        }
         ShardManager::shutdown_all(&shutdown).await;
         info!("Received bot shutdown signal. Shutting down bot.");
     }
@@ -412,7 +426,8 @@ async fn launch_web_server_thread(ctx: Context) {
             return;
         }
     };
-    if *GRPC_IS_ON {
+    let is_grpc_on = GRPC_IS_ON.clone();
+    if is_grpc_on {
         info!("GRPC is on, launching the GRPC server thread!");
         grpc_server_launcher(shard_manager).await
     } else {
