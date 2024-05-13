@@ -45,7 +45,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         None => String::from("0"),
     };
 
-    let map = get_option_map_string_subcommand_group(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
     trace!("{:#?}", map);
     let prompt = map
         .get(&String::from("description"))
