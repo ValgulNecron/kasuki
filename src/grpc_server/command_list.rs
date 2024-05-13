@@ -12,18 +12,21 @@ pub enum CommandItem {
     Subcommand(SubCommand),
     SubcommandGroup(SubCommandGroup),
 }
+
 #[derive(Clone)]
 pub struct Command {
     pub name: String,
     pub desc: String,
     pub args: Vec<Arg>,
 }
+
 #[derive(Clone)]
 pub struct SubCommand {
     pub name: String,
     pub desc: String,
     pub commands: Vec<Command>,
 }
+
 #[derive(Clone)]
 pub struct SubCommandGroup {
     pub name: String,
@@ -31,6 +34,7 @@ pub struct SubCommandGroup {
     pub commands: Vec<Command>,
     pub subcommands: Vec<SubCommand>,
 }
+
 #[derive(Clone)]
 pub struct Arg {
     pub name: String,
@@ -158,7 +162,10 @@ fn create_subcommand_group_subcommand_list(subcommand: subcommand_group::SubComm
         commands,
     }
 }
-fn create_subcommand_group_list(sub_command_group: subcommand_group::SubCommandGroup) -> SubCommandGroup {
+
+fn create_subcommand_group_list(
+    sub_command_group: subcommand_group::SubCommandGroup,
+) -> SubCommandGroup {
     let mut commands = Vec::new();
     for command in sub_command_group.command.unwrap_or_default() {
         let com = create_subcommand_command_list(command);

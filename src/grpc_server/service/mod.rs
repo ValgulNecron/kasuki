@@ -1,3 +1,3 @@
-pub mod shard;
-pub mod info;
 pub mod command;
+pub mod info;
+pub mod shard;

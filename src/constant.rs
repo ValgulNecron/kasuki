@@ -1,12 +1,14 @@
 use std::collections::HashMap;
-use std::env;
+use std::path::PathBuf;
 use std::sync::Arc;
+use std::{env, fs};
 
 use crate::grpc_server::command_list::CommandItem;
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
 use serenity::all::{Colour, CurrentApplicationInfo};
 use tokio::sync::RwLock;
+use toml::Value;
 
 pub const DISCORD_TOKEN: Lazy<String> =
     Lazy::new(|| env::var("DISCORD_TOKEN").expect("Expected a token in the environment"));
@@ -234,3 +236,24 @@ bot info
 pub static mut BOT_INFO: Lazy<Option<CurrentApplicationInfo>> = Lazy::new(|| None);
 /// Vec of all available bot commands.
 pub static mut BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(Vec::new);
+/// Used library.
+pub const LIBRARY: Lazy<String> = Lazy::new(|| format!("serenity: {}", version_from_toml()));
+
+/// Function to extract the version of the Serenity crate from Cargo.toml.
+fn version_from_toml() -> String {
+    // Construct the path to Cargo.toml, adjust as necessary for your project structure
+    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    path.push("Cargo.toml");
+
+    // Read the Cargo.toml file
+    let contents = fs::read_to_string(path).expect("Failed to read Cargo.toml");
+    let parsed: Value = toml::from_str(&contents).expect("Failed to parse Cargo.toml");
+
+    // Extract the version of the Serenity crate
+    let serenity_version = parsed["dependencies"]["serenity"].as_table().unwrap()["version"]
+        .as_str()
+        .unwrap()
+        .to_string();
+
+    serenity_version
+}

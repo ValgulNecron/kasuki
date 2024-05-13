@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// `AddActivityLocalised` is a struct that represents an add activity's localized data.

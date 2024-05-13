@@ -1,18 +1,15 @@
 use std::sync::{Arc, RwLock};
 
-use serenity::all::{ShardManager};
+use serenity::all::ShardManager;
 use sysinfo::System;
 use tracing::trace;
 
 use crate::constant::{
-    BOT_COMMANDS, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH,
-    GRPC_SERVER_PORT, GRPC_USE_TLS,
+    BOT_COMMANDS, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH, GRPC_SERVER_PORT, GRPC_USE_TLS,
 };
-use crate::grpc_server::command_list::{
-    get_list_of_all_command,
-};
+use crate::grpc_server::command_list::get_list_of_all_command;
 use crate::grpc_server::service;
-use crate::grpc_server::service::command::{CommandServices, get_command_server};
+use crate::grpc_server::service::command::{get_command_server, CommandServices};
 use crate::grpc_server::service::info::{get_info_server, InfoService};
 use crate::grpc_server::service::shard::{get_shard_server, ShardService};
 

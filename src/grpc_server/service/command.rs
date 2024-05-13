@@ -7,11 +7,13 @@ pub(crate) mod proto {
         tonic::include_file_descriptor_set!("command_descriptor");
 }
 
+use crate::grpc_server::command_list::{Arg, Command, CommandItem, SubCommand, SubCommandGroup};
+use crate::grpc_server::service::command::proto::command_service_server::{
+    CommandService, CommandServiceServer,
+};
+use crate::grpc_server::service::command::proto::{CommandListRequest, CommandListResponse};
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
-use crate::grpc_server::command_list::{Arg, Command, CommandItem, SubCommand, SubCommandGroup};
-use crate::grpc_server::service::command::proto::{CommandListRequest, CommandListResponse};
-use crate::grpc_server::service::command::proto::command_service_server::{CommandService, CommandServiceServer};
 
 pub struct CommandServices {
     pub command_list: Arc<Vec<CommandItem>>,
@@ -50,7 +52,6 @@ impl CommandService for CommandServices {
         Ok(Response::new(response))
     }
 }
-
 
 impl From<&Command> for proto::Command {
     fn from(command: &Command) -> Self {
@@ -114,6 +115,8 @@ impl From<&SubCommandGroup> for proto::SubCommandGroup {
     }
 }
 
-pub fn get_command_server(command_service: CommandServices) -> CommandServiceServer<CommandServices> {
+pub fn get_command_server(
+    command_service: CommandServices,
+) -> CommandServiceServer<CommandServices> {
     CommandServiceServer::new(command_service)
 }

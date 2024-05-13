@@ -1,8 +1,7 @@
-
 use serde::{Deserialize, Serialize};
 
 // Importing necessary libraries and modules
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// SeiyuuLocalised struct represents a seiyuu's localized data.
@@ -33,5 +32,4 @@ pub struct SeiyuuLocalised {
 pub async fn load_localization_seiyuu(guild_id: String) -> Result<SeiyuuLocalised, AppError> {
     let path = "json/message/anilist_user/seiyuu.json";
     load_localization(guild_id, path).await
-
 }

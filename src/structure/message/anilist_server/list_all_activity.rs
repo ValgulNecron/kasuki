@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// ListActivityLocalised struct represents an activity list's localized data.
@@ -39,5 +39,4 @@ pub async fn load_localization_list_activity(
 ) -> Result<ListActivityLocalised, AppError> {
     let path = "json/message/anilist_server/list_all_activity.json";
     load_localization(guild_id, path).await
-
 }

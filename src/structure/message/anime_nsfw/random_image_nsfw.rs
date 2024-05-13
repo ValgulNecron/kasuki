@@ -1,7 +1,6 @@
-
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// Represents a random NSFW image's localized data.
@@ -36,5 +35,4 @@ pub async fn load_localization_random_image_nsfw(
 ) -> Result<RandomImageNSFWLocalised, AppError> {
     let path = "json/message/anime_nsfw/random_image_nsfw.json";
     load_localization(guild_id, path).await
-
 }

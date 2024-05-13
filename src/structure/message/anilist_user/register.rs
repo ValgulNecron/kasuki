@@ -1,8 +1,7 @@
-
 use serde::{Deserialize, Serialize};
 
 // Importing necessary libraries and modules
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// RegisterLocalised struct represents a register's localized data.
@@ -33,5 +32,4 @@ pub struct RegisterLocalised {
 pub async fn load_localization_register(guild_id: String) -> Result<RegisterLocalised, AppError> {
     let path = "json/message/anilist_user/register.json";
     load_localization(guild_id, path).await
-
 }

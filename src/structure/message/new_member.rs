@@ -1,7 +1,6 @@
-
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// Represents the localized messages for a new member.
@@ -31,5 +30,4 @@ pub async fn load_localization_new_member(
 ) -> Result<NewMemberLocalised, AppError> {
     let path = "json/message/new_member.json";
     load_localization(guild_id, path).await
-
 }

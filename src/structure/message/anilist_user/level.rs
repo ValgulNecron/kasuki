@@ -1,8 +1,7 @@
-
 use serde::{Deserialize, Serialize};
 
 // Importing necessary libraries and modules
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// LevelLocalised struct represents a level's localized data.

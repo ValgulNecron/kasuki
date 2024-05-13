@@ -4,8 +4,10 @@ use serenity::all::{CommandType, CreateCommand, Http};
 use tracing::{error, trace};
 
 use crate::command_register::command_struct::subcommand::SubCommand;
-use crate::command_register::registration_function::common::{get_permission, get_subcommand_option, get_vec};
-use crate::helper::error_management::error_enum::{AppError};
+use crate::command_register::registration_function::common::{
+    get_permission, get_subcommand_option, get_vec,
+};
+use crate::helper::error_management::error_enum::AppError;
 
 /// This asynchronous function creates subcommands in Discord by reading from a JSON file and sending them to the Discord API.
 ///

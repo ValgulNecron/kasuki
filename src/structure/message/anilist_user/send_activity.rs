@@ -1,8 +1,7 @@
-
 use serde::{Deserialize, Serialize};
 
 // Importing necessary libraries and modules
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// SendActivityLocalised struct represents a send activity's localized data.
@@ -33,5 +32,4 @@ pub async fn load_localization_send_activity(
 ) -> Result<SendActivityLocalised, AppError> {
     let path = "json/message/anilist_user/send_activity.json";
     load_localization(guild_id, path).await
-
 }

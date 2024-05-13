@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// `ModuleLocalised` is a struct that represents a module's localized data.
@@ -38,5 +38,4 @@ pub async fn load_localization_module_activation(
 ) -> Result<ModuleLocalised, AppError> {
     let path = "json/message/admin/module.json";
     load_localization(guild_id, path).await
-
 }

@@ -1,5 +1,5 @@
-use std::fs;
 use serenity::all::{CommandOptionType, CreateCommand, CreateCommandOption, Permissions};
+use std::fs;
 
 use crate::command_register::command_struct::common::{
     Arg, Choice, ChoiceLocalised, DefaultPermission, Localised,
@@ -241,7 +241,6 @@ pub fn get_vec<T: serde::Deserialize<'static> + Clone>(path: &str) -> Result<Vec
             })?;
             commands.push(command);
         }
-
     }
     Ok(commands)
 }

@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// TranscriptLocalised struct represents a transcript's localized data.
@@ -35,5 +35,4 @@ pub async fn load_localization_transcript(
 ) -> Result<TranscriptLocalised, AppError> {
     let path = "json/message/ai/transcript.json";
     load_localization(guild_id, path).await
-
 }

@@ -1,7 +1,6 @@
-
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// Represents the localized information data.
@@ -20,6 +19,7 @@ pub struct InfoLocalised {
     pub shard: String,
     pub shard_count: String,
     pub version: String,
+    pub library: String,
     pub footer: String,
     pub button_see_on_github: String,
     pub button_official_website: String,
@@ -49,5 +49,4 @@ pub struct InfoLocalised {
 pub async fn load_localization_info(guild_id: String) -> Result<InfoLocalised, AppError> {
     let path = "json/message/bot/info.json";
     load_localization(guild_id, path).await
-
 }

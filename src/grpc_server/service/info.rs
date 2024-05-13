@@ -7,14 +7,16 @@ pub(crate) mod proto {
         tonic::include_file_descriptor_set!("info_descriptor");
 }
 
-use std::sync::{Arc, RwLock};
+use crate::constant::{ACTIVITY_NAME, APP_VERSION};
+use crate::grpc_server::service::info::proto::info_server::{Info, InfoServer};
+use crate::grpc_server::service::info::proto::{
+    BotInfoData, InfoRequest, InfoResponse, SystemInfoData,
+};
 use serenity::all::CurrentApplicationInfo;
+use std::sync::{Arc, RwLock};
 use sysinfo::System;
 use tonic::{Request, Response, Status};
 use tracing::trace;
-use crate::constant::{ACTIVITY_NAME, APP_VERSION};
-use crate::grpc_server::service::info::proto::{BotInfoData, InfoRequest, InfoResponse, SystemInfoData};
-use crate::grpc_server::service::info::proto::info_server::{Info, InfoServer};
 
 pub struct InfoService {
     pub bot_info: Arc<CurrentApplicationInfo>,

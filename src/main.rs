@@ -341,16 +341,16 @@ async fn main() {
         // Create a signal handler for "all" signals in unix.
         // If a signal is received, print a shutdown message.
         // All signals and not only ctrl-c
-        let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
-            .unwrap();
-        let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-            .unwrap();
-        let mut sigquit = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit())
-            .unwrap();
-        let mut sigusr1 = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined1())
-            .unwrap();
-        let mut sigusr2 = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined2())
-            .unwrap();
+        let mut sigint =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt()).unwrap();
+        let mut sigterm =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).unwrap();
+        let mut sigquit =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit()).unwrap();
+        let mut sigusr1 =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined1()).unwrap();
+        let mut sigusr2 =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined2()).unwrap();
         tokio::select! {
             _ = sigint.recv() => {},
             _ = sigterm.recv() => {},

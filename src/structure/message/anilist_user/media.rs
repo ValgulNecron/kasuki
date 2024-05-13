@@ -1,8 +1,7 @@
-
 use serde::{Deserialize, Serialize};
 
 // Importing necessary libraries and modules
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// MediaLocalised struct represents a media's localized data.
@@ -39,5 +38,4 @@ pub struct MediaLocalised {
 pub async fn load_localization_media(guild_id: String) -> Result<MediaLocalised, AppError> {
     let path = "json/message/anilist_user/media.json";
     load_localization(guild_id, path).await
-
 }
