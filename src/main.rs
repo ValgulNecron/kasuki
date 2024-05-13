@@ -10,7 +10,7 @@ use serenity::all::{
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
 use tokio::sync::RwLock;
-use tokio::time::sleep;
+use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, trace};
 
 use struct_shard_manager::ShardManagerContainer;
@@ -322,9 +322,10 @@ async fn main() {
     // This task runs indefinitely, pinging the shard manager every `PING_UPDATE_DELAYS` seconds.
     tokio::spawn(async move {
         info!("Launching the ping thread!");
+        let mut interval = interval(Duration::from_secs(3600));
         loop {
+            interval.tick().await;
             ping_manager(&shard_manager).await;
-            sleep(Duration::from_secs(PING_UPDATE_DELAYS)).await;
         }
     });
 
@@ -444,21 +445,23 @@ async fn launch_web_server_thread(ctx: Context) {
 /// * `ctx` - A `Context` instance which is used in the color management function.
 ///
 async fn launch_user_color_management_thread(ctx: Context) {
+    let mut interval = interval(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE));
     info!("Launching the user color management thread!");
     loop {
+        interval.tick().await;
         let guilds = ctx.cache.guilds();
         color_management(&guilds, &ctx).await;
-        sleep(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE)).await;
     }
 }
 
 /// This function is responsible for launching the steam management thread.
 /// It does not take any arguments and does not return anything.
 async fn launch_game_management_thread() {
+    let mut interval = interval(Duration::from_secs(TIME_BETWEEN_GAME_UPDATE));
     info!("Launching the steam management thread!");
     loop {
+        interval.tick().await;
         get_game().await;
-        sleep(Duration::from_secs(TIME_BETWEEN_GAME_UPDATE)).await;
     }
 }
 
@@ -470,10 +473,11 @@ async fn launch_game_management_thread() {
 /// * `ctx` - A `Context` instance which is used in the manage activity function.
 ///
 async fn launch_activity_management_thread(ctx: Context) {
+    let mut interval = interval(Duration::from_secs(1));
     info!("Launching the activity management thread!");
     loop {
+        interval.tick().await;
         tokio::spawn(manage_activity(ctx.clone()));
-        sleep(Duration::from_secs(1)).await;
     }
 }
 
@@ -507,16 +511,18 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>) {
 ///
 async fn launch_server_image_management_thread(ctx: Context) {
     info!("Launching the server image management thread!");
+    let mut interval = interval(Duration::from_secs(3600));
     loop {
+        interval.tick().await;
         server_image_management(&ctx).await;
-        sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE)).await;
     }
 }
 
 async fn update_user_blacklist(user_blacklist_server_image: Arc<RwLock<Vec<String>>>) {
     info!("Launching the user blacklist update thread!");
-
+    let mut interval = interval(Duration::from_secs(3600));
     loop {
+        interval.tick().await;
         // Get a write lock on USER_BLACKLIST_SERVER_IMAGE
         let mut user_blacklist = user_blacklist_server_image.write().await;
 
@@ -540,7 +546,5 @@ async fn update_user_blacklist(user_blacklist_server_image: Arc<RwLock<Vec<Strin
 
         // Release the lock before sleeping
         drop(user_blacklist);
-
-        sleep(Duration::from_secs(3600)).await;
     }
 }
