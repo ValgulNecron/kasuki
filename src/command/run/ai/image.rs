@@ -13,7 +13,7 @@ use uuid::Uuid;
 use crate::constant::{DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::load_localization_image;
 
