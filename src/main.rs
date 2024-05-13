@@ -426,7 +426,7 @@ async fn launch_web_server_thread(ctx: Context) {
             return;
         }
     };
-    let is_grpc_on = GRPC_IS_ON.clone();
+    let is_grpc_on = *GRPC_IS_ON;
     if is_grpc_on {
         info!("GRPC is on, launching the GRPC server thread!");
         grpc_server_launcher(shard_manager).await
