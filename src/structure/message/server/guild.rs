@@ -18,6 +18,10 @@ pub struct GuildLocalised {
     pub sub: String,
     pub nsfw: String,
     pub creation_date: String,
+    pub owner: String,
+    pub roles: String,
+    pub channels: String,
+    pub verification_level: String,
 }
 
 /// Loads the localized guild data.

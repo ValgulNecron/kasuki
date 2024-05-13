@@ -71,6 +71,12 @@ async fn create_command(command: &UserCommand, http: &Arc<Http>) {
         .kind(CommandType::User)
         .name(&command.name);
 
+    if let Some(Localised) = &command.localised {
+        for local in Localised {
+            command_build = command_build.name_localized(&local.code, &local.name)
+        }
+    }
+
     command_build = get_permission(&command.permissions, command_build);
 
     let e = http.create_global_command(&command_build).await;

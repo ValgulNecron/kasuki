@@ -4,6 +4,7 @@ use serenity::all::{Command, Http};
 use tracing::{error, info, trace};
 
 use crate::command_register::registration_function::register_command::creates_commands;
+use crate::command_register::registration_function::register_message_command::creates_message_command;
 use crate::command_register::registration_function::register_subcommand::creates_subcommands;
 use crate::command_register::registration_function::register_subcommand_group::creates_subcommands_group;
 use crate::command_register::registration_function::register_user_command::creates_user_command;
@@ -32,6 +33,7 @@ pub async fn command_dispatcher(http: &Arc<Http>, is_ok: bool) {
     creates_subcommands(http).await;
     creates_subcommands_group(http).await;
     creates_user_command(http).await;
+    creates_message_command(http).await;
 
     info!("Done creating commands")
 }

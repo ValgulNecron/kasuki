@@ -1,7 +1,7 @@
 use crate::command_register::command_struct::message_command::MessageCommand;
-use crate::command_register::registration_function::common::get_vec;
+use crate::command_register::registration_function::common::{get_permission, get_vec};
 use crate::helper::error_management::error_enum::AppError;
-use serenity::all::Http;
+use serenity::all::{CommandType, CreateCommand, Http};
 use std::sync::Arc;
 use tracing::{error, trace};
 
@@ -15,7 +15,7 @@ pub async fn creates_message_command(http: &Arc<Http>) {
     };
 
     for command in commands {
-        //create_command(&command, http).await;
+        create_command(&command, http).await;
     }
 }
 
@@ -25,4 +25,26 @@ fn get_message_command(path: &str) -> Result<Vec<MessageCommand>, AppError> {
         trace!("No commands found in the directory: {:?}", path);
     }
     Ok(commands)
+}
+
+async fn create_command(command: &MessageCommand, http: &Arc<Http>) {
+    let mut command_build = CreateCommand::new(&command.name)
+        .kind(CommandType::Message)
+        .name(&command.name);
+
+    if let Some(Localised) = &command.localised {
+        for local in Localised {
+            command_build = command_build.name_localized(&local.code, &local.name)
+        }
+    }
+
+    command_build = get_permission(&command.permissions, command_build);
+
+    let e = http.create_global_command(&command_build).await;
+    match e {
+        Ok(_) => (),
+        Err(e) => {
+            error!("Failed to create command: {:?}", e);
+        }
+    }
 }
