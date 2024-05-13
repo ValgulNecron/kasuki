@@ -23,12 +23,11 @@ use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispa
 use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::PING_UPDATE_DELAYS;
 use crate::constant::TIME_BETWEEN_GAME_UPDATE;
 use crate::constant::{ACTIVITY_NAME, USER_BLACKLIST_SERVER_IMAGE};
 use crate::constant::{
     APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
-    TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+    TIME_BETWEEN_USER_COLOR_UPDATE,
 };
 use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
