@@ -613,3 +613,34 @@ async fn user(
         )),
     }
 }
+
+async fn vn(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+) -> Result<(), AppError> {
+    let vn_module_error: AppError = AppError {
+        message: String::from("Visual novel module is off."),
+        error_type: ErrorType::Module,
+        error_response_type: ErrorResponseType::Message,
+    };
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => "0".to_string(),
+    };
+    if !check_if_module_is_on(guild_id, "VN").await? {
+        return Err(vn_module_error);
+    }
+    match command_name {
+        "game" => avatar::run(ctx, command_interaction).await,
+        "character" => banner::run(ctx, command_interaction).await,
+        "staff" => profile::run(ctx, command_interaction).await,
+        "user" => profile::run(ctx, command_interaction).await,
+        "producer" => profile::run(ctx, command_interaction).await,
+        _ => Err(AppError::new(
+            String::from("Command does not exist."),
+            ErrorType::Option,
+            ErrorResponseType::Message,
+        )),
+    }
+}
