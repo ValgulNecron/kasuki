@@ -1,0 +1,310 @@
+{
+  "name": "vn",
+  "desc": "Get info of a VN",
+  "dm_command": false,
+  "nsfw": false,
+  "command": [
+    {
+      "name": "character",
+      "desc": "Get info of a character from a visual novel",
+      "args": [
+        {
+          "name": "name",
+          "desc": "The name of the character",
+          "required": true,
+          "autocomplete": false,
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "name",
+              "desc": "The name of the character"
+            },
+            {
+              "code": "fr",
+              "name": "nom",
+              "desc": "Le nom du personnage"
+            },
+            {
+              "code": "de",
+              "name": "name",
+              "desc": "Der Name des Charakters"
+            },
+            {
+              "code": "ja",
+              "name": "名前",
+              "desc": "キャラクターの名前"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "character",
+          "desc": "Get info of a character from a visual novel"
+        },
+        {
+          "code": "fr",
+          "name": "personnage",
+          "desc": "Obtenir des informations sur un personnage d'un roman visuel"
+        },
+        {
+          "code": "de",
+          "name": "charakter",
+          "desc": "Informationen zu einem Charakter aus einem visuellen Roman erhalten"
+        },
+        {
+          "code": "ja",
+          "name": "キャラクター",
+          "desc": "ビジュアルノベルのキャラクターの情報を取得する"
+        }
+      ]
+    },
+    {
+      "name": "game",
+      "desc": "Get info of a visual novel",
+      "args": [
+        {
+          "name": "title",
+          "desc": "The title of the visual novel",
+          "required": true,
+          "autocomplete": false,
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "title",
+              "desc": "The title of the visual novel"
+            },
+            {
+              "code": "fr",
+              "name": "titre",
+              "desc": "Le titre du roman visuel"
+            },
+            {
+              "code": "de",
+              "name": "titel",
+              "desc": "Der Titel des visuellen Romans"
+            },
+            {
+              "code": "ja",
+              "name": "タイトル",
+              "desc": "ビジュアルノベルのタイトル"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "game",
+          "desc": "Get info of a visual novel"
+        },
+        {
+          "code": "fr",
+          "name": "jeu",
+          "desc": "Obtenir des informations sur un roman visuel"
+        },
+        {
+          "code": "de",
+          "name": "spiel",
+          "desc": "Informationen zu einem visuellen Roman erhalten"
+        },
+        {
+          "code": "ja",
+          "name": "ゲーム",
+          "desc": "ビジュアルノベルの情報を取得する"
+        }
+      ]
+    },
+    {
+      "name": "producer",
+      "desc": "Get info of a producer from a visual novel",
+      "args": [
+        {
+          "name": "name",
+          "desc": "The name of the producer",
+          "required": true,
+          "autocomplete": false,
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "name",
+              "desc": "The name of the producer"
+            },
+            {
+              "code": "fr",
+              "name": "nom",
+              "desc": "Le nom du producteur"
+            },
+            {
+              "code": "de",
+              "name": "name",
+              "desc": "Der Name des Produzenten"
+            },
+            {
+              "code": "ja",
+              "name": "名前",
+              "desc": "プロデューサーの名前"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "producer",
+          "desc": "Get info of a producer from a visual novel"
+        },
+        {
+          "code": "fr",
+          "name": "producteur",
+          "desc": "Obtenir des informations sur un producteur d'un roman visuel"
+        },
+        {
+          "code": "de",
+          "name": "produzent",
+          "desc": "Informationen zu einem Produzenten eines visuellen Romans erhalten"
+        },
+        {
+          "code": "ja",
+          "name": "プロデューサー",
+          "desc": "ビジュアルノベルのプロデューサーの情報を取得する"
+        }
+      ]
+    },
+    {
+      "name": "staff",
+      "desc": "Get info of a staff member from a visual novel",
+      "args": [
+        {
+          "name": "name",
+          "desc": "The name of the staff member",
+          "required": true,
+          "autocomplete": false,
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "name",
+              "desc": "The name of the staff member"
+            },
+            {
+              "code": "fr",
+              "name": "nom",
+              "desc": "Le nom du membre du personnel"
+            },
+            {
+              "code": "de",
+              "name": "name",
+              "desc": "Der Name des Mitarbeiters"
+            },
+            {
+              "code": "ja",
+              "name": "名前",
+              "desc": "スタッフメンバーの名前"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "staff",
+          "desc": "Get info of a staff member from a visual novel"
+        },
+        {
+          "code": "fr",
+          "name": "personnel",
+          "desc": "Obtenir des informations sur un membre du personnel d'un roman visuel"
+        },
+        {
+          "code": "de",
+          "name": "mitarbeiter",
+          "desc": "Informationen zu einem Mitarbeiter eines visuellen Romans erhalten"
+        },
+        {
+          "code": "ja",
+          "name": "スタッフ",
+          "desc": "ビジュアルノベルのスタッフメンバーの情報を取得する"
+        }
+      ]
+    },
+    {
+      "name": "user",
+      "desc": "Get info of a user from a visual novel database",
+      "args": [
+        {
+          "name": "username",
+          "desc": "The username of the user",
+          "required": true,
+          "autocomplete": false,
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "username",
+              "desc": "The username of the user"
+            },
+            {
+              "code": "fr",
+              "name": "nom_d'utilisateur",
+              "desc": "Le nom d'utilisateur de l'utilisateur"
+            },
+            {
+              "code": "de",
+              "name": "benutzername",
+              "desc": "Der Benutzername des Benutzers"
+            },
+            {
+              "code": "ja",
+              "name": "ユーザー名",
+              "desc": "ユーザーのユーザー名"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "user",
+          "desc": "Get info of a user from a visual novel database"
+        },
+        {
+          "code": "fr",
+          "name": "utilisateur",
+          "desc": "Obtenir des informations sur un utilisateur d'une base de données de romans visuels"
+        },
+        {
+          "code": "de",
+          "name": "benutzer",
+          "desc": "Informationen zu einem Benutzer aus einer visuellen Roman-Datenbank erhalten"
+        },
+        {
+          "code": "ja",
+          "name": "ユーザー",
+          "desc": "ビジュアルノベルデータベースのユーザー情報を取得する"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "visual_novel",
+      "desc": "Get info of a visual novel"
+    },
+    {
+      "code": "fr",
+      "name": "roman_visuel",
+      "desc": "Obtenir des informations sur un roman visuel"
+    },
+    {
+      "code": "de",
+      "name": "visueller_roman",
+      "desc": "Informationen zu einem visuellen Roman erhalten"
+    },
+    {
+      "code": "ja",
+      "name": "ビジュアルノベル",
+      "desc": "ビジュアルノベルの情報を取得する"
+    }
+  ]
+}

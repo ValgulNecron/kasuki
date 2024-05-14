@@ -1,7 +1,7 @@
 {
   "name": "user",
   "desc": "General purpose commands for user.",
-  "dm_command": false,
+  "dm_command": true,
   "nsfw": false,
   "command": [
     {
