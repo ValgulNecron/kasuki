@@ -14,4 +14,6 @@ pub struct ActivationStatusModule {
     pub new_member: Option<bool>,
     /// anime is an Option<bool> that represents the activation status of the anime module. It can be None if the status is not set.
     pub anime: Option<bool>,
+    /// vn is an Option<bool> that represents the activation status of the VN module. It can be None if the status is not set.
+    pub vn: Option<bool>,
 }

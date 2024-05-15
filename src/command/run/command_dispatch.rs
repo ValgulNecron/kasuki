@@ -63,6 +63,7 @@ pub async fn command_dispatching(
         "server" => server(ctx, command_interaction, command_name).await?,
         "steam" => steam(ctx, command_interaction, command_name).await?,
         "user" => user(ctx, command_interaction, command_name).await?,
+        "vn" => vn(ctx, command_interaction, command_name).await?,
         // If the command name does not match any of the specified commands, return an error
         _ => {
             return Err(AppError::new(
