@@ -12,7 +12,7 @@ pub async fn load_localization<T: serde::Deserialize<'static> + Clone>(
     // Parse the JSON data into a HashMap and handle any potential errors
     let json_data: HashMap<String, T> = serde_json::from_str(json).map_err(|e| {
         AppError::new(
-            format!("Failing to parse add_activity.json. {}", e),
+            format!("Failing to parse {}. {}", path, e),
             ErrorType::File,
             ErrorResponseType::Unknown,
         )
