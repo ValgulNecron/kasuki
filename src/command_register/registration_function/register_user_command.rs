@@ -4,7 +4,9 @@ use serenity::all::{CommandType, CreateCommand, Http};
 use tracing::{error, trace};
 
 use crate::command_register::command_struct::user_command::UserCommand;
-use crate::command_register::registration_function::common::{get_permission, get_vec};
+use crate::command_register::registration_function::common::{
+    get_permission, get_vec, get_vec_installation_context,
+};
 use crate::helper::error_management::error_enum::AppError;
 
 /// This asynchronous function creates user commands in Discord by reading from a JSON file and sending them to the Discord API.
@@ -69,10 +71,11 @@ fn get_user_command(path: &str) -> Result<Vec<UserCommand>, AppError> {
 async fn create_command(command: &UserCommand, http: &Arc<Http>) {
     let mut command_build = CreateCommand::new(&command.name)
         .kind(CommandType::User)
-        .name(&command.name);
+        .name(&command.name)
+        .integration_types(get_vec_installation_context(&command.installation_context));
 
-    if let Some(Localised) = &command.localised {
-        for local in Localised {
+    if let Some(localised) = &command.localised {
+        for local in localised {
             command_build = command_build.name_localized(&local.code, &local.name)
         }
     }

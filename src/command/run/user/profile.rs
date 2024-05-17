@@ -158,6 +158,7 @@ pub async fn send_embed(
 
     fields.push((profile_localised.bot, user.bot.to_string(), true));
     fields.push((profile_localised.system, user.system.to_string(), true));
+    fields.push((profile_localised.nitro, user.premium_type.to_string(), true));
 
     // Check if there are any public flags for the user
     match user.public_flags {
@@ -173,6 +174,8 @@ pub async fn send_embed(
         }
         None => {}
     };
+
+
     // Create an embed with the user's profile information
     let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())

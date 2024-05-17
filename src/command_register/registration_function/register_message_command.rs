@@ -1,5 +1,7 @@
 use crate::command_register::command_struct::message_command::MessageCommand;
-use crate::command_register::registration_function::common::{get_permission, get_vec};
+use crate::command_register::registration_function::common::{
+    get_permission, get_vec, get_vec_installation_context,
+};
 use crate::helper::error_management::error_enum::AppError;
 use serenity::all::{CommandType, CreateCommand, Http};
 use std::sync::Arc;
@@ -30,10 +32,11 @@ fn get_message_command(path: &str) -> Result<Vec<MessageCommand>, AppError> {
 async fn create_command(command: &MessageCommand, http: &Arc<Http>) {
     let mut command_build = CreateCommand::new(&command.name)
         .kind(CommandType::Message)
-        .name(&command.name);
+        .name(&command.name)
+        .integration_types(get_vec_installation_context(&command.installation_context));
 
-    if let Some(Localised) = &command.localised {
-        for local in Localised {
+    if let Some(localised) = &command.localised {
+        for local in localised {
             command_build = command_build.name_localized(&local.code, &local.name)
         }
     }

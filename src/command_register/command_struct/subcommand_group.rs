@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::command_register::command_struct::common::{DefaultPermission, Localised};
+use crate::command_register::command_struct::common::{
+    CommandInstallationContext, CommandIntegrationContext, DefaultPermission, Localised,
+};
 use crate::command_register::command_struct::subcommand::Command;
 
 /// The `SubCommandGroup` struct represents a group of subcommands that can be executed by the bot.
@@ -20,7 +22,9 @@ use crate::command_register::command_struct::subcommand::Command;
 pub struct SubCommandGroup {
     pub name: String,
     pub desc: String,
-    pub dm_command: bool,
+    pub integration_context: CommandIntegrationContext,
+    pub installation_context: CommandInstallationContext,
+
     pub nsfw: bool,
     pub subcommands: Option<Vec<SubCommand>>,
     pub command: Option<Vec<Command>>,

@@ -4,7 +4,9 @@ use serenity::all::{CommandType, CreateCommand, Http};
 use tracing::{error, trace};
 
 use crate::command_register::command_struct::command::Command;
-use crate::command_register::registration_function::common::{get_option, get_permission, get_vec};
+use crate::command_register::registration_function::common::{
+    get_option, get_permission, get_vec, get_vec_installation_context, get_vec_integration_context,
+};
 use crate::helper::error_management::error_enum::AppError;
 
 /// This asynchronous function creates commands by reading from a JSON file and sending them to the Discord API.
@@ -74,8 +76,9 @@ async fn create_command(command: &Command, http: &Arc<Http>) {
     let mut command_build = CreateCommand::new(&command.name)
         .nsfw(command.nsfw)
         .kind(CommandType::ChatInput)
-        .dm_permission(command.dm_command)
-        .description(&command.desc);
+        .contexts(get_vec_integration_context(&command.integration_context))
+        .description(&command.desc)
+        .integration_types(get_vec_installation_context(&command.installation_context));
 
     command_build = get_permission(&command.permissions, command_build);
 

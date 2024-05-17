@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::command_register::command_struct::common::DefaultPermission;
+use crate::command_register::command_struct::common::{
+    CommandInstallationContext, DefaultPermission,
+};
 
 /// The `UserCommand` struct represents a user command that can be executed by the bot.
 /// It is derived from `Debug`, `Serialize`, `Deserialize`, and `Clone` traits.
@@ -14,6 +16,7 @@ use crate::command_register::command_struct::common::DefaultPermission;
 pub struct UserCommand {
     pub name: String,
     pub localised: Option<Vec<Localised>>,
+    pub installation_context: CommandInstallationContext,
     pub permissions: Option<Vec<DefaultPermission>>,
 }
 

@@ -1,10 +1,14 @@
-use crate::command_register::command_struct::common::DefaultPermission;
+use crate::command_register::command_struct::common::{
+    CommandInstallationContext, DefaultPermission,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MessageCommand {
     pub name: String,
-    pub localised: Option<Vec<crate::command_register::command_struct::user_command::Localised>>,
+    pub localised: Option<Vec<Localised>>,
+    pub installation_context: CommandInstallationContext,
+
     pub permissions: Option<Vec<DefaultPermission>>,
 }
 

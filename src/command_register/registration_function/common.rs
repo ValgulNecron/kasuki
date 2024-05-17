@@ -1,8 +1,13 @@
-use serenity::all::{CommandOptionType, CreateCommand, CreateCommandOption, Permissions};
 use std::fs;
 
+use serenity::all::{
+    CommandOptionType, CreateCommand, CreateCommandOption, InstallationContext, InteractionContext,
+    Permissions,
+};
+
 use crate::command_register::command_struct::common::{
-    Arg, Choice, ChoiceLocalised, DefaultPermission, Localised,
+    Arg, Choice, ChoiceLocalised, CommandInstallationContext, CommandIntegrationContext,
+    DefaultPermission, Localised,
 };
 use crate::command_register::command_struct::subcommand::Command;
 use crate::command_register::command_struct::subcommand_group::SubCommand;
@@ -243,4 +248,33 @@ pub fn get_vec<T: serde::Deserialize<'static> + Clone>(path: &str) -> Result<Vec
         }
     }
     Ok(commands)
+}
+
+pub fn get_vec_integration_context(context: &CommandIntegrationContext) -> Vec<InteractionContext> {
+    let mut contexts = Vec::new();
+    if context.guild {
+        contexts.push(InteractionContext::Guild);
+    }
+    if context.bot_dm {
+        contexts.push(InteractionContext::BotDm);
+    }
+    if context.private_channel {
+        contexts.push(InteractionContext::PrivateChannel);
+    }
+
+    contexts
+}
+
+pub fn get_vec_installation_context(
+    context: &CommandInstallationContext,
+) -> Vec<InstallationContext> {
+    let mut contexts = Vec::new();
+    if context.guild {
+        contexts.push(InstallationContext::Guild);
+    }
+    if context.user {
+        contexts.push(InstallationContext::User);
+    }
+
+    contexts
 }

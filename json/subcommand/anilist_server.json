@@ -1,7 +1,15 @@
 {
   "name": "anilist_server",
   "desc": "Commands for the AniList module for server",
-  "dm_command": false,
+  "integration_context": {
+    "bot_dm": false,
+    "guild": true,
+    "private_channel": false
+  },
+  "installation_context": {
+    "guild": true,
+    "user": false
+  },
   "nsfw": false,
   "command": [
     {

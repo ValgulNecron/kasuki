@@ -38,6 +38,7 @@ use crate::logger::{create_log_directory, init_logger};
 use crate::new_member::new_member;
 use crate::structure::steam_game_id_struct::get_game;
 
+mod api;
 mod background_task;
 mod cache;
 mod command;
@@ -204,7 +205,7 @@ impl EventHandler for Handler {
                     "Received {} from {} in {} with option {:?}",
                     command_interaction.data.name,
                     command_interaction.user.name,
-                    command_interaction.guild_id.unwrap().to_string(),
+                    command_interaction.guild_id.unwrap_or_default().to_string(),
                     command_interaction.data.options
                 );
                 if let Err(e) = command_dispatching(&ctx, &command_interaction).await {

@@ -1,7 +1,15 @@
 {
   "name": "anilist_user",
   "desc": "Commands for the AniList module for user",
-  "dm_command": true,
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
   "nsfw": false,
   "command": [
     {

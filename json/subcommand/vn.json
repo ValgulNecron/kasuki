@@ -1,7 +1,15 @@
 {
   "name": "vn",
   "desc": "Get info of a VN",
-  "dm_command": false,
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": false
+  },
   "nsfw": false,
   "command": [
     {
@@ -11,6 +19,7 @@
         {
           "name": "name",
           "desc": "The name of the character",
+          "arg_type": "String",
           "required": true,
           "autocomplete": false,
           "localised_args": [
@@ -67,6 +76,7 @@
         {
           "name": "title",
           "desc": "The title of the visual novel",
+          "arg_type": "String",
           "required": true,
           "autocomplete": false,
           "localised_args": [
@@ -123,6 +133,7 @@
         {
           "name": "name",
           "desc": "The name of the producer",
+          "arg_type": "String",
           "required": true,
           "autocomplete": false,
           "localised_args": [
@@ -179,6 +190,7 @@
         {
           "name": "name",
           "desc": "The name of the staff member",
+          "arg_type": "String",
           "required": true,
           "autocomplete": false,
           "localised_args": [
@@ -235,6 +247,7 @@
         {
           "name": "username",
           "desc": "The username of the user",
+          "arg_type": "String",
           "required": true,
           "autocomplete": false,
           "localised_args": [
