@@ -1,4 +1,5 @@
 use serenity::all::{CommandInteraction, Context, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Member, PremiumType, Timestamp, User};
+use tracing::trace;
 
 use crate::constant::COLOR;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -153,6 +154,7 @@ pub async fn send_embed(
         None => {}
     }
 
+    trace!("{:?}", user.premium_type);
     let premium_type = match user.premium_type {
         PremiumType::None => "None.",
         PremiumType::NitroClassic => "Nitro Classic.",
