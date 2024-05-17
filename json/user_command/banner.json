@@ -1,5 +1,9 @@
 {
   "name": "banner",
+  "installation_context": {
+    "guild": true,
+    "user": false
+  },
   "localised": [
     {
       "code": "en-US",
