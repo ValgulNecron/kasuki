@@ -1,5 +1,4 @@
-use serenity::all::{CommandInteraction, Context, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Member, PremiumType, Timestamp, User};
-use tracing::trace;
+use serenity::all::{CommandInteraction, Context, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Member, Timestamp, User};
 
 use crate::constant::COLOR;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

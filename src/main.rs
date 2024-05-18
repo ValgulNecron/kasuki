@@ -436,7 +436,7 @@ async fn ping_manager_thread(ctx: Context) {
     let mut interval = tokio::time::interval(Duration::from_secs(PING_UPDATE_DELAYS));
     loop {
         interval.tick().await;
-        ping_manager(&shard_manager).await;
+        ping_manager(shard_manager).await;
     }
 }
 

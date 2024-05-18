@@ -7,11 +7,10 @@ pub(crate) mod proto {
         tonic::include_file_descriptor_set!("info_descriptor");
 }
 
-use std::collections::HashMap;
 use crate::constant::{ACTIVITY_NAME, APP_VERSION};
 use crate::grpc_server::service::info::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::service::info::proto::{BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, InfoRequest, InfoResponse, OwnerInfo, ShardStats, SystemInfoData};
-use serenity::all::{Cache, CurrentApplicationInfo, ShardId, ShardManager, ShardRunnerInfo};
+use serenity::all::{Cache, CurrentApplicationInfo, ShardManager};
 use std::sync::{Arc};
 use sysinfo::System;
 use tokio::sync::{RwLock};
