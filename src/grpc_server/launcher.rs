@@ -1,7 +1,8 @@
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc};
 
-use serenity::all::ShardManager;
+use serenity::all::{Cache, ShardManager};
 use sysinfo::System;
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::constant::{
@@ -24,7 +25,7 @@ use crate::grpc_server::service::shard::{get_shard_server, ShardService};
 /// # Panics
 ///
 /// This function will panic if it fails to build the reflection service or if it fails to serve the gRPC server.
-pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
+pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>, command_usage: Arc<RwLock<u128>>, cache: Arc<Cache>) {
     get_list_of_all_command();
     // Clone the Arc<ShardManager>
     let shard_manager_arc: Arc<ShardManager> = shard_manager.clone();
@@ -33,13 +34,16 @@ pub async fn grpc_server_launcher(shard_manager: &Arc<ShardManager>) {
     let addr = format!("0.0.0.0:{}", *GRPC_SERVER_PORT);
     // Create a new ShardService with the cloned Arc<ShardManager>
     let shard_service = ShardService {
-        shard_manager: shard_manager_arc,
+        shard_manager: shard_manager_arc.clone(),
     };
     let info_service = unsafe {
         InfoService {
             bot_info: Arc::new(BOT_INFO.clone().unwrap()),
             sys: Arc::new(RwLock::new(System::new_all())),
             os_info: Arc::new(os_info::get()),
+            command_usage,
+            shard_manager: shard_manager_arc.clone(),
+            cache,
         }
     };
     let command_service = unsafe {

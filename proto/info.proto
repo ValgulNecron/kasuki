@@ -14,21 +14,60 @@ message InfoResponse {
     SystemInfoData sys_info = 2;
 }
 
-message BotInfoData {
-    string bot_name = 1;
+message BotStat {
+    string uptime = 1;
+    int64 number_of_commands_executed = 2;
+    int64 number_of_members = 3;
+    int64 number_of_guilds = 4;
+    repeated ShardStats shard_info = 5;
+}
+
+message ShardStats {
+    string id = 1;
+    string latency = 2;
+    string stage = 3;
+}
+
+message BotSystemUsage {
+    string cpu = 1;
+    string memory = 2;
+}
+
+message BotInfo {
+    string name = 1;
     string version = 2;
-    string bot_uptime = 3;
-    string bot_id = 4;
-    string bot_owner = 5;
-    string bot_activity = 6;
-    string description = 7;
+    string id = 3;
+    string bot_activity = 4;
+    string description = 5;
+        optional BotProfile bot_profile= 6;
+}
+
+message BotProfile {
+    string profile_picture = 1;
+    optional string banner = 2;
+}
+
+message OwnerInfo {
+    string name = 1;
+    string id = 2;
+    string profile_picture = 3;
+    optional string banner = 4;
+}
+
+message BotInfoData {
+    BotStat stat = 1;
+    BotSystemUsage usage = 2;
+    BotInfo info = 3;
+    OwnerInfo owner_info = 4;
 }
 
 message SystemInfoData {
-    string app_cpu = 1;
-    string app_memory = 2;
-    string os = 3;
-    string system_total_memory = 4;
-    string system_used_memory = 5;
-    string system_cpu_usage = 6;
+    string os = 1;
+    string system_total_memory = 2;
+    string system_used_memory = 3;
+    string system_cpu_usage = 4;
+    string system_cpu_name = 5;
+    string system_cpu_brand = 6;
+    string system_cpu_frequency = 7;
+    string system_cpu_count = 8;
 }

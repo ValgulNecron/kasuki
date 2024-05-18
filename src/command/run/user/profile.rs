@@ -154,18 +154,8 @@ pub async fn send_embed(
         None => {}
     }
 
-    trace!("{:?}", user.premium_type);
-    let premium_type = match user.premium_type {
-        PremiumType::None => "None.",
-        PremiumType::NitroClassic => "Nitro Classic.",
-        PremiumType::Nitro => "Nitro.",
-        PremiumType::NitroBasic => "Nitro Basic.",
-        _ => "Unknown premium type",
-    };
-
     fields.push((profile_localised.bot, user.bot.to_string(), true));
     fields.push((profile_localised.system, user.system.to_string(), true));
-    fields.push((profile_localised.nitro, premium_type.to_string(), true));
 
     // Check if there are any public flags for the user
     match user.public_flags {
