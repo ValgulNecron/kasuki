@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
 
-use crate::grpc_server::command_list::CommandItem;
+use crate::grpc_server::command_list::{CommandItem, get_list_of_all_command};
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
 use serenity::all::{Colour, CurrentApplicationInfo};
@@ -73,7 +73,7 @@ Default value.
 pub const UNKNOWN: &str = "Unknown";
 
 /// Map of language codes to language names.
-pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
+pub const LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
     let languages = [
         ("en", "english"),
         ("fr", "french"),
@@ -93,7 +93,7 @@ pub const LOGS_PREFIX: &str = "kasuki_";
 /// Suffix for the logs
 pub const LOGS_SUFFIX: &str = "log";
 /// Maximum log retention days.
-pub static MAX_LOG_RETENTION_DAYS: Lazy<u64> = Lazy::new(|| {
+pub const MAX_LOG_RETENTION_DAYS: Lazy<u64> = Lazy::new(|| {
     env::var("MAX_LOG_RETENTION_DAYS")
         .unwrap_or("7".to_string())
         .parse()
@@ -233,6 +233,8 @@ bot info
 /// The bot's information.
 pub static mut BOT_INFO: Lazy<Option<CurrentApplicationInfo>> = Lazy::new(|| None);
 /// Vec of all available bot commands.
-pub static mut BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(Vec::new);
+pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(|| {
+    get_list_of_all_command()
+});
 /// Used library.
 pub const LIBRARY: Lazy<String> = Lazy::new(|| String::from("serenity"));

@@ -1,4 +1,7 @@
-use serenity::all::{CommandInteraction, Context, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Member, Timestamp, User};
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Member, Timestamp, User,
+};
 
 use crate::constant::COLOR;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -170,7 +173,6 @@ pub async fn send_embed(
         }
         None => {}
     };
-
 
     // Create an embed with the user's profile information
     let mut builder_embed = CreateEmbed::new()

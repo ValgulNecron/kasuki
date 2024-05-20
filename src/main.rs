@@ -24,12 +24,12 @@ use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispa
 use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{PING_UPDATE_DELAYS, TIME_BETWEEN_GAME_UPDATE};
 use crate::constant::{ACTIVITY_NAME, USER_BLACKLIST_SERVER_IMAGE};
 use crate::constant::{
     APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
     TIME_BETWEEN_USER_COLOR_UPDATE,
 };
+use crate::constant::{PING_UPDATE_DELAYS, TIME_BETWEEN_GAME_UPDATE};
 use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::grpc_server::launcher::grpc_server_launcher;
@@ -332,7 +332,6 @@ async fn main() {
         .await
         .insert::<ShardManagerContainer>(Arc::clone(&shard_manager));
 
-
     // Spawn a new asynchronous task for starting the client.
     // If the client fails to start, log the error.
     tokio::spawn(async move {
@@ -447,18 +446,18 @@ async fn launch_web_server_thread(ctx: Context, command_usage: Arc<RwLock<u128>>
     if !is_grpc_on {
         info!("GRPC is off, skipping the GRPC server thread!");
         return;
-}
+    }
     let data_read = ctx.data.read().await;
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
         None => {
             return;
         }
-};
+    };
     let cache = ctx.cache.clone();
+    let http = ctx.http.clone();
     info!("GRPC is on, launching the GRPC server thread!");
-    grpc_server_launcher(shard_manager, command_usage, cache).await
-
+    grpc_server_launcher(shard_manager, command_usage, cache, http).await
 }
 
 /// This function is responsible for launching the user color management thread.
@@ -549,7 +548,6 @@ async fn update_user_blacklist(user_blacklist_server_image: Arc<RwLock<Vec<Strin
     loop {
         interval.tick().await;
         // Get a write lock on USER_BLACKLIST_SERVER_IMAGE
-        let mut user_blacklist = user_blacklist_server_image.write().await;
 
         // Perform operations on the data while holding the lock
         let file_url = "https://raw.githubusercontent.com/ValgulNecron/kasuki/dev/blacklist.json";
@@ -566,9 +564,14 @@ async fn update_user_blacklist(user_blacklist_server_image: Arc<RwLock<Vec<Strin
             .map(|x| x.as_str().unwrap().to_string())
             .collect();
 
+        let mut user_blacklist = user_blacklist_server_image.write().await;
+
+        // liberate the memory used by the old user_blacklist
+        user_blacklist.clear();
+        user_blacklist.shrink_to_fit();
         // Update the USER_BLACKLIST_SERVER_IMAGE
         *user_blacklist = user_ids;
-
+        user_blacklist.shrink_to_fit();
         // Release the lock before sleeping
         drop(user_blacklist);
     }

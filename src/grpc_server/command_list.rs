@@ -43,29 +43,20 @@ pub struct Arg {
     pub choices: Vec<String>,
 }
 
-pub fn get_list_of_all_command() {
+pub fn get_list_of_all_command() -> Vec<CommandItem> {
     let mut commands_item = Vec::new();
-    let commands = match get_commands("./json/command") {
-        Err(e) => {
-            error!("{:?}", e);
-            return;
-        }
-        Ok(c) => c,
-    };
-    let subcommands = match get_subcommands("./json/subcommand") {
-        Err(e) => {
-            error!("{:?}", e);
-            return;
-        }
-        Ok(c) => c,
-    };
-    let subcommands_group = match get_subcommands_group("./json/subcommand_group") {
-        Err(e) => {
-            error!("{:?}", e);
-            return;
-        }
-        Ok(c) => c,
-    };
+    let commands = get_commands("./json/command").unwrap_or_else(|e| {
+        error!("{:?}", e);
+        Vec::new()
+    });
+    let subcommands = get_subcommands("./json/subcommand").unwrap_or_else(|e| {
+        error!("{:?}", e);
+        Vec::new()
+    });
+    let subcommands_group = get_subcommands_group("./json/subcommand_group").unwrap_or_else(|e| {
+        error!("{:?}", e);
+        Vec::new()
+    });
 
     for command in commands {
         let com = create_command_list(command);
@@ -80,7 +71,7 @@ pub fn get_list_of_all_command() {
         commands_item.push(CommandItem::SubcommandGroup(subcom_group));
     }
 
-    unsafe { *BOT_COMMANDS = commands_item }
+    commands_item
 }
 
 fn create_command_list(command: command::Command) -> Command {

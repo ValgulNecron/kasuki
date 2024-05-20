@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 // Import necessary libraries and modules
 use serde::Deserialize;
 use serde_json::Value;
@@ -69,8 +70,11 @@ pub async fn get_game() {
     // Clear the APPS constant and insert the new apps
     unsafe {
         APPS.clear();
-        for app in apps {
-            APPS.insert(app.name, app.app_id);
-        }
+        APPS.shrink_to_fit();
+        // Convert the vector of apps into a hashmap
+        let app_map: HashMap<String, u128> =
+            apps.iter().map(|app| (app.name.clone(), app.app_id)).collect();
+        *APPS = app_map;
+        APPS.shrink_to_fit();
     }
 }
