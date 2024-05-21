@@ -51,6 +51,7 @@ impl Info for InfoService {
             Some(proc) => proc,
             _ => return Err(Status::internal("Failed to get the process.")),
         };
+        let system_cpu_count = sys.cpus().len();
 
         // shard stats
         let shard_manager = self.shard_manager.runners.lock().await;
@@ -79,7 +80,7 @@ impl Info for InfoService {
         });
 
         // bot usage
-        let cpu = format!("{}%", process.cpu_usage());
+        let cpu = format!("{}%", process.cpu_usage() / system_cpu_count as f32);
         let memory = process.memory();
         let memory = format!("{:.2}Mb", memory / 1024 / 1024);
         let usage = Some(BotSystemUsage { cpu, memory });
@@ -159,7 +160,7 @@ impl Info for InfoService {
         let system_cpu_name = sys.global_cpu_info().name().to_string();
         let system_cpu_brand = sys.global_cpu_info().brand().to_string();
         let system_cpu_frequency = sys.global_cpu_info().frequency().to_string();
-        let system_cpu_count = sys.cpus().len().to_string();
+        let system_cpu_count = system_cpu_count.to_string();
         let sys_info = SystemInfoData {
             os,
             system_total_memory,

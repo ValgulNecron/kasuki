@@ -5,8 +5,8 @@ use std::time::Duration;
 
 use serde_json::Value;
 use serenity::all::{
-    ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready,
-    ShardManager,
+    ActivityData, Cache, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready,
+    Settings, ShardManager,
 };
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
