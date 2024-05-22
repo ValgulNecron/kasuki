@@ -25,17 +25,17 @@ pub enum CharacterAPISort {
     Relevance,
 }
 
-impl Into<String> for CharacterAPISort {
-    fn into(self) -> String {
-        match self {
-            Self::Id => "ID".to_string(),
-            Self::IdDesc => "ID_DESC".to_string(),
-            Self::Role => "ROLE".to_string(),
-            Self::RoleDesc => "ROLE_DESC".to_string(),
-            Self::SearchMatch => "SEARCH_MATCH".to_string(),
-            Self::Favourites => "FAVOURITES".to_string(),
-            Self::FavouritesDesc => "FAVOURITES_DESC".to_string(),
-            Self::Relevance => "RELEVANCE".to_string(),
+impl From<CharacterAPISort> for String {
+    fn from(val: CharacterAPISort) -> Self {
+        match val {
+            CharacterAPISort::Id => "ID".to_string(),
+            CharacterAPISort::IdDesc => "ID_DESC".to_string(),
+            CharacterAPISort::Role => "ROLE".to_string(),
+            CharacterAPISort::RoleDesc => "ROLE_DESC".to_string(),
+            CharacterAPISort::SearchMatch => "SEARCH_MATCH".to_string(),
+            CharacterAPISort::Favourites => "FAVOURITES".to_string(),
+            CharacterAPISort::FavouritesDesc => "FAVOURITES_DESC".to_string(),
+            CharacterAPISort::Relevance => "RELEVANCE".to_string(),
         }
     }
 }
@@ -161,7 +161,7 @@ impl CharacterAPIBuilder {
             filter.push_str(format!("$id: Int = {},", id_filter).as_str());
             characters.push_str("id: $id,");
         }
-        if let Some(is_birthday) = self.is_birthday.clone() {
+        if let Some(is_birthday) = self.is_birthday {
             let is_birthday = if is_birthday { "true" } else { "false" };
             filter.push_str(format!("$isBirthday: Boolean = {}", is_birthday).as_str());
             characters.push_str("isBirthday: $isBirthday,");
@@ -201,12 +201,12 @@ impl CharacterAPIBuilder {
         }
         let is_media = if let Some(include_media) = &self.include_media {
             let limit = limit > actual;
-            let good = include_media.clone() && limit;
-            good
+            
+            *include_media && limit
         } else {
             false
         };
-        if is_media.clone() {
+        if is_media {
             if let Some(character_media_builder) = self.character_media_builder.clone() {
                 let query = character_media_builder
                     .build(Some(limit), Some(actual))
@@ -225,7 +225,7 @@ impl CharacterAPIBuilder {
         self
     }
 
-    pub fn get_query(mut self) -> Option<String> {
+    pub fn get_query(self) -> Option<String> {
         self.query
     }
 }

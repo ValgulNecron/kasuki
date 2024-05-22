@@ -51,11 +51,11 @@ impl MediaConnectionAPIBuilder {
         self
     }
 
-    pub fn build(mut self, limit: Option<u32>, actual: Option<u32>) -> Self {
+    pub fn build(self, limit: Option<u32>, actual: Option<u32>) -> Self {
         self
     }
 
-    pub fn get_query(mut self) -> Option<String> {
+    pub fn get_query(self) -> Option<String> {
         self.query
     }
 }

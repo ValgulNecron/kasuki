@@ -233,6 +233,6 @@ bot info
 /// The bot's information.
 pub static mut BOT_INFO: Lazy<Option<CurrentApplicationInfo>> = Lazy::new(|| None);
 /// Vec of all available bot commands.
-pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(|| get_list_of_all_command());
+pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
 /// Used library.
 pub const LIBRARY: Lazy<String> = Lazy::new(|| String::from("serenity"));
