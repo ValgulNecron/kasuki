@@ -1,5 +1,5 @@
-use markdown_converter::anilist::convert_anilist_markdown::convert_anilist_flavored_markdown;
-use markdown_converter::steam::convert_steam_markdown::convert_steam_flavored_markdown;
+use markdown_converter::anilist::convert_anilist_flavored_markdown;
+use markdown_converter::steam::convert_steam_flavored_markdown;
 
 /// Converts the given string into Discord-flavored markdown
 ///

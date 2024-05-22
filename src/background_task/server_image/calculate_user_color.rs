@@ -3,6 +3,8 @@ use std::time::Duration;
 
 use base64::engine::general_purpose;
 use base64::Engine;
+use futures::stream::FuturesUnordered;
+use futures::StreamExt;
 use image::codecs::png::PngEncoder;
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, ExtendedColorType, ImageEncoder};
@@ -252,18 +254,25 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
 ///
 /// This function will log an error if there's a problem calculating the color for any member.
 pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context) {
-    let mut members: Vec<Member> = Vec::new();
-    let guild_len = guilds.len();
-    debug!(guild_len);
+    let mut futures = FuturesUnordered::new();
     for guild in guilds {
         let guild_id = guild.to_string();
         debug!(guild_id);
-        let mut members_temp_out = get_member(ctx_clone, guild).await;
-        let server_member_len = members_temp_out.len();
-        debug!(server_member_len);
-        members.append(&mut members_temp_out);
-        let members_len = members.len();
-        debug!(members_len);
+
+        // Assuming get_member is async and returns a Future<Member>
+        let ctx_clone = ctx_clone.clone();
+        let guild = guild.clone();
+        let future = get_member(ctx_clone, guild);
+        futures.push(future);
+    }
+    let mut members = Vec::new();
+    while let Some(mut result) = futures.next().await {
+        let guild_id = match result.first() {
+            Some(member) => member.guild_id.to_string(),
+            None => String::from(""),
+        };
+        debug!("{}: {}" , guild_id,result.len());
+        members.append(&mut result);
     }
     match calculate_users_color(members.into_iter().collect()).await {
         Ok(_) => {}
@@ -288,7 +297,7 @@ pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context) {
 /// # Panics
 ///
 /// This function will panic if there's a problem fetching the members from the guild.
-pub async fn get_member(ctx_clone: &Context, guild: &GuildId) -> Vec<Member> {
+pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
     let mut i = 0;
     let mut members_temp_out: Vec<Member> = Vec::new();
     while members_temp_out.len() == (1000 * i) {
