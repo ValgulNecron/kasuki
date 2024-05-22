@@ -13,7 +13,6 @@ pub struct CharacterAPIBuilder {
     query: Option<String>,
 }
 
-
 #[derive(Debug, Clone)]
 pub enum CharacterAPISort {
     Id,
@@ -144,7 +143,10 @@ impl CharacterAPIBuilder {
         self
     }
 
-    pub fn character_media_builder(mut self, character_media_builder: MediaConnectionAPIBuilder) -> Self {
+    pub fn character_media_builder(
+        mut self,
+        character_media_builder: MediaConnectionAPIBuilder,
+    ) -> Self {
         self.character_media_builder = Some(character_media_builder);
         self
     }
@@ -173,13 +175,21 @@ impl CharacterAPIBuilder {
             characters.push_str("id_not: $idNot,");
         }
         if let Some(id_in) = &self.id_in {
-            let id_in = id_in.iter().map(|id| id.to_string()).collect::<Vec<String>>().join(", ");
+            let id_in = id_in
+                .iter()
+                .map(|id| id.to_string())
+                .collect::<Vec<String>>()
+                .join(", ");
             let id_in = format!("[{}]", id_in);
             filter.push_str(format!("$idIn: [Int] = {}", id_in).as_str());
             characters.push_str("id_in: $idIn,");
         }
         if let Some(id_not_in) = &self.id_not_in {
-            let id_not_in = id_not_in.iter().map(|id| id.to_string()).collect::<Vec<String>>().join(", ");
+            let id_not_in = id_not_in
+                .iter()
+                .map(|id| id.to_string())
+                .collect::<Vec<String>>()
+                .join(", ");
             let id_not_in = format!("[{}]", id_not_in);
             filter.push_str(format!("$idNotIn: [Int] = {}", id_not_in).as_str());
             characters.push_str("id_not_in: $idNotIn,");
@@ -198,13 +208,19 @@ impl CharacterAPIBuilder {
         };
         if is_media.clone() {
             if let Some(character_media_builder) = self.character_media_builder.clone() {
-                let query = character_media_builder.build(Some(limit), Some(actual)).get_query().unwrap();
+                let query = character_media_builder
+                    .build(Some(limit), Some(actual))
+                    .get_query()
+                    .unwrap();
                 filter.push_str(&query);
             }
         }
         let end_query = r"}";
         let start_query = r"{";
-        let query = format!("{}{}){}{}){}{}{}", starting_query, filter, start_query, characters, start_query, QUERY, end_query);
+        let query = format!(
+            "{}{}){}{}){}{}{}",
+            starting_query, filter, start_query, characters, start_query, QUERY, end_query
+        );
         self.query = Some(query);
         self
     }

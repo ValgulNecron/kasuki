@@ -52,7 +52,6 @@ impl MediaConnectionAPIBuilder {
     }
 
     pub fn build(mut self, limit: Option<u32>, actual: Option<u32>) -> Self {
-
         self
     }
 
