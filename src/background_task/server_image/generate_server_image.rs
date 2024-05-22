@@ -9,7 +9,7 @@ use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, Ima
 use palette::{IntoColor, Lab, Srgb};
 use serenity::all::{Context, GuildId, Member};
 use tokio::task;
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::background_task::server_image::calculate_user_color::{

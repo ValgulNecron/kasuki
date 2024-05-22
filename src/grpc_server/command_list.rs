@@ -3,7 +3,6 @@ use crate::command_register::command_struct::{command, common, subcommand, subco
 use crate::command_register::registration_function::register_command::get_commands;
 use crate::command_register::registration_function::register_subcommand::get_subcommands;
 use crate::command_register::registration_function::register_subcommand_group::get_subcommands_group;
-use crate::constant::BOT_COMMANDS;
 use tracing::error;
 
 #[derive(Clone)]

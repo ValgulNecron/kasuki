@@ -261,7 +261,7 @@ pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context) {
 
         // Assuming get_member is async and returns a Future<Member>
         let ctx_clone = ctx_clone.clone();
-        let guild = guild.clone();
+        let guild = *guild;
         let future = get_member(ctx_clone, guild);
         futures.push(future);
     }
@@ -271,7 +271,7 @@ pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context) {
             Some(member) => member.guild_id.to_string(),
             None => String::from(""),
         };
-        debug!("{}: {}" , guild_id,result.len());
+        debug!("{}: {}", guild_id, result.len());
         members.append(&mut result);
     }
     match calculate_users_color(members.into_iter().collect()).await {
