@@ -13,7 +13,7 @@ services:
     environment:
       # Discord Bot Configuration
       - DISCORD_TOKEN=YourDiscordTokenHere # Discord bot token used for authentication [0][2]
-      - BOT_ACTIVITY=Let you get info from anilist_user. # Status message displayed when the bot is active
+      - BOT_ACTIVITY=Let you get info from anilis. # Status message displayed when the bot is active
 
       # OpenAI API Tokens and Base URLs
       - AI_API_TOKEN=YourOpenAITokenHere # Token for making requests to the OpenAI API [12]
