@@ -72,8 +72,10 @@ pub async fn get_game() {
         APPS.clear();
         APPS.shrink_to_fit();
         // Convert the vector of apps into a hashmap
-        let app_map: HashMap<String, u128> =
-            apps.iter().map(|app| (app.name.clone(), app.app_id)).collect();
+        let app_map: HashMap<String, u128> = apps
+            .iter()
+            .map(|app| (app.name.clone(), app.app_id))
+            .collect();
         *APPS = app_map;
         APPS.shrink_to_fit();
     }

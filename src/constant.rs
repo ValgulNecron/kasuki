@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
 
-use crate::grpc_server::command_list::{CommandItem, get_list_of_all_command};
+use crate::grpc_server::command_list::{get_list_of_all_command, CommandItem};
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
 use serenity::all::{Colour, CurrentApplicationInfo};
@@ -233,8 +233,6 @@ bot info
 /// The bot's information.
 pub static mut BOT_INFO: Lazy<Option<CurrentApplicationInfo>> = Lazy::new(|| None);
 /// Vec of all available bot commands.
-pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(|| {
-    get_list_of_all_command()
-});
+pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(|| get_list_of_all_command());
 /// Used library.
 pub const LIBRARY: Lazy<String> = Lazy::new(|| String::from("serenity"));

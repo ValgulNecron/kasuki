@@ -49,7 +49,7 @@ pub async fn grpc_server_launcher(
             command_usage,
             shard_manager: shard_manager_arc.clone(),
             cache,
-            http
+            http,
         }
     };
     let command_service = unsafe {
