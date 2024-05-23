@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Name {
     #[serde(rename = "first")]
@@ -21,6 +23,7 @@ pub struct Name {
     #[serde(rename = "userPreferred")]
     pub user_preferred: Option<String>,
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Image {
     #[serde(rename = "large")]
@@ -29,6 +32,7 @@ pub struct Image {
     #[serde(rename = "medium")]
     pub medium: Option<String>,
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DateOfBirth {
     #[serde(rename = "year")]
@@ -40,6 +44,7 @@ pub struct DateOfBirth {
     #[serde(rename = "day")]
     pub day: Option<i32>,
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Character {
     #[serde(rename = "id")]
@@ -69,14 +74,15 @@ pub struct Character {
     #[serde(rename = "favourites")]
     pub favourites: Option<i32>,
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CharacterWrapper {
     #[serde(rename = "Character")]
     pub character: Option<Character>,
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CharacterDataWrapper {
     #[serde(rename = "data")]
     pub data: Option<CharacterWrapper>,
 }
-use serde::{Deserialize, Serialize};

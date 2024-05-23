@@ -1,6 +1,7 @@
+use serenity::all::{CommandInteraction, Context};
+
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use serenity::all::{CommandInteraction, Context};
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {

@@ -108,4 +108,9 @@
     - [ ] autocomplete steam game
 
 - Optimisation needed:
-    - [ ] anilist_server list_user  
+    - [ ] anilist_server list_user
+
+
+- Anilist api builder:
+    - Need to add media connection to character.
+    - Need to add character, staff, studio, airing schedule, trends, reviews, recommendations connection to media.

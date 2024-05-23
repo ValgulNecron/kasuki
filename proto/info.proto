@@ -39,7 +39,7 @@ message BotInfo {
     string id = 3;
     string bot_activity = 4;
     string description = 5;
-        optional BotProfile bot_profile= 6;
+    optional BotProfile bot_profile = 6;
 }
 
 message BotProfile {

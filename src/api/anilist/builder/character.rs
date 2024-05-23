@@ -1,14 +1,14 @@
 #[derive(Debug, Clone)]
 pub struct CharacterAPIBuilder {
-    id_filter: Option<u32>,
-    is_birthday: Option<bool>,
-    search: Option<String>,
-    id_not: Option<u32>,
-    id_in: Option<Vec<u32>>,
-    id_not_in: Option<Vec<u32>>,
-    sort: Option<CharacterAPISort>,
-    include_media: Option<bool>,
-    query: Option<String>,
+    pub id_filter: Option<u32>,
+    pub is_birthday: Option<bool>,
+    pub search: Option<String>,
+    pub id_not: Option<u32>,
+    pub id_in: Option<Vec<u32>>,
+    pub id_not_in: Option<Vec<u32>>,
+    pub sort: Option<CharacterAPISort>,
+    pub include_media: Option<bool>,
+    pub query: Option<String>,
 }
 
 #[derive(Debug, Clone)]
