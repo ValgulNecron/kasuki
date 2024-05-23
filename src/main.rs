@@ -14,7 +14,7 @@ use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, trace};
 
-use crate::api::anilist::character::CharacterAPIBuilder;
+use crate::api::anilist::builder::character::CharacterAPIBuilder;
 use struct_shard_manager::ShardManagerContainer;
 
 use crate::background_task::activity::anime_activity::manage_activity;

@@ -1,5 +1,4 @@
-use crate::api::anilist::media_connection::MediaConnectionAPIBuilder;
-
+#[derive(Debug, Clone)]
 pub struct CharacterAPIBuilder {
     id_filter: Option<u32>,
     is_birthday: Option<bool>,
@@ -9,7 +8,6 @@ pub struct CharacterAPIBuilder {
     id_not_in: Option<Vec<u32>>,
     sort: Option<CharacterAPISort>,
     include_media: Option<bool>,
-    character_media_builder: Option<MediaConnectionAPIBuilder>,
     query: Option<String>,
 }
 
@@ -51,7 +49,7 @@ impl From<String> for CharacterAPISort {
             "FAVOURITES" => Self::Favourites,
             "FAVOURITES_DESC" => Self::FavouritesDesc,
             "RELEVANCE" => Self::Relevance,
-            _ => panic!("unknown variant: {}", s),
+            _ => Self::Id,
         }
     }
 }
@@ -98,7 +96,6 @@ impl CharacterAPIBuilder {
             id_not_in: None,
             sort: None,
             include_media: None,
-            character_media_builder: None,
             query: None,
         }
     }
@@ -140,14 +137,6 @@ impl CharacterAPIBuilder {
 
     pub fn include_media(mut self, include_media: bool) -> Self {
         self.include_media = Some(include_media);
-        self
-    }
-
-    pub fn character_media_builder(
-        mut self,
-        character_media_builder: MediaConnectionAPIBuilder,
-    ) -> Self {
-        self.character_media_builder = Some(character_media_builder);
         self
     }
 
@@ -199,22 +188,7 @@ impl CharacterAPIBuilder {
             filter.push_str(format!("$sort: CharacterSort = {}", sort).as_str());
             characters.push_str("sort: $sort,");
         }
-        let is_media = if let Some(include_media) = &self.include_media {
-            let limit = limit > actual;
-            
-            *include_media && limit
-        } else {
-            false
-        };
-        if is_media {
-            if let Some(character_media_builder) = self.character_media_builder.clone() {
-                let query = character_media_builder
-                    .build(Some(limit), Some(actual))
-                    .get_query()
-                    .unwrap();
-                filter.push_str(&query);
-            }
-        }
+
         let end_query = r"}";
         let start_query = r"{";
         let query = format!(

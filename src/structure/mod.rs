@@ -1,4 +1,3 @@
-mod anilist;
 pub mod autocomplete;
 pub mod message;
 pub mod run;
