@@ -16,8 +16,6 @@ use tracing::{debug, error, info, trace};
 
 use struct_shard_manager::ShardManagerContainer;
 
-use crate::api::anilist::builder::character::CharacterAPIBuilder;
-use crate::api::anilist::builder::media::MediaAPIBuilder;
 use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
@@ -254,13 +252,6 @@ impl EventHandler for Handler {
 /// It initializes the logger, the SQL database, and the bot client.
 /// It also spawns asynchronous tasks for managing the ping of the shards and starting the client.
 async fn main() {
-    let char_builder = CharacterAPIBuilder::new().id_in(vec![1]);
-    let query = char_builder.build(None, None).get_query().unwrap();
-    println!("{}", query);
-    let media_builder = MediaAPIBuilder::new().id_in(vec![1]);
-    let query = media_builder.build(None, None).get_query().unwrap();
-    println!("{}", query);
-
     let _ = dotenvy::from_path(".env");
 
     // Print a message indicating the bot is starting.
