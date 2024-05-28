@@ -4,7 +4,6 @@ use std::ops::Add;
 use std::sync::Arc;
 use std::time::Duration;
 
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serenity::all::{
     ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready,
