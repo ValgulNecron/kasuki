@@ -70,12 +70,7 @@ impl Handler {
     }
 
     // thread safe way to increment the number of command use per command
-    pub async fn increment_command_use_per_command(
-        &self,
-        command_name: String,
-        user_id: String,
-        command_type: SupportedCommandType,
-    ) {
+    pub async fn increment_command_use_per_command(&self, command_name: String, user_id: String) {
         let mut guard = self.number_of_command_use_per_command.write().await;
         let command_name = command_name.to_string();
         let user_id = user_id.to_string();
