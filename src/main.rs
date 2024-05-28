@@ -327,7 +327,10 @@ async fn main() {
     let number_of_command_use_per_command: HashMap<String, HashMap<String, u128>>;
     // populate the number_of_command_use_per_command with the content of the file
     if let Ok(content) = std::fs::read_to_string("command_use.json") {
-        number_of_command_use_per_command = serde_json::from_str(&content).unwrap();
+        number_of_command_use_per_command = match serde_json::from_str(&content) {
+            Ok(x) => x,
+            Err(_) => HashMap::new(),
+        };
     } else {
         number_of_command_use_per_command = HashMap::new();
     }
