@@ -1,7 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use crate::command_register::command_struct::common::{
     CommandInstallationContext, DefaultPermission,
 };
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MessageCommand {

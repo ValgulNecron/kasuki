@@ -1,3 +1,13 @@
+use std::sync::Arc;
+
+use tonic::{Request, Response, Status};
+
+use crate::grpc_server::command_list::{Arg, Command, CommandItem, SubCommand, SubCommandGroup};
+use crate::grpc_server::service::command::proto::command_service_server::{
+    CommandService, CommandServiceServer,
+};
+use crate::grpc_server::service::command::proto::{CommandListRequest, CommandListResponse};
+
 // Proto module contains the protobuf definitions for the shard service
 pub(crate) mod proto {
     // Include the protobuf definitions for the shard service
@@ -6,14 +16,6 @@ pub(crate) mod proto {
     pub(crate) const COMMAND_FILE_DESCRIPTOR_SET: &[u8] =
         tonic::include_file_descriptor_set!("command_descriptor");
 }
-
-use crate::grpc_server::command_list::{Arg, Command, CommandItem, SubCommand, SubCommandGroup};
-use crate::grpc_server::service::command::proto::command_service_server::{
-    CommandService, CommandServiceServer,
-};
-use crate::grpc_server::service::command::proto::{CommandListRequest, CommandListResponse};
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
 
 pub struct CommandServices {
     pub command_list: Arc<Vec<CommandItem>>,

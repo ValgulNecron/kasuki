@@ -24,6 +24,7 @@ use crate::database::manage::dispatcher::data_dispatch::{
 };
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand_group::get_subcommand;
+use crate::Handler;
 
 /// Dispatches the command to the appropriate function based on the command name.
 ///
@@ -41,6 +42,7 @@ use crate::helper::get_option::subcommand_group::get_subcommand;
 pub async fn command_dispatching(
     ctx: &Context,
     command_interaction: &CommandInteraction,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     // Retrieve the command name from the command interaction
     let command_name = command_interaction
@@ -50,20 +52,121 @@ pub async fn command_dispatching(
         .unwrap()
         .name
         .as_str();
+    let full_command_name = command_interaction.data.name.as_str();
+    let full_command_name = format!("{} {}", full_command_name, command_name);
     // Match the command name to the appropriate function
     match command_interaction.data.name.as_str() {
         // anilist_user module
-        "admin" => admin(ctx, command_interaction, command_name).await?,
-        "ai" => ai(ctx, command_interaction, command_name).await?,
-        "anilist_server" => anilist_server(ctx, command_interaction, command_name).await?,
-        "anilist_user" => anilist_user(ctx, command_interaction, command_name).await?,
-        "anime" => anime(ctx, command_interaction, command_name).await?,
-        "anime_nsfw" => anime_nsfw(ctx, command_interaction, command_name).await?,
-        "bot" => bot(ctx, command_interaction, command_name).await?,
-        "server" => server(ctx, command_interaction, command_name).await?,
-        "steam" => steam(ctx, command_interaction, command_name).await?,
-        "user" => user(ctx, command_interaction, command_name).await?,
-        "vn" => vn(ctx, command_interaction, command_name).await?,
+        "admin" => {
+            admin(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+        "ai" => {
+            ai(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+        "anilist_server" => {
+            anilist_server(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+        "anilist_user" => {
+            anilist_user(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+        "anime" => {
+            anime(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+        "anime_nsfw" => {
+            anime_nsfw(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+        "bot" => {
+            bot(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+        "server" => {
+            server(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+        "steam" => {
+            steam(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+        "user" => {
+            user(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+        "vn" => {
+            vn(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
         // If the command name does not match any of the specified commands, return an error
         _ => {
             return Err(AppError::new(
@@ -131,6 +234,8 @@ async fn admin(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -142,18 +247,31 @@ async fn admin(
         error_response_type: ErrorResponseType::Message,
     };
     trace!(command_name);
+    let subcommand = get_subcommand(command_interaction).unwrap();
+    let subcommand_name = subcommand.name;
+    let full_command_name = format!("{} {}", full_command_name, subcommand_name);
+
     match command_name {
         "general" => {
-            let subcommand = get_subcommand(command_interaction).unwrap();
-            let subcommand_name = subcommand.name;
-            general_admin(ctx, command_interaction, subcommand_name).await
+            general_admin(
+                ctx,
+                command_interaction,
+                subcommand_name,
+                full_command_name,
+                self_handler,
+            )
+            .await
         }
         "anilist" => {
             if check_if_module_is_on(guild_id, "ANIME").await? {
-                let subcommand = get_subcommand(command_interaction).unwrap();
-                trace!("{:#?}", subcommand);
-                let subcommand_name = subcommand.name;
-                anilist_admin(ctx, command_interaction, subcommand_name).await
+                anilist_admin(
+                    ctx,
+                    command_interaction,
+                    subcommand_name,
+                    full_command_name,
+                    self_handler,
+                )
+                .await
             } else {
                 Err(anime_module_error.clone())
             }
@@ -184,8 +302,10 @@ async fn anilist_admin(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
-    match command_name {
+    let return_data = match command_name {
         "add_anime_activity" => add_activity::run(ctx, command_interaction).await,
         "delete_activity" => delete_activity::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
@@ -193,7 +313,15 @@ async fn anilist_admin(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 /// Executes the general admin command.
@@ -214,8 +342,10 @@ async fn general_admin(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
-    match command_name {
+    let return_data = match command_name {
         "lang" => lang::run(ctx, command_interaction).await,
         "module" => module::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
@@ -223,7 +353,15 @@ async fn general_admin(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 /// Executes the AI command.
@@ -245,6 +383,8 @@ async fn ai(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     // Define the error for when the AI module is off
     let ai_module_error: AppError = AppError {
@@ -262,7 +402,7 @@ async fn ai(
         return Err(ai_module_error);
     }
     // Match the command name to the appropriate function
-    match command_name {
+    let return_data = match command_name {
         "image" => image::run(ctx, command_interaction).await,
         "transcript" => transcript::run(ctx, command_interaction).await,
         "translation" => translation::run(ctx, command_interaction).await,
@@ -273,7 +413,15 @@ async fn ai(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 /// Executes the Anilist server command.
@@ -295,6 +443,8 @@ async fn anilist_server(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     // Define the error for when the Anilist module is off
     let anilist_module_error: AppError = AppError {
@@ -312,7 +462,7 @@ async fn anilist_server(
         return Err(anilist_module_error);
     }
     // Match the command name to the appropriate function
-    match command_name {
+    let return_data = match command_name {
         "list_user" => list_register_user::run(ctx, command_interaction).await,
         "list_activity" => list_all_activity::run(ctx, command_interaction).await,
         // If the command name does not match any of the specified commands, return an error
@@ -321,7 +471,15 @@ async fn anilist_server(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 /// Executes the Anilist user command.
@@ -343,6 +501,8 @@ async fn anilist_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     // Define the error for when the Anilist module is off
     let anilist_module_error: AppError = AppError {
@@ -360,7 +520,7 @@ async fn anilist_user(
         return Err(anilist_module_error);
     }
     // Match the command name to the appropriate function
-    match command_name {
+    let return_data = match command_name {
         "anime" => anime::run(ctx, command_interaction).await,
         "ln" => ln::run(ctx, command_interaction).await,
         "manga" => manga::run(ctx, command_interaction).await,
@@ -381,7 +541,15 @@ async fn anilist_user(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 /// Executes the Anime command.
@@ -403,6 +571,8 @@ async fn anime(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     // Define the error for when the Anime module is off
     let anime_module_error: AppError = AppError {
@@ -420,7 +590,7 @@ async fn anime(
         return Err(anime_module_error);
     }
     // Match the command name to the appropriate function
-    match command_name {
+    let return_data = match command_name {
         "random_image" => random_image::run(ctx, command_interaction).await,
         // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
@@ -428,7 +598,15 @@ async fn anime(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 /// Executes the Anime NSFW command.
@@ -450,6 +628,8 @@ async fn anime_nsfw(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     // Define the error for when the Anime NSFW module is off
     let anime_module_error: AppError = AppError {
@@ -467,7 +647,7 @@ async fn anime_nsfw(
         return Err(anime_module_error);
     }
     // Match the command name to the appropriate function
-    match command_name {
+    let return_data = match command_name {
         "random_nsfw_image" => random_nsfw_image::run(ctx, command_interaction).await,
         // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
@@ -475,7 +655,14 @@ async fn anime_nsfw(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 /// Executes the Bot command.
@@ -496,9 +683,11 @@ async fn bot(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     // Match the command name to the appropriate function
-    match command_name {
+    let return_data = match command_name {
         "credit" => credit::run(ctx, command_interaction).await,
         "info" => info::run(ctx, command_interaction).await,
         "ping" => ping::run(ctx, command_interaction).await,
@@ -508,7 +697,14 @@ async fn bot(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 /// Executes the server command.
@@ -529,8 +725,10 @@ async fn server(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
-    match command_name {
+    let return_data = match command_name {
         "guild" => guild::run(ctx, command_interaction).await,
         "guild_image" => generate_image_pfp_server::run(ctx, command_interaction).await,
         "guild_image_g" => generate_image_pfp_server_global::run(ctx, command_interaction).await,
@@ -539,7 +737,14 @@ async fn server(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 /// Executes the steam command.
@@ -561,6 +766,8 @@ async fn steam(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     let game_module_error: AppError = AppError {
         message: String::from("Game module is off."),
@@ -574,14 +781,21 @@ async fn steam(
     if !check_if_module_is_on(guild_id, "GAME").await? {
         return Err(game_module_error);
     }
-    match command_name {
+    let return_data = match command_name {
         "game" => steam_game_info::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 /// Executes the user command.
@@ -602,8 +816,10 @@ async fn user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
-    match command_name {
+    let return_data = match command_name {
         "avatar" => avatar::run(ctx, command_interaction).await,
         "banner" => banner::run(ctx, command_interaction).await,
         "profile" => profile::run(ctx, command_interaction).await,
@@ -612,13 +828,22 @@ async fn user(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }
 
 async fn vn(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     let vn_module_error: AppError = AppError {
         message: String::from("Visual novel module is off."),
@@ -632,7 +857,7 @@ async fn vn(
     if !check_if_module_is_on(guild_id, "VN").await? {
         return Err(vn_module_error);
     }
-    match command_name {
+    let return_data = match command_name {
         "game" => avatar::run(ctx, command_interaction).await,
         "character" => banner::run(ctx, command_interaction).await,
         "staff" => profile::run(ctx, command_interaction).await,
@@ -643,5 +868,12 @@ async fn vn(
             ErrorType::Option,
             ErrorResponseType::Message,
         )),
-    }
+    };
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    return_data
 }

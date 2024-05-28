@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::env;
 use std::ops::Add;
 use std::sync::Arc;
@@ -57,6 +59,38 @@ mod tui;
 
 struct Handler {
     pub number_of_command_use: Arc<RwLock<u128>>,
+    pub number_of_command_use_per_command: Arc<RwLock<HashMap<String, HashMap<String, u128>>>>,
+}
+
+impl Handler {
+    // thread safe way to increment the number of command use
+    pub async fn increment_command_use(&self) {
+        let mut guard = self.number_of_command_use.write().await;
+        *guard = guard.add(1);
+    }
+
+    // thread safe way to increment the number of command use per command
+    pub async fn increment_command_use_per_command(
+        &self,
+        command_name: String,
+        user_id: String,
+        command_type: SupportedCommandType,
+    ) {
+        let mut guard = self.number_of_command_use_per_command.write().await;
+        let command_name = command_name.to_string();
+        let user_id = user_id.to_string();
+        let command_use = guard.entry(command_name).or_insert(HashMap::new());
+        let user_use = command_use.entry(user_id).or_insert(0);
+        *user_use = user_use.add(1);
+
+        // drop the guard
+        drop(guard);
+        // save the content as a json
+        let content =
+            serde_json::to_string(&*self.number_of_command_use_per_command.read().await).unwrap();
+        // save the content to the file
+        std::fs::write("command_use.json", content).unwrap();
+    }
 }
 
 #[async_trait]
@@ -204,9 +238,7 @@ impl EventHandler for Handler {
     /// This function does not return any errors. However, it logs errors that occur during the dispatching of commands and components.
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
-            let command_usage = self.number_of_command_use.clone();
-            let mut guard = command_usage.write().await;
-            *guard = guard.add(1);
+            // call self.increment_command_use() in a way that would not block the event loop
 
             if command_interaction.data.kind == CommandType::ChatInput {
                 // Log the details of the command interaction
@@ -217,7 +249,7 @@ impl EventHandler for Handler {
                     command_interaction.guild_id.unwrap_or_default().to_string(),
                     command_interaction.data.options
                 );
-                if let Err(e) = command_dispatching(&ctx, &command_interaction).await {
+                if let Err(e) = command_dispatching(&ctx, &command_interaction, self).await {
                     error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
                 }
             } else if command_interaction.data.kind == CommandType::User {
@@ -234,6 +266,7 @@ impl EventHandler for Handler {
                 };
                 error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
             }
+            self.increment_command_use().await;
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
             // Dispatch the autocomplete interaction
             autocomplete_dispatching(ctx, autocomplete_interaction).await
@@ -296,9 +329,19 @@ async fn main() {
     // Log a message indicating the bot is starting.
     info!("starting the bot.");
 
-    let command_usage = Arc::new(RwLock::new(0u128));
+    let number_of_command_use = Arc::new(RwLock::new(0u128));
+    let number_of_command_use_per_command: HashMap<String, HashMap<String, u128>>;
+    // populate the number_of_command_use_per_command with the content of the file
+    if let Ok(content) = std::fs::read_to_string("command_use.json") {
+        number_of_command_use_per_command = serde_json::from_str(&content).unwrap();
+    } else {
+        number_of_command_use_per_command = HashMap::new();
+    }
+    let number_of_command_use_per_command =
+        Arc::new(RwLock::new(number_of_command_use_per_command));
     let handler = Handler {
-        number_of_command_use: command_usage.clone(),
+        number_of_command_use,
+        number_of_command_use_per_command,
     };
 
     // Get all the non-privileged intent.

@@ -1,8 +1,10 @@
-use crate::grpc_server::service::shard::proto::shard_server::ShardServer;
-use serenity::all::{ShardId, ShardManager};
 use std::sync::Arc;
+
+use serenity::all::{ShardId, ShardManager};
 use tonic::{Request, Response, Status};
 use tracing::trace;
+
+use crate::grpc_server::service::shard::proto::shard_server::ShardServer;
 
 // Proto module contains the protobuf definitions for the shard service
 pub(crate) mod proto {

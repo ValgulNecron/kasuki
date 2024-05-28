@@ -1,9 +1,10 @@
+use tracing::error;
+
 use crate::command_register::command_struct::common::Choice;
 use crate::command_register::command_struct::{command, common, subcommand, subcommand_group};
 use crate::command_register::registration_function::register_command::get_commands;
 use crate::command_register::registration_function::register_subcommand::get_subcommands;
 use crate::command_register::registration_function::register_subcommand_group::get_subcommands_group;
-use tracing::error;
 
 #[derive(Clone)]
 pub enum CommandItem {
