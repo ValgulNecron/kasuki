@@ -64,6 +64,7 @@ services:
     volumes:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db
+      - ./command_use.json:/kasuki/command_use.json
       - ./logs/:/kasuki/logs/
       - ./server_image:/kasuki/server_image/
       - ./cert:/kasuki/cert/
