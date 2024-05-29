@@ -24,6 +24,8 @@ pub async fn migrate_postgres() -> Result<(), AppError> {
     add_new_member_to_module_activation().await?;
     add_anime_to_global_kill_switch().await?;
     add_anime_to_module_activation().await?;
+    add_vn_to_global_kill_switch().await?;
+    add_vn_to_module_activation().await?;
     Ok(())
 }
 
@@ -262,6 +264,88 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
     // If the "anime" column doesn't exist, add it
     if !row.0 {
         sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN anime BIGINT")
+            .execute(&pool)
+            .await
+            .map_err(|e| {
+                AppError::new(
+                    format!("Failed to add column to the table. {}", e),
+                    ErrorType::Database,
+                    ErrorResponseType::None,
+                )
+            })?;
+    }
+
+    pool.close().await;
+    Ok(())
+}
+
+pub async fn add_vn_to_global_kill_switch() -> Result<(), AppError> {
+    let pool = get_postgresql_pool().await?;
+
+    // Check if the "vn" column exists in the "global_kill_switch" table
+    let row: (bool,) = sqlx::query_as(
+        r#"
+        SELECT EXISTS (
+            SELECT  1
+            FROM information_schema.columns
+            WHERE table_name='global_kill_switch' AND column_name='vn'
+        )
+        "#,
+    )
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| {
+        AppError::new(
+            format!("Failed to check existence of column. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::None,
+        )
+    })?;
+
+    // If the "vn" column doesn't exist, add it
+    if !row.0 {
+        sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN vn BIGINT")
+            .execute(&pool)
+            .await
+            .map_err(|e| {
+                AppError::new(
+                    format!("Failed to add column to the table. {}", e),
+                    ErrorType::Database,
+                    ErrorResponseType::None,
+                )
+            })?;
+    }
+
+    pool.close().await;
+    Ok(())
+}
+
+pub async fn add_vn_to_module_activation() -> Result<(), AppError> {
+    let pool = get_postgresql_pool().await?;
+
+    // Check if the "vn" column exists in the "module_activation" table
+    let row: (bool,) = sqlx::query_as(
+        r#"
+        SELECT EXISTS (
+            SELECT  1
+            FROM information_schema.columns
+            WHERE table_name='module_activation' AND column_name='vn'
+        )
+        "#,
+    )
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| {
+        AppError::new(
+            format!("Failed to check existence of column. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::None,
+        )
+    })?;
+
+    // If the "vn" column doesn't exist, add it
+    if !row.0 {
+        sqlx::query("ALTER TABLE module_activation ADD COLUMN vn BIGINT")
             .execute(&pool)
             .await
             .map_err(|e| {

@@ -1,7 +1,15 @@
 {
   "name": "ai",
   "desc": "Command from the AI module",
-  "dm_command": true,
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
   "nsfw": false,
   "command": [
     {

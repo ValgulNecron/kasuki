@@ -1,6 +1,6 @@
 [package]
 name = "kasuki"
-version = "2.8.11"
+version = "2.8.17"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
@@ -13,9 +13,9 @@ license-file = "LICENSE"
 [dependencies]
 regex = "1.10.4"
 reqwest = { version = "0.12.4", features = ["json", "multipart", "blocking"] }
-serde = "1.0.201"
+serde = "1.0.202"
 serde_json = "1.0.117"
-serenity = { version = "0.12.1", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils", "full"] }
+serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "current", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils", "full", "unstable_discord_api"] }
 tokio = { version = "1.37.0", features = ["full"] }
 sqlx = { version = "0.7.4", features = ["sqlite", "runtime-tokio-native-tls", "postgres"] }
 rand = "0.9.0-alpha.1"
@@ -35,7 +35,7 @@ catbox = "0.8.2"
 imgurs = "0.11.2"
 tracing-appender = "0.2.3"
 tonic = { version = "0.11.0", features = ["tls"] }
-prost = "0.12.4"
+prost = "0.12.6"
 tonic-reflection = "0.11.0"
 ratatui = "0.27.0-alpha.5"
 crossterm = "0.27.0"
@@ -44,14 +44,16 @@ tui-logger = "0.11.1"
 rayon = "1.10.0"
 os_info = "3.8.2"
 rcgen = "0.13.1"
+markdown_converter = "0.2.0"
+futures = "0.3.30"
 
 [build-dependencies]
 tonic-build = "0.11.0"
 
 [profile.dev]
 codegen-units = 512
-
+debug = 2
 
 [profile.release]
 lto = true
-codegen-units = 8
+strip = "symbols"

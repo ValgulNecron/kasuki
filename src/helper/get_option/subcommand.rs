@@ -241,7 +241,11 @@ pub fn get_option_map_attachment_subcommand(
         for option in op {
             let name = option.name.to_string();
             let value = match &option.value {
-                ResolvedValue::Attachment(a) => a.clone().clone(),
+                ResolvedValue::Attachment(a) => {
+                    let att = *a;
+
+                    att.clone()
+                }
                 _ => continue,
             };
             map.insert(name, value);

@@ -1,6 +1,19 @@
 use serde::{Deserialize, Serialize};
 use serenity::all::{CommandOptionType, Permissions};
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CommandIntegrationContext {
+    pub bot_dm: bool,
+    pub private_channel: bool,
+    pub guild: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CommandInstallationContext {
+    pub user: bool,
+    pub guild: bool,
+}
+
 /// The `Arg` struct represents an argument that a command can accept.
 /// It is derived from `Debug`, `Serialize`, `Deserialize`, and `Clone` traits.
 ///

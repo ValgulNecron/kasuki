@@ -49,6 +49,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })?;
 
     // Retrieve various details about the guild
+    let channels = guild.channels(&ctx.http).await.unwrap_or_default().len();
     let guild_id = guild.id;
     let guild_name = guild.name.clone();
     let max_member = guild.max_members.unwrap_or_default();
@@ -62,6 +63,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let guild_sub = guild.premium_subscription_count.unwrap_or_default();
     let guild_nsfw = guild.nsfw_level;
     let creation_date = format!("<t:{}:F>", guild.id.created_at().unix_timestamp());
+    let owner = guild
+        .owner_id
+        .to_user(&ctx.http)
+        .await
+        .map(|u| u.tag())
+        .unwrap_or_default();
+    let roles = guild.roles.len();
+    let verification_level = guild.verification_level;
 
     // Initialize a vector to store the fields for the embed
     let mut fields: Vec<(String, String, bool)> = Vec::new();
@@ -88,6 +97,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     ));
     fields.push((guild_localised.sub, guild_sub.to_string(), true));
     fields.push((guild_localised.nsfw, format!("{:?}", guild_nsfw), true));
+    fields.push((guild_localised.owner, owner, true));
+    fields.push((guild_localised.roles, roles.to_string(), true));
+    fields.push((guild_localised.channels, channels.to_string(), true));
+    fields.push((
+        guild_localised.verification_level,
+        format!("{:?}", verification_level),
+        true,
+    ));
 
     // Construct the embed for the response
     let mut builder_embed = get_default_embed(None).fields(fields);

@@ -173,6 +173,7 @@ pub async fn send_embed(
         }
         None => {}
     };
+
     // Create an embed with the user's profile information
     let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())

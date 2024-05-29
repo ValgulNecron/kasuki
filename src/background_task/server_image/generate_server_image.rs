@@ -9,7 +9,7 @@ use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, Ima
 use palette::{IntoColor, Lab, Srgb};
 use serenity::all::{Context, GuildId, Member};
 use tokio::task;
-use tracing::{error, info};
+use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::background_task::server_image::calculate_user_color::{
@@ -41,7 +41,7 @@ use crate::helper::image_saver::general_image_saver::image_saver;
 /// This function will return an error if there is a problem with fetching the members of the guild, calculating the average color, or generating the server image.
 pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId) -> Result<(), AppError> {
     // Fetch the members of the guild
-    let members: Vec<Member> = get_member(ctx, &guild_id).await;
+    let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
     // Calculate the average color of the members' avatars
     let average_colors = return_average_user_color(members).await?;
     // Create a vector of colors from the average colors
@@ -175,7 +175,13 @@ pub async fn generate_server_image(
             img.height(),
             ExtendedColorType::Rgba8,
         )
-        .unwrap();
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to write the image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
+        })?;
 
     // Encode the image
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
@@ -206,7 +212,7 @@ pub async fn server_image_management(ctx: &Context) {
         let guild_clone = guild;
         task::spawn(async move {
             if let Err(e) = generate_local_server_image(&ctx_clone, guild_clone).await {
-                error!(
+                warn!(
                     "Failed to generate local server image for guild {}. {:?}",
                     guild, e
                 );
@@ -216,7 +222,7 @@ pub async fn server_image_management(ctx: &Context) {
         });
 
         if let Err(e) = generate_global_server_image(ctx, guild).await {
-            error!(
+            warn!(
                 "Failed to generate global server image for guild {}. {:?}",
                 guild, e
             );

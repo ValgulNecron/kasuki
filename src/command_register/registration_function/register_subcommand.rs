@@ -1,5 +1,3 @@
-use std::fs;
-use std::io::BufReader;
 use std::sync::Arc;
 
 use serenity::all::{CommandType, CreateCommand, Http};
@@ -7,9 +5,10 @@ use tracing::{error, trace};
 
 use crate::command_register::command_struct::subcommand::SubCommand;
 use crate::command_register::registration_function::common::{
-    get_permission, get_subcommand_option,
+    get_permission, get_subcommand_option, get_vec, get_vec_installation_context,
+    get_vec_integration_context,
 };
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::AppError;
 
 /// This asynchronous function creates subcommands in Discord by reading from a JSON file and sending them to the Discord API.
 ///
@@ -50,44 +49,12 @@ pub async fn creates_subcommands(http: &Arc<Http>) {
 /// # Returns
 ///
 /// A `Result` containing either a vector of `SubCommand` structs if the subcommands are successfully read, or an `AppError` if an error occurs.
-pub(crate) fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, AppError> {
-    let mut subcommands = Vec::new();
-    let paths = fs::read_dir(path).map_err(|e| AppError {
-        message: format!("Failed to read directory: {:?} with error {}", path, e),
-        error_type: ErrorType::File,
-        error_response_type: ErrorResponseType::None,
-    })?;
-    for entry in paths {
-        let entry = entry.map_err(|e| AppError {
-            message: format!("Failed to read path with error {}", e),
-            error_type: ErrorType::File,
-            error_response_type: ErrorResponseType::None,
-        })?;
-
-        let path = entry.path();
-        if path.is_file() && path.extension().unwrap_or_default() == "json" {
-            let file = fs::File::open(path.as_path()).map_err(|e| AppError {
-                message: format!("Failed to open file: {:?} with error {}", path.as_path(), e),
-                error_type: ErrorType::File,
-                error_response_type: ErrorResponseType::None,
-            })?;
-            let reader = BufReader::new(file);
-            let command: SubCommand = serde_json::from_reader(reader).map_err(|e| AppError {
-                message: format!(
-                    "Failed to parse file: {:?} with error {}",
-                    path.as_path(),
-                    e
-                ),
-                error_type: ErrorType::File,
-                error_response_type: ErrorResponseType::None,
-            })?;
-            subcommands.push(command);
-        }
+pub fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, AppError> {
+    let commands: Vec<SubCommand> = get_vec(path)?;
+    if commands.is_empty() {
+        trace!("No commands found in the directory: {:?}", path);
     }
-    if subcommands.is_empty() {
-        trace!("No subcommands found in the directory: {:?}", path);
-    }
-    Ok(subcommands)
+    Ok(commands)
 }
 
 /// This asynchronous function creates a global subcommand in Discord using the provided `SubCommand` struct and `Http` instance.
@@ -108,8 +75,9 @@ async fn create_command(command: &SubCommand, http: &Arc<Http>) {
     let mut command_build = CreateCommand::new(&command.name)
         .nsfw(command.nsfw)
         .kind(CommandType::ChatInput)
-        .dm_permission(command.dm_command)
-        .description(&command.desc);
+        .contexts(get_vec_integration_context(&command.integration_context))
+        .description(&command.desc)
+        .integration_types(get_vec_installation_context(&command.installation_context));
 
     command_build = get_permission(&command.permissions, command_build);
 

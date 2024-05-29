@@ -1,7 +1,15 @@
 {
   "name": "bot",
   "desc": "Command to get information about the bot.",
-  "dm_command": true,
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
   "nsfw": false,
   "command": [
     {

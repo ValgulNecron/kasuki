@@ -1,7 +1,15 @@
 {
   "name": "user",
   "desc": "General purpose commands for user.",
-  "dm_command": false,
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
   "nsfw": false,
   "command": [
     {

@@ -13,7 +13,7 @@ use uuid::Uuid;
 use crate::constant::{DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::load_localization_image;
 
@@ -45,7 +45,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         None => String::from("0"),
     };
 
-    let map = get_option_map_string_subcommand_group(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
     trace!("{:#?}", map);
     let prompt = map
         .get(&String::from("description"))

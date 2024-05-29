@@ -10,3 +10,4 @@ pub mod epic;
 pub mod server;
 pub mod steam;
 pub mod user;
+pub mod vn;

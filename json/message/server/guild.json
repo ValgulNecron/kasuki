@@ -8,39 +8,55 @@
     "premium": "Boost level",
     "sub": "Guild boost",
     "nsfw": "NSFW level",
-    "creation_date": "Date of creation"
+    "creation_date": "Date of creation",
+    "owner": "Owner",
+    "roles": "Roles",
+    "channels": "Channels",
+    "verification_level": "Verification level"
   },
   "fr": {
-    "guild_id": "ID de serveur",
-    "guild_name": "Nom du serveur",
+    "guild_id": "Id de la guilde",
+    "guild_name": "Nom de la guilde",
     "member": "Membre",
     "online": "En ligne",
-    "lang": "Langue du serveur",
+    "lang": "Langue de la guilde",
     "premium": "Niveau de boost",
-    "sub": "Boost du serveur",
+    "sub": "Boost de la guilde",
     "nsfw": "Niveau NSFW",
-    "creation_date": "Date de création"
+    "creation_date": "Date de création",
+    "owner": "Propriétaire",
+    "roles": "Rôles",
+    "channels": "Canaux",
+    "verification_level": "Niveau de vérification"
   },
   "jp": {
     "guild_id": "ギルドID",
     "guild_name": "ギルド名",
     "member": "メンバー",
     "online": "オンライン",
-    "lang": "ギルドロケール",
+    "lang": "ギルドの言語",
     "premium": "ブーストレベル",
     "sub": "ギルドブースト",
     "nsfw": "NSFWレベル",
-    "creation_date": "作成日"
+    "creation_date": "作成日",
+    "owner": "オーナー",
+    "roles": "役割",
+    "channels": "チャンネル",
+    "verification_level": "認証レベル"
   },
   "de": {
-    "guild_id": "Server-ID",
-    "guild_name": "Servername",
+    "guild_id": "Gilden-ID",
+    "guild_name": "Gildenname",
     "member": "Mitglied",
     "online": "Online",
-    "lang": "Serversprache",
+    "lang": "Gildensprache",
     "premium": "Boost-Level",
-    "sub": "Server-Boost",
+    "sub": "Gilden-Boost",
     "nsfw": "NSFW-Level",
-    "creation_date": "Erstellungsdatum"
+    "creation_date": "Erstellungsdatum",
+    "owner": "Besitzer",
+    "roles": "Rollen",
+    "channels": "Kanäle",
+    "verification_level": "Verifizierungsstufe"
   }
 }

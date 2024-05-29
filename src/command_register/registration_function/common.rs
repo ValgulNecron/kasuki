@@ -1,10 +1,18 @@
-use serenity::all::{CommandOptionType, CreateCommand, CreateCommandOption, Permissions};
+use std::fs;
+
+use serenity::all::{
+    CommandOptionType, CreateCommand, CreateCommandOption, InstallationContext, InteractionContext,
+    Permissions,
+};
 
 use crate::command_register::command_struct::common::{
-    Arg, Choice, ChoiceLocalised, DefaultPermission, Localised,
+    Arg, Choice, ChoiceLocalised, CommandInstallationContext, CommandIntegrationContext,
+    DefaultPermission, Localised,
 };
 use crate::command_register::command_struct::subcommand::Command;
 use crate::command_register::command_struct::subcommand_group::SubCommand;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::read_file::read_file_as_string;
 
 /// This function takes a vector of `Arg` structs and returns a vector of `CreateCommandOption` structs.
 /// Each `Arg` struct is converted into a `CreateCommandOption` with the `CommandOptionType` from the `Arg` type.
@@ -205,4 +213,68 @@ pub fn get_permission(
         None => command_build,
     };
     command_build
+}
+
+pub fn get_vec<T: serde::Deserialize<'static> + Clone>(path: &str) -> Result<Vec<T>, AppError> {
+    let mut commands: Vec<T> = Vec::new();
+    let paths = fs::read_dir(path).map_err(|e| AppError {
+        message: format!("Failed to read directory: {:?} with error {}", path, e),
+        error_type: ErrorType::File,
+        error_response_type: ErrorResponseType::None,
+    })?;
+    for entry in paths {
+        let entry = entry.map_err(|e| AppError {
+            message: format!("Failed to read path with error {}", e),
+            error_type: ErrorType::File,
+            error_response_type: ErrorResponseType::None,
+        })?;
+        let path = entry.path();
+        if path.is_file() && path.extension().unwrap_or_default() == "json" {
+            // Read the file content once and store it in a variable outside the loop
+            let json_content: String = read_file_as_string(path.to_str().unwrap())?;
+            // Convert the String to a &'static str by cloning it into a static buffer
+            let json: &'static str = Box::leak(json_content.into_boxed_str());
+            // Now, `json` has a 'static lifetime and can be passed to `serde_json::from_str`
+            let command: T = serde_json::from_str(json).map_err(|e| AppError {
+                message: format!(
+                    "Failed to parse file: {:?} with error {}",
+                    path.as_path(),
+                    e
+                ),
+                error_type: ErrorType::File,
+                error_response_type: ErrorResponseType::None,
+            })?;
+            commands.push(command);
+        }
+    }
+    Ok(commands)
+}
+
+pub fn get_vec_integration_context(context: &CommandIntegrationContext) -> Vec<InteractionContext> {
+    let mut contexts = Vec::new();
+    if context.guild {
+        contexts.push(InteractionContext::Guild);
+    }
+    if context.bot_dm {
+        contexts.push(InteractionContext::BotDm);
+    }
+    if context.private_channel {
+        contexts.push(InteractionContext::PrivateChannel);
+    }
+
+    contexts
+}
+
+pub fn get_vec_installation_context(
+    context: &CommandInstallationContext,
+) -> Vec<InstallationContext> {
+    let mut contexts = Vec::new();
+    if context.guild {
+        contexts.push(InstallationContext::Guild);
+    }
+    if context.user {
+        contexts.push(InstallationContext::User);
+    }
+
+    contexts
 }

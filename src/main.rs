@@ -1,4 +1,6 @@
+use std::collections::HashMap;
 use std::env;
+use std::ops::Add;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -10,7 +12,7 @@ use serenity::all::{
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
 use tokio::sync::RwLock;
-use tokio::time::sleep;
+use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, trace};
 
 use struct_shard_manager::ShardManagerContainer;
@@ -23,13 +25,12 @@ use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispa
 use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::PING_UPDATE_DELAYS;
-use crate::constant::TIME_BETWEEN_GAME_UPDATE;
 use crate::constant::{ACTIVITY_NAME, USER_BLACKLIST_SERVER_IMAGE};
 use crate::constant::{
     APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
-    TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+    TIME_BETWEEN_USER_COLOR_UPDATE,
 };
+use crate::constant::{PING_UPDATE_DELAYS, TIME_BETWEEN_GAME_UPDATE};
 use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::grpc_server::launcher::grpc_server_launcher;
@@ -39,6 +40,7 @@ use crate::logger::{create_log_directory, init_logger};
 use crate::new_member::new_member;
 use crate::structure::steam_game_id_struct::get_game;
 
+mod api;
 mod background_task;
 mod cache;
 mod command;
@@ -54,7 +56,36 @@ mod struct_shard_manager;
 mod structure;
 mod tui;
 
-struct Handler;
+struct Handler {
+    pub number_of_command_use: Arc<RwLock<u128>>,
+    pub number_of_command_use_per_command: Arc<RwLock<HashMap<String, HashMap<String, u128>>>>,
+}
+
+impl Handler {
+    // thread safe way to increment the number of command use
+    pub async fn increment_command_use(&self) {
+        let mut guard = self.number_of_command_use.write().await;
+        *guard = guard.add(1);
+    }
+
+    // thread safe way to increment the number of command use per command
+    pub async fn increment_command_use_per_command(&self, command_name: String, user_id: String) {
+        let mut guard = self.number_of_command_use_per_command.write().await;
+        let command_name = command_name.to_string();
+        let user_id = user_id.to_string();
+        let command_use = guard.entry(command_name).or_insert(HashMap::new());
+        let user_use = command_use.entry(user_id).or_insert(0);
+        *user_use = user_use.add(1);
+
+        // drop the guard
+        drop(guard);
+        // save the content as a json
+        let content =
+            serde_json::to_string(&*self.number_of_command_use_per_command.read().await).unwrap();
+        // save the content to the file
+        std::fs::write("command_use.json", content).unwrap();
+    }
+}
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -133,8 +164,10 @@ impl EventHandler for Handler {
             *BOT_INFO = Some(bot);
         }
 
+        let command_usage = self.number_of_command_use.clone();
+
         // Spawns a new thread for managing various tasks
-        tokio::spawn(thread_management_launcher(ctx.clone()));
+        tokio::spawn(thread_management_launcher(ctx.clone(), command_usage));
 
         // Sets the bot's activity
         ctx.set_activity(Some(ActivityData::custom(ACTIVITY_NAME.clone())));
@@ -199,16 +232,18 @@ impl EventHandler for Handler {
     /// This function does not return any errors. However, it logs errors that occur during the dispatching of commands and components.
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
+            // call self.increment_command_use() in a way that would not block the event loop
+
             if command_interaction.data.kind == CommandType::ChatInput {
                 // Log the details of the command interaction
                 info!(
                     "Received {} from {} in {} with option {:?}",
                     command_interaction.data.name,
                     command_interaction.user.name,
-                    command_interaction.guild_id.unwrap().to_string(),
+                    command_interaction.guild_id.unwrap_or_default().to_string(),
                     command_interaction.data.options
                 );
-                if let Err(e) = command_dispatching(&ctx, &command_interaction).await {
+                if let Err(e) = command_dispatching(&ctx, &command_interaction, self).await {
                     error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
                 }
             } else if command_interaction.data.kind == CommandType::User {
@@ -225,6 +260,7 @@ impl EventHandler for Handler {
                 };
                 error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
             }
+            self.increment_command_use().await;
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
             // Dispatch the autocomplete interaction
             autocomplete_dispatching(ctx, autocomplete_interaction).await
@@ -287,6 +323,21 @@ async fn main() {
     // Log a message indicating the bot is starting.
     info!("starting the bot.");
 
+    let number_of_command_use = Arc::new(RwLock::new(0u128));
+    let number_of_command_use_per_command: HashMap<String, HashMap<String, u128>>;
+    // populate the number_of_command_use_per_command with the content of the file
+    if let Ok(content) = std::fs::read_to_string("command_use.json") {
+        number_of_command_use_per_command = serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
+    } else {
+        number_of_command_use_per_command = HashMap::new();
+    }
+    let number_of_command_use_per_command =
+        Arc::new(RwLock::new(number_of_command_use_per_command));
+    let handler = Handler {
+        number_of_command_use,
+        number_of_command_use_per_command,
+    };
+
     // Get all the non-privileged intent.
     let gateway_intent_non_privileged = GatewayIntents::non_privileged();
     // Get the needed privileged intent.
@@ -300,7 +351,7 @@ async fn main() {
     // The client is built with an event handler of type `Handler`.
     // If the client creation fails, log the error and exit the process.
     let mut client = Client::builder(DISCORD_TOKEN.to_string(), gateway_intent)
-        .event_handler(Handler)
+        .event_handler(handler)
         .await
         .unwrap_or_else(|e| {
             error!("Error while creating client: {}", e);
@@ -318,16 +369,6 @@ async fn main() {
         .await
         .insert::<ShardManagerContainer>(Arc::clone(&shard_manager));
 
-    // Spawn a new asynchronous task for managing the ping of the shards.
-    // This task runs indefinitely, pinging the shard manager every `PING_UPDATE_DELAYS` seconds.
-    tokio::spawn(async move {
-        info!("Launching the ping thread!");
-        loop {
-            ping_manager(&shard_manager).await;
-            sleep(Duration::from_secs(PING_UPDATE_DELAYS)).await;
-        }
-    });
-
     // Spawn a new asynchronous task for starting the client.
     // If the client fails to start, log the error.
     tokio::spawn(async move {
@@ -336,11 +377,51 @@ async fn main() {
         }
     });
 
-    // Wait for a Ctrl-C signal.
-    // If received, print a shutdown message.
-    tokio::signal::ctrl_c().await.unwrap();
-    ShardManager::shutdown_all(&shutdown).await;
-    info!("Received bot shutdown signal. Shutting down bot.");
+    #[cfg(unix)]
+    {
+        // Create a signal handler for "all" signals in unix.
+        // If a signal is received, print a shutdown message.
+        // All signals and not only ctrl-c
+        let mut sigint =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt()).unwrap();
+        let mut sigterm =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).unwrap();
+        let mut sigquit =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit()).unwrap();
+        let mut sigusr1 =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined1()).unwrap();
+        let mut sigusr2 =
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined2()).unwrap();
+        tokio::select! {
+            _ = sigint.recv() => {},
+            _ = sigterm.recv() => {},
+            _ = sigquit.recv() => {},
+            _ = sigusr1.recv() => {},
+            _ = sigusr2.recv() => {},
+        }
+        ShardManager::shutdown_all(&shutdown).await;
+        info!("Received bot shutdown signal. Shutting down bot.");
+    }
+    #[cfg(windows)]
+    {
+        // Create a signal handler for "all" signals in windows.
+        // If a signal is received, print a shutdown message.
+        // All signals and not only ctrl-c
+        let mut ctrl_break = tokio::signal::windows::ctrl_break().unwrap();
+        let mut ctrl_c = tokio::signal::windows::ctrl_c().unwrap();
+        let mut ctrl_close = tokio::signal::windows::ctrl_close().unwrap();
+        let mut ctrl_logoff = tokio::signal::windows::ctrl_logoff().unwrap();
+        let mut ctrl_shutdown = tokio::signal::windows::ctrl_shutdown().unwrap();
+        tokio::select! {
+            _ = ctrl_break.recv() => {},
+            _ = ctrl_c.recv() => {},
+            _ = ctrl_close.recv() => {},
+            _ = ctrl_logoff.recv() => {},
+            _ = ctrl_shutdown.recv() => {},
+        }
+        ShardManager::shutdown_all(&shutdown).await;
+        info!("Received bot shutdown signal. Shutting down bot.");
+    }
 }
 
 /// This function is responsible for launching various threads for different tasks.
@@ -351,18 +432,20 @@ async fn main() {
 ///
 /// * `ctx` - A `Context` instance which is used to clone and pass to the threads.
 ///
-async fn thread_management_launcher(ctx: Context) {
+async fn thread_management_launcher(ctx: Context, command_usage: Arc<RwLock<u128>>) {
     // Get the guilds from the context cache
     // Clone the context
     // Spawn a new thread for the web server
 
-    tokio::spawn(launch_web_server_thread(ctx.clone()));
+    tokio::spawn(launch_web_server_thread(ctx.clone(), command_usage));
     // Spawn a new thread for user color management
     tokio::spawn(launch_user_color_management_thread(ctx.clone()));
     // Spawn a new thread for activity management
     tokio::spawn(launch_activity_management_thread(ctx.clone()));
     // Spawn a new thread for steam management
     tokio::spawn(launch_game_management_thread());
+    // Spawn a new thread for ping management
+    tokio::spawn(ping_manager_thread(ctx.clone()));
     // Spawn a new thread for updating the user blacklist
     unsafe {
         let local_user_blacklist = USER_BLACKLIST_SERVER_IMAGE.clone();
@@ -376,9 +459,9 @@ async fn thread_management_launcher(ctx: Context) {
     info!("Done spawning thread manager.");
 }
 
-/// This function is responsible for launching the web server thread.
-/// It does not take any arguments and does not return anything.
-async fn launch_web_server_thread(ctx: Context) {
+/// This function is responsible for managing the ping of the shards.
+async fn ping_manager_thread(ctx: Context) {
+    info!("Launching the ping thread!");
     let data_read = ctx.data.read().await;
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
@@ -386,12 +469,32 @@ async fn launch_web_server_thread(ctx: Context) {
             return;
         }
     };
-    if *GRPC_IS_ON {
-        info!("GRPC is on, launching the GRPC server thread!");
-        grpc_server_launcher(shard_manager).await
-    } else {
-        info!("GRPC is off, skipping the GRPC server thread!");
+    let mut interval = tokio::time::interval(Duration::from_secs(PING_UPDATE_DELAYS));
+    loop {
+        interval.tick().await;
+        ping_manager(shard_manager).await;
     }
+}
+
+/// This function is responsible for launching the web server thread.
+/// It does not take any arguments and does not return anything.
+async fn launch_web_server_thread(ctx: Context, command_usage: Arc<RwLock<u128>>) {
+    let is_grpc_on = *GRPC_IS_ON;
+    if !is_grpc_on {
+        info!("GRPC is off, skipping the GRPC server thread!");
+        return;
+    }
+    let data_read = ctx.data.read().await;
+    let shard_manager = match data_read.get::<ShardManagerContainer>() {
+        Some(data) => data,
+        None => {
+            return;
+        }
+    };
+    let cache = ctx.cache.clone();
+    let http = ctx.http.clone();
+    info!("GRPC is on, launching the GRPC server thread!");
+    grpc_server_launcher(shard_manager, command_usage, cache, http).await
 }
 
 /// This function is responsible for launching the user color management thread.
@@ -403,21 +506,23 @@ async fn launch_web_server_thread(ctx: Context) {
 /// * `ctx` - A `Context` instance which is used in the color management function.
 ///
 async fn launch_user_color_management_thread(ctx: Context) {
+    let mut interval = interval(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE));
     info!("Launching the user color management thread!");
     loop {
+        interval.tick().await;
         let guilds = ctx.cache.guilds();
         color_management(&guilds, &ctx).await;
-        sleep(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE)).await;
     }
 }
 
 /// This function is responsible for launching the steam management thread.
 /// It does not take any arguments and does not return anything.
 async fn launch_game_management_thread() {
+    let mut interval = interval(Duration::from_secs(TIME_BETWEEN_GAME_UPDATE));
     info!("Launching the steam management thread!");
     loop {
+        interval.tick().await;
         get_game().await;
-        sleep(Duration::from_secs(TIME_BETWEEN_GAME_UPDATE)).await;
     }
 }
 
@@ -429,10 +534,11 @@ async fn launch_game_management_thread() {
 /// * `ctx` - A `Context` instance which is used in the manage activity function.
 ///
 async fn launch_activity_management_thread(ctx: Context) {
+    let mut interval = interval(Duration::from_secs(1));
     info!("Launching the activity management thread!");
     loop {
+        interval.tick().await;
         tokio::spawn(manage_activity(ctx.clone()));
-        sleep(Duration::from_secs(1)).await;
     }
 }
 
@@ -466,18 +572,19 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>) {
 ///
 async fn launch_server_image_management_thread(ctx: Context) {
     info!("Launching the server image management thread!");
+    let mut interval = interval(Duration::from_secs(3600));
     loop {
+        interval.tick().await;
         server_image_management(&ctx).await;
-        sleep(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE)).await;
     }
 }
 
 async fn update_user_blacklist(user_blacklist_server_image: Arc<RwLock<Vec<String>>>) {
     info!("Launching the user blacklist update thread!");
-
+    let mut interval = interval(Duration::from_secs(3600));
     loop {
+        interval.tick().await;
         // Get a write lock on USER_BLACKLIST_SERVER_IMAGE
-        let mut user_blacklist = user_blacklist_server_image.write().await;
 
         // Perform operations on the data while holding the lock
         let file_url = "https://raw.githubusercontent.com/ValgulNecron/kasuki/dev/blacklist.json";
@@ -494,12 +601,15 @@ async fn update_user_blacklist(user_blacklist_server_image: Arc<RwLock<Vec<Strin
             .map(|x| x.as_str().unwrap().to_string())
             .collect();
 
+        let mut user_blacklist = user_blacklist_server_image.write().await;
+
+        // liberate the memory used by the old user_blacklist
+        user_blacklist.clear();
+        user_blacklist.shrink_to_fit();
         // Update the USER_BLACKLIST_SERVER_IMAGE
         *user_blacklist = user_ids;
-
+        user_blacklist.shrink_to_fit();
         // Release the lock before sleeping
         drop(user_blacklist);
-
-        sleep(Duration::from_secs(3600)).await;
     }
 }

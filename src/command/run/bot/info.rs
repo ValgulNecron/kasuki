@@ -3,7 +3,7 @@ use serenity::all::{
     CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::constant::APP_VERSION;
+use crate::constant::{APP_VERSION, LIBRARY};
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::bot::info::load_localization_info;
@@ -66,6 +66,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
     };
 
+    let lib = LIBRARY.to_string();
+
     // Construct the embed for the response
     let builder_embed = get_default_embed(None)
         .description(info_localised.desc)
@@ -77,6 +79,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .field(info_localised.user_count, user_count.to_string(), true)
         .field(info_localised.server_count, server_count.to_string(), true)
         .field(info_localised.creation_date, creation_date, true)
+        .field(info_localised.library, lib, true)
         .thumbnail(avatar)
         .title(&info_localised.title)
         .footer(CreateEmbedFooter::new(&info_localised.footer));

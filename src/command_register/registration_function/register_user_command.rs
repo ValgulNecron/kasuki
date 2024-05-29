@@ -1,13 +1,13 @@
-use std::fs;
-use std::io::BufReader;
 use std::sync::Arc;
 
 use serenity::all::{CommandType, CreateCommand, Http};
 use tracing::{error, trace};
 
 use crate::command_register::command_struct::user_command::UserCommand;
-use crate::command_register::registration_function::common::get_permission;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::command_register::registration_function::common::{
+    get_permission, get_vec, get_vec_installation_context,
+};
+use crate::helper::error_management::error_enum::AppError;
 
 /// This asynchronous function creates user commands in Discord by reading from a JSON file and sending them to the Discord API.
 ///
@@ -49,43 +49,11 @@ pub async fn creates_user_command(http: &Arc<Http>) {
 ///
 /// A `Result` containing either a vector of `UserCommand` structs if the user commands are successfully read, or an `AppError` if an error occurs.
 fn get_user_command(path: &str) -> Result<Vec<UserCommand>, AppError> {
-    let mut subcommands_group = Vec::new();
-    let paths = fs::read_dir(path).map_err(|e| AppError {
-        message: format!("Failed to read directory: {:?} with error {}", path, e),
-        error_type: ErrorType::File,
-        error_response_type: ErrorResponseType::None,
-    })?;
-    for entry in paths {
-        let entry = entry.map_err(|e| AppError {
-            message: format!("Failed to read path with error {}", e),
-            error_type: ErrorType::File,
-            error_response_type: ErrorResponseType::None,
-        })?;
-
-        let path = entry.path();
-        if path.is_file() && path.extension().unwrap_or_default() == "json" {
-            let file = fs::File::open(path.as_path()).map_err(|e| AppError {
-                message: format!("Failed to open file: {:?} with error {}", path.as_path(), e),
-                error_type: ErrorType::File,
-                error_response_type: ErrorResponseType::None,
-            })?;
-            let reader = BufReader::new(file);
-            let command: UserCommand = serde_json::from_reader(reader).map_err(|e| AppError {
-                message: format!(
-                    "Failed to parse file: {:?} with error {}",
-                    path.as_path(),
-                    e
-                ),
-                error_type: ErrorType::File,
-                error_response_type: ErrorResponseType::None,
-            })?;
-            subcommands_group.push(command);
-        }
+    let commands: Vec<UserCommand> = get_vec(path)?;
+    if commands.is_empty() {
+        trace!("No commands found in the directory: {:?}", path);
     }
-    if subcommands_group.is_empty() {
-        trace!("No user command found in the directory: {:?}", path);
-    }
-    Ok(subcommands_group)
+    Ok(commands)
 }
 
 /// This asynchronous function creates a global user command in Discord using the provided `UserCommand` struct and `Http` instance.
@@ -103,7 +71,14 @@ fn get_user_command(path: &str) -> Result<Vec<UserCommand>, AppError> {
 async fn create_command(command: &UserCommand, http: &Arc<Http>) {
     let mut command_build = CreateCommand::new(&command.name)
         .kind(CommandType::User)
-        .name(&command.name);
+        .name(&command.name)
+        .integration_types(get_vec_installation_context(&command.installation_context));
+
+    if let Some(localised) = &command.localised {
+        for local in localised {
+            command_build = command_build.name_localized(&local.code, &local.name)
+        }
+    }
 
     command_build = get_permission(&command.permissions, command_build);
 

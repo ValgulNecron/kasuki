@@ -130,6 +130,7 @@ pub async fn check_activation_status(module: &str, row: ActivationStatusModule) 
         "GAME" => row.game_module.unwrap_or(true),
         "NEW_MEMBER" => row.new_member.unwrap_or(true),
         "ANIME" => row.anime.unwrap_or(true),
+        "VN" => row.vn.unwrap_or(true),
         _ => false,
     }
 }

@@ -1,7 +1,15 @@
 {
   "name": "server",
   "desc": "General purpose commands for server.",
-  "dm_command": false,
+  "integration_context": {
+    "bot_dm": false,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": false
+  },
   "nsfw": false,
   "command": [
     {

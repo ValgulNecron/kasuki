@@ -176,7 +176,7 @@ pub async fn get_data_module_activation_status_sqlite(
 ) -> Result<ActivationStatusModule, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime FROM module_activation WHERE guild = ?",
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild = ?",
     )
         .bind(guild_id)
         .fetch_one(&pool)
@@ -188,6 +188,7 @@ pub async fn get_data_module_activation_status_sqlite(
             game_module: None,
             new_member: None,
             anime: None,
+            vn: None,
         });
     pool.close().await;
     Ok(row)
@@ -290,7 +291,7 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
 ) -> Result<ActivationStatusModule, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT id, ai_module, anilist_module, game_module, new_member, anime FROM module_activation WHERE guild = 1",
+        "SELECT id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild = 1",
     )
         .fetch_one(&pool)
         .await
@@ -302,6 +303,7 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
                 game_module: None,
                 new_member: None,
                 anime: None,
+                vn: None,
             },
         );
     pool.close().await;
