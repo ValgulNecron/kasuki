@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
 use serde_with::formats::PreferOne;
 use serde_with::serde_as;
 use serde_with::OneOrMany;
+use std::collections::HashMap;
 use tracing::trace;
 
 use crate::constant::{APPS, LANG_MAP};

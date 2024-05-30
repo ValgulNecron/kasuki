@@ -1,7 +1,6 @@
+use sqlx::{Pool, Sqlite};
 use std::fs::File;
 use std::path::Path;
-
-use sqlx::{Pool, Sqlite};
 use tracing::error;
 
 use crate::constant::{CACHE_SQLITE_DB, DATA_SQLITE_DB};

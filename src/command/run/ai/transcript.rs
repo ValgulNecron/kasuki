@@ -1,8 +1,3 @@
-use std::fs;
-use std::fs::File;
-use std::io::copy;
-use std::path::Path;
-
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
 use serde_json::Value;
@@ -11,6 +6,10 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::fs;
+use std::fs::File;
+use std::io::copy;
+use std::path::Path;
 use tracing::log::trace;
 use uuid::Uuid;
 

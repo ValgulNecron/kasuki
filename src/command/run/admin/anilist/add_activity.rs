@@ -1,5 +1,3 @@
-use std::io::{Cursor, Read};
-
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use base64::Engine as _;
@@ -12,6 +10,7 @@ use serenity::all::{
     ChannelId, CommandInteraction, Context, CreateAttachment, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, Timestamp,
 };
+use std::io::{Cursor, Read};
 use tracing::{error, trace};
 
 use crate::constant::COLOR;

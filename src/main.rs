@@ -1,9 +1,3 @@
-use std::collections::HashMap;
-use std::env;
-use std::ops::Add;
-use std::sync::Arc;
-use std::time::Duration;
-
 use serde_json::Value;
 use serenity::all::{
     ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready,
@@ -11,11 +5,15 @@ use serenity::all::{
 };
 use serenity::all::{Guild, Member};
 use serenity::{async_trait, Client};
+use std::collections::HashMap;
+use std::env;
+use std::ops::Add;
+use std::sync::Arc;
+use std::time::Duration;
+use struct_shard_manager::ShardManagerContainer;
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, trace};
-
-use struct_shard_manager::ShardManagerContainer;
 
 use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
@@ -327,7 +325,8 @@ async fn main() {
     let number_of_command_use_per_command: HashMap<String, HashMap<String, u128>>;
     // populate the number_of_command_use_per_command with the content of the file
     if let Ok(content) = std::fs::read_to_string("command_use.json") {
-        number_of_command_use_per_command = serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
+        number_of_command_use_per_command =
+            serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
     } else {
         number_of_command_use_per_command = HashMap::new();
     }

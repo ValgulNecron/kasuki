@@ -1,5 +1,3 @@
-use std::env;
-
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
@@ -7,6 +5,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::env;
 use tracing::{info, trace};
 use uuid::Uuid;
 

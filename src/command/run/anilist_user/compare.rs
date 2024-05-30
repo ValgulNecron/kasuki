@@ -1,8 +1,7 @@
-use std::collections::HashSet;
-
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use std::collections::HashSet;
 use tracing::trace;
 
 use crate::command::run::anilist_user::user::get_user_data;

@@ -1,5 +1,3 @@
-use std::io::{Cursor, Read};
-
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
 use prost::bytes::Bytes;
@@ -8,6 +6,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::io::{Cursor, Read};
 use uuid::Uuid;
 
 use crate::helper::create_normalise_embed::get_default_embed;

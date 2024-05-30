@@ -1,7 +1,6 @@
+use imgurs::ImgurClient;
 // Importing necessary libraries and modules
 use std::{env, fs};
-
-use imgurs::ImgurClient;
 use tracing::debug;
 
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

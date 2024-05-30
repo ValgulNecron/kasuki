@@ -1,6 +1,3 @@
-use std::io::stdout;
-use std::{fs, io};
-
 use crossterm::event::{Event, KeyCode};
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
@@ -12,6 +9,8 @@ use ratatui::style::{Color, Style};
 use ratatui::text::{Span, Text};
 use ratatui::widgets::{Block, Borders, LineGauge, Paragraph, Wrap};
 use ratatui::{symbols, Frame, Terminal};
+use std::io::stdout;
+use std::{fs, io};
 use sysinfo::System;
 
 use crate::constant::{APP_VERSION, BOT_INFO, LOGS_PATH, TUI_FG_COLOR};
