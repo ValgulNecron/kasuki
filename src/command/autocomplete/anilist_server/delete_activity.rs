@@ -2,7 +2,6 @@ use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-use tracing::trace;
 
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::database::manage::dispatcher::data_dispatch::get_data_all_activity_by_server;

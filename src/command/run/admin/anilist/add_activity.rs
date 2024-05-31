@@ -227,14 +227,14 @@ pub fn get_name(title: Title) -> String {
     let rj = title.romaji.clone();
     let en = en;
     let rj = rj;
-    let title = match (rj, en) {
+    
+
+    match (rj, en) {
         (Some(rj), Some(en)) => format!("{} / {}", en, rj),
         (Some(rj), None) => rj,
         (None, Some(en)) => en,
         (None, None) => String::new(),
-    };
-
-    title
+    }
 }
 
 /// This asynchronous function gets or creates a webhook for a given channel.

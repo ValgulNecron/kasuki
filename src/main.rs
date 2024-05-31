@@ -1,46 +1,21 @@
 use crate::cache::manage::cache_init::init_cache;
-use serde_json::Value;
 use serenity::all::{
-    ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready,
+    GatewayIntents,
     ShardManager,
 };
-use serenity::all::{Guild, Member};
-use serenity::{async_trait, Client};
-use std::collections::HashMap;
+use serenity::{Client};
 use std::env;
-use std::ops::Add;
 use std::sync::Arc;
-use std::time::Duration;
 use struct_shard_manager::ShardManagerContainer;
 use tokio::sync::RwLock;
-use tokio::time::{interval, sleep};
-use tracing::{debug, error, info, trace};
+use tracing::{error, info};
 
-use crate::background_task::activity::anime_activity::manage_activity;
-use crate::background_task::server_image::calculate_user_color::color_management;
-use crate::background_task::server_image::generate_server_image::server_image_management;
-use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispatching};
-use crate::command::user_run::dispatch::dispatch_user_command;
-use crate::command_register::registration_dispatcher::command_dispatcher;
-use crate::components::components_dispatch::components_dispatching;
 use crate::constant::{
-    ACTIVITY_NAME, TIME_BETWEEN_SERVER_IMAGE_UPDATE, USER_BLACKLIST_SERVER_IMAGE,
+    APP_TUI, DISCORD_TOKEN,
 };
-use crate::constant::{
-    APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
-    TIME_BETWEEN_USER_COLOR_UPDATE,
-};
-use crate::constant::{PING_UPDATE_DELAYS, TIME_BETWEEN_GAME_UPDATE};
-use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
-use crate::event_handler::{Handler, RootUsage, UserInfo};
-use crate::grpc_server::launcher::grpc_server_launcher;
-use crate::helper::error_management::error_dispatch;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::event_handler::{Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
-use crate::new_member::new_member;
-use crate::structure::steam_game_id_struct::get_game;
 
 mod api;
 mod background_task;

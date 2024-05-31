@@ -6,10 +6,6 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::fs;
-use std::fs::File;
-use std::io::copy;
-use std::path::Path;
 use tracing::trace;
 use uuid::Uuid;
 
