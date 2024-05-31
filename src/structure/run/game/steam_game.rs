@@ -218,8 +218,8 @@ impl SteamGameWrapper {
             .0
             .unwrap_or(String::from("en"))
             .to_uppercase();
-        let local_lang = LANG_MAP.clone();
-        let full_lang = local_lang
+        let local_lang = LANG_MAP;
+        let full_lang = *local_lang
             .get(lang.to_lowercase().as_str())
             .unwrap_or(&"english");
         let url = format!(

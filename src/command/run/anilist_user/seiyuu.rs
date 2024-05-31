@@ -6,7 +6,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::io::{Cursor, Read};
+use std::io::{Cursor};
 use uuid::Uuid;
 
 use crate::helper::create_normalise_embed::get_default_embed;

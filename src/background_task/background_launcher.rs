@@ -69,8 +69,8 @@ async fn ping_manager_thread(ctx: Context) {
 /// This function is responsible for launching the web server thread.
 /// It does not take any arguments and does not return anything.
 async fn launch_web_server_thread(ctx: Context, command_usage: Arc<RwLock<u128>>) {
-    let is_grpc_on = *GRPC_IS_ON;
-    if !is_grpc_on {
+    let is_grpc_on = GRPC_IS_ON;
+    if !*is_grpc_on {
         info!("GRPC is off, skipping the GRPC server thread!");
         return;
     }

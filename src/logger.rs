@@ -44,12 +44,17 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
         .add_directive(crate_log)
         .add_directive(kasuki_log);
 
+    let log_prefix = LOGS_PREFIX;
+    let log_suffix = LOGS_SUFFIX;
+    let max_log_retention_days = MAX_LOG_RETENTION_DAYS;
+    let logs_path = LOGS_PATH;
+
     let file_appender = tracing_appender::rolling::Builder::new()
-        .filename_prefix(LOGS_PREFIX)
-        .filename_suffix(LOGS_SUFFIX)
+        .filename_prefix(log_prefix)
+        .filename_suffix(log_suffix)
         .rotation(Rotation::DAILY)
-        .max_log_files(*MAX_LOG_RETENTION_DAYS as usize)
-        .build(LOGS_PATH)
+        .max_log_files(*max_log_retention_days as usize)
+        .build(logs_path)
         .unwrap();
     let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
@@ -59,7 +64,8 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
 
     let format = fmt::layer().with_ansi(true);
 
-    if *APP_TUI {
+    let app_tui = APP_TUI;
+    if *app_tui {
         let registry = tracing_subscriber::registry().with(filter).with(
             tracing_subscriber::fmt::layer()
                 .with_writer(file_appender_non_blocking)

@@ -66,7 +66,8 @@ async fn main() {
         return;
     }
 
-    if *APP_TUI {
+    let app_tui = APP_TUI;
+    if *app_tui {
         // create a new tui in a new thread
         tokio::spawn(async {
             tui::create_tui().await.unwrap();
@@ -115,7 +116,9 @@ async fn main() {
     // Create a new client instance using the provided token and gateway intents.
     // The client is built with an event handler of type `Handler`.
     // If the client creation fails, log the error and exit the process.
-    let mut client = Client::builder(DISCORD_TOKEN.to_string(), gateway_intent)
+    let discord_token = DISCORD_TOKEN;
+    let discord_token = discord_token.as_str();
+    let mut client = Client::builder(discord_token, gateway_intent)
         .event_handler(handler)
         .await
         .unwrap_or_else(|e| {
