@@ -12,8 +12,8 @@ use crate::helper::error_management::error_enum::AppError;
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn init_sql_database() -> Result<(), AppError> {
-    let cache_type = CACHE_TYPE.clone();
+pub async fn init_cache() -> Result<(), AppError> {
+    let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
         init_sqlite().await

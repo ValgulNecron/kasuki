@@ -103,8 +103,7 @@
 
 
 - Fixing list:
-    - [ ] admin anilist delete
-    - [ ] transcriptn, translation
+    - [ ] transcript, translation
     - [ ] autocomplete steam game
 
 - Optimisation needed:

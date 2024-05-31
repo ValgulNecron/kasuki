@@ -27,9 +27,9 @@ pub const PING_UPDATE_DELAYS: u64 = 600;
 /// Time before a server image is updated.
 pub const TIME_BEFORE_SERVER_IMAGE: u64 = 600;
 /// Time between server image updates.
-pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 86_400;
+pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 1_800;
 /// Time between user color updates.
-pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 1_800;
+pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 300;
 /// Time between steam updates.
 pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
 /// Time between cache updates.

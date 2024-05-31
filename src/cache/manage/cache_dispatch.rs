@@ -26,7 +26,7 @@ use crate::helper::error_management::error_enum::AppError;
 ///
 /// * A Result that is either an Option variant containing the CacheStats if the operation was successful, or an Err variant with an AppError.
 pub async fn get_database_random_cache(random_type: &str) -> Result<Option<CacheStats>, AppError> {
-    let cache_type = CACHE_TYPE.clone();
+    let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
         get_database_random_cache_sqlite(random_type).await
@@ -60,7 +60,7 @@ pub async fn set_database_random_cache(
     now: i64,
     previous_page: i64,
 ) -> Result<(), AppError> {
-    let cache_type = CACHE_TYPE.clone();
+    let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
         set_database_random_cache_sqlite(random_type, cached_response, now, previous_page).await
@@ -87,7 +87,7 @@ pub async fn set_database_random_cache(
 pub async fn get_database_cache(
     json: Value,
 ) -> Result<(Option<String>, Option<String>, Option<i64>), AppError> {
-    let cache_type = CACHE_TYPE.clone();
+    let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
         get_database_cache_sqlite(json).await
@@ -113,7 +113,7 @@ pub async fn get_database_cache(
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_database_cache(json: Value, resp: String) -> Result<(), AppError> {
-    let cache_type = CACHE_TYPE.clone();
+    let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
         set_database_cache_sqlite(json, resp).await

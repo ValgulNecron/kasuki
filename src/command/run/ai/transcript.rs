@@ -163,12 +163,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .mime_str(content_type.as_str())
         .unwrap();
     let model = TRANSCRIPT_MODELS.to_string();
+    trace!("{}", model);
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", model)
         .text("prompt", prompt)
         .text("language", lang)
         .text("response_format", "json");
+    trace!("{:?}", form);
 
     let url = format!("{}transcriptions", TRANSCRIPT_BASE_URL.as_str());
     let response_result = client

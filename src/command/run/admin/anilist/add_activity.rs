@@ -225,28 +225,14 @@ async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
 pub fn get_name(title: Title) -> String {
     let en = title.english.clone();
     let rj = title.romaji.clone();
-    let en = en.unwrap_or(String::from(""));
-    let rj = rj.unwrap_or(String::from(""));
-    let mut title = String::new();
-    let mut total = 0;
-    match en.as_str() {
-        "" => {}
-        _ => {
-            total += 1;
-            title.push_str(en.as_str())
-        }
-    }
-    match rj.as_str() {
-        "\"\"" => {}
-        _ => {
-            if total == 1 {
-                title.push_str(" / ");
-                title.push_str(rj.as_str())
-            } else {
-                title.push_str(rj.as_str())
-            }
-        }
-    }
+    let en = en;
+    let rj = rj;
+    let title = match (rj, en) {
+        (Some(rj), Some(en)) => format!("{} / {}", en, rj),
+        (Some(rj), None) => rj,
+        (None, Some(en)) => en,
+        (None, None) => String::new(),
+    };
 
     title
 }

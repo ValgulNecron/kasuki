@@ -1,3 +1,4 @@
+use crate::cache::manage::cache_init::init_cache;
 use serde_json::Value;
 use serenity::all::{
     ActivityData, CommandType, Context, EventHandler, GatewayIntents, Interaction, Ready,
@@ -23,7 +24,7 @@ use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispa
 use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{ACTIVITY_NAME, USER_BLACKLIST_SERVER_IMAGE};
+use crate::constant::{ACTIVITY_NAME, TIME_BETWEEN_SERVER_IMAGE_UPDATE, USER_BLACKLIST_SERVER_IMAGE};
 use crate::constant::{
     APP_TUI, BOT_INFO, DISCORD_TOKEN, GRPC_IS_ON, TIME_BEFORE_SERVER_IMAGE,
     TIME_BETWEEN_USER_COLOR_UPDATE,
@@ -317,6 +318,10 @@ async fn main() {
         error!("{:?}", e);
         return;
     }
+    if let Err(e)= init_cache().await {
+        error!("{:?}", e);
+        return;
+    }
 
     // Log a message indicating the bot is starting.
     info!("starting the bot.");
@@ -571,7 +576,7 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>) {
 ///
 async fn launch_server_image_management_thread(ctx: Context) {
     info!("Launching the server image management thread!");
-    let mut interval = interval(Duration::from_secs(3600));
+    let mut interval = interval(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE));
     loop {
         interval.tick().await;
         server_image_management(&ctx).await;
