@@ -127,7 +127,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             ErrorType::WebRequest,
             ErrorResponseType::Followup,
         )
-    })?;    // save the file into a buffer
+    })?; // save the file into a buffer
     let buffer = response.bytes().await.map_err(|e| {
         AppError::new(
             format!("Failed to get bytes data from response. {}", e),

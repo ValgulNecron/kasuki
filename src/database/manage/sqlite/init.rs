@@ -3,7 +3,7 @@ use std::fs::File;
 use std::path::Path;
 use tracing::error;
 
-use crate::constant::{DATA_SQLITE_DB};
+use crate::constant::DATA_SQLITE_DB;
 use crate::database::manage::sqlite::migration::migration_dispatch::migrate_sqlite;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

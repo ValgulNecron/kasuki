@@ -22,9 +22,9 @@ use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
 };
+use crate::event_handler::Handler;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand_group::get_subcommand;
-use crate::Handler;
 
 /// Dispatches the command to the appropriate function based on the command name.
 ///
@@ -319,6 +319,7 @@ async fn anilist_admin(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -359,6 +360,7 @@ async fn general_admin(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -419,6 +421,7 @@ async fn ai(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -477,6 +480,7 @@ async fn anilist_server(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -547,6 +551,7 @@ async fn anilist_user(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -604,6 +609,7 @@ async fn anime(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -660,6 +666,7 @@ async fn anime_nsfw(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -702,6 +709,7 @@ async fn bot(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -742,6 +750,7 @@ async fn server(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -793,6 +802,7 @@ async fn steam(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -833,6 +843,7 @@ async fn user(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
@@ -873,6 +884,7 @@ async fn vn(
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
         )
         .await;
     return_data
