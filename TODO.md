@@ -103,7 +103,6 @@
 
 
 - Fixing list:
-    - [ ] transcript, translation
     - [ ] autocomplete steam game
 
 - Optimisation needed:
