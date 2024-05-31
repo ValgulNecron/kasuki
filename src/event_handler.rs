@@ -9,7 +9,6 @@ use crate::constant::{ACTIVITY_NAME, BOT_INFO};
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::new_member::new_member;
-use crate::thread_management_launcher;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, EventHandler, Guild, Interaction, Member, Ready,
@@ -21,6 +20,7 @@ use std::ops::Add;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
+use crate::background_task::background_launcher::thread_management_launcher;
 
 pub struct Handler {
     pub number_of_command_use: Arc<RwLock<u128>>,
