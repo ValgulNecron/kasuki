@@ -4,6 +4,7 @@ use crate::constant::DATA_SQLITE_DB;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
+use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::data_struct::server_activity::{
     ServerActivity, ServerActivityFull, SmallServerActivity,
 };
@@ -356,14 +357,14 @@ pub async fn get_one_activity_sqlite(
 /// * A Result that is either an Ok variant containing a tuple of optional Strings if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_registered_user_sqlite(
     user_id: &String,
-) -> Result<(Option<String>, Option<String>), AppError> {
+) -> Result<Option<RegisteredUser>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>) =
+    let row: Option<RegisteredUser> =
         sqlx::query_as("SELECT anilist_id, user_id FROM registered_user WHERE user_id = ?")
             .bind(user_id)
-            .fetch_one(&pool)
+            .fetch_optional(&pool)
             .await
-            .unwrap_or((None, None));
+            .unwrap_or(None);
     pool.close().await;
 
     Ok(row)
@@ -385,14 +386,13 @@ pub async fn get_registered_user_sqlite(
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn set_registered_user_sqlite(
-    user_id: &String,
-    username: &String,
+    registered_user: RegisteredUser
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let _ =
         sqlx::query("INSERT OR REPLACE INTO registered_user (user_id, anilist_id) VALUES (?, ?)")
-            .bind(user_id)
-            .bind(username)
+            .bind(registered_user.user_id)
+            .bind(registered_user.anilist_id)
             .execute(&pool)
             .await
             .map_err(|e| {

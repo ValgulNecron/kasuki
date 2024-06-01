@@ -2,6 +2,7 @@ use crate::constant::DB_TYPE;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
+use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::data_struct::server_activity::{
     ServerActivity, ServerActivityFull, SmallServerActivity,
 };
@@ -260,7 +261,7 @@ pub async fn get_one_activity(
 /// * A Result that is either a tuple containing the Option variants of the registered user if the operation was successful, or an Err variant with an AppError.
 pub async fn get_registered_user(
     user_id: &String,
-) -> Result<(Option<String>, Option<String>), AppError> {
+) -> Result<Option<RegisteredUser>, AppError> {
     let db_type = DB_TYPE.clone();
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
@@ -286,15 +287,15 @@ pub async fn get_registered_user(
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn set_registered_user(user_id: &String, username: &String) -> Result<(), AppError> {
+pub async fn set_registered_user(registered_user: RegisteredUser) -> Result<(), AppError> {
     let db_type = DB_TYPE.clone();
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
-        set_registered_user_sqlite(user_id, username).await
+        set_registered_user_sqlite(registered_user).await
     } else if db_type == "postgresql" {
-        set_registered_user_postgresql(user_id, username).await
+        set_registered_user_postgresql(registered_user).await
     } else {
-        set_registered_user_sqlite(user_id, username).await
+        set_registered_user_sqlite(registered_user).await
     }
 }
 

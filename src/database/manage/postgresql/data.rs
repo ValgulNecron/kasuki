@@ -3,6 +3,7 @@ use chrono::Utc;
 
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
+use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::data_struct::server_activity::{
     ServerActivity, ServerActivityFull, SmallServerActivity,
 };
@@ -356,14 +357,14 @@ pub async fn get_one_activity_postgresql(
 /// * A Result that is either a tuple containing Option<String>, Option<String> if the operation was successful and the registered user record exists, or (None, None) if the registered user record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_registered_user_postgresql(
     user_id: &String,
-) -> Result<(Option<String>, Option<String>), AppError> {
+) -> Result<Option<RegisteredUser>, AppError> {
     let pool = get_postgresql_pool().await?;
-    let row: (Option<String>, Option<String>) =
+    let row: Option<RegisteredUser> =
         sqlx::query_as("SELECT anilist_id, user_id FROM DATA.registered_user WHERE user_id = $1")
             .bind(user_id)
-            .fetch_one(&pool)
+            .fetch_optional(&pool)
             .await
-            .unwrap_or((None, None));
+            .unwrap_or(None);
     pool.close().await;
 
     Ok(row)
@@ -383,15 +384,14 @@ pub async fn get_registered_user_postgresql(
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_registered_user_postgresql(
-    user_id: &String,
-    username: &String,
+    registered_user: RegisteredUser
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
         "INSERT INTO DATA.registered_user (user_id, anilist_id) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET anilist_id = EXCLUDED.anilist_id",
     )
-        .bind(user_id)
-        .bind(username)
+        .bind(registered_user.user_id)
+        .bind(registered_user.anilist_id)
         .execute(&pool)
         .await
         .map_err(|e|

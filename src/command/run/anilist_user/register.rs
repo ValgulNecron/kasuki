@@ -3,6 +3,7 @@ use serenity::all::{
 };
 
 use crate::command::run::anilist_user::user::get_user_data;
+use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::set_registered_user;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -53,7 +54,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let username = &command_interaction.user.name;
 
     // Register the user's AniList account by storing the user's Discord ID and AniList ID in the database
-    set_registered_user(user_id, &user_data.id.unwrap_or(0).to_string()).await?;
+    let registered_user = RegisteredUser {
+        user_id: user_id.clone(),
+        anilist_id: user_data.id.unwrap_or(0).to_string(),
+    };
+    set_registered_user(registered_user).await?;
 
     // Construct the description for the embed
     let desc = register_localised

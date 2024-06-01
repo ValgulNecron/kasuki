@@ -1,5 +1,6 @@
 use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
+use crate::database::data_struct::registered_user::RegisteredUser;
 
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -33,17 +34,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     // If the username is not provided, fetch the data of the user who triggered the command interaction
     let user_id = &command_interaction.user.id.to_string();
-    let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
-    trace!("{:?}", row);
-    let (user, _): (Option<String>, Option<String>) = row;
-    let user = user.ok_or(AppError::new(
+    let row: Option<RegisteredUser> = get_registered_user(user_id).await?;
+    let user = row.ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,
         ErrorResponseType::Followup,
     ))?;
 
     // Fetch the user's data from AniList and send it as a response
-    let data = get_user_data(&user).await?;
+    let data = get_user_data(&user.anilist_id).await?;
     send_embed(ctx, command_interaction, data).await
 }
 

@@ -4,8 +4,10 @@ use serenity::all::{
     CreateInteractionResponseMessage, PartialGuild, User, UserId,
 };
 use tracing::log::trace;
+use crate::command::run::anilist_user::user::get_user_data;
 
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
+use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -159,20 +161,16 @@ pub async fn get_the_list(
         for member in members {
             last_id = Some(member.user.id);
             let user_id = member.user.id.to_string();
-            let row: (Option<String>, Option<String>) = get_registered_user(&user_id).await?;
-            let user_date = match row.0 {
+            let row: Option<RegisteredUser> = get_registered_user(&user_id).await?;
+            let user_data = match row {
                 Some(a) => {
-                    trace!("{}", a);
-                    match a.parse::<i32>() {
-                        Ok(b) => UserWrapper::new_user_by_id(b).await?,
-                        Err(_) => UserWrapper::new_user_by_search(&a).await?,
-                    }
+                    get_user_data(&a.anilist_id).await?
                 }
                 None => continue,
             };
             let data = Data {
                 user: member.user,
-                anilist: user_date,
+                anilist: user_data,
             };
             anilist_user.push(data)
         }
