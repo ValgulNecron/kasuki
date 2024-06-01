@@ -259,9 +259,7 @@ pub async fn get_one_activity(
 /// # Returns
 ///
 /// * A Result that is either a tuple containing the Option variants of the registered user if the operation was successful, or an Err variant with an AppError.
-pub async fn get_registered_user(
-    user_id: &String,
-) -> Result<Option<RegisteredUser>, AppError> {
+pub async fn get_registered_user(user_id: &String) -> Result<Option<RegisteredUser>, AppError> {
     let db_type = DB_TYPE.clone();
     let db_type = db_type.as_str();
     if db_type == "sqlite" {

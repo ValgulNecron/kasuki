@@ -82,7 +82,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let title = data.data.media.title.ok_or(AppError::new(
         String::from("There is no option in the title."),
         ErrorType::Option,
-        ErrorResponseType::Message,
+        ErrorResponseType::Followup,
     ))?;
     let mut anime_name = get_name(title);
     let channel_id = command_interaction.channel_id;
@@ -145,7 +145,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 return Err(AppError::new(
                     String::from("There is no next airing episode."),
                     ErrorType::Option,
-                    ErrorResponseType::Message,
+                    ErrorResponseType::Followup,
                 ));
             }
         };

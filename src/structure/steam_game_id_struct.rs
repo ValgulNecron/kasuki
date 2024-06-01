@@ -80,4 +80,5 @@ pub async fn get_game() {
         *APPS = app_map;
         APPS.shrink_to_fit();
     }
+    debug!("Done getting game")
 }

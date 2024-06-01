@@ -1,9 +1,9 @@
+use crate::command::run::anilist_user::user::get_user_data;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, PartialGuild, User, UserId,
 };
-use crate::command::run::anilist_user::user::get_user_data;
 
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::data_struct::registered_user::RegisteredUser;
@@ -162,9 +162,7 @@ pub async fn get_the_list(
             let user_id = member.user.id.to_string();
             let row: Option<RegisteredUser> = get_registered_user(&user_id).await?;
             let user_data = match row {
-                Some(a) => {
-                    get_user_data(&a.anilist_id).await?
-                }
+                Some(a) => get_user_data(&a.anilist_id).await?,
                 None => continue,
             };
             let data = Data {

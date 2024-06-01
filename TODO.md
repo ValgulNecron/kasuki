@@ -101,14 +101,5 @@
         - [ ] Message command
         - [ ] User installed app (waiting on serenity to support it).
 
-
-- Fixing list:
-    - [ ] autocomplete steam game
-
 - Optimisation needed:
     - [ ] anilist_server list_user
-
-
-- Anilist api builder:
-    - Need to add media connection to character.
-    - Need to add character, staff, studio, airing schedule, trends, reviews, recommendations connection to media.

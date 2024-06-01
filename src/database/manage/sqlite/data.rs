@@ -31,7 +31,6 @@ use crate::structure::run::anilist::minimal_anime::ActivityData;
 /// This function will log errors encountered when executing the SQL command, but does not return them.
 pub async fn set_data_ping_history_sqlite(ping_history: PingHistory) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let now = Utc::now().timestamp().to_string();
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)",
     )
@@ -385,9 +384,7 @@ pub async fn get_registered_user_sqlite(
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
-pub async fn set_registered_user_sqlite(
-    registered_user: RegisteredUser
-) -> Result<(), AppError> {
+pub async fn set_registered_user_sqlite(registered_user: RegisteredUser) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let _ =
         sqlx::query("INSERT OR REPLACE INTO registered_user (user_id, anilist_id) VALUES (?, ?)")

@@ -27,7 +27,6 @@ use crate::structure::run::anilist::minimal_anime::ActivityData;
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_ping_history_postgresql(ping_history: PingHistory) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
-    let now = Utc::now().timestamp().to_string();
     sqlx::query(
         "INSERT INTO DATA.ping_history (shard_id, timestamp, ping) VALUES ($1, $2, $3) ON CONFLICT (shard_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, ping = EXCLUDED.ping",
     )
@@ -384,7 +383,7 @@ pub async fn get_registered_user_postgresql(
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_registered_user_postgresql(
-    registered_user: RegisteredUser
+    registered_user: RegisteredUser,
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(

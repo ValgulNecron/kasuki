@@ -1,5 +1,5 @@
-use serenity::all::{CommandInteraction, Context};
 use crate::database::data_struct::registered_user::RegisteredUser;
+use serenity::all::{CommandInteraction, Context};
 
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
