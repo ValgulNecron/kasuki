@@ -1,7 +1,7 @@
 {
   "en": {
     "title": "Info",
-    "desc": "This bot uses the AniList API to provide information on a show or a user.",
+    "desc": "This bot uses the AniList API to provide information on an anime or a user.",
     "bot_name": "Bot name:",
     "bot_id": "Bot ID:",
     "server_count": "Server count:",
@@ -20,7 +20,7 @@
   },
   "fr": {
     "title": "Info",
-    "desc": "Ce bot utilise l'API AniList pour fournir des informations sur une émission ou un utilisateur.",
+    "desc": "Ce bot utilise l'API AniList pour fournir des informations sur un anime ou un utilisateur.",
     "bot_name": "Nom du bot:",
     "bot_id": "ID du bot:",
     "server_count": "Nombre de serveurs:",
@@ -39,7 +39,7 @@
   },
   "jp": {
     "title": "情報",
-    "desc": "このボットはAniList APIを使用して、ショーまたはユーザーの情報を提供します。",
+    "desc": "このボットは、アニメまたはユーザーに関する情報を提供するためにAniList APIを使用しています。",
     "bot_name": "ボット名:",
     "bot_id": "ボットID:",
     "server_count": "サーバー数:",
@@ -58,7 +58,7 @@
   },
   "de": {
     "title": "Info",
-    "desc": "Dieser Bot verwendet die AniList API, um Informationen über eine Show oder einen Benutzer bereitzustellen.",
+    "desc": "Dieser Bot verwendet die AniList-API, um Informationen über ein Anime oder einen Benutzer bereitzustellen.",
     "bot_name": "Bot-Name:",
     "bot_id": "Bot-ID:",
     "server_count": "Serveranzahl:",

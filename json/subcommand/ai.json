@@ -44,6 +44,35 @@
               "desc": "生成したい画像の説明を入力してください。"
             }
           ]
+        },
+        {
+          "name": "n",
+          "desc": "Number of images to generate.",
+          "required": false,
+          "autocomplete": false,
+          "arg_type": "Integer",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "n",
+              "desc": "Number of images to generate."
+            },
+            {
+              "code": "fr",
+              "name": "n",
+              "desc": "Nombre d'images à générer."
+            },
+            {
+              "code": "de",
+              "name": "n",
+              "desc": "Anzahl der zu generierenden Bilder."
+            },
+            {
+              "code": "ja",
+              "name": "n",
+              "desc": "生成する画像の数。"
+            }
+          ]
         }
       ],
       "localised": [

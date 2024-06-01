@@ -1,5 +1,6 @@
-use serenity::all::{Attachment, ChannelId, CommandInteraction, ResolvedValue, RoleId, UserId};
 use std::collections::HashMap;
+
+use serenity::all::{Attachment, ChannelId, CommandInteraction, ResolvedValue, RoleId, UserId};
 
 /// Retrieves the string options from the subcommand in the command interaction and returns them as a HashMap.
 ///

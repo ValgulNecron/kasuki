@@ -1,7 +1,8 @@
+use std::collections::HashMap;
+
 use serenity::all::{
     Attachment, ChannelId, CommandInteraction, ResolvedOption, ResolvedValue, RoleId, UserId,
 };
-use std::collections::HashMap;
 
 /// Retrieves the first subcommand group from the command interaction.
 ///

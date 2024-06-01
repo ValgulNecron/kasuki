@@ -1,20 +1,25 @@
+use std::env;
+
+use prost::bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::env;
 use tracing::{info, trace};
 use uuid::Uuid;
 
 use crate::constant::{DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::get_option::subcommand::{
+    get_option_map_integer_subcommand, get_option_map_string_subcommand,
+};
 use crate::helper::image_saver::general_image_saver::image_saver;
-use crate::structure::message::ai::image::load_localization_image;
+use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
 
 /// This module contains the implementation of the `run` function for handling AI image generation.
 ///
@@ -49,6 +54,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let prompt = map
         .get(&String::from("description"))
         .unwrap_or(DEFAULT_STRING);
+
+    let map = get_option_map_integer_subcommand(command_interaction);
+    let n = map.get(&String::from("n")).unwrap_or(&1).clone();
 
     trace!(prompt);
 
@@ -89,7 +97,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         (Some(quality), Some(style)) => {
             json!({
                 "prompt": prompt,
-                "n": 1,
+                "n": n,
                 "size": size,
                 "model": model,
                 "quality": quality,
@@ -100,7 +108,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         (None, Some(style)) => {
             json!({
                 "prompt": prompt,
-                "n": 1,
+                "n": n,
                 "size": size,
                 "model": model,
                 "style": style,
@@ -110,7 +118,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         (Some(quality), None) => {
             json!({
                 "prompt": prompt,
-                "n": 1,
+                "n": n,
                 "size": size,
                 "model": model,
                 "quality": quality,
@@ -120,7 +128,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         (None, None) => {
             json!({
                 "prompt": prompt,
-                "n": 1,
+                "n": n,
                 "size": size,
                 "model": model,
                 "response_format": "url"
@@ -178,49 +186,31 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Followup,
             )
         })?;
-    trace!("{:#?}", res);
+    let bytes = get_image_from_response(res).await?;
 
-    let url_string = res
-        .get("data")
-        .ok_or(AppError::new(
-            String::from("Failed to get data from result"),
-            ErrorType::Option,
-            ErrorResponseType::Followup,
-        ))?
-        .get(0)
-        .ok_or(AppError::new(
-            String::from("Failed to get the first image"),
-            ErrorType::Option,
-            ErrorResponseType::Followup,
-        ))?
-        .get("url")
-        .ok_or(AppError::new(
-            String::from("Failed to get the url from the result"),
-            ErrorType::Option,
-            ErrorResponseType::Followup,
-        ))?
-        .as_str()
-        .ok_or(AppError::new(
-            String::from("Failed to convert to str."),
-            ErrorType::Option,
-            ErrorResponseType::Followup,
-        ))?;
-
-    let response = reqwest::get(url_string).await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get the response from the server. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
+    if n == 1 {
+        image_with_n_equal_1(
+            image_localised,
+            filename,
+            command_interaction,
+            ctx,
+            bytes[0].clone(),
         )
-    })?;
-    let bytes = response.bytes().await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get bytes data from response. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
+        .await?
+    } else {
+        image_with_n_greater_than_1(image_localised, filename, command_interaction, ctx, bytes)
+            .await?
+    }
+    Ok(())
+}
 
+async fn image_with_n_equal_1(
+    image_localised: ImageLocalised,
+    filename: String,
+    command_interaction: &CommandInteraction,
+    ctx: &Context,
+    bytes: Bytes,
+) -> Result<(), AppError> {
     let builder_embed = get_default_embed(None)
         .image(format!("attachment://{}", &filename))
         .title(image_localised.title);
@@ -241,8 +231,85 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Followup,
             )
         })?;
-
-    image_saver(guild_id, filename.clone(), bytes.to_vec()).await?;
-
     Ok(())
+}
+
+async fn image_with_n_greater_than_1(
+    image_localised: ImageLocalised,
+    filename: String,
+    command_interaction: &CommandInteraction,
+    ctx: &Context,
+    bytes: Vec<Bytes>,
+) -> Result<(), AppError> {
+    let message = image_localised.title;
+    let attachments: Vec<CreateAttachment> = bytes
+        .iter()
+        .enumerate()
+        .map(|(index, byte)| {
+            let filename = format!("{}_{}.png", filename, index);
+            CreateAttachment::bytes(byte.clone(), &filename)
+        })
+        .collect();
+    let builder_message = CreateInteractionResponseFollowup::new()
+        .content(message)
+        .files(attachments);
+
+    command_interaction
+        .create_followup(&ctx.http, builder_message)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Error while sending the command {}", e),
+                ErrorType::Option,
+                ErrorResponseType::Followup,
+            )
+        })?;
+    Ok(())
+}
+
+async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, AppError> {
+    let mut bytes = Vec::new();
+    let root: Root = serde_json::from_value(json).map_err(|e| {
+        AppError::new(
+            format!("Failed to parse the json. {}", e),
+            ErrorType::File,
+            ErrorResponseType::Followup,
+        )
+    })?;
+    let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();
+    trace!("{:?}", urls);
+    for url in urls {
+        let client = reqwest::Client::new();
+        let res = client.get(url).send().await.map_err(|e| {
+            AppError::new(
+                format!("Failed to get the response from the server. {}", e),
+                ErrorType::WebRequest,
+                ErrorResponseType::Followup,
+            )
+        })?;
+        let body = match res.bytes().await {
+            Ok(body) => body,
+            Err(e) => {
+                return Err(AppError::new(
+                    format!("Failed to get the body from the response. {}", e),
+                    ErrorType::WebRequest,
+                    ErrorResponseType::Followup,
+                ));
+            }
+        };
+        bytes.push(body);
+    }
+    Ok(bytes)
+}
+
+#[derive(Debug, Deserialize)]
+struct Root {
+    created: u64,
+    #[serde(rename = "data")]
+    data: Vec<Data>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Data {
+    url: String,
 }

@@ -1,3 +1,5 @@
+use std::io::{Cursor, Read};
+
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use base64::Engine as _;
@@ -10,7 +12,6 @@ use serenity::all::{
     ChannelId, CommandInteraction, Context, CreateAttachment, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, Timestamp,
 };
-use std::io::{Cursor, Read};
 use tracing::{error, trace};
 
 use crate::constant::COLOR;
@@ -227,7 +228,6 @@ pub fn get_name(title: Title) -> String {
     let rj = title.romaji.clone();
     let en = en;
     let rj = rj;
-    
 
     match (rj, en) {
         (Some(rj), Some(en)) => format!("{} / {}", en, rj),

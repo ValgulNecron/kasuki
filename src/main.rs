@@ -1,18 +1,15 @@
-use crate::cache::manage::cache_init::init_cache;
-use serenity::all::{
-    GatewayIntents,
-    ShardManager,
-};
-use serenity::{Client};
 use std::env;
 use std::sync::Arc;
-use struct_shard_manager::ShardManagerContainer;
+
+use serenity::all::{GatewayIntents, ShardManager};
+use serenity::Client;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
-use crate::constant::{
-    APP_TUI, DISCORD_TOKEN,
-};
+use struct_shard_manager::ShardManagerContainer;
+
+use crate::cache::manage::cache_init::init_cache;
+use crate::constant::{APP_TUI, DISCORD_TOKEN};
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};

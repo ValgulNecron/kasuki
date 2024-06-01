@@ -1,3 +1,4 @@
+use crate::background_task::background_launcher::thread_management_launcher;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
@@ -20,7 +21,6 @@ use std::ops::Add;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
-use crate::background_task::background_launcher::thread_management_launcher;
 
 pub struct Handler {
     pub number_of_command_use: Arc<RwLock<u128>>,
