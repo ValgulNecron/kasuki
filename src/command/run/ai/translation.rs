@@ -1,8 +1,3 @@
-use std::fs;
-use std::fs::File;
-use std::io::copy;
-use std::path::Path;
-
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
 use serde_json::{json, Value};
@@ -11,7 +6,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use tracing::log::trace;
+use tracing::trace;
 use uuid::Uuid;
 
 use crate::constant::{
@@ -101,7 +96,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
 
-    let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
+    let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm", "ogg"];
     let parsed_url = Url::parse(content.as_str()).expect("Failed to parse URL");
     let path_segments = parsed_url
         .path_segments()
@@ -122,26 +117,21 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         ));
     }
 
-    let response = reqwest::get(content).await.expect("download");
-    let uuid_name = Uuid::new_v4();
-    let fname = Path::new("./").join(format!("{}.{}", uuid_name, file_extension));
-    let file_name = format!("/{}.{}", uuid_name, file_extension);
-    let mut file = File::create(fname.clone()).expect("file name");
-    let resp_byte = response.bytes().await.map_err(|e| {
+    let response = reqwest::get(content).await.map_err(|e| {
         AppError::new(
-            format!("Failed to get the bytes from the response. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Message,
+            format!("Failed to get the response from the server. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
+    })?; // save the file into a buffer
+    let buffer = response.bytes().await.map_err(|e| {
+        AppError::new(
+            format!("Failed to get bytes data from response. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
         )
     })?;
-    copy(&mut resp_byte.as_ref(), &mut file).map_err(|e| {
-        AppError::new(
-            format!("Failed to copy bytes data. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Message,
-        )
-    })?;
-    let file_to_delete = fname.clone();
+    let uuid_name = Uuid::new_v4().to_string();
 
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
@@ -153,9 +143,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
     );
 
-    let file = fs::read(fname).unwrap();
-    let part = multipart::Part::bytes(file)
-        .file_name(file_name)
+    let part = multipart::Part::bytes(buffer.to_vec())
+        .file_name(uuid_name)
         .mime_str(content_type.as_str())
         .unwrap();
     let model = TRANSCRIPT_MODELS.to_string();
@@ -189,7 +178,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
     })?;
 
-    let _ = fs::remove_file(&file_to_delete);
     trace!("{}", res);
     let text = res["text"].as_str().unwrap_or("");
     trace!("{}", text);

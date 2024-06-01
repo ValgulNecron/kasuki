@@ -4,6 +4,7 @@ use serenity::all::{
     CommandOptionType, CreateCommand, CreateCommandOption, InstallationContext, InteractionContext,
     Permissions,
 };
+use tracing::trace;
 
 use crate::command_register::command_struct::common::{
     Arg, Choice, ChoiceLocalised, CommandInstallationContext, CommandIntegrationContext,
@@ -207,6 +208,7 @@ pub fn get_permission(
                 let permission: Permissions = perm.permission.into();
                 perm_bit |= permission.bits()
             }
+            trace!("{:?}", perm_bit);
             let permission = Permissions::from_bits(perm_bit).unwrap();
             command_build.default_member_permissions(permission)
         }

@@ -11,7 +11,7 @@
     "user": false
   },
   "nsfw": false,
-  "default_permissions": [
+  "permissions": [
     {
       "permission": "Administrator"
     }

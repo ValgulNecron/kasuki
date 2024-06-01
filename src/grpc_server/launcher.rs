@@ -52,10 +52,8 @@ pub async fn grpc_server_launcher(
             http,
         }
     };
-    let command_service = unsafe {
-        CommandServices {
-            command_list: Arc::new(BOT_COMMANDS.clone()),
-        }
+    let command_service = CommandServices {
+        command_list: Arc::new(BOT_COMMANDS.clone()),
     };
 
     // Configure the reflection service and register the file descriptor set for the shard service

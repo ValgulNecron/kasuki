@@ -7,9 +7,7 @@
 
 ![Alt](https://repobeats.axiom.co/api/embed/ce0c4fc4155948704332a4126e892cfe612ed6cb.svg "Repobeats analytics image")
 
-
 # Vision
-
 
 The bot is in the first place,
 a bot that interfaces discord and the anilist api,
@@ -17,22 +15,16 @@ letting users get different information from it.
 There are also multiple secondary modules that will be added
 when I have ideas or want to test things.
 
-
 # How to use
 
-
 ## 1. Add the bot to your server
-
 
 you can add my instance of the bot
 with [this link](https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot)
 
-
 ## 2. Self-host your instance
 
-
 ### tested on:
-
 
 linux: ubuntu 22.04.2 x86-64
 
@@ -41,7 +33,6 @@ Requirement: libssl-dev libsqlite3-dev libpng-dev libjpeg-dev ca-certificates pk
 windows: rust but not anything else atm
 
 Requirement: cmake youtube-dl
-
 
 ### Docker
 
@@ -66,7 +57,6 @@ docker compose up -d --pull always
 ```
 
 or you can build from the latest commit.
-
 
 ### or Rust
 
@@ -93,16 +83,12 @@ You can if you want use a postgres database and not a sqlite one the user will n
 Create table inside both database
 and select, insert, delete on them.
 
-
 # Contributing
-
 
 ## I know how to code in rust
 
-
 Then please check the todo and follow CONTRIBUTING.md to add feature if the todo is complete, or you want to do
 something else, you can do it and open a pr afterward.
-
 
 ## I don’t know how to code in rust but still want to contribute
 
@@ -118,22 +104,16 @@ Please also add the country code to the constant LANG_MAP in src/constant.rs and
 for the command json please follow the example,
 the "code" field should respect discord locale https://discord.com/developers/docs/reference#locales
 
-
 # TODO
-
 
 ## BOT
 
-
 Check the [todo](TODO.md) file.
-
 
 ## Website
 
-
 for those of you who prefer web dev.\
 [https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
-
 
 # Credit
 
@@ -154,6 +134,5 @@ for those of you who prefer web dev.\
   even know it existed before.
 
 # Stat
-
 
 ![kasuki](https://counter.valgul.moe/get/@kasuki?theme=gelbooru)

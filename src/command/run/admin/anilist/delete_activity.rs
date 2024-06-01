@@ -3,12 +3,13 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use tracing::trace;
 
 use crate::command::run::admin::anilist::add_activity::get_name;
 use crate::database::manage::dispatcher::data_dispatch::remove_data_activity_status;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
 use crate::structure::run::anilist::minimal_anime::MinimalAnimeWrapper;
 
@@ -38,7 +39,7 @@ use crate::structure::run::anilist::minimal_anime::MinimalAnimeWrapper;
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string_subcommand_group(command_interaction);
     let anime = map
         .get(&String::from("anime_name"))
         .cloned()
@@ -66,6 +67,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Message,
             )
         })?;
+    trace!(anime);
     let anime_id = if anime.parse::<i32>().is_ok() {
         anime.parse().unwrap()
     } else {
