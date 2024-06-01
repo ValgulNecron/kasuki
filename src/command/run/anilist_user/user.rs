@@ -1,5 +1,4 @@
 use serenity::all::{CommandInteraction, Context};
-use tracing::trace;
 use crate::database::data_struct::registered_user::RegisteredUser;
 
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;

@@ -2,7 +2,6 @@ use once_cell::sync::Lazy;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
-use tracing::trace;
 
 use crate::command::run::anilist_user::user::get_user_data;
 use crate::database::data_struct::registered_user::RegisteredUser;

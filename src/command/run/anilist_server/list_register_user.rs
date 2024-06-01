@@ -3,7 +3,6 @@ use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, PartialGuild, User, UserId,
 };
-use tracing::log::trace;
 use crate::command::run::anilist_user::user::get_user_data;
 
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
