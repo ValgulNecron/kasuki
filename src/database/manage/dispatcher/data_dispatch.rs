@@ -1,5 +1,6 @@
 use crate::constant::DB_TYPE;
 use crate::database::data_struct::module_status::ActivationStatusModule;
+use crate::database::data_struct::ping_history::PingHistory;
 use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::postgresql::data::{
@@ -41,15 +42,15 @@ use crate::structure::run::anilist::minimal_anime::ActivityData;
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn set_data_ping_history(shard_id: String, latency: String) -> Result<(), AppError> {
+pub async fn set_data_ping_history(ping_history: PingHistory) -> Result<(), AppError> {
     let db_type = DB_TYPE.clone();
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
-        set_data_ping_history_sqlite(shard_id, latency).await
+        set_data_ping_history_sqlite(ping_history).await
     } else if db_type == "postgresql" {
-        set_data_ping_history_postgresql(shard_id, latency).await
+        set_data_ping_history_postgresql(ping_history).await
     } else {
-        set_data_ping_history_sqlite(shard_id, latency).await
+        set_data_ping_history_sqlite(ping_history).await
     }
 }
 

@@ -1,6 +1,7 @@
 use serde_json::Value;
+use crate::cache::cache_struct::cache::Cache;
 
-use crate::cache::cache_struct::cache_stats::CacheStats;
+use crate::cache::cache_struct::random_cache::RandomCache;
 use crate::cache::manage::postgresgl::cache::{
     get_database_cache_postgresql, get_database_random_cache_postgresql,
     set_database_cache_postgresql, set_database_random_cache_postgres,
@@ -25,7 +26,7 @@ use crate::helper::error_management::error_enum::AppError;
 /// # Returns
 ///
 /// * A Result that is either an Option variant containing the CacheStats if the operation was successful, or an Err variant with an AppError.
-pub async fn get_database_random_cache(random_type: &str) -> Result<Option<CacheStats>, AppError> {
+pub async fn get_database_random_cache(random_type: &str) -> Result<Option<RandomCache>, AppError> {
     let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
@@ -55,19 +56,16 @@ pub async fn get_database_random_cache(random_type: &str) -> Result<Option<Cache
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_database_random_cache(
-    random_type: &str,
-    cached_response: &str,
-    now: i64,
-    previous_page: i64,
+    random_cache: RandomCache
 ) -> Result<(), AppError> {
     let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
-        set_database_random_cache_sqlite(random_type, cached_response, now, previous_page).await
+        set_database_random_cache_sqlite(random_cache).await
     } else if cache_type == "postgresql" {
-        set_database_random_cache_postgres(random_type, cached_response, now, previous_page).await
+        set_database_random_cache_postgres(random_cache).await
     } else {
-        set_database_random_cache_sqlite(random_type, cached_response, now, previous_page).await
+        set_database_random_cache_sqlite(random_cache).await
     }
 }
 
@@ -86,7 +84,7 @@ pub async fn set_database_random_cache(
 /// * A Result that is either a tuple containing the Option variants of the cache entry if the operation was successful, or an Err variant with an AppError.
 pub async fn get_database_cache(
     json: Value,
-) -> Result<(Option<String>, Option<String>, Option<i64>), AppError> {
+) -> Result<Option<Cache>, AppError> {
     let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
@@ -112,14 +110,14 @@ pub async fn get_database_cache(
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn set_database_cache(json: Value, resp: String) -> Result<(), AppError> {
+pub async fn set_database_cache(cache: Cache) -> Result<(), AppError> {
     let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
-        set_database_cache_sqlite(json, resp).await
+        set_database_cache_sqlite(cache).await
     } else if cache_type == "postgresql" {
-        set_database_cache_postgresql(json, resp).await
+        set_database_cache_postgresql(cache).await
     } else {
-        set_database_cache_sqlite(json, resp).await
+        set_database_cache_sqlite(cache).await
     }
 }

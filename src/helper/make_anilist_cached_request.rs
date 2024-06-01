@@ -1,6 +1,7 @@
 use chrono::Utc;
 use reqwest::Client;
 use serde_json::Value;
+use crate::cache::cache_struct::cache::Cache;
 
 use crate::cache::manage::cache_dispatch::{get_database_cache, set_database_cache};
 use crate::constant::TIME_BETWEEN_CACHE_UPDATE;
@@ -41,18 +42,19 @@ pub async fn make_request_anilist(json: Value, always_update: bool) -> String {
 ///
 /// * A string that represents the response from the API or the cache.
 async fn get_cache(json: Value) -> String {
-    let (json_resp, response, last_updated): (Option<String>, Option<String>, Option<i64>) =
+    let cache: Option<Cache> =
         get_database_cache(json.clone())
             .await
-            .unwrap_or((None, None, None));
+            .unwrap_or(None);
 
-    if json_resp.is_none() || response.is_none() || last_updated.is_none() {
+    if cache.is_none() {
         do_request(json.clone(), false).await
     } else {
-        let updated_at = last_updated.unwrap();
+        let cache = cache.unwrap();
+        let updated_at = cache.last_updated;
         let duration_since_updated = Utc::now().timestamp() - updated_at;
         if duration_since_updated < TIME_BETWEEN_CACHE_UPDATE as i64 {
-            response.unwrap()
+            cache.resp
         } else {
             do_request(json.clone(), false).await
         }
@@ -72,8 +74,13 @@ async fn get_cache(json: Value) -> String {
 ///
 /// * A boolean that indicates whether the operation was successful.
 async fn add_cache(json: Value, resp: String) -> bool {
-    set_database_cache(json, resp).await.unwrap_or(());
-
+    let now = Utc::now().timestamp();
+    let cache = Cache {
+        json: json.to_string(),
+        resp: resp.clone(),
+        last_updated: now,
+    };
+    set_database_cache(cache).await.unwrap_or(());
     true
 }
 

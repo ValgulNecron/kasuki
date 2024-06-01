@@ -16,6 +16,7 @@ use std::time::Duration;
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::info;
+use crate::database::data_struct::ping_history::PingHistory;
 
 /// This function is responsible for launching various threads for different tasks.
 /// It takes a `Context` as an argument which is used to clone and pass to the threads.
@@ -150,7 +151,14 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>) {
         // Get the latency of the shard
         let latency = shard.latency.unwrap_or_default().as_millis().to_string();
         // Set the ping history data
-        set_data_ping_history(shard_id.to_string(), latency)
+        let now = chrono::Utc::now().timestamp().to_string();
+        let ping_history = PingHistory {
+            shard_id: shard_id.to_string(),
+            ping: latency.clone(),
+            timestamp: now,
+        };
+
+        set_data_ping_history(ping_history)
             .await
             .unwrap();
     }

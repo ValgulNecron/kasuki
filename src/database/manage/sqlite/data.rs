@@ -2,6 +2,7 @@ use chrono::Utc;
 
 use crate::constant::DATA_SQLITE_DB;
 use crate::database::data_struct::module_status::ActivationStatusModule;
+use crate::database::data_struct::ping_history::PingHistory;
 use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
@@ -25,17 +26,16 @@ use crate::structure::run::anilist::minimal_anime::ActivityData;
 ///
 /// This function will log errors encountered when executing the SQL command, but does not return them.
 pub async fn set_data_ping_history_sqlite(
-    shard_id: String,
-    latency: String,
+    ping_history: PingHistory
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let now = Utc::now().timestamp().to_string();
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)",
     )
-    .bind(shard_id)
-    .bind(now)
-    .bind(latency)
+    .bind(ping_history.shard_id)
+    .bind(ping_history.timestamp)
+    .bind(ping_history.ping)
     .execute(&pool)
     .await
     .map_err(|e| {

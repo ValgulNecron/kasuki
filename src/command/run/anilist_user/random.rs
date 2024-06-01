@@ -6,7 +6,7 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 
-use crate::cache::cache_struct::cache_stats::CacheStats;
+use crate::cache::cache_struct::random_cache::RandomCache;
 use crate::cache::manage::cache_dispatch::{get_database_random_cache, set_database_random_cache};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::create_normalise_embed::get_default_embed;
@@ -67,7 +67,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })?;
 
     // Retrieve the cached response for the specified type
-    let row: Option<CacheStats> = get_database_random_cache(random_type).await?;
+    let row: Option<RandomCache> = get_database_random_cache(random_type).await?;
     let (cached_response, last_updated, page_number) = match row {
         Some(row) => (row.response, row.last_updated, row.last_page),
         None => (String::new(), 0, 1628),
@@ -278,13 +278,20 @@ pub async fn update_cache(
         }
     }
 
-    set_database_random_cache(random_type, cached_response.as_str(), now, previous_page).await?;
+    let random_cache = RandomCache {
+        random_type: random_type.clone(),
+        response: cached_response.clone(),
+        last_updated: now,
+        last_page: previous_page,
+    };
+
+    set_database_random_cache(random_cache).await?;
     embed(
         previous_page,
         random_type.to_string(),
         ctx,
         command_interaction,
-        random_localised,
+        random_localised,   
     )
     .await
 }

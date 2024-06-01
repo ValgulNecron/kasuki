@@ -1,7 +1,8 @@
 use chrono::Utc;
 use serde_json::Value;
+use crate::cache::cache_struct::cache::Cache;
 
-use crate::cache::cache_struct::cache_stats::CacheStats;
+use crate::cache::cache_struct::random_cache::RandomCache;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
@@ -19,11 +20,11 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 /// * A Result that is either an Option containing CacheStats if the operation was successful and the cache entry exists, or None if the cache entry does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_database_random_cache_postgresql(
     random_type: &str,
-) -> Result<Option<CacheStats>, AppError> {
+) -> Result<Option<RandomCache>, AppError> {
     let pool = get_postgresql_pool().await?;
 
-    let row: Option<CacheStats> = sqlx::query_as(
-        "SELECT response, last_updated, last_page FROM CACHE.cache_stats WHERE key = $1",
+    let row: Option<RandomCache> = sqlx::query_as(
+        "SELECT response, last_updated, last_page, random_type FROM CACHE.cache_stats WHERE key = $1",
     )
     .bind(random_type)
     .fetch_optional(&pool)
@@ -49,18 +50,15 @@ pub async fn get_database_random_cache_postgresql(
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_database_random_cache_postgres(
-    random_type: &str,
-    cached_response: &str,
-    now: i64,
-    previous_page: i64,
+    cache_stats: RandomCache
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query("INSERT INTO CACHE.cache_stats (key, response, last_updated, last_page) VALUES ($1, $2, $3, $4)\
      ON CONFLICT (key) DO UPDATE SET response = EXCLUDED.response, last_updated = EXCLUDED.last_updated, last_page = EXCLUDED.last_page")
-        .bind(random_type)
-        .bind(cached_response)
-        .bind(now)
-        .bind(previous_page)
+        .bind(cache_stats.random_type)
+        .bind(cache_stats.response)
+        .bind(cache_stats.last_updated)
+        .bind(cache_stats.last_page)
         .execute(&pool)
         .await
         .map_err(|e|
@@ -87,16 +85,16 @@ pub async fn set_database_random_cache_postgres(
 /// * A Result that is either a tuple containing Option<String>, Option<String>, Option<i64> if the operation was successful and the cache entry exists, or (None, None, None) if the cache entry does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_database_cache_postgresql(
     json: Value,
-) -> Result<(Option<String>, Option<String>, Option<i64>), AppError> {
+) -> Result<Option<Cache>, AppError> {
     let pool = get_postgresql_pool().await?;
 
-    let row: (Option<String>, Option<String>, Option<i64>) = sqlx::query_as(
+    let row: Option<Cache> = sqlx::query_as(
         "SELECT json, response, last_updated FROM CACHE.request_cache WHERE json = $1",
     )
     .bind(json.clone())
-    .fetch_one(&pool)
+    .fetch_optional(&pool)
     .await
-    .unwrap_or((None, None, None));
+    .unwrap_or(None);
 
     pool.close().await;
     Ok(row)
@@ -114,15 +112,14 @@ pub async fn get_database_cache_postgresql(
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
-pub async fn set_database_cache_postgresql(json: Value, resp: String) -> Result<(), AppError> {
+pub async fn set_database_cache_postgresql(cache: Cache) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
-    let now = Utc::now().timestamp();
     sqlx::query(
         "INSERT INTO CACHE.request_cache (json, response, last_updated) VALUES ($1, $2, $3) ON CONFLICT (json) DO UPDATE SET response = EXCLUDED.response, last_updated = EXCLUDED.last_updated",
     )
-        .bind(json.clone())
-        .bind(resp.clone())
-        .bind(now)
+        .bind(cache.json)
+        .bind(cache.resp)
+        .bind(cache.last_updated)
         .execute(&pool)
         .await
         .map_err(|e|

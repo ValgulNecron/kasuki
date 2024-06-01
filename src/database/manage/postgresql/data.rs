@@ -1,6 +1,7 @@
 use chrono::Utc;
 
 use crate::database::data_struct::module_status::ActivationStatusModule;
+use crate::database::data_struct::ping_history::PingHistory;
 use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
@@ -21,17 +22,16 @@ use crate::structure::run::anilist::minimal_anime::ActivityData;
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_ping_history_postgresql(
-    shard_id: String,
-    latency: String,
+    ping_history: PingHistory
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     let now = Utc::now().timestamp().to_string();
     sqlx::query(
         "INSERT INTO DATA.ping_history (shard_id, timestamp, ping) VALUES ($1, $2, $3) ON CONFLICT (shard_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, ping = EXCLUDED.ping",
     )
-        .bind(shard_id)
-        .bind(now)
-        .bind(latency)
+        .bind(ping_history.shard_id)
+        .bind(ping_history.timestamp)
+        .bind(ping_history.ping)
         .execute(&pool)
         .await
         .map_err(|e|
