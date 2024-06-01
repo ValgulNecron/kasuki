@@ -39,3 +39,10 @@ pub struct ServerActivityFull {
     /// image is a String that represents the image of the activity.
     pub image: String,
 }
+
+#[derive(sqlx::FromRow)]
+pub struct SmallServerActivity {
+    pub anime_id: i32,
+    pub timestamp: i64,
+    pub guild_id: String,
+}

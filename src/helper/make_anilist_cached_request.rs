@@ -1,7 +1,7 @@
+use crate::cache::cache_struct::cache::Cache;
 use chrono::Utc;
 use reqwest::Client;
 use serde_json::Value;
-use crate::cache::cache_struct::cache::Cache;
 
 use crate::cache::manage::cache_dispatch::{get_database_cache, set_database_cache};
 use crate::constant::TIME_BETWEEN_CACHE_UPDATE;
@@ -42,10 +42,7 @@ pub async fn make_request_anilist(json: Value, always_update: bool) -> String {
 ///
 /// * A string that represents the response from the API or the cache.
 async fn get_cache(json: Value) -> String {
-    let cache: Option<Cache> =
-        get_database_cache(json.clone())
-            .await
-            .unwrap_or(None);
+    let cache: Option<Cache> = get_database_cache(json.clone()).await.unwrap_or(None);
 
     if cache.is_none() {
         do_request(json.clone(), false).await

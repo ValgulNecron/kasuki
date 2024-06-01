@@ -1,5 +1,5 @@
-use serde_json::Value;
 use crate::cache::cache_struct::cache::Cache;
+use serde_json::Value;
 
 use crate::cache::cache_struct::random_cache::RandomCache;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
@@ -48,9 +48,7 @@ pub async fn get_database_random_cache_postgresql(
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
-pub async fn set_database_random_cache_postgres(
-    cache_stats: RandomCache
-) -> Result<(), AppError> {
+pub async fn set_database_random_cache_postgres(cache_stats: RandomCache) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query("INSERT INTO CACHE.cache_stats (key, response, last_updated, last_page) VALUES ($1, $2, $3, $4)\
      ON CONFLICT (key) DO UPDATE SET response = EXCLUDED.response, last_updated = EXCLUDED.last_updated, last_page = EXCLUDED.last_page")
@@ -82,9 +80,7 @@ pub async fn set_database_random_cache_postgres(
 /// # Returns
 ///
 /// * A Result that is either a tuple containing Option<String>, Option<String>, Option<i64> if the operation was successful and the cache entry exists, or (None, None, None) if the cache entry does not exist. Returns an Err variant with an AppError if the operation failed.
-pub async fn get_database_cache_postgresql(
-    json: Value,
-) -> Result<Option<Cache>, AppError> {
+pub async fn get_database_cache_postgresql(json: Value) -> Result<Option<Cache>, AppError> {
     let pool = get_postgresql_pool().await?;
 
     let row: Option<Cache> = sqlx::query_as(

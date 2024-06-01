@@ -20,11 +20,8 @@ pub async fn get_guild_language(guild_id: String) -> String {
         return String::from("en");
     };
 
-    let guild_lang: Option<GuildLanguage> = get_data_guild_language(guild_id)
-        .await
-        .unwrap_or(None);
+    let guild_lang: Option<GuildLanguage> = get_data_guild_language(guild_id).await.unwrap_or(None);
 
-    
     match guild_lang {
         Some(lang) => lang.lang,
         None => String::from("en"),

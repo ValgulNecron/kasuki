@@ -15,7 +15,7 @@ use serenity::all::{
 use tracing::{error, trace};
 
 use crate::constant::COLOR;
-use crate::database::data_struct::server_activity::ServerActivityFull;
+use crate::database::data_struct::server_activity::{ServerActivityFull, SmallServerActivity};
 use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -204,11 +204,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 ///
 /// A boolean indicating whether the activity exists.
 async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
-    let row: (Option<String>, Option<String>, Option<String>) =
-        get_one_activity(anime_id, server_id)
-            .await
-            .unwrap_or((None, None, None));
-    !(row.0.is_none() && row.1.is_none() && row.2.is_none())
+    let row: Option<SmallServerActivity> =
+        get_one_activity(anime_id, server_id).await.unwrap_or(None);
+    row.is_some()
 }
 
 /// This function gets the name of an anime from a `Title` struct.

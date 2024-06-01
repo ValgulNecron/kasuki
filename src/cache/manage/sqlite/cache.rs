@@ -1,5 +1,5 @@
-use serde_json::Value;
 use crate::cache::cache_struct::cache::Cache;
+use serde_json::Value;
 
 use crate::cache::cache_struct::random_cache::RandomCache;
 use crate::constant::CACHE_SQLITE_DB;
@@ -22,12 +22,13 @@ pub async fn get_database_random_cache_sqlite(
     random_type: &str,
 ) -> Result<Option<RandomCache>, AppError> {
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
-    let row: Option<RandomCache> =
-        sqlx::query_as("SELECT response, last_updated, last_page, random_type FROM cache_stats WHERE key = ?")
-            .bind(random_type)
-            .fetch_optional(&pool)
-            .await
-            .unwrap_or(None);
+    let row: Option<RandomCache> = sqlx::query_as(
+        "SELECT response, last_updated, last_page, random_type FROM cache_stats WHERE key = ?",
+    )
+    .bind(random_type)
+    .fetch_optional(&pool)
+    .await
+    .unwrap_or(None);
     pool.close().await;
     Ok(row)
 }
@@ -43,9 +44,7 @@ pub async fn get_database_random_cache_sqlite(
 /// * `now` - The timestamp for the last update.
 /// * `previous_page` - The value of the last page.
 ///
-pub async fn set_database_random_cache_sqlite(
-    cache_stats: RandomCache
-) -> Result<(), AppError> {
+pub async fn set_database_random_cache_sqlite(cache_stats: RandomCache) -> Result<(), AppError> {
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
     sqlx::query("INSERT OR REPLACE INTO cache_stats (key, response, last_updated, last_page) VALUES (?, ?, ?, ?)")
         .bind(cache_stats.random_type)
@@ -75,9 +74,7 @@ pub async fn set_database_random_cache_sqlite(
 /// A tuple containing the JSON, response, and last_updated values from the cache.
 /// If no matching JSON is found in the cache, the returned tuple will contain `None` values.
 ///
-pub async fn get_database_cache_sqlite(
-    json: Value,
-) -> Result<Option<Cache>, AppError> {
+pub async fn get_database_cache_sqlite(json: Value) -> Result<Option<Cache>, AppError> {
     let pool = get_sqlite_pool(CACHE_SQLITE_DB).await?;
     let row: Option<Cache> =
         sqlx::query_as("SELECT json, response, last_updated FROM request_cache WHERE json = ?")

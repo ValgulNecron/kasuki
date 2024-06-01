@@ -291,7 +291,7 @@ pub async fn update_cache(
         random_type.to_string(),
         ctx,
         command_interaction,
-        random_localised,   
+        random_localised,
     )
     .await
 }

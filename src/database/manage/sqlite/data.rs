@@ -4,7 +4,9 @@ use crate::constant::DATA_SQLITE_DB;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
-use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
+use crate::database::data_struct::server_activity::{
+    ServerActivity, ServerActivityFull, SmallServerActivity,
+};
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -26,9 +28,7 @@ use crate::structure::run::anilist::minimal_anime::ActivityData;
 /// # Errors
 ///
 /// This function will log errors encountered when executing the SQL command, but does not return them.
-pub async fn set_data_ping_history_sqlite(
-    ping_history: PingHistory
-) -> Result<(), AppError> {
+pub async fn set_data_ping_history_sqlite(ping_history: PingHistory) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let now = Utc::now().timestamp().to_string();
     let _ = sqlx::query(
@@ -65,7 +65,7 @@ pub async fn get_data_guild_language_sqlite(
     guild_id: String,
 ) -> Result<Option<GuildLanguage>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: Option<GuildLanguage>=
+    let row: Option<GuildLanguage> =
         sqlx::query_as("SELECT lang, guild FROM guild_lang WHERE guild = ?")
             .bind(guild_id)
             .fetch_optional(&pool)
@@ -81,9 +81,7 @@ pub async fn get_data_guild_language_sqlite(
 ///
 /// * `guild_id` - The ID of the guild.
 /// * `lang_struct` - The language to set for the guild.
-pub async fn set_data_guild_language_sqlite(
-    guild_language: GuildLanguage
-) -> Result<(), AppError> {
+pub async fn set_data_guild_language_sqlite(guild_language: GuildLanguage) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let _ = sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
         .bind(guild_language.guild)
@@ -213,21 +211,18 @@ pub async fn get_data_module_activation_status_sqlite(
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn set_data_module_activation_status_sqlite(
-    guild_id: &String,
-    anilist_value: bool,
-    ai_value: bool,
-    game_value: bool,
-    new_member_value: bool,
+    activation_status_module: ActivationStatusModule,
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let _ = sqlx::query(
-        "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module, game_module, new_member) VALUES (?, ?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module, game_module, new_member, vn) VALUES (?, ?, ?, ?, ?, ?)",
     )
-        .bind(guild_id)
-        .bind(anilist_value)
-        .bind(ai_value)
-        .bind(game_value)
-        .bind(new_member_value)
+        .bind(activation_status_module.id)
+        .bind(activation_status_module.anilist_module)
+        .bind(activation_status_module.ai_module)
+        .bind(activation_status_module.game_module)
+        .bind(activation_status_module.new_member)
+        .bind(activation_status_module.vn)
         .execute(&pool)
         .await
         .map_err(|e|
@@ -329,16 +324,16 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
 pub async fn get_one_activity_sqlite(
     server_id: String,
     anime_id: i32,
-) -> Result<(Option<String>, Option<String>, Option<String>), AppError> {
+) -> Result<Option<SmallServerActivity>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>, Option<String>) = sqlx::query_as(
+    let row: Option<SmallServerActivity> = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id FROM activity_data WHERE anime_id = ? AND server_id = ?",
     )
         .bind(anime_id)
         .bind(server_id)
-        .fetch_one(&pool)
+        .fetch_optional(&pool)
         .await
-        .unwrap_or((None, None, None));
+        .unwrap_or(None);
 
     pool.close().await;
 

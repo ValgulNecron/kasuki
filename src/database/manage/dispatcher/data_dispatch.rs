@@ -2,7 +2,9 @@ use crate::constant::DB_TYPE;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
-use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
+use crate::database::data_struct::server_activity::{
+    ServerActivity, ServerActivityFull, SmallServerActivity,
+};
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::postgresql::data::{
     get_all_server_activity_postgresql, get_all_user_approximated_color_postgres,
@@ -68,9 +70,7 @@ pub async fn set_data_ping_history(ping_history: PingHistory) -> Result<(), AppE
 /// # Returns
 ///
 /// * A Result that is either an Option variant containing the guild language if the operation was successful, or an Err variant with an AppError.
-pub async fn get_data_guild_language(
-    guild_id: String,
-) -> Result<Option<GuildLanguage>, AppError> {
+pub async fn get_data_guild_language(guild_id: String) -> Result<Option<GuildLanguage>, AppError> {
     let db_type = DB_TYPE.clone();
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
@@ -203,41 +203,16 @@ pub async fn get_data_module_activation_status(
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_data_module_activation_status(
-    guild_id: &String,
-    anilist_value: bool,
-    ai_value: bool,
-    game_value: bool,
-    new_member_value: bool,
+    activation_status_module: ActivationStatusModule,
 ) -> Result<(), AppError> {
     let db_type = DB_TYPE.clone();
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
-        set_data_module_activation_status_sqlite(
-            guild_id,
-            anilist_value,
-            ai_value,
-            game_value,
-            new_member_value,
-        )
-        .await
+        set_data_module_activation_status_sqlite(activation_status_module).await
     } else if db_type == "postgresql" {
-        set_data_module_activation_status_postgresql(
-            guild_id,
-            anilist_value,
-            ai_value,
-            game_value,
-            new_member_value,
-        )
-        .await
+        set_data_module_activation_status_postgresql(activation_status_module).await
     } else {
-        set_data_module_activation_status_sqlite(
-            guild_id,
-            anilist_value,
-            ai_value,
-            game_value,
-            new_member_value,
-        )
-        .await
+        set_data_module_activation_status_sqlite(activation_status_module).await
     }
 }
 
@@ -258,7 +233,7 @@ pub async fn set_data_module_activation_status(
 pub async fn get_one_activity(
     anime_id: i32,
     server_id: String,
-) -> Result<(Option<String>, Option<String>, Option<String>), AppError> {
+) -> Result<Option<SmallServerActivity>, AppError> {
     let db_type = DB_TYPE.clone();
     let db_type = db_type.as_str();
     if db_type == "sqlite" {

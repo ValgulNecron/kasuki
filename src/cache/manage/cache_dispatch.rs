@@ -1,5 +1,5 @@
-use serde_json::Value;
 use crate::cache::cache_struct::cache::Cache;
+use serde_json::Value;
 
 use crate::cache::cache_struct::random_cache::RandomCache;
 use crate::cache::manage::postgresgl::cache::{
@@ -55,9 +55,7 @@ pub async fn get_database_random_cache(random_type: &str) -> Result<Option<Rando
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn set_database_random_cache(
-    random_cache: RandomCache
-) -> Result<(), AppError> {
+pub async fn set_database_random_cache(random_cache: RandomCache) -> Result<(), AppError> {
     let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
@@ -82,9 +80,7 @@ pub async fn set_database_random_cache(
 /// # Returns
 ///
 /// * A Result that is either a tuple containing the Option variants of the cache entry if the operation was successful, or an Err variant with an AppError.
-pub async fn get_database_cache(
-    json: Value,
-) -> Result<Option<Cache>, AppError> {
+pub async fn get_database_cache(json: Value) -> Result<Option<Cache>, AppError> {
     let cache_type = CACHE_TYPE;
     let cache_type = cache_type.as_str();
     if cache_type == "sqlite" {
