@@ -1,6 +1,7 @@
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use crate::database::data_struct::guild_language::GuildLanguage;
 
 use crate::database::manage::dispatcher::data_dispatch::set_data_guild_language;
 use crate::helper::create_normalise_embed::get_default_embed;
@@ -47,7 +48,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let _ = set_data_guild_language(&guild_id, lang).await;
+    let guild_language = GuildLanguage {
+        guild: guild_id.clone(),
+        lang: lang.clone(),
+    };
+    let _ = set_data_guild_language(guild_language).await;
     let lang_localised = load_localization_lang(guild_id).await?;
 
     let builder_embed = get_default_embed(None)

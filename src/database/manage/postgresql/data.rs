@@ -1,4 +1,5 @@
 use chrono::Utc;
+use crate::database::data_struct::guild_language::GuildLanguage;
 
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
@@ -58,14 +59,14 @@ pub async fn set_data_ping_history_postgresql(
 /// * A Result that is either a tuple containing Option<String>, Option<String> if the operation was successful and the guild language record exists, or (None, None) if the guild language record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_guild_language_postgresql(
     guild_id: String,
-) -> Result<(Option<String>, Option<String>), AppError> {
+) -> Result<Option<GuildLanguage>, AppError> {
     let pool = get_postgresql_pool().await?;
-    let row: (Option<String>, Option<String>) =
+    let row: Option<GuildLanguage> =
         sqlx::query_as("SELECT lang, guild FROM DATA.guild_lang WHERE guild = $1")
             .bind(guild_id)
-            .fetch_one(&pool)
+            .fetch_optional(&pool)
             .await
-            .unwrap_or((None, None));
+            .unwrap_or(None);
     pool.close().await;
     Ok(row)
 }
@@ -84,15 +85,14 @@ pub async fn get_data_guild_language_postgresql(
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_guild_language_postgresql(
-    guild_id: &String,
-    lang: &String,
+    guild_language: GuildLanguage
 ) -> Result<(), AppError> {
     let pool = get_postgresql_pool().await?;
     sqlx::query(
         "INSERT INTO DATA.guild_lang (guild, lang) VALUES ($1, $2) ON CONFLICT (guild) DO UPDATE SET lang = EXCLUDED.lang",
     )
-        .bind(guild_id)
-        .bind(lang)
+        .bind(guild_language.guild)
+        .bind(guild_language.lang)
         .execute(&pool)
         .await
         .map_err(|e|

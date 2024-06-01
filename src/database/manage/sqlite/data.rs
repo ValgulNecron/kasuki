@@ -1,6 +1,7 @@
 use chrono::Utc;
 
 use crate::constant::DATA_SQLITE_DB;
+use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
 use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
@@ -62,14 +63,14 @@ pub async fn set_data_ping_history_sqlite(
 /// If not found, both values will be `None`.
 pub async fn get_data_guild_language_sqlite(
     guild_id: String,
-) -> Result<(Option<String>, Option<String>), AppError> {
+) -> Result<Option<GuildLanguage>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>) =
+    let row: Option<GuildLanguage>=
         sqlx::query_as("SELECT lang, guild FROM guild_lang WHERE guild = ?")
             .bind(guild_id)
-            .fetch_one(&pool)
+            .fetch_optional(&pool)
             .await
-            .unwrap_or((None, None));
+            .unwrap_or(None);
     pool.close().await;
     Ok(row)
 }
@@ -81,13 +82,12 @@ pub async fn get_data_guild_language_sqlite(
 /// * `guild_id` - The ID of the guild.
 /// * `lang_struct` - The language to set for the guild.
 pub async fn set_data_guild_language_sqlite(
-    guild_id: &String,
-    lang: &String,
+    guild_language: GuildLanguage
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
     let _ = sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
-        .bind(guild_id)
-        .bind(lang)
+        .bind(guild_language.guild)
+        .bind(guild_language.lang)
         .execute(&pool)
         .await
         .map_err(|e| {

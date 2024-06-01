@@ -11,6 +11,7 @@ use tracing::trace;
 use crate::constant::{APPS, LANG_MAP};
 use crate::database::manage::dispatcher::data_dispatch::get_data_guild_language;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_guild_lang::get_guild_language;
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
@@ -214,11 +215,7 @@ impl SteamGameWrapper {
                     ErrorResponseType::Unknown,
                 )
             })?;
-        let lang = get_data_guild_language(guild_id)
-            .await?
-            .0
-            .unwrap_or(String::from("en"))
-            .to_uppercase();
+        let lang = get_guild_language(guild_id).await;
         let local_lang = LANG_MAP;
         let full_lang = *local_lang
             .get(lang.to_lowercase().as_str())

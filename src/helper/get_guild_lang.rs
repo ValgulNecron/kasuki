@@ -1,3 +1,4 @@
+use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::manage::dispatcher::data_dispatch::get_data_guild_language;
 
 /// Retrieves the language setting for a given guild.
@@ -19,9 +20,13 @@ pub async fn get_guild_language(guild_id: String) -> String {
         return String::from("en");
     };
 
-    let (lang, _): (Option<String>, Option<String>) = get_data_guild_language(guild_id)
+    let guild_lang: Option<GuildLanguage> = get_data_guild_language(guild_id)
         .await
-        .unwrap_or((None, None));
+        .unwrap_or(None);
 
-    lang.unwrap_or("en".to_string())
+    let lang = match guild_lang {
+        Some(lang) => lang.lang,
+        None => String::from("en"),
+    };
+    lang
 }

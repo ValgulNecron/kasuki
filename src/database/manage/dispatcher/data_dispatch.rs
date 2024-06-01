@@ -1,4 +1,5 @@
 use crate::constant::DB_TYPE;
+use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
 use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
@@ -69,7 +70,7 @@ pub async fn set_data_ping_history(ping_history: PingHistory) -> Result<(), AppE
 /// * A Result that is either an Option variant containing the guild language if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_guild_language(
     guild_id: String,
-) -> Result<(Option<String>, Option<String>), AppError> {
+) -> Result<Option<GuildLanguage>, AppError> {
     let db_type = DB_TYPE.clone();
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
@@ -95,15 +96,15 @@ pub async fn get_data_guild_language(
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn set_data_guild_language(guild_id: &String, lang: &String) -> Result<(), AppError> {
+pub async fn set_data_guild_language(guild_language: GuildLanguage) -> Result<(), AppError> {
     let db_type = DB_TYPE.clone();
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
-        set_data_guild_language_sqlite(guild_id, lang).await
+        set_data_guild_language_sqlite(guild_language).await
     } else if db_type == "postgresql" {
-        set_data_guild_language_postgresql(guild_id, lang).await
+        set_data_guild_language_postgresql(guild_language).await
     } else {
-        set_data_guild_language_sqlite(guild_id, lang).await
+        set_data_guild_language_sqlite(guild_language).await
     }
 }
 
