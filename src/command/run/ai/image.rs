@@ -2,7 +2,7 @@ use std::env;
 
 use prost::bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -18,7 +18,6 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::{
     get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
-use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
 
 /// This module contains the implementation of the `run` function for handling AI image generation.
@@ -56,7 +55,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap_or(DEFAULT_STRING);
 
     let map = get_option_map_integer_subcommand(command_interaction);
-    let n = map.get(&String::from("n")).unwrap_or(&1).clone();
+    let n = *map.get(&String::from("n")).unwrap_or(&1);
 
     trace!(prompt);
 
@@ -247,7 +246,7 @@ async fn image_with_n_greater_than_1(
         .enumerate()
         .map(|(index, byte)| {
             let filename = format!("{}_{}.png", filename, index);
-            CreateAttachment::bytes(byte.clone(), &filename)
+            CreateAttachment::bytes(byte.clone(), filename)
         })
         .collect();
     let builder_message = CreateInteractionResponseFollowup::new()
