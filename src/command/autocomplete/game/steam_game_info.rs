@@ -1,4 +1,3 @@
-use rust_fuzzy_search::fuzzy_search_best_n;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
@@ -8,7 +7,6 @@ use tracing::{debug};
 use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::helper::fuzzy_search::distance_top_n;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for game search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -54,7 +52,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
     // truncate the name are longer than 0 characters and less than 100 characters
     // to prevent the discord api from returning an error
-    if result.len() > 0 {
+    if !result.is_empty() {
         for (name, _) in result {
             let name_show = if name.len() > 100 {
                 // first 100 characters
@@ -62,7 +60,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
             } else {
                 name.clone()
             };
-            if name.len() > 0 {
+            if !name.is_empty() {
                 choices.push(AutocompleteChoice::new(name_show.clone(),unsafe {APPS[&name].to_string()}));
             }
         }
