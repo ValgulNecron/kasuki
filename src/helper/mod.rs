@@ -8,3 +8,4 @@ pub mod image_saver;
 pub mod make_anilist_cached_request;
 pub mod read_file;
 pub mod trimer;
+pub mod fuzzy_search;

@@ -140,9 +140,15 @@ async fn send_specific_activity(
             ErrorResponseType::None,
         )
     })?;
+    let name = row.name.clone().unwrap_or_default();
+    let trimmed_name = if name.len() > 100 {
+        name[..100].to_string()
+    } else {
+        name
+    };
     let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
     let edit_webhook = EditWebhook::new()
-        .name(row.name.clone().unwrap())
+        .name(trimmed_name)
         .avatar(&attachment);
     webhook.edit(&ctx.http, edit_webhook).await.map_err(|e| {
         AppError::new(

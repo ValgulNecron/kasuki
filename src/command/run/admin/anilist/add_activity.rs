@@ -114,9 +114,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
         Ok(())
     } else {
-        if anime_name.len() >= 50 {
-            anime_name = trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
-        }
+        let trimed_anime_name = if anime_name.len() >= 50 {
+            trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
+        } else {
+            anime_name.clone()
+        };
 
         let bytes = get(media.cover_image.unwrap().extra_large.
             unwrap_or(
@@ -151,7 +153,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         };
 
         let webhook =
-            get_webhook(ctx, channel_id, image, base64.clone(), anime_name.clone()).await?;
+            get_webhook(ctx, channel_id, image, base64.clone(), trimed_anime_name).await?;
 
         set_data_activity(ServerActivityFull {
             anime_id,

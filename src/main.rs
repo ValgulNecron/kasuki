@@ -30,6 +30,7 @@ mod new_member;
 mod struct_shard_manager;
 mod structure;
 mod tui;
+mod federation;
 
 #[tokio::main]
 /// The main function where the execution of the bot starts.

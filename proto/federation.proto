@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package federation;
+
+service FederationConnectionService {
+    rpc Connect(ConnectRequest) returns (ConnectResponse) {}
+    rpc Disconnect(DisconnectRequest) returns (DisconnectResponse) {}
+    rpc RenewToken(RenewTokenRequest) returns (RenewTokenResponse) {}
+}
+
+message ConnectRequest {
+    string self_name = 1;
+    string self_url = 2;
+}
+
+message ConnectResponse {
+    string federation_name = 1;
+    string federation_url = 2;
+    string token = 3;
+    repeated string secondary_federation_url = 4;
+}
+
+message DisconnectRequest {
+    string self_name = 1;
+    string self_url = 2;
+    string token = 3;
+}
+
+message DisconnectResponse {
+    bool success = 1;
+}
+
+message RenewTokenRequest {
+    string self_name = 1;
+    string self_url = 2;
+    string token = 3;
+}
+
+message RenewTokenResponse {
+    string token = 1;
+}
+
+service FederationInfoService {
+    rpc GetFederationInfo(GetFederationInfoRequest) returns (GetFederationInfoResponse) {}
+}
+
+message GetFederationInfoRequest {
+    string federation_name = 1;
+    string token = 2;
+}
+
+message GetFederationInfoResponse {
+    string federation_name = 1;
+    string federation_url = 2;
+    repeated string secondary_federation_url = 3;
+}
+
+service FederationSharingService {
+}

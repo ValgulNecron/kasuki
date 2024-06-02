@@ -3,8 +3,10 @@ use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
+use tracing::{debug};
 
 use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
+use crate::helper::fuzzy_search::distance_top_n;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 
@@ -42,22 +44,39 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
         .unwrap_or(DEFAULT_STRING);
 
     let app_names: Vec<&str> = unsafe { APPS.iter().map(|app| app.0.as_str()).collect() };
-    let result = fuzzy_search_best_n(
+    let result = distance_top_n(
         game_search.as_str(),
-        &app_names,
+        app_names.clone(),
         AUTOCOMPLETE_COUNT_LIMIT as usize,
     );
+    debug!("Result: {:?}", result);
     let mut choices: Vec<AutocompleteChoice> = Vec::new();
 
-    // Map the indices of the matched strings back to their original positions in the APPS array
-    for (data, _) in result {
-        unsafe { choices.push(AutocompleteChoice::new(data, APPS[data].to_string())) }
+    // truncate the name are longer than 0 characters and less than 100 characters
+    // to prevent the discord api from returning an error
+    if result.len() > 0 {
+        for (name, _) in result {
+            let name_show = if name.len() > 100 {
+                // first 100 characters
+                name.chars().take(100).collect::<String>()
+            } else {
+                name.clone()
+            };
+            if name.len() > 0 {
+                choices.push(AutocompleteChoice::new(name_show.clone(),unsafe {APPS[&name].to_string()}));
+            }
+        }
     }
+    debug!("Choices: {:?}", choices.len());
+    debug!("Choices: {:?}", choices);
 
     let data = CreateAutocompleteResponse::new().set_choices(choices);
     let builder = CreateInteractionResponse::Autocomplete(data);
 
-    let _ = autocomplete_interaction
+    if let Err(why) = autocomplete_interaction
         .create_response(ctx.http, builder)
-        .await;
+        .await
+    {
+        debug!("Error sending response: {:?}", why);
+    }
 }
