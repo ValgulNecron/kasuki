@@ -147,9 +147,7 @@ async fn send_specific_activity(
         name
     };
     let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
-    let edit_webhook = EditWebhook::new()
-        .name(trimmed_name)
-        .avatar(&attachment);
+    let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(&attachment);
     webhook.edit(&ctx.http, edit_webhook).await.map_err(|e| {
         AppError::new(
             format!("There was an error editing the webhook {}", e),

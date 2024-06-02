@@ -1,4 +1,3 @@
-
 use crate::constant::DATA_SQLITE_DB;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;

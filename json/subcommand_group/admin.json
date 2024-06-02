@@ -453,24 +453,24 @@
                 },
                 {
                   "option_choice": "VN",
-                    "option_choice_localised": [
-                        {
-                        "code": "en-US",
-                        "name": "Visual Novel"
-                        },
-                        {
-                        "code": "fr",
-                        "name": "Roman Visuel"
-                        },
-                        {
-                        "code": "de",
-                        "name": "Visueller Roman"
-                        },
-                        {
-                        "code": "ja",
-                        "name": "ビジュアルノベル"
-                        }
-                    ]
+                  "option_choice_localised": [
+                    {
+                      "code": "en-US",
+                      "name": "Visual Novel"
+                    },
+                    {
+                      "code": "fr",
+                      "name": "Roman Visuel"
+                    },
+                    {
+                      "code": "de",
+                      "name": "Visueller Roman"
+                    },
+                    {
+                      "code": "ja",
+                      "name": "ビジュアルノベル"
+                    }
+                  ]
                 }
               ],
               "localised_args": [
@@ -578,18 +578,18 @@
             },
             {
               "code": "fr",
-                "name": "module",
-                "desc": "Activer ou désactiver un module."
+              "name": "module",
+              "desc": "Activer ou désactiver un module."
             },
             {
               "code": "de",
-                "name": "modul",
-                "desc": "Schalten Sie ein Modul ein oder aus."
+              "name": "modul",
+              "desc": "Schalten Sie ein Modul ein oder aus."
             },
             {
               "code": "ja",
-                "name": "モジュール",
-                "desc": "モジュールをオンまたはオフにします。"
+              "name": "モジュール",
+              "desc": "モジュールをオンまたはオフにします。"
             }
           ]
         }

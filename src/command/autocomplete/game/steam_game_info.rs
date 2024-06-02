@@ -2,7 +2,7 @@ use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-use tracing::{debug};
+use tracing::debug;
 
 use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::helper::fuzzy_search::distance_top_n;
@@ -61,7 +61,9 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
                 name.clone()
             };
             if !name.is_empty() {
-                choices.push(AutocompleteChoice::new(name_show.clone(),unsafe {APPS[&name].to_string()}));
+                choices.push(AutocompleteChoice::new(name_show.clone(), unsafe {
+                    APPS[&name].to_string()
+                }));
             }
         }
     }

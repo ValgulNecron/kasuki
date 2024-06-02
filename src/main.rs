@@ -23,6 +23,7 @@ mod components;
 pub(crate) mod constant;
 mod database;
 pub(crate) mod event_handler;
+mod federation;
 mod grpc_server;
 mod helper;
 mod logger;
@@ -30,7 +31,6 @@ mod new_member;
 mod struct_shard_manager;
 mod structure;
 mod tui;
-mod federation;
 
 #[tokio::main]
 /// The main function where the execution of the bot starts.
