@@ -84,7 +84,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         ErrorType::Option,
         ErrorResponseType::Followup,
     ))?;
-    let mut anime_name = get_name(title);
+    let anime_name = get_name(title);
     let channel_id = command_interaction.channel_id;
 
     if check_if_activity_exist(anime_id, guild_id.clone()).await {
