@@ -56,4 +56,30 @@ message GetFederationInfoResponse {
 }
 
 service FederationSharingService {
+    rpc ShareUserColor(ShareUserColorRequest) returns (ShareUserColorResponse) {}
+    rpc GetUsersColor(GetUsersColorRequest) returns (GetUsersColorResponse) {}
+}
+
+message ShareUserColorRequest {
+    repeated UserColor user_color = 1;
+    string token = 2;
+}
+
+message UserColor {
+    string user_name = 1;
+    string user_color = 2;
+    string pfp_url = 3;
+    string image_b64 = 4;
+}
+
+message ShareUserColorResponse {
+    bool success = 1;
+}
+
+message GetUsersColorRequest {
+    string token = 1;
+}
+
+message GetUsersColorResponse {
+    repeated UserColor user_color = 1;
 }
