@@ -225,6 +225,7 @@ pub fn get_vec<T: serde::Deserialize<'static> + Clone>(path: &str) -> Result<Vec
         error_response_type: ErrorResponseType::None,
     })?;
     for entry in paths {
+        let start = std::time::Instant::now();
         let entry = entry.map_err(|e| AppError {
             message: format!("Failed to read path with error {}", e),
             error_type: ErrorType::File,
@@ -248,6 +249,8 @@ pub fn get_vec<T: serde::Deserialize<'static> + Clone>(path: &str) -> Result<Vec
             })?;
             commands.push(command);
         }
+        let duration = start.elapsed();
+        trace!("Time taken to parse command structure: {:?}", duration);
     }
     Ok(commands)
 }
