@@ -283,7 +283,7 @@ async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, AppError> {
                     ErrorType::File,
                     ErrorResponseType::Followup,
                 )),
-            }
+            };
         }
     };
     let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();

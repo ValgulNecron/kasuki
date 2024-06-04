@@ -4,12 +4,12 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::read_file::read_file_as_string;
 
-pub async fn load_localization<T: serde::Deserialize<'static> + Clone>(
+pub async fn load_localization<'a, T: serde::Deserialize<'a> + Clone>(
     guild_id: String,
     path: &str,
 ) -> Result<T, AppError> {
     let json_content = read_file_as_string(path)?;
-    let json: &'static str = Box::leak(json_content.into_boxed_str());
+    let json: &'a str = Box::leak(json_content.into_boxed_str());
     // Parse the JSON data into a HashMap and handle any potential errors
     let json_data: HashMap<String, T> = serde_json::from_str(json).map_err(|e| {
         AppError::new(

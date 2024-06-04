@@ -1,3 +1,5 @@
+use cynic::QueryBuilder;
+use serde_json::Value;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
@@ -5,7 +7,10 @@ use serenity::all::{
 
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use crate::structure::autocomplete::anilist::character::CharacterPageWrapper;
+use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::structure::autocomplete::anilist::character::{
+    CharacterAutocomplete, CharacterAutocompleteVariables,
+};
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for character search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -35,16 +40,23 @@ use crate::structure::autocomplete::anilist::character::CharacterPageWrapper;
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let character_search = map.get(&String::from("name")).unwrap_or(DEFAULT_STRING);
-    let data = CharacterPageWrapper::new_autocomplete_character(character_search).await;
+    let var = CharacterAutocompleteVariables {
+        search: Some(character_search.as_str()),
+    };
+    let operation = CharacterAutocomplete::build(var);
+    let query = operation.query;
+    let query: Value = serde_json::from_str(&query).unwrap();
+    let data: CharacterAutocomplete = make_request_anilist(query, false).await.unwrap();
     let mut choices = Vec::new();
-    let character = data.data.page.characters.unwrap().clone();
+    let characters = data.page.unwrap().characters.unwrap();
 
-    for user in character {
-        let data = user.unwrap();
+    for character in characters {
+        let data = character.unwrap();
         let name = data.name.unwrap();
         let full = name.full.clone();
         let user_pref = name.user_preferred.clone();
-        let name = user_pref.unwrap_or(full);
+        let native = name.native.clone();
+        let name = user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(DEFAULT_STRING.clone())));
         choices.push(AutocompleteChoice::new(name, data.id.to_string()))
     }
 
