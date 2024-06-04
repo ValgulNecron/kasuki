@@ -47,7 +47,7 @@ rcgen = "0.13.1"
 markdown_converter = "0.2.0"
 futures = "0.3.30"
 rapidfuzz = "0.5.0"
-cynic = { version = "3", features = ["reqwest", "http-reqwest"] }
+cynic = { version = "3", features = ["reqwest", "http-reqwest", "serde_json"] }
 
 [build-dependencies]
 tonic-build = "0.11.0"

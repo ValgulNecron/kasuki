@@ -1,9 +1,10 @@
-use cynic::QueryBuilder;
+use cynic::{GraphQlResponse, QueryBuilder};
 use serde_json::Value;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
+use tracing::trace;
 
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
@@ -44,11 +45,23 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
         search: Some(character_search.as_str()),
     };
     let operation = CharacterAutocomplete::build(var);
-    let query = operation.query;
-    let query: Value = serde_json::from_str(&query).unwrap();
-    let data: CharacterAutocomplete = make_request_anilist(query, false).await.unwrap();
+    let data: GraphQlResponse<CharacterAutocomplete> =
+        match make_request_anilist(operation, false).await {
+            Ok(data) => match data.json::<GraphQlResponse<CharacterAutocomplete>>().await {
+                Ok(data) => data,
+                Err(e) => {
+                    trace!(?e);
+                    return;
+                }
+            }
+            Err(e) => {
+                trace!(?e);
+                return;
+            }
+        };
+    trace!(?data);
     let mut choices = Vec::new();
-    let characters = data.page.unwrap().characters.unwrap();
+    let characters = data.data.unwrap().page.unwrap().characters.unwrap();
 
     for character in characters {
         let data = character.unwrap();
