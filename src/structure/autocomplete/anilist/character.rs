@@ -1,5 +1,3 @@
-use serde::Deserialize;
-
 #[cynic::schema("anilist")]
 mod schema {}
 

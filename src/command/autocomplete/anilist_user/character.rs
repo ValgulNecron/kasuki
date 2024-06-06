@@ -1,5 +1,4 @@
 use cynic::{GraphQlResponse, QueryBuilder};
-use serde_json::Value;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
@@ -53,7 +52,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
                     trace!(?e);
                     return;
                 }
-            }
+            },
             Err(e) => {
                 trace!(?e);
                 return;

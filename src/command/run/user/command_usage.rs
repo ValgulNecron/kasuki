@@ -1,4 +1,3 @@
-use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage, User,
 };
@@ -64,7 +63,7 @@ pub async fn send_embed(
         .clone();
     let read_commande_usage = commande_usage.read().await;
     let usage = get_usage_for_id(&id, read_commande_usage);
-    let mut embed = get_default_embed(None);
+    let embed = get_default_embed(None);
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -73,11 +72,11 @@ pub async fn send_embed(
     let command_usage_localised = load_localization_command_usage(guild_id).await?;
     if usage.is_empty() {
         let inner_embed = embed
-            .title(command_usage_localised.title.replace("$user$", &*username))
+            .title(command_usage_localised.title.replace("$user$", &username))
             .description(
                 command_usage_localised
                     .no_usage
-                    .replace("$user$", &*username),
+                    .replace("$user$", &username),
             );
         embeds.push(inner_embed);
     } else {
@@ -87,11 +86,11 @@ pub async fn send_embed(
             description.push_str(
                 command_usage_localised
                     .command_usage
-                    .replace("$command$", &command)
+                    .replace("$command$", command)
                     .replace("$usage$", &usage.to_string())
                     .as_str(),
             );
-            description.push_str("\n");
+            description.push('\n');
             if description.len() > 4096 {
                 embeds.push(inner_embed.clone().description(&description));
                 description.clear();

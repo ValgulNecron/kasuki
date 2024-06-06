@@ -1,13 +1,10 @@
-use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
+use cynic::{Operation, QueryFragment, QueryVariables};
 use reqwest::{Client, Response};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-pub async fn make_request_anilist<
-    T: QueryFragment,
-    A: QueryVariables + Serialize,
->(
+pub async fn make_request_anilist<T: QueryFragment, A: QueryVariables + Serialize>(
     operation: Operation<T, A>,
     always_update: bool,
 ) -> Result<Response, AppError> {
