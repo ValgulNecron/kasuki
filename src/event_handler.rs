@@ -2,7 +2,7 @@ use crate::background_task::background_launcher::thread_management_launcher;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispatching};
+use crate::command::run::command_dispatch::command_dispatching;
 use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::components::components_dispatch::components_dispatching;
@@ -134,7 +134,7 @@ impl EventHandler for Handler {
     /// The function performs color management, generates a server image, and logs a trace message.
     /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
-    async fn guild_member_addition(&self, ctx: Context, mut member: Member) {
+    async fn guild_member_addition(&self, ctx: Context, member: Member) {
         let guild_id = member.guild_id.to_string();
         trace!("Member {} joined guild {}", member.user.tag(), guild_id);
         color_management(&ctx.cache.guilds(), &ctx).await;
