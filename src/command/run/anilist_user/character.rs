@@ -76,9 +76,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 }
 
 pub async fn get_character_by_id(value: i32) -> Result<Character, AppError> {
-    let var = CharacterDataIdVariables {
-        id: Some(value),
-    };
+    let var = CharacterDataIdVariables { id: Some(value) };
     let operation = CharacterDataId::build(var);
     let data: GraphQlResponse<CharacterDataId> = match make_request_anilist(operation, false).await
     {

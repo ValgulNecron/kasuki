@@ -4,7 +4,7 @@ use serenity::all::{
     CreateInteractionResponse,
 };
 
-use crate::constant::{DEFAULT_STRING};
+use crate::constant::DEFAULT_STRING;
 
 #[cynic::schema("anilist")]
 mod schema {}

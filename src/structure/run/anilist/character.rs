@@ -160,7 +160,14 @@ pub async fn send_embed(
         .replace("$age$", character.age.unwrap_or_default().as_str())
         .replace("$gender$", character.gender.unwrap_or_default().as_str())
         .replace("$date_of_birth$", date_of_birth.as_str())
-        .replace("$fav$", character.favourites.unwrap_or_default().to_string().as_str())
+        .replace(
+            "$fav$",
+            character
+                .favourites
+                .unwrap_or_default()
+                .to_string()
+                .as_str(),
+        )
         .replace("$desc$", character.description.unwrap_or_default().as_str());
 
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);

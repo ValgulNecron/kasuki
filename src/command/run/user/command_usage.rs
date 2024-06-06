@@ -63,21 +63,20 @@ pub async fn send_embed(
         .clone();
     let read_commande_usage = commande_usage.read().await;
     let usage = get_usage_for_id(&id, read_commande_usage);
-    let embed = get_default_embed(None);
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let mut embeds = Vec::new();
     let command_usage_localised = load_localization_command_usage(guild_id).await?;
+    let embed =
+        get_default_embed(None).title(command_usage_localised.title.replace("$user$", &username));
+    let mut embeds = Vec::new();
     if usage.is_empty() {
-        let inner_embed = embed
-            .title(command_usage_localised.title.replace("$user$", &username))
-            .description(
-                command_usage_localised
-                    .no_usage
-                    .replace("$user$", &username),
-            );
+        let inner_embed = embed.description(
+            command_usage_localised
+                .no_usage
+                .replace("$user$", &username),
+        );
         embeds.push(inner_embed);
     } else {
         let mut description = String::new();
