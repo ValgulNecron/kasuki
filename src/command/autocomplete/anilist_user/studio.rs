@@ -7,9 +7,6 @@ use serenity::all::{
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::autocomplete::anilist::staff::{
-    StaffAutocomplete, StaffAutocompleteVariables,
-};
 use crate::structure::autocomplete::anilist::studio::{
     StudioAutocomplete, StudioAutocompleteVariables,
 };

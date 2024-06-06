@@ -4,7 +4,6 @@ use serenity::all::{CommandInteraction, Context};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::autocomplete::anilist::user::UserAutocomplete;
 use crate::structure::run::anilist::character::{
     send_embed, Character, CharacterDataId, CharacterDataIdVariables, CharacterDataSearch,
     CharacterDataSearchVariables,

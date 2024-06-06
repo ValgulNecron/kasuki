@@ -1,15 +1,10 @@
 use cynic::{GraphQlResponse, QueryBuilder};
-use serde::Deserialize;
-use serde_json::json;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-use tracing::log::trace;
 
-use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
-use crate::helper::make_anilist_cached_request::make_request_anilist;
-use crate::structure::autocomplete::anilist::character::CharacterAutocomplete;
+use crate::constant::{DEFAULT_STRING};
 
 #[cynic::schema("anilist")]
 mod schema {}
