@@ -14,12 +14,12 @@ use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
 #[cynic::schema("anilist")]
 mod schema {}
-#[derive(cynic::QueryVariables, Debug)]
+#[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct CharacterDataIdVariables {
     pub id: Option<i32>,
 }
 
-#[derive(cynic::QueryFragment, Debug)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "CharacterDataIdVariables")]
 pub struct CharacterDataId {
     #[arguments(id: $id)]
@@ -27,12 +27,12 @@ pub struct CharacterDataId {
     pub character: Option<Character>,
 }
 
-#[derive(cynic::QueryVariables, Debug)]
+#[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct CharacterDataSearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
-#[derive(cynic::QueryFragment, Debug)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "CharacterDataSearchVariables")]
 pub struct CharacterDataSearch {
     #[arguments(search: $search)]
@@ -40,7 +40,7 @@ pub struct CharacterDataSearch {
     pub character: Option<Character>,
 }
 
-#[derive(cynic::QueryFragment, Debug)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct Character {
     pub age: Option<String>,
     pub blood_type: Option<String>,
@@ -57,7 +57,7 @@ pub struct Character {
     pub updated_at: Option<i32>,
 }
 
-#[derive(cynic::QueryFragment, Debug)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct CharacterName {
     pub alternative: Option<Vec<Option<String>>>,
     pub alternative_spoiler: Option<Vec<Option<String>>>,
@@ -69,13 +69,13 @@ pub struct CharacterName {
     pub user_preferred: Option<String>,
 }
 
-#[derive(cynic::QueryFragment, Debug)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct CharacterImage {
     pub medium: Option<String>,
     pub large: Option<String>,
 }
 
-#[derive(cynic::QueryFragment, Debug)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct FuzzyDate {
     pub day: Option<i32>,
     pub month: Option<i32>,
@@ -136,7 +136,7 @@ pub async fn send_embed(
         has_month = true
     }
 
-    if let Some(d) = date_of_birth_data.unwrap().day {
+    if let Some(d) = date_of_birth_data.day {
         if has_month {
             date_of_birth_string.push('/')
         }
@@ -160,11 +160,11 @@ pub async fn send_embed(
 
     let mut desc = character_localised
         .desc
-        .replace("$age$", character.age.as_str())
-        .replace("$gender$", character.gender.as_str())
+        .replace("$age$", character.age.unwrap_or_default().as_str())
+        .replace("$gender$", character.gender.unwrap_or_default().as_str())
         .replace("$date_of_birth$", date_of_birth.as_str())
-        .replace("$fav$", character.favourites.to_string().as_str())
-        .replace("$desc$", character.description.as_str());
+        .replace("$fav$", character.favourites.unwrap_or_default().to_string().as_str())
+        .replace("$desc$", character.description.unwrap_or_default().as_str());
 
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
@@ -183,7 +183,7 @@ pub async fn send_embed(
         .description(desc)
         .thumbnail(character.image.unwrap().large.unwrap())
         .title(character_name)
-        .url(character.site_url);
+        .url(character.site_url.unwrap_or_default());
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

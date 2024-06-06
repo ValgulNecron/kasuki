@@ -14,14 +14,14 @@ use crate::structure::autocomplete::anilist::character::CharacterAutocomplete;
 #[cynic::schema("anilist")]
 mod schema {}
 
-#[derive(cynic::QueryVariables, Debug)]
+#[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct MediaAutocompleteVariables<'a> {
     pub in_media_format: Option<Vec<Option<MediaFormat>>>,
     pub media_type: Option<MediaType>,
     pub search: Option<&'a str>,
 }
 
-#[derive(cynic::QueryFragment, Debug)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "MediaAutocompleteVariables")]
 pub struct MediaAutocomplete {
     #[arguments(perPage: 25)]
@@ -29,20 +29,20 @@ pub struct MediaAutocomplete {
     pub page: Option<Page>,
 }
 
-#[derive(cynic::QueryFragment, Debug)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(variables = "MediaAutocompleteVariables")]
 pub struct Page {
     #[arguments(search: $ search, type: $ media_type, format_in: $ in_media_format)]
     pub media: Option<Vec<Option<Media>>>,
 }
 
-#[derive(cynic::QueryFragment, Debug)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct Media {
     pub id: i32,
     pub title: Option<MediaTitle>,
 }
 
-#[derive(cynic::QueryFragment, Debug)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct MediaTitle {
     pub user_preferred: Option<String>,
     pub romaji: Option<String>,
