@@ -9,7 +9,6 @@ use crate::components::components_dispatch::components_dispatching;
 use crate::constant::{ACTIVITY_NAME, BOT_INFO};
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::new_member::new_member;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, EventHandler, Guild, Interaction, Member, Ready,
@@ -138,15 +137,6 @@ impl EventHandler for Handler {
     async fn guild_member_addition(&self, ctx: Context, mut member: Member) {
         let guild_id = member.guild_id.to_string();
         trace!("Member {} joined guild {}", member.user.tag(), guild_id);
-        if check_if_module_is_on(guild_id, "NEW_MEMBER")
-            .await
-            .unwrap_or(true)
-        {
-            let ctx2 = ctx.clone();
-            if let Err(e) = new_member(ctx2, &mut member).await {
-                error!("{:?}", e)
-            }
-        }
         color_management(&ctx.cache.guilds(), &ctx).await;
         server_image_management(&ctx).await;
     }
