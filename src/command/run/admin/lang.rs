@@ -1,8 +1,8 @@
-use crate::database::data_struct::guild_language::GuildLanguage;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
+use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::manage::dispatcher::data_dispatch::set_data_guild_language;
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

@@ -1,3 +1,4 @@
+use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
@@ -6,7 +7,8 @@ use tracing::log::trace;
 
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use crate::structure::autocomplete::anilist::user::UserPageWrapper;
+use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for user comparison.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -71,9 +73,26 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 /// This function is asynchronous. It awaits the creation of the `UserPageWrapper`.
 async fn get_choices(search: &str) -> Vec<AutocompleteChoice> {
     trace!("{:?}", search);
-    let data = UserPageWrapper::new_autocomplete_user(&search.to_string()).await;
+    let var = UserAutocompleteVariables {
+        search: Some(search),
+    };
+    let operation = UserAutocomplete::build(var);
+    let data: GraphQlResponse<UserAutocomplete> = match make_request_anilist(operation, false).await
+    {
+        Ok(data) => match data.json::<GraphQlResponse<UserAutocomplete>>().await {
+            Ok(data) => data,
+            Err(e) => {
+                tracing::trace!(?e);
+                return Vec::new();
+            }
+        },
+        Err(e) => {
+            tracing::trace!(?e);
+            return Vec::new();
+        }
+    };
+    let users = data.data.unwrap().page.unwrap().users.unwrap();
     let mut choices = Vec::new();
-    let users = data.data.page.users.unwrap().clone();
 
     for user in users {
         let data = user.unwrap();

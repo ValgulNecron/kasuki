@@ -1,6 +1,6 @@
-use crate::database::data_struct::registered_user::RegisteredUser;
 use serenity::all::{CommandInteraction, Context};
 
+use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;

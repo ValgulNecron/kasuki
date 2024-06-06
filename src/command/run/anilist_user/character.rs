@@ -1,8 +1,14 @@
+use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context};
 
-use crate::helper::error_management::error_enum::AppError;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::structure::run::anilist::character::{send_embed, CharacterWrapper};
+use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::structure::autocomplete::anilist::user::UserAutocomplete;
+use crate::structure::run::anilist::character::{
+    send_embed, Character, CharacterDataId, CharacterDataIdVariables, CharacterDataSearch,
+    CharacterDataSearchVariables,
+};
 
 /// This asynchronous function runs the command interaction for retrieving information about a character.
 ///
@@ -31,12 +37,71 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     // If the value is an integer, treat it as an ID and retrieve the character with that ID
     // If the value is not an integer, treat it as a name and retrieve the character with that name
-    let data: CharacterWrapper = if value.parse::<i32>().is_ok() {
-        CharacterWrapper::new_character_by_id(value.parse().unwrap()).await?
+    let data: Character = if value.parse::<i32>().is_ok() {
+        get_character_by_id(value.parse::<i32>().unwrap()).await?
     } else {
-        CharacterWrapper::new_character_by_search(&value).await?
+        let var = CharacterDataSearchVariables {
+            search: Some(&*value),
+        };
+        let operation = CharacterDataSearch::build(var);
+        let data: GraphQlResponse<CharacterDataSearch> =
+            match make_request_anilist(operation, false).await {
+                Ok(data) => match data.json::<GraphQlResponse<CharacterDataSearch>>().await {
+                    Ok(data) => data,
+                    Err(e) => {
+                        tracing::error!(?e);
+                        return Err(AppError {
+                            message: format!(
+                                "Error retrieving character with ID: {} \n {}",
+                                value, e
+                            ),
+                            error_type: ErrorType::WebRequest,
+                            error_response_type: ErrorResponseType::Message,
+                        });
+                    }
+                },
+                Err(e) => {
+                    tracing::error!(?e);
+                    return Err(AppError {
+                        message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                        error_type: ErrorType::WebRequest,
+                        error_response_type: ErrorResponseType::Message,
+                    });
+                }
+            };
+        data.data.unwrap().character.unwrap()
     };
 
     // Send an embed with the character information as a response to the command interaction
     send_embed(ctx, command_interaction, data).await
+}
+
+pub async fn get_character_by_id(value: i32) -> Result<Character, AppError> {
+    let var = CharacterDataIdVariables {
+        id: Some(value.parse().unwrap()),
+    };
+    let operation = CharacterDataId::build(var);
+    let data: GraphQlResponse<CharacterDataId> = match make_request_anilist(operation, false).await
+    {
+        Ok(data) => match data.json::<GraphQlResponse<CharacterDataId>>().await {
+            Ok(data) => data,
+            Err(e) => {
+                tracing::error!(?e);
+                return Err(AppError {
+                    message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                    error_type: ErrorType::WebRequest,
+                    error_response_type: ErrorResponseType::Message,
+                });
+            }
+        },
+        Err(e) => {
+            tracing::error!(?e);
+            return Err(AppError {
+                message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            });
+        }
+    };
+    data.data.unwrap().character.unwrap()
 }

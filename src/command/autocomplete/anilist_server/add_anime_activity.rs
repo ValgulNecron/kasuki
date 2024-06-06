@@ -2,7 +2,9 @@ use serenity::all::{CommandInteraction, Context};
 
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
-use crate::structure::autocomplete::anilist::media::{send_auto_complete, MediaPageWrapper};
+use crate::structure::autocomplete::anilist::media::{
+    send_auto_complete, MediaAutocompleteVariables, MediaFormat, MediaType,
+};
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for anime group search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -28,6 +30,18 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let anime_search = map
         .get(&String::from("anime_name"))
         .unwrap_or(DEFAULT_STRING);
-    let anime = MediaPageWrapper::new_autocomplete_anime(anime_search).await;
-    send_auto_complete(ctx, autocomplete_interaction, anime).await;
+    let var = MediaAutocompleteVariables {
+        search: Some(anime_search.as_str()),
+        in_media_format: Some(vec![
+            Some(MediaFormat::Tv),
+            Some(MediaFormat::TvShort),
+            Some(MediaFormat::Movie),
+            Some(MediaFormat::Special),
+            Some(MediaFormat::Ova),
+            Some(MediaFormat::Ona),
+            Some(MediaFormat::Music),
+        ]),
+        media_type: Some(MediaType::Anime),
+    };
+    send_auto_complete(ctx, autocomplete_interaction, var).await;
 }

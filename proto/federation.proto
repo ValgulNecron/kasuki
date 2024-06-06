@@ -3,9 +3,9 @@ syntax = "proto3";
 package federation;
 
 service FederationConnectionService {
-    rpc Connect(ConnectRequest) returns (ConnectResponse) {}
-    rpc Disconnect(DisconnectRequest) returns (DisconnectResponse) {}
-    rpc RenewToken(RenewTokenRequest) returns (RenewTokenResponse) {}
+    rpc Connect (ConnectRequest) returns (ConnectResponse) {}
+    rpc Disconnect (DisconnectRequest) returns (DisconnectResponse) {}
+    rpc RenewToken (RenewTokenRequest) returns (RenewTokenResponse) {}
 }
 
 message ConnectRequest {
@@ -41,7 +41,7 @@ message RenewTokenResponse {
 }
 
 service FederationInfoService {
-    rpc GetFederationInfo(GetFederationInfoRequest) returns (GetFederationInfoResponse) {}
+    rpc GetFederationInfo (GetFederationInfoRequest) returns (GetFederationInfoResponse) {}
 }
 
 message GetFederationInfoRequest {
@@ -56,8 +56,8 @@ message GetFederationInfoResponse {
 }
 
 service FederationSharingService {
-    rpc ShareUserColor(ShareUserColorRequest) returns (ShareUserColorResponse) {}
-    rpc GetUsersColor(GetUsersColorRequest) returns (GetUsersColorResponse) {}
+    rpc ShareUserColor (ShareUserColorRequest) returns (ShareUserColorResponse) {}
+    rpc GetUsersColor (GetUsersColorRequest) returns (GetUsersColorResponse) {}
 }
 
 message ShareUserColorRequest {

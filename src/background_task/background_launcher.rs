@@ -1,3 +1,12 @@
+use std::sync::Arc;
+use std::time::Duration;
+
+use serde_json::Value;
+use serenity::all::{Context, ShardManager};
+use tokio::sync::RwLock;
+use tokio::time::{interval, sleep};
+use tracing::info;
+
 use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
@@ -10,13 +19,6 @@ use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
 use crate::grpc_server::launcher::grpc_server_launcher;
 use crate::struct_shard_manager::ShardManagerContainer;
 use crate::structure::steam_game_id_struct::get_game;
-use serde_json::Value;
-use serenity::all::{Context, ShardManager};
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::sync::RwLock;
-use tokio::time::{interval, sleep};
-use tracing::info;
 
 /// This function is responsible for launching various threads for different tasks.
 /// It takes a `Context` as an argument which is used to clone and pass to the threads.

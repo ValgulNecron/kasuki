@@ -1,8 +1,10 @@
-use crate::event_handler::RootUsage;
+use std::sync::Arc;
+
 use serenity::all::ShardManager;
 use serenity::prelude::TypeMapKey;
-use std::sync::Arc;
 use tokio::sync::RwLock;
+
+use crate::event_handler::RootUsage;
 
 /// `ShardManagerContainer` is a struct that does not hold any data itself.
 /// It is used as a key to access the `ShardManager` in the `TypeMap` of the `Context` data.

@@ -17,7 +17,7 @@ pub struct CharacterAutocomplete {
 #[derive(cynic::QueryFragment, Debug)]
 #[cynic(variables = "CharacterAutocompleteVariables")]
 pub struct Page {
-    #[arguments(search: $search)]
+    #[arguments(search: $ search)]
     pub characters: Option<Vec<Option<Character>>>,
 }
 
@@ -32,7 +32,4 @@ pub struct CharacterName {
     pub full: Option<String>,
     pub user_preferred: Option<String>,
     pub native: Option<String>,
-    pub middle: Option<String>,
-    pub last: Option<String>,
-    pub first: Option<String>,
 }

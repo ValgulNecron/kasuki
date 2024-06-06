@@ -1,6 +1,6 @@
-use crate::cache::cache_struct::cache::Cache;
 use serde_json::Value;
 
+use crate::cache::cache_struct::cache::Cache;
 use crate::cache::cache_struct::random_cache::RandomCache;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -25,10 +25,10 @@ pub async fn get_database_random_cache_postgresql(
     let row: Option<RandomCache> = sqlx::query_as(
         "SELECT response, last_updated, last_page, random_type FROM CACHE.cache_stats WHERE key = $1",
     )
-    .bind(random_type)
-    .fetch_optional(&pool)
-    .await
-    .unwrap_or(None);
+        .bind(random_type)
+        .fetch_optional(&pool)
+        .await
+        .unwrap_or(None);
 
     pool.close().await;
     Ok(row)

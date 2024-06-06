@@ -1,10 +1,10 @@
-use crate::command::run::anilist_user::user::get_user_data;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, PartialGuild, User, UserId,
 };
 
+use crate::command::run::anilist_user::user::get_user_data;
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;

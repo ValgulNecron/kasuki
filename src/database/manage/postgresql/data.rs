@@ -1,5 +1,4 @@
 use crate::database::data_struct::guild_language::GuildLanguage;
-
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
 use crate::database::data_struct::registered_user::RegisteredUser;

@@ -44,6 +44,7 @@ services:
       # Bot configuration
       - REMOVE_OLD_COMMAND=false # Whether to remove old commands when the bot starts up
       - DB_TYPE=sqlite # Type of database to use; either 'sqlite' or 'postgres'
+      - CACHE_TYPE="in-memory" # Cache type (in-memory)
 
       # gRPC server configuration
       - GRPC_IS_ON=true # Whether to enable the gRPC server for serving images and other content
