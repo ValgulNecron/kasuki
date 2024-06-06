@@ -28,10 +28,7 @@ pub async fn creates_user_command(http: &Arc<Http>) {
     };
 
     for command in commands {
-        let start = std::time::Instant::now();
         create_command(&command, http).await;
-        let duration = start.elapsed();
-        trace!("Time taken to create command: {:?}", duration);
     }
 }
 

@@ -1,10 +1,9 @@
 use crate::cache::cache_struct::cache::Cache;
+use crate::cache::manage::cache_dispatch::{get_database_cache, set_database_cache};
+use crate::constant::TIME_BETWEEN_CACHE_UPDATE;
 use chrono::Utc;
 use reqwest::Client;
 use serde_json::Value;
-
-use crate::cache::manage::cache_dispatch::{get_database_cache, set_database_cache};
-use crate::constant::TIME_BETWEEN_CACHE_UPDATE;
 
 /// Makes a request to Anilist's GraphQL API.
 ///

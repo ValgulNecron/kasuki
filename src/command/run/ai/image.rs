@@ -2,7 +2,7 @@ use std::env;
 
 use prost::bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -268,13 +268,24 @@ async fn image_with_n_greater_than_1(
 
 async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, AppError> {
     let mut bytes = Vec::new();
-    let root: Root = serde_json::from_value(json).map_err(|e| {
-        AppError::new(
-            format!("Failed to parse the json. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let root: Root = match serde_json::from_value(json.clone()) {
+        Ok(root) => root,
+        Err(e) => {
+            let root1: Result<Root1, serde_json::error::Error> = serde_json::from_value(json);
+            return match root1 {
+                Ok(root1) => Err(AppError::new(
+                    format!("Failed to parse the json. {}", root1.error.message),
+                    ErrorType::File,
+                    ErrorResponseType::Followup,
+                )),
+                Err(e) => Err(AppError::new(
+                    format!("Failed to parse the json. {}", e),
+                    ErrorType::File,
+                    ErrorResponseType::Followup,
+                )),
+            };
+        }
+    };
     let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();
     trace!("{:?}", urls);
     for url in urls {
@@ -311,4 +322,18 @@ struct Root {
 #[derive(Debug, Deserialize)]
 struct Data {
     url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Error {
+    pub message: String,
+    #[serde(rename = "type")]
+    pub error_type: String,
+    pub param: Option<String>,
+    pub code: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Root1 {
+    pub error: Error,
 }

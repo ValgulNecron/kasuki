@@ -7,5 +7,6 @@ pub mod get_guild_lang;
 pub mod get_option;
 pub mod image_saver;
 pub mod make_anilist_cached_request;
+pub mod make_graphql_cached;
 pub mod read_file;
 pub mod trimer;
