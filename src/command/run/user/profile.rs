@@ -6,6 +6,7 @@ use serenity::all::{
 use crate::constant::COLOR;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
+use crate::helper::get_user_data::get_user_data;
 use crate::structure::message::user::profile::load_localization_profile;
 
 /// Executes the command to display a user's profile.
@@ -29,14 +30,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     // Check if the user exists
     match user {
         Some(user) => {
-            // If the user exists, retrieve the user's information and display their profile
-            let user = user.to_user(&ctx.http).await.map_err(|e| {
-                AppError::new(
-                    format!("Could not get the user. {}", e),
-                    ErrorType::Option,
-                    ErrorResponseType::Message,
-                )
-            })?;
+            let user = get_user_data(ctx.http.clone(), user).await?;
             profile_with_user(ctx, command_interaction, &user).await
         }
         None => {

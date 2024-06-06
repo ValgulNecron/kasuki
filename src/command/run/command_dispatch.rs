@@ -17,7 +17,7 @@ use crate::command::run::server::{
     generate_image_pfp_server, generate_image_pfp_server_global, guild,
 };
 use crate::command::run::steam::steam_game_info;
-use crate::command::run::user::{avatar, banner, profile};
+use crate::command::run::user::{avatar, banner, command_usage, profile};
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
@@ -833,6 +833,7 @@ async fn user(
         "avatar" => avatar::run(ctx, command_interaction).await,
         "banner" => banner::run(ctx, command_interaction).await,
         "profile" => profile::run(ctx, command_interaction).await,
+        "command_usage" => command_usage::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,

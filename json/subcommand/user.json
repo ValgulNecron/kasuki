@@ -182,6 +182,63 @@
           "desc": "ユーザーのプロフィールを表示します。"
         }
       ]
+    },
+    {
+      "name": "command_usage",
+      "desc": "Show the usage of each command for an user.",
+      "args": [
+        {
+          "name": "username",
+          "desc": "Username of the user you want the usage of.",
+          "required": false,
+          "autocomplete": false,
+          "arg_type": "User",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "username",
+              "desc": "Username of the user you want the usage of."
+            },
+            {
+              "code": "fr",
+              "name": "nom_dutilisateur",
+              "desc": "Nom d'utilisateur de l'utilisateur dont vous voulez l'utilisation."
+            },
+            {
+              "code": "de",
+              "name": "benutzername",
+              "desc": "Benutzername des Benutzers, dessen Verwendung Sie sehen möchten."
+            },
+            {
+              "code": "ja",
+              "name": "ユーザー名",
+              "desc": "使用状況を表示したいユーザーのユーザー名。"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "command_usage",
+          "desc": "Show the usage of each command for an user."
+        },
+        {
+          "code": "fr",
+          "name": "utilisation_de_commande",
+          "desc": "Affiche l'utilisation de chaque commande pour un utilisateur."
+        },
+        {
+          "code": "de",
+          "name": "befehlsverwendung",
+          "desc": "Zeigen Sie die Verwendung jedes Befehls für einen Benutzer an."
+        },
+        {
+          "code": "ja",
+          "name": "コマンドの使用状況",
+          "desc": "各コマンドの使用状況を表示します。"
+        }
+      ]
     }
   ],
   "localised": [

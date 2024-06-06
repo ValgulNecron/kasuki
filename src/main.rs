@@ -13,6 +13,7 @@ use crate::constant::{APP_TUI, DISCORD_TOKEN};
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
+use crate::struct_shard_manager::RootUsageContainer;
 
 mod api;
 mod background_task;
@@ -98,7 +99,7 @@ async fn main() {
         Arc::new(RwLock::new(number_of_command_use_per_command));
     let handler = Handler {
         number_of_command_use,
-        number_of_command_use_per_command,
+        number_of_command_use_per_command: number_of_command_use_per_command.clone(),
     };
 
     // Get all the non-privileged intent.
@@ -133,6 +134,11 @@ async fn main() {
         .write()
         .await
         .insert::<ShardManagerContainer>(Arc::clone(&shard_manager));
+    client
+        .data
+        .write()
+        .await
+        .insert::<RootUsageContainer>(Arc::clone(&number_of_command_use_per_command));
 
     // Spawn a new asynchronous task for starting the client.
     // If the client fails to start, log the error.

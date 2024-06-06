@@ -237,3 +237,20 @@ pub static mut BOT_INFO: Lazy<Option<CurrentApplicationInfo>> = Lazy::new(|| Non
 pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
 /// Used library.
 pub const LIBRARY: Lazy<String> = Lazy::new(|| String::from("serenity"));
+
+/*
+federation stuff
+ */
+
+/// Is the federation server enabled.
+pub const FEDERATION_IS_ON: Lazy<bool> =
+    Lazy::new(|| env::var("FEDERATION_IS_ON").unwrap_or_else(|_| "false".to_string()) == "true");
+
+/// if this bot is the primary node.
+pub const IS_PRIMARY_NODE: Lazy<bool> =
+    Lazy::new(|| env::var("IS_PRIMARY_NODE").unwrap_or_else(|_| "false".to_string()) == "true");
+
+/// The federation server's address.
+pub const FEDERATION_SERVER: Lazy<String> = Lazy::new(|| {
+    env::var("FEDERATION_SERVER").unwrap_or_else(|_| "http://localhost:443".to_string())
+});
