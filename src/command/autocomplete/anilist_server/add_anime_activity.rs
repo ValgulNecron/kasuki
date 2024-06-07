@@ -1,3 +1,4 @@
+use crate::command::autocomplete::anilist_user::anime::get_autocomplete_media_variables;
 use serenity::all::{CommandInteraction, Context};
 
 use crate::constant::DEFAULT_STRING;
@@ -30,18 +31,6 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let anime_search = map
         .get(&String::from("anime_name"))
         .unwrap_or(DEFAULT_STRING);
-    let var = MediaAutocompleteVariables {
-        search: Some(anime_search.as_str()),
-        in_media_format: Some(vec![
-            Some(MediaFormat::Tv),
-            Some(MediaFormat::TvShort),
-            Some(MediaFormat::Movie),
-            Some(MediaFormat::Special),
-            Some(MediaFormat::Ova),
-            Some(MediaFormat::Ona),
-            Some(MediaFormat::Music),
-        ]),
-        media_type: Some(MediaType::Anime),
-    };
+    let var = get_autocomplete_media_variables(anime_search);
     send_auto_complete(ctx, autocomplete_interaction, var).await;
 }

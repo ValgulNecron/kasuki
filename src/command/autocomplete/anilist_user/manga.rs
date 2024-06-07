@@ -32,7 +32,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
         .unwrap_or(DEFAULT_STRING);
     let var = MediaAutocompleteVariables {
         search: Some(manga_search.as_str()),
-        in_media_format: Some(vec![Some(MediaFormat::Manga)]),
+        in_media_format: Some(vec![Some(MediaFormat::Manga), Some(MediaFormat::OneShot)]),
         media_type: Some(MediaType::Manga),
     };
     send_auto_complete(ctx, autocomplete_interaction, var).await;

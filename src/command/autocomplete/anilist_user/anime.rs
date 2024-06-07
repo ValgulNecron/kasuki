@@ -30,8 +30,13 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let anime_search = map
         .get(&String::from("anime_name"))
         .unwrap_or(DEFAULT_STRING);
-    let var = MediaAutocompleteVariables {
-        search: Some(anime_search.as_str()),
+    let var = get_autocomplete_media_variables(anime_search);
+    send_auto_complete(ctx, autocomplete_interaction, var).await;
+}
+
+pub fn get_autocomplete_media_variables(anime_search: &str) -> MediaAutocompleteVariables {
+    MediaAutocompleteVariables {
+        search: Some(anime_search),
         in_media_format: Some(vec![
             Some(MediaFormat::Tv),
             Some(MediaFormat::TvShort),
@@ -42,6 +47,5 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
             Some(MediaFormat::Music),
         ]),
         media_type: Some(MediaType::Anime),
-    };
-    send_auto_complete(ctx, autocomplete_interaction, var).await;
+    }
 }

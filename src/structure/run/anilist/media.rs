@@ -1,635 +1,343 @@
+use cynic::{GraphQlResponse, QueryBuilder};
 use serde::Deserialize;
-use serde_json::json;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
+use std::fmt::Display;
 
 use crate::constant::{COLOR, UNKNOWN};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::general_channel_info::get_nsfw;
-use crate::helper::make_anilist_cached_request::make_request_anilist;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::{load_localization_media, MediaLocalised};
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct MediaWrapper {
-    pub data: MediaData,
+use crate::structure::run::anilist::staff::Title;
+use crate::structure::run::anilist::user::{Genre, Tag};
+#[cynic::schema("anilist")]
+mod schema {}
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct MediaDataIdVariables {
+    pub format_in: Option<Vec<Option<MediaFormat>>>,
+    pub id: Option<i32>,
+    pub media_type: Option<MediaType>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct MediaData {
-    #[serde(rename = "Media")]
-    pub media: Media,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "MediaDataIdVariables")]
+pub struct MediaDataId {
+    #[arguments(format_in: $format_in, type: $media_type, id: $id)]
+    #[cynic(rename = "Media")]
+    pub media: Option<Media>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct MediaDataSearchVariables<'a> {
+    pub format_in: Option<Vec<Option<MediaFormat>>>,
+    pub media_type: Option<MediaType>,
+    pub search: Option<&'a str>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "MediaDataSearchVariables")]
+pub struct MediaDataSearch {
+    #[arguments(format_in: $format_in, type: $media_type, search: $search)]
+    #[cynic(rename = "Media")]
+    pub media: Option<Media>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct Media {
-    pub id: i64,
+    pub id: i32,
     pub description: Option<String>,
-    pub title: Title,
-    pub r#type: Option<String>,
-    pub format: Option<String>,
-    pub source: Option<String>,
-    #[serde(rename = "isAdult")]
-    pub is_adult: bool,
-    #[serde(rename = "startDate")]
-    pub start_date: StartEndDate,
-    #[serde(rename = "endDate")]
-    pub end_date: StartEndDate,
-    pub chapters: Option<i32>,
     pub volumes: Option<i32>,
-    pub status: Option<String>,
-    pub season: Option<String>,
-    #[serde(rename = "isLicensed")]
-    pub is_licensed: bool,
-    #[serde(rename = "coverImage")]
-    pub cover_image: CoverImage,
-    #[serde(rename = "bannerImage")]
-    pub banner_image: Option<String>,
-    pub genres: Vec<Option<String>>,
-    pub tags: Vec<Tag>,
-    #[serde(rename = "averageScore")]
-    pub average_score: Option<i32>,
-    #[serde(rename = "meanScore")]
-    pub mean_score: Option<i32>,
-    pub popularity: Option<i32>,
-    pub favourites: Option<i32>,
-    #[serde(rename = "siteUrl")]
+    pub updated_at: Option<i32>,
+    #[cynic(rename = "type")]
+    pub type_: Option<MediaType>,
+    pub trending: Option<i32>,
+    pub title: Option<MediaTitle>,
+    pub synonyms: Option<Vec<Option<String>>>,
+    pub tags: Option<Vec<Option<MediaTag>>>,
+    pub studios: Option<StudioConnection>,
+    pub status: Option<MediaStatus>,
+    pub source: Option<MediaSource>,
     pub site_url: Option<String>,
-    pub staff: Staff,
+    pub season_year: Option<i32>,
+    pub season_int: Option<i32>,
+    pub season: Option<MediaSeason>,
+    pub rankings: Option<Vec<Option<MediaRank>>>,
+    pub popularity: Option<i32>,
+    pub mod_notes: Option<String>,
+    pub mean_score: Option<i32>,
+    pub is_licensed: Option<bool>,
+    pub is_adult: Option<bool>,
+    pub genres: Option<Vec<Option<String>>>,
+    pub format: Option<MediaFormat>,
+    pub favourites: Option<i32>,
+    pub episodes: Option<i32>,
+    pub chapters: Option<i32>,
+    pub banner_image: Option<String>,
+    pub average_score: Option<i32>,
+    pub auto_create_forum_thread: Option<bool>,
+    pub duration: Option<i32>,
+    pub end_date: Option<FuzzyDate>,
+    pub country_of_origin: Option<CountryCode>,
+    pub cover_image: Option<MediaCoverImage>,
+    pub characters: Option<CharacterConnection>,
+    pub staff: Option<StaffConnection>,
+    pub start_date: Option<FuzzyDate>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Title {
-    pub romaji: Option<String>,
-    pub english: Option<String>,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct StaffConnection {
+    pub edges: Option<Vec<Option<StaffEdge>>>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct StartEndDate {
-    pub year: Option<i32>,
-    pub month: Option<i32>,
-    pub day: Option<i32>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct CoverImage {
-    #[serde(rename = "extraLarge")]
-    pub extra_large: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Tag {
-    pub name: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Staff {
-    pub edges: Vec<Edge>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Edge {
-    pub node: Node,
-    pub id: Option<u32>,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct StaffEdge {
     pub role: Option<String>,
+    pub node: Option<Staff>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Node {
-    pub id: Option<u32>,
-    pub name: Name,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct Staff {
+    pub name: Option<StaffName>,
+    pub id: i32,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Name {
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct StaffName {
+    pub user_preferred: Option<String>,
+    pub native: Option<String>,
     pub full: Option<String>,
-    #[serde(rename = "userPreferred")]
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaCoverImage {
+    pub medium: Option<String>,
+    pub large: Option<String>,
+    pub extra_large: Option<String>,
+    pub color: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaRank {
+    pub all_time: Option<bool>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct StudioConnection {
+    pub nodes: Option<Vec<Option<Studio>>>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct Studio {
+    pub name: String,
+    pub id: i32,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaTag {
+    pub category: Option<String>,
+    pub description: Option<String>,
+    pub id: i32,
+    pub is_adult: Option<bool>,
+    pub is_general_spoiler: Option<bool>,
+    pub is_media_spoiler: Option<bool>,
+    pub name: String,
+    pub rank: Option<i32>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaTitle {
+    pub english: Option<String>,
+    pub native: Option<String>,
+    pub romaji: Option<String>,
     pub user_preferred: Option<String>,
 }
 
-/// `MediaWrapper` is an implementation block for the `MediaWrapper` struct.
-impl MediaWrapper {
-    /// `new_anime_by_id` is an asynchronous function that creates a new anime by ID.
-    /// It takes an `id` as a parameter.
-    /// `id` is a String that represents the ID of the anime.
-    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes an `id` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `id` variable is set to the `id` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `MediaWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `id` - A String that represents the ID of the anime.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
-    pub async fn new_anime_by_id(id: String) -> Result<MediaWrapper, AppError> {
-        let query_id: &str = "
-    query ($search: Int, $limit: Int = 5) {
-		Media (id: $search, type: ANIME){
-    id
-      description
-    title{
-      romaji
-      english
-    }
-    type
-    format
-    source
-    isAdult
-    startDate {
-      year
-      month
-      day
-    }
-    endDate {
-      year
-      month
-      day
-    }
-    chapters
-    volumes
-    status
-    season
-    isLicensed
-    coverImage {
-      extraLarge
-    }
-    bannerImage
-    genres
-    tags {
-      name
-    }
-    averageScore
-    meanScore
-    popularity
-    favourites
-    siteUrl
-    staff(perPage: $limit) {
-      edges {
-        node {
-          id
-          name {
-            full
-            userPreferred
-          }
-        }
-        id
-        role
-      }
-    }
-  }
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct FuzzyDate {
+    pub day: Option<i32>,
+    pub month: Option<i32>,
+    pub year: Option<i32>,
 }
-";
 
-        let json = json!({"query": query_id, "variables": {"search": id}});
-        let resp = make_request_anilist(json, false).await;
-        // Get json
-        serde_json::from_str(&resp).map_err(|e| AppError {
-            message: format!("Error getting the media with id {}. {}", id, e),
-            error_type: ErrorType::WebRequest,
-            error_response_type: ErrorResponseType::Message,
-        })
-    }
-
-    /// `new_anime_by_search` is an asynchronous function that creates a new anime by search.
-    /// It takes a `search` as a parameter.
-    /// `search` is a reference to a String that represents the search query.
-    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes a `search` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `search` variable is set to the `search` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `MediaWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `search` - A reference to a String that represents the search query.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
-    pub async fn new_anime_by_search(search: &String) -> Result<MediaWrapper, AppError> {
-        let query_string: &str = "
-    query ($search: String, $limit: Int = 5) {
-		Media (search: $search, type: ANIME){
-    id
-      description
-    title{
-      romaji
-      english
-    }
-    type
-    format
-    source
-    isAdult
-    startDate {
-      year
-      month
-      day
-    }
-    endDate {
-      year
-      month
-      day
-    }
-    chapters
-    volumes
-    status
-    season
-    isLicensed
-    coverImage {
-      extraLarge
-    }
-    bannerImage
-    genres
-    tags {
-      name
-    }
-    averageScore
-    meanScore
-    popularity
-    favourites
-    siteUrl
-    staff(perPage: $limit) {
-      edges {
-        node {
-          id
-          name {
-            full
-            userPreferred
-          }
-        }
-        id
-        role
-      }
-    }
-  }
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct CharacterConnection {
+    pub edges: Option<Vec<Option<CharacterEdge>>>,
 }
-";
-        let json = json!({"query": query_string, "variables": {"search": search}});
-        let resp = make_request_anilist(json, false).await;
-        // Get json
-        serde_json::from_str(&resp).map_err(|e| AppError {
-            message: format!("Error getting the media with name {}. {}", search, e),
-            error_type: ErrorType::WebRequest,
-            error_response_type: ErrorResponseType::Message,
-        })
-    }
 
-    /// `new_manga_by_id` is an asynchronous function that creates a new manga by ID.
-    /// It takes an `id` as a parameter.
-    /// `id` is a String that represents the ID of the manga.
-    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes an `id` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `id` variable is set to the `id` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `MediaWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `id` - A String that represents the ID of the manga.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
-    pub async fn new_manga_by_id(id: String) -> Result<MediaWrapper, AppError> {
-        let query_id: &str = "
-    query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
-		Media (id: $search, type: MANGA, format_not: $format){
-    id
-      description
-    title{
-      romaji
-      english
-    }
-    type
-    format
-    source
-    isAdult
-    startDate {
-      year
-      month
-      day
-    }
-    endDate {
-      year
-      month
-      day
-    }
-    chapters
-    volumes
-    status
-    season
-    isLicensed
-    coverImage {
-      extraLarge
-    }
-    bannerImage
-    genres
-    tags {
-      name
-    }
-    averageScore
-    meanScore
-    popularity
-    favourites
-    siteUrl
-    staff(perPage: $limit) {
-      edges {
-        node {
-          id
-          name {
-            full
-            userPreferred
-          }
-        }
-        id
-        role
-      }
-    }
-  }
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct CharacterEdge {
+    pub role: Option<CharacterRole>,
+    pub node: Option<Character>,
 }
-";
 
-        let json = json!({"query": query_id, "variables": {"search": id}});
-        let resp = make_request_anilist(json, false).await;
-        // Get json
-        serde_json::from_str(&resp).map_err(|e| AppError {
-            message: format!("Error getting the media with id {}. {}", id, e),
-            error_type: ErrorType::WebRequest,
-            error_response_type: ErrorResponseType::Message,
-        })
-    }
-
-    /// `new_manga_by_search` is an asynchronous function that creates a new manga by search.
-    /// It takes a `search` as a parameter.
-    /// `search` is a reference to a String that represents the search query.
-    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes a `search` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `search` variable is set to the `search` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `MediaWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `search` - A reference to a String that represents the search query.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
-    pub async fn new_manga_by_search(search: &String) -> Result<MediaWrapper, AppError> {
-        let query_string: &str = "
-    query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
-		Media (search: $search, type: MANGA, format_not: $format){
-    id
-      description
-    title{
-      romaji
-      english
-    }
-    type
-    format
-    source
-    isAdult
-    startDate {
-      year
-      month
-      day
-    }
-    endDate {
-      year
-      month
-      day
-    }
-    chapters
-    volumes
-    status
-    season
-    isLicensed
-    coverImage {
-      extraLarge
-    }
-    bannerImage
-    genres
-    tags {
-      name
-    }
-    averageScore
-    meanScore
-    popularity
-    favourites
-    siteUrl
-    staff(perPage: $limit) {
-      edges {
-        node {
-          id
-          name {
-            full
-            userPreferred
-          }
-        }
-        id
-        role
-      }
-    }
-  }
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct Character {
+    pub name: Option<CharacterName>,
+    pub id: i32,
 }
-";
-        let json = json!({"query": query_string, "variables": {"search": search}});
-        let resp = make_request_anilist(json, false).await;
-        // Get json
-        serde_json::from_str(&resp).map_err(|e| AppError {
-            message: format!("Error getting the media with name {}. {}", search, e),
-            error_type: ErrorType::WebRequest,
-            error_response_type: ErrorResponseType::Message,
-        })
-    }
 
-    /// `new_ln_by_id` is an asynchronous function that creates a new light novel by ID.
-    /// It takes an `id` as a parameter.
-    /// `id` is a String that represents the ID of the light novel.
-    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes an `id` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `id` variable is set to the `id` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `MediaWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `id` - A String that represents the ID of the light novel.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
-    pub async fn new_ln_by_id(id: String) -> Result<MediaWrapper, AppError> {
-        let query_id: &str = "
-    query ($search: Int, $limit: Int = 5, $format: MediaFormat = NOVEL) {
-		Media (id: $search, type: MANGA, format: $format){
-    id
-      description
-    title{
-      romaji
-      english
-    }
-    type
-    format
-    source
-    isAdult
-    startDate {
-      year
-      month
-      day
-    }
-    endDate {
-      year
-      month
-      day
-    }
-    chapters
-    volumes
-    status
-    season
-    isLicensed
-    coverImage {
-      extraLarge
-    }
-    bannerImage
-    genres
-    tags {
-      name
-    }
-    averageScore
-    meanScore
-    popularity
-    favourites
-    siteUrl
-    staff(perPage: $limit) {
-      edges {
-        node {
-          id
-          name {
-            full
-            userPreferred
-          }
-        }
-        id
-        role
-      }
-    }
-  }
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct CharacterName {
+    pub user_preferred: Option<String>,
+    pub native: Option<String>,
+    pub full: Option<String>,
 }
-";
 
-        let json = json!({"query": query_id, "variables": {"search": id}});
-        let resp = make_request_anilist(json, false).await;
-        // Get json
-        serde_json::from_str(&resp).map_err(|e| AppError {
-            message: format!("Error getting the media with id {}. {}", id, e),
-            error_type: ErrorType::WebRequest,
-            error_response_type: ErrorResponseType::Message,
-        })
-    }
-
-    /// `new_ln_by_search` is an asynchronous function that creates a new light novel by search.
-    /// It takes a `search` as a parameter.
-    /// `search` is a reference to a String that represents the search query.
-    /// It returns a `Result` that contains a `MediaWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes a `search` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `search` variable is set to the `search` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `MediaWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `search` - A reference to a String that represents the search query.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<MediaWrapper, AppError>` - A Result that contains a `MediaWrapper` or an `AppError`.
-    pub async fn new_ln_by_search(search: &String) -> Result<MediaWrapper, AppError> {
-        let query_string: &str = "
-    query ($search: String, $limit: Int = 5, $format: MediaFormat = NOVEL) {
-		Media (search: $search, type: MANGA, format: $format){
-    id
-      description
-    title{
-      romaji
-      english
-    }
-    type
-    format
-    source
-    isAdult
-    startDate {
-      year
-      month
-      day
-    }
-    endDate {
-      year
-      month
-      day
-    }
-    chapters
-    volumes
-    status
-    season
-    isLicensed
-    coverImage {
-      extraLarge
-    }
-    bannerImage
-    genres
-    tags {
-      name
-    }
-    averageScore
-    meanScore
-    popularity
-    favourites
-    siteUrl
-    staff(perPage: $limit) {
-      edges {
-        node {
-          id
-          name {
-            full
-            userPreferred
-          }
-        }
-        id
-        role
-      }
-    }
-  }
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum CharacterRole {
+    Main,
+    Supporting,
+    Background,
 }
-";
 
-        let json = json!({"query": query_string, "variables": {"search": search}});
-        let resp = make_request_anilist(json, false).await;
-        // Get json
-        serde_json::from_str(&resp).map_err(|e| AppError {
-            message: format!("Error getting the media with name {}. {}", search, e),
-            error_type: ErrorType::WebRequest,
-            error_response_type: ErrorResponseType::Message,
-        })
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum MediaFormat {
+    Tv,
+    TvShort,
+    Movie,
+    Special,
+    Ova,
+    Ona,
+    Music,
+    Manga,
+    Novel,
+    OneShot,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum MediaSeason {
+    Winter,
+    Spring,
+    Summer,
+    Fall,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum MediaSource {
+    Original,
+    Manga,
+    LightNovel,
+    VisualNovel,
+    VideoGame,
+    Other,
+    Novel,
+    Doujinshi,
+    Anime,
+    WebNovel,
+    LiveAction,
+    Game,
+    Comic,
+    MultimediaProject,
+    PictureBook,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum MediaStatus {
+    Finished,
+    Releasing,
+    NotYetReleased,
+    Cancelled,
+    Hiatus,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum MediaType {
+    Anime,
+    Manga,
+}
+
+#[derive(cynic::Scalar, Debug, Clone)]
+pub struct CountryCode(pub String);
+
+impl Display for CountryCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0.clone())
+    }
+}
+
+impl Display for MediaType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MediaType::Anime => write!(f, "Anime"),
+            MediaType::Manga => write!(f, "Manga"),
+        }
+    }
+}
+
+impl Display for MediaStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MediaStatus::Finished => write!(f, "Finished"),
+            MediaStatus::Releasing => write!(f, "Releasing"),
+            MediaStatus::NotYetReleased => write!(f, "Not Yet Released"),
+            MediaStatus::Cancelled => write!(f, "Cancelled"),
+            MediaStatus::Hiatus => write!(f, "Hiatus"),
+        }
+    }
+}
+
+impl Display for MediaSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MediaSource::Original => write!(f, "Original"),
+            MediaSource::Manga => write!(f, "Manga"),
+            MediaSource::LightNovel => write!(f, "Light Novel"),
+            MediaSource::VisualNovel => write!(f, "Visual Novel"),
+            MediaSource::VideoGame => write!(f, "Video Game"),
+            MediaSource::Other => write!(f, "Other"),
+            MediaSource::Novel => write!(f, "Novel"),
+            MediaSource::Doujinshi => write!(f, "Doujinshi"),
+            MediaSource::Anime => write!(f, "Anime"),
+            MediaSource::WebNovel => write!(f, "Web Novel"),
+            MediaSource::LiveAction => write!(f, "Live Action"),
+            MediaSource::Game => write!(f, "Game"),
+            MediaSource::Comic => write!(f, "Comic"),
+            MediaSource::MultimediaProject => write!(f, "Multimedia Project"),
+            MediaSource::PictureBook => write!(f, "Picture Book"),
+        }
+    }
+}
+
+impl Display for MediaFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MediaFormat::Tv => write!(f, "TV"),
+            MediaFormat::TvShort => write!(f, "TV Short"),
+            MediaFormat::Movie => write!(f, "Movie"),
+            MediaFormat::Special => write!(f, "Special"),
+            MediaFormat::Ova => write!(f, "OVA"),
+            MediaFormat::Ona => write!(f, "ONA"),
+            MediaFormat::Music => write!(f, "Music"),
+            MediaFormat::Manga => write!(f, "Manga"),
+            MediaFormat::Novel => write!(f, "Novel"),
+            MediaFormat::OneShot => write!(f, "One Shot"),
+        }
+    }
+}
+
+impl Display for MediaSeason {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MediaSeason::Winter => write!(f, "Winter"),
+            MediaSeason::Spring => write!(f, "Spring"),
+            MediaSeason::Summer => write!(f, "Summer"),
+            MediaSeason::Fall => write!(f, "Fall"),
+        }
+    }
+}
+
+impl Display for CharacterRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CharacterRole::Main => write!(f, "Main"),
+            CharacterRole::Supporting => write!(f, "Supporting"),
+            CharacterRole::Background => write!(f, "Background"),
+        }
     }
 }
 
@@ -650,9 +358,9 @@ impl MediaWrapper {
 /// # Returns
 ///
 /// * `String` - A String that represents the title of the embed.
-fn embed_title(data: &MediaWrapper) -> String {
-    let en = data.data.media.title.english.clone();
-    let rj = data.data.media.title.romaji.clone();
+fn embed_title(title: &MediaTitle) -> String {
+    let en = title.english.clone();
+    let rj = title.romaji.clone();
     let en = en.unwrap_or_default();
     let rj = rj.unwrap_or_default();
     let mut title = String::new();
@@ -697,8 +405,8 @@ fn embed_title(data: &MediaWrapper) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the description of the embed.
-fn embed_desc(data: &MediaWrapper) -> String {
-    let mut desc = data.data.media.description.clone().unwrap_or_default();
+fn embed_desc(media: &Media) -> String {
+    let mut desc = media.description.clone().unwrap_or_default();
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let length_diff = 4096 - desc.len() as i32;
     if length_diff <= 0 {
@@ -723,15 +431,15 @@ fn embed_desc(data: &MediaWrapper) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the genres of the media.
-fn get_genre(data: &MediaWrapper) -> String {
-    data.data
-        .media
-        .genres
+fn get_genre(genres: &Vec<Option<String>>) -> String {
+    genres
         .iter()
-        .filter_map(|genre| genre.as_ref())
-        .map(|string| string.as_str())
+        .map(|string| {
+            let s = string.clone().unwrap_or_default();
+            s
+        })
         .take(5)
-        .collect::<Vec<&str>>()
+        .collect::<Vec<String>>()
         .join("\n")
 }
 
@@ -751,15 +459,14 @@ fn get_genre(data: &MediaWrapper) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the tags of the media.
-fn get_tag(data: &MediaWrapper) -> String {
-    data.data
-        .media
-        .tags
-        .iter()
-        .filter_map(|tag| tag.name.as_ref())
-        .map(|string| string.as_str())
+fn get_tag(tags: &Vec<Option<MediaTag>>) -> String {
+    tags.iter()
+        .map(|string| {
+            let s = string.clone().unwrap().name;
+            s
+        })
         .take(5)
-        .collect::<Vec<&str>>()
+        .collect::<Vec<String>>()
         .join("\n")
 }
 
@@ -778,9 +485,8 @@ fn get_tag(data: &MediaWrapper) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the URL of the media.
-fn get_url(data: &MediaWrapper) -> String {
-    data.data
-        .media
+fn get_url(media: &Media) -> String {
+    media
         .site_url
         .clone()
         .unwrap_or("https://example.com".to_string())
@@ -801,9 +507,15 @@ fn get_url(data: &MediaWrapper) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the thumbnail of the media.
-fn get_thumbnail(data: &MediaWrapper) -> String {
-    data.data.media.cover_image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
+fn get_thumbnail(media: &Media) -> String {
+    match &media.clone().cover_image {
+       Some(image) => {
+           image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
     bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string())
+       }
+       None => "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
+           bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string()
+   }
 }
 
 /// `get_banner` is a function that gets the banner of the media.
@@ -821,8 +533,8 @@ fn get_thumbnail(data: &MediaWrapper) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the banner of the media.
-pub fn get_banner(data: &MediaWrapper) -> String {
-    format!("https://img.anili.st/media/{}", data.data.media.id)
+pub fn get_banner(media: &Media) -> String {
+    format!("https://img.anili.st/media/{}", media.id)
 }
 
 /// `media_info` is a function that gets the information of the media.
@@ -844,12 +556,12 @@ pub fn get_banner(data: &MediaWrapper) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the information of the media.
-fn media_info(data: &MediaWrapper, media_localised: &MediaLocalised) -> String {
+fn media_info(media: &Media, media_localised: &MediaLocalised) -> String {
     let mut desc = format!(
         "{} \n\n\
     {}",
-        embed_desc(data),
-        get_info(&data.data.media, media_localised)
+        embed_desc(media),
+        get_info(&media, media_localised)
     );
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
@@ -876,17 +588,32 @@ fn media_info(data: &MediaWrapper, media_localised: &MediaLocalised) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the information of the media.
-fn get_info(data: &Media, media_localised: &MediaLocalised) -> String {
+fn get_info(media: &Media, media_localised: &MediaLocalised) -> String {
     let text = media_localised.desc.clone();
-    let format = data.format.clone();
-    let source = data.source.clone();
-    text.replace("$format$", format.unwrap_or(UNKNOWN.to_string()).as_str())
-        .replace("$source$", source.unwrap_or(UNKNOWN.to_string()).as_str())
-        .replace("$start_date$", get_date(&data.start_date).as_str())
-        .replace("$end_date$", get_date(&data.end_date).as_str())
+    let format = match media.format.clone() {
+        Some(f) => f.to_string(),
+        None => UNKNOWN.to_string(),
+    };
+    let source = match media.source.clone() {
+        Some(s) => s.to_string(),
+        None => UNKNOWN.to_string(),
+    };
+    let start_data = match media.clone().start_date {
+        Some(d) => get_date(&d),
+        None => UNKNOWN.to_string(),
+    };
+    let end_data = match media.clone().end_date {
+        Some(d) => get_date(&d),
+        None => UNKNOWN.to_string(),
+    };
+    let staff_edges = media.staff.clone().unwrap().edges.unwrap_or_default();
+    text.replace("$format$", format.as_str())
+        .replace("$source$", source.as_str())
+        .replace("$start_date$", start_data.as_str())
+        .replace("$end_date$", end_data.as_str())
         .replace(
             "$staff_list$",
-            get_staff(&data.staff.edges, &media_localised.staff_text).as_str(),
+            get_staff(staff_edges, &media_localised.staff_text).as_str(),
         )
 }
 
@@ -906,7 +633,7 @@ fn get_info(data: &Media, media_localised: &MediaLocalised) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the date.
-fn get_date(date: &StartEndDate) -> String {
+fn get_date(date: &FuzzyDate) -> String {
     let date_y = date.year.unwrap_or(0);
     let date_d = date.day.unwrap_or(0);
     let date_m = date.month.unwrap_or(0);
@@ -963,15 +690,17 @@ fn get_date(date: &StartEndDate) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the staff of the media.
-fn get_staff(staff: &Vec<Edge>, staff_string: &str) -> String {
+fn get_staff(staff: Vec<Option<StaffEdge>>, staff_string: &str) -> String {
     let mut staff_text = String::new();
     for s in staff {
+        let s = s.unwrap();
+        let node = s.node.clone().unwrap();
         let text = staff_string;
-        let node = &s.node;
-        let name = &node.name;
-        let full = name.full.clone();
-        let user_pref = name.user_preferred.clone();
-        let staff_name = user_pref.unwrap_or(full.unwrap_or(UNKNOWN.to_string()));
+        let name = node.name.unwrap();
+        let full = name.full;
+        let user_pref = name.user_preferred;
+        let native = name.native;
+        let staff_name = user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(UNKNOWN.to_string())));
         let s_role = s.role.clone();
         let role = s_role.unwrap_or(UNKNOWN.to_string());
         staff_text.push_str(
@@ -1011,9 +740,10 @@ fn get_staff(staff: &Vec<Edge>, staff_string: &str) -> String {
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    data: MediaWrapper,
+    data: Media,
 ) -> Result<(), AppError> {
-    if data.data.media.is_adult && !get_nsfw(command_interaction, ctx).await {
+    let is_adult = data.is_adult.unwrap_or(true);
+    if is_adult && !get_nsfw(command_interaction, ctx).await {
         return Err(AppError {
             message: String::from("The channel is not nsfw but the media you requested is."),
             error_type: ErrorType::Command,
@@ -1028,14 +758,17 @@ pub async fn send_embed(
 
     let media_localised = load_localization_media(guild_id).await?;
 
+    let title = data.title.clone().unwrap();
+    let genres = data.genres.clone().unwrap_or_default();
+    let tags = data.tags.clone().unwrap_or_default();
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
         .description(media_info(&data, &media_localised))
-        .title(embed_title(&data))
+        .title(embed_title(&title))
         .url(get_url(&data))
-        .field(&media_localised.field1_title, get_genre(&data), true)
-        .field(&media_localised.field2_title, get_tag(&data), true)
+        .field(&media_localised.field1_title, get_genre(&genres), true)
+        .field(&media_localised.field2_title, get_tag(&tags), true)
         .thumbnail(get_thumbnail(&data))
         .image(get_banner(&data));
 
@@ -1051,4 +784,60 @@ pub async fn send_embed(
             error_type: ErrorType::Command,
             error_response_type: ErrorResponseType::Message,
         })
+}
+
+pub async fn get_media_by_id(id: i32, var: MediaDataIdVariables) -> Result<Media, AppError> {
+    let operation = MediaDataId::build(var);
+    let data: GraphQlResponse<MediaDataId> = match make_request_anilist(operation, false).await {
+        Ok(data) => match data.json::<GraphQlResponse<MediaDataId>>().await {
+            Ok(data) => data,
+            Err(e) => {
+                tracing::error!(?e);
+                return Err(AppError {
+                    message: format!("Error retrieving character with ID: {} \n {}", id, e),
+                    error_type: ErrorType::WebRequest,
+                    error_response_type: ErrorResponseType::Message,
+                });
+            }
+        },
+        Err(e) => {
+            tracing::error!(?e);
+            return Err(AppError {
+                message: format!("Error retrieving character with ID: {} \n {}", id, e),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            });
+        }
+    };
+    Ok(data.data.unwrap().media.unwrap())
+}
+
+pub async fn get_media_by_search<'a>(
+    value: String,
+    var: MediaDataSearchVariables<'a>,
+) -> Result<Media, AppError> {
+    let operation = MediaDataSearch::build(var);
+    let data: GraphQlResponse<MediaDataSearch> = match make_request_anilist(operation, false).await
+    {
+        Ok(data) => match data.json::<GraphQlResponse<MediaDataSearch>>().await {
+            Ok(data) => data,
+            Err(e) => {
+                tracing::error!(?e);
+                return Err(AppError {
+                    message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                    error_type: ErrorType::WebRequest,
+                    error_response_type: ErrorResponseType::Message,
+                });
+            }
+        },
+        Err(e) => {
+            tracing::error!(?e);
+            return Err(AppError {
+                message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            });
+        }
+    };
+    Ok(data.data.unwrap().media.unwrap())
 }

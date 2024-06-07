@@ -2,7 +2,10 @@ use serenity::all::{CommandInteraction, Context};
 
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::structure::run::anilist::media::{send_embed, MediaWrapper};
+use crate::structure::run::anilist::media::{
+    get_media_by_id, get_media_by_search, send_embed, Media, MediaDataIdVariables,
+    MediaDataSearchVariables, MediaFormat, MediaType,
+};
 
 /// Executes the command to fetch and display information about a manga based on its name or ID.
 ///
@@ -27,10 +30,23 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap_or(String::new());
 
     // Fetch the manga data by ID if the value can be parsed as an `i32`, or by search otherwise
-    let data: MediaWrapper = if value.parse::<i32>().is_ok() {
-        MediaWrapper::new_manga_by_id(value.parse().unwrap()).await?
-    } else {
-        MediaWrapper::new_manga_by_search(&value).await?
+    let data: Media = if value.parse::<i32>().is_ok() {
+        let id = value.parse::<i32>().unwrap();
+        let var = MediaDataIdVariables {
+            format_in: Some(vec![Some(MediaFormat::OneShot), Some(MediaFormat::Manga)]),
+            id: Some(id),
+            media_type: Some(MediaType::Manga),
+        };
+        get_media_by_id(id, var).await?
+    } else {                let value_clone = value.clone();
+
+
+        let var = MediaDataSearchVariables {
+            format_in: Some(vec![Some(MediaFormat::OneShot), Some(MediaFormat::Manga)]),
+            search: Some(&*value),
+            media_type: Some(MediaType::Manga),
+        };
+        get_media_by_search(value_clone, var).await?
     };
 
     // Send an embed containing the manga data as a response to the command interaction
