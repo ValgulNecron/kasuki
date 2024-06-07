@@ -160,12 +160,12 @@ async fn send_specific_activity(
         .description(
             localised_text
                 .desc
-                .replace("$ep$", &*row.episode.to_string()).as_str()
+                .replace("$ep$", &row.episode.to_string()).as_str()
                 .replace("$anime$", row.name.as_str()),
         )
         .url(format!(
             "https://anilist.co/anime/{}",
-            row.anime_id.to_string()
+            row.anime_id
         ))
         .title(&localised_text.title);
 

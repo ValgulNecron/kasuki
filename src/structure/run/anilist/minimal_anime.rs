@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::FromRow;
 use tracing::log::trace;
 
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
