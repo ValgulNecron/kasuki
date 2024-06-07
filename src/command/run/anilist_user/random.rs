@@ -70,7 +70,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let row: Option<RandomCache> = get_database_random_cache(random_type).await?;
     let (cached_response, last_updated, page_number) = match row {
         Some(row) => (row.response, row.last_updated, row.last_page),
-        None => (String::new(), 0, 1628),
+        None => (String::new(), 0, 1796),
     };
     let previous_page = page_number - 1;
 
