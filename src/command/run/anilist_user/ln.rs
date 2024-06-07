@@ -1,9 +1,10 @@
 use serenity::all::{CommandInteraction, Context};
 
-use crate::helper::error_management::error_enum::{AppError};
+use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::run::anilist::media::{
-    get_media_by_id, get_media_by_search, send_embed, Media, MediaDataIdVariables, MediaDataSearchVariables, MediaFormat, MediaType,
+    get_media_by_id, get_media_by_search, send_embed, Media, MediaDataIdVariables,
+    MediaDataSearchVariables, MediaFormat, MediaType,
 };
 
 /// Executes the command to fetch and display information about a light novel (LN) based on its name or ID.

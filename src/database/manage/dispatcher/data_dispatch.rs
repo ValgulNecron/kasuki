@@ -30,7 +30,6 @@ use crate::database::manage::sqlite::data::{
     set_registered_user_sqlite, set_server_image_sqlite, set_user_approximated_color_sqlite,
 };
 use crate::helper::error_management::error_enum::AppError;
-use crate::structure::run::anilist::minimal_anime::ActivityData;
 
 /// Sets the ping history in the database.
 ///
@@ -122,7 +121,7 @@ pub async fn set_data_guild_language(guild_language: GuildLanguage) -> Result<()
 /// # Returns
 ///
 /// * A Result that is either a Vec variant containing the activity data if the operation was successful, or an Err variant with an AppError.
-pub async fn get_data_activity(now: String) -> Result<Vec<ActivityData>, AppError> {
+pub async fn get_data_activity(now: String) -> Result<Vec<ServerActivityFull>, AppError> {
     let db_type = DB_TYPE.clone();
     let db_type = db_type.as_str();
     if db_type == "sqlite" {

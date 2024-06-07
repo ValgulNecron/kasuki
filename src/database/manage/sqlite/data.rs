@@ -9,7 +9,6 @@ use crate::database::data_struct::server_activity::{
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::structure::run::anilist::minimal_anime::ActivityData;
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
 ///
@@ -103,9 +102,9 @@ pub async fn set_data_guild_language_sqlite(guild_language: GuildLanguage) -> Re
 ///
 /// A `Vec<ActivityData>` containing the retrieved data.
 ///
-pub async fn get_data_activity_sqlite(now: String) -> Result<Vec<ActivityData>, AppError> {
+pub async fn get_data_activity_sqlite(now: String) -> Result<Vec<ServerActivityFull>, AppError> {
     let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let rows: Vec<ActivityData> = sqlx::query_as(
+    let rows: Vec<ServerActivityFull> = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays, image FROM activity_data WHERE timestamp = ?",
     )
         .bind(now)

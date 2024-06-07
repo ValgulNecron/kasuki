@@ -8,7 +8,6 @@ use crate::database::data_struct::server_activity::{
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::structure::run::anilist::minimal_anime::ActivityData;
 
 /// Inserts or updates a ping history record in the PostgreSQL database.
 ///
@@ -115,9 +114,9 @@ pub async fn set_data_guild_language_postgresql(
 /// # Returns
 ///
 /// * A Result that is either a Vec<ActivityData> if the operation was successful and the activity data records exist, or an empty Vec<ActivityData> if the activity data records do not exist. Returns an Err variant with an AppError if the operation failed.
-pub async fn get_data_activity_postgresql(now: String) -> Result<Vec<ActivityData>, AppError> {
+pub async fn get_data_activity_postgresql(now: String) -> Result<Vec<ServerActivityFull>, AppError> {
     let pool = get_postgresql_pool().await?;
-    let rows: Vec<ActivityData> = sqlx::query_as(
+    let rows: Vec<ServerActivityFull> = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays, image FROM DATA.activity_data WHERE timestamp = $1",
     )
         .bind(now)

@@ -1,6 +1,8 @@
+use sqlx::FromRow;
+
 /// ServerActivity is a struct that represents the activity of a server.
 /// It is derived from a row in a SQL database.
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug, Clone)]
 pub struct ServerActivity {
     /// anime_id is an Option<String> that represents the ID of the anime. It can be None if the anime ID is not set.
     pub anime_id: Option<String>,
@@ -20,7 +22,7 @@ pub struct ServerActivity {
 
 // ServerActivityFull is a struct that represents the full activity of a server.
 // It is derived from a row in a SQL database.
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug, Clone)]
 pub struct ServerActivityFull {
     /// anime_id is an i32 that represents the ID of the anime.
     pub anime_id: i32,
@@ -40,7 +42,7 @@ pub struct ServerActivityFull {
     pub image: String,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug, Clone)]
 pub struct SmallServerActivity {
     pub anime_id: i32,
     pub timestamp: i64,

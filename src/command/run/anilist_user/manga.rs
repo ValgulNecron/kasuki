@@ -38,8 +38,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             media_type: Some(MediaType::Manga),
         };
         get_media_by_id(id, var).await?
-    } else {                let value_clone = value.clone();
-
+    } else {
+        let value_clone = value.clone();
 
         let var = MediaDataSearchVariables {
             format_in: Some(vec![Some(MediaFormat::OneShot), Some(MediaFormat::Manga)]),
