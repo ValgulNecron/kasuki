@@ -4,7 +4,7 @@ use serenity::all::{CommandInteraction, Context};
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
 use crate::structure::autocomplete::anilist::media::{
-    send_auto_complete, MediaAutocompleteVariables, MediaFormat, MediaType,
+    send_auto_complete,
 };
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for anime group search.

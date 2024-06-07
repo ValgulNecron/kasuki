@@ -1,5 +1,4 @@
 use cynic::{GraphQlResponse, QueryBuilder};
-use serde::Deserialize;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
@@ -13,8 +12,6 @@ use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::{load_localization_media, MediaLocalised};
-use crate::structure::run::anilist::staff::Title;
-use crate::structure::run::anilist::user::{Genre, Tag};
 #[cynic::schema("anilist")]
 mod schema {}
 #[derive(cynic::QueryVariables, Debug, Clone)]
@@ -435,8 +432,8 @@ fn get_genre(genres: &Vec<Option<String>>) -> String {
     genres
         .iter()
         .map(|string| {
-            let s = string.clone().unwrap_or_default();
-            s
+            
+            string.clone().unwrap_or_default()
         })
         .take(5)
         .collect::<Vec<String>>()
@@ -462,8 +459,8 @@ fn get_genre(genres: &Vec<Option<String>>) -> String {
 fn get_tag(tags: &Vec<Option<MediaTag>>) -> String {
     tags.iter()
         .map(|string| {
-            let s = string.clone().unwrap().name;
-            s
+            
+            string.clone().unwrap().name
         })
         .take(5)
         .collect::<Vec<String>>()
@@ -561,7 +558,7 @@ fn media_info(media: &Media, media_localised: &MediaLocalised) -> String {
         "{} \n\n\
     {}",
         embed_desc(media),
-        get_info(&media, media_localised)
+        get_info(media, media_localised)
     );
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
@@ -590,11 +587,11 @@ fn media_info(media: &Media, media_localised: &MediaLocalised) -> String {
 /// * `String` - A String that represents the information of the media.
 fn get_info(media: &Media, media_localised: &MediaLocalised) -> String {
     let text = media_localised.desc.clone();
-    let format = match media.format.clone() {
+    let format = match media.format {
         Some(f) => f.to_string(),
         None => UNKNOWN.to_string(),
     };
-    let source = match media.source.clone() {
+    let source = match media.source {
         Some(s) => s.to_string(),
         None => UNKNOWN.to_string(),
     };

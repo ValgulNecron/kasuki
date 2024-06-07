@@ -1,12 +1,9 @@
-use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context};
 
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{AppError};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::media::{
-    get_media_by_id, get_media_by_search, send_embed, Media, MediaDataId, MediaDataIdVariables,
-    MediaDataSearch, MediaDataSearchVariables, MediaFormat, MediaType,
+    get_media_by_id, get_media_by_search, send_embed, Media, MediaDataIdVariables, MediaDataSearchVariables, MediaFormat, MediaType,
 };
 
 /// This asynchronous function runs the command interaction for retrieving information about an anime.
