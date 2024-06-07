@@ -3,6 +3,7 @@ use std::io::{Cursor, Read};
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use base64::Engine as _;
+use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
 use reqwest::get;
@@ -20,9 +21,10 @@ use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_d
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
 use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
-use crate::structure::run::anilist::minimal_anime::{MinimalAnimeWrapper, Title};
+use crate::structure::run::anilist::minimal_anime::{Media, MediaTitle, MinimalAnimeDataId, MinimalAnimeDataIdVariables, MinimalAnimeDataSearch, MinimalAnimeDataSearchVariables};
 
 /// This asynchronous function gets or creates a webhook for a given channel.
 ///
@@ -72,14 +74,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })?;
     let add_activity_localised = load_localization_add_activity(guild_id.clone()).await?;
 
-    let data = if anime.parse::<i32>().is_ok() {
-        MinimalAnimeWrapper::new_minimal_anime_by_id(anime.parse().unwrap()).await?
+    let media = if anime.parse::<i32>().is_ok() {
+        get_minimal_anime_by_id(anime.parse::<i32>().unwrap()).await?
     } else {
-        MinimalAnimeWrapper::new_minimal_anime_by_search(anime.to_string()).await?
+        get_minimal_anime_by_search(anime.as_str()).await?
     };
-    let media = data.data.media.clone();
     let anime_id = media.id;
-    let title = data.data.media.title.ok_or(AppError::new(
+    let title = media.title.ok_or(AppError::new(
         String::from("There is no option in the title."),
         ErrorType::Option,
         ErrorResponseType::Followup,
@@ -157,10 +158,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
         set_data_activity(ServerActivityFull {
             anime_id,
-            timestamp: next_airing.airing_at.unwrap_or(0),
+            timestamp: next_airing.airing_at as i64,
             guild_id,
             webhook,
-            episode: next_airing.episode.unwrap_or(0),
+            episode: next_airing.episode,
             name: anime_name.clone(),
             delays: delay,
             image: base64,
@@ -223,7 +224,7 @@ async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
 /// # Returns
 ///
 /// A string representing the name of the anime.
-pub fn get_name(title: Title) -> String {
+pub fn get_name(title: MediaTitle) -> String {
     let en = title.english.clone();
     let rj = title.romaji.clone();
     let en = en;
@@ -383,4 +384,60 @@ async fn get_webhook(
     webhook.edit(&ctx.http, edit_webhook).await.unwrap();
 
     Ok(webhook_return)
+}
+
+pub async fn get_minimal_anime_by_id(id: i32) -> Result<Media, AppError> {
+    let query = MinimalAnimeDataIdVariables { id: Some(id) };
+    let operation = MinimalAnimeDataId::build(query);
+    let data: GraphQlResponse<MinimalAnimeDataId> = match make_request_anilist(operation, false).await
+    {
+        Ok(data) => match data.json::<GraphQlResponse<MinimalAnimeDataId>>().await {
+            Ok(data) => data,
+            Err(e) => {
+                tracing::error!(?e);
+                return Err(AppError {
+                    message: format!("Error retrieving character with ID: {} \n {}", id, e),
+                    error_type: ErrorType::WebRequest,
+                    error_response_type: ErrorResponseType::Message,
+                });
+            }
+        },
+        Err(e) => {
+            tracing::error!(?e);
+            return Err(AppError {
+                message: format!("Error retrieving character with ID: {} \n {}", id, e),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            });
+        }
+    };
+    Ok(data.data.unwrap().media.unwrap())
+}
+
+pub async fn get_minimal_anime_by_search(value: &str) -> Result<Media, AppError> {
+    let query = MinimalAnimeDataSearchVariables { search: Some(value) };
+    let operation = MinimalAnimeDataSearch::build(query);
+    let data: GraphQlResponse<MinimalAnimeDataSearch> = match make_request_anilist(operation, false).await
+    {
+        Ok(data) => match data.json::<GraphQlResponse<MinimalAnimeDataSearch>>().await {
+            Ok(data) => data,
+            Err(e) => {
+                tracing::error!(?e);
+                return Err(AppError {
+                    message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                    error_type: ErrorType::WebRequest,
+                    error_response_type: ErrorResponseType::Message,
+                });
+            }
+        },
+        Err(e) => {
+            tracing::error!(?e);
+            return Err(AppError {
+                message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            });
+        }
+    };
+    Ok(data.data.unwrap().media.unwrap())
 }

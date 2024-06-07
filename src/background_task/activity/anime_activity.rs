@@ -6,6 +6,7 @@ use base64::read::DecoderReader;
 use chrono::Utc;
 use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webhook};
 use tracing::{error, trace};
+use crate::command::run::admin::anilist::add_activity::get_minimal_anime_by_id;
 
 use crate::database::data_struct::server_activity::ServerActivityFull;
 use crate::database::manage::dispatcher::data_dispatch::{
@@ -14,7 +15,6 @@ use crate::database::manage::dispatcher::data_dispatch::{
 use crate::helper::create_normalise_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
-use crate::structure::run::anilist::minimal_anime::{MinimalAnimeWrapper};
 
 /// `manage_activity` is an asynchronous function that manages activities.
 /// It takes a `ctx` as a parameter.
@@ -207,11 +207,7 @@ async fn send_specific_activity(
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 async fn update_info(row: ServerActivityFull, guild_id: String) -> Result<(), AppError> {
-    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
-        row.anime_id.to_string(),
-    )
-    .await?;
-    let media = data.data.media;
+    let media = get_minimal_anime_by_id(row.anime_id).await?;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
         None => return remove_activity(row, guild_id).await,
@@ -226,10 +222,10 @@ async fn update_info(row: ServerActivityFull, guild_id: String) -> Result<(), Ap
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
     set_data_activity(ServerActivityFull {
         anime_id: media.id,
-        timestamp: next_airing.airing_at.unwrap(),
+        timestamp: next_airing.airing_at as i64,
         guild_id,
         webhook: row.webhook,
-        episode: next_airing.episode.unwrap_or(1),
+        episode: next_airing.episode,
         name,
         delays: row.delays,
         image: row.image,
