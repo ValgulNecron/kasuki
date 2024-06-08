@@ -10,6 +10,7 @@ use tracing::info;
 use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
+use crate::background_task::update_random_stats::update_random_stats_launcher;
 use crate::constant::{
     GRPC_IS_ON, PING_UPDATE_DELAYS, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_GAME_UPDATE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE, USER_BLACKLIST_SERVER_IMAGE,
@@ -47,7 +48,7 @@ pub async fn thread_management_launcher(ctx: Context, command_usage: Arc<RwLock<
         let local_user_blacklist = USER_BLACKLIST_SERVER_IMAGE.clone();
         tokio::spawn(update_user_blacklist(local_user_blacklist));
     }
-
+    tokio::spawn(update_random_stats_launcher());
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
     tokio::spawn(launch_server_image_management_thread(ctx.clone()));

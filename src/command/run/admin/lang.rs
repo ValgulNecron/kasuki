@@ -4,7 +4,7 @@ use serenity::all::{
 
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::manage::dispatcher::data_dispatch::set_data_guild_language;
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::lang::load_localization_lang;

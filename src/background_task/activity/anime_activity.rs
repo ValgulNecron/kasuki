@@ -1,18 +1,18 @@
 use std::io::{Cursor, Read};
 use std::time::Duration;
 
+use crate::command::run::admin::anilist::add_activity::get_minimal_anime_by_id;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use chrono::Utc;
 use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webhook};
 use tracing::{error, trace};
-use crate::command::run::admin::anilist::add_activity::get_minimal_anime_by_id;
 
 use crate::database::data_struct::server_activity::ServerActivityFull;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
 
@@ -61,13 +61,10 @@ async fn send_activity(ctx: &Context) {
         let row2 = row.clone();
         let guild_id = row.guild_id.clone();
         let ctx = ctx.clone();
-        if row.delays!= 0 {
+        if row.delays != 0 {
             tokio::spawn(async move {
-                tokio::time::sleep(Duration::from_secs(row2.delays as u64))
-                    .await;
-                if let Err(e) =
-                    send_specific_activity(row, guild_id, row2, &ctx).await
-                {
+                tokio::time::sleep(Duration::from_secs(row2.delays as u64)).await;
+                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx).await {
                     error!("{}", e)
                 }
             });
@@ -160,13 +157,11 @@ async fn send_specific_activity(
         .description(
             localised_text
                 .desc
-                .replace("$ep$", &row.episode.to_string()).as_str()
+                .replace("$ep$", &row.episode.to_string())
+                .as_str()
                 .replace("$anime$", row.name.as_str()),
         )
-        .url(format!(
-            "https://anilist.co/anime/{}",
-            row.anime_id
-        ))
+        .url(format!("https://anilist.co/anime/{}", row.anime_id))
         .title(&localised_text.title);
 
     let builder_message = ExecuteWebhook::new().embed(embed);

@@ -5,9 +5,11 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::command::run::admin::anilist::add_activity::{get_minimal_anime_by_id, get_minimal_anime_by_search, get_name};
+use crate::command::run::admin::anilist::add_activity::{
+    get_minimal_anime_by_id, get_minimal_anime_by_search, get_name,
+};
 use crate::database::manage::dispatcher::data_dispatch::remove_data_activity_status;
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;

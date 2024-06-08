@@ -6,7 +6,7 @@ use serenity::all::{
 use tracing::trace;
 
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::game::steam_game_info::{

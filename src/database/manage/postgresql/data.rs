@@ -114,7 +114,9 @@ pub async fn set_data_guild_language_postgresql(
 /// # Returns
 ///
 /// * A Result that is either a Vec<ActivityData> if the operation was successful and the activity data records exist, or an empty Vec<ActivityData> if the activity data records do not exist. Returns an Err variant with an AppError if the operation failed.
-pub async fn get_data_activity_postgresql(now: String) -> Result<Vec<ServerActivityFull>, AppError> {
+pub async fn get_data_activity_postgresql(
+    now: String,
+) -> Result<Vec<ServerActivityFull>, AppError> {
     let pool = get_postgresql_pool().await?;
     let rows: Vec<ServerActivityFull> = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays, image FROM DATA.activity_data WHERE timestamp = $1",

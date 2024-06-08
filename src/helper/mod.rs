@@ -1,5 +1,5 @@
 pub mod convert_flavored_markdown;
-pub mod create_normalise_embed;
+pub mod create_default_embed;
 pub mod error_management;
 pub mod fuzzy_search;
 pub mod general_channel_info;

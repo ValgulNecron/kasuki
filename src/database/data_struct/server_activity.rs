@@ -1,4 +1,3 @@
-
 /// ServerActivity is a struct that represents the activity of a server.
 /// It is derived from a row in a SQL database.
 #[derive(sqlx::FromRow, Debug, Clone)]

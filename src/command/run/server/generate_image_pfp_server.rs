@@ -9,7 +9,7 @@ use tracing::trace;
 use uuid::Uuid;
 
 use crate::database::manage::dispatcher::data_dispatch::get_server_image;
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 

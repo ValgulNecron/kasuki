@@ -1,5 +1,6 @@
 #[cynic::schema("anilist")]
-mod schema {}#[derive(cynic::QueryVariables, Debug, Clone)]
+mod schema {}
+#[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct MinimalAnimeDataIdVariables {
     pub id: Option<i32>,
 }
@@ -52,4 +53,3 @@ pub struct AiringSchedule {
     pub time_until_airing: i32,
     pub episode: i32,
 }
-

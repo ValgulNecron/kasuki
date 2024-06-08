@@ -8,7 +8,7 @@ use tracing::trace;
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::database::manage::dispatcher::data_dispatch::get_all_server_activity;
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 

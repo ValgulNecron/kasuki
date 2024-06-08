@@ -1,168 +1,110 @@
-use serde::Deserialize;
-use serde_json::json;
+use std::fmt::Display;
+#[cynic::schema("anilist")]
+mod schema {}
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct RandomPageMediaVariables {
+    pub media_type: Option<MediaType>,
+    pub page: Option<i32>,
+}
 
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::make_anilist_cached_request::make_request_anilist;
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "RandomPageMediaVariables")]
+pub struct RandomPageMedia {
+    #[arguments(perPage: 1, page: $page)]
+    #[cynic(rename = "Page")]
+    pub page: Option<Page>,
+}
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(variables = "RandomPageMediaVariables")]
+pub struct Page {
+    #[arguments(type: $media_type)]
+    pub media: Option<Vec<Option<Media>>>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct Media {
     pub id: i32,
-    pub title: Title,
-    #[serde(rename = "meanScore")]
-    pub mean_score: i32,
-    pub description: String,
-    pub tags: Vec<Tag>,
-    pub genres: Vec<String>,
-    pub format: String,
-    pub status: String,
-    #[serde(rename = "coverImage")]
-    pub cover_image: CoverImage,
+    pub title: Option<MediaTitle>,
+    pub description: Option<String>,
+    pub mean_score: Option<i32>,
+    pub tags: Option<Vec<Option<MediaTag>>>,
+    pub genres: Option<Vec<Option<String>>>,
+    pub format: Option<MediaFormat>,
+    pub status: Option<MediaStatus>,
+    pub cover_image: Option<MediaCoverImage>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Title {
-    pub native: String,
-    #[serde(rename = "userPreferred")]
-    pub user_preferred: String,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaCoverImage {
+    pub extra_large: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Tag {
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaTag {
     pub name: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Page {
-    pub media: Vec<Media>,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaTitle {
+    pub native: Option<String>,
+    pub user_preferred: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct PageData {
-    #[serde(rename = "Page")]
-    pub page: Page,
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum MediaFormat {
+    Tv,
+    TvShort,
+    Movie,
+    Special,
+    Ova,
+    Ona,
+    Music,
+    Manga,
+    Novel,
+    OneShot,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct PageWrapper {
-    pub data: PageData,
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum MediaStatus {
+    Finished,
+    Releasing,
+    NotYetReleased,
+    Cancelled,
+    Hiatus,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct CoverImage {
-    #[serde(rename = "extraLarge")]
-    pub extra_large: String,
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum MediaType {
+    Anime,
+    Manga,
 }
 
-/// `PageWrapper` is an implementation block for the `PageWrapper` struct.
-impl PageWrapper {
-    /// `new_anime_page` is an asynchronous function that creates a new anime page.
-    /// It takes a `number` as a parameter.
-    /// `number` is a 64-bit integer that represents the page number.
-    /// It returns a `Result` that contains a `PageWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes a `number` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `number` variable is set to the `number` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `PageWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `number` - A 64-bit integer that represents the page number.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<PageWrapper, AppError>` - A Result that contains a `PageWrapper` or an `AppError`.
-    pub async fn new_anime_page(number: i64) -> Result<PageWrapper, AppError> {
-        let query = "
-                    query($anime_page: Int){
-                        Page(page: $anime_page, perPage: 1){
-                            media(type: ANIME){
-                            id
-                            title {
-                                native
-                                userPreferred
-                            }
-                            meanScore
-                            description
-                            tags {
-                                name
-                            }
-                            genres
-                            format
-                            status
-                            coverImage {
-                                extraLarge
-                            }
-                        }
-                    }
-                }";
-
-        let json = json!({"query": query, "variables": {"anime_page": number}});
-        let res = make_request_anilist(json, false).await;
-        let res = serde_json::from_str(&res).map_err(|e| {
-            AppError::new(
-                format!("Error getting the media with id {}. {}", number, e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Message,
-            )
-        })?;
-        Ok(res)
+impl Display for MediaFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MediaFormat::Tv => write!(f, "TV"),
+            MediaFormat::TvShort => write!(f, "TV_SHORT"),
+            MediaFormat::Movie => write!(f, "MOVIE"),
+            MediaFormat::Special => write!(f, "SPECIAL"),
+            MediaFormat::Ova => write!(f, "OVA"),
+            MediaFormat::Ona => write!(f, "ONA"),
+            MediaFormat::Music => write!(f, "MUSIC"),
+            MediaFormat::Manga => write!(f, "MANGA"),
+            MediaFormat::Novel => write!(f, "NOVEL"),
+            MediaFormat::OneShot => write!(f, "ONE_SHOT"),
+        }
     }
+}
 
-    /// `new_manga_page` is an asynchronous function that creates a new manga page.
-    /// It takes a `number` as a parameter.
-    /// `number` is a 64-bit integer that represents the page number.
-    /// It returns a `Result` that contains a `PageWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes a `number` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `number` variable is set to the `number` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `PageWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `number` - A 64-bit integer that represents the page number.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<PageWrapper, AppError>` - A Result that contains a `PageWrapper` or an `AppError`.
-    pub async fn new_manga_page(number: i64) -> Result<PageWrapper, AppError> {
-        let query = "
-                    query($manga_page: Int){
-                        Page(page: $manga_page, perPage: 1){
-                            media(type: MANGA){
-                            id
-                            title {
-                                native
-                                userPreferred
-                            }
-                            meanScore
-                            description
-                            tags {
-                                name
-                            }
-                            genres
-                            format
-                            status
-                            coverImage {
-                                extraLarge
-                            }
-                        }
-                    }
-                }";
-
-        let json = json!({"query": query, "variables": {"manga_page": number}});
-        let res = make_request_anilist(json, false).await;
-
-        let res = serde_json::from_str(&res).map_err(|e| {
-            AppError::new(
-                format!("Error getting the media with id {}. {}", number, e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Message,
-            )
-        })?;
-        Ok(res)
+impl Display for MediaStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MediaStatus::Finished => write!(f, "FINISHED"),
+            MediaStatus::Releasing => write!(f, "RELEASING"),
+            MediaStatus::NotYetReleased => write!(f, "NOT_YET_RELEASED"),
+            MediaStatus::Cancelled => write!(f, "CANCELLED"),
+            MediaStatus::Hiatus => write!(f, "HIATUS"),
+        }
     }
 }

@@ -4,7 +4,7 @@ use serenity::all::{
 };
 
 use crate::constant::{APP_VERSION, LIBRARY};
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::bot::info::load_localization_info;
 

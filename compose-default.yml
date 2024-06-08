@@ -66,6 +66,7 @@ services:
       - ./db/data.db:/kasuki/data.db
       - ./db/cache.db:/kasuki/cache.db
       - ./command_use.json:/kasuki/command_use.json
+      - ./random_stats.json:/kasuki/random_stats.json
       - ./logs/:/kasuki/logs/
       - ./server_image:/kasuki/server_image/
       - ./cert:/kasuki/cert/

@@ -4,7 +4,7 @@ use serenity::all::{
 use tokio::sync::RwLockReadGuard;
 
 use crate::event_handler::RootUsage;
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::helper::get_user_data::get_user_data;
