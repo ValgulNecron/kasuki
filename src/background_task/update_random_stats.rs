@@ -1,6 +1,5 @@
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::run::anilist::media::MediaDataId;
 use crate::structure::run::anilist::site_statistic_anime::{AnimeStat, AnimeStatVariables};
 use crate::structure::run::anilist::site_statistic_manga::{MangaStat, MangaStatVariables};
 use cynic::{GraphQlResponse, QueryBuilder};
@@ -32,11 +31,11 @@ pub async fn update_random_stats() -> Result<RandomStat, AppError> {
             )
         })?,
         Err(_) => {
-            let random_stats = RandomStat {
+            
+            RandomStat {
                 anime_last_page: 1796,
                 manga_last_page: 1796,
-            };
-            random_stats
+            }
         }
     };
     random_stats = update_random(random_stats).await?;

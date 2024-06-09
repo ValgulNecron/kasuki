@@ -1,5 +1,4 @@
 use crate::background_task::update_random_stats::update_random_stats;
-use chrono::Utc;
 use cynic::{GraphQlResponse, QueryBuilder};
 use rand::{thread_rng, Rng};
 use serenity::all::CreateInteractionResponse::Defer;
@@ -8,8 +7,6 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 
-use crate::cache::cache_struct::random_cache::RandomCache;
-use crate::cache::manage::cache_dispatch::{get_database_random_cache, set_database_random_cache};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -17,9 +14,8 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::random::{load_localization_random, RandomLocalised};
-use crate::structure::run::anilist::character::CharacterDataSearch;
 use crate::structure::run::anilist::random::{
-    Media, MediaFormat, MediaType, RandomPageMedia, RandomPageMediaVariables,
+    Media, MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
 
 /// Executes the command to fetch and display a random anime or manga based on the type specified in the command interaction.
@@ -198,7 +194,7 @@ async fn follow_up_message(
     url: String,
     random_localised: RandomLocalised,
 ) -> Result<(), AppError> {
-    let format = media.format.clone().unwrap();
+    let format = media.format.unwrap();
     let genres = media
         .genres
         .unwrap()

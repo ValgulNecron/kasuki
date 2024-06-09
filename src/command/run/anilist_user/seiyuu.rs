@@ -1,7 +1,6 @@
 use cynic::{GraphQlResponse, QueryBuilder};
 use std::io::Cursor;
 
-use crate::command::run::anilist_user::character::get_character_by_id;
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
 use prost::bytes::Bytes;
@@ -10,7 +9,6 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use tracing::trace;
 use uuid::Uuid;
 
 use crate::helper::create_default_embed::get_default_embed;
@@ -18,7 +16,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
-use crate::structure::run::anilist::seiyuu::{Character, CharacterConnection, Seiyuu, SeiyuuVariables, Staff, StaffImage};
+use crate::structure::run::anilist::seiyuu::{Character, CharacterConnection, Seiyuu, SeiyuuVariables, StaffImage};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -54,7 +52,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         SeiyuuVariables {
             id: None,
             per_page: Some(per_page),
-            search: Some(&*value),
+            search: Some(value),
         }
     };
     let operation = Seiyuu::build(var);
