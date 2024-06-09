@@ -2,10 +2,7 @@ use serenity::all::{CommandInteraction, Context};
 
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::structure::run::anilist::media::{
-    get_media_by_id, get_media_by_search, send_embed, Media, MediaDataIdVariables,
-    MediaDataSearchVariables, MediaFormat, MediaType,
-};
+use crate::structure::run::anilist::media::{send_embed, Media, MediaFormat, MediaType, MediaQuerryVariables, get_media};
 
 /// This asynchronous function runs the command interaction for retrieving information about an anime.
 ///
@@ -36,7 +33,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     // If the value is not an integer, treat it as a name and retrieve the anime with that name
     let data: Media = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();
-        let var = MediaDataIdVariables {
+        let var = MediaQuerryVariables {
             format_in: Some(vec![
                 Some(MediaFormat::Tv),
                 Some(MediaFormat::TvShort),
@@ -48,11 +45,12 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             ]),
             id: Some(id),
             media_type: Some(MediaType::Anime),
+            search: None,
         };
-        get_media_by_id(id, var).await?
+        get_media(id.to_string(), var).await?
     } else {
         let value_clone = value.clone();
-        let var = MediaDataSearchVariables {
+        let var = MediaQuerryVariables {
             format_in: Some(vec![
                 Some(MediaFormat::Tv),
                 Some(MediaFormat::TvShort),
@@ -64,8 +62,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             ]),
             search: Some(&*value),
             media_type: Some(MediaType::Anime),
+            id: None,
         };
-        get_media_by_search(value_clone, var).await?
+        get_media(value_clone, var).await?
     };
 
     // Send an embed with the anime information as a response to the command interaction

@@ -2,10 +2,7 @@ use serenity::all::{CommandInteraction, Context};
 
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::structure::run::anilist::media::{
-    get_media_by_id, get_media_by_search, send_embed, Media, MediaDataIdVariables,
-    MediaDataSearchVariables, MediaFormat, MediaType,
-};
+use crate::structure::run::anilist::media::{send_embed, Media, MediaFormat, MediaType, MediaQuerryVariables, get_media};
 
 /// Executes the command to fetch and display information about a light novel (LN) based on its name or ID.
 ///
@@ -32,21 +29,23 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     // Fetch the LN data by ID if the value can be parsed as an `i32`, or by search otherwise
     let data: Media = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();
-        let var = MediaDataIdVariables {
+        let var = MediaQuerryVariables {
             format_in: Some(vec![Some(MediaFormat::Novel)]),
             id: Some(id),
             media_type: Some(MediaType::Manga),
+            search: None,
         };
-        get_media_by_id(id, var).await?
+        get_media(id.to_string(), var).await?
     } else {
         let value_clone = value.clone();
 
-        let var = MediaDataSearchVariables {
+        let var = MediaQuerryVariables {
             format_in: Some(vec![Some(MediaFormat::Novel)]),
             search: Some(&*value),
             media_type: Some(MediaType::Manga),
+            id: None,
         };
-        get_media_by_search(value_clone, var).await?
+        get_media(value_clone, var).await?
     };
 
     // Send an embed containing the LN data as a response to the command interaction

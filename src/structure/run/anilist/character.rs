@@ -12,27 +12,15 @@ use crate::structure::message::anilist_user::character::load_localization_charac
 #[cynic::schema("anilist")]
 mod schema {}
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct CharacterDataIdVariables {
+pub struct CharacterQuerryVariables<'a> {
     pub id: Option<i32>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "CharacterDataIdVariables")]
-pub struct CharacterDataId {
-    #[arguments(id: $id)]
-    #[cynic(rename = "Character")]
-    pub character: Option<Character>,
-}
-
-#[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct CharacterDataSearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "CharacterDataSearchVariables")]
-pub struct CharacterDataSearch {
-    #[arguments(search: $search)]
+#[cynic(graphql_type = "Query", variables = "CharacterQuerryVariables")]
+pub struct CharacterQuerry {
+    #[arguments(id: $id, search: $search)]
     #[cynic(rename = "Character")]
     pub character: Option<Character>,
 }
@@ -43,11 +31,10 @@ pub struct Character {
     pub blood_type: Option<String>,
     pub date_of_birth: Option<FuzzyDate>,
     pub description: Option<String>,
-    pub id: i32,
-    pub gender: Option<String>,
-    pub image: Option<CharacterImage>,
-    pub is_favourite_blocked: bool,
     pub favourites: Option<i32>,
+    pub gender: Option<String>,
+    pub id: i32,
+    pub image: Option<CharacterImage>,
     pub mod_notes: Option<String>,
     pub name: Option<CharacterName>,
     pub site_url: Option<String>,
@@ -56,14 +43,9 @@ pub struct Character {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct CharacterName {
-    pub alternative: Option<Vec<Option<String>>>,
-    pub alternative_spoiler: Option<Vec<Option<String>>>,
-    pub first: Option<String>,
-    pub full: Option<String>,
-    pub last: Option<String>,
-    pub middle: Option<String>,
-    pub native: Option<String>,
     pub user_preferred: Option<String>,
+    pub native: Option<String>,
+    pub full: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -74,9 +56,9 @@ pub struct CharacterImage {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct FuzzyDate {
-    pub day: Option<i32>,
     pub month: Option<i32>,
     pub year: Option<i32>,
+    pub day: Option<i32>,
 }
 
 /// `send_embed` is an asynchronous function that sends an embed message.

@@ -15,31 +15,17 @@ use crate::structure::message::anilist_user::media::{load_localization_media, Me
 #[cynic::schema("anilist")]
 mod schema {}
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct MediaDataIdVariables {
+pub struct MediaQuerryVariables<'a> {
     pub format_in: Option<Vec<Option<MediaFormat>>>,
     pub id: Option<i32>,
-    pub media_type: Option<MediaType>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "MediaDataIdVariables")]
-pub struct MediaDataId {
-    #[arguments(format_in: $format_in, type: $media_type, id: $id)]
-    #[cynic(rename = "Media")]
-    pub media: Option<Media>,
-}
-
-#[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct MediaDataSearchVariables<'a> {
-    pub format_in: Option<Vec<Option<MediaFormat>>>,
     pub media_type: Option<MediaType>,
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "MediaDataSearchVariables")]
-pub struct MediaDataSearch {
-    #[arguments(format_in: $format_in, type: $media_type, search: $search)]
+#[cynic(graphql_type = "Query", variables = "MediaQuerryVariables")]
+pub struct MediaQuerry {
+    #[arguments(search: $search, type: $media_type, id: $id, format_in: $format_in)]
     #[cynic(rename = "Media")]
     pub media: Option<Media>,
 }
@@ -47,40 +33,39 @@ pub struct MediaDataSearch {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct Media {
     pub id: i32,
-    pub description: Option<String>,
+    pub cover_image: Option<MediaCoverImage>,
+    pub title: Option<MediaTitle>,
     pub volumes: Option<i32>,
     pub updated_at: Option<i32>,
     #[cynic(rename = "type")]
     pub type_: Option<MediaType>,
     pub trending: Option<i32>,
-    pub title: Option<MediaTitle>,
     pub synonyms: Option<Vec<Option<String>>>,
     pub tags: Option<Vec<Option<MediaTag>>>,
-    pub studios: Option<StudioConnection>,
     pub status: Option<MediaStatus>,
     pub source: Option<MediaSource>,
     pub site_url: Option<String>,
     pub season_year: Option<i32>,
     pub season_int: Option<i32>,
     pub season: Option<MediaSeason>,
-    pub rankings: Option<Vec<Option<MediaRank>>>,
     pub popularity: Option<i32>,
     pub mod_notes: Option<String>,
     pub mean_score: Option<i32>,
     pub is_licensed: Option<bool>,
     pub is_adult: Option<bool>,
+    pub hashtag: Option<String>,
     pub genres: Option<Vec<Option<String>>>,
-    pub format: Option<MediaFormat>,
     pub favourites: Option<i32>,
+    pub format: Option<MediaFormat>,
     pub episodes: Option<i32>,
+    pub end_date: Option<FuzzyDate>,
+    pub duration: Option<i32>,
+    pub description: Option<String>,
+    pub country_of_origin: Option<CountryCode>,
     pub chapters: Option<i32>,
     pub banner_image: Option<String>,
     pub average_score: Option<i32>,
     pub auto_create_forum_thread: Option<bool>,
-    pub duration: Option<i32>,
-    pub end_date: Option<FuzzyDate>,
-    pub country_of_origin: Option<CountryCode>,
-    pub cover_image: Option<MediaCoverImage>,
     pub characters: Option<CharacterConnection>,
     pub staff: Option<StaffConnection>,
     pub start_date: Option<FuzzyDate>,
@@ -99,8 +84,8 @@ pub struct StaffEdge {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct Staff {
-    pub name: Option<StaffName>,
     pub id: i32,
+    pub name: Option<StaffName>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -108,30 +93,6 @@ pub struct StaffName {
     pub user_preferred: Option<String>,
     pub native: Option<String>,
     pub full: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-pub struct MediaCoverImage {
-    pub medium: Option<String>,
-    pub large: Option<String>,
-    pub extra_large: Option<String>,
-    pub color: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-pub struct MediaRank {
-    pub all_time: Option<bool>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-pub struct StudioConnection {
-    pub nodes: Option<Vec<Option<Studio>>>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-pub struct Studio {
-    pub name: String,
-    pub id: i32,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -155,10 +116,18 @@ pub struct MediaTitle {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaCoverImage {
+    pub extra_large: Option<String>,
+    pub medium: Option<String>,
+    pub large: Option<String>,
+    pub color: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct FuzzyDate {
-    pub day: Option<i32>,
-    pub month: Option<i32>,
     pub year: Option<i32>,
+    pub month: Option<i32>,
+    pub day: Option<i32>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -174,8 +143,8 @@ pub struct CharacterEdge {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct Character {
-    pub name: Option<CharacterName>,
     pub id: i32,
+    pub name: Option<CharacterName>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -455,7 +424,7 @@ fn get_genre(genres: &Vec<Option<String>>) -> String {
 /// * `String` - A String that represents the tags of the media.
 fn get_tag(tags: &Vec<Option<MediaTag>>) -> String {
     tags.iter()
-        .map(|string| string.clone().unwrap().name)
+        .map(|media_tag| media_tag.clone().unwrap().name)
         .take(5)
         .collect::<Vec<String>>()
         .join("\n")
@@ -777,45 +746,19 @@ pub async fn send_embed(
         })
 }
 
-pub async fn get_media_by_id(id: i32, var: MediaDataIdVariables) -> Result<Media, AppError> {
-    let operation = MediaDataId::build(var);
-    let data: GraphQlResponse<MediaDataId> = match make_request_anilist(operation, false).await {
-        Ok(data) => match data.json::<GraphQlResponse<MediaDataId>>().await {
-            Ok(data) => data,
-            Err(e) => {
-                tracing::error!(?e);
-                return Err(AppError {
-                    message: format!("Error retrieving character with ID: {} \n {}", id, e),
-                    error_type: ErrorType::WebRequest,
-                    error_response_type: ErrorResponseType::Message,
-                });
-            }
-        },
-        Err(e) => {
-            tracing::error!(?e);
-            return Err(AppError {
-                message: format!("Error retrieving character with ID: {} \n {}", id, e),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            });
-        }
-    };
-    Ok(data.data.unwrap().media.unwrap())
-}
-
-pub async fn get_media_by_search<'a>(
+pub async fn get_media<'a>(
     value: String,
-    var: MediaDataSearchVariables<'a>,
+    var: MediaQuerryVariables<'a>,
 ) -> Result<Media, AppError> {
-    let operation = MediaDataSearch::build(var);
-    let data: GraphQlResponse<MediaDataSearch> = match make_request_anilist(operation, false).await
+    let operation = MediaQuerry::build(var);
+    let data: GraphQlResponse<MediaQuerry> = match make_request_anilist(operation, false).await
     {
-        Ok(data) => match data.json::<GraphQlResponse<MediaDataSearch>>().await {
+        Ok(data) => match data.json::<GraphQlResponse<MediaQuerry>>().await {
             Ok(data) => data,
             Err(e) => {
                 tracing::error!(?e);
                 return Err(AppError {
-                    message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                    message: format!("Error retrieving media with value {}\n{}", value, e),
                     error_type: ErrorType::WebRequest,
                     error_response_type: ErrorResponseType::Message,
                 });
@@ -824,7 +767,7 @@ pub async fn get_media_by_search<'a>(
         Err(e) => {
             tracing::error!(?e);
             return Err(AppError {
-                message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                message: format!("Error retrieving media with value {}\n{}", value, e),
                 error_type: ErrorType::WebRequest,
                 error_response_type: ErrorResponseType::Message,
             });

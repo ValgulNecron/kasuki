@@ -1,27 +1,15 @@
 #[cynic::schema("anilist")]
 mod schema {}
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct MinimalAnimeDataIdVariables {
+pub struct MinimalAnimeVariables<'a> {
     pub id: Option<i32>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "MinimalAnimeDataIdVariables")]
-pub struct MinimalAnimeDataId {
-    #[arguments(id: $id)]
-    #[cynic(rename = "Media")]
-    pub media: Option<Media>,
-}
-
-#[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct MinimalAnimeDataSearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "MinimalAnimeDataSearchVariables")]
-pub struct MinimalAnimeDataSearch {
-    #[arguments(search: $search)]
+#[cynic(graphql_type = "Query", variables = "MinimalAnimeVariables")]
+pub struct MinimalAnime {
+    #[arguments(id: $id, search: $search, type: "ANIME")]
     #[cynic(rename = "Media")]
     pub media: Option<Media>,
 }
@@ -50,6 +38,13 @@ pub struct MediaCoverImage {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct AiringSchedule {
     pub airing_at: i32,
-    pub time_until_airing: i32,
     pub episode: i32,
+    pub time_until_airing: i32,
 }
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum MediaType {
+    Anime,
+    Manga,
+}
+

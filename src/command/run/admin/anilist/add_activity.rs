@@ -24,10 +24,7 @@ use crate::helper::get_option::subcommand_group::get_option_map_string_subcomman
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
 use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
-use crate::structure::run::anilist::minimal_anime::{
-    Media, MediaTitle, MinimalAnimeDataId, MinimalAnimeDataIdVariables, MinimalAnimeDataSearch,
-    MinimalAnimeDataSearchVariables,
-};
+use crate::structure::run::anilist::minimal_anime::{Media, MediaTitle, MinimalAnime, MinimalAnimeVariables};
 
 /// This asynchronous function gets or creates a webhook for a given channel.
 ///
@@ -390,46 +387,28 @@ async fn get_webhook(
 }
 
 pub async fn get_minimal_anime_by_id(id: i32) -> Result<Media, AppError> {
-    let query = MinimalAnimeDataIdVariables { id: Some(id) };
-    let operation = MinimalAnimeDataId::build(query);
-    let data: GraphQlResponse<MinimalAnimeDataId> =
-        match make_request_anilist(operation, false).await {
-            Ok(data) => match data.json::<GraphQlResponse<MinimalAnimeDataId>>().await {
-                Ok(data) => data,
-                Err(e) => {
-                    tracing::error!(?e);
-                    return Err(AppError {
-                        message: format!("Error retrieving character with ID: {} \n {}", id, e),
-                        error_type: ErrorType::WebRequest,
-                        error_response_type: ErrorResponseType::Message,
-                    });
-                }
-            },
-            Err(e) => {
-                tracing::error!(?e);
-                return Err(AppError {
-                    message: format!("Error retrieving character with ID: {} \n {}", id, e),
-                    error_type: ErrorType::WebRequest,
-                    error_response_type: ErrorResponseType::Message,
-                });
-            }
-        };
-    Ok(data.data.unwrap().media.unwrap())
+    let query = MinimalAnimeVariables { id: Some(id), search: None };
+    get_minimal_anime(query, id.to_string()).await
 }
 
 pub async fn get_minimal_anime_by_search(value: &str) -> Result<Media, AppError> {
-    let query = MinimalAnimeDataSearchVariables {
+    let query =    MinimalAnimeVariables  {
+        id: None,
         search: Some(value),
     };
-    let operation = MinimalAnimeDataSearch::build(query);
-    let data: GraphQlResponse<MinimalAnimeDataSearch> =
+    get_minimal_anime(query, value.to_string()).await
+}
+
+pub async fn get_minimal_anime<'a>(query: MinimalAnimeVariables<'a>, value: String) -> Result<Media, AppError> {
+    let operation = MinimalAnime::build(query);
+    let data: GraphQlResponse<MinimalAnime> =
         match make_request_anilist(operation, false).await {
-            Ok(data) => match data.json::<GraphQlResponse<MinimalAnimeDataSearch>>().await {
+            Ok(data) => match data.json::<GraphQlResponse<MinimalAnime>>().await {
                 Ok(data) => data,
                 Err(e) => {
                     tracing::error!(?e);
                     return Err(AppError {
-                        message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                        message: format!("Error retrieving minimal anime with value: {} \n {}", value, e),
                         error_type: ErrorType::WebRequest,
                         error_response_type: ErrorResponseType::Message,
                     });
@@ -438,7 +417,7 @@ pub async fn get_minimal_anime_by_search(value: &str) -> Result<Media, AppError>
             Err(e) => {
                 tracing::error!(?e);
                 return Err(AppError {
-                    message: format!("Error retrieving character with ID: {} \n {}", value, e),
+                    message: format!("Error retrieving minimal anime with value: {} \n {}", value, e),
                     error_type: ErrorType::WebRequest,
                     error_response_type: ErrorResponseType::Message,
                 });
