@@ -1,5 +1,6 @@
 #[cynic::schema("anilist")]
 mod schema {}
+
 #[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct MinimalAnimeVariables<'a> {
     pub id: Option<i32>,
@@ -9,7 +10,7 @@ pub struct MinimalAnimeVariables<'a> {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "MinimalAnimeVariables")]
 pub struct MinimalAnime {
-    #[arguments(id: $id, search: $search, type: "ANIME")]
+    #[arguments(id: $ id, search: $ search, type: "ANIME")]
     #[cynic(rename = "Media")]
     pub media: Option<Media>,
 }

@@ -1,4 +1,3 @@
-use crate::background_task::update_random_stats::update_random_stats;
 use cynic::{GraphQlResponse, QueryBuilder};
 use rand::{thread_rng, Rng};
 use serenity::all::CreateInteractionResponse::Defer;
@@ -7,6 +6,7 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 
+use crate::background_task::update_random_stats::update_random_stats;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

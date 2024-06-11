@@ -4,7 +4,7 @@ use serenity::all::{
     CreateInteractionResponseMessage, PartialGuild, User, UserId,
 };
 
-use crate::command::run::anilist_user::user::get_user_data;
+use crate::command::run::anilist_user::user::get_user;
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
@@ -13,7 +13,6 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::structure::message::anilist_server::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };
-use crate::structure::run::anilist::user::UserWrapper;
 
 /// This asynchronous function runs the command interaction for listing registered AniList users in a Discord guild.
 ///
@@ -113,8 +112,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
 /// Data structure for storing a Discord user and their corresponding AniList user.
 struct Data {
-    pub user: User,           // The Discord user.
-    pub anilist: UserWrapper, // The corresponding AniList user.
+    pub user: User,                                          // The Discord user.
+    pub anilist: crate::structure::run::anilist::user::User, // The corresponding AniList user.
 }
 
 /// This asynchronous function retrieves a list of AniList users in a Discord guild.
@@ -162,7 +161,7 @@ pub async fn get_the_list(
             let user_id = member.user.id.to_string();
             let row: Option<RegisteredUser> = get_registered_user(&user_id).await?;
             let user_data = match row {
-                Some(a) => get_user_data(&a.anilist_id).await?,
+                Some(a) => get_user(&a.anilist_id).await?,
                 None => continue,
             };
             let data = Data {
@@ -179,8 +178,7 @@ pub async fn get_the_list(
         .map(|data| {
             format!(
                 "[{}](<https://anilist_user.co/user/{}>)",
-                data.user.name,
-                data.anilist.data.user.id.unwrap_or(0)
+                data.user.name, data.anilist.id
             )
         })
         .collect();

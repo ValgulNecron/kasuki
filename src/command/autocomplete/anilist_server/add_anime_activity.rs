@@ -1,6 +1,6 @@
-use crate::command::autocomplete::anilist_user::anime::get_autocomplete_media_variables;
 use serenity::all::{CommandInteraction, Context};
 
+use crate::command::autocomplete::anilist_user::anime::get_autocomplete_media_variables;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
 use crate::structure::autocomplete::anilist::media::send_auto_complete;

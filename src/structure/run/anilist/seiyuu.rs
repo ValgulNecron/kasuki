@@ -1,5 +1,6 @@
 #[cynic::schema("anilist")]
 mod schema {}
+
 #[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct SeiyuuVariables<'a> {
     pub id: Option<i32>,
@@ -17,7 +18,7 @@ pub struct Seiyuu {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(variables = "SeiyuuVariables")]
 pub struct Page {
-    #[arguments(search: $search, id: $id)]
+    #[arguments(search: $ search, id: $ id)]
     pub staff: Option<Vec<Option<Staff>>>,
 }
 
@@ -27,7 +28,7 @@ pub struct Staff {
     pub site_url: Option<String>,
     pub image: Option<StaffImage>,
     pub name: Option<StaffName>,
-    #[arguments(perPage: $per_page, sort: "FAVOURITES")]
+    #[arguments(perPage: $ per_page, sort: "FAVOURITES")]
     pub characters: Option<CharacterConnection>,
 }
 

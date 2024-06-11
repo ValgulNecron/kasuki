@@ -27,18 +27,21 @@ pub struct Token {
 #[derive(Debug)]
 pub struct FederationServices {
     pub node: Arc<RwLock<HashMap<String, Node>>>,
-    pub token: HashMap<String, Token>,
+    pub token: Arc<RwLock<HashMap<String, Token>>>,
     pub name: String,
     pub url: String,
 }
-use crate::federation::service::proto::ConnectRequest;
+
 use crate::federation::service::proto::ConnectResponse;
+use crate::federation::service::proto::{ConnectRequest, RenewTokenRequest, RenewTokenResponse};
 use tonic::Response;
 use tonic::Status;
 
 impl FederationServices {
-    pub fn add_token(&mut self, node_name: String, token: String) {
-        self.token.insert(
+    pub async fn add_token(&self, node_name: String, token: String) {
+        let tokens = self.token.clone();
+        let mut guard = tokens.write().await;
+        guard.insert(
             node_name.clone(),
             Token {
                 token: token.clone(),
@@ -47,16 +50,20 @@ impl FederationServices {
         );
     }
 
-    pub fn remove_token(&mut self, node_name: String, token: String) {
-        if self.verify_token(node_name.clone(), token.clone()) {
+    pub async fn remove_token(&self, node_name: String, token: String) {
+        if self.verify_token(node_name.clone(), token.clone()).await {
             return;
         }
-        self.token.remove(&node_name);
+        let tokens = self.token.clone();
+        let mut guard = tokens.write().await;
+        guard.remove(&node_name);
     }
 
-    pub fn verify_token(&mut self, node_name: String, token: String) -> bool {
-        self.remove_expired_token();
-        match self.token.get(&node_name) {
+    pub async fn verify_token(&self, node_name: String, token: String) -> bool {
+        self.remove_expired_token().await;
+        let tokens = self.token.clone();
+        let guard = tokens.read().await;
+        match guard.get(&node_name) {
             Some(t) => {
                 if t.token == token {
                     return true;
@@ -69,8 +76,10 @@ impl FederationServices {
         false
     }
 
-    pub fn renew_token(&mut self, node_name: String, token: String) {
-        self.token.insert(
+    pub async fn renew_token(&self, node_name: String, token: String) {
+        let tokens = self.token.clone();
+        let mut guard = tokens.write().await;
+        guard.insert(
             node_name.clone(),
             Token {
                 token: token.clone(),
@@ -79,49 +88,54 @@ impl FederationServices {
         );
     }
 
-    pub fn remove_expired_token(&mut self) {
-        let token = self.token.clone();
-        for (k, v) in token.iter() {
+    pub async fn remove_expired_token(&self) {
+        let tokens = self.token.clone();
+        let r_guard = tokens.read().await;
+        let mut guard = tokens.write().await;
+        for (k, v) in r_guard.iter() {
             let generated_at = chrono::DateTime::parse_from_rfc3339(&v.generated_at).unwrap();
             let now = chrono::Utc::now();
             let duration = now.signed_duration_since(generated_at);
-            if duration.num_seconds() > 60 {
-                self.token.remove(k);
+            if duration.num_hours() > 1 {
+                guard.remove(k);
             }
         }
     }
 
-    pub async fn add_node(&mut self, node_name: String, node: Node) {
+    pub async fn add_node(&self, node_name: String, node: Node) {
         let mut nodes = self.node.write().await;
         nodes.insert(node_name, node);
     }
 
-    pub async fn remove_node(&mut self, node_name: String) {
+    pub async fn remove_node(&self, node_name: String) {
         let mut node = self.node.write().await;
         node.remove(&node_name);
     }
 }
+
 use crate::federation::service::proto::DisconnectRequest;
 use crate::federation::service::proto::DisconnectResponse;
+
 #[tonic::async_trait]
 impl FederationConnectionService for FederationServices {
-    async fn connect(
-        &mut self,
+    async fn connect_federation(
+        &self,
         request: Request<ConnectRequest>,
     ) -> Result<Response<ConnectResponse>, Status> {
         let request = request.into_inner();
         let node_name = request.self_name;
         let secondary_url = request.self_url;
         let generated_token = uuid::Uuid::new_v4().to_string();
-        let mut node = self.node.write().await;
-        self.add_token(node_name.clone(), generated_token.clone());
+        self.add_token(node_name.clone(), generated_token.clone())
+            .await;
         self.add_node(
             node_name.clone(),
             Node {
                 federation_name: node_name.clone(),
                 federation_url: secondary_url.clone(),
             },
-        );
+        )
+        .await;
 
         Ok(Response::new(ConnectResponse {
             federation_name: self.name.clone(),
@@ -130,21 +144,37 @@ impl FederationConnectionService for FederationServices {
         }))
     }
 
-    async fn disconnect(
-        &mut self,
+    async fn disconnect_federation(
+        &self,
         request: Request<DisconnectRequest>,
     ) -> Result<Response<DisconnectResponse>, Status> {
         let request = request.into_inner();
         let node_name = request.self_name;
         let token = request.token;
-        if !self.verify_token(node_name.clone(), token.clone()) {
-            Err(Status::unauthenticated("Invalid token"))
+        if !self.verify_token(node_name.clone(), token.clone()).await {
+            Err(Status::unauthenticated("Invalid token"))?
         }
 
         self.remove_node(node_name.clone()).await;
-        self.remove_token(node_name.clone(), token.clone());
-        return Ok(Response::new(DisconnectResponse {
-            message: "Disconnected".to_string(),
-        }));
+        self.remove_token(node_name.clone(), token.clone()).await;
+        return Ok(Response::new(DisconnectResponse { success: true }));
+    }
+
+    async fn renew_token_federation(
+        &self,
+        request: Request<RenewTokenRequest>,
+    ) -> Result<Response<RenewTokenResponse>, Status> {
+        let request = request.into_inner();
+        let node_name = request.self_name;
+        let token = request.token;
+        if !self.verify_token(node_name.clone(), token.clone()).await {
+            Err(Status::unauthenticated("Invalid token"))?
+        }
+        let generated_token = uuid::Uuid::new_v4().to_string();
+        self.renew_token(node_name.clone(), generated_token.clone())
+            .await;
+        Ok(Response::new(RenewTokenResponse {
+            token: generated_token,
+        }))
     }
 }

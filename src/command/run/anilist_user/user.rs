@@ -1,10 +1,12 @@
+use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context};
 
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::structure::run::anilist::user::{send_embed, UserWrapper};
+use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::structure::run::anilist::user::{send_embed, User, UserQuerry, UserQuerryVariables};
 
 /// Executes the command to fetch and display information about a user from AniList.
 ///
@@ -27,7 +29,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     // If the username is provided, fetch the user's data from AniList and send it as a response
     if let Some(value) = user {
-        let data: UserWrapper = get_user_data(value).await?;
+        let data: User = get_user(value).await?;
         return send_embed(ctx, command_interaction, data).await;
     }
 
@@ -41,7 +43,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     ))?;
 
     // Fetch the user's data from AniList and send it as a response
-    let data = get_user_data(&user.anilist_id).await?;
+    let data = get_user(&user.anilist_id).await?;
     send_embed(ctx, command_interaction, data).await
 }
 
@@ -57,12 +59,42 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the user's data was fetched successfully, or `Err` if an error occurred.
-pub async fn get_user_data(value: &String) -> Result<UserWrapper, AppError> {
+pub async fn get_user(value: &String) -> Result<User, AppError> {
     // If the value is a valid user ID, fetch the user's data by ID
-    if value.parse::<i32>().is_ok() {
-        UserWrapper::new_user_by_id(value.parse().unwrap()).await
+    let var = if value.parse::<i32>().is_ok() {
+        let id = value.parse::<i32>().unwrap();
+        UserQuerryVariables {
+            id: Some(id),
+            search: None,
+        }
     } else {
         // If the value is not a valid user ID, fetch the user's data by username
-        UserWrapper::new_user_by_search(value).await
-    }
+        UserQuerryVariables {
+            id: None,
+            search: Some(value.as_str()),
+        }
+    };
+    let operation = UserQuerry::build(var);
+    let data: GraphQlResponse<UserQuerry> = match make_request_anilist(operation, false).await {
+        Ok(data) => match data.json::<GraphQlResponse<UserQuerry>>().await {
+            Ok(data) => data,
+            Err(e) => {
+                tracing::error!(?e);
+                return Err(AppError {
+                    message: format!("Error retrieving studio with value: {} \n {}", value, e),
+                    error_type: ErrorType::WebRequest,
+                    error_response_type: ErrorResponseType::Message,
+                });
+            }
+        },
+        Err(e) => {
+            tracing::error!(?e);
+            return Err(AppError {
+                message: format!("Error retrieving studio with value: {} \n {}", value, e),
+                error_type: ErrorType::WebRequest,
+                error_response_type: ErrorResponseType::Message,
+            });
+        }
+    };
+    Ok(data.data.unwrap().user.unwrap())
 }

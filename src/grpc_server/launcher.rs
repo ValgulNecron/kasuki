@@ -6,7 +6,8 @@ use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::constant::{
-    BOT_COMMANDS, BOT_INFO, GRPC_CERT_PATH, GRPC_KEY_PATH, GRPC_SERVER_PORT, GRPC_USE_TLS,
+    BOT_COMMANDS, BOT_INFO, FEDERATION_IS_ON, GRPC_CERT_PATH, GRPC_KEY_PATH, GRPC_SERVER_PORT,
+    GRPC_USE_TLS,
 };
 use crate::grpc_server::command_list::get_list_of_all_command;
 use crate::grpc_server::service;
@@ -66,7 +67,7 @@ pub async fn grpc_server_launcher(
 
     let is_tls = *GRPC_USE_TLS;
     trace!("TLS: {}", is_tls);
-    if is_tls {
+    let service = if is_tls {
         generate_key();
         let private_key_path = GRPC_KEY_PATH.clone();
         let cert_path = GRPC_CERT_PATH.clone();
@@ -89,9 +90,6 @@ pub async fn grpc_server_launcher(
             .add_service(get_info_server(info_service))
             .add_service(get_command_server(command_service))
             .add_service(reflection)
-            .serve(addr.parse().unwrap())
-            .await
-            .unwrap();
     } else {
         // Build the gRPC server, add the ShardService and the reflection service, and serve the gRPC server
         tonic::transport::Server::builder()
@@ -99,10 +97,12 @@ pub async fn grpc_server_launcher(
             .add_service(get_info_server(info_service))
             .add_service(get_command_server(command_service))
             .add_service(reflection)
-            .serve(addr.parse().unwrap())
-            .await
-            .unwrap();
-    }
+    };
+
+    let federation_is_on = *FEDERATION_IS_ON;
+
+    // Serve the gRPC server
+    service.serve(addr.parse().unwrap()).await.unwrap()
 }
 
 fn generate_key() {

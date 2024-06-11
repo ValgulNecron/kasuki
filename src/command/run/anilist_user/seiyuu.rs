@@ -1,6 +1,6 @@
-use cynic::{GraphQlResponse, QueryBuilder};
 use std::io::Cursor;
 
+use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
 use prost::bytes::Bytes;
@@ -86,7 +86,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 "No staff found".to_string(),
                 ErrorType::WebRequest,
                 ErrorResponseType::Message,
-            ))
+            ));
         }
     };
 

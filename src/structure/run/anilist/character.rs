@@ -9,8 +9,10 @@ use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discor
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
+
 #[cynic::schema("anilist")]
 mod schema {}
+
 #[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct CharacterQuerryVariables<'a> {
     pub id: Option<i32>,
@@ -20,7 +22,7 @@ pub struct CharacterQuerryVariables<'a> {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "CharacterQuerryVariables")]
 pub struct CharacterQuerry {
-    #[arguments(id: $id, search: $search)]
+    #[arguments(id: $ id, search: $ search)]
     #[cynic(rename = "Character")]
     pub character: Option<Character>,
 }

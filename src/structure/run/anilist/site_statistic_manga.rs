@@ -1,5 +1,6 @@
 #[cynic::schema("anilist")]
 mod schema {}
+
 #[derive(cynic::QueryVariables, Debug)]
 pub struct MangaStatVariables {
     pub page: Option<i32>,
@@ -15,7 +16,7 @@ pub struct MangaStat {
 #[derive(cynic::QueryFragment, Debug)]
 #[cynic(variables = "MangaStatVariables")]
 pub struct SiteStatistics {
-    #[arguments(page: $page, perPage: 1)]
+    #[arguments(page: $ page, perPage: 1)]
     pub manga: Option<SiteTrendConnection>,
 }
 

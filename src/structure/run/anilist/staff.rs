@@ -1,5 +1,6 @@
 #[cynic::schema("anilist")]
 mod schema {}
+
 #[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct StaffQuerryVariables<'a> {
     pub id: Option<i32>,
@@ -9,7 +10,7 @@ pub struct StaffQuerryVariables<'a> {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "StaffQuerryVariables")]
 pub struct StaffQuerry {
-    #[arguments(id: $id, search: $search)]
+    #[arguments(id: $ id, search: $ search)]
     #[cynic(rename = "Staff")]
     pub staff: Option<Staff>,
 }

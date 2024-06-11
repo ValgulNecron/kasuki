@@ -1,6 +1,8 @@
 use std::fmt::Display;
+
 #[cynic::schema("anilist")]
 mod schema {}
+
 #[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct RandomPageMediaVariables {
     pub media_type: Option<MediaType>,
@@ -10,7 +12,7 @@ pub struct RandomPageMediaVariables {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "RandomPageMediaVariables")]
 pub struct RandomPageMedia {
-    #[arguments(perPage: 1, page: $page)]
+    #[arguments(perPage: 1, page: $ page)]
     #[cynic(rename = "Page")]
     pub page: Option<Page>,
 }
@@ -18,7 +20,7 @@ pub struct RandomPageMedia {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(variables = "RandomPageMediaVariables")]
 pub struct Page {
-    #[arguments(type: $media_type)]
+    #[arguments(type: $ media_type)]
     pub media: Option<Vec<Option<Media>>>,
 }
 

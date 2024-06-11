@@ -246,11 +246,25 @@ federation stuff
 pub const FEDERATION_IS_ON: Lazy<bool> =
     Lazy::new(|| env::var("FEDERATION_IS_ON").unwrap_or_else(|_| "false".to_string()) == "true");
 
-/// if this bot is the primary node.
-pub const IS_PRIMARY_NODE: Lazy<bool> =
-    Lazy::new(|| env::var("IS_PRIMARY_NODE").unwrap_or_else(|_| "false".to_string()) == "true");
+/// The name of the federation server.
+pub const NAME: Lazy<String> =
+    Lazy::new(|| env::var("NAME").unwrap_or_else(|_| "kasuki".to_string()));
 
 /// The federation server's address.
 pub const FEDERATION_SERVER: Lazy<String> = Lazy::new(|| {
     env::var("FEDERATION_SERVER").unwrap_or_else(|_| "http://localhost:443".to_string())
+});
+
+/// The bot internet accessible address or url.
+pub const SELF_URL: Lazy<String> =
+    Lazy::new(|| env::var("SELF_URL").unwrap_or_else(|_| "http://localhost:8080".to_string()));
+
+/// Is the primary node of the federation.
+pub const FEDERATION_IS_PRIMARY: Lazy<bool> = Lazy::new(|| {
+    env::var("FEDERATION_IS_PRIMARY").unwrap_or_else(|_| "false".to_string()) == "true"
+});
+
+/// url of the primary node.
+pub const FEDERATION_PRIMARY_SERVER: Lazy<String> = Lazy::new(|| {
+    env::var("FEDERATION_PRIMARY_SERVER").unwrap_or_else(|_| "http://localhost:8080".to_string())
 });

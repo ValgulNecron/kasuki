@@ -1,9 +1,10 @@
+use std::fmt::Display;
+
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
-use std::fmt::Display;
 
 use crate::constant::{COLOR, UNKNOWN};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
@@ -12,8 +13,10 @@ use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::{load_localization_media, MediaLocalised};
+
 #[cynic::schema("anilist")]
 mod schema {}
+
 #[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct MediaQuerryVariables<'a> {
     pub format_in: Option<Vec<Option<MediaFormat>>>,
@@ -25,7 +28,7 @@ pub struct MediaQuerryVariables<'a> {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "MediaQuerryVariables")]
 pub struct MediaQuerry {
-    #[arguments(search: $search, type: $media_type, id: $id, format_in: $format_in)]
+    #[arguments(search: $ search, type: $ media_type, id: $ id, format_in: $ format_in)]
     #[cynic(rename = "Media")]
     pub media: Option<Media>,
 }
@@ -469,13 +472,13 @@ fn get_url(media: &Media) -> String {
 /// * `String` - A String that represents the thumbnail of the media.
 fn get_thumbnail(media: &Media) -> String {
     match &media.clone().cover_image {
-       Some(image) => {
-           image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
+        Some(image) => {
+            image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
     bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string())
-       }
-       None => "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
+        }
+        None => "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
            bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string()
-   }
+    }
 }
 
 /// `get_banner` is a function that gets the banner of the media.
