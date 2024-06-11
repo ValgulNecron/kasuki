@@ -16,7 +16,9 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
-use crate::structure::run::anilist::seiyuu::{Character, CharacterConnection, Seiyuu, SeiyuuVariables, StaffImage};
+use crate::structure::run::anilist::seiyuu::{
+    Character, CharacterConnection, Seiyuu, SeiyuuVariables, StaffImage,
+};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -78,15 +80,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         }
     };
     let staff = match data.data.unwrap().page.unwrap().staff {
-        Some(staffs) => staffs[0].clone()
-            .unwrap(),
-        None => return Err(AppError::new(
-            "No staff found".to_string(),
-            ErrorType::WebRequest,
-            ErrorResponseType::Message,
-        )),
-    }
-        ;
+        Some(staffs) => staffs[0].clone().unwrap(),
+        None => {
+            return Err(AppError::new(
+                "No staff found".to_string(),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            ))
+        }
+    };
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

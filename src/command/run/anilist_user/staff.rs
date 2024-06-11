@@ -8,7 +8,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::staff::load_localization_staff;
-use crate::structure::run::anilist::staff::{Staff, StaffQuerry, StaffQuerryVariables,};
+use crate::structure::run::anilist::staff::{Staff, StaffQuerry, StaffQuerryVariables};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -64,7 +64,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 error_response_type: ErrorResponseType::Message,
             });
         }
-    }    ;
+    };
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -132,7 +132,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .desc
         .replace("$dob$", dob.as_str())
         .replace("$dod$", dod.as_str())
-        .replace("$job$", staff.primary_occupations.unwrap()[0].clone().unwrap_or_default().as_str())
+        .replace(
+            "$job$",
+            staff.primary_occupations.unwrap()[0]
+                .clone()
+                .unwrap_or_default()
+                .as_str(),
+        )
         .replace(
             "$gender$",
             staff
@@ -143,16 +149,17 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
         .replace("$age$", staff.age.unwrap_or(0).to_string().as_str());
 
-    let name = staff
-        .name
-        .unwrap();
-    let name = name
-        .full
-        .unwrap_or(name.user_preferred.unwrap_or(name.native.unwrap_or(String::from("Unknown."))));
+    let name = staff.name.unwrap();
+    let name = name.full.unwrap_or(
+        name.user_preferred
+            .unwrap_or(name.native.unwrap_or(String::from("Unknown."))),
+    );
 
     let va = staff
-        .characters.unwrap()
-        .nodes.unwrap()
+        .characters
+        .unwrap()
+        .nodes
+        .unwrap()
         .iter()
         .filter_map(|x| {
             let x = x.clone().unwrap();
@@ -166,8 +173,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .join("\n");
 
     let media = staff
-        .staff_media.unwrap()
-        .edges.unwrap()
+        .staff_media
+        .unwrap()
+        .edges
+        .unwrap()
         .iter()
         .filter_map(|x| {
             let node = x.clone().unwrap().node.unwrap();

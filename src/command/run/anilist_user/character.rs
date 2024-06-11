@@ -4,7 +4,9 @@ use serenity::all::{CommandInteraction, Context};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::run::anilist::character::{send_embed, Character, CharacterQuerry, CharacterQuerryVariables};
+use crate::structure::run::anilist::character::{
+    send_embed, Character, CharacterQuerry, CharacterQuerryVariables,
+};
 
 /// This asynchronous function runs the command interaction for retrieving information about a character.
 ///
@@ -49,11 +51,17 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 }
 
 pub async fn get_character_by_id(value: i32) -> Result<Character, AppError> {
-    let var = CharacterQuerryVariables { id: Some(value), search: None };
+    let var = CharacterQuerryVariables {
+        id: Some(value),
+        search: None,
+    };
     get_character(var, value.to_string()).await
 }
 
-pub async fn get_character<'a>(var: CharacterQuerryVariables<'a>, value: String) -> Result<Character, AppError> {
+pub async fn get_character<'a>(
+    var: CharacterQuerryVariables<'a>,
+    value: String,
+) -> Result<Character, AppError> {
     let operation = CharacterQuerry::build(var);
     let data: GraphQlResponse<CharacterQuerry> = match make_request_anilist(operation, false).await
     {

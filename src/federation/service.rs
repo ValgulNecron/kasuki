@@ -6,12 +6,18 @@ pub(crate) mod proto {
         tonic::include_file_descriptor_set!("federation_descriptor");
 }
 
+#[derive(Debug, Clone)]
 pub struct Node{
  pub    federation_name: String,
     pub federation_url: String,
     pub secondary_url: Vec<String>
 }
 
+#[derive(Debug)]
 pub struct FederationService{
-    pub node: Vec<>
+    pub node: Arc<RwLock<Vec<Node>>> ,
+}
+
+impl proto::federation_server::Federation for FederationService{
+    
 }

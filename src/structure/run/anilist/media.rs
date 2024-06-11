@@ -751,8 +751,7 @@ pub async fn get_media<'a>(
     var: MediaQuerryVariables<'a>,
 ) -> Result<Media, AppError> {
     let operation = MediaQuerry::build(var);
-    let data: GraphQlResponse<MediaQuerry> = match make_request_anilist(operation, false).await
-    {
+    let data: GraphQlResponse<MediaQuerry> = match make_request_anilist(operation, false).await {
         Ok(data) => match data.json::<GraphQlResponse<MediaQuerry>>().await {
             Ok(data) => data,
             Err(e) => {

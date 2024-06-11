@@ -1,5 +1,6 @@
 #[cynic::schema("anilist")]
-mod schema {}#[derive(cynic::QueryVariables, Debug, Clone)]
+mod schema {}
+#[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct SeiyuuVariables<'a> {
     pub id: Option<i32>,
     pub per_page: Option<i32>,
@@ -76,4 +77,3 @@ pub enum CharacterSort {
     FavouritesDesc,
     Relevance,
 }
-

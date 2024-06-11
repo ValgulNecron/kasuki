@@ -30,13 +30,10 @@ pub async fn update_random_stats() -> Result<RandomStat, AppError> {
                 ErrorResponseType::Unknown,
             )
         })?,
-        Err(_) => {
-            
-            RandomStat {
-                anime_last_page: 1796,
-                manga_last_page: 1796,
-            }
-        }
+        Err(_) => RandomStat {
+            anime_last_page: 1796,
+            manga_last_page: 1796,
+        },
     };
     random_stats = update_random(random_stats).await?;
     // write random stats to a json file

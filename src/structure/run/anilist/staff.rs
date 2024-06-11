@@ -118,4 +118,3 @@ pub enum MediaRelation {
     Compilation,
     Contains,
 }
-
