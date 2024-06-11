@@ -31,6 +31,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         .compile(&["proto/command.proto"], &["proto"])?;
     tonic_build::compile_protos("proto/command.proto")?;
 
+    tonic_build::configure().file_descriptor_set_path(out_dir.join("federation_descriptor.bin"))
+        .compile(&["proto/federation.proto"], &["proto"])?;
+    tonic_build::compile_protos("proto/federation.proto")?;
+
     cynic_codegen::register_schema("anilist")
         .from_sdl_file("schemas/anilist.graphql")?
         .as_default()?;
