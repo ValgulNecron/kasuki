@@ -19,5 +19,5 @@ pub struct FederationService{
 }
 
 impl proto::federation_server::Federation for FederationService{
-    
+
 }
