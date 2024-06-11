@@ -17,13 +17,11 @@ message ConnectResponse {
     string federation_name = 1;
     string federation_url = 2;
     string token = 3;
-    repeated string secondary_federation_url = 4;
 }
 
 message DisconnectRequest {
     string self_name = 1;
-    string self_url = 2;
-    string token = 3;
+    string token = 2;
 }
 
 message DisconnectResponse {
@@ -32,8 +30,7 @@ message DisconnectResponse {
 
 message RenewTokenRequest {
     string self_name = 1;
-    string self_url = 2;
-    string token = 3;
+    string token = 2;
 }
 
 message RenewTokenResponse {
@@ -46,13 +43,13 @@ service FederationInfoService {
 
 message GetFederationInfoRequest {
     string federation_name = 1;
-    string token = 2;
+        string self_name = 2;
+    string token = 3;
 }
 
 message GetFederationInfoResponse {
     string federation_name = 1;
     string federation_url = 2;
-    repeated string secondary_federation_url = 3;
 }
 
 service FederationSharingService {
@@ -62,7 +59,8 @@ service FederationSharingService {
 
 message ShareUserColorRequest {
     repeated UserColor user_color = 1;
-    string token = 2;
+        string self_name = 2;
+    string token = 3;
 }
 
 message UserColor {
@@ -77,7 +75,8 @@ message ShareUserColorResponse {
 }
 
 message GetUsersColorRequest {
-    string token = 1;
+        string self_name = 1;
+    string token = 2;
 }
 
 message GetUsersColorResponse {
