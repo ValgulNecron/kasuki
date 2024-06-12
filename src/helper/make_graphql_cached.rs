@@ -14,12 +14,12 @@ pub async fn make_request_anilist<
     operation: Operation<T, S>,
     always_update: bool,
 ) -> Result<GraphQlResponse<U>, AppError> {
-    return if always_update {
+    if always_update {
         do_request(operation).await
     } else {
         let return_data: GraphQlResponse<U> = check_cache(operation).await?;
         Ok(return_data)
-    };
+    }
 }
 
 async fn check_cache<
@@ -65,7 +65,7 @@ async fn do_request<
     })?;
     set_cache(operation.query, response_text.clone()).await;
 
-    Ok(get_type(response_text)?)
+    get_type(response_text)
 }
 
 fn get_type<U: for<'de> Deserialize<'de>>(value: String) -> Result<GraphQlResponse<U>, AppError> {
