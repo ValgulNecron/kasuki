@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tracing::trace;
 
 use crate::helper::error_management::error_enum::AppError;
-use crate::helper::vndbapi::common::do_request;
+use crate::helper::vndbapi::common::do_request_cached;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Stats {
@@ -23,7 +23,7 @@ pub struct Stats {
 
 pub async fn get_stats() -> Result<Stats, AppError> {
     let path = "/stats".to_string();
-    let response = do_request(path.clone(), path).await?;
+    let response = do_request_cached(path.clone()).await?;
     trace!("Response: {}", response);
     let response: Stats = serde_json::from_str(&response).map_err(|e| AppError {
         message: format!("Error while parsing response: '{}'", e),

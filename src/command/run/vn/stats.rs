@@ -1,8 +1,7 @@
-use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage,
-};
 use crate::helper::create_default_embed::get_default_embed;
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+};
 
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::vndbapi::stats::get_stats;
@@ -18,11 +17,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let stats = get_stats().await?;
 
     let mut fields = vec![];
-    fields.push((
-        stats_localised.chars.clone(),
-        stats.chars.to_string(),
-        true,
-    ));
+    fields.push((stats_localised.chars.clone(), stats.chars.to_string(), true));
     fields.push((
         stats_localised.producer.clone(),
         stats.producers.to_string(),
@@ -33,11 +28,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         stats.releases.to_string(),
         true,
     ));
-    fields.push((
-        stats_localised.staff.clone(),
-        stats.staff.to_string(),
-        true,
-    ));
+    fields.push((stats_localised.staff.clone(), stats.staff.to_string(), true));
     fields.push((stats_localised.tags.clone(), stats.tags.to_string(), true));
     fields.push((
         stats_localised.traits.clone(),

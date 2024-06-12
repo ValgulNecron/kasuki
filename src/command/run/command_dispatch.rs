@@ -18,7 +18,8 @@ use crate::command::run::server::{
 };
 use crate::command::run::steam::steam_game_info;
 use crate::command::run::user::{avatar, banner, command_usage, profile};
-use crate::command::run::vn::stats;
+use crate::command::run::vn;
+use crate::command::run::vn::{game, stats};
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
@@ -871,10 +872,10 @@ async fn vn(
         return Err(vn_module_error);
     }
     let return_data = match command_name {
-        "game" => avatar::run(ctx, command_interaction).await,
+        "game" => game::run(ctx, command_interaction).await,
         "character" => banner::run(ctx, command_interaction).await,
         "staff" => profile::run(ctx, command_interaction).await,
-        "user" => profile::run(ctx, command_interaction).await,
+        "user" => vn::user::run(ctx, command_interaction).await,
         "producer" => profile::run(ctx, command_interaction).await,
         "stats" => stats::run(ctx, command_interaction).await,
         _ => Err(AppError::new(

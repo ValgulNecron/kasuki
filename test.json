@@ -1,0 +1,1210 @@
+{
+  "results": [
+    {
+      "olang": "ja",
+      "released": "2002-08-29",
+      "id": "v17",
+      "image": {
+        "violence": 0,
+        "url": "https://t.vndb.org/cv/41/49241.jpg",
+        "sexual": 0
+      },
+      "staff": [
+        {
+          "id": "s27541",
+          "name": "Ryan Payton",
+          "role": "translator"
+        },
+        {
+          "name": "Arsym",
+          "role": "qa",
+          "id": "s23259"
+        },
+        {
+          "name": "Arsym",
+          "role": "staff",
+          "id": "s23259"
+        },
+        {
+          "role": "editor",
+          "name": "godotwashere",
+          "id": "s23260"
+        },
+        {
+          "name": "godotwashere",
+          "role": "qa",
+          "id": "s23260"
+        },
+        {
+          "name": "StamblerRambler",
+          "role": "qa",
+          "id": "s26675"
+        },
+        {
+          "id": "s27550",
+          "role": "qa",
+          "name": "Ganesh"
+        },
+        {
+          "name": "Aexis",
+          "role": "staff",
+          "id": "s27878"
+        },
+        {
+          "id": "s27879",
+          "role": "editor",
+          "name": "Akira"
+        },
+        {
+          "id": "s27880",
+          "name": "Ravus",
+          "role": "editor"
+        },
+        {
+          "role": "editor",
+          "name": "Tara",
+          "id": "s27881"
+        },
+        {
+          "id": "s27882",
+          "name": "Fuwante0",
+          "role": "qa"
+        },
+        {
+          "name": "funwithgravity",
+          "role": "qa",
+          "id": "s27883"
+        },
+        {
+          "role": "qa",
+          "name": "BaamZahard",
+          "id": "s27884"
+        },
+        {
+          "role": "qa",
+          "name": "Butler",
+          "id": "s27885"
+        },
+        {
+          "id": "s27886",
+          "name": "Neon",
+          "role": "qa"
+        },
+        {
+          "name": "Matsuo Yukihiro",
+          "role": "art",
+          "id": "s223"
+        },
+        {
+          "name": "Imai Asami",
+          "role": "songs",
+          "id": "s240"
+        },
+        {
+          "role": "music",
+          "name": "Shikura Chiyomaru",
+          "id": "s441"
+        },
+        {
+          "role": "staff",
+          "name": "Shikura Chiyomaru",
+          "id": "s441"
+        },
+        {
+          "role": "scenario",
+          "name": "Nakazawa Takumi",
+          "id": "s545"
+        },
+        {
+          "id": "s545",
+          "name": "Nakazawa Takumi",
+          "role": "director"
+        },
+        {
+          "id": "s545",
+          "name": "Nakazawa Takumi",
+          "role": "staff"
+        },
+        {
+          "name": "Uchikoshi Koutarou",
+          "role": "scenario",
+          "id": "s548"
+        },
+        {
+          "role": "staff",
+          "name": "Uchikoshi Koutarou",
+          "id": "s548"
+        },
+        {
+          "role": "music",
+          "name": "Abo Takeshi",
+          "id": "s552"
+        },
+        {
+          "id": "s566",
+          "name": "Kasahara Hiroko",
+          "role": "songs"
+        },
+        {
+          "name": "KAORI",
+          "role": "songs",
+          "id": "s567"
+        },
+        {
+          "name": "Takase Shin",
+          "role": "staff",
+          "id": "s1521"
+        },
+        {
+          "id": "s1525",
+          "role": "staff",
+          "name": "Ichikawa Kazuhiro"
+        },
+        {
+          "id": "s1928",
+          "name": "Takigawa Yuu",
+          "role": "staff"
+        },
+        {
+          "name": "Takigawa Yuu",
+          "role": "chardesign",
+          "id": "s1928"
+        },
+        {
+          "id": "s1928",
+          "role": "art",
+          "name": "Takigawa Yuu"
+        },
+        {
+          "id": "s1939",
+          "name": "Sasanari Kitarou",
+          "role": "scenario"
+        },
+        {
+          "name": "Sasanari Kitarou",
+          "role": "director",
+          "id": "s1939"
+        },
+        {
+          "id": "s1939",
+          "name": "Sasanari Kitarou",
+          "role": "staff"
+        },
+        {
+          "id": "s1940",
+          "name": "Umeda Nobuaki",
+          "role": "scenario"
+        },
+        {
+          "id": "s1940",
+          "role": "director",
+          "name": "Umeda Nobuaki"
+        },
+        {
+          "name": "Umeda Nobuaki",
+          "role": "staff",
+          "id": "s1940"
+        },
+        {
+          "id": "s2158",
+          "role": "music",
+          "name": "Sawamura Shun"
+        },
+        {
+          "name": "Isoe Toshimichi",
+          "role": "music",
+          "id": "s3664"
+        },
+        {
+          "id": "s6156",
+          "role": "staff",
+          "name": "Takimoto Masashi"
+        },
+        {
+          "role": "staff",
+          "name": "Koshimizu Takayuki",
+          "id": "s1475"
+        },
+        {
+          "role": "art",
+          "name": "bomi",
+          "id": "s6933"
+        },
+        {
+          "id": "s9049",
+          "role": "staff",
+          "name": "Wakabayashi Ken"
+        },
+        {
+          "role": "staff",
+          "name": "Matsumoto Yuusuke",
+          "id": "s9276"
+        },
+        {
+          "role": "director",
+          "name": "Satou Daisuke",
+          "id": "s10601"
+        },
+        {
+          "name": "Satou Daisuke",
+          "role": "staff",
+          "id": "s10601"
+        },
+        {
+          "role": "staff",
+          "name": "Satou Yasuyuki",
+          "id": "s10667"
+        },
+        {
+          "id": "s12354",
+          "name": "Nishimura Takuya",
+          "role": "director"
+        },
+        {
+          "id": "s12354",
+          "role": "staff",
+          "name": "Nishimura Takuya"
+        },
+        {
+          "id": "s12356",
+          "role": "staff",
+          "name": "Aizawa Kotarou"
+        },
+        {
+          "id": "s12983",
+          "role": "art",
+          "name": "Kawamura Toshie"
+        },
+        {
+          "role": "staff",
+          "name": "Kawamura Toshie",
+          "id": "s12983"
+        },
+        {
+          "id": "s12984",
+          "role": "staff",
+          "name": "Ichikawa Hisayoshi"
+        },
+        {
+          "id": "s13285",
+          "name": "Nyo",
+          "role": "staff"
+        },
+        {
+          "role": "director",
+          "name": "Takano Masamichi",
+          "id": "s13286"
+        },
+        {
+          "id": "s13286",
+          "role": "staff",
+          "name": "Takano Masamichi"
+        },
+        {
+          "role": "staff",
+          "name": "Kotoruri.",
+          "id": "s13287"
+        },
+        {
+          "id": "s13292",
+          "role": "staff",
+          "name": "Hosoda Takaaki"
+        },
+        {
+          "name": "Kametani Kouji​",
+          "role": "staff",
+          "id": "s13367"
+        },
+        {
+          "id": "s13653",
+          "name": "Nakayama Shin'ya",
+          "role": "staff"
+        },
+        {
+          "role": "staff",
+          "name": "Tamura Yuuichi",
+          "id": "s14344"
+        },
+        {
+          "id": "s15719",
+          "role": "staff",
+          "name": "Nakayama Hiroaki"
+        },
+        {
+          "id": "s15764",
+          "name": "Nagai Taketo",
+          "role": "staff"
+        }
+      ],
+      "rating": 84.7,
+      "length_minutes": 2100,
+      "platforms": [
+        "win",
+        "lin",
+        "mac",
+        "ios",
+        "and",
+        "psp",
+        "ps2",
+        "drc",
+        "vnd",
+        "web",
+        "mob"
+      ],
+      "alttitle": null,
+      "title": "Ever17 -the out of infinity-",
+      "average": 84.7,
+      "titles": [
+        {
+          "title": "Ever17 -out of infinity-",
+          "lang": "en",
+          "latin": null,
+          "official": true,
+          "main": false
+        },
+        {
+          "latin": null,
+          "lang": "ja",
+          "title": "Ever17 -the out of infinity-",
+          "official": true,
+          "main": true
+        },
+        {
+          "title": "时空轮回",
+          "latin": "Shikong Lunhui",
+          "lang": "zh-Hans",
+          "main": false,
+          "official": true
+        },
+        {
+          "official": true,
+          "main": false,
+          "title": "時光的羈絆",
+          "lang": "zh-Hant",
+          "latin": "Shiguang de Jiban"
+        }
+      ],
+      "votecount": 7745,
+      "languages": [
+        "en",
+        "es",
+        "ja",
+        "ko",
+        "ru",
+        "zh-Hans",
+        "zh-Hant"
+      ],
+      "aliases": [
+        "Ever 17",
+        "Ebaa Sebuntiin",
+        "エバー・セブンティーン",
+        "E17"
+      ],
+      "tags": [
+        {
+          "name": "Fear of Death",
+          "id": "g8",
+          "rating": 2.3241107,
+          "spoiler": 0
+        },
+        {
+          "name": "Secret Identity",
+          "id": "g237",
+          "rating": 2.5361304,
+          "spoiler": 2
+        },
+        {
+          "name": "Multiple Endings",
+          "id": "g148",
+          "rating": 2.6474025,
+          "spoiler": 0
+        },
+        {
+          "name": "Child Abuse",
+          "id": "g164",
+          "rating": 0.7149461,
+          "spoiler": 2
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.7323213,
+          "id": "g136",
+          "name": "Multiple Protagonists"
+        },
+        {
+          "id": "g981",
+          "name": "Passage of Time",
+          "spoiler": 2,
+          "rating": 2.372803
+        },
+        {
+          "name": "Loli Heroine",
+          "id": "g154",
+          "rating": 1.5440116,
+          "spoiler": 0
+        },
+        {
+          "rating": 1.6737891,
+          "spoiler": 2,
+          "name": "Dying Heroine",
+          "id": "g269"
+        },
+        {
+          "spoiler": 2,
+          "rating": 2.3913043,
+          "id": "g900",
+          "name": "Protagonist's Twin as a Heroine"
+        },
+        {
+          "name": "Tomboy Heroine",
+          "id": "g530",
+          "rating": 1.8619448,
+          "spoiler": 0
+        },
+        {
+          "spoiler": 0,
+          "rating": 1.6935484,
+          "id": "g873",
+          "name": "Desperation"
+        },
+        {
+          "id": "g62",
+          "name": "Future Earth",
+          "spoiler": 0,
+          "rating": 1.7318182
+        },
+        {
+          "name": "Hacker Heroine",
+          "id": "g109",
+          "rating": 2.0767896,
+          "spoiler": 1
+        },
+        {
+          "id": "g596",
+          "name": "Nakige",
+          "spoiler": 0,
+          "rating": 1.065
+        },
+        {
+          "rating": 0.16363636,
+          "spoiler": 1,
+          "name": "Submarine",
+          "id": "g484"
+        },
+        {
+          "rating": 1.8857143,
+          "spoiler": 0,
+          "name": "Heroine with Zettai Ryouiki",
+          "id": "g461"
+        },
+        {
+          "name": "Metafiction",
+          "id": "g1004",
+          "rating": 2.3058825,
+          "spoiler": 2
+        },
+        {
+          "id": "g168",
+          "name": "Life and Death Drama",
+          "spoiler": 0,
+          "rating": 2.3001149
+        },
+        {
+          "id": "g107",
+          "name": "Kuudere Heroine",
+          "spoiler": 0,
+          "rating": 1.494695
+        },
+        {
+          "spoiler": 1,
+          "rating": 2.1957448,
+          "id": "g774",
+          "name": "Protagonist with Partial Voice Acting"
+        },
+        {
+          "rating": 2.2195752,
+          "spoiler": 0,
+          "name": "Classic Tsundere Heroine",
+          "id": "g194"
+        },
+        {
+          "id": "g227",
+          "name": "Protagonist's Blood-related Sister as a Heroine",
+          "spoiler": 2,
+          "rating": 2.3486843
+        },
+        {
+          "rating": 2.0886183,
+          "spoiler": 0,
+          "name": "Hard Science Fiction",
+          "id": "g106"
+        },
+        {
+          "id": "g277",
+          "name": "Animals",
+          "spoiler": 0,
+          "rating": 0.43846154
+        },
+        {
+          "name": "Branching Plot",
+          "id": "g606",
+          "rating": 1.35,
+          "spoiler": 0
+        },
+        {
+          "spoiler": 2,
+          "rating": 1.7804487,
+          "id": "g650",
+          "name": "Protagonist's Blood-related Mother as a Heroine"
+        },
+        {
+          "id": "g454",
+          "name": "Slice of Life",
+          "spoiler": 0,
+          "rating": 1.5
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.3191288,
+          "id": "g147",
+          "name": "Drama"
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.1205673,
+          "id": "g373",
+          "name": "Student Heroine"
+        },
+        {
+          "name": "Time Travel",
+          "id": "g249",
+          "rating": 2.221328,
+          "spoiler": 2
+        },
+        {
+          "id": "g104",
+          "name": "Comedy",
+          "spoiler": 0,
+          "rating": 1.3029525
+        },
+        {
+          "name": "Protagonist with a Face",
+          "id": "g728",
+          "rating": 2.529954,
+          "spoiler": 0
+        },
+        {
+          "name": "Alternate Starting Point",
+          "id": "g460",
+          "rating": 0.4171123,
+          "spoiler": 0
+        },
+        {
+          "id": "g559",
+          "name": "Protagonist Selection",
+          "spoiler": 0,
+          "rating": 2.371795
+        },
+        {
+          "rating": 0.40952381,
+          "spoiler": 1,
+          "name": "Mind Screw",
+          "id": "g1398"
+        },
+        {
+          "rating": 1.6624851,
+          "spoiler": 2,
+          "name": "Twin Sisters as Heroines",
+          "id": "g343"
+        },
+        {
+          "name": "Corporations",
+          "id": "g45",
+          "rating": 1.9344262,
+          "spoiler": 1
+        },
+        {
+          "name": "Brief NVL Scenes",
+          "id": "g355",
+          "rating": 2.2792208,
+          "spoiler": 0
+        },
+        {
+          "id": "g1236",
+          "name": "Memory Alteration",
+          "spoiler": 2,
+          "rating": 1.8947369
+        },
+        {
+          "name": "Infodumping",
+          "id": "g683",
+          "rating": 1.7566422,
+          "spoiler": 0
+        },
+        {
+          "rating": 2.433002,
+          "spoiler": 0,
+          "name": "Amusement Park",
+          "id": "g315"
+        },
+        {
+          "name": "Philosophy",
+          "id": "g1154",
+          "rating": 0.96666664,
+          "spoiler": 0
+        },
+        {
+          "spoiler": 2,
+          "rating": 2.2679653,
+          "id": "g579",
+          "name": "Player as a Character"
+        },
+        {
+          "name": "Sexual Innuendo",
+          "id": "g1274",
+          "rating": 0.98214287,
+          "spoiler": 1
+        },
+        {
+          "id": "g672",
+          "name": "Bad Ending(s)",
+          "spoiler": 0,
+          "rating": 2.2045977
+        },
+        {
+          "spoiler": 0,
+          "rating": 0.8333333,
+          "id": "g2446",
+          "name": "Pet Support Character"
+        },
+        {
+          "spoiler": 0,
+          "rating": 1,
+          "id": "g279",
+          "name": "Dogs"
+        },
+        {
+          "name": "Epidemic",
+          "id": "g1852",
+          "rating": 1,
+          "spoiler": 1
+        },
+        {
+          "spoiler": 2,
+          "rating": 1.516129,
+          "id": "g508",
+          "name": "Childhood Promise"
+        },
+        {
+          "spoiler": 0,
+          "rating": 2,
+          "id": "g676",
+          "name": "Flashback"
+        },
+        {
+          "name": "Fictional Island Near Futuristic Japan",
+          "id": "g245",
+          "rating": 2.5665905,
+          "spoiler": 0
+        },
+        {
+          "name": "Disappearance",
+          "id": "g2083",
+          "rating": 1.7647059,
+          "spoiler": 1
+        },
+        {
+          "name": "Encasement",
+          "id": "g3295",
+          "rating": 1,
+          "spoiler": 0
+        },
+        {
+          "name": "Food Discussions",
+          "id": "g599",
+          "rating": 1,
+          "spoiler": 0
+        },
+        {
+          "rating": 1,
+          "spoiler": 0,
+          "name": "Part-time Job",
+          "id": "g1800"
+        },
+        {
+          "id": "g1568",
+          "name": "Rejuvenation",
+          "spoiler": 1,
+          "rating": 2
+        },
+        {
+          "name": "Meaningless Choices",
+          "id": "g1467",
+          "rating": 1,
+          "spoiler": 0
+        },
+        {
+          "id": "g2652",
+          "name": "No Auto Function",
+          "spoiler": 0,
+          "rating": 3
+        },
+        {
+          "name": "Music Recollection",
+          "id": "g2452",
+          "rating": 3,
+          "spoiler": 0
+        },
+        {
+          "spoiler": 0,
+          "rating": 1,
+          "id": "g1019",
+          "name": "High Amount of Special Effects"
+        },
+        {
+          "spoiler": 2,
+          "rating": 2,
+          "id": "g1920",
+          "name": "Heroine's Mother as a Heroine"
+        },
+        {
+          "id": "g1312",
+          "name": "University Student Heroine",
+          "spoiler": 0,
+          "rating": 1
+        },
+        {
+          "spoiler": 0,
+          "rating": 1.6666666,
+          "id": "g1475",
+          "name": "Mid-game Videos"
+        },
+        {
+          "name": "Adult Heroine",
+          "id": "g465",
+          "rating": 2,
+          "spoiler": 0
+        },
+        {
+          "id": "g2527",
+          "name": "Multiple Common Routes",
+          "spoiler": 0,
+          "rating": 1.05
+        },
+        {
+          "id": "g1762",
+          "name": "Half-orphan Heroine",
+          "spoiler": 0,
+          "rating": 2
+        },
+        {
+          "name": "Heroine with Children",
+          "id": "g1971",
+          "rating": 2,
+          "spoiler": 2
+        },
+        {
+          "spoiler": 0,
+          "rating": 2,
+          "id": "g603",
+          "name": "Childishly Violent Heroine"
+        },
+        {
+          "name": "Heroine with Gothic Look",
+          "id": "g527",
+          "rating": 1,
+          "spoiler": 0
+        },
+        {
+          "spoiler": 0,
+          "rating": 3,
+          "id": "g875",
+          "name": "Twin Tail Heroine"
+        },
+        {
+          "name": "Death of Protagonist",
+          "id": "g980",
+          "rating": 2,
+          "spoiler": 1
+        },
+        {
+          "id": "g3174",
+          "name": "Completely Avoidable Protagonist Death",
+          "spoiler": 1,
+          "rating": 2
+        },
+        {
+          "spoiler": 0,
+          "rating": 1,
+          "id": "g3558",
+          "name": "Laboratory"
+        },
+        {
+          "id": "g32",
+          "name": "ADV",
+          "spoiler": 0,
+          "rating": 2.8493152
+        },
+        {
+          "id": "g3",
+          "name": "ESP",
+          "spoiler": 2,
+          "rating": 2.7142856
+        },
+        {
+          "rating": 2.7285714,
+          "spoiler": 1,
+          "name": "Identity Crisis",
+          "id": "g9"
+        },
+        {
+          "id": "g19",
+          "name": "Mystery",
+          "spoiler": 0,
+          "rating": 2.749192
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.409091,
+          "id": "g324",
+          "name": "Suspense"
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.835294,
+          "id": "g152",
+          "name": "Amnesia"
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.1176472,
+          "id": "g96",
+          "name": "Romance"
+        },
+        {
+          "name": "Immortal Heroine",
+          "id": "g287",
+          "rating": 2.662162,
+          "spoiler": 2
+        },
+        {
+          "rating": 2,
+          "spoiler": 0,
+          "name": "Unlockable Choices",
+          "id": "g1234"
+        },
+        {
+          "rating": 2,
+          "spoiler": 0,
+          "name": "Has Window Transparency Setting",
+          "id": "g3438"
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.2,
+          "id": "g2033",
+          "name": "Unlockable Hero(ine)"
+        },
+        {
+          "id": "g3171",
+          "name": "High School Student Heroine",
+          "spoiler": 0,
+          "rating": 1.75
+        },
+        {
+          "id": "g439",
+          "name": "Immortal Protagonist",
+          "spoiler": 2,
+          "rating": 1
+        },
+        {
+          "id": "g1474",
+          "name": "Ending List",
+          "spoiler": 0,
+          "rating": 2.4
+        },
+        {
+          "rating": 2.3333333,
+          "spoiler": 0,
+          "name": "Amnesiac Protagonist",
+          "id": "g2544"
+        },
+        {
+          "name": "Choices with 4 or More Options",
+          "id": "g1642",
+          "rating": 1,
+          "spoiler": 0
+        },
+        {
+          "id": "g633",
+          "name": "Other Perspectives",
+          "spoiler": 0,
+          "rating": 2.2
+        },
+        {
+          "name": "Male Protagonist",
+          "id": "g133",
+          "rating": 2.8219178,
+          "spoiler": 0
+        },
+        {
+          "name": "AI Heroine",
+          "id": "g125",
+          "rating": 2.6914895,
+          "spoiler": 1
+        },
+        {
+          "spoiler": 0,
+          "rating": 1.8181819,
+          "id": "g1695",
+          "name": "Unlockable Bonus Content"
+        },
+        {
+          "id": "g543",
+          "name": "Hacking",
+          "spoiler": 1,
+          "rating": 1.8545455
+        },
+        {
+          "name": "Genetic Research",
+          "id": "g826",
+          "rating": 2.444781,
+          "spoiler": 2
+        },
+        {
+          "name": "Alternate Dimensions",
+          "id": "g250",
+          "rating": 1.8094324,
+          "spoiler": 2
+        },
+        {
+          "spoiler": 1,
+          "rating": 2.902439,
+          "id": "g181",
+          "name": "One True End"
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.3333333,
+          "id": "g149",
+          "name": "Enforced Playing Order"
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.5,
+          "id": "g1903",
+          "name": "Protagonist with a Sprite"
+        },
+        {
+          "name": "Blind Choices",
+          "id": "g1471",
+          "rating": 2.1858974,
+          "spoiler": 0
+        },
+        {
+          "rating": 2.3333333,
+          "spoiler": 0,
+          "name": "Restart from Chapter Index",
+          "id": "g3099"
+        },
+        {
+          "spoiler": 1,
+          "rating": 2.5633802,
+          "id": "g167",
+          "name": "Health Issues"
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.3333333,
+          "id": "g2512",
+          "name": "Chosen Choices Marking"
+        },
+        {
+          "name": "Fake Choices",
+          "id": "g1447",
+          "rating": 1,
+          "spoiler": 0
+        },
+        {
+          "rating": 2.7142856,
+          "spoiler": 0,
+          "name": "Underwater",
+          "id": "g3301"
+        },
+        {
+          "rating": 1.8333334,
+          "spoiler": 0,
+          "name": "Unlockable Epilogue",
+          "id": "g2635"
+        },
+        {
+          "id": "g864",
+          "name": "Puzzle Game",
+          "spoiler": 2,
+          "rating": 0.33333334
+        },
+        {
+          "id": "g459",
+          "name": "Unlockable Routes",
+          "spoiler": 0,
+          "rating": 2.7042253
+        },
+        {
+          "rating": 2.78125,
+          "spoiler": 2,
+          "name": "Reunion",
+          "id": "g1366"
+        },
+        {
+          "rating": 2.3883848,
+          "spoiler": 2,
+          "name": "Clone Heroine",
+          "id": "g827"
+        },
+        {
+          "id": "g1555",
+          "name": "Normal Scene Recollection",
+          "spoiler": 0,
+          "rating": 1.9452381
+        },
+        {
+          "name": "Playtime Counter",
+          "id": "g868",
+          "rating": 1,
+          "spoiler": 0
+        },
+        {
+          "name": "Date Display",
+          "id": "g1005",
+          "rating": 2.2692308,
+          "spoiler": 0
+        },
+        {
+          "name": "Energetic Heroine",
+          "id": "g681",
+          "rating": 2.580645,
+          "spoiler": 0
+        },
+        {
+          "rating": 1,
+          "spoiler": 0,
+          "name": "Adult Protagonist",
+          "id": "g137"
+        },
+        {
+          "name": "No Sexual Content",
+          "id": "g235",
+          "rating": 2.7922077,
+          "spoiler": 0
+        },
+        {
+          "spoiler": 2,
+          "rating": 0.8333333,
+          "id": "g926",
+          "name": "Immortal Hero"
+        },
+        {
+          "spoiler": 0,
+          "rating": 2.6190476,
+          "id": "g1251",
+          "name": "More Than Seven Endings"
+        },
+        {
+          "id": "g180",
+          "name": "Early Branching Plot",
+          "spoiler": 0,
+          "rating": 2.5373135
+        },
+        {
+          "rating": 2.851852,
+          "spoiler": 0,
+          "name": "Multiple Route Mystery",
+          "id": "g553"
+        },
+        {
+          "id": "g1851",
+          "name": "Biological Weapon",
+          "spoiler": 2,
+          "rating": 2.04
+        },
+        {
+          "id": "g3131",
+          "name": "Forced Auto-Read Sections",
+          "spoiler": 0,
+          "rating": 1.3333334
+        },
+        {
+          "spoiler": 0,
+          "rating": 2,
+          "id": "g3182",
+          "name": "Different Love Interest(s) Per Protagonist"
+        },
+        {
+          "spoiler": 1,
+          "rating": 2.5192308,
+          "id": "g876",
+          "name": "Bad Endings with Story"
+        },
+        {
+          "spoiler": 2,
+          "rating": 2,
+          "id": "g3247",
+          "name": "Off Screen Sex Only"
+        },
+        {
+          "name": "Confinement",
+          "id": "g293",
+          "rating": 2.9880953,
+          "spoiler": 0
+        },
+        {
+          "id": "g2159",
+          "name": "Unlockable Event",
+          "spoiler": 0,
+          "rating": 2.4
+        },
+        {
+          "name": "Multi-Selection Choices",
+          "id": "g1643",
+          "rating": 0.6666667,
+          "spoiler": 0
+        },
+        {
+          "id": "g2978",
+          "name": "Stranded",
+          "spoiler": 0,
+          "rating": 2.125
+        },
+        {
+          "name": "Breaking the Fourth Wall",
+          "id": "g580",
+          "rating": 2.652174,
+          "spoiler": 2
+        },
+        {
+          "id": "g3721",
+          "name": "Survival Focus",
+          "spoiler": 0,
+          "rating": 2
+        }
+      ],
+      "description": "Ever17 is the tale of seven individuals who become trapped 51 meters below the surface in the underwater marine theme park 'LeMU'. After an incident, almost half of LeMU becomes flooded, and the path to the surface and the communication lines are cut off. In addition, LeMU is under constant assault by severe water pressure, limiting time to find a means of escape to 119 hours. Escape is not the only concern, however; many questions arise as to the legitimacy of the accident and whether or not those trapped there were brought there for a purpose.\n\n[From [url=http://en.wikipedia.org/wiki/Ever_17:_The_Out_of_Infinity]Wikipedia[/url]]",
+      "devstatus": 0,
+      "developers": [
+        {
+          "name": "KID",
+          "id": "p8"
+        },
+        {
+          "id": "p104",
+          "name": "Regista"
+        },
+        {
+          "name": "SDR Project",
+          "id": "p19579"
+        }
+      ]
+    }
+  ],
+  "more": false
+}

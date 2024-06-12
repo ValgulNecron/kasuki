@@ -1,0 +1,30 @@
+{
+  "en": {
+    "title": "Here the info on $user$",
+    "id": "ID",
+    "name": "Name",
+    "playtimesum": "play time votes (in minutes)",
+    "playtime": "play time votes"
+  },
+  "de": {
+    "title": "Hier die Infos zu $user$",
+    "id": "ID",
+    "name": "Name",
+    "playtimesum": "Spielzeit (in Minuten)",
+    "playtime": "Spielzeit"
+  },
+  "fr": {
+    "title": "Voici les infos sur $user$",
+    "id": "ID",
+    "name": "Nom",
+    "playtimesum": "temps de jeu (en minutes)",
+    "playtime": "temps de jeu"
+  },
+  "jp": {
+    "title": "$user$の情報",
+    "id": "ID",
+    "name": "名前",
+    "playtimesum": "プレイ時間 (分)",
+    "playtime": "プレイ時間"
+  }
+}
