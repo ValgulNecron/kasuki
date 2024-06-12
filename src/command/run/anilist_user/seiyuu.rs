@@ -59,17 +59,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     };
     let operation = Seiyuu::build(var);
     let data: GraphQlResponse<Seiyuu> = match make_request_anilist(operation, false).await {
-        Ok(data) => match data.json::<GraphQlResponse<Seiyuu>>().await {
-            Ok(data) => data,
-            Err(e) => {
-                tracing::error!(?e);
-                return Err(AppError {
-                    message: format!("Error retrieving character with ID: {} \n {}", value, e),
+        Ok(data) => {
+            let data =
+                serde_json::from_str::<GraphQlResponse<Seiyuu>>(&data).map_err(|e| AppError {
+                    message: format!("Error deserializing character data {}", e),
                     error_type: ErrorType::WebRequest,
                     error_response_type: ErrorResponseType::Message,
-                });
-            }
-        },
+                })?;
+            data
+        }
         Err(e) => {
             tracing::error!(?e);
             return Err(AppError {

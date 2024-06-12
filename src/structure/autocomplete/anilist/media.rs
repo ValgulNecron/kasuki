@@ -72,13 +72,11 @@ pub async fn send_auto_complete<'a>(
     let operation = MediaAutocomplete::build(media);
     let data: GraphQlResponse<MediaAutocomplete> =
         match crate::helper::make_graphql_cached::make_request_anilist(operation, false).await {
-            Ok(data) => match data.json::<GraphQlResponse<MediaAutocomplete>>().await {
-                Ok(data) => data,
-                Err(e) => {
-                    tracing::trace!(?e);
-                    return;
-                }
-            },
+            Ok(data) => {
+                let data =
+                    serde_json::from_str::<GraphQlResponse<MediaAutocomplete>>(&data).unwrap();
+                data
+            }
             Err(e) => {
                 tracing::trace!(?e);
                 return;

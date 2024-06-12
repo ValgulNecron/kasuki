@@ -44,20 +44,18 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
         search: Some(staff_search),
     };
     let operation = StaffAutocomplete::build(var);
-    let data: GraphQlResponse<StaffAutocomplete> =
-        match make_request_anilist(operation, false).await {
-            Ok(data) => match data.json::<GraphQlResponse<StaffAutocomplete>>().await {
-                Ok(data) => data,
-                Err(e) => {
-                    tracing::trace!(?e);
-                    return;
-                }
-            },
-            Err(e) => {
-                tracing::trace!(?e);
-                return;
-            }
-        };
+    let data: GraphQlResponse<StaffAutocomplete> = match make_request_anilist(operation, false)
+        .await
+    {
+        Ok(data) => {
+            let data = serde_json::from_str::<GraphQlResponse<StaffAutocomplete>>(&data).unwrap();
+            data
+        }
+        Err(e) => {
+            tracing::trace!(?e);
+            return;
+        }
+    };
     let mut choices = Vec::new();
     let staffs = data.data.unwrap().page.unwrap().staff.unwrap();
 

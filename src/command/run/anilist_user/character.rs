@@ -65,17 +65,21 @@ pub async fn get_character<'a>(
     let operation = CharacterQuerry::build(var);
     let data: GraphQlResponse<CharacterQuerry> = match make_request_anilist(operation, false).await
     {
-        Ok(data) => match data.json::<GraphQlResponse<CharacterQuerry>>().await {
-            Ok(data) => data,
-            Err(e) => {
-                tracing::error!(?e);
-                return Err(AppError {
-                    message: format!("Error retrieving character with value: {} \n {}", value, e),
-                    error_type: ErrorType::WebRequest,
-                    error_response_type: ErrorResponseType::Message,
-                });
-            }
-        },
+        Ok(data) => {
+            let data =
+                serde_json::from_str::<GraphQlResponse<CharacterQuerry>>(&data).map_err(|e| {
+                    tracing::error!(?e);
+                    AppError {
+                        message: format!(
+                            "Error deserializing character with value: {} \n {}",
+                            value, e
+                        ),
+                        error_type: ErrorType::WebRequest,
+                        error_response_type: ErrorResponseType::Message,
+                    }
+                })?;
+            data
+        }
         Err(e) => {
             tracing::error!(?e);
             return Err(AppError {

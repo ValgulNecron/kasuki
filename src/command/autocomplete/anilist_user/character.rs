@@ -46,13 +46,11 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let operation = CharacterAutocomplete::build(var);
     let data: GraphQlResponse<CharacterAutocomplete> =
         match make_request_anilist(operation, false).await {
-            Ok(data) => match data.json::<GraphQlResponse<CharacterAutocomplete>>().await {
-                Ok(data) => data,
-                Err(e) => {
-                    trace!(?e);
-                    return;
-                }
-            },
+            Ok(data) => {
+                let data =
+                    serde_json::from_str::<GraphQlResponse<CharacterAutocomplete>>(&data).unwrap();
+                data
+            }
             Err(e) => {
                 trace!(?e);
                 return;

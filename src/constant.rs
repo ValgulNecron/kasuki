@@ -1,6 +1,8 @@
+use moka::future::Cache;
 use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
+use std::time::Duration;
 
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
@@ -34,7 +36,15 @@ pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 300;
 pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
 /// Time between cache updates.
 pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200;
-
+/// Max capacity for the cache.
+pub const CACHE_MAX_CAPACITY: u64 = 100_000;
+/// cache for the bot.
+pub static mut CACHE: Lazy<Cache<String, String>> = Lazy::new(|| {
+    Cache::builder()
+        .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
+        .max_capacity(CACHE_MAX_CAPACITY)
+        .build()
+});
 /*
 Limits.
  */
@@ -51,9 +61,6 @@ Database paths.
  */
 /// Path to the data SQLite database.
 pub const DATA_SQLITE_DB: &str = "./data.db";
-/// Path to the cache SQLite database.
-pub const CACHE_SQLITE_DB: &str = "./cache.db";
-
 /*
 App embed color.
  */
@@ -103,9 +110,6 @@ pub const MAX_LOG_RETENTION_DAYS: Lazy<u64> = Lazy::new(|| {
 
 /// Guard for the non-blocking appender.
 pub static mut GUARD: Option<tracing_appender::non_blocking::WorkerGuard> = None;
-
-/// Path to the server image.
-pub const SERVER_IMAGE_PATH: &str = "server_image";
 
 /// Default string value.
 pub const DEFAULT_STRING: &String = &String::new();

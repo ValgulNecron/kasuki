@@ -41,13 +41,10 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let operation = UserAutocomplete::build(var);
     let data: GraphQlResponse<UserAutocomplete> = match make_request_anilist(operation, false).await
     {
-        Ok(data) => match data.json::<GraphQlResponse<UserAutocomplete>>().await {
-            Ok(data) => data,
-            Err(e) => {
-                tracing::trace!(?e);
-                return;
-            }
-        },
+        Ok(data) => {
+            let data = serde_json::from_str::<GraphQlResponse<UserAutocomplete>>(&data).unwrap();
+            data
+        }
         Err(e) => {
             tracing::trace!(?e);
             return;

@@ -121,10 +121,17 @@ async fn embed(
     }
 
     let operation = RandomPageMedia::build(var);
-    let data: GraphQlResponse<RandomPageMedia> = match make_request_anilist(operation, false).await
-    {
-        Ok(data) => match data.json::<GraphQlResponse<RandomPageMedia>>().await {
-            Ok(data) => data,
+    let data: GraphQlResponse<RandomPageMedia> =
+        match make_request_anilist(operation, false).await {
+            Ok(data) => {
+                let data = serde_json::from_str::<GraphQlResponse<RandomPageMedia>>(&data)
+                    .map_err(|e| AppError {
+                        message: format!("Error parsing data: {}", e),
+                        error_type: ErrorType::WebRequest,
+                        error_response_type: ErrorResponseType::Message,
+                    })?;
+                data
+            }
             Err(e) => {
                 tracing::error!(?e);
                 return Err(AppError {
@@ -136,19 +143,7 @@ async fn embed(
                     error_response_type: ErrorResponseType::Message,
                 });
             }
-        },
-        Err(e) => {
-            tracing::error!(?e);
-            return Err(AppError {
-                message: format!(
-                    "Error retrieving random {} with page: {} \n {}",
-                    random_type, number, e
-                ),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            });
-        }
-    };
+        };
     let data = data.data.unwrap();
     let inside_media = data.page.unwrap().media.unwrap()[0].clone().unwrap();
     let id = inside_media.id;

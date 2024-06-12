@@ -274,7 +274,10 @@ async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, AppError> {
             let root1: Result<Root1, serde_json::error::Error> = serde_json::from_value(json);
             return match root1 {
                 Ok(root1) => Err(AppError::new(
-                    format!("Failed to parse the json. {}", root1.error.message),
+                    format!(
+                        "Failed to get the response from the server. {}\n{}",
+                        root1.error.message, e
+                    ),
                     ErrorType::File,
                     ErrorResponseType::Followup,
                 )),

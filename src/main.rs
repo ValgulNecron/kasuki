@@ -8,7 +8,6 @@ use tracing::{error, info};
 
 use struct_shard_manager::ShardManagerContainer;
 
-use crate::cache::manage::cache_init::init_cache;
 use crate::constant::{APP_TUI, DISCORD_TOKEN};
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{Handler, RootUsage};
@@ -75,10 +74,6 @@ async fn main() {
     // Initialize the SQL database.
     // If an error occurs, log the error and return.
     if let Err(e) = init_sql_database().await {
-        error!("{:?}", e);
-        return;
-    }
-    if let Err(e) = init_cache().await {
         error!("{:?}", e);
         return;
     }

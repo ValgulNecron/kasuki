@@ -1,3 +1,4 @@
+use crate::cache::manage::cache_dispatch::set_cache;
 use cynic::{Operation, QueryFragment, QueryVariables};
 use reqwest::{Client, Response};
 use serde::Serialize;
@@ -7,8 +8,8 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 pub async fn make_request_anilist<T: QueryFragment, A: QueryVariables + Serialize>(
     operation: Operation<T, A>,
     always_update: bool,
-) -> Result<Response, AppError> {
-    do_request(operation, always_update).await
+) -> Result<String, AppError> {
+    do_request(operation).await
     /*else {
         let return_data: T = get_cache(operation).await?;
         Ok(return_data)
@@ -58,8 +59,7 @@ async fn add_cache<'a, T: Deserialize<'a>, A: QueryVariables>(operation: Operati
 */
 async fn do_request<T: QueryFragment, A: QueryVariables + Serialize>(
     operation: Operation<T, A>,
-    always_update: bool,
-) -> Result<Response, AppError> {
+) -> Result<String, AppError> {
     let client = Client::new();
     let resp = client
         .post("https://graphql.anilist.co/")
@@ -74,10 +74,12 @@ async fn do_request<T: QueryFragment, A: QueryVariables + Serialize>(
             error_response_type: ErrorResponseType::Unknown,
         })?;
 
-    /*
-    if !always_update {
-        add_cache(operation.clone(), resp.clone()).await?;
+    let response_text = resp.text().await.map_err(|e| AppError {
+        message: format!("Error: {}", e),
+        error_type: ErrorType::WebRequest,
+        error_response_type: ErrorResponseType::Unknown,
+    })?;
+    set_cache(operation.query, response_text.clone()).await;
 
-     */
-    Ok(resp)
+    Ok(response_text)
 }

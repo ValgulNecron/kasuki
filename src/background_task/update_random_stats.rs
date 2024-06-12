@@ -67,20 +67,17 @@ async fn update_random(mut random_stats: RandomStat) -> Result<RandomStat, AppEr
         };
         let operation = AnimeStat::build(var);
         let data: GraphQlResponse<AnimeStat> = match make_request_anilist(operation, false).await {
-            Ok(data) => match data.json::<GraphQlResponse<AnimeStat>>().await {
-                Ok(data) => data,
-                Err(e) => {
-                    tracing::error!(?e);
-                    return Err(AppError {
-                        message: format!(
-                            "Error retrieving character with ID: {} \n {}",
-                            anime_page, e
-                        ),
-                        error_type: ErrorType::WebRequest,
-                        error_response_type: ErrorResponseType::Message,
-                    });
-                }
-            },
+            Ok(data) => {
+                let data =
+                    serde_json::from_str::<GraphQlResponse<AnimeStat>>(&data).map_err(|e| {
+                        AppError::new(
+                            format!("Error deserializing the data {}", e),
+                            ErrorType::File,
+                            ErrorResponseType::Unknown,
+                        )
+                    })?;
+                data
+            }
             Err(e) => {
                 tracing::error!(?e);
                 return Err(AppError {
@@ -122,20 +119,17 @@ async fn update_random(mut random_stats: RandomStat) -> Result<RandomStat, AppEr
         };
         let operation = MangaStat::build(var);
         let data: GraphQlResponse<MangaStat> = match make_request_anilist(operation, false).await {
-            Ok(data) => match data.json::<GraphQlResponse<MangaStat>>().await {
-                Ok(data) => data,
-                Err(e) => {
-                    tracing::error!(?e);
-                    return Err(AppError {
-                        message: format!(
-                            "Error retrieving character with ID: {} \n {}",
-                            anime_page, e
-                        ),
-                        error_type: ErrorType::WebRequest,
-                        error_response_type: ErrorResponseType::Message,
-                    });
-                }
-            },
+            Ok(data) => {
+                let data =
+                    serde_json::from_str::<GraphQlResponse<MangaStat>>(&data).map_err(|e| {
+                        AppError::new(
+                            format!("Error deserializing the data {}", e),
+                            ErrorType::File,
+                            ErrorResponseType::Unknown,
+                        )
+                    })?;
+                data
+            }
             Err(e) => {
                 tracing::error!(?e);
                 return Err(AppError {

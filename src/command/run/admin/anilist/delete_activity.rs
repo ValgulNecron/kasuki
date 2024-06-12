@@ -51,7 +51,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         None => String::from("0"),
     };
 
-    let delete_activity_localised_text = load_localization_delete_activity(guild_id).await?;
+    let delete_activity_localised_text =
+        load_localization_delete_activity(guild_id.clone()).await?;
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
@@ -70,6 +71,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     } else {
         get_minimal_anime_by_search(anime.as_str()).await?
     };
+
+    let anime_id = media.id;
+    remove_activity(guild_id.as_str(), &anime_id).await?;
 
     let title = media.title.unwrap();
     let anime_name = get_name(title);

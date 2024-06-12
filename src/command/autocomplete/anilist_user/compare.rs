@@ -79,13 +79,10 @@ async fn get_choices(search: &str) -> Vec<AutocompleteChoice> {
     let operation = UserAutocomplete::build(var);
     let data: GraphQlResponse<UserAutocomplete> = match make_request_anilist(operation, false).await
     {
-        Ok(data) => match data.json::<GraphQlResponse<UserAutocomplete>>().await {
-            Ok(data) => data,
-            Err(e) => {
-                tracing::trace!(?e);
-                return Vec::new();
-            }
-        },
+        Ok(data) => {
+            let data = serde_json::from_str::<GraphQlResponse<UserAutocomplete>>(&data).unwrap();
+            data
+        }
         Err(e) => {
             tracing::trace!(?e);
             return Vec::new();

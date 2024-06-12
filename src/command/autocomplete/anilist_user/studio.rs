@@ -41,20 +41,18 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
         search: Some(studio_search),
     };
     let operation = StudioAutocomplete::build(var);
-    let data: GraphQlResponse<StudioAutocomplete> =
-        match make_request_anilist(operation, false).await {
-            Ok(data) => match data.json::<GraphQlResponse<StudioAutocomplete>>().await {
-                Ok(data) => data,
-                Err(e) => {
-                    tracing::trace!(?e);
-                    return;
-                }
-            },
-            Err(e) => {
-                tracing::trace!(?e);
-                return;
-            }
-        };
+    let data: GraphQlResponse<StudioAutocomplete> = match make_request_anilist(operation, false)
+        .await
+    {
+        Ok(data) => {
+            let data = serde_json::from_str::<GraphQlResponse<StudioAutocomplete>>(&data).unwrap();
+            data
+        }
+        Err(e) => {
+            tracing::trace!(?e);
+            return;
+        }
+    };
     let studios = data.data.unwrap().page.unwrap().studios.unwrap();
 
     let mut choices = Vec::new();

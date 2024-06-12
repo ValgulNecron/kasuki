@@ -755,17 +755,17 @@ pub async fn get_media<'a>(
 ) -> Result<Media, AppError> {
     let operation = MediaQuerry::build(var);
     let data: GraphQlResponse<MediaQuerry> = match make_request_anilist(operation, false).await {
-        Ok(data) => match data.json::<GraphQlResponse<MediaQuerry>>().await {
-            Ok(data) => data,
-            Err(e) => {
-                tracing::error!(?e);
-                return Err(AppError {
-                    message: format!("Error retrieving media with value {}\n{}", value, e),
-                    error_type: ErrorType::WebRequest,
-                    error_response_type: ErrorResponseType::Message,
-                });
-            }
-        },
+        Ok(data) => {
+            let data =
+                serde_json::from_str::<GraphQlResponse<MediaQuerry>>(&data).map_err(|e| {
+                    AppError {
+                        message: format!("Error parsing data: {}", e),
+                        error_type: ErrorType::WebRequest,
+                        error_response_type: ErrorResponseType::Message,
+                    }
+                })?;
+            data
+        }
         Err(e) => {
             tracing::error!(?e);
             return Err(AppError {
