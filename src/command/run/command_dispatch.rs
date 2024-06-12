@@ -18,6 +18,7 @@ use crate::command::run::server::{
 };
 use crate::command::run::steam::steam_game_info;
 use crate::command::run::user::{avatar, banner, command_usage, profile};
+use crate::command::run::vn::stats;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
@@ -875,6 +876,7 @@ async fn vn(
         "staff" => profile::run(ctx, command_interaction).await,
         "user" => profile::run(ctx, command_interaction).await,
         "producer" => profile::run(ctx, command_interaction).await,
+        "stats" => stats::run(ctx, command_interaction).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,

@@ -1,0 +1,46 @@
+{
+  "en": {
+    "title": "Here the stats of the api",
+    "chars": "Characters",
+    "producer": "Producer",
+    "release": "Release",
+    "staff": "Staff",
+    "tags": "Tags",
+    "traits": "Traits",
+    "vns": "Visual Novels",
+    "api": "API"
+  },
+  "fr": {
+    "title": "Voici les statistiques de l'api",
+    "chars": "Personnages",
+    "producer": "Producteur",
+    "release": "Sortie",
+    "staff": "Staff",
+    "tags": "Tags",
+    "traits": "Traits",
+    "vns": "Visual Novels",
+    "api": "API"
+  },
+  "ja": {
+    "title": "ここにapiの統計があります",
+    "chars": "キャラクター",
+    "producer": "プロデューサー",
+    "release": "リリース",
+    "staff": "スタッフ",
+    "tags": "タグ",
+    "traits": "特性",
+    "vns": "ビジュアルノベル",
+    "api": "API"
+  },
+  "de": {
+    "title": "Hier die Statistiken der API",
+    "chars": "Charaktere",
+    "producer": "Produzent",
+    "release": "Veröffentlichung",
+    "staff": "Mitarbeiter",
+    "tags": "Tags",
+    "traits": "Eigenschaften",
+    "vns": "Visual Novels",
+    "api": "API"
+  }
+}

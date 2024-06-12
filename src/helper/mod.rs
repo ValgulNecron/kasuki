@@ -10,3 +10,4 @@ pub mod image_saver;
 pub mod make_graphql_cached;
 pub mod read_file;
 pub mod trimer;
+pub mod vndbapi;

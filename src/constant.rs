@@ -38,8 +38,15 @@ pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
 pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200;
 /// Max capacity for the cache.
 pub const CACHE_MAX_CAPACITY: u64 = 100_000;
-/// cache for the bot.
-pub static mut CACHE: Lazy<Cache<String, String>> = Lazy::new(|| {
+/// Anilist cache for the bot.
+pub static mut ANILIST_CACHE: Lazy<Cache<String, String>> = Lazy::new(|| {
+    Cache::builder()
+        .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
+        .max_capacity(CACHE_MAX_CAPACITY)
+        .build()
+});
+/// vndb cache for the bot.
+pub static mut VNDB_CACHE: Lazy<Cache<String, String>> = Lazy::new(|| {
     Cache::builder()
         .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
         .max_capacity(CACHE_MAX_CAPACITY)
