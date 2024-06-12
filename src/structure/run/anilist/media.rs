@@ -749,31 +749,10 @@ pub async fn send_embed(
         })
 }
 
-pub async fn get_media<'a>(
-    value: String,
-    var: MediaQuerryVariables<'a>,
-) -> Result<Media, AppError> {
+pub async fn get_media<'a>(var: MediaQuerryVariables<'a>) -> Result<Media, AppError> {
     let operation = MediaQuerry::build(var);
-    let data: GraphQlResponse<MediaQuerry> = match make_request_anilist(operation, false).await {
-        Ok(data) => {
-            let data =
-                serde_json::from_str::<GraphQlResponse<MediaQuerry>>(&data).map_err(|e| {
-                    AppError {
-                        message: format!("Error parsing data: {}", e),
-                        error_type: ErrorType::WebRequest,
-                        error_response_type: ErrorResponseType::Message,
-                    }
-                })?;
-            data
-        }
-        Err(e) => {
-            tracing::error!(?e);
-            return Err(AppError {
-                message: format!("Error retrieving media with value {}\n{}", value, e),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            });
-        }
-    };
+    let data: Result<GraphQlResponse<MediaQuerry>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
     Ok(data.data.unwrap().media.unwrap())
 }

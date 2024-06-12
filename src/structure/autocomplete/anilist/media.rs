@@ -5,6 +5,8 @@ use serenity::all::{
 };
 
 use crate::constant::DEFAULT_STRING;
+use crate::helper::error_management::error_enum::AppError;
+use crate::helper::make_graphql_cached::make_request_anilist;
 
 #[cynic::schema("anilist")]
 mod schema {}
@@ -70,18 +72,15 @@ pub async fn send_auto_complete<'a>(
     media: MediaAutocompleteVariables<'a>,
 ) {
     let operation = MediaAutocomplete::build(media);
-    let data: GraphQlResponse<MediaAutocomplete> =
-        match crate::helper::make_graphql_cached::make_request_anilist(operation, false).await {
-            Ok(data) => {
-                let data =
-                    serde_json::from_str::<GraphQlResponse<MediaAutocomplete>>(&data).unwrap();
-                data
-            }
-            Err(e) => {
-                tracing::trace!(?e);
-                return;
-            }
-        };
+    let data: Result<GraphQlResponse<MediaAutocomplete>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = match data {
+        Ok(data) => data,
+        Err(e) => {
+            tracing::error!(?e);
+            return;
+        }
+    };
 
     let mut choices = Vec::new();
     let data = data.data.unwrap().page.unwrap().media.unwrap();

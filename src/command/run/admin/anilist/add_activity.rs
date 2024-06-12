@@ -409,32 +409,8 @@ pub async fn get_minimal_anime<'a>(
     value: String,
 ) -> Result<Media, AppError> {
     let operation = MinimalAnime::build(query);
-    let data: GraphQlResponse<MinimalAnime> = match make_request_anilist(operation, false).await {
-        Ok(data) => {
-            let data =
-                serde_json::from_str::<GraphQlResponse<MinimalAnime>>(&data).map_err(|e| {
-                    AppError {
-                        message: format!(
-                            "Error parsing minimal anime with value: {} \n {}",
-                            value, e
-                        ),
-                        error_type: ErrorType::WebRequest,
-                        error_response_type: ErrorResponseType::Message,
-                    }
-                })?;
-            data
-        }
-        Err(e) => {
-            error!(?e);
-            return Err(AppError {
-                message: format!(
-                    "Error retrieving minimal anime with value: {} \n {}",
-                    value, e
-                ),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            });
-        }
-    };
+    let data: Result<GraphQlResponse<MinimalAnime>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
     Ok(data.data.unwrap().media.unwrap())
 }

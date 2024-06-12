@@ -6,6 +6,7 @@ use serenity::all::{
 use tracing::log::trace;
 
 use crate::constant::DEFAULT_STRING;
+use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
@@ -77,14 +78,12 @@ async fn get_choices(search: &str) -> Vec<AutocompleteChoice> {
         search: Some(search),
     };
     let operation = UserAutocomplete::build(var);
-    let data: GraphQlResponse<UserAutocomplete> = match make_request_anilist(operation, false).await
-    {
-        Ok(data) => {
-            let data = serde_json::from_str::<GraphQlResponse<UserAutocomplete>>(&data).unwrap();
-            data
-        }
+    let data: Result<GraphQlResponse<UserAutocomplete>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = match data {
+        Ok(data) => data,
         Err(e) => {
-            tracing::trace!(?e);
+            tracing::error!(?e);
             return Vec::new();
         }
     };

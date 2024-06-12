@@ -1,9 +1,9 @@
-use crate::constant::DEFAULT_STRING;
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
+use crate::constant::DEFAULT_STRING;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -48,27 +48,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         }
     };
     let operation = StudioQuerry::build(var);
-    let data: GraphQlResponse<StudioQuerry> = match make_request_anilist(operation, false).await {
-        Ok(data) => {
-            let data =
-                serde_json::from_str::<GraphQlResponse<StudioQuerry>>(&data).map_err(|e| {
-                    AppError {
-                        message: format!("Error deserializing studio data {}", e),
-                        error_type: ErrorType::WebRequest,
-                        error_response_type: ErrorResponseType::Message,
-                    }
-                })?;
-            data
-        }
-        Err(e) => {
-            tracing::error!(?e);
-            return Err(AppError {
-                message: format!("Error retrieving studio with value: {} \n {}", value, e),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            });
-        }
-    };
+    let data: Result<GraphQlResponse<StudioQuerry>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
 
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {

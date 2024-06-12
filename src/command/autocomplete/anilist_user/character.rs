@@ -6,6 +6,7 @@ use serenity::all::{
 use tracing::trace;
 
 use crate::constant::DEFAULT_STRING;
+use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::character::{
@@ -44,18 +45,15 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
         search: Some(character_search.as_str()),
     };
     let operation = CharacterAutocomplete::build(var);
-    let data: GraphQlResponse<CharacterAutocomplete> =
-        match make_request_anilist(operation, false).await {
-            Ok(data) => {
-                let data =
-                    serde_json::from_str::<GraphQlResponse<CharacterAutocomplete>>(&data).unwrap();
-                data
-            }
-            Err(e) => {
-                trace!(?e);
-                return;
-            }
-        };
+    let data: Result<GraphQlResponse<CharacterAutocomplete>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = match data {
+        Ok(data) => data,
+        Err(e) => {
+            tracing::error!(?e);
+            return;
+        }
+    };
     trace!(?data);
     let mut choices = Vec::new();
     let characters = data.data.unwrap().page.unwrap().characters.unwrap();

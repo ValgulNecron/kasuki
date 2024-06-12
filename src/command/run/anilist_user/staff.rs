@@ -8,7 +8,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::staff::load_localization_staff;
-use crate::structure::run::anilist::staff::{Staff, StaffQuerry, StaffQuerryVariables};
+use crate::structure::run::anilist::staff::{StaffQuerry, StaffQuerryVariables};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -44,27 +44,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         }
     };
     let operation = StaffQuerry::build(var);
-    let staff: Staff = match make_request_anilist(operation, false).await {
-        Ok(data) => {
-            let data =
-                serde_json::from_str::<GraphQlResponse<StaffQuerry>>(&data).map_err(|e| {
-                    AppError {
-                        message: format!("Error deserializing staff data {}", e),
-                        error_type: ErrorType::WebRequest,
-                        error_response_type: ErrorResponseType::Message,
-                    }
-                })?;
-            data.data.unwrap().staff.unwrap()
-        }
-        Err(e) => {
-            tracing::error!(?e);
-            return Err(AppError {
-                message: format!("Error retrieving staff with value {}\n{}", value, e),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            });
-        }
-    };
+    let data: Result<GraphQlResponse<StaffQuerry>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
+    let staff = data.data.unwrap().staff.unwrap();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),

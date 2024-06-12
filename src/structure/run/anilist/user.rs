@@ -1,15 +1,18 @@
-use crate::constant::COLOR;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
+use std::fmt::Display;
+
 use serenity::all::CommandInteraction;
 use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
 use serenity::model::Colour;
 use serenity::prelude::Context;
-use std::fmt::Display;
+
+use crate::constant::COLOR;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
 
 #[cynic::schema("anilist")]
 mod schema {}
+
 #[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct UserQuerryVariables<'a> {
     pub id: Option<i32>,
@@ -19,7 +22,7 @@ pub struct UserQuerryVariables<'a> {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "UserQuerryVariables")]
 pub struct UserQuerry {
-    #[arguments(id: $id, search: $search)]
+    #[arguments(id: $ id, search: $ search)]
     #[cynic(rename = "User")]
     pub user: Option<User>,
 }

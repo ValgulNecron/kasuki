@@ -1,9 +1,9 @@
-use moka::future::Cache;
 use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
+use moka::future::Cache;
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
 use serenity::all::{Colour, CurrentApplicationInfo};

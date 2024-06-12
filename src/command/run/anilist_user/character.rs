@@ -1,7 +1,7 @@
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context};
 
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::character::{
@@ -38,12 +38,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let data: Character = if value.parse::<i32>().is_ok() {
         get_character_by_id(value.parse::<i32>().unwrap()).await?
     } else {
-        let value_clone = value.clone();
         let var = CharacterQuerryVariables {
             id: None,
             search: Some(&*value),
         };
-        get_character(var, value_clone).await?
+        get_character(var).await?
     };
 
     // Send an embed with the character information as a response to the command interaction
@@ -55,39 +54,13 @@ pub async fn get_character_by_id(value: i32) -> Result<Character, AppError> {
         id: Some(value),
         search: None,
     };
-    get_character(var, value.to_string()).await
+    get_character(var).await
 }
 
-pub async fn get_character<'a>(
-    var: CharacterQuerryVariables<'a>,
-    value: String,
-) -> Result<Character, AppError> {
+pub async fn get_character<'a>(var: CharacterQuerryVariables<'a>) -> Result<Character, AppError> {
     let operation = CharacterQuerry::build(var);
-    let data: GraphQlResponse<CharacterQuerry> = match make_request_anilist(operation, false).await
-    {
-        Ok(data) => {
-            let data =
-                serde_json::from_str::<GraphQlResponse<CharacterQuerry>>(&data).map_err(|e| {
-                    tracing::error!(?e);
-                    AppError {
-                        message: format!(
-                            "Error deserializing character with value: {} \n {}",
-                            value, e
-                        ),
-                        error_type: ErrorType::WebRequest,
-                        error_response_type: ErrorResponseType::Message,
-                    }
-                })?;
-            data
-        }
-        Err(e) => {
-            tracing::error!(?e);
-            return Err(AppError {
-                message: format!("Error retrieving character with value: {} \n {}", value, e),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            });
-        }
-    };
+    let data: Result<GraphQlResponse<CharacterQuerry>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
     Ok(data.data.unwrap().character.unwrap())
 }

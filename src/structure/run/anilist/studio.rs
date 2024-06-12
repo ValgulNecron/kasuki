@@ -1,5 +1,6 @@
 #[cynic::schema("anilist")]
 mod schema {}
+
 #[derive(cynic::QueryVariables, Debug, Clone)]
 pub struct StudioQuerryVariables<'a> {
     pub id: Option<i32>,
@@ -9,7 +10,7 @@ pub struct StudioQuerryVariables<'a> {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "StudioQuerryVariables")]
 pub struct StudioQuerry {
-    #[arguments(id: $id, search: $search)]
+    #[arguments(id: $ id, search: $ search)]
     #[cynic(rename = "Studio")]
     pub studio: Option<Studio>,
 }

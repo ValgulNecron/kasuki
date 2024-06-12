@@ -5,6 +5,7 @@ use serenity::all::{
 };
 
 use crate::constant::DEFAULT_STRING;
+use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::studio::{
@@ -41,15 +42,12 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
         search: Some(studio_search),
     };
     let operation = StudioAutocomplete::build(var);
-    let data: GraphQlResponse<StudioAutocomplete> = match make_request_anilist(operation, false)
-        .await
-    {
-        Ok(data) => {
-            let data = serde_json::from_str::<GraphQlResponse<StudioAutocomplete>>(&data).unwrap();
-            data
-        }
+    let data: Result<GraphQlResponse<StudioAutocomplete>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = match data {
+        Ok(data) => data,
         Err(e) => {
-            tracing::trace!(?e);
+            tracing::error!(?e);
             return;
         }
     };

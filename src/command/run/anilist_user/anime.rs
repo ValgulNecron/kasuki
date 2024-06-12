@@ -49,9 +49,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             media_type: Some(MediaType::Anime),
             search: None,
         };
-        get_media(id.to_string(), var).await?
+        get_media(var).await?
     } else {
-        let value_clone = value.clone();
         let var = MediaQuerryVariables {
             format_in: Some(vec![
                 Some(MediaFormat::Tv),
@@ -66,7 +65,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             media_type: Some(MediaType::Anime),
             id: None,
         };
-        get_media(value_clone, var).await?
+        get_media(var).await?
     };
 
     // Send an embed with the anime information as a response to the command interaction

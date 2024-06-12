@@ -75,25 +75,8 @@ pub async fn get_user(value: &String) -> Result<User, AppError> {
         }
     };
     let operation = UserQuerry::build(var);
-    let data: GraphQlResponse<UserQuerry> = match make_request_anilist(operation, false).await {
-        Ok(data) => {
-            let data = serde_json::from_str::<GraphQlResponse<UserQuerry>>(&data).map_err(|e| {
-                AppError {
-                    message: format!("Error parsing data: {}", e),
-                    error_type: ErrorType::WebRequest,
-                    error_response_type: ErrorResponseType::Message,
-                }
-            })?;
-            data
-        }
-        Err(e) => {
-            tracing::error!(?e);
-            return Err(AppError {
-                message: format!("Error retrieving studio with value: {} \n {}", value, e),
-                error_type: ErrorType::WebRequest,
-                error_response_type: ErrorResponseType::Message,
-            });
-        }
-    };
+    let data: Result<GraphQlResponse<UserQuerry>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
     Ok(data.data.unwrap().user.unwrap())
 }

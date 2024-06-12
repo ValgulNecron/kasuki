@@ -1,10 +1,11 @@
+use cynic::{GraphQlResponse, QueryBuilder};
+use serde::{Deserialize, Serialize};
+use tracing::info;
+
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::site_statistic_anime::{AnimeStat, AnimeStatVariables};
 use crate::structure::run::anilist::site_statistic_manga::{MangaStat, MangaStatVariables};
-use cynic::{GraphQlResponse, QueryBuilder};
-use serde::{Deserialize, Serialize};
-use tracing::info;
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct RandomStat {
@@ -66,30 +67,9 @@ async fn update_random(mut random_stats: RandomStat) -> Result<RandomStat, AppEr
             page: Some(anime_page),
         };
         let operation = AnimeStat::build(var);
-        let data: GraphQlResponse<AnimeStat> = match make_request_anilist(operation, false).await {
-            Ok(data) => {
-                let data =
-                    serde_json::from_str::<GraphQlResponse<AnimeStat>>(&data).map_err(|e| {
-                        AppError::new(
-                            format!("Error deserializing the data {}", e),
-                            ErrorType::File,
-                            ErrorResponseType::Unknown,
-                        )
-                    })?;
-                data
-            }
-            Err(e) => {
-                tracing::error!(?e);
-                return Err(AppError {
-                    message: format!(
-                        "Error retrieving character with ID: {} \n {}",
-                        anime_page, e
-                    ),
-                    error_type: ErrorType::WebRequest,
-                    error_response_type: ErrorResponseType::Message,
-                });
-            }
-        };
+        let data: Result<GraphQlResponse<AnimeStat>, AppError> =
+            make_request_anilist(operation, false).await;
+        let data = data?;
         has_next_page = data
             .data
             .unwrap()
@@ -118,30 +98,9 @@ async fn update_random(mut random_stats: RandomStat) -> Result<RandomStat, AppEr
             page: Some(manga_page),
         };
         let operation = MangaStat::build(var);
-        let data: GraphQlResponse<MangaStat> = match make_request_anilist(operation, false).await {
-            Ok(data) => {
-                let data =
-                    serde_json::from_str::<GraphQlResponse<MangaStat>>(&data).map_err(|e| {
-                        AppError::new(
-                            format!("Error deserializing the data {}", e),
-                            ErrorType::File,
-                            ErrorResponseType::Unknown,
-                        )
-                    })?;
-                data
-            }
-            Err(e) => {
-                tracing::error!(?e);
-                return Err(AppError {
-                    message: format!(
-                        "Error retrieving character with ID: {} \n {}",
-                        anime_page, e
-                    ),
-                    error_type: ErrorType::WebRequest,
-                    error_response_type: ErrorResponseType::Message,
-                });
-            }
-        };
+        let data: Result<GraphQlResponse<AnimeStat>, AppError> =
+            make_request_anilist(operation, false).await;
+        let data = data?;
         has_next_page = data
             .data
             .unwrap()
