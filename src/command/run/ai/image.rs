@@ -1,4 +1,3 @@
-use std::env;
 
 use prost::bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};

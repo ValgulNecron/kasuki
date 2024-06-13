@@ -5,7 +5,7 @@ use serenity::all::{
 use tracing::trace;
 
 use crate::helper::get_option::subcommand::{
-    get_option_map_string_autocomplete_subcommand, get_option_map_string_subcommand,
+    get_option_map_string_autocomplete_subcommand,
 };
 use crate::helper::vndbapi::game::{get_vn, Results};
 
@@ -15,7 +15,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let vn = get_vn(game.clone()).await.unwrap();
     let vn_result = vn.results;
     // take the 25 first results
-    let vn_result: Vec<Results> = vn_result.iter().cloned().take(25).collect();
+    let vn_result: Vec<Results> = vn_result.iter().take(25).cloned().collect();
     let mut choices = Vec::new();
     trace!("Game: {}", game);
     trace!("Map: {:?}", map);

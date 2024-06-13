@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use tracing::trace;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Image {
@@ -71,7 +70,7 @@ pub async fn get_vn(
 ) -> Result<VN, crate::helper::error_management::error_enum::AppError> {
     let value = value.to_lowercase();
     let value = value.trim();
-    let start_with_v = value.starts_with("v");
+    let start_with_v = value.starts_with('v');
     let is_number = value.chars().skip(1).all(|c| c.is_numeric());
     let json = if start_with_v && is_number {
         (r#"{

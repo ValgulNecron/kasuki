@@ -1,5 +1,4 @@
 use crate::constant::COMMAND_USE_PATH;
-use std::env;
 use std::sync::Arc;
 
 use serenity::all::{GatewayIntents, ShardManager};

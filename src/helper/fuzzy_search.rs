@@ -1,6 +1,5 @@
 use rapidfuzz::distance::jaro_winkler;
 use rayon::prelude::*;
-use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::sync::Mutex;
 

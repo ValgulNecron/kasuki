@@ -96,7 +96,7 @@ pub async fn grpc_server_launcher(
             .add_service(reflection)
     };
 
-    let federation_is_on = config.federation.federation_is_on.clone();
+    let federation_is_on = config.federation.federation_is_on;
 
     // Serve the gRPC server
     service.serve(addr.parse().unwrap()).await.unwrap()

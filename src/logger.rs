@@ -45,7 +45,7 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
 
     let log_prefix = LOGS_PREFIX;
     let log_suffix = LOGS_SUFFIX;
-    let max_log_retention_days = unsafe { CONFIG.logging.max_log_retention.clone() };
+    let max_log_retention_days = unsafe { CONFIG.logging.max_log_retention };
     let logs_path = LOGS_PATH;
 
     let file_appender = tracing_appender::rolling::Builder::new()
@@ -63,7 +63,7 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
 
     let format = fmt::layer().with_ansi(true);
 
-    let app_tui = unsafe { CONFIG.bot.config.tui.clone() };
+    let app_tui = unsafe { CONFIG.bot.config.tui };
     if app_tui {
         let registry = tracing_subscriber::registry().with(filter).with(
             tracing_subscriber::fmt::layer()
