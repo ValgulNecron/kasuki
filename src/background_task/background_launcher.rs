@@ -12,7 +12,7 @@ use crate::background_task::server_image::calculate_user_color::color_management
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::background_task::update_random_stats::update_random_stats_launcher;
 use crate::constant::{
-    GRPC_IS_ON, PING_UPDATE_DELAYS, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_GAME_UPDATE,
+    CONFIG, PING_UPDATE_DELAYS, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_GAME_UPDATE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE, USER_BLACKLIST_SERVER_IMAGE,
 };
 use crate::database::data_struct::ping_history::PingHistory;
@@ -76,8 +76,8 @@ async fn ping_manager_thread(ctx: Context) {
 /// This function is responsible for launching the web server thread.
 /// It does not take any arguments and does not return anything.
 async fn launch_web_server_thread(ctx: Context, command_usage: Arc<RwLock<u128>>) {
-    let is_grpc_on = GRPC_IS_ON;
-    if !*is_grpc_on {
+    let is_grpc_on = unsafe { CONFIG.grpc.grpc_is_on.clone() };
+    if !is_grpc_on {
         info!("GRPC is off, skipping the GRPC server thread!");
         return;
     }

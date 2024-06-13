@@ -7,7 +7,7 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::constant::{CHAT_BASE_URL, CHAT_MODELS, CHAT_TOKEN, DEFAULT_STRING};
+use crate::constant::{CONFIG, DEFAULT_STRING};
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -42,10 +42,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Message,
             )
         })?;
+    let ai_config = unsafe { CONFIG.ai.clone() };
 
-    let api_key = CHAT_TOKEN.clone();
-    let api_base_url = CHAT_BASE_URL.clone();
-    let model = CHAT_MODELS.clone();
+    let api_key = ai_config.image.ai_image_token.clone().unwrap_or_default();
+    let api_base_url = ai_config
+        .image
+        .ai_image_base_url
+        .clone()
+        .unwrap_or_default();
+    let model = ai_config.image.ai_image_model.clone().unwrap_or_default();
 
     let text = question(prompt, api_key, api_base_url, model).await?;
 

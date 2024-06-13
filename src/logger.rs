@@ -6,9 +6,7 @@ use tracing_subscriber::filter::{Directive, EnvFilter};
 use tracing_subscriber::fmt;
 use tracing_subscriber::layer::SubscriberExt;
 
-use crate::constant::{
-    APP_TUI, GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, MAX_LOG_RETENTION_DAYS, OTHER_CRATE_LEVEL,
-};
+use crate::constant::{CONFIG, GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, OTHER_CRATE_LEVEL};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Initializes the logger for the application.
@@ -47,14 +45,14 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
 
     let log_prefix = LOGS_PREFIX;
     let log_suffix = LOGS_SUFFIX;
-    let max_log_retention_days = MAX_LOG_RETENTION_DAYS;
+    let max_log_retention_days = unsafe { CONFIG.logging.max_log_retention.clone() };
     let logs_path = LOGS_PATH;
 
     let file_appender = tracing_appender::rolling::Builder::new()
         .filename_prefix(log_prefix)
         .filename_suffix(log_suffix)
         .rotation(Rotation::DAILY)
-        .max_log_files(*max_log_retention_days as usize)
+        .max_log_files(max_log_retention_days as usize)
         .build(logs_path)
         .unwrap();
     let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
@@ -65,8 +63,8 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
 
     let format = fmt::layer().with_ansi(true);
 
-    let app_tui = APP_TUI;
-    if *app_tui {
+    let app_tui = unsafe { CONFIG.bot.config.tui.clone() };
+    if app_tui {
         let registry = tracing_subscriber::registry().with(filter).with(
             tracing_subscriber::fmt::layer()
                 .with_writer(file_appender_non_blocking)

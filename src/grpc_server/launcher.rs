@@ -5,10 +5,7 @@ use sysinfo::System;
 use tokio::sync::RwLock;
 use tracing::trace;
 
-use crate::constant::{
-    BOT_COMMANDS, BOT_INFO, FEDERATION_IS_ON, GRPC_CERT_PATH, GRPC_KEY_PATH, GRPC_SERVER_PORT,
-    GRPC_USE_TLS,
-};
+use crate::constant::{BOT_COMMANDS, BOT_INFO, CONFIG};
 use crate::grpc_server::command_list::get_list_of_all_command;
 use crate::grpc_server::service;
 use crate::grpc_server::service::command::{get_command_server, CommandServices};
@@ -35,9 +32,9 @@ pub async fn grpc_server_launcher(
     get_list_of_all_command();
     // Clone the Arc<ShardManager>
     let shard_manager_arc: Arc<ShardManager> = shard_manager.clone();
-
+    let config = unsafe { CONFIG.grpc.clone() };
     // Define the address for the gRPC server
-    let addr = format!("0.0.0.0:{}", *GRPC_SERVER_PORT);
+    let addr = format!("0.0.0.0:{}", config.grpc_port);
     // Create a new ShardService with the cloned Arc<ShardManager>
     let shard_service = ShardService {
         shard_manager: shard_manager_arc.clone(),
@@ -65,12 +62,12 @@ pub async fn grpc_server_launcher(
         .build()
         .unwrap();
 
-    let is_tls = *GRPC_USE_TLS;
+    let is_tls = config.use_tls;
     trace!("TLS: {}", is_tls);
     let service = if is_tls {
         generate_key();
-        let private_key_path = GRPC_KEY_PATH.clone();
-        let cert_path = GRPC_CERT_PATH.clone();
+        let private_key_path = config.tls_key_path.clone();
+        let cert_path = config.tls_cert_path.clone();
         // Load the server's key and certificate
         let key = tokio::fs::read(private_key_path).await.unwrap();
         let cert = tokio::fs::read(cert_path).await.unwrap();
@@ -99,7 +96,7 @@ pub async fn grpc_server_launcher(
             .add_service(reflection)
     };
 
-    let federation_is_on = *FEDERATION_IS_ON;
+    let federation_is_on = config.federation.federation_is_on.clone();
 
     // Serve the gRPC server
     service.serve(addr.parse().unwrap()).await.unwrap()
@@ -122,9 +119,10 @@ fn generate_key() {
     let certificate = cert.cert.pem();
     trace!("Private key: {}", private_key);
     trace!("Certificate: {}", certificate);
+    let config = unsafe { CONFIG.grpc.clone() };
 
-    let private_key_path = GRPC_KEY_PATH.clone();
-    let cert_path = GRPC_CERT_PATH.clone();
+    let private_key_path = config.tls_key_path.clone();
+    let cert_path = config.tls_cert_path.clone();
 
     // create all the directories in the path if they don't exist except the last one
     let parent = std::path::Path::new(&private_key_path).parent().unwrap();

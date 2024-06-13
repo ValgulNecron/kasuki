@@ -19,7 +19,7 @@ use crate::command::run::command_dispatch::command_dispatching;
 use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_dispatcher;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{ACTIVITY_NAME, BOT_INFO};
+use crate::constant::{BOT_INFO, COMMAND_USE_PATH, CONFIG};
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
@@ -91,7 +91,7 @@ impl Handler {
         match serde_json::to_string(&*self.number_of_command_use_per_command.read().await) {
             Ok(content) => {
                 // save the content to the file
-                if let Err(e) = std::fs::write("command_use.json", content) {
+                if let Err(e) = std::fs::write(COMMAND_USE_PATH, content) {
                     error!("Failed to write to file: {}", e);
                 }
             }
@@ -165,7 +165,7 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         let bot = ctx.http.get_current_application_info().await.unwrap();
         unsafe {
-            *BOT_INFO = Some(bot);
+            BOT_INFO = Some(bot);
         }
 
         let command_usage = self.number_of_command_use.clone();
@@ -174,7 +174,9 @@ impl EventHandler for Handler {
         tokio::spawn(thread_management_launcher(ctx.clone(), command_usage));
 
         // Sets the bot's activity
-        ctx.set_activity(Some(ActivityData::custom(ACTIVITY_NAME.clone())));
+        ctx.set_activity(Some(ActivityData::custom(unsafe {
+            CONFIG.bot.bot_activity.clone()
+        })));
 
         // Logs a message indicating that the shard is connected
         info!(

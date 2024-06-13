@@ -1,8 +1,8 @@
-use std::sync::Mutex;
-use std::collections::BinaryHeap;
-use std::cmp::Reverse;
-use rayon::prelude::*;
 use rapidfuzz::distance::jaro_winkler;
+use rayon::prelude::*;
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
+use std::sync::Mutex;
 
 pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Vec<(String, usize)> {
     let distances: Mutex<BinaryHeap<(usize, String)>> = Mutex::new(BinaryHeap::new());
@@ -22,5 +22,10 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Vec<(String,
         }
     });
 
-    distances.into_inner().unwrap().into_par_iter().map(|(distance, item)| (item, distance)).collect()
+    distances
+        .into_inner()
+        .unwrap()
+        .into_par_iter()
+        .map(|(distance, item)| (item, distance))
+        .collect()
 }

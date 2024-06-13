@@ -9,7 +9,7 @@ use serenity::all::{
 use tracing::trace;
 use uuid::Uuid;
 
-use crate::constant::{DEFAULT_STRING, TRANSCRIPT_BASE_URL, TRANSCRIPT_MODELS, TRANSCRIPT_TOKEN};
+use crate::constant::{CONFIG, DEFAULT_STRING};
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::{
@@ -140,8 +140,22 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     })?;
     let uuid_name = Uuid::new_v4().to_string();
 
-    let token = TRANSCRIPT_TOKEN;
-    let token = token.as_str();
+    let ai_config = unsafe { CONFIG.ai.clone() };
+    let token = ai_config
+        .transcription
+        .ai_transcription_token
+        .clone()
+        .unwrap_or_default();
+    let model = ai_config
+        .transcription
+        .ai_transcription_model
+        .clone()
+        .unwrap_or_default();
+    let api_base_url = ai_config
+        .transcription
+        .ai_transcription_base_url
+        .clone()
+        .unwrap_or_default();
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -153,7 +167,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .file_name(uuid_name)
         .mime_str(content_type.as_str())
         .unwrap();
-    let model = TRANSCRIPT_MODELS.to_string();
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", model)
@@ -161,7 +174,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .text("language", lang)
         .text("response_format", "json");
 
-    let url = format!("{}transcriptions", TRANSCRIPT_BASE_URL.as_str());
+    let url = format!("{}transcriptions", api_base_url);
     let response_result = client
         .post(url)
         .headers(headers)

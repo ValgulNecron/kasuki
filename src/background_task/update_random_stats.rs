@@ -1,3 +1,4 @@
+use crate::constant::RANDOM_STATS_PATH;
 use cynic::{GraphQlResponse, QueryBuilder};
 use serde::{Deserialize, Serialize};
 use tracing::info;
@@ -23,7 +24,7 @@ pub async fn update_random_stats_launcher() {
 
 pub async fn update_random_stats() -> Result<RandomStat, AppError> {
     // try to load random stats from a json file
-    let mut random_stats: RandomStat = match std::fs::read_to_string("random_stats.json") {
+    let mut random_stats: RandomStat = match std::fs::read_to_string(RANDOM_STATS_PATH) {
         Ok(stats) => serde_json::from_str(&stats).map_err(|e| {
             AppError::new(
                 format!("There was an error deserializing the random stats {}", e),
@@ -45,7 +46,7 @@ pub async fn update_random_stats() -> Result<RandomStat, AppError> {
             ErrorResponseType::Unknown,
         )
     })?;
-    std::fs::write("random_stats.json", random_stats_json).map_err(|e| {
+    std::fs::write(RANDOM_STATS_PATH, random_stats_json).map_err(|e| {
         AppError::new(
             format!(
                 "There was an error writing the random stats to a file {}",

@@ -1,6 +1,6 @@
 [package]
 name = "kasuki"
-version = "2.9.0"
+version = "2.9.1"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
@@ -49,6 +49,7 @@ futures = "0.3.30"
 rapidfuzz = "0.5.0"
 cynic = { version = "3.7.3", features = ["reqwest", "http-reqwest", "serde_json"] }
 moka = { version = "0.12.7", features = ["future"] }
+toml = "0.8.14"
 
 [build-dependencies]
 tonic-build = "0.11.0"

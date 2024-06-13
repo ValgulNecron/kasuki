@@ -6,7 +6,9 @@ use tracing::debug;
 
 use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::helper::fuzzy_search::distance_top_n;
-use crate::helper::get_option::subcommand::{get_option_map_string_autocomplete_subcommand, get_option_map_string_subcommand};
+use crate::helper::get_option::subcommand::{
+    get_option_map_string_autocomplete_subcommand, get_option_map_string_subcommand,
+};
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for game search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.

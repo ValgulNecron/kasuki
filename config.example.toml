@@ -1,0 +1,122 @@
+# General bot configuration
+[bot]
+# The Discord bot token used for authentication with Discord's servers.
+discord_token = ""
+
+# The activity message displayed on the bot's status in Discord.
+bot_activity = ""
+
+# Configuration settings for various bot functionalities
+[bot.config]
+# Whether to remove old commands on startup. Set to true to enable.
+remove_old_commands = true
+
+# The database type used by the bot. Options include sqlite or postgres.
+db_type = "sqlite"
+
+# The cache type used by the bot. Options include in-memory.
+cache_type = "in-memory"
+
+# Enables or disables the TUI.
+tui = false
+
+# Image saving settings
+[image]
+# Determines where to save generated images. Options include local, remote, or false.
+save_image = "local"
+
+# The server to save media to. Options include imgur or catbox.
+save_server = "imgur"
+
+# Authentication token required for the chosen media saving server.
+token = ""
+
+# Logging and retention settings
+[logging]
+# The log level to display. Options include info, warn, error, debug, trace.
+log_level = "info"
+
+# The maximum number of days to retain logs.
+max_log_retention = 30
+
+# Artificial Intelligence (AI) configurations
+[ai]
+# The AI API token used for authentication with the AI service.
+ai_token = ""
+
+# The base URL for the AI API.
+ai_base_url = ""
+
+# Specific configurations for image generation using AI
+[ai.image]
+# The AI API token specifically for image generation.
+ai_image_token = ""
+
+# The base URL for the AI image generation API.
+ai_image_base_url = ""
+
+# The model(s) used for image generation. Defaults to dall-e-3.
+ai_image_model = ""
+
+# The quality setting for generated images. Defaults to hd.
+ai_image_quality = ""
+
+# The size of generated images. Defaults to 1024x1024.
+ai_image_size = ""
+
+# The style setting for generated images. Defaults to vivid.
+ai_image_style = ""
+
+# Specific configurations for text-based AI queries
+[ai.question]
+# The AI API token specifically for text-based queries.
+ai_question_token = ""
+
+# The base URL for the AI text query API.
+ai_question_base_url = ""
+
+# The model used for text-based AI queries. Defaults to gpt-3.5-turbo.
+ai_question_model = ""
+
+# Specific configurations for transcription services
+[ai.transcription]
+# The AI API token specifically for transcription services.
+ai_transcription_token = ""
+
+# The base URL for the AI transcription API.
+ai_transcription_base_url = ""
+
+# The model used for transcription services. Defaults to whisper-1.
+ai_transcription_model = ""
+
+# gRPC server configurations
+[grpc]
+# Whether the gRPC server is enabled.
+grpc_is_on = false
+
+# The port for the gRPC server.
+grpc_port = 50051
+
+# Whether to use TLS encryption for the gRPC server.
+use_tls = false
+
+# Paths to the SSL certificate and key for TLS encryption.
+tls_cert_path = ""
+tls_key_path = ""
+
+# Additional federation settings for the gRPC server
+[grpc.federation]
+# Whether federation is enabled.
+federation_is_on = false
+
+# The name of the bot in the federation.
+federation_name = ""
+
+# The address of the current node in the federation.
+self_address = ""
+
+# Indicates whether to join a new federation.
+new_federation = false
+
+# The address of the federation to join.
+federation_address = ""
