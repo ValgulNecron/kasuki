@@ -80,7 +80,7 @@ async fn create_command(command: &Command, http: &Arc<Http>) {
         .description(&command.desc)
         .integration_types(get_vec_installation_context(&command.installation_context));
 
-    command_build = get_permission(&command.permissions, command_build);
+    command_build = get_permission(&command.permissions , command_build);
 
     command_build = match &command.args {
         Some(args) => {
