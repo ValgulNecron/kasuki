@@ -8,7 +8,7 @@
   },
   "installation_context": {
     "guild": true,
-    "user": false
+    "user": true
   },
   "nsfw": false,
   "command": [
@@ -78,7 +78,7 @@
           "desc": "The title of the visual novel",
           "arg_type": "String",
           "required": true,
-          "autocomplete": false,
+          "autocomplete": true,
           "localised_args": [
             {
               "code": "en-US",

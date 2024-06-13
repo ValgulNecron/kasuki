@@ -1,16 +1,26 @@
-use rapidfuzz::distance::damerau_levenshtein;
+use std::sync::Mutex;
+use std::collections::BinaryHeap;
+use std::cmp::Reverse;
+use rayon::prelude::*;
+use rapidfuzz::distance::jaro_winkler;
 
 pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Vec<(String, usize)> {
-    let mut distances = vec![];
+    let distances: Mutex<BinaryHeap<(usize, String)>> = Mutex::new(BinaryHeap::new());
 
-    for item in vector {
-        let distance = damerau_levenshtein::distance(search.chars(), item.chars());
-        distances.push((item.to_string(), distance));
-    }
+    vector.par_iter().for_each(|item| {
+        let distance = (jaro_winkler::distance(search.chars(), item.chars()) * 100.0) as usize;
+        let item = (distance, item.to_string());
+        let mut distances = distances.lock().unwrap();
+        if distances.len() < n {
+            distances.push(item.clone());
+        } else {
+            let max = distances.peek().unwrap();
+            if &item.clone() < max {
+                distances.pop();
+                distances.push(item);
+            }
+        }
+    });
 
-    distances.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-    distances.reverse();
-    distances.truncate(n);
-
-    distances
+    distances.into_inner().unwrap().into_par_iter().map(|(distance, item)| (item, distance)).collect()
 }

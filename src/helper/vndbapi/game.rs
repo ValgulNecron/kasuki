@@ -3,9 +3,9 @@ use tracing::trace;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Image {
-    pub violence: i32,
+    pub violence: f64,
     pub url: String,
-    pub sexual: i32,
+    pub sexual: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -29,7 +29,7 @@ pub struct Tags {
     pub name: String,
     pub id: String,
     pub rating: f64,
-    pub spoiler: i32,
+    pub spoiler: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -46,12 +46,12 @@ pub struct Results {
     pub image: Option<Image>,
     pub staff: Vec<Staff>,
     pub rating: Option<f64>,
-    pub length_minutes: Option<i32>, // Kept as Option since it might be null
+    pub length_minutes: Option<f64>, // Kept as Option since it might be null
     pub platforms: Vec<String>,
     pub title: String,
     pub average: Option<f64>,
     pub titles: Vec<Titles>,
-    pub votecount: i32,
+    pub votecount: f64,
     pub languages: Vec<String>,
     pub aliases: Vec<String>,
     pub tags: Vec<Tags>,
@@ -84,7 +84,6 @@ pub async fn get_vn(
     		"fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role"
 		}"#).to_string()
     };
-    trace!("json: {}", json);
     let path = "/vn".to_string();
     let response =
         crate::helper::vndbapi::common::do_request_cached_with_json(path.clone(), json.to_string())

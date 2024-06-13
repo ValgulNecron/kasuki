@@ -30,17 +30,17 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .fields(fields);
     let sexual = match vn.image.clone() {
         Some(image) => image.sexual,
-        None => 2,
+        None => 2.0,
     };
     let violence = match vn.image.clone() {
         Some(image) => image.violence,
-        None => 2,
+        None => 2.0,
     };
     let url: Option<String> = match vn.image {
         Some(image) => Some(image.url.clone()),
         None => None,
     };
-    if (sexual == 0 || sexual == 1) && (violence == 0) {
+    if (sexual <= 1.5) && (violence <= 1.0) {
         if let Some(url) = url {
             builder_embed = builder_embed.image(url);
         }

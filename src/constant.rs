@@ -56,7 +56,7 @@ pub static mut VNDB_CACHE: Lazy<Cache<String, String>> = Lazy::new(|| {
 Limits.
  */
 /// Limit for autocomplete count.
-pub const AUTOCOMPLETE_COUNT_LIMIT: u32 = 20;
+pub const AUTOCOMPLETE_COUNT_LIMIT: u32 = 25;
 /// Limit for pass count.
 pub const PASS_LIMIT: u32 = 10;
 /// Limit for member list.
