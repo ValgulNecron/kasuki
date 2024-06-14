@@ -40,6 +40,7 @@ pub struct Developers {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Results {
     pub olang: String,
+    pub va: Vec<Va>,
     pub released: Option<String>,
     pub id: String,
     pub image: Option<Image>,
@@ -75,12 +76,12 @@ pub async fn get_vn(
     let json = if start_with_v && is_number {
         (r#"{
     		"filters": ["id", "=",""#.to_owned() + value + r#""],
-    		"fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role"
+    		"fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role,va.character.name"
 		}"#).to_string()
     } else {
         (r#"{
     		"filters": ["search", "=",""#.to_owned() + value + r#""],
-    		"fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role"
+    		"fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role,va.character.name"
 		}"#).to_string()
     };
     let path = "/vn".to_string();
@@ -96,4 +97,15 @@ pub async fn get_vn(
         }
     })?;
     Ok(response)
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Character {
+    pub id: String,
+
+    pub name: String,
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Va {
+    pub character: Character,
 }
