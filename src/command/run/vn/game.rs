@@ -31,8 +31,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let platforms = vn
         .platforms
         .iter()
-        .map(|platform| platform.clone())
-        .take(10)
+        .take(10).cloned()
         .collect::<Vec<String>>()
         .join(", ");
     fields.push((game_localised.platforms.clone(), platforms, true));
