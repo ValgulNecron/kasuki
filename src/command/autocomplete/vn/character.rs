@@ -5,8 +5,7 @@ use serenity::all::{
 use tracing::trace;
 
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use crate::helper::vndbapi::character::{Character, CharacterRoot, get_character};
-use crate::helper::vndbapi::game::VN;
+use crate::helper::vndbapi::character::{Character, get_character};
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
