@@ -1,27 +1,27 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct Image {
+pub struct Image {
     pub sexual: f64,
     pub url: String,
     pub violence: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct VN {
+pub struct VN {
     pub id: String,
     pub title: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct Trait {
+pub struct Trait {
     pub spoiler: i64,
     pub name: String,
     pub id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct Struct {
+pub struct Struct {
     pub blood_type: Option<String>,
     pub description: Option<String>,
     pub traits: Vec<Trait>,
@@ -41,7 +41,7 @@ struct Struct {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct Character {
+pub struct Character {
     pub more: bool,
     pub results: Vec<Struct>,
 }
