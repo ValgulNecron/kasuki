@@ -77,9 +77,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .collect::<Vec<String>>()
         .join(", ");
     fields.push((character_localised.traits.clone(), traits, true));
-    let desc = convert_vndb_markdown(&character.description.unwrap_or_default().clone());
     let mut builder_embed = get_default_embed(None)
-        .description(desc)
+        .description(convert_vndb_markdown(
+            &character.description.unwrap_or_default().clone(),
+        ))
         .fields(fields)
         .title(character.name.clone())
         .url(format!("https://vndb.org/{}", character.id));
