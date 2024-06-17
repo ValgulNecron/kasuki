@@ -32,7 +32,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         fields.push((producer_localised.lang.clone(), lang, true));
     }
     if let Some(aliases) = producer.aliases {
-        let aliases = aliases.iter().take(10).join(", ");
+        let aliases = aliases.into_iter()
+            .take(10)
+            .collect::<Vec<String>>()
+            .join(", ");
         fields.push((producer_localised.aliases.clone(), aliases, true));
     }
     if let Some(results_type) = producer.results_type {
@@ -45,7 +48,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let builder_embed = get_default_embed(None)
         .description(convert_vndb_markdown(
-            &producer.description.unwrap_or_default().clone(),
+            &producer.description.clone(),
         ))
         .fields(fields)
         .title(producer.name.clone())
