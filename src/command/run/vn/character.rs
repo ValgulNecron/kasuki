@@ -1,9 +1,9 @@
-use markdown_converter::vndb::convert_vndb_markdown;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::character::get_character;
 use crate::structure::message::vn::character::load_localization_character;
+use markdown_converter::vndb::convert_vndb_markdown;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
@@ -77,8 +77,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .collect::<Vec<String>>()
         .join(", ");
     fields.push((character_localised.traits.clone(), traits, true));
+    let desc = convert_vndb_markdown(&character.description.unwrap_or_default().clone());
     let mut builder_embed = get_default_embed(None)
-        .description(convert_vndb_markdown(&character.description.unwrap_or_default().clone()))
+        .description(desc)
         .fields(fields)
         .title(character.name.clone())
         .url(format!("https://vndb.org/{}", character.id));

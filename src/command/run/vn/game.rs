@@ -1,5 +1,5 @@
-use markdown_converter::vndb::convert_vndb_markdown;
 use crate::helper::create_default_embed::get_default_embed;
+use markdown_converter::vndb::convert_vndb_markdown;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
@@ -82,9 +82,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     if !characters.is_empty() {
         fields.push((game_localised.characters.clone(), characters, true));
     }
+    let desc = convert_vndb_markdown(&vn.description.unwrap_or_default().clone());
 
     let mut builder_embed = get_default_embed(None)
-        .description(convert_vndb_markdown(&vn.description.unwrap_or_default().clone()))
+        .description(desc)
         .fields(fields)
         .title(vn.title.clone())
         .url(format!("https://vndb.org/{}", vn.id));
