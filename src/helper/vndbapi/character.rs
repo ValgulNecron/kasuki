@@ -37,7 +37,7 @@ pub struct Character {
     pub bust: Option<i64>,
     pub weight: Option<i64>,
     pub age: Option<i64>,
-    pub birthday: Vec<i32>,
+    pub birthday: Option<Vec<i32>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

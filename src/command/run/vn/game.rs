@@ -1,3 +1,4 @@
+use markdown_converter::vndb::convert_vndb_markdown;
 use crate::helper::create_default_embed::get_default_embed;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
@@ -35,7 +36,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .cloned()
         .collect::<Vec<String>>()
         .join(", ");
-    fields.push((game_localised.platforms.clone(), platforms, true));
+    if !platforms.is_empty() {
+        fields.push((game_localised.platforms.clone(), platforms, true));
+    }
     if let Some(playtime) = vn.length_minutes {
         fields.push((game_localised.playtime.clone(), playtime.to_string(), true));
     }
@@ -46,7 +49,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .take(10)
         .collect::<Vec<String>>()
         .join(", ");
-    fields.push((game_localised.tags.clone(), tags, true));
+    if !tags.is_empty() {
+        fields.push((game_localised.tags.clone(), tags, true));
+    }
     let developers = vn
         .developers
         .iter()
@@ -54,7 +59,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .take(10)
         .collect::<Vec<String>>()
         .join(", ");
-    fields.push((game_localised.developers.clone(), developers, true));
+    if !developers.is_empty() {
+        fields.push((game_localised.developers.clone(), developers, true));
+    }
     let staff = vn
         .staff
         .iter()
@@ -62,7 +69,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .take(10)
         .collect::<Vec<String>>()
         .join(", ");
-    fields.push((game_localised.staff.clone(), staff, true));
+    if !staff.is_empty() {
+        fields.push((game_localised.staff.clone(), staff, true));
+    }
     let characters = vn
         .va
         .iter()
@@ -70,10 +79,12 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .take(10)
         .collect::<Vec<String>>()
         .join(", ");
-    fields.push((game_localised.characters.clone(), characters, true));
+    if !characters.is_empty() {
+        fields.push((game_localised.characters.clone(), characters, true));
+    }
 
     let mut builder_embed = get_default_embed(None)
-        .description(vn.description.unwrap_or_default().clone())
+        .description(convert_vndb_markdown(&vn.description.unwrap_or_default().clone()))
         .fields(fields)
         .title(vn.title.clone())
         .url(format!("https://vndb.org/{}", vn.id));

@@ -21,7 +21,7 @@
           "desc": "The name of the character",
           "arg_type": "String",
           "required": true,
-          "autocomplete": false,
+          "autocomplete": true,
           "localised_args": [
             {
               "code": "en-US",

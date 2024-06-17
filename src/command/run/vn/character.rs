@@ -1,3 +1,4 @@
+use markdown_converter::vndb::convert_vndb_markdown;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -55,8 +56,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     }
     let sex = format!("{}, ||{}||", character.sex[0], character.sex[1]);
     fields.push((character_localised.sex, sex, true));
-    let birthday = format!("{:02}/{:02}", character.birthday[0], character.birthday[1]);
-    fields.push((character_localised.birthday.clone(), birthday, true));
+    if let Some(birthday) = character.birthday {
+        let birthday = format!("{:02}/{:02}", birthday[0], birthday[1]);
+        fields.push((character_localised.birthday.clone(), birthday, true));
+    }
+
     let vns = character
         .vns
         .iter()
@@ -74,7 +78,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .join(", ");
     fields.push((character_localised.traits.clone(), traits, true));
     let mut builder_embed = get_default_embed(None)
-        .description(character.description.unwrap_or_default().clone())
+        .description(convert_vndb_markdown(&character.description.unwrap_or_default().clone()))
         .fields(fields)
         .title(character.name.clone())
         .url(format!("https://vndb.org/{}", character.id));
