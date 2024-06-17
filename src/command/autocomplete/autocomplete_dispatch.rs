@@ -6,7 +6,7 @@ use crate::command::autocomplete::anilist_user::{
 };
 use crate::command::autocomplete::game::steam_game_info;
 use crate::command::autocomplete::vn;
-use crate::command::autocomplete::vn::game;
+use crate::command::autocomplete::vn::{game, producer};
 use crate::helper::get_option::subcommand_group::get_subcommand;
 
 pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
@@ -44,6 +44,7 @@ async fn vn_autocomplete(ctx: Context, autocomplete_interaction: CommandInteract
     {
         "game" => game::autocomplete(ctx, autocomplete_interaction).await,
         "character" => vn::character::autocomplete(ctx, autocomplete_interaction).await,
+        "producer" => producer::autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
 }

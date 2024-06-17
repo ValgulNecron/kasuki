@@ -33,11 +33,11 @@ pub async fn set_data_ping_history_postgresql(ping_history: PingHistory) -> Resu
         .execute(&pool)
         .await
         .map_err(|e|
-            AppError::new(
-                format!("Failed to insert into the table. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::Unknown,
-            ))?;
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        ))?;
     pool.close().await;
     Ok(())
 }
@@ -93,11 +93,11 @@ pub async fn set_data_guild_language_postgresql(
         .execute(&pool)
         .await
         .map_err(|e|
-            AppError::new(
-                format!("Failed to insert into the table. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::Unknown,
-            ))?;
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        ))?;
     pool.close().await;
     Ok(())
 }
@@ -158,11 +158,11 @@ pub async fn set_data_activity_postgresql(
         .bind(server_activity_full.image)
         .execute(&pool)
         .await.map_err(|e|
-        AppError::new(
-            format!("Failed to insert into the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::Unknown,
-        ))?;
+    AppError::new(
+        format!("Failed to insert into the table. {}", e),
+        ErrorType::Database,
+        ErrorResponseType::Unknown,
+    ))?;
     pool.close().await;
     Ok(())
 }
@@ -235,11 +235,11 @@ pub async fn set_data_module_activation_status_postgresql(
         .execute(&pool)
         .await
         .map_err(|e|
-            AppError::new(
-                format!("Failed to insert into the table. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::Unknown,
-            ))?;
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        ))?;
     pool.close().await;
     Ok(())
 }
@@ -393,11 +393,11 @@ pub async fn set_registered_user_postgresql(
         .execute(&pool)
         .await
         .map_err(|e|
-            AppError::new(
-                format!("Failed to insert into the table. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::Unknown,
-            ))?;
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        ))?;
     pool.close().await;
 
     Ok(())
@@ -435,11 +435,11 @@ pub async fn set_user_approximated_color_postgresql(
         .execute(&pool)
         .await
         .map_err(|e|
-            AppError::new(
-                format!("Failed to insert into the table. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::Unknown,
-            ))?;
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        ))?;
     pool.close().await;
 
     Ok(())
@@ -602,11 +602,11 @@ pub async fn set_server_image_postgresql(
         .execute(&pool)
         .await
         .map_err(|e|
-            AppError::new(
-                format!("Failed to insert into the table. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::Unknown,
-            ))?;
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        ))?;
     pool.close().await;
 
     Ok(())

@@ -1,3 +1,10 @@
+use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
+
+use crate::helper::error_management::error_enum::AppError;
+use crate::helper::vndbapi::common::do_request_cached;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VnUser {
     pub id: String,
@@ -8,11 +15,6 @@ pub struct VnUser {
 
     pub username: String,
 }
-
-use crate::helper::error_management::error_enum::AppError;
-use crate::helper::vndbapi::common::do_request_cached;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 pub async fn get_user(path: String) -> Result<VnUser, AppError> {
     let response = do_request_cached(path.clone()).await?;

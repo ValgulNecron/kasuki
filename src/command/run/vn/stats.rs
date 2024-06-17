@@ -1,8 +1,8 @@
-use crate::helper::create_default_embed::get_default_embed;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::vndbapi::stats::get_stats;
 use crate::structure::message::vn::stats::load_localization_stats;

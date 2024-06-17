@@ -143,11 +143,11 @@ pub async fn set_data_activity_sqlite(
         .bind(server_activity_full.image)
         .execute(&pool)
         .await.map_err(|e|
-        AppError::new(
-            format!("Failed to insert into the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::Unknown,
-        ))?;
+    AppError::new(
+        format!("Failed to insert into the table. {}", e),
+        ErrorType::Database,
+        ErrorResponseType::Unknown,
+    ))?;
     pool.close().await;
     Ok(())
 }
@@ -223,11 +223,11 @@ pub async fn set_data_module_activation_status_sqlite(
         .execute(&pool)
         .await
         .map_err(|e|
-            AppError::new(
-                format!("Failed to insert into the table. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::Unknown,
-            ))?;
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        ))?;
     pool.close().await;
     Ok(())
 }

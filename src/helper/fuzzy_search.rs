@@ -1,7 +1,8 @@
-use rapidfuzz::distance::jaro_winkler;
-use rayon::prelude::*;
 use std::collections::BinaryHeap;
 use std::sync::Mutex;
+
+use rapidfuzz::distance::jaro_winkler;
+use rayon::prelude::*;
 
 pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Vec<(String, usize)> {
     let distances: Mutex<BinaryHeap<(usize, String)>> = Mutex::new(BinaryHeap::new());

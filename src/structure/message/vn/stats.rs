@@ -18,6 +18,7 @@ pub struct StatsLocalised {
 
     pub api: String,
 }
+
 use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};

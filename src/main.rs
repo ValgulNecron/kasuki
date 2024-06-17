@@ -1,4 +1,3 @@
-use crate::constant::COMMAND_USE_PATH;
 use std::sync::Arc;
 
 use serenity::all::{GatewayIntents, ShardManager};
@@ -8,6 +7,7 @@ use tracing::{error, info};
 
 use struct_shard_manager::ShardManagerContainer;
 
+use crate::constant::COMMAND_USE_PATH;
 use crate::constant::CONFIG;
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{Handler, RootUsage};
@@ -171,6 +171,7 @@ async fn main() {
         }
         ShardManager::shutdown_all(&shutdown).await;
         info!("Received bot shutdown signal. Shutting down bot.");
+        return;
     }
     #[cfg(windows)]
     {
@@ -191,5 +192,6 @@ async fn main() {
         }
         ShardManager::shutdown_all(&shutdown).await;
         info!("Received bot shutdown signal. Shutting down bot.");
+        return;
     }
 }

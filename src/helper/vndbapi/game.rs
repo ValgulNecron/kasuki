@@ -1,4 +1,6 @@
-use serde::{Deserialize, Serialize};
+use std::fmt::Display;
+
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Image {
@@ -56,7 +58,7 @@ pub struct VN {
     pub aliases: Vec<String>,
     pub tags: Vec<Tags>,
     pub description: Option<String>,
-    pub devstatus: i32,
+    pub devstatus: DevStatus,
     pub developers: Vec<Developers>,
 }
 
@@ -105,7 +107,58 @@ pub struct Character {
 
     pub name: String,
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Va {
     pub character: Character,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum DevStatus {
+    Finished,
+    Development,
+    Cancelled,
+    Unknown,
+}
+
+impl Serialize for DevStatus {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let value = match self {
+            Self::Finished => 0,
+            Self::Development => 1,
+            Self::Cancelled => 2,
+            Self::Unknown => 99, // Assuming 99 as a placeholder for unknown
+        };
+        value.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for DevStatus {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = i8::deserialize(deserializer)?;
+        match value {
+            0 => Ok(Self::Finished),
+            1 => Ok(Self::Development),
+            2 => Ok(Self::Cancelled),
+            _ => Ok(Self::Unknown),
+        }
+    }
+}
+
+impl Display for DevStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
+            Self::Finished => "Finished",
+            Self::Development => "Development",
+            Self::Cancelled => "Cancelled",
+            Self::Unknown => "Unknown",
+        };
+        write!(f, "{}", value)
+    }
 }
