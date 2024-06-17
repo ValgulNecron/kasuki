@@ -1,3 +1,4 @@
+pub mod character;
 pub mod common;
 pub mod game;
 pub mod stats;
