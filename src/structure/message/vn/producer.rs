@@ -1,6 +1,5 @@
 use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
-use crate::structure::message::vn::stats::StatsLocalised;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
