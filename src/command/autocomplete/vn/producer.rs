@@ -9,7 +9,7 @@ use crate::helper::vndbapi::producer::{get_producer, Producer};
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
-    let game = map.get(&String::from("title")).unwrap();
+    let game = map.get(&String::from("name")).unwrap();
     let producer = get_producer(game.clone()).await.unwrap();
     let producer = producer.results;
     // take the 25 first results

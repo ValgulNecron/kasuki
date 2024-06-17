@@ -13,7 +13,7 @@ pub async fn get_producer(
             .to_owned()
             + value
             + r#""],
-    		"fields": ""
+    		"fields": "id, name, original, aliases,lang,type,description"
 		}"#)
         .to_string()
     } else {
@@ -22,7 +22,7 @@ pub async fn get_producer(
             .to_owned()
             + value
             + r#""],
-    		"fields": ""
+    		"fields": "id, name, original, aliases,lang,type,description"
 		}"#)
         .to_string()
     };
@@ -50,7 +50,7 @@ pub struct Producer {
 
     pub name: String,
 
-    pub description: String,
+    pub description: Option<String>,
 
     pub aliases: Option<Vec<String>>,
 
@@ -64,8 +64,7 @@ pub struct ProducerRoot {
     pub results: Vec<Producer>,
 }
 
-#[derive(Debug, Clone)]
-pub enum Type {
+#[derive(Debug, Clone)]pub enum Type {
     Company,
     Individual,
     AmateurGroup,

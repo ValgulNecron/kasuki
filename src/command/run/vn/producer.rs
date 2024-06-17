@@ -18,7 +18,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let map = get_option_map_string_subcommand(command_interaction);
     trace!("{:?}", map);
     let producer = map
-        .get(&String::from("title"))
+        .get(&String::from("name"))
         .cloned()
         .unwrap_or(String::new());
     let producer_localised = load_localization_producer(guild_id).await?;
@@ -46,7 +46,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let builder_embed = get_default_embed(None)
         .description(convert_vndb_markdown(
-            &producer.description.clone(),
+            &producer.description.unwrap_or_default().clone(),
         ))
         .fields(fields)
         .title(producer.name.clone())
