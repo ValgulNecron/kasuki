@@ -38,7 +38,7 @@ pub struct Developers {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Results {
+pub struct VN {
     pub olang: String,
     pub va: Vec<Va>,
     pub released: Option<String>,
@@ -61,14 +61,14 @@ pub struct Results {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct VN {
-    pub results: Vec<Results>,
+pub struct VNRoot {
+    pub results: Vec<VN>,
     pub more: bool,
 }
 
 pub async fn get_vn(
     value: String,
-) -> Result<VN, crate::helper::error_management::error_enum::AppError> {
+) -> Result<VNRoot, crate::helper::error_management::error_enum::AppError> {
     let value = value.to_lowercase();
     let value = value.trim();
     let start_with_v = value.starts_with('v');
@@ -88,7 +88,7 @@ pub async fn get_vn(
     let response =
         crate::helper::vndbapi::common::do_request_cached_with_json(path.clone(), json.to_string())
             .await?;
-    let response: VN = serde_json::from_str(&response).map_err(|e| {
+    let response: VNRoot = serde_json::from_str(&response).map_err(|e| {
         crate::helper::error_management::error_enum::AppError {
             message: format!("Error while parsing response: '{}'", e),
             error_type: crate::helper::error_management::error_enum::ErrorType::WebRequest,

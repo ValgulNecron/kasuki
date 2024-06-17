@@ -873,7 +873,7 @@ async fn vn(
     }
     let return_data = match command_name {
         "game" => game::run(ctx, command_interaction).await,
-        "character" => banner::run(ctx, command_interaction).await,
+        "character" => vn::character::run(ctx, command_interaction).await,
         "staff" => profile::run(ctx, command_interaction).await,
         "user" => vn::user::run(ctx, command_interaction).await,
         "producer" => profile::run(ctx, command_interaction).await,

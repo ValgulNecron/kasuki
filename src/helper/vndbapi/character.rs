@@ -21,7 +21,7 @@ pub struct Trait {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Struct {
+pub struct Character {
     pub blood_type: Option<String>,
     pub description: Option<String>,
     pub traits: Vec<Trait>,
@@ -41,14 +41,14 @@ pub struct Struct {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Character {
+pub struct CharacterRoot {
     pub more: bool,
-    pub results: Vec<Struct>,
+    pub results: Vec<Character>,
 }
 
 pub async fn get_character(
     value: String,
-) -> Result<Character, crate::helper::error_management::error_enum::AppError> {
+) -> Result<CharacterRoot, crate::helper::error_management::error_enum::AppError> {
     let value = value.to_lowercase();
     let value = value.trim();
     let start_with_v = value.starts_with('v');
@@ -68,7 +68,7 @@ pub async fn get_character(
     let response =
         crate::helper::vndbapi::common::do_request_cached_with_json(path.clone(), json.to_string())
             .await?;
-    let response: Character = serde_json::from_str(&response).map_err(|e| {
+    let response: CharacterRoot = serde_json::from_str(&response).map_err(|e| {
         crate::helper::error_management::error_enum::AppError {
             message: format!("Error while parsing response: '{}'", e),
             error_type: crate::helper::error_management::error_enum::ErrorType::WebRequest,

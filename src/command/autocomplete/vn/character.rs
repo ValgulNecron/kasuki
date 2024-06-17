@@ -5,20 +5,21 @@ use serenity::all::{
 use tracing::trace;
 
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use crate::helper::vndbapi::game::{get_vn, VN};
+use crate::helper::vndbapi::character::{Character, CharacterRoot, get_character};
+use crate::helper::vndbapi::game::VN;
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
-    let game = map.get(&String::from("title")).unwrap();
-    let vn = get_vn(game.clone()).await.unwrap();
+    let game = map.get(&String::from("name")).unwrap();
+    let vn = get_character(game.clone()).await.unwrap();
     let vn_result = vn.results;
     // take the 25 first results
-    let vn_result: Vec<VN> = vn_result.iter().take(25).cloned().collect();
+    let characters: Vec<Character> = vn_result.iter().take(25).cloned().collect();
     let mut choices = Vec::new();
     trace!("Game: {}", game);
     trace!("Map: {:?}", map);
-    for vn in vn_result {
-        choices.push(AutocompleteChoice::new(vn.title.clone(), vn.id.clone()))
+    for character in characters {
+        choices.push(AutocompleteChoice::new(character.name.clone(), character.id.clone()))
     }
 
     let data = CreateAutocompleteResponse::new().set_choices(choices);
