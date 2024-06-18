@@ -1,6 +1,8 @@
+# This Dockerfile is used to build and run the Kasuki bot.
+
 # Use the official Rust image as a base
 # This image includes all the necessary tools to compile a Rust project.
-FROM rust:alpine3.20 AS builder
+FROM rust:slim-bookworm AS builder
 
 # Create a new empty project
 # This is done as root to avoid permission issues.
@@ -9,13 +11,12 @@ WORKDIR /kasuki
 
 # Install system dependencies
 # These are required for the Kasuki bot to function correctly.
-RUN apk update && apk add --no-cache \
-        openssl-dev sqlite-dev \
-        libpng-dev jpeg-dev \
-        ca-certificates pkgconf \
-        protobuf-dev \
-        gcc \
-        && rm -rf /var/cache/apk/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl-dev libsqlite3-dev \
+    libpng-dev libjpeg-dev \
+    ca-certificates pkg-config \
+    protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy over your manifests
 # This includes the Cargo.toml file which specifies the Rust dependencies.
@@ -23,7 +24,6 @@ COPY ./Cargo.toml ./Cargo.toml
 COPY ./proto ./proto
 COPY ./schemas ./schemas
 COPY ./build.rs ./build.rs
-
 # Build a dummy project
 # This is done to cache the dependencies.
 RUN cargo build --release
@@ -46,7 +46,7 @@ RUN cargo build --release
 # Start a new stage
 # This is a multi-stage build. The previous stage was used to compile the bot.
 # This stage is used to create the final image that will be run.
-FROM alpine:3.20 AS bot
+FROM debian:trixie-slim AS bot
 
 # Set labels
 # These provide metadata about the image.
@@ -59,11 +59,11 @@ WORKDIR /kasuki/
 
 # Install system dependencies
 # These are required for the Kasuki bot to function correctly.
-RUN apk update && apk add --no-cache \
-    openssl-dev sqlite-dev \
-    libpng-dev jpeg-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl-dev libsqlite3-dev \
+    libpng-dev libjpeg-dev \
     ca-certificates \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy other necessary files
 # These include JSON files and server images used by the Kasuki bot.
