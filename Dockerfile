@@ -1,5 +1,3 @@
-# This Dockerfile is used to build and run the Kasuki bot.
-
 # Use the official Rust image as a base
 # This image includes all the necessary tools to compile a Rust project.
 FROM rust:alpine3.20 AS builder
@@ -24,6 +22,7 @@ COPY ./Cargo.toml ./Cargo.toml
 COPY ./proto ./proto
 COPY ./schemas ./schemas
 COPY ./build.rs ./build.rs
+
 # Build a dummy project
 # This is done to cache the dependencies.
 RUN cargo build --release
