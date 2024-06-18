@@ -15,6 +15,8 @@ use std::{env, path::PathBuf};
 /// If the function executes successfully, it will return `Ok(())`.
 /// If an error occurs during the execution, it will return `Err(e)` where `e` is the error that occurred.
 fn main() -> Result<(), Box<dyn Error>> {
+    let mut config = prost_build::Config::new();
+    config.protoc_arg("--experimental_allow_proto3_optional");
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     tonic_build::configure()
         .file_descriptor_set_path(out_dir.join("shard_descriptor.bin"))

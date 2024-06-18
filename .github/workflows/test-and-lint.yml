@@ -19,13 +19,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
 
-      - name: Configure protoc for proto3 optional fields
-        run: echo "syntax = \"proto3\"; option allow_proto3_optional = true;" >.protoconfig
-
-      # Correctly export the environment variable so it's available to all steps
-      - name: Set environment variable for protoc
-        run: echo "PROTO_CONFIG_PATH=.protoconfig" >> $GITHUB_ENV
-
       - name: Cache
         uses: Swatinem/rust-cache@v2
 
