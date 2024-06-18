@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # This includes the Cargo.toml file which specifies the Rust dependencies.
 COPY ./Cargo.toml ./Cargo.toml
 COPY ./proto ./proto
+COPY ./schemas ./schemas
 COPY ./build.rs ./build.rs
 # Build a dummy project
 # This is done to cache the dependencies.

@@ -1,4 +1,3 @@
-use std::env;
 use std::sync::Arc;
 
 use serenity::all::{GatewayIntents, ShardManager};
@@ -8,11 +7,12 @@ use tracing::{error, info};
 
 use struct_shard_manager::ShardManagerContainer;
 
-use crate::cache::manage::cache_init::init_cache;
-use crate::constant::{APP_TUI, DISCORD_TOKEN};
+use crate::constant::COMMAND_USE_PATH;
+use crate::constant::CONFIG;
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
+use crate::struct_shard_manager::RootUsageContainer;
 
 mod api;
 mod background_task;
@@ -20,13 +20,14 @@ mod cache;
 mod command;
 mod command_register;
 mod components;
+mod config;
 pub(crate) mod constant;
 mod database;
 pub(crate) mod event_handler;
+mod federation;
 mod grpc_server;
 mod helper;
 mod logger;
-mod new_member;
 mod struct_shard_manager;
 mod structure;
 mod tui;
@@ -36,7 +37,12 @@ mod tui;
 /// It initializes the logger, the SQL database, and the bot client.
 /// It also spawns asynchronous tasks for managing the ping of the shards and starting the client.
 async fn main() {
-    let _ = dotenvy::from_path(".env");
+    // read config.toml as string
+    let config = std::fs::read_to_string("config.toml").unwrap();
+    let config: config::Config = toml::from_str(&config).unwrap();
+    unsafe {
+        *CONFIG = config.clone();
+    }
 
     // Print a message indicating the bot is starting.
     println!("Bot starting please wait.");
@@ -44,9 +50,7 @@ async fn main() {
 
     // Get the log level from the environment variable "RUST_LOG".
     // If the variable is not set, default to "info".
-    let log = env::var("RUST_LOG")
-        .unwrap_or("info".to_string())
-        .to_lowercase();
+    let log = config.logging.log_level;
     let log = log.as_str();
 
     // Create the log directory.
@@ -63,8 +67,8 @@ async fn main() {
         return;
     }
 
-    let app_tui = APP_TUI;
-    if *app_tui {
+    let app_tui = config.bot.config.tui;
+    if app_tui {
         // create a new tui in a new thread
         tokio::spawn(async {
             tui::create_tui().await.unwrap();
@@ -77,10 +81,6 @@ async fn main() {
         error!("{:?}", e);
         return;
     }
-    if let Err(e) = init_cache().await {
-        error!("{:?}", e);
-        return;
-    }
 
     // Log a message indicating the bot is starting.
     info!("starting the bot.");
@@ -88,7 +88,7 @@ async fn main() {
     let number_of_command_use = Arc::new(RwLock::new(0u128));
     let number_of_command_use_per_command: RootUsage;
     // populate the number_of_command_use_per_command with the content of the file
-    if let Ok(content) = std::fs::read_to_string("command_use.json") {
+    if let Ok(content) = std::fs::read_to_string(COMMAND_USE_PATH) {
         number_of_command_use_per_command =
             serde_json::from_str(&content).unwrap_or_else(|_| RootUsage::new());
     } else {
@@ -98,7 +98,7 @@ async fn main() {
         Arc::new(RwLock::new(number_of_command_use_per_command));
     let handler = Handler {
         number_of_command_use,
-        number_of_command_use_per_command,
+        number_of_command_use_per_command: number_of_command_use_per_command.clone(),
     };
 
     // Get all the non-privileged intent.
@@ -113,7 +113,7 @@ async fn main() {
     // Create a new client instance using the provided token and gateway intents.
     // The client is built with an event handler of type `Handler`.
     // If the client creation fails, log the error and exit the process.
-    let discord_token = DISCORD_TOKEN;
+    let discord_token = config.bot.discord_token;
     let discord_token = discord_token.as_str();
     let mut client = Client::builder(discord_token, gateway_intent)
         .event_handler(handler)
@@ -133,6 +133,11 @@ async fn main() {
         .write()
         .await
         .insert::<ShardManagerContainer>(Arc::clone(&shard_manager));
+    client
+        .data
+        .write()
+        .await
+        .insert::<RootUsageContainer>(Arc::clone(&number_of_command_use_per_command));
 
     // Spawn a new asynchronous task for starting the client.
     // If the client fails to start, log the error.
@@ -166,6 +171,7 @@ async fn main() {
         }
         ShardManager::shutdown_all(&shutdown).await;
         info!("Received bot shutdown signal. Shutting down bot.");
+        return;
     }
     #[cfg(windows)]
     {
@@ -186,5 +192,6 @@ async fn main() {
         }
         ShardManager::shutdown_all(&shutdown).await;
         info!("Received bot shutdown signal. Shutting down bot.");
+        return;
     }
 }

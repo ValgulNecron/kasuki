@@ -2,15 +2,15 @@ use once_cell::sync::Lazy;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
-use tracing::trace;
 
-use crate::command::run::anilist_user::user::get_user_data;
+use crate::command::run::anilist_user::user::get_user;
+use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::level::load_localization_level;
-use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, UserWrapper};
+use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
 
 /// Executes the command to display a user's level based on their anime and manga statistics.
 ///
@@ -32,24 +32,22 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     match user {
         Some(value) => {
             // If a username is provided, fetch the user data and send an embed
-            let data: UserWrapper = get_user_data(value).await?;
+            let data: User = get_user(value).await?;
             send_embed(ctx, command_interaction, data).await
         }
         None => {
             // If no username is provided, retrieve the ID of the user who triggered the command
             let user_id = &command_interaction.user.id.to_string();
             // Check if the user is registered
-            let row: (Option<String>, Option<String>) = get_registered_user(user_id).await?;
-            trace!("{:?}", row);
-            let (user, _): (Option<String>, Option<String>) = row;
-            let user = user.ok_or(AppError::new(
+            let row: Option<RegisteredUser> = get_registered_user(user_id).await?;
+            let user = row.ok_or(AppError::new(
                 String::from("There is no user selected"),
                 ErrorType::Option,
                 ErrorResponseType::Message,
             ))?;
 
             // Fetch the user data and send an embed
-            let data: UserWrapper = get_user_data(&user).await?;
+            let data: User = get_user(&user.anilist_id).await?;
             send_embed(ctx, command_interaction, data).await
         }
     }
@@ -71,7 +69,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    data: UserWrapper,
+    user: User,
 ) -> Result<(), AppError> {
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -82,35 +80,49 @@ pub async fn send_embed(
     // Load the localized level strings
     let level_localised = load_localization_level(guild_id).await?;
 
-    // Clone the user data
-    let user = data.data.user.clone();
-
     // Clone the manga and anime statistics
-    let manga = user.statistics.manga.clone();
-    let anime = user.statistics.anime.clone();
+    let statistics = user.statistics.clone().unwrap();
+    let manga = statistics.manga.clone();
+    let anime = statistics.anime.clone();
 
     // Calculate the number of manga and anime completed
-    let manga_completed = get_completed(manga.statuses.clone());
-    let anime_completed = get_completed(anime.statuses.clone());
+    let manga_completed = if let Some(manga) = manga.clone() {
+        get_completed(manga.statuses.unwrap())
+    } else {
+        0
+    };
+    let anime_completed = if let Some(anime) = anime.clone() {
+        get_completed(anime.statuses.unwrap())
+    } else {
+        0
+    };
     // Get the number of chapters read and minutes watched
-    let chap_read = manga.chapters_read.unwrap_or(0);
-    let tw = anime.minutes_watched.unwrap_or(0);
+    let chap_read = if let Some(manga) = manga.clone() {
+        manga.chapters_read
+    } else {
+        0
+    };
+    let tw = if let Some(anime) = anime.clone() {
+        anime.minutes_watched
+    } else {
+        0
+    };
 
     // Calculate the experience points
     let xp =
         (2.0 * (manga_completed + anime_completed) as f64) + chap_read as f64 + (tw as f64 * 0.1);
 
     // Get the username
-    let username = user.name.clone().unwrap();
+    let username = user.name.clone();
 
     // Calculate the level and progress
     let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
 
     // Initialize the embed builder
     let mut builder_embed = get_default_embed(Some(get_color(user.clone())))
-        .title(user.name.unwrap_or_default())
-        .url(get_user_url(user.id.unwrap_or(0)))
-        .thumbnail(user.avatar.large.clone().unwrap())
+        .title(user.name)
+        .url(get_user_url(user.id))
+        .thumbnail(user.avatar.unwrap().large.clone().unwrap())
         .description(
             level_localised
                 .desc

@@ -4,9 +4,10 @@ use serenity::all::{
 };
 
 use crate::constant::COLOR;
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
+use crate::helper::get_user_data::get_user_data;
 use crate::structure::message::user::avatar::load_localization_avatar;
 
 /// Executes the command to display a user's avatar.
@@ -30,14 +31,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     // Check if the user exists
     match user {
         Some(user) => {
+            let user = get_user_data(ctx.http.clone(), user).await?;
             // If the user exists, retrieve the user's information and display their avatar
-            let user = user.to_user(&ctx.http).await.map_err(|e| {
-                AppError::new(
-                    format!("Could not get the user. {}", e),
-                    ErrorType::Option,
-                    ErrorResponseType::Message,
-                )
-            })?;
             avatar_with_user(ctx, command_interaction, &user).await
         }
         None => {

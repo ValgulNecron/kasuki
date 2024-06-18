@@ -7,7 +7,7 @@
 .idea/**/tasks.xml
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
-.idea/**/shelf
+.idea/**/shelfz
 
 # AWS User-specific
 .idea/**/aws.xml

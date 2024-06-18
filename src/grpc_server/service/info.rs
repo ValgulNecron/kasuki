@@ -6,7 +6,7 @@ use tokio::sync::RwLock;
 use tonic::{Request, Response, Status};
 use tracing::trace;
 
-use crate::constant::{ACTIVITY_NAME, APP_VERSION};
+use crate::constant::{APP_VERSION, CONFIG};
 use crate::grpc_server::service::info::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::service::info::proto::{
     BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, InfoRequest, InfoResponse,
@@ -91,7 +91,7 @@ impl Info for InfoService {
         let name = bot_info_data.name.clone();
         let version = APP_VERSION.to_string();
         let id = bot_info_data.id;
-        let bot_activity = ACTIVITY_NAME.to_string();
+        let bot_activity = unsafe { CONFIG.bot.bot_activity.clone() };
         let description = bot_info_data.description.clone();
         let bot_data = self.http.clone().get_current_user().await;
         let id = id.to_string();

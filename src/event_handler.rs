@@ -1,26 +1,27 @@
-use crate::background_task::background_launcher::thread_management_launcher;
-use crate::background_task::server_image::calculate_user_color::color_management;
-use crate::background_task::server_image::generate_server_image::server_image_management;
-use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispatching};
-use crate::command::user_run::dispatch::dispatch_user_command;
-use crate::command_register::registration_dispatcher::command_dispatcher;
-use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{ACTIVITY_NAME, BOT_INFO};
-use crate::helper::error_management::error_dispatch;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::new_member::new_member;
+use std::collections::HashMap;
+use std::env;
+use std::ops::Add;
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, EventHandler, Guild, Interaction, Member, Ready,
 };
 use serenity::async_trait;
-use std::collections::HashMap;
-use std::env;
-use std::ops::Add;
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
+
+use crate::background_task::background_launcher::thread_management_launcher;
+use crate::background_task::server_image::calculate_user_color::color_management;
+use crate::background_task::server_image::generate_server_image::server_image_management;
+use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
+use crate::command::run::command_dispatch::command_dispatching;
+use crate::command::user_run::dispatch::dispatch_user_command;
+use crate::command_register::registration_dispatcher::command_dispatcher;
+use crate::components::components_dispatch::components_dispatching;
+use crate::constant::{BOT_INFO, COMMAND_USE_PATH, CONFIG};
+use crate::helper::error_management::error_dispatch;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub struct Handler {
     pub number_of_command_use: Arc<RwLock<u128>>,
@@ -66,9 +67,6 @@ impl Handler {
         user_name: String,
     ) {
         let mut guard = self.number_of_command_use_per_command.write().await;
-        let command_name = command_name;
-        let user_id = user_id;
-        let user_name = user_name;
         let command_map = guard
             .command_list
             .entry(command_name)
@@ -90,7 +88,7 @@ impl Handler {
         match serde_json::to_string(&*self.number_of_command_use_per_command.read().await) {
             Ok(content) => {
                 // save the content to the file
-                if let Err(e) = std::fs::write("command_use.json", content) {
+                if let Err(e) = std::fs::write(COMMAND_USE_PATH, content) {
                     error!("Failed to write to file: {}", e);
                 }
             }
@@ -135,18 +133,9 @@ impl EventHandler for Handler {
     /// The function performs color management, generates a server image, and logs a trace message.
     /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
-    async fn guild_member_addition(&self, ctx: Context, mut member: Member) {
+    async fn guild_member_addition(&self, ctx: Context, member: Member) {
         let guild_id = member.guild_id.to_string();
         trace!("Member {} joined guild {}", member.user.tag(), guild_id);
-        if check_if_module_is_on(guild_id, "NEW_MEMBER")
-            .await
-            .unwrap_or(true)
-        {
-            let ctx2 = ctx.clone();
-            if let Err(e) = new_member(ctx2, &mut member).await {
-                error!("{:?}", e)
-            }
-        }
         color_management(&ctx.cache.guilds(), &ctx).await;
         server_image_management(&ctx).await;
     }
@@ -173,7 +162,7 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         let bot = ctx.http.get_current_application_info().await.unwrap();
         unsafe {
-            *BOT_INFO = Some(bot);
+            BOT_INFO = Some(bot);
         }
 
         let command_usage = self.number_of_command_use.clone();
@@ -182,7 +171,9 @@ impl EventHandler for Handler {
         tokio::spawn(thread_management_launcher(ctx.clone(), command_usage));
 
         // Sets the bot's activity
-        ctx.set_activity(Some(ActivityData::custom(ACTIVITY_NAME.clone())));
+        ctx.set_activity(Some(ActivityData::custom(unsafe {
+            CONFIG.bot.bot_activity.clone()
+        })));
 
         // Logs a message indicating that the shard is connected
         info!(

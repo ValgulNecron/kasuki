@@ -1,11 +1,16 @@
+use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
 
 use crate::constant::DEFAULT_STRING;
+use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use crate::structure::autocomplete::anilist::staff::StaffPageWrapper;
+use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::structure::autocomplete::anilist::staff::{
+    StaffAutocomplete, StaffAutocompleteVariables,
+};
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for staff search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -36,18 +41,30 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let staff_search = map
         .get(&String::from("staff_name"))
         .unwrap_or(DEFAULT_STRING);
-    let data = StaffPageWrapper::new_autocomplete_staff(staff_search).await;
+    let var = StaffAutocompleteVariables {
+        search: Some(staff_search),
+    };
+    let operation = StaffAutocomplete::build(var);
+    let data: Result<GraphQlResponse<StaffAutocomplete>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = match data {
+        Ok(data) => data,
+        Err(e) => {
+            tracing::error!(?e);
+            return;
+        }
+    };
     let mut choices = Vec::new();
-    let staffs = data.data.page.staff.clone().unwrap();
+    let staffs = data.data.unwrap().page.unwrap().staff.unwrap();
 
     for staff in staffs {
         let data = staff.unwrap();
-        let user = data
-            .name
-            .user_preferred
-            .clone()
-            .unwrap_or(data.name.full.clone());
-        choices.push(AutocompleteChoice::new(user, data.id.to_string()))
+        let name = data.name.unwrap();
+        let user_pref = name.user_preferred;
+        let native = name.native;
+        let full = name.full;
+        let name = user_pref.unwrap_or(native.unwrap_or(full.unwrap_or(DEFAULT_STRING.clone())));
+        choices.push(AutocompleteChoice::new(name, data.id.to_string()))
     }
 
     let data = CreateAutocompleteResponse::new().set_choices(choices);

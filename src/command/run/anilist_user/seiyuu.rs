@@ -1,5 +1,6 @@
 use std::io::Cursor;
 
+use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
 use prost::bytes::Bytes;
@@ -10,11 +11,14 @@ use serenity::all::{
 };
 use uuid::Uuid;
 
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
-use crate::structure::run::anilist::seiyuu::{StaffImageNodes, StaffImageWrapper};
+use crate::structure::run::anilist::seiyuu::{
+    Character, CharacterConnection, Seiyuu, SeiyuuVariables, StaffImage,
+};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -37,11 +41,35 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         ErrorType::Option,
         ErrorResponseType::Message,
     ))?;
-
-    let data = if value.parse::<i32>().is_ok() {
-        StaffImageWrapper::new_staff_by_id(value.parse().unwrap()).await?
+    let total_per_row = 4u32;
+    let per_page = (total_per_row * total_per_row) as i32;
+    let var: SeiyuuVariables = if value.parse::<i32>().is_ok() {
+        let id = value.parse::<i32>().unwrap();
+        SeiyuuVariables {
+            id: Some(id),
+            per_page: Some(per_page),
+            search: None,
+        }
     } else {
-        StaffImageWrapper::new_staff_by_search(value).await?
+        SeiyuuVariables {
+            id: None,
+            per_page: Some(per_page),
+            search: Some(value),
+        }
+    };
+    let operation = Seiyuu::build(var);
+    let data: Result<GraphQlResponse<Seiyuu>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
+    let staff = match data.data.unwrap().page.unwrap().staff {
+        Some(staffs) => staffs[0].clone().unwrap(),
+        None => {
+            return Err(AppError::new(
+                "No staff found".to_string(),
+                ErrorType::WebRequest,
+                ErrorResponseType::Message,
+            ));
+        }
     };
 
     let guild_id = match command_interaction.guild_id {
@@ -64,8 +92,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
     let mut buffers: Vec<Bytes> = Vec::new();
-
-    let url = get_staff_image(data.clone());
+    let staff_image = staff.image.unwrap();
+    let url = get_staff_image(staff_image);
     let response = reqwest::get(url).await.map_err(|e| {
         AppError::new(
             format!("Error while getting the response from the server. {}", e),
@@ -81,9 +109,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
     })?;
     buffers.push(bytes);
-    let characters_images_url = get_characters_image(data.clone());
+    let character = staff.characters.unwrap();
+    let characters_images_url = get_characters_image(character);
     for character_image in characters_images_url {
-        let response = reqwest::get(&character_image.image.large)
+        let response = reqwest::get(&character_image.unwrap().image.unwrap().large.unwrap())
             .await
             .map_err(|e| {
                 AppError::new(
@@ -118,23 +147,21 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let (width, height) = images[0].dimensions();
     let sub_image = images[0].to_owned().crop(0, 0, width, height);
     let aspect_ratio = width as f32 / height as f32;
-    let x = 3;
-    let new_height = 1000 * x;
+    let new_height = 1000 * total_per_row;
     let new_width = (new_height as f32 * aspect_ratio) as u32;
 
-    let smaller_height = new_height / 3;
-    let smaller_width = new_width / 3;
+    let smaller_height = new_height / total_per_row;
+    let smaller_width = new_width / total_per_row;
 
-    let total_width = smaller_width * 3 + new_width;
-
+    let total_width = smaller_width * total_per_row + new_width;
     let mut combined_image = DynamicImage::new_rgba16(total_width, new_height);
 
     let resized_img =
         image::imageops::resize(&sub_image, new_width, new_height, FilterType::CatmullRom);
     combined_image.copy_from(&resized_img, 0, 0).unwrap();
     let mut pos_list = Vec::new();
-    for x in 0..3 {
-        for y in 0..3 {
+    for x in 0..total_per_row {
+        for y in 0..total_per_row {
             pos_list.push((new_width + (smaller_width * y), smaller_height * x))
         }
     }
@@ -209,8 +236,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 /// # Returns
 ///
 /// A `Vec<StaffImageNodes>` that contains the characters associated with the staff member.
-fn get_characters_image(staff: StaffImageWrapper) -> Vec<StaffImageNodes> {
-    staff.data.staff.characters.nodes
+fn get_characters_image(character: CharacterConnection) -> Vec<Option<Character>> {
+    character.nodes.unwrap()
 }
 
 /// Retrieves the image of a staff member from the AniList API.
@@ -225,6 +252,6 @@ fn get_characters_image(staff: StaffImageWrapper) -> Vec<StaffImageNodes> {
 /// # Returns
 ///
 /// A `String` that represents the URL of the staff member's image.
-fn get_staff_image(staff: StaffImageWrapper) -> String {
-    staff.data.staff.image.large
+fn get_staff_image(staff: StaffImage) -> String {
+    staff.large.unwrap()
 }

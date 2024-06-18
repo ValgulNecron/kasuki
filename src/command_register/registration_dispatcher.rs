@@ -29,11 +29,14 @@ pub async fn command_dispatcher(http: &Arc<Http>, is_ok: bool) {
     }
     info!("Starting to create commands...");
 
+    let start = std::time::Instant::now();
     creates_commands(http).await;
     creates_subcommands(http).await;
     creates_subcommands_group(http).await;
     creates_user_command(http).await;
     creates_message_command(http).await;
+    let duration = start.elapsed();
+    info!("Time taken to create commands: {:?}", duration);
 
     info!("Done creating commands")
 }

@@ -450,6 +450,27 @@
                       "name": "アニメ"
                     }
                   ]
+                },
+                {
+                  "option_choice": "VN",
+                  "option_choice_localised": [
+                    {
+                      "code": "en-US",
+                      "name": "Visual Novel"
+                    },
+                    {
+                      "code": "fr",
+                      "name": "Roman Visuel"
+                    },
+                    {
+                      "code": "de",
+                      "name": "Visueller Roman"
+                    },
+                    {
+                      "code": "ja",
+                      "name": "ビジュアルノベル"
+                    }
+                  ]
                 }
               ],
               "localised_args": [
@@ -552,23 +573,23 @@
           "localised": [
             {
               "code": "en-US",
-              "name": "general",
-              "desc": "General bot configuration configuration for admin only."
+              "name": "module",
+              "desc": "Turn on or off a module."
             },
             {
               "code": "fr",
-              "name": "général",
-              "desc": "Configuration générale du bot uniquement pour les administrateurs."
+              "name": "module",
+              "desc": "Activer ou désactiver un module."
             },
             {
               "code": "de",
-              "name": "allgemein",
-              "desc": "Allgemeine Bot-Konfiguration nur für Administratoren."
+              "name": "modul",
+              "desc": "Schalten Sie ein Modul ein oder aus."
             },
             {
               "code": "ja",
-              "name": "一般",
-              "desc": "管理者専用のボット設定。"
+              "name": "モジュール",
+              "desc": "モジュールをオンまたはオフにします。"
             }
           ]
         }

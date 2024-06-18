@@ -1,11 +1,16 @@
+use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
 
 use crate::constant::DEFAULT_STRING;
+use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use crate::structure::autocomplete::anilist::studio::StudioPageWrapper;
+use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::structure::autocomplete::anilist::studio::{
+    StudioAutocomplete, StudioAutocompleteVariables,
+};
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for studio search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -33,8 +38,20 @@ use crate::structure::autocomplete::anilist::studio::StudioPageWrapper;
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let studio_search = map.get(&String::from("studio")).unwrap_or(DEFAULT_STRING);
-    let data = StudioPageWrapper::new_autocomplete_staff(studio_search).await;
-    let studios = data.data.page.studios.clone().unwrap();
+    let var = StudioAutocompleteVariables {
+        search: Some(studio_search),
+    };
+    let operation = StudioAutocomplete::build(var);
+    let data: Result<GraphQlResponse<StudioAutocomplete>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = match data {
+        Ok(data) => data,
+        Err(e) => {
+            tracing::error!(?e);
+            return;
+        }
+    };
+    let studios = data.data.unwrap().page.unwrap().studios.unwrap();
 
     let mut choices = Vec::new();
 

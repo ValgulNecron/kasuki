@@ -4,7 +4,7 @@ use std::path::Path;
 use sqlx::{Pool, Sqlite};
 use tracing::error;
 
-use crate::constant::DATA_SQLITE_DB;
+use crate::constant::SQLITE_DB_PATH;
 use crate::database::manage::sqlite::migration::migration_dispatch::migrate_sqlite;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -29,11 +29,11 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn init_sqlite() -> Result<(), AppError> {
-    create_sqlite_file(DATA_SQLITE_DB)?;
+    create_sqlite_file(SQLITE_DB_PATH)?;
     if let Err(e) = migrate_sqlite().await {
         error!("{:?}", e);
     };
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     init_sqlite_data(&pool).await?;
     pool.close().await;
     Ok(())

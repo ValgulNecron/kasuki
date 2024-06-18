@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package federation;
+
+service FederationConnectionService {
+    rpc ConnectFederation (ConnectRequest) returns (ConnectResponse) {}
+    rpc DisconnectFederation (DisconnectRequest) returns (DisconnectResponse) {}
+    rpc RenewTokenFederation (RenewTokenRequest) returns (RenewTokenResponse) {}
+}
+
+message ConnectRequest {
+    string self_name = 1;
+    string self_url = 2;
+}
+
+message ConnectResponse {
+    string federation_name = 1;
+    string federation_url = 2;
+    string token = 3;
+}
+
+message DisconnectRequest {
+    string self_name = 1;
+    string token = 2;
+}
+
+message DisconnectResponse {
+    bool success = 1;
+}
+
+message RenewTokenRequest {
+    string self_name = 1;
+    string token = 2;
+}
+
+message RenewTokenResponse {
+    string token = 1;
+}
+
+service FederationInfoService {
+    rpc GetFederationInfo (GetFederationInfoRequest) returns (GetFederationInfoResponse) {}
+}
+
+message GetFederationInfoRequest {
+    string federation_name = 1;
+    string self_name = 2;
+    string token = 3;
+}
+
+message GetFederationInfoResponse {
+    string federation_name = 1;
+    string federation_url = 2;
+}
+
+service FederationSharingService {
+    rpc ShareUserColor (ShareUserColorRequest) returns (ShareUserColorResponse) {}
+    rpc GetUsersColor (GetUsersColorRequest) returns (GetUsersColorResponse) {}
+}
+
+message ShareUserColorRequest {
+    repeated UserColor user_color = 1;
+    string self_name = 2;
+    string token = 3;
+}
+
+message UserColor {
+    string user_name = 1;
+    string user_color = 2;
+    string pfp_url = 3;
+    string image_b64 = 4;
+}
+
+message ShareUserColorResponse {
+    bool success = 1;
+}
+
+message GetUsersColorRequest {
+    string self_name = 1;
+    string token = 2;
+}
+
+message GetUsersColorResponse {
+    repeated UserColor user_color = 1;
+}

@@ -1,5 +1,6 @@
-mod character;
-mod game;
-mod producer;
-mod staff;
-mod user;
+pub mod character;
+pub mod game;
+pub mod producer;
+pub mod staff;
+pub mod stats;
+pub mod user;

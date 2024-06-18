@@ -2,7 +2,9 @@ use serenity::all::{CommandInteraction, Context};
 
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use crate::structure::autocomplete::anilist::media::{send_auto_complete, MediaPageWrapper};
+use crate::structure::autocomplete::anilist::media::{
+    send_auto_complete, MediaAutocompleteVariables, MediaFormat, MediaType,
+};
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for manga search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -28,6 +30,10 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let manga_search = map
         .get(&String::from("manga_name"))
         .unwrap_or(DEFAULT_STRING);
-    let manga = MediaPageWrapper::new_autocomplete_manga(manga_search).await;
-    send_auto_complete(ctx, autocomplete_interaction, manga).await;
+    let var = MediaAutocompleteVariables {
+        search: Some(manga_search.as_str()),
+        in_media_format: Some(vec![Some(MediaFormat::Manga), Some(MediaFormat::OneShot)]),
+        media_type: Some(MediaType::Manga),
+    };
+    send_auto_complete(ctx, autocomplete_interaction, var).await;
 }

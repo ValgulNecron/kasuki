@@ -1,269 +1,155 @@
-use serde::Deserialize;
-use serde_json::json;
-use serenity::all::{
-    Colour, CommandInteraction, Context, CreateInteractionResponse,
-    CreateInteractionResponseMessage,
-};
+use std::fmt::Display;
 
-use crate::helper::create_normalise_embed::get_default_embed;
+use serenity::all::CommandInteraction;
+use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
+use serenity::model::Colour;
+use serenity::prelude::Context;
+
+use crate::constant::COLOR;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::make_anilist_cached_request::make_request_anilist;
 use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct UserWrapper {
-    pub data: UserData,
-}
+#[cynic::schema("anilist")]
+mod schema {}
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct UserData {
-    #[serde(rename = "User")]
-    pub user: User,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct User {
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct UserQuerryVariables<'a> {
     pub id: Option<i32>,
-    pub name: Option<String>,
-    pub avatar: Avatar,
-    pub statistics: Statistics,
-    pub options: Options,
-    #[serde(rename = "bannerImage")]
+    pub search: Option<&'a str>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "UserQuerryVariables")]
+pub struct UserQuerry {
+    #[arguments(id: $ id, search: $ search)]
+    #[cynic(rename = "User")]
+    pub user: Option<User>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct User {
+    pub id: i32,
+    pub name: String,
+    pub avatar: Option<UserAvatar>,
+    pub statistics: Option<UserStatisticTypes>,
+    pub options: Option<UserOptions>,
     pub banner_image: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Options {
-    #[serde(rename = "profileColor")]
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct UserOptions {
     pub profile_color: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Avatar {
-    pub large: Option<String>,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct UserStatisticTypes {
+    pub anime: Option<UserStatistics>,
+    pub manga: Option<UserStatistics2>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Statistics {
-    pub anime: Anime,
-    pub manga: Manga,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Anime {
-    pub count: Option<i32>,
-    #[serde(rename = "meanScore")]
-    pub mean_score: Option<f64>,
-    #[serde(rename = "standardDeviation")]
-    pub standard_deviation: Option<f64>,
-    #[serde(rename = "minutesWatched")]
-    pub minutes_watched: Option<i32>,
-    pub tags: Vec<Tag>,
-    pub genres: Vec<Genre>,
-    pub statuses: Vec<Statuses>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Manga {
-    pub count: Option<i32>,
-    #[serde(rename = "meanScore")]
-    pub mean_score: Option<f64>,
-    #[serde(rename = "standardDeviation")]
-    pub standard_deviation: Option<f64>,
-    #[serde(rename = "chaptersRead")]
-    pub chapters_read: Option<i32>,
-    pub tags: Vec<Tag>,
-    pub genres: Vec<Genre>,
-    pub statuses: Vec<Statuses>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Statuses {
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "UserStatistics")]
+pub struct UserStatistics2 {
     pub count: i32,
-    pub status: String,
+    pub mean_score: f64,
+    pub standard_deviation: f64,
+    pub chapters_read: i32,
+    #[arguments(limit: 5, sort: "MEAN_SCORE_DESC")]
+    pub tags: Option<Vec<Option<UserTagStatistic>>>,
+    #[arguments(limit: 5, sort: "MEAN_SCORE_DESC")]
+    pub genres: Option<Vec<Option<UserGenreStatistic>>>,
+    #[arguments(sort: "COUNT_DESC")]
+    pub statuses: Option<Vec<Option<UserStatusStatistic>>>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Tag {
-    pub tag: TagData,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct UserStatistics {
+    pub count: i32,
+    pub mean_score: f64,
+    pub standard_deviation: f64,
+    pub minutes_watched: i32,
+    #[arguments(limit: 5, sort: "MEAN_SCORE_DESC")]
+    pub tags: Option<Vec<Option<UserTagStatistic>>>,
+    #[arguments(limit: 5, sort: "MEAN_SCORE_DESC")]
+    pub genres: Option<Vec<Option<UserGenreStatistic>>>,
+    #[arguments(sort: "COUNT_DESC")]
+    pub statuses: Option<Vec<Option<UserStatusStatistic>>>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct TagData {
-    pub name: Option<String>,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct UserStatusStatistic {
+    pub count: i32,
+    pub status: Option<MediaListStatus>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Genre {
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct UserGenreStatistic {
     pub genre: Option<String>,
 }
 
-/// `UserWrapper` is an implementation block for the `UserWrapper` struct.
-impl UserWrapper {
-    /// `new_user_by_id` is an asynchronous function that creates a new user by ID.
-    /// It takes an `id` as a parameter.
-    /// `id` is a 32-bit integer that represents the ID of the user.
-    /// It returns a `Result` that contains a `UserWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes an `id` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `id` variable is set to the `id` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `UserWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `id` - A 32-bit integer that represents the ID of the user.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<UserWrapper, AppError>` - A Result that contains a `UserWrapper` or an `AppError`.
-    pub async fn new_user_by_id(id: i32) -> Result<UserWrapper, AppError> {
-        let query_id: &str = "
-query ($name: Int, $limit: Int = 5) {
-  User(id: $name) {
-    id
-    name
-    avatar {
-      large
-    }
-    statistics {
-      anime {
-        count
-        meanScore
-        standardDeviation
-        minutesWatched
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-      manga {
-        count
-        meanScore
-        standardDeviation
-        chaptersRead
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-    }
-options{
-      profileColor
-    }
-    bannerImage
-  }
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct UserTagStatistic {
+    pub tag: Option<MediaTag>,
 }
-";
-        let json = json!({"query": query_id, "variables": {"name": id}});
-        let resp = make_request_anilist(json, true).await;
-        serde_json::from_str(&resp).map_err(|e| {
-            AppError::new(
-                format!("Error getting the user with id {}. {}", id, e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Message,
-            )
-        })
-    }
 
-    /// `new_user_by_search` is an asynchronous function that creates a new user by search.
-    /// It takes a `search` as a parameter.
-    /// `search` is a reference to a String that represents the search query.
-    /// It returns a `Result` that contains a `UserWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes a `search` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `search` variable is set to the `search` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `UserWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `search` - A reference to a String that represents the search query.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<UserWrapper, AppError>` - A Result that contains a `UserWrapper` or an `AppError`.
-    pub async fn new_user_by_search(search: &String) -> Result<UserWrapper, AppError> {
-        let query_string: &str = "
-query ($name: String, $limit: Int = 5) {
-  User(name: $name) {
-    id
-    name
-    avatar {
-      large
-    }
-    statistics {
-      anime {
-        count
-        meanScore
-        standardDeviation
-        minutesWatched
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-      manga {
-        count
-        meanScore
-        standardDeviation
-        chaptersRead
-        tags(limit: $limit, sort: MEAN_SCORE_DESC) {
-          tag {
-            name
-          }
-        }
-        genres(limit: $limit, sort: MEAN_SCORE_DESC) {
-          genre
-        }
-        statuses(sort: COUNT_DESC){
-          count
-          status
-        }
-      }
-    }
-options{
-      profileColor
-    }
-    bannerImage
-  }
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct UserAvatar {
+    pub large: Option<String>,
 }
-";
-        let json = json!({"query": query_string, "variables": {"name": search}});
-        let resp = make_request_anilist(json, true).await;
-        serde_json::from_str(&resp).map_err(|e| {
-            AppError::new(
-                format!("Error getting the user with name {}. {}", search, e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Message,
-            )
-        })
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaTag {
+    pub name: String,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum MediaListStatus {
+    Current,
+    Planning,
+    Completed,
+    Dropped,
+    Paused,
+    Repeating,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum UserStatisticsSort {
+    Id,
+    IdDesc,
+    Count,
+    CountDesc,
+    Progress,
+    ProgressDesc,
+    MeanScore,
+    MeanScoreDesc,
+}
+
+impl Display for MediaListStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MediaListStatus::Current => write!(f, "CURRENT"),
+            MediaListStatus::Planning => write!(f, "PLANNING"),
+            MediaListStatus::Completed => write!(f, "COMPLETED"),
+            MediaListStatus::Dropped => write!(f, "DROPPED"),
+            MediaListStatus::Paused => write!(f, "PAUSED"),
+            MediaListStatus::Repeating => write!(f, "REPEATING"),
+        }
+    }
+}
+
+impl Display for UserStatisticsSort {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UserStatisticsSort::Id => write!(f, "ID"),
+            UserStatisticsSort::IdDesc => write!(f, "ID_DESC"),
+            UserStatisticsSort::Count => write!(f, "COUNT"),
+            UserStatisticsSort::CountDesc => write!(f, "COUNT_DESC"),
+            UserStatisticsSort::Progress => write!(f, "PROGRESS"),
+            UserStatisticsSort::ProgressDesc => write!(f, "PROGRESS_DESC"),
+            UserStatisticsSort::MeanScore => write!(f, "MEAN_SCORE"),
+            UserStatisticsSort::MeanScoreDesc => write!(f, "MEAN_SCORE_DESC"),
+        }
     }
 }
 
@@ -297,7 +183,7 @@ options{
 pub async fn send_embed(
     ctx: &Context,
     command: &CommandInteraction,
-    data: UserWrapper,
+    user: User,
 ) -> Result<(), AppError> {
     let guild_id = match command.guild_id {
         Some(id) => id.to_string(),
@@ -306,38 +192,28 @@ pub async fn send_embed(
 
     let user_localised = load_localization_user(guild_id).await?;
 
-    let user = data.data.user.clone();
-
     let mut field = Vec::new();
+    let statistics = user.statistics.clone().unwrap();
+    let manga = statistics.manga.clone();
+    let anime = statistics.anime.clone();
 
-    let manga = user.statistics.manga.clone();
-    let anime = user.statistics.anime.clone();
-
-    if let Some(m) = user.statistics.manga.count {
-        if m > 0 {
-            field.push(get_manga_field(
-                user.id.unwrap_or(0),
-                user_localised.clone(),
-                manga,
-            ))
+    if let Some(m) = &manga {
+        if m.count > 0 {
+            field.push(get_manga_field(user.id, user_localised.clone(), m.clone()))
         }
     }
-    if let Some(a) = user.statistics.anime.count {
-        if a > 0 {
-            field.push(get_anime_field(
-                user.id.unwrap_or(0),
-                user_localised.clone(),
-                anime,
-            ))
+    if let Some(a) = &anime {
+        if a.count > 0 {
+            field.push(get_anime_field(user.id, user_localised.clone(), a.clone()))
         }
     }
 
     let builder_embed = get_default_embed(Some(get_color(user.clone())))
-        .title(user.name.unwrap_or_default())
-        .url(get_user_url(user.id.unwrap_or(0)))
+        .title(user.name)
+        .url(get_user_url(user.id))
         .fields(field)
-        .image(get_banner(&user.id.unwrap_or(0)))
-        .thumbnail(user.avatar.large.unwrap());
+        .image(get_banner(&user.id))
+        .thumbnail(user.avatar.unwrap().large.unwrap());
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 
@@ -436,7 +312,11 @@ fn get_user_anime_url(user_id: i32) -> String {
 /// # Returns
 ///
 /// * `(String, String, bool)` - A tuple that contains a `String`, a `String`, and a `bool`.
-fn get_manga_field(user_id: i32, localised: UserLocalised, manga: Manga) -> (String, String, bool) {
+fn get_manga_field(
+    user_id: i32,
+    localised: UserLocalised,
+    manga: UserStatistics2,
+) -> (String, String, bool) {
     (
         String::new(),
         get_manga_desc(manga, localised, user_id),
@@ -460,7 +340,11 @@ fn get_manga_field(user_id: i32, localised: UserLocalised, manga: Manga) -> (Str
 /// # Returns
 ///
 /// * `(String, String, bool)` - A tuple that contains a `String`, a `String`, and a `bool`.
-fn get_anime_field(user_id: i32, localised: UserLocalised, anime: Anime) -> (String, String, bool) {
+fn get_anime_field(
+    user_id: i32,
+    localised: UserLocalised,
+    anime: UserStatistics,
+) -> (String, String, bool) {
     (
         String::new(),
         get_anime_desc(anime, localised, user_id),
@@ -484,35 +368,27 @@ fn get_anime_field(user_id: i32, localised: UserLocalised, anime: Anime) -> (Str
 /// # Returns
 ///
 /// * `String` - A String that represents the manga description of the user.
-fn get_manga_desc(manga: Manga, localised: UserLocalised, user_id: i32) -> String {
+fn get_manga_desc(manga: UserStatistics2, localised: UserLocalised, user_id: i32) -> String {
     localised
         .manga
         .replace("$url$", get_user_manga_url(user_id).as_str())
-        .replace("$count$", manga.count.unwrap_or(0).to_string().as_str())
+        .replace("$count$", manga.count.to_string().as_str())
         .replace(
             "$complete$",
-            get_completed(manga.statuses.clone()).to_string().as_str(),
-        )
-        .replace(
-            "$chap$",
-            manga.chapters_read.unwrap_or(0).to_string().as_str(),
-        )
-        .replace(
-            "$score$",
-            manga.mean_score.unwrap_or(0f64).to_string().as_str(),
-        )
-        .replace(
-            "$sd$",
-            manga
-                .standard_deviation
-                .unwrap_or(0f64)
+            get_completed(manga.statuses.unwrap().clone())
                 .to_string()
                 .as_str(),
         )
-        .replace("$tag_list$", get_tag_list(manga.tags.clone()).as_str())
+        .replace("$chap$", manga.chapters_read.to_string().as_str())
+        .replace("$score$", manga.mean_score.to_string().as_str())
+        .replace("$sd$", manga.standard_deviation.to_string().as_str())
+        .replace(
+            "$tag_list$",
+            get_tag_list(manga.tags.clone().unwrap()).as_str(),
+        )
         .replace(
             "$genre_list$",
-            get_genre_list(manga.genres.clone()).as_str(),
+            get_genre_list(manga.genres.clone().unwrap()).as_str(),
         )
 }
 
@@ -528,10 +404,10 @@ fn get_manga_desc(manga: Manga, localised: UserLocalised, user_id: i32) -> Strin
 /// # Returns
 ///
 /// * `String` - A String that represents the tag list of the user.
-fn get_tag_list(vec: Vec<Tag>) -> String {
+fn get_tag_list(vec: Vec<Option<UserTagStatistic>>) -> String {
     let vec = vec
         .iter()
-        .map(|tag| tag.tag.name.as_ref().unwrap().clone())
+        .map(|tag| tag.clone().unwrap().tag.clone().unwrap().name.clone())
         .collect::<Vec<_>>();
     let vec = vec.into_iter().take(5).collect::<Vec<_>>();
     vec.join("/")
@@ -549,10 +425,10 @@ fn get_tag_list(vec: Vec<Tag>) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the genre list of the user.
-fn get_genre_list(vec: Vec<Genre>) -> String {
+fn get_genre_list(vec: Vec<Option<UserGenreStatistic>>) -> String {
     let vec = vec
         .iter()
-        .map(|genre| genre.genre.as_ref().unwrap().clone())
+        .map(|genre| genre.clone().unwrap().genre.as_ref().unwrap().clone())
         .collect::<Vec<_>>();
     let vec = vec.into_iter().take(5).collect::<Vec<_>>();
     vec.join("/")
@@ -570,11 +446,12 @@ fn get_genre_list(vec: Vec<Genre>) -> String {
 /// # Returns
 ///
 /// * `i32` - A 32-bit integer that represents the number of completed anime or manga.
-pub fn get_completed(statuses: Vec<Statuses>) -> i32 {
+pub fn get_completed(statuses: Vec<Option<UserStatusStatistic>>) -> i32 {
     let anime_statuses = statuses;
     let mut anime_completed = 0;
     for i in anime_statuses {
-        if i.status == *"COMPLETED" {
+        let i = i.unwrap();
+        if i.status.unwrap().to_string() == *"COMPLETED" {
             anime_completed = i.count;
         }
     }
@@ -597,35 +474,30 @@ pub fn get_completed(statuses: Vec<Statuses>) -> i32 {
 /// # Returns
 ///
 /// * `String` - A String that represents the anime description of the user.
-fn get_anime_desc(anime: Anime, localised: UserLocalised, user_id: i32) -> String {
+fn get_anime_desc(anime: UserStatistics, localised: UserLocalised, user_id: i32) -> String {
     localised
         .anime
         .replace("$url$", get_user_anime_url(user_id).as_str())
-        .replace("$count$", anime.count.unwrap_or(0).to_string().as_str())
+        .replace("$count$", anime.count.to_string().as_str())
         .replace(
             "$complete$",
-            get_completed(anime.statuses.clone()).to_string().as_str(),
-        )
-        .replace(
-            "$duration$",
-            get_anime_time_watch(anime.minutes_watched.unwrap_or(0), localised.clone()).as_str(),
-        )
-        .replace(
-            "$score$",
-            anime.mean_score.unwrap_or(0f64).to_string().as_str(),
-        )
-        .replace(
-            "$sd$",
-            anime
-                .standard_deviation
-                .unwrap_or(0f64)
+            get_completed(anime.statuses.clone().unwrap())
                 .to_string()
                 .as_str(),
         )
-        .replace("$tag_list$", get_tag_list(anime.tags.clone()).as_str())
+        .replace(
+            "$duration$",
+            get_anime_time_watch(anime.minutes_watched, localised.clone()).as_str(),
+        )
+        .replace("$score$", anime.mean_score.to_string().as_str())
+        .replace("$sd$", anime.standard_deviation.to_string().as_str())
+        .replace(
+            "$tag_list$",
+            get_tag_list(anime.tags.clone().unwrap()).as_str(),
+        )
         .replace(
             "$genre_list$",
-            get_genre_list(anime.genres.clone()).as_str(),
+            get_genre_list(anime.genres.clone().unwrap()).as_str(),
         )
 }
 
@@ -713,6 +585,7 @@ fn get_anime_time_watch(i: i32, localised1: UserLocalised) -> String {
 pub fn get_color(user: User) -> Colour {
     let color = match user
         .options
+        .unwrap()
         .profile_color
         .clone()
         .unwrap_or_else(|| "#FF00FF".to_string())
@@ -725,11 +598,7 @@ pub fn get_color(user: User) -> Colour {
         "red" => Colour::RED,
         "green" => Colour::DARK_GREEN,
         "gray" => Colour::LIGHT_GREY,
-        _ => {
-            let hex_code = "#0D966D";
-            let color_code = u32::from_str_radix(&hex_code[1..], 16).unwrap();
-            Colour::new(color_code)
-        }
+        _ => COLOR,
     };
     color
 }

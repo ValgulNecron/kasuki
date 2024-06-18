@@ -1,4 +1,4 @@
-use chrono::Utc;
+use cynic::{GraphQlResponse, QueryBuilder};
 use rand::{thread_rng, Rng};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -6,17 +6,17 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 
-use crate::cache::cache_struct::cache_stats::CacheStats;
-use crate::cache::manage::cache_dispatch::{get_database_random_cache, set_database_random_cache};
+use crate::background_task::update_random_stats::update_random_stats;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::random::{load_localization_random, RandomLocalised};
-use crate::structure::run::anilist::random::PageWrapper;
-use crate::structure::run::anilist::site_statistic_anime::SiteStatisticsAnimeWrapper;
-use crate::structure::run::anilist::site_statistic_manga::SiteStatisticsMangaWrapper;
+use crate::structure::run::anilist::random::{
+    Media, MediaType, RandomPageMedia, RandomPageMediaVariables,
+};
 
 /// Executes the command to fetch and display a random anime or manga based on the type specified in the command interaction.
 ///
@@ -66,37 +66,19 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
 
-    // Retrieve the cached response for the specified type
-    let row: Option<CacheStats> = get_database_random_cache(random_type).await?;
-    let (cached_response, last_updated, page_number) = match row {
-        Some(row) => (row.response, row.last_updated, row.last_page),
-        None => (String::new(), 0, 1628),
+    let random_stats = update_random_stats().await?;
+    let last_page = if random_type.as_str() == "anime" {
+        random_stats.anime_last_page
+    } else if random_type.as_str() == "manga" {
+        random_stats.manga_last_page
+    } else {
+        0
     };
-    let previous_page = page_number - 1;
-
-    // If the cache was updated within the last 24 hours, use the cached response
-    if last_updated != 0 {
-        let duration_since_updated = Utc::now().timestamp() - last_updated;
-        if duration_since_updated < 24 * 60 * 60 {
-            return embed(
-                page_number,
-                random_type.to_string(),
-                ctx,
-                command_interaction,
-                random_localised,
-            )
-            .await;
-        }
-    }
-
-    // If there is no cached response or the cache is outdated, update the cache by fetching the media data from the AniList API
-    update_cache(
-        page_number,
-        random_type,
+    embed(
+        last_page,
+        random_type.to_string(),
         ctx,
         command_interaction,
-        previous_page,
-        cached_response,
         random_localised,
     )
     .await
@@ -120,30 +102,46 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 async fn embed(
-    last_page: i64,
+    last_page: i32,
     random_type: String,
     ctx: &Context,
     command_interaction: &CommandInteraction,
     random_localised: RandomLocalised,
 ) -> Result<(), AppError> {
     let number = thread_rng().gen_range(1..=last_page);
+    let mut var = RandomPageMediaVariables {
+        media_type: None,
+        page: Some(number),
+    };
+    let mut url = String::new();
     if random_type == "manga" {
-        let data = PageWrapper::new_manga_page(number).await?;
-        let url = format!(
-            "https://anilist.co/manga/{}",
-            data.data.page.media.clone()[0].id
-        );
-        follow_up_message(ctx, command_interaction, data, url, random_localised).await
-    } else if random_type == "anime" {
-        let data = PageWrapper::new_anime_page(number).await?;
-        let url = format!(
-            "https://anilist.co/anime/{}",
-            data.data.page.media.clone()[0].id
-        );
-        follow_up_message(ctx, command_interaction, data, url, random_localised).await
+        var.media_type = Some(MediaType::Manga)
     } else {
-        Ok(())
+        var.media_type = Some(MediaType::Anime);
     }
+
+    let operation = RandomPageMedia::build(var);
+    let data: Result<GraphQlResponse<RandomPageMedia>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
+    let data = data.data.unwrap();
+    let inside_media = data.page.unwrap().media.unwrap()[0].clone().unwrap();
+    let id = inside_media.id;
+    if random_type == "manga" {
+        url = format!("https://anilist.co/manga/{}", id);
+    } else {
+        url = format!("https://anilist.co/anime/{}", id);
+    }
+    follow_up_message(
+        ctx,
+        command_interaction,
+        inside_media,
+        url,
+        random_localised,
+    )
+    .await?;
+
+    Ok(())
 }
 
 /// Sends a follow-up message containing an embed with information about a random anime or manga.
@@ -167,32 +165,39 @@ async fn embed(
 async fn follow_up_message(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    data: PageWrapper,
+    media: Media,
     url: String,
     random_localised: RandomLocalised,
 ) -> Result<(), AppError> {
-    let media = data.data.page.media.clone()[0].clone();
-    let format = media.format.clone();
-    let genres = media.genres.join("/");
-    let tags = media
-        .tags
+    let format = media.format.unwrap();
+    let genres = media
+        .genres
+        .unwrap()
         .into_iter()
-        .map(|tag| tag.name.clone())
+        .map(|genre| genre.unwrap().clone())
         .collect::<Vec<String>>()
         .join("/");
-    let mut desc = media.description;
+    let tags = media
+        .tags
+        .unwrap()
+        .into_iter()
+        .map(|tag| tag.unwrap().name.clone())
+        .collect::<Vec<String>>()
+        .join("/");
+    let mut desc = media.description.unwrap();
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let length_diff = 4096 - desc.len() as i32;
     if length_diff <= 0 {
         desc = trim(desc.clone(), length_diff);
     }
-    let rj = media.title.native;
-    let user_pref = media.title.user_preferred;
+    let title = media.title.clone().unwrap();
+    let rj = title.native.unwrap_or_default();
+    let user_pref = title.user_preferred.unwrap_or_default();
     let title = format!("{}/{}", user_pref, rj);
 
     let full_desc = random_localised
         .desc
-        .replace("$format$", format.as_str())
+        .replace("$format$", format.to_string().as_str())
         .replace("$tags$", tags.as_str())
         .replace("$genres$", genres.as_str())
         .replace("$desc$", desc.as_str());
@@ -215,76 +220,4 @@ async fn follow_up_message(
             )
         })?;
     Ok(())
-}
-
-/// Updates the cache with data fetched from the AniList API.
-///
-/// This function fetches data from the AniList API for a specified type of media (anime or manga), and updates the cache with this data.
-/// It first determines the current timestamp, which will be used as the last updated time for the cache.
-/// Then, it enters a loop where it fetches data from the AniList API for the specified type of media, page by page, until it reaches a page that does not have a next page.
-/// The fetched data is converted to a string and stored in the cache.
-/// After the loop, the function updates the cache in the database with the new data and the current timestamp.
-/// Finally, it sends an embed containing the cached data as a response to the command interaction.
-///
-/// # Arguments
-///
-/// * `page_number` - The page number to start fetching data from.
-/// * `random_type` - The type of media to fetch data for ("anime" or "manga").
-/// * `ctx` - The context in which this command is being executed.
-/// * `command_interaction` - The interaction that triggered this command.
-/// * `previous_page` - The page number of the last page that was fetched in the previous run of this function.
-/// * `cached_response` - The response that was cached in the previous run of this function.
-/// * `random_localised` - The localized strings for the random command.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn update_cache(
-    mut page_number: i64,
-    random_type: &String,
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    mut previous_page: i64,
-    mut cached_response: String,
-    random_localised: RandomLocalised,
-) -> Result<(), AppError> {
-    let now = Utc::now().timestamp();
-
-    if random_type.as_str() == "manga" {
-        loop {
-            let (data, res) = SiteStatisticsMangaWrapper::new_manga(page_number).await?;
-            let has_next_page = data.has_next_page();
-
-            if !has_next_page {
-                break;
-            }
-            cached_response = res.to_string();
-            previous_page = page_number;
-
-            page_number += 1
-        }
-    } else if random_type.as_str() == "anime" {
-        loop {
-            let (data, res) = SiteStatisticsAnimeWrapper::new_anime(page_number).await?;
-            let has_next_page = data.has_next_page();
-
-            if !has_next_page {
-                break;
-            }
-            cached_response = res.to_string();
-            previous_page = page_number;
-
-            page_number += 1
-        }
-    }
-
-    set_database_random_cache(random_type, cached_response.as_str(), now, previous_page).await?;
-    embed(
-        previous_page,
-        random_type.to_string(),
-        ctx,
-        command_interaction,
-        random_localised,
-    )
-    .await
 }

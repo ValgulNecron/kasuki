@@ -1,5 +1,3 @@
-use serde::Deserialize;
-use serde_json::json;
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
@@ -9,171 +7,60 @@ use tracing::log::trace;
 use crate::constant::COLOR;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::make_anilist_cached_request::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct CharacterWrapper {
-    pub data: CharacterData,
+#[cynic::schema("anilist")]
+mod schema {}
+
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct CharacterQuerryVariables<'a> {
+    pub id: Option<i32>,
+    pub search: Option<&'a str>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct CharacterData {
-    #[serde(rename = "Character")]
-    pub character: Character,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "CharacterQuerryVariables")]
+pub struct CharacterQuerry {
+    #[arguments(id: $ id, search: $ search)]
+    #[cynic(rename = "Character")]
+    pub character: Option<Character>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct Character {
-    pub id: u32,
-    pub name: Name,
-    #[serde(rename = "siteUrl")]
-    pub site_url: String,
-    pub description: String,
-    pub gender: String,
-    pub age: String,
-    #[serde(rename = "dateOfBirth")]
-    pub date_of_birth: DateOfBirth,
-    pub image: Image,
-    pub favourites: u32,
-    #[serde(rename = "modNotes")]
+    pub age: Option<String>,
+    pub blood_type: Option<String>,
+    pub date_of_birth: Option<FuzzyDate>,
+    pub description: Option<String>,
+    pub favourites: Option<i32>,
+    pub gender: Option<String>,
+    pub id: i32,
+    pub image: Option<CharacterImage>,
     pub mod_notes: Option<String>,
+    pub name: Option<CharacterName>,
+    pub site_url: Option<String>,
+    pub updated_at: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Name {
-    pub full: String,
-    pub native: String,
-    #[serde(rename = "userPreferred")]
-    pub user_preferred: String,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct CharacterName {
+    pub user_preferred: Option<String>,
+    pub native: Option<String>,
+    pub full: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct DateOfBirth {
-    pub year: Option<u32>,
-    pub month: Option<u32>,
-    pub day: Option<u32>,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct CharacterImage {
+    pub medium: Option<String>,
+    pub large: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Image {
-    pub large: String,
-}
-
-/// `CharacterWrapper` is an implementation block for the `CharacterWrapper` struct.
-impl CharacterWrapper {
-    /// `new_character_by_id` is an asynchronous function that creates a new character by ID.
-    /// It takes an `id` as a parameter.
-    /// `id` is an integer that represents the ID of the character.
-    /// It returns a `Result` that contains a `CharacterWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes an `id` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `id` variable is set to the `id` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `CharacterWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `id` - An integer that represents the ID of the character.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<CharacterWrapper, AppError>` - A Result that contains a `CharacterWrapper` or an `AppError`.
-    pub async fn new_character_by_id(id: i32) -> Result<CharacterWrapper, AppError> {
-        let query_id: &str = "
-        query ($name: Int) {
-            Character(id: $name) {
-            id
-            name {
-              full
-              native
-              userPreferred
-            }
-            siteUrl
-            description
-            gender
-            age
-            dateOfBirth {
-              year
-              month
-              day
-            }
-            image {
-              large
-            }
-            favourites
-            modNotes
-          }
-        }
-        ";
-        let json = json!({"query": query_id, "variables": {"name": id}});
-        trace!("{:#?}", json);
-        let resp = make_request_anilist(json, false).await;
-        trace!("{:#?}", resp);
-        serde_json::from_str(&resp).map_err(|e| AppError {
-            message: format!("Error getting the character with id {}. {}", id, e),
-            error_type: ErrorType::WebRequest,
-            error_response_type: ErrorResponseType::Message,
-        })
-    }
-
-    /// `new_character_by_search` is an asynchronous function that creates a new character by search.
-    /// It takes a `search` as a parameter.
-    /// `search` is a reference to a String that represents the search query.
-    /// It returns a `Result` that contains a `CharacterWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes a `search` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `search` variable is set to the `search` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `CharacterWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `search` - A reference to a String that represents the search query.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<CharacterWrapper, AppError>` - A Result that contains a `CharacterWrapper` or an `AppError`.
-    pub async fn new_character_by_search(search: &String) -> Result<CharacterWrapper, AppError> {
-        let query_string: &str = "
-query ($name: String) {
-	Character(search: $name) {
-    id
-    name {
-      full
-      native
-      userPreferred
-    }
-    siteUrl
-    description
-    gender
-    age
-    dateOfBirth {
-      year
-      month
-      day
-    }
-    image {
-      large
-    }
-    favourites
-    modNotes
-  }
-}
-";
-        let json = json!({"query": query_string, "variables": {"name": search}});
-        trace!("{:#?}", json);
-        let resp = make_request_anilist(json, false).await;
-        trace!("{:#?}", resp);
-        serde_json::from_str(&resp).map_err(|e| AppError {
-            message: format!("Error getting the character with name {}. {}", search, e),
-            error_type: ErrorType::WebRequest,
-            error_response_type: ErrorResponseType::Message,
-        })
-    }
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct FuzzyDate {
+    pub month: Option<i32>,
+    pub year: Option<i32>,
+    pub day: Option<i32>,
 }
 
 /// `send_embed` is an asynchronous function that sends an embed message.
@@ -208,7 +95,7 @@ query ($name: String) {
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    data: CharacterWrapper,
+    character: Character,
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -217,15 +104,13 @@ pub async fn send_embed(
 
     trace!("{:#?}", guild_id);
 
-    let character = data.data.character.clone();
-
     let character_localised = load_localization_character(guild_id).await?;
 
-    let date_of_birth_data = character.date_of_birth.clone();
     let mut date_of_birth_string = String::new();
 
     let mut has_month: bool = false;
     let mut has_day: bool = false;
+    let date_of_birth_data = character.date_of_birth.clone().unwrap();
 
     if let Some(m) = date_of_birth_data.month {
         date_of_birth_string.push_str(format!("{:02}", m).as_str());
@@ -256,11 +141,18 @@ pub async fn send_embed(
 
     let mut desc = character_localised
         .desc
-        .replace("$age$", character.age.as_str())
-        .replace("$gender$", character.gender.as_str())
+        .replace("$age$", character.age.unwrap_or_default().as_str())
+        .replace("$gender$", character.gender.unwrap_or_default().as_str())
         .replace("$date_of_birth$", date_of_birth.as_str())
-        .replace("$fav$", character.favourites.to_string().as_str())
-        .replace("$desc$", character.description.as_str());
+        .replace(
+            "$fav$",
+            character
+                .favourites
+                .unwrap_or_default()
+                .to_string()
+                .as_str(),
+        )
+        .replace("$desc$", character.description.unwrap_or_default().as_str());
 
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
@@ -268,17 +160,18 @@ pub async fn send_embed(
         desc = trim(desc, lenght_diff)
     }
 
-    let native = character.name.native;
-    let user_pref = character.name.user_preferred;
+    let name = character.name.clone().unwrap();
+    let native = name.native.unwrap_or_default();
+    let user_pref = name.user_preferred.unwrap_or_default();
     let character_name = format!("{}/{}", user_pref, native);
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
         .description(desc)
-        .thumbnail(character.image.large)
+        .thumbnail(character.image.unwrap().large.unwrap())
         .title(character_name)
-        .url(character.site_url);
+        .url(character.site_url.unwrap_or_default());
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

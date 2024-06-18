@@ -8,7 +8,7 @@
   },
   "installation_context": {
     "guild": true,
-    "user": false
+    "user": true
   },
   "nsfw": false,
   "command": [
@@ -21,7 +21,7 @@
           "desc": "The name of the character",
           "arg_type": "String",
           "required": true,
-          "autocomplete": false,
+          "autocomplete": true,
           "localised_args": [
             {
               "code": "en-US",
@@ -78,7 +78,7 @@
           "desc": "The title of the visual novel",
           "arg_type": "String",
           "required": true,
-          "autocomplete": false,
+          "autocomplete": true,
           "localised_args": [
             {
               "code": "en-US",
@@ -135,7 +135,7 @@
           "desc": "The name of the producer",
           "arg_type": "String",
           "required": true,
-          "autocomplete": false,
+          "autocomplete": true,
           "localised_args": [
             {
               "code": "en-US",
@@ -294,6 +294,32 @@
           "code": "ja",
           "name": "ユーザー",
           "desc": "ビジュアルノベルデータベースのユーザー情報を取得する"
+        }
+      ]
+    },
+    {
+      "name": "stats",
+      "desc": "Get stats of the api.",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "stats",
+          "desc": "Get stats of the api."
+        },
+        {
+          "code": "fr",
+          "name": "stats",
+          "desc": "Obtenir des statistiques de l'api."
+        },
+        {
+          "code": "de",
+          "name": "statistiken",
+          "desc": "Statistiken der API abrufen."
+        },
+        {
+          "code": "ja",
+          "name": "統計",
+          "desc": "apiの統計を取得する。"
         }
       ]
     }

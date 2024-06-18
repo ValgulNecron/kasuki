@@ -1,12 +1,15 @@
+use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::constant::DEFAULT_STRING;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::studio::load_localization_studio;
-use crate::structure::run::anilist::studio::StudioWrapper;
+use crate::structure::run::anilist::studio::{StudioQuerry, StudioQuerryVariables};
 
 /// Executes the command to fetch and display information about a studio from AniList.
 ///
@@ -32,11 +35,22 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     ))?;
 
     // Fetch the studio's data from AniList
-    let data: StudioWrapper = if value.parse::<i32>().is_ok() {
-        StudioWrapper::new_studio_by_id(value.parse().unwrap()).await?
+    let var: StudioQuerryVariables = if value.parse::<i32>().is_ok() {
+        let id = value.parse::<i32>().unwrap();
+        StudioQuerryVariables {
+            id: Some(id),
+            search: None,
+        }
     } else {
-        StudioWrapper::new_studio_by_search(value).await?
+        StudioQuerryVariables {
+            id: None,
+            search: Some(value.as_str()),
+        }
     };
+    let operation = StudioQuerry::build(var);
+    let data: Result<GraphQlResponse<StudioQuerry>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
 
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -45,7 +59,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     };
 
     // Clone the studio data
-    let studio = data.data.studio.clone();
+    let studio = data.data.unwrap().studio.unwrap();
 
     // Load the localized studio strings
     let studio_localised = load_localization_studio(guild_id).await?;
@@ -54,16 +68,22 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let mut content = String::new();
 
     // Iterate over the nodes of the studio's media
-    for m in studio.media.nodes {
+    for m in studio.media.unwrap().nodes.unwrap() {
         // Clone the title of the media
-        let title = m.title.clone();
+        let m = m.unwrap();
+        let title = m.title.unwrap().clone();
 
         // Retrieve the romaji and user-preferred titles
-        let rj = title.romaji;
-        let en = title.user_preferred;
+        let rj = title.romaji.unwrap_or_default();
+        let en = title.user_preferred.unwrap_or_default();
 
         // Format the text for the response
-        let text = format!("[{}/{}]({})", rj, en, m.site_url);
+        let text = format!(
+            "[{}/{}]({})",
+            rj,
+            en,
+            m.site_url.unwrap_or(DEFAULT_STRING.clone())
+        );
 
         // Append the text to the content string
         content.push_str(text.as_str());
@@ -74,7 +94,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let desc = studio_localised
         .desc
         .replace("$id$", studio.id.to_string().as_str())
-        .replace("$fav$", studio.favourites.to_string().as_str())
+        .replace(
+            "$fav$",
+            studio.favourites.unwrap_or_default().to_string().as_str(),
+        )
         .replace(
             "$animation$",
             studio.is_animation_studio.to_string().as_str(),
@@ -88,7 +111,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let builder_embed = get_default_embed(None)
         .description(desc)
         .title(name)
-        .url(studio.site_url);
+        .url(studio.site_url.unwrap_or_default());
 
     // Construct the message for the response
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);

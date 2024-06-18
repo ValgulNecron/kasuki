@@ -1,4 +1,4 @@
-use crate::constant::DATA_SQLITE_DB;
+use crate::constant::SQLITE_DB_PATH;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
@@ -38,7 +38,7 @@ pub async fn migrate_sqlite() -> Result<(), AppError> {
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn add_image_to_activity_data() -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "image" column exists in the "activity_data" table
     let row: u32 = sqlx::query_scalar(
@@ -84,7 +84,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "new_member" column exists in the "module_activation" table
     let row: u32 = sqlx::query_scalar(
@@ -130,7 +130,7 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "new_member" column exists in the "global_kill_switch" table
     let row: u32 = sqlx::query_scalar(
@@ -176,7 +176,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "anime" column exists in the "module_activation" table
     let row: u32 = sqlx::query_scalar(
@@ -222,7 +222,7 @@ pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "anime" column exists in the "global_kill_switch" table
     let row: u32 = sqlx::query_scalar(
@@ -257,7 +257,7 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
 }
 
 pub async fn add_vn_to_global_kill_switch() -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "vn" column exists in the "global_kill_switch" table
     let row: u32 = sqlx::query_scalar(
@@ -292,7 +292,7 @@ pub async fn add_vn_to_global_kill_switch() -> Result<(), AppError> {
 }
 
 pub async fn add_vn_to_module_activation() -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "vn" column exists in the "module_activation" table
     let row: u32 = sqlx::query_scalar(

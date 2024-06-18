@@ -1,5 +1,3 @@
-use std::env;
-
 use prost::bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
@@ -12,13 +10,12 @@ use serenity::all::{
 use tracing::{info, trace};
 use uuid::Uuid;
 
-use crate::constant::{DEFAULT_STRING, IMAGE_BASE_URL, IMAGE_MODELS, IMAGE_TOKEN};
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::constant::{CONFIG, DEFAULT_STRING};
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::{
     get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
-use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
 
 /// This module contains the implementation of the `run` function for handling AI image generation.
@@ -56,7 +53,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap_or(DEFAULT_STRING);
 
     let map = get_option_map_integer_subcommand(command_interaction);
-    let n = map.get(&String::from("n")).unwrap_or(&1).clone();
+    let n = *map.get(&String::from("n")).unwrap_or(&1);
 
     trace!(prompt);
 
@@ -78,20 +75,17 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.png", uuid_name);
 
-    let model = IMAGE_MODELS;
+    let config = unsafe { CONFIG.ai.image.clone() };
+    let model = config.ai_image_model.clone().unwrap_or_default();
+    let token = config.ai_image_token.clone().unwrap_or_default();
+    let url = config.ai_image_base_url.clone().unwrap_or_default();
+
     let model = model.as_str();
     info!("{}", model);
 
-    let quality = match env::var("AI_IMAGE_QUALITY") {
-        Ok(quality) => Some(quality),
-        Err(_) => None,
-    };
-    let style = match env::var("AI_IMAGE_STYLE") {
-        Ok(style) => Some(style),
-        Err(_) => None,
-    };
-
-    let size = env::var("AI_IMAGE_SIZE").unwrap_or(String::from("1024x1024"));
+    let quality = config.ai_image_style;
+    let style = config.ai_image_quality;
+    let size = config.ai_image_size.unwrap_or(String::from("1024x1024"));
 
     let data: Value = match (quality, style) {
         (Some(quality), Some(style)) => {
@@ -140,7 +134,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let client = reqwest::Client::new();
 
-    let token = IMAGE_TOKEN;
     let token = token.as_str();
     trace!("{}", token);
     let mut headers = HeaderMap::new();
@@ -160,7 +153,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
     trace!("{:#?}", data);
-    let url = IMAGE_BASE_URL;
     let url = url.as_str();
     trace!(token);
     trace!("{}", url);
@@ -247,7 +239,7 @@ async fn image_with_n_greater_than_1(
         .enumerate()
         .map(|(index, byte)| {
             let filename = format!("{}_{}.png", filename, index);
-            CreateAttachment::bytes(byte.clone(), &filename)
+            CreateAttachment::bytes(byte.clone(), filename)
         })
         .collect();
     let builder_message = CreateInteractionResponseFollowup::new()
@@ -269,13 +261,27 @@ async fn image_with_n_greater_than_1(
 
 async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, AppError> {
     let mut bytes = Vec::new();
-    let root: Root = serde_json::from_value(json).map_err(|e| {
-        AppError::new(
-            format!("Failed to parse the json. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let root: Root = match serde_json::from_value(json.clone()) {
+        Ok(root) => root,
+        Err(e) => {
+            let root1: Result<Root1, serde_json::error::Error> = serde_json::from_value(json);
+            return match root1 {
+                Ok(root1) => Err(AppError::new(
+                    format!(
+                        "Failed to get the response from the server. {}\n{}",
+                        root1.error.message, e
+                    ),
+                    ErrorType::File,
+                    ErrorResponseType::Followup,
+                )),
+                Err(e) => Err(AppError::new(
+                    format!("Failed to parse the json. {}", e),
+                    ErrorType::File,
+                    ErrorResponseType::Followup,
+                )),
+            };
+        }
+    };
     let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();
     trace!("{:?}", urls);
     for url in urls {
@@ -312,4 +318,18 @@ struct Root {
 #[derive(Debug, Deserialize)]
 struct Data {
     url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Error {
+    pub message: String,
+    #[serde(rename = "type")]
+    pub error_type: String,
+    pub param: Option<String>,
+    pub code: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Root1 {
+    pub error: Error,
 }

@@ -2,7 +2,9 @@ use serenity::all::{CommandInteraction, Context};
 
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::structure::run::anilist::media::{send_embed, MediaWrapper};
+use crate::structure::run::anilist::media::{
+    get_media, send_embed, Media, MediaFormat, MediaQuerryVariables, MediaType,
+};
 
 /// This asynchronous function runs the command interaction for retrieving information about an anime.
 ///
@@ -31,10 +33,39 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     // If the value is an integer, treat it as an ID and retrieve the anime with that ID
     // If the value is not an integer, treat it as a name and retrieve the anime with that name
-    let data: MediaWrapper = if value.parse::<i32>().is_ok() {
-        MediaWrapper::new_anime_by_id(value.parse().unwrap()).await?
+    let data: Media = if value.parse::<i32>().is_ok() {
+        let id = value.parse::<i32>().unwrap();
+        let var = MediaQuerryVariables {
+            format_in: Some(vec![
+                Some(MediaFormat::Tv),
+                Some(MediaFormat::TvShort),
+                Some(MediaFormat::Movie),
+                Some(MediaFormat::Special),
+                Some(MediaFormat::Ova),
+                Some(MediaFormat::Ona),
+                Some(MediaFormat::Music),
+            ]),
+            id: Some(id),
+            media_type: Some(MediaType::Anime),
+            search: None,
+        };
+        get_media(var).await?
     } else {
-        MediaWrapper::new_anime_by_search(&value).await?
+        let var = MediaQuerryVariables {
+            format_in: Some(vec![
+                Some(MediaFormat::Tv),
+                Some(MediaFormat::TvShort),
+                Some(MediaFormat::Movie),
+                Some(MediaFormat::Special),
+                Some(MediaFormat::Ova),
+                Some(MediaFormat::Ona),
+                Some(MediaFormat::Music),
+            ]),
+            search: Some(&*value),
+            media_type: Some(MediaType::Anime),
+            id: None,
+        };
+        get_media(var).await?
     };
 
     // Send an embed with the anime information as a response to the command interaction

@@ -5,13 +5,14 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::command::run::admin::anilist::add_activity::get_name;
+use crate::command::run::admin::anilist::add_activity::{
+    get_minimal_anime_by_id, get_minimal_anime_by_search, get_name,
+};
 use crate::database::manage::dispatcher::data_dispatch::remove_data_activity_status;
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
-use crate::structure::run::anilist::minimal_anime::MinimalAnimeWrapper;
 
 /// This asynchronous function runs the command interaction for deleting an anime activity.
 ///
@@ -50,11 +51,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         None => String::from("0"),
     };
 
-    let delete_activity_localised_text = load_localization_delete_activity(guild_id).await?;
-    let guild_id = match command_interaction.guild_id {
-        Some(id) => id.to_string(),
-        None => String::from("0"),
-    };
+    let delete_activity_localised_text =
+        load_localization_delete_activity(guild_id.clone()).await?;
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
@@ -68,20 +66,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
     trace!(anime);
-    let anime_id = if anime.parse::<i32>().is_ok() {
-        anime.parse().unwrap()
+    let media = if anime.parse::<i32>().is_ok() {
+        get_minimal_anime_by_id(anime.parse::<i32>().unwrap()).await?
     } else {
-        MinimalAnimeWrapper::new_minimal_anime_by_search(anime.to_string())
-            .await?
-            .data
-            .media
-            .id
+        get_minimal_anime_by_search(anime.as_str()).await?
     };
 
-    remove_activity(&guild_id, &anime_id).await?;
+    let anime_id = media.id;
+    remove_activity(guild_id.as_str(), &anime_id).await?;
 
-    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(anime_id.to_string()).await?;
-    let media = data.data.media;
     let title = media.title.unwrap();
     let anime_name = get_name(title);
     let builder_embed = get_default_embed(None)

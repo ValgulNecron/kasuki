@@ -1,12 +1,14 @@
+use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::staff::load_localization_staff;
-use crate::structure::run::anilist::staff::StaffWrapper;
+use crate::structure::run::anilist::staff::{StaffQuerry, StaffQuerryVariables};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -30,30 +32,40 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         ErrorResponseType::Message,
     ))?;
 
-    let data: StaffWrapper = if value.parse::<i32>().is_ok() {
-        StaffWrapper::new_staff_by_id(value.parse().unwrap()).await?
+    let var = if value.parse::<i32>().is_ok() {
+        StaffQuerryVariables {
+            id: Some(value.parse().unwrap()),
+            search: None,
+        }
     } else {
-        StaffWrapper::new_staff_by_search(value).await?
+        StaffQuerryVariables {
+            id: None,
+            search: Some(value),
+        }
     };
-
+    let operation = StaffQuerry::build(var);
+    let data: Result<GraphQlResponse<StaffQuerry>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
+    let staff = data.data.unwrap().staff.unwrap();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
     let staff_localised = load_localization_staff(guild_id).await?;
-    let staff = data.data.staff.clone();
 
     let mut date = String::new();
     let mut day = false;
     let mut month = false;
 
-    if let Some(m) = staff.date_of_birth.month {
+    let date_of_birth = staff.date_of_birth.unwrap().clone();
+    if let Some(m) = date_of_birth.month {
         month = true;
         date.push_str(m.to_string().as_str())
     }
 
-    if let Some(d) = staff.date_of_birth.day {
+    if let Some(d) = date_of_birth.day {
         day = true;
         if month {
             date.push('/')
@@ -61,7 +73,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         date.push_str(d.to_string().as_str())
     }
 
-    if let Some(y) = staff.date_of_birth.year {
+    if let Some(y) = date_of_birth.year {
         if day {
             date.push('/')
         }
@@ -75,12 +87,14 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let mut date = String::new();
     let mut day = false;
     let mut month = false;
-    if let Some(m) = staff.date_of_death.month {
+
+    let date_of_death = staff.date_of_death.unwrap().clone();
+    if let Some(m) = date_of_death.month {
         month = true;
         date.push_str(m.to_string().as_str())
     }
 
-    if let Some(d) = staff.date_of_death.day {
+    if let Some(d) = date_of_death.day {
         day = true;
         if month {
             date.push('/')
@@ -88,7 +102,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         date.push_str(d.to_string().as_str())
     }
 
-    if let Some(y) = staff.date_of_death.year {
+    if let Some(y) = date_of_death.year {
         if day {
             date.push('/')
         }
@@ -101,7 +115,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .desc
         .replace("$dob$", dob.as_str())
         .replace("$dod$", dod.as_str())
-        .replace("$job$", staff.primary_occupations[0].as_str())
+        .replace(
+            "$job$",
+            staff.primary_occupations.unwrap()[0]
+                .clone()
+                .unwrap_or_default()
+                .as_str(),
+        )
         .replace(
             "$gender$",
             staff
@@ -112,19 +132,23 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         )
         .replace("$age$", staff.age.unwrap_or(0).to_string().as_str());
 
-    let name = staff
-        .name
-        .full
-        .clone()
-        .unwrap_or(staff.name.native.clone().unwrap());
+    let name = staff.name.unwrap();
+    let name = name.full.unwrap_or(
+        name.user_preferred
+            .unwrap_or(name.native.unwrap_or(String::from("Unknown."))),
+    );
 
     let va = staff
         .characters
+        .unwrap()
         .nodes
+        .unwrap()
         .iter()
         .filter_map(|x| {
-            let full = x.name.full.as_deref();
-            let native = x.name.native.as_deref();
+            let x = x.clone().unwrap();
+            let name = x.name.unwrap();
+            let full = name.full.as_deref();
+            let native = name.native.as_deref();
             get_full_name(full, native)
         })
         .take(5)
@@ -133,11 +157,15 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let media = staff
         .staff_media
+        .unwrap()
         .edges
+        .unwrap()
         .iter()
         .filter_map(|x| {
-            let romaji = x.node.title.romaji.as_deref();
-            let english = x.node.title.english.as_deref();
+            let node = x.clone().unwrap().node.unwrap();
+            let title = node.title.unwrap();
+            let romaji = title.romaji.as_deref();
+            let english = title.english.as_deref();
             get_full_name(romaji, english)
         })
         .take(5)
@@ -147,8 +175,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let builder_embed = get_default_embed(None)
         .description(desc)
         .title(name)
-        .url(staff.site_url)
-        .thumbnail(staff.image.large)
+        .url(staff.site_url.unwrap_or_default())
+        .thumbnail(staff.image.unwrap().large.unwrap_or_default())
         .field(&staff_localised.field2_title, va, true)
         .field(&staff_localised.field1_title, media, true);
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);

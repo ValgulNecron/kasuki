@@ -7,14 +7,14 @@ use chrono::Utc;
 use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webhook};
 use tracing::{error, trace};
 
+use crate::command::run::admin::anilist::add_activity::get_minimal_anime_by_id;
 use crate::database::data_struct::server_activity::ServerActivityFull;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
-use crate::structure::run::anilist::minimal_anime::{ActivityData, MinimalAnimeWrapper};
 
 /// `manage_activity` is an asynchronous function that manages activities.
 /// It takes a `ctx` as a parameter.
@@ -54,26 +54,23 @@ async fn send_activity(ctx: &Context) {
         }
     };
     for row in rows {
-        if row.timestamp.is_none() || now != row.timestamp.clone().unwrap_or_default() {
+        if now != row.timestamp.to_string() {
             continue;
         }
 
         let row2 = row.clone();
-        let guild_id = row.server_id.clone();
+        let guild_id = row.guild_id.clone();
         let ctx = ctx.clone();
-        if row.delays.is_some() || row.delays.unwrap_or_default() != 0 {
+        if row.delays != 0 {
             tokio::spawn(async move {
-                tokio::time::sleep(Duration::from_secs(row2.delays.unwrap_or_default() as u64))
-                    .await;
-                if let Err(e) =
-                    send_specific_activity(row, guild_id.unwrap_or_default(), row2, &ctx).await
-                {
+                tokio::time::sleep(Duration::from_secs(row2.delays as u64)).await;
+                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx).await {
                     error!("{}", e)
                 }
             });
         } else {
             tokio::spawn(async move {
-                if let Err(e) = send_specific_activity(row, guild_id.unwrap(), row2, &ctx).await {
+                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx).await {
                     error!("{}", e);
                 }
             });
@@ -108,13 +105,13 @@ async fn send_activity(ctx: &Context) {
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 async fn send_specific_activity(
-    row: ActivityData,
+    row: ServerActivityFull,
     guild_id: String,
-    row2: ActivityData,
+    row2: ServerActivityFull,
     ctx: &Context,
 ) -> Result<(), AppError> {
     let localised_text = load_localization_send_activity(guild_id.clone()).await?;
-    let webhook_url = row.webhook.clone().unwrap_or_default();
+    let webhook_url = row.webhook.clone();
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
         .await
         .map_err(|e| {
@@ -125,7 +122,7 @@ async fn send_specific_activity(
             )
         })?;
 
-    let image = row.image.unwrap_or_default();
+    let image = row.image;
     trace!(image);
 
     let cursor = Cursor::new(image);
@@ -140,10 +137,14 @@ async fn send_specific_activity(
             ErrorResponseType::None,
         )
     })?;
+    let name = row.name.clone();
+    let trimmed_name = if name.len() > 100 {
+        name[..100].to_string()
+    } else {
+        name
+    };
     let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
-    let edit_webhook = EditWebhook::new()
-        .name(row.name.clone().unwrap())
-        .avatar(&attachment);
+    let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(&attachment);
     webhook.edit(&ctx.http, edit_webhook).await.map_err(|e| {
         AppError::new(
             format!("There was an error editing the webhook {}", e),
@@ -156,13 +157,11 @@ async fn send_specific_activity(
         .description(
             localised_text
                 .desc
-                .replace("$ep$", row.episode.unwrap_or(String::from("0")).as_str())
-                .replace("$anime$", row.name.unwrap_or(String::from("none")).as_str()),
+                .replace("$ep$", &row.episode.to_string())
+                .as_str()
+                .replace("$anime$", row.name.as_str()),
         )
-        .url(format!(
-            "https://anilist.co/anime/{}",
-            row.anime_id.unwrap_or(String::from("0"))
-        ))
+        .url(format!("https://anilist.co/anime/{}", row.anime_id))
         .title(&localised_text.title);
 
     let builder_message = ExecuteWebhook::new().embed(embed);
@@ -202,12 +201,8 @@ async fn send_specific_activity(
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
-async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError> {
-    let data = MinimalAnimeWrapper::new_minimal_anime_by_id(
-        row.anime_id.clone().unwrap_or("0".to_string()),
-    )
-    .await?;
-    let media = data.data.media;
+async fn update_info(row: ServerActivityFull, guild_id: String) -> Result<(), AppError> {
+    let media = get_minimal_anime_by_id(row.anime_id).await?;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
         None => return remove_activity(row, guild_id).await,
@@ -222,13 +217,13 @@ async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
     set_data_activity(ServerActivityFull {
         anime_id: media.id,
-        timestamp: next_airing.airing_at.unwrap(),
+        timestamp: next_airing.airing_at as i64,
         guild_id,
-        webhook: row.webhook.unwrap(),
-        episode: next_airing.episode.unwrap(),
+        webhook: row.webhook,
+        episode: next_airing.episode,
         name,
-        delays: row.delays.unwrap_or(0) as i64,
-        image: row.image.unwrap_or_default(),
+        delays: row.delays,
+        image: row.image,
     })
     .await?;
     Ok(())
@@ -248,8 +243,8 @@ async fn update_info(row: ActivityData, guild_id: String) -> Result<(), AppError
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
-async fn remove_activity(row: ActivityData, guild_id: String) -> Result<(), AppError> {
+async fn remove_activity(row: ServerActivityFull, guild_id: String) -> Result<(), AppError> {
     trace!("removing {:#?} for {}", row, guild_id);
-    remove_data_activity_status(guild_id, row.anime_id.unwrap_or(1.to_string())).await?;
+    remove_data_activity_status(guild_id, row.anime_id.to_string()).await?;
     Ok(())
 }

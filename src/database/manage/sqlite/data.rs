@@ -1,12 +1,14 @@
-use chrono::Utc;
-
-use crate::constant::DATA_SQLITE_DB;
+use crate::constant::SQLITE_DB_PATH;
+use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
-use crate::database::data_struct::server_activity::{ServerActivity, ServerActivityFull};
+use crate::database::data_struct::ping_history::PingHistory;
+use crate::database::data_struct::registered_user::RegisteredUser;
+use crate::database::data_struct::server_activity::{
+    ServerActivity, ServerActivityFull, SmallServerActivity,
+};
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::structure::run::anilist::minimal_anime::ActivityData;
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
 ///
@@ -24,18 +26,14 @@ use crate::structure::run::anilist::minimal_anime::ActivityData;
 /// # Errors
 ///
 /// This function will log errors encountered when executing the SQL command, but does not return them.
-pub async fn set_data_ping_history_sqlite(
-    shard_id: String,
-    latency: String,
-) -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let now = Utc::now().timestamp().to_string();
+pub async fn set_data_ping_history_sqlite(ping_history: PingHistory) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO ping_history (shard_id, timestamp, ping) VALUES (?, ?, ?)",
     )
-    .bind(shard_id)
-    .bind(now)
-    .bind(latency)
+    .bind(ping_history.shard_id)
+    .bind(ping_history.timestamp)
+    .bind(ping_history.ping)
     .execute(&pool)
     .await
     .map_err(|e| {
@@ -62,14 +60,14 @@ pub async fn set_data_ping_history_sqlite(
 /// If not found, both values will be `None`.
 pub async fn get_data_guild_language_sqlite(
     guild_id: String,
-) -> Result<(Option<String>, Option<String>), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>) =
+) -> Result<Option<GuildLanguage>, AppError> {
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
+    let row: Option<GuildLanguage> =
         sqlx::query_as("SELECT lang, guild FROM guild_lang WHERE guild = ?")
             .bind(guild_id)
-            .fetch_one(&pool)
+            .fetch_optional(&pool)
             .await
-            .unwrap_or((None, None));
+            .unwrap_or(None);
     pool.close().await;
     Ok(row)
 }
@@ -80,14 +78,11 @@ pub async fn get_data_guild_language_sqlite(
 ///
 /// * `guild_id` - The ID of the guild.
 /// * `lang_struct` - The language to set for the guild.
-pub async fn set_data_guild_language_sqlite(
-    guild_id: &String,
-    lang: &String,
-) -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+pub async fn set_data_guild_language_sqlite(guild_language: GuildLanguage) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let _ = sqlx::query("INSERT OR REPLACE INTO guild_lang (guild, lang) VALUES (?, ?)")
-        .bind(guild_id)
-        .bind(lang)
+        .bind(guild_language.guild)
+        .bind(guild_language.lang)
         .execute(&pool)
         .await
         .map_err(|e| {
@@ -107,9 +102,9 @@ pub async fn set_data_guild_language_sqlite(
 ///
 /// A `Vec<ActivityData>` containing the retrieved data.
 ///
-pub async fn get_data_activity_sqlite(now: String) -> Result<Vec<ActivityData>, AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let rows: Vec<ActivityData> = sqlx::query_as(
+pub async fn get_data_activity_sqlite(now: String) -> Result<Vec<ServerActivityFull>, AppError> {
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
+    let rows: Vec<ServerActivityFull> = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays, image FROM activity_data WHERE timestamp = ?",
     )
         .bind(now)
@@ -134,7 +129,7 @@ pub async fn get_data_activity_sqlite(now: String) -> Result<Vec<ActivityData>, 
 pub async fn set_data_activity_sqlite(
     server_activity_full: ServerActivityFull,
 ) -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )
@@ -148,11 +143,11 @@ pub async fn set_data_activity_sqlite(
         .bind(server_activity_full.image)
         .execute(&pool)
         .await.map_err(|e|
-        AppError::new(
-            format!("Failed to insert into the table. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::Unknown,
-        ))?;
+    AppError::new(
+        format!("Failed to insert into the table. {}", e),
+        ErrorType::Database,
+        ErrorResponseType::Unknown,
+    ))?;
     pool.close().await;
     Ok(())
 }
@@ -174,7 +169,7 @@ pub async fn set_data_activity_sqlite(
 pub async fn get_data_module_activation_status_sqlite(
     guild_id: &String,
 ) -> Result<ActivationStatusModule, AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let row: ActivationStatusModule = sqlx::query_as(
         "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild = ?",
     )
@@ -213,29 +208,26 @@ pub async fn get_data_module_activation_status_sqlite(
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn set_data_module_activation_status_sqlite(
-    guild_id: &String,
-    anilist_value: bool,
-    ai_value: bool,
-    game_value: bool,
-    new_member_value: bool,
+    activation_status_module: ActivationStatusModule,
 ) -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let _ = sqlx::query(
-        "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module, game_module, new_member) VALUES (?, ?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module, game_module, new_member, vn) VALUES (?, ?, ?, ?, ?, ?)",
     )
-        .bind(guild_id)
-        .bind(anilist_value)
-        .bind(ai_value)
-        .bind(game_value)
-        .bind(new_member_value)
+        .bind(activation_status_module.id)
+        .bind(activation_status_module.anilist_module)
+        .bind(activation_status_module.ai_module)
+        .bind(activation_status_module.game_module)
+        .bind(activation_status_module.new_member)
+        .bind(activation_status_module.vn)
         .execute(&pool)
         .await
         .map_err(|e|
-            AppError::new(
-                format!("Failed to insert into the table. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::Unknown,
-            ))?;
+        AppError::new(
+            format!("Failed to insert into the table. {}", e),
+            ErrorType::Database,
+            ErrorResponseType::Unknown,
+        ))?;
     pool.close().await;
     Ok(())
 }
@@ -259,7 +251,7 @@ pub async fn remove_data_activity_status_sqlite(
     server_id: String,
     anime_id: String,
 ) -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let _ = sqlx::query("DELETE FROM activity_data WHERE anime_id = ? AND server_id = ?")
         .bind(anime_id)
         .bind(server_id)
@@ -289,7 +281,7 @@ pub async fn remove_data_activity_status_sqlite(
 /// * A Result that is either an Ok variant containing an `ActivationStatusModule` struct if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_data_module_activation_kill_switch_status_sqlite(
 ) -> Result<ActivationStatusModule, AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let row: ActivationStatusModule = sqlx::query_as(
         "SELECT id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild = 1",
     )
@@ -329,16 +321,16 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
 pub async fn get_one_activity_sqlite(
     server_id: String,
     anime_id: i32,
-) -> Result<(Option<String>, Option<String>, Option<String>), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>, Option<String>) = sqlx::query_as(
+) -> Result<Option<SmallServerActivity>, AppError> {
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
+    let row: Option<SmallServerActivity> = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id FROM activity_data WHERE anime_id = ? AND server_id = ?",
     )
         .bind(anime_id)
         .bind(server_id)
-        .fetch_one(&pool)
+        .fetch_optional(&pool)
         .await
-        .unwrap_or((None, None, None));
+        .unwrap_or(None);
 
     pool.close().await;
 
@@ -361,14 +353,14 @@ pub async fn get_one_activity_sqlite(
 /// * A Result that is either an Ok variant containing a tuple of optional Strings if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_registered_user_sqlite(
     user_id: &String,
-) -> Result<(Option<String>, Option<String>), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
-    let row: (Option<String>, Option<String>) =
+) -> Result<Option<RegisteredUser>, AppError> {
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
+    let row: Option<RegisteredUser> =
         sqlx::query_as("SELECT anilist_id, user_id FROM registered_user WHERE user_id = ?")
             .bind(user_id)
-            .fetch_one(&pool)
+            .fetch_optional(&pool)
             .await
-            .unwrap_or((None, None));
+            .unwrap_or(None);
     pool.close().await;
 
     Ok(row)
@@ -389,15 +381,12 @@ pub async fn get_registered_user_sqlite(
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an `AppError` if the operation failed.
-pub async fn set_registered_user_sqlite(
-    user_id: &String,
-    username: &String,
-) -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+pub async fn set_registered_user_sqlite(registered_user: RegisteredUser) -> Result<(), AppError> {
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let _ =
         sqlx::query("INSERT OR REPLACE INTO registered_user (user_id, anilist_id) VALUES (?, ?)")
-            .bind(user_id)
-            .bind(username)
+            .bind(registered_user.user_id)
+            .bind(registered_user.anilist_id)
             .execute(&pool)
             .await
             .map_err(|e| {
@@ -435,7 +424,7 @@ pub async fn set_user_approximated_color_sqlite(
     pfp_url: &String,
     image: &String,
 ) -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO user_color (user_id, color, pfp_url, image) VALUES (?, ?, ?, ?)",
     )
@@ -472,7 +461,7 @@ pub async fn set_user_approximated_color_sqlite(
 ///
 /// * A Result that is either an Ok variant containing a `UserColor` struct if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_user_approximated_color_sqlite(user_id: &String) -> Result<UserColor, AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let row: UserColor =
         sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color WHERE user_id = ?")
             .bind(user_id)
@@ -506,7 +495,7 @@ pub async fn get_user_approximated_color_sqlite(user_id: &String) -> Result<User
 pub async fn get_all_server_activity_sqlite(
     server_id: &String,
 ) -> Result<Vec<ServerActivity>, AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let rows: Vec<ServerActivity> = sqlx::query_as(
         "SELECT
        anime_id,
@@ -538,7 +527,7 @@ pub async fn get_all_server_activity_sqlite(
 ///
 /// * A Result that is either an Ok variant containing a vector of `UserColor` structs if the operation was successful, or an Err variant with an `AppError` if the operation failed.
 pub async fn get_all_user_approximated_color_sqlite() -> Result<Vec<UserColor>, AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let row: Vec<UserColor> =
         sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color")
             .fetch_all(&pool)
@@ -571,7 +560,7 @@ pub async fn get_all_user_approximated_color_sqlite() -> Result<Vec<UserColor>, 
 pub async fn get_data_all_activity_by_server_sqlite(
     server_id: &String,
 ) -> Result<Vec<(String, String)>, AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let rows = sqlx::query_as(
         "SELECT
            anime_id, name
@@ -610,7 +599,7 @@ pub async fn set_server_image_sqlite(
     image: &String,
     image_url: &String,
 ) -> Result<(), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let _ = sqlx::query(
         "INSERT OR REPLACE INTO server_image (server_id, type, image, image_url) VALUES (?, ?, ?, ?)",
     )
@@ -651,7 +640,7 @@ pub async fn get_server_image_sqlite(
     server_id: &String,
     image_type: &String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
-    let pool = get_sqlite_pool(DATA_SQLITE_DB).await?;
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let row: (Option<String>, Option<String>) = sqlx::query_as(
         "SELECT image_url, image FROM server_image WHERE server_id = ? and type = ?",
     )

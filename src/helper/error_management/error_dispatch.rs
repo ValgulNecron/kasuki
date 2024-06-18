@@ -5,7 +5,7 @@ use serenity::all::{
 };
 use tracing::error;
 
-use crate::constant::{CHAT_TOKEN, COLOR, DISCORD_TOKEN, IMAGE_TOKEN, TRANSCRIPT_TOKEN};
+use crate::constant::{COLOR, CONFIG};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// ERROR_MESSAGE is a constant string that contains the default error message
@@ -162,10 +162,21 @@ async fn send_differed_error(
 /// * `String` - A String which is the censored error message.
 fn censor_url_and_token(error_message: String) -> String {
     let mut error_message = error_message;
-    let discord_token = DISCORD_TOKEN.to_string();
-    let image_token = IMAGE_TOKEN.to_string();
-    let transcript_token = TRANSCRIPT_TOKEN.to_string();
-    let chat_token = CHAT_TOKEN.to_string();
+    let config = unsafe { CONFIG.clone() };
+    let discord_token = config.bot.discord_token.clone();
+    let image_token = config.ai.image.ai_image_token.clone().unwrap_or_default();
+    let transcript_token = config
+        .ai
+        .transcription
+        .ai_transcription_token
+        .clone()
+        .unwrap_or_default();
+    let chat_token = config
+        .ai
+        .question
+        .ai_question_token
+        .clone()
+        .unwrap_or_default();
     error_message = error_message
         .replace(&discord_token, "[REDACTED]")
         .replace(&image_token, "[REDACTED]")

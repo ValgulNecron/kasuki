@@ -1,0 +1,22 @@
+{
+  "en": {
+    "title": "$user$'s Command Usage",
+    "no_usage": "$user$ has not used any commands",
+    "command_usage": "$command$'s Command Usage is $usage$"
+  },
+  "fr": {
+    "title": "Utilisation des commandes de $user$",
+    "no_usage": "$user$ n'a pas utilisé de commandes",
+    "command_usage": "L'utilisation de la commande $command$ est de $usage$"
+  },
+  "jp": {
+    "title": "$user$のコマンド使用状況",
+    "no_usage": "$user$はコマンドを使用していません",
+    "command_usage": "$command$のコマンド使用状況は$usage$です"
+  },
+  "de": {
+    "title": "Befehlsverwendung von $user$",
+    "no_usage": "$user$ hat keine Befehle verwendet",
+    "command_usage": "Die Befehlsverwendung von $command$ beträgt $usage$"
+  }
+}

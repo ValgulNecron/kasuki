@@ -1,21 +1,25 @@
+use std::sync::Arc;
+use std::time::Duration;
+
+use serde_json::Value;
+use serenity::all::{Context, ShardManager};
+use tokio::sync::RwLock;
+use tokio::time::{interval, sleep};
+use tracing::info;
+
 use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
+use crate::background_task::update_random_stats::update_random_stats_launcher;
 use crate::constant::{
-    GRPC_IS_ON, PING_UPDATE_DELAYS, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_GAME_UPDATE,
+    CONFIG, PING_UPDATE_DELAYS, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_GAME_UPDATE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE, USER_BLACKLIST_SERVER_IMAGE,
 };
+use crate::database::data_struct::ping_history::PingHistory;
 use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
 use crate::grpc_server::launcher::grpc_server_launcher;
 use crate::struct_shard_manager::ShardManagerContainer;
 use crate::structure::steam_game_id_struct::get_game;
-use serde_json::Value;
-use serenity::all::{Context, ShardManager};
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::sync::RwLock;
-use tokio::time::{interval, sleep};
-use tracing::info;
 
 /// This function is responsible for launching various threads for different tasks.
 /// It takes a `Context` as an argument which is used to clone and pass to the threads.
@@ -44,7 +48,7 @@ pub async fn thread_management_launcher(ctx: Context, command_usage: Arc<RwLock<
         let local_user_blacklist = USER_BLACKLIST_SERVER_IMAGE.clone();
         tokio::spawn(update_user_blacklist(local_user_blacklist));
     }
-
+    tokio::spawn(update_random_stats_launcher());
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
     tokio::spawn(launch_server_image_management_thread(ctx.clone()));
@@ -72,8 +76,8 @@ async fn ping_manager_thread(ctx: Context) {
 /// This function is responsible for launching the web server thread.
 /// It does not take any arguments and does not return anything.
 async fn launch_web_server_thread(ctx: Context, command_usage: Arc<RwLock<u128>>) {
-    let is_grpc_on = GRPC_IS_ON;
-    if !*is_grpc_on {
+    let is_grpc_on = unsafe { CONFIG.grpc.grpc_is_on };
+    if !is_grpc_on {
         info!("GRPC is off, skipping the GRPC server thread!");
         return;
     }
@@ -150,9 +154,14 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>) {
         // Get the latency of the shard
         let latency = shard.latency.unwrap_or_default().as_millis().to_string();
         // Set the ping history data
-        set_data_ping_history(shard_id.to_string(), latency)
-            .await
-            .unwrap();
+        let now = chrono::Utc::now().timestamp().to_string();
+        let ping_history = PingHistory {
+            shard_id: shard_id.to_string(),
+            ping: latency.clone(),
+            timestamp: now,
+        };
+
+        set_data_ping_history(ping_history).await.unwrap();
     }
 }
 

@@ -1,132 +1,80 @@
-use serde::Deserialize;
-use serde_json::json;
+#[cynic::schema("anilist")]
+mod schema {}
 
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::make_anilist_cached_request::make_request_anilist;
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct StaffImageWrapper {
-    pub data: StaffImageData,
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct SeiyuuVariables<'a> {
+    pub id: Option<i32>,
+    pub per_page: Option<i32>,
+    pub search: Option<&'a str>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct StaffImageData {
-    #[serde(rename = "Staff")]
-    pub staff: Staff,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "SeiyuuVariables")]
+pub struct Seiyuu {
+    #[cynic(rename = "Page")]
+    pub page: Option<Page>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(variables = "SeiyuuVariables")]
+pub struct Page {
+    #[arguments(search: $ search, id: $ id)]
+    pub staff: Option<Vec<Option<Staff>>>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(variables = "SeiyuuVariables")]
 pub struct Staff {
-    pub image: StaffImageImage,
-    pub characters: StaffImageCharacters,
+    pub site_url: Option<String>,
+    pub image: Option<StaffImage>,
+    pub name: Option<StaffName>,
+    #[arguments(perPage: $ per_page, sort: "FAVOURITES")]
+    pub characters: Option<CharacterConnection>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct StaffImageImage {
-    pub large: String,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct StaffName {
+    pub user_preferred: Option<String>,
+    pub native: Option<String>,
+    pub full: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct StaffImageCharacters {
-    pub nodes: Vec<StaffImageNodes>,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct StaffImage {
+    pub large: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct StaffImageNodes {
-    pub image: StaffImageImage,
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct CharacterConnection {
+    pub nodes: Option<Vec<Option<Character>>>,
 }
 
-/// `StaffImageWrapper` is an implementation block for the `StaffImageWrapper` struct.
-impl StaffImageWrapper {
-    /// `new_staff_by_id` is an asynchronous function that creates a new staff by ID.
-    /// It takes an `id` as a parameter.
-    /// `id` is a 32-bit integer that represents the ID of the staff.
-    /// It returns a `Result` that contains a `StaffImageWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes an `id` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `id` variable is set to the `id` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `StaffImageWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `id` - A 32-bit integer that represents the ID of the staff.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<StaffImageWrapper, AppError>` - A Result that contains a `StaffImageWrapper` or an `AppError`.
-    pub async fn new_staff_by_id(id: i32) -> Result<StaffImageWrapper, AppError> {
-        let query_id: &str = "
-        query ($name: Int, $limit: Int = 9) {
-	Staff(id: $name){
-    image{
-      large
-    }
-    characters(perPage: $limit, sort: FAVOURITES_DESC) {
-      nodes {
-        image {
-          large
-        }
-      }
-    }
-  }
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct Character {
+    pub image: Option<CharacterImage>,
+    pub name: Option<CharacterName>,
 }
-";
-        let json = json!({"query": query_id, "variables": {"name": id}});
-        let resp = make_request_anilist(json, false).await;
-        serde_json::from_str(&resp).map_err(|e| {
-            AppError::new(
-                format!("Error getting the staff with id {}. {}", id, e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Message,
-            )
-        })
-    }
 
-    /// `new_staff_by_search` is an asynchronous function that creates a new staff by search.
-    /// It takes a `search` as a parameter.
-    /// `search` is a reference to a String that represents the search query.
-    /// It returns a `Result` that contains a `StaffImageWrapper` or an `AppError`.
-    ///
-    /// This function first defines a GraphQL query string that takes a `search` as a variable.
-    /// It then creates a JSON object with the query string and the variable.
-    /// The `search` variable is set to the `search` parameter.
-    /// It makes a request to AniList with the JSON object and waits for the response.
-    /// It then deserializes the response into a `StaffImageWrapper` and returns it.
-    ///
-    /// # Arguments
-    ///
-    /// * `search` - A reference to a String that represents the search query.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<StaffImageWrapper, AppError>` - A Result that contains a `StaffImageWrapper` or an `AppError`.
-    pub async fn new_staff_by_search(search: &String) -> Result<StaffImageWrapper, AppError> {
-        let query_string: &str = "
-query ($name: String, $limit: Int = 9) {
-	Staff(search: $name){
-    image{
-      large
-    }
-    characters(perPage: $limit, sort: FAVOURITES_DESC) {
-      nodes {
-        image {
-          large
-        }
-      }
-    }
-  }
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct CharacterName {
+    pub full: Option<String>,
+    pub native: Option<String>,
+    pub user_preferred: Option<String>,
 }
-";
-        let json = json!({"query": query_string, "variables": {"name": search}});
-        let resp = make_request_anilist(json, false).await;
-        serde_json::from_str(&resp).map_err(|e| {
-            AppError::new(
-                format!("Error getting the staff with name {}. {}", search, e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Message,
-            )
-        })
-    }
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct CharacterImage {
+    pub large: Option<String>,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+pub enum CharacterSort {
+    Id,
+    IdDesc,
+    Role,
+    RoleDesc,
+    SearchMatch,
+    Favourites,
+    FavouritesDesc,
+    Relevance,
 }

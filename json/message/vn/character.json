@@ -1,0 +1,58 @@
+{
+  "en": {
+    "blood_type": "Blood Type",
+    "height": "Height",
+    "weight": "Weight",
+    "age": "Age",
+    "bust": "Bust",
+    "waist": "Waist",
+    "hip": "Hip",
+    "cup": "Cup",
+    "sex": "Sex",
+    "birthday": "Birthday",
+    "vns": "Visual Novels",
+    "traits": "Traits"
+  },
+  "ja": {
+    "blood_type": "血液型",
+    "height": "身長",
+    "weight": "体重",
+    "age": "年齢",
+    "bust": "バスト",
+    "waist": "ウエスト",
+    "hip": "ヒップ",
+    "cup": "カップ",
+    "sex": "性別",
+    "birthday": "誕生日",
+    "vns": "ビジュアルノベル",
+    "traits": "特徴"
+  },
+  "fr": {
+    "blood_type": "Groupe sanguin",
+    "height": "Taille",
+    "weight": "Poids",
+    "age": "Âge",
+    "bust": "Poitrine",
+    "waist": "Taille",
+    "hip": "Hanches",
+    "cup": "Bonnet",
+    "sex": "Sexe",
+    "birthday": "Anniversaire",
+    "vns": "Visual Novels",
+    "traits": "Traits"
+  },
+  "de": {
+    "blood_type": "Blutgruppe",
+    "height": "Größe",
+    "weight": "Gewicht",
+    "age": "Alter",
+    "bust": "Brust",
+    "waist": "Taille",
+    "hip": "Hüfte",
+    "cup": "Körbchengröße",
+    "sex": "Geschlecht",
+    "birthday": "Geburtstag",
+    "vns": "Visual Novels",
+    "traits": "Merkmale"
+  }
+}

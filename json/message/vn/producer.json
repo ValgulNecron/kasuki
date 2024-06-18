@@ -1,0 +1,22 @@
+{
+  "en": {
+    "lang": "Language",
+    "prod_type": "Type",
+    "aliases": "Aliases"
+  },
+  "de": {
+    "lang": "Sprache",
+    "prod_type": "Typ",
+    "aliases": "Alias"
+  },
+  "fr": {
+    "lang": "Langue",
+    "prod_type": "Type",
+    "aliases": "Alias"
+  },
+  "ja": {
+    "lang": "言語",
+    "prod_type": "タイプ",
+    "aliases": "エイリアス"
+  }
+}

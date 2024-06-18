@@ -259,7 +259,6 @@ pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context) {
         let guild_id = guild.to_string();
         debug!(guild_id);
 
-        // Assuming get_member is async and returns a Future<Member>
         let ctx_clone = ctx_clone.clone();
         let guild = *guild;
         let future = get_member(ctx_clone, guild);

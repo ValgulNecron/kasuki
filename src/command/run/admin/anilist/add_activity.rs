@@ -3,6 +3,7 @@ use std::io::{Cursor, Read};
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use base64::Engine as _;
+use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
 use reqwest::get;
@@ -15,14 +16,17 @@ use serenity::all::{
 use tracing::{error, trace};
 
 use crate::constant::COLOR;
-use crate::database::data_struct::server_activity::ServerActivityFull;
+use crate::database::data_struct::server_activity::{ServerActivityFull, SmallServerActivity};
 use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
-use crate::helper::create_normalise_embed::get_default_embed;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
 use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
-use crate::structure::run::anilist::minimal_anime::{MinimalAnimeWrapper, Title};
+use crate::structure::run::anilist::minimal_anime::{
+    Media, MediaTitle, MinimalAnime, MinimalAnimeVariables,
+};
 
 /// This asynchronous function gets or creates a webhook for a given channel.
 ///
@@ -72,19 +76,18 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })?;
     let add_activity_localised = load_localization_add_activity(guild_id.clone()).await?;
 
-    let data = if anime.parse::<i32>().is_ok() {
-        MinimalAnimeWrapper::new_minimal_anime_by_id(anime.parse().unwrap()).await?
+    let media = if anime.parse::<i32>().is_ok() {
+        get_minimal_anime_by_id(anime.parse::<i32>().unwrap()).await?
     } else {
-        MinimalAnimeWrapper::new_minimal_anime_by_search(anime.to_string()).await?
+        get_minimal_anime_by_search(anime.as_str()).await?
     };
-    let media = data.data.media.clone();
     let anime_id = media.id;
-    let title = data.data.media.title.ok_or(AppError::new(
+    let title = media.title.ok_or(AppError::new(
         String::from("There is no option in the title."),
         ErrorType::Option,
-        ErrorResponseType::Message,
+        ErrorResponseType::Followup,
     ))?;
-    let mut anime_name = get_name(title);
+    let anime_name = get_name(title);
     let channel_id = command_interaction.channel_id;
 
     if check_if_activity_exist(anime_id, guild_id.clone()).await {
@@ -114,9 +117,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
         Ok(())
     } else {
-        if anime_name.len() >= 50 {
-            anime_name = trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
-        }
+        let trimed_anime_name = if anime_name.len() >= 50 {
+            trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
+        } else {
+            anime_name.clone()
+        };
 
         let bytes = get(media.cover_image.unwrap().extra_large.
             unwrap_or(
@@ -145,20 +150,20 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 return Err(AppError::new(
                     String::from("There is no next airing episode."),
                     ErrorType::Option,
-                    ErrorResponseType::Message,
+                    ErrorResponseType::Followup,
                 ));
             }
         };
 
         let webhook =
-            get_webhook(ctx, channel_id, image, base64.clone(), anime_name.clone()).await?;
+            get_webhook(ctx, channel_id, image, base64.clone(), trimed_anime_name).await?;
 
         set_data_activity(ServerActivityFull {
             anime_id,
-            timestamp: next_airing.airing_at.unwrap_or(0),
+            timestamp: next_airing.airing_at as i64,
             guild_id,
             webhook,
-            episode: next_airing.episode.unwrap_or(0),
+            episode: next_airing.episode,
             name: anime_name.clone(),
             delays: delay,
             image: base64,
@@ -204,11 +209,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 ///
 /// A boolean indicating whether the activity exists.
 async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
-    let row: (Option<String>, Option<String>, Option<String>) =
-        get_one_activity(anime_id, server_id)
-            .await
-            .unwrap_or((None, None, None));
-    !(row.0.is_none() && row.1.is_none() && row.2.is_none())
+    let row: Option<SmallServerActivity> =
+        get_one_activity(anime_id, server_id).await.unwrap_or(None);
+    row.is_some()
 }
 
 /// This function gets the name of an anime from a `Title` struct.
@@ -223,11 +226,9 @@ async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
 /// # Returns
 ///
 /// A string representing the name of the anime.
-pub fn get_name(title: Title) -> String {
+pub fn get_name(title: MediaTitle) -> String {
     let en = title.english.clone();
     let rj = title.romaji.clone();
-    let en = en;
-    let rj = rj;
 
     match (rj, en) {
         (Some(rj), Some(en)) => format!("{} / {}", en, rj),
@@ -383,4 +384,31 @@ async fn get_webhook(
     webhook.edit(&ctx.http, edit_webhook).await.unwrap();
 
     Ok(webhook_return)
+}
+
+pub async fn get_minimal_anime_by_id(id: i32) -> Result<Media, AppError> {
+    let query = MinimalAnimeVariables {
+        id: Some(id),
+        search: None,
+    };
+    get_minimal_anime(query, id.to_string()).await
+}
+
+pub async fn get_minimal_anime_by_search(value: &str) -> Result<Media, AppError> {
+    let query = MinimalAnimeVariables {
+        id: None,
+        search: Some(value),
+    };
+    get_minimal_anime(query, value.to_string()).await
+}
+
+pub async fn get_minimal_anime<'a>(
+    query: MinimalAnimeVariables<'a>,
+    value: String,
+) -> Result<Media, AppError> {
+    let operation = MinimalAnime::build(query);
+    let data: Result<GraphQlResponse<MinimalAnime>, AppError> =
+        make_request_anilist(operation, false).await;
+    let data = data?;
+    Ok(data.data.unwrap().media.unwrap())
 }

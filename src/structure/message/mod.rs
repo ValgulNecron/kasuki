@@ -7,6 +7,6 @@ pub mod anime_nsfw;
 pub mod bot;
 pub mod common;
 pub mod game;
-pub mod new_member;
 pub mod server;
 pub mod user;
+pub mod vn;
