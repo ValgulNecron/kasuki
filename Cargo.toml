@@ -44,7 +44,7 @@ tui-logger = "0.11.1"
 rayon = "1.10.0"
 os_info = "3.8.2"
 rcgen = "0.13.1"
-markdown_converter = "0.2.0"
+markdown_converter = "0.3.4"
 futures = "0.3.30"
 
 [build-dependencies]
