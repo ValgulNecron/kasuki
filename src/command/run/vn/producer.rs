@@ -30,7 +30,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         fields.push((producer_localised.lang.clone(), lang, true));
     }
     if let Some(aliases) = producer.aliases {
-        let aliases = aliases.into_iter()
+        let aliases = aliases
+            .into_iter()
             .take(10)
             .collect::<Vec<String>>()
             .join(", ");

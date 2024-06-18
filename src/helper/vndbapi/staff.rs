@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
 use crate::helper::vndbapi::producer::ProducerRoot;
+use serde::{Deserialize, Serialize};
 
 pub async fn get_staff(
     value: String,
@@ -16,7 +16,7 @@ pub async fn get_staff(
             + r#""],
     		"fields": "id,aid,ismain,name,lang,gender,description"
 		}"#)
-            .to_string()
+        .to_string()
     } else {
         (r#"{
     		"filters": ["search", "=",""#
@@ -25,7 +25,7 @@ pub async fn get_staff(
             + r#""],
     		"fields": "id,aid,ismain,name,lang,gender,description"
 		}"#)
-            .to_string()
+        .to_string()
     };
     let path = "/staff".to_string();
     let response =
@@ -36,30 +36,30 @@ pub async fn get_staff(
             message: format!("Error while parsing response: '{}'", e),
             error_type: crate::helper::error_management::error_enum::ErrorType::WebRequest,
             error_response_type:
-            crate::helper::error_management::error_enum::ErrorResponseType::Unknown,
+                crate::helper::error_management::error_enum::ErrorResponseType::Unknown,
         }
     })?;
     Ok(response)
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Staff {
-	pub ismain: bool,
+    pub ismain: bool,
 
-	pub aid: i32,
+    pub aid: i32,
 
-	pub name: String,
+    pub name: String,
 
-	pub gender: String,
+    pub gender: String,
 
-	pub lang: String,
+    pub lang: String,
 
-	pub description: String,
+    pub description: String,
 
-	pub id: String,
+    pub id: String,
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StaffRoot {
-	pub results: Vec<Staff>,
+    pub results: Vec<Staff>,
 
-	pub more: bool,
+    pub more: bool,
 }
