@@ -11,12 +11,12 @@ WORKDIR /kasuki
 
 # Install system dependencies
 # These are required for the Kasuki bot to function correctly.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl-dev libsqlite3-dev \
-    libpng-dev libjpeg-dev \
-    ca-certificates pkg-config \
-    protobuf-compiler \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache \
+        openssl-dev sqlite-dev \
+        png-dev jpeg-dev \
+        ca-certificates pkgconf \
+        protobuf-dev \
+        && rm -rf /var/cache/apk/*
 
 # Copy over your manifests
 # This includes the Cargo.toml file which specifies the Rust dependencies.
@@ -59,11 +59,11 @@ WORKDIR /kasuki/
 
 # Install system dependencies
 # These are required for the Kasuki bot to function correctly.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl-dev libsqlite3-dev \
-    libpng-dev libjpeg-dev \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache \
+        openssl-dev sqlite-dev \
+        png-dev jpeg-dev \
+        ca-certificates \
+        && rm -rf /var/cache/apk/*
 
 # Copy other necessary files
 # These include JSON files and server images used by the Kasuki bot.
