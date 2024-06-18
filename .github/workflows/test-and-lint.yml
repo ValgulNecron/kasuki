@@ -14,22 +14,17 @@ jobs:
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      # Compile protoc with support for proto3 optional fields
-      - name: Compile protoc
+      - name: Install protoc
         run: |
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protoc-3.17.3-linux-x86_64.zip
-          unzip protoc-3.17.3-linux-x86_64.zip
-          cd protoc-3.17.3
-          ./configure --enable-experimental
-          make && make check
-          sudo make install
-          cd..
-          rm -rf protoc-3.17.3
-          rm protoc-3.17.3-linux-x86_64.zip
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
 
-      # Ensure protoc is available in PATH
-      - name: Verify protoc installation
-        run: protoc --version
+      - name: Configure protoc for proto3 optional fields
+        run: echo "syntax = \"proto3\"; option allow_proto3_optional = true;" >.protoconfig
+
+      # Ensure the environment variable is exported so it's available to subsequent steps
+      - name: Set environment variable for protoc
+        run: echo "PROTO_CONFIG_PATH=.protoconfig" >> $GITHUB_ENV
 
       - name: Cache
         uses: Swatinem/rust-cache@v2
