@@ -14,7 +14,7 @@ RUN apk update && apk add --no-cache \
         libpng-dev jpeg-dev \
         ca-certificates pkgconf \
         protobuf-dev \
-        musl-tools gcc\
+        gcc \
         && rm -rf /var/cache/apk/*
 
 # Copy over your manifests
