@@ -13,7 +13,7 @@ WORKDIR /kasuki
 # These are required for the Kasuki bot to function correctly.
 RUN apk update && apk add --no-cache \
         openssl-dev sqlite-dev \
-        png-dev jpeg-dev \
+        libpng-dev jpeg-dev \
         ca-certificates pkgconf \
         protobuf-dev \
         && rm -rf /var/cache/apk/*
@@ -60,10 +60,10 @@ WORKDIR /kasuki/
 # Install system dependencies
 # These are required for the Kasuki bot to function correctly.
 RUN apk update && apk add --no-cache \
-        openssl-dev sqlite-dev \
-        png-dev jpeg-dev \
-        ca-certificates \
-        && rm -rf /var/cache/apk/*
+    openssl-dev sqlite-dev \
+    libpng-dev jpeg-dev \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
 
 # Copy other necessary files
 # These include JSON files and server images used by the Kasuki bot.
