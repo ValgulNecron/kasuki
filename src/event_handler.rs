@@ -67,9 +67,6 @@ impl Handler {
         user_name: String,
     ) {
         let mut guard = self.number_of_command_use_per_command.write().await;
-        let command_name = command_name;
-        let user_id = user_id;
-        let user_name = user_name;
         let command_map = guard
             .command_list
             .entry(command_name)

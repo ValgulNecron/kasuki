@@ -229,8 +229,6 @@ async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
 pub fn get_name(title: MediaTitle) -> String {
     let en = title.english.clone();
     let rj = title.romaji.clone();
-    let en = en;
-    let rj = rj;
 
     match (rj, en) {
         (Some(rj), Some(en)) => format!("{} / {}", en, rj),
