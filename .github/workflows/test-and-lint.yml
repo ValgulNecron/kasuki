@@ -22,7 +22,7 @@ jobs:
       - name: Configure protoc for proto3 optional fields
         run: echo "syntax = \"proto3\"; option allow_proto3_optional = true;" >.protoconfig
 
-      # Ensure the environment variable is exported so it's available to subsequent steps
+      # Correctly export the environment variable so it's available to all steps
       - name: Set environment variable for protoc
         run: echo "PROTO_CONFIG_PATH=.protoconfig" >> $GITHUB_ENV
 
