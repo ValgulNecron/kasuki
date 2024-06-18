@@ -2,7 +2,7 @@
 
 # Use the official Rust image as a base
 # This image includes all the necessary tools to compile a Rust project.
-FROM rust:slim-bookworm AS builder
+FROM rust:alpine3.20 AS builder
 
 # Create a new empty project
 # This is done as root to avoid permission issues.
@@ -46,7 +46,7 @@ RUN cargo build --release
 # Start a new stage
 # This is a multi-stage build. The previous stage was used to compile the bot.
 # This stage is used to create the final image that will be run.
-FROM debian:trixie-slim AS bot
+FROM alpine:3.20 AS bot
 
 # Set labels
 # These provide metadata about the image.
