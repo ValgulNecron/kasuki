@@ -64,7 +64,8 @@ pub struct ProducerRoot {
     pub results: Vec<Producer>,
 }
 
-#[derive(Debug, Clone)]pub enum Type {
+#[derive(Debug, Clone)]
+pub enum Type {
     Company,
     Individual,
     AmateurGroup,
