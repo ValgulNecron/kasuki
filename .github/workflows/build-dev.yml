@@ -54,10 +54,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             Release ${{ steps.tag.outputs.tag }}
-            - [kasuki](kasuki)
-            - [config.toml](config.toml)
-            - [readme.md](readme.md)
-            - [LICENSE](LICENSE)
-          tag_name: ${{ steps.tag.outputs.tag }}
           draft: false
           prerelease: true

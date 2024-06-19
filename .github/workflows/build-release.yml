@@ -55,10 +55,5 @@ jobs:
           release_name: Release ${{ github.sha }}
           body: |
             Release ${{ github.sha }}
-            - [kasuki](kasuki)
-            - [config.toml](config.toml)
-            - [readme.md](readme.md)
-            - [LICENSE](LICENSE)
-          tag_name: ${{ github.sha }}
           draft: false
           prerelease: false
