@@ -52,7 +52,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         };
         let operation = SeiyuuId::build(var);
         let data: GraphQlResponse<SeiyuuId> = make_request_anilist(operation, false).await?;
-        
+
         data.data.unwrap().page.unwrap().staff.unwrap()[0]
             .clone()
             .unwrap()
