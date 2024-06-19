@@ -10,7 +10,6 @@ pub struct StaffLocalised {
 }
 use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
-use crate::structure::message::vn::producer::ProducerLocalised;
 use serde::{Deserialize, Serialize};
 
 pub async fn load_localization_staff(guild_id: String) -> Result<StaffLocalised, AppError> {

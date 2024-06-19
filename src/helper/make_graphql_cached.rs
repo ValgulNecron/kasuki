@@ -1,7 +1,6 @@
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use tracing::trace;
 
 use crate::cache::manage::cache_dispatch::{get_cache, set_cache};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

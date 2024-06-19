@@ -9,7 +9,6 @@ use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
-use crate::structure::run::anilist::user::schema::__fields::Page::_media_arguments::search;
 
 #[cynic::schema("anilist")]
 mod schema {}

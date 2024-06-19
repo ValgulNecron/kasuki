@@ -1,6 +1,5 @@
 use std::fmt::Display;
 
-use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
@@ -10,7 +9,6 @@ use crate::constant::{COLOR, UNKNOWN};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::general_channel_info::get_nsfw;
-use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::{load_localization_media, MediaLocalised};
 
