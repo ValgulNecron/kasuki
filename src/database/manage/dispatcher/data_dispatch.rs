@@ -233,7 +233,7 @@ pub async fn set_data_module_activation_status(
 pub async fn get_one_activity(
     anime_id: i32,
     server_id: String,
-) -> Result<Option<SmallServerActivity>, AppError> {
+) -> Result<SmallServerActivity, AppError> {
     let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
     let db_type = db_type.as_str();
     if db_type == "sqlite" {

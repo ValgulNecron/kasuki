@@ -16,9 +16,10 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
-use crate::structure::run::anilist::seiyuu::{
-    Character, CharacterConnection, Seiyuu, SeiyuuVariables, StaffImage,
+use crate::structure::run::anilist::seiyuu_id::{
+    Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
 };
+use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVariables};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -43,33 +44,29 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     ))?;
     let total_per_row = 4u32;
     let per_page = (total_per_row * total_per_row) as i32;
-    let var: SeiyuuVariables = if value.parse::<i32>().is_ok() {
+    let staff: Staff = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();
-        SeiyuuVariables {
+        let var = SeiyuuIdVariables {
             id: Some(id),
             per_page: Some(per_page),
-            search: None,
-        }
+        };
+        let operation = SeiyuuId::build(var);
+        let data: GraphQlResponse<SeiyuuId> = make_request_anilist(operation, false).await?;
+
+        data.data.unwrap().page.unwrap().staff.unwrap()[0]
+            .clone()
+            .unwrap()
     } else {
-        SeiyuuVariables {
-            id: None,
+        let var = SeiyuuSearchVariables {
             per_page: Some(per_page),
             search: Some(value),
-        }
-    };
-    let operation = Seiyuu::build(var);
-    let data: Result<GraphQlResponse<Seiyuu>, AppError> =
-        make_request_anilist(operation, false).await;
-    let data = data?;
-    let staff = match data.data.unwrap().page.unwrap().staff {
-        Some(staffs) => staffs[0].clone().unwrap(),
-        None => {
-            return Err(AppError::new(
-                "No staff found".to_string(),
-                ErrorType::WebRequest,
-                ErrorResponseType::Message,
-            ));
-        }
+        };
+        let operation = SeiyuuSearch::build(var);
+        let data: GraphQlResponse<SeiyuuSearch> = make_request_anilist(operation, false).await?;
+        let data = data.data.unwrap().page.unwrap().staff.unwrap()[0]
+            .clone()
+            .unwrap();
+        Staff::from(data)
     };
 
     let guild_id = match command_interaction.guild_id {

@@ -13,9 +13,10 @@ services:
     ports:
       - "443:443"
     volumes:
-      - ./db/data.db:/kasuki/db
+      - ./db/:/kasuki/db
       - ./logs/:/kasuki/logs/
       - ./server_image:/kasuki/server_image/
       - ./cert:/kasuki/cert/
       - ./config.toml:/kasuki/config.toml
       - /etc/localtime:/etc/localtime:ro
+

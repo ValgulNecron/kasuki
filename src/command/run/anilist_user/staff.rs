@@ -8,7 +8,9 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::staff::load_localization_staff;
-use crate::structure::run::anilist::staff::{StaffQuerry, StaffQuerryVariables};
+use crate::structure::run::anilist::staff::{
+    StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch, StaffQuerrySearchVariables,
+};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -32,22 +34,22 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         ErrorResponseType::Message,
     ))?;
 
-    let var = if value.parse::<i32>().is_ok() {
-        StaffQuerryVariables {
+    let staff = if value.parse::<i32>().is_ok() {
+        let var = StaffQuerryIdVariables {
             id: Some(value.parse().unwrap()),
-            search: None,
-        }
+        };
+        let operation = StaffQuerryId::build(var);
+        let data: GraphQlResponse<StaffQuerryId> = make_request_anilist(operation, false).await?;
+        data.data.unwrap().staff.unwrap()
     } else {
-        StaffQuerryVariables {
-            id: None,
+        let var = StaffQuerrySearchVariables {
             search: Some(value),
-        }
+        };
+        let operation = StaffQuerrySearch::build(var);
+        let data: GraphQlResponse<StaffQuerrySearch> =
+            make_request_anilist(operation, false).await?;
+        data.data.unwrap().staff.unwrap()
     };
-    let operation = StaffQuerry::build(var);
-    let data: Result<GraphQlResponse<StaffQuerry>, AppError> =
-        make_request_anilist(operation, false).await;
-    let data = data?;
-    let staff = data.data.unwrap().staff.unwrap();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),

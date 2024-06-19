@@ -37,16 +37,26 @@ mod tui;
 /// It initializes the logger, the SQL database, and the bot client.
 /// It also spawns asynchronous tasks for managing the ping of the shards and starting the client.
 async fn main() {
+    println!("Preparing bot environment please wait...");
+
     // read config.toml as string
-    let config = std::fs::read_to_string("config.toml").unwrap();
-    let config: config::Config = toml::from_str(&config).unwrap();
+    let config = match std::fs::read_to_string("config.toml") {
+        Ok(config) => config,
+        Err(e) => {
+            eprintln!("Error while reading config.toml: {:?}", e);
+            std::process::exit(1);
+        }
+    };
+    let config: config::Config = match toml::from_str(&config) {
+        Ok(config) => config,
+        Err(e) => {
+            eprintln!("Error while parsing config.toml: {:?}", e);
+            std::process::exit(1);
+        }
+    };
     unsafe {
         *CONFIG = config.clone();
     }
-
-    // Print a message indicating the bot is starting.
-    println!("Bot starting please wait.");
-    // Load environment variables from the .env file.
 
     // Get the log level from the environment variable "RUST_LOG".
     // If the variable is not set, default to "info".
@@ -57,21 +67,27 @@ async fn main() {
     // If an error occurs, print the error and return.
     if let Err(e) = create_log_directory() {
         eprintln!("{:?}", e);
-        return;
+        std::process::exit(2);
     }
 
     // Initialize the logger with the specified log level.
     // If an error occurs, print the error and return.
     if let Err(e) = init_logger(log) {
         eprintln!("{:?}", e);
-        return;
+        std::process::exit(2);
     }
 
     let app_tui = config.bot.config.tui;
     if app_tui {
         // create a new tui in a new thread
         tokio::spawn(async {
-            tui::create_tui().await.unwrap();
+            match tui::create_tui().await {
+                Ok(_) => {}
+                Err(e) => {
+                    error!("{:?}", e);
+                    std::process::exit(3);
+                }
+            };
         });
     }
 
@@ -79,11 +95,8 @@ async fn main() {
     // If an error occurs, log the error and return.
     if let Err(e) = init_sql_database().await {
         error!("{:?}", e);
-        return;
+        std::process::exit(4);
     }
-
-    // Log a message indicating the bot is starting.
-    info!("starting the bot.");
 
     let number_of_command_use = Arc::new(RwLock::new(0u128));
     let number_of_command_use_per_command: RootUsage;
@@ -110,6 +123,10 @@ async fn main() {
         ;
     // Combine both intents for the client to consume.
     let gateway_intent = gateway_intent_non_privileged | gateway_intent_privileged;
+
+    // Log a message indicating the bot is starting.
+    info!("Finished preparing the environment. Starting the bot.");
+
     // Create a new client instance using the provided token and gateway intents.
     // The client is built with an event handler of type `Handler`.
     // If the client creation fails, log the error and exit the process.
@@ -120,7 +137,7 @@ async fn main() {
         .await
         .unwrap_or_else(|e| {
             error!("Error while creating client: {}", e);
-            std::process::exit(1);
+            std::process::exit(5);
         });
 
     // Clone the shard manager from the client.
@@ -143,7 +160,8 @@ async fn main() {
     // If the client fails to start, log the error.
     tokio::spawn(async move {
         if let Err(why) = client.start_autosharded().await {
-            error!("Client error: {:?}", why)
+            error!("Client error: {:?}", why);
+            std::process::exit(6);
         }
     });
 
@@ -171,7 +189,7 @@ async fn main() {
         }
         ShardManager::shutdown_all(&shutdown).await;
         info!("Received bot shutdown signal. Shutting down bot.");
-        return;
+        std::process::exit(0);
     }
     #[cfg(windows)]
     {
@@ -192,6 +210,6 @@ async fn main() {
         }
         ShardManager::shutdown_all(&shutdown).await;
         info!("Received bot shutdown signal. Shutting down bot.");
-        return;
+        std::process::exit(0);
     }
 }

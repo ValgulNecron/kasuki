@@ -5,7 +5,8 @@ use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::character::{
-    send_embed, Character, CharacterQuerry, CharacterQuerryVariables,
+    send_embed, Character, CharacterQuerryId, CharacterQuerryIdVariables, CharacterQuerrySearch,
+    CharacterQuerrySearchVariables,
 };
 
 /// This asynchronous function runs the command interaction for retrieving information about a character.
@@ -38,11 +39,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let data: Character = if value.parse::<i32>().is_ok() {
         get_character_by_id(value.parse::<i32>().unwrap()).await?
     } else {
-        let var = CharacterQuerryVariables {
-            id: None,
+        let var = CharacterQuerrySearchVariables {
             search: Some(&*value),
         };
-        get_character(var).await?
+        let operation = CharacterQuerrySearch::build(var);
+        let data: GraphQlResponse<CharacterQuerrySearch> =
+            make_request_anilist(operation, false).await?;
+        data.data.unwrap().character.unwrap()
     };
 
     // Send an embed with the character information as a response to the command interaction
@@ -50,17 +53,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 }
 
 pub async fn get_character_by_id(value: i32) -> Result<Character, AppError> {
-    let var = CharacterQuerryVariables {
-        id: Some(value),
-        search: None,
-    };
-    get_character(var).await
-}
-
-pub async fn get_character<'a>(var: CharacterQuerryVariables<'a>) -> Result<Character, AppError> {
-    let operation = CharacterQuerry::build(var);
-    let data: Result<GraphQlResponse<CharacterQuerry>, AppError> =
-        make_request_anilist(operation, false).await;
-    let data = data?;
+    let var = CharacterQuerryIdVariables { id: Some(value) };
+    let operation = CharacterQuerryId::build(var);
+    let data: GraphQlResponse<CharacterQuerryId> = make_request_anilist(operation, false).await?;
     Ok(data.data.unwrap().character.unwrap())
 }

@@ -14,7 +14,7 @@ pub async fn make_request_anilist<
     operation: Operation<T, S>,
     always_update: bool,
 ) -> Result<GraphQlResponse<U>, AppError> {
-    if always_update {
+    if !always_update {
         do_request(operation).await
     } else {
         let return_data: GraphQlResponse<U> = check_cache(operation).await?;
@@ -64,7 +64,6 @@ async fn do_request<
         error_response_type: ErrorResponseType::Unknown,
     })?;
     set_cache(operation.query, response_text.clone()).await;
-
     get_type(response_text)
 }
 

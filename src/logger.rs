@@ -54,7 +54,13 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
         .rotation(Rotation::DAILY)
         .max_log_files(max_log_retention_days as usize)
         .build(logs_path)
-        .unwrap();
+        .map_err(|e| {
+            AppError::new(
+                format!("Error creating the Logger. {}", e),
+                ErrorType::Logging,
+                ErrorResponseType::None,
+            )
+        })?;
     let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
     unsafe {

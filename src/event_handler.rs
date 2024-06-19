@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::env;
 use std::ops::Add;
 use std::sync::Arc;
 
@@ -17,7 +16,7 @@ use crate::background_task::server_image::generate_server_image::server_image_ma
 use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command::run::command_dispatch::command_dispatching;
 use crate::command::user_run::dispatch::dispatch_user_command;
-use crate::command_register::registration_dispatcher::command_dispatcher;
+use crate::command_register::registration_dispatcher::command_registration;
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::{BOT_INFO, COMMAND_USE_PATH, CONFIG};
 use crate::helper::error_management::error_dispatch;
@@ -135,7 +134,7 @@ impl EventHandler for Handler {
     /// If an error occurs during the handling of the new member, it logs the error.
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
         let guild_id = member.guild_id.to_string();
-        trace!("Member {} joined guild {}", member.user.tag(), guild_id);
+        debug!("Member {} joined guild {}", member.user.tag(), guild_id);
         color_management(&ctx.cache.guilds(), &ctx).await;
         server_image_management(&ctx).await;
     }
@@ -185,19 +184,11 @@ impl EventHandler for Handler {
         let server_number = ctx.cache.guilds().len();
         info!(server_number);
 
-        // Loads environment variables from the .env file
-        dotenvy::from_path(".env").ok();
-
         // Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
-        let remove_old_command = env::var("REMOVE_OLD_COMMAND")
-            .unwrap_or_else(|_| "false".to_string())
-            .eq_ignore_ascii_case("true");
-
-        // Logs the value of the "REMOVE_OLD_COMMAND" environment variable
-        trace!(remove_old_command);
+        let remove_old_command = unsafe { CONFIG.bot.config.remove_old_commands };
 
         // Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
-        command_dispatcher(&ctx.http, remove_old_command).await;
+        command_registration(&ctx.http, remove_old_command).await;
         // Iterates over each guild the bot is in
         for guild in ctx.cache.guilds() {
             // Retrieves partial guild information

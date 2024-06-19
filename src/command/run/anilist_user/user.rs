@@ -6,7 +6,10 @@ use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::run::anilist::user::{send_embed, User, UserQuerry, UserQuerryVariables};
+use crate::structure::run::anilist::user::{
+    send_embed, User, UserQuerryId, UserQuerryIdVariables, UserQuerrySearch,
+    UserQuerrySearchVariables,
+};
 
 /// Executes the command to fetch and display information about a user from AniList.
 ///
@@ -61,22 +64,21 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 /// A `Result` that is `Ok` if the user's data was fetched successfully, or `Err` if an error occurred.
 pub async fn get_user(value: &String) -> Result<User, AppError> {
     // If the value is a valid user ID, fetch the user's data by ID
-    let var = if value.parse::<i32>().is_ok() {
+    let user = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();
-        UserQuerryVariables {
-            id: Some(id),
-            search: None,
-        }
+        let var = UserQuerryIdVariables { id: Some(id) };
+        let operation = UserQuerryId::build(var);
+        let data: GraphQlResponse<UserQuerryId> = make_request_anilist(operation, false).await?;
+        data.data.unwrap().user.unwrap()
     } else {
         // If the value is not a valid user ID, fetch the user's data by username
-        UserQuerryVariables {
-            id: None,
+        let var = UserQuerrySearchVariables {
             search: Some(value.as_str()),
-        }
+        };
+        let operation = UserQuerrySearch::build(var);
+        let data: GraphQlResponse<UserQuerrySearch> =
+            make_request_anilist(operation, false).await?;
+        data.data.unwrap().user.unwrap()
     };
-    let operation = UserQuerry::build(var);
-    let data: Result<GraphQlResponse<UserQuerry>, AppError> =
-        make_request_anilist(operation, false).await;
-    let data = data?;
-    Ok(data.data.unwrap().user.unwrap())
+    Ok(user)
 }

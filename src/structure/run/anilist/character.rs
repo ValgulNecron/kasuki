@@ -14,15 +14,27 @@ use crate::structure::message::anilist_user::character::load_localization_charac
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct CharacterQuerryVariables<'a> {
+pub struct CharacterQuerryIdVariables {
     pub id: Option<i32>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "CharacterQuerryIdVariables")]
+pub struct CharacterQuerryId {
+    #[arguments(id: $ id)]
+    #[cynic(rename = "Character")]
+    pub character: Option<Character>,
+}
+
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct CharacterQuerrySearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "CharacterQuerryVariables")]
-pub struct CharacterQuerry {
-    #[arguments(id: $ id, search: $ search)]
+#[cynic(graphql_type = "Query", variables = "CharacterQuerrySearchVariables")]
+pub struct CharacterQuerrySearch {
+    #[arguments(search: $ search)]
     #[cynic(rename = "Character")]
     pub character: Option<Character>,
 }
