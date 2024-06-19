@@ -114,7 +114,7 @@ fn ui(frame: &mut Frame) {
         Err(e) => {
             error!("Error getting current PID: {}", e);
             return;
-        },
+        }
     };
     let process = match processes.get(pid) {
         Some(process) => process,

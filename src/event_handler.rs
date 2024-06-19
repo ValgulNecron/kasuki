@@ -16,7 +16,7 @@ use crate::background_task::server_image::generate_server_image::server_image_ma
 use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command::run::command_dispatch::command_dispatching;
 use crate::command::user_run::dispatch::dispatch_user_command;
-use crate::command_register::registration_dispatcher::{command_registration};
+use crate::command_register::registration_dispatcher::command_registration;
 use crate::components::components_dispatch::components_dispatching;
 use crate::constant::{BOT_INFO, COMMAND_USE_PATH, CONFIG};
 use crate::helper::error_management::error_dispatch;
@@ -185,7 +185,7 @@ impl EventHandler for Handler {
         info!(server_number);
 
         // Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
-        let remove_old_command = unsafe {CONFIG.bot.config.remove_old_commands};
+        let remove_old_command = unsafe { CONFIG.bot.config.remove_old_commands };
 
         // Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
         command_registration(&ctx.http, remove_old_command).await;

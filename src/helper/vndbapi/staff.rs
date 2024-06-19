@@ -40,6 +40,7 @@ pub async fn get_staff(
     })?;
     Ok(response)
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Staff {
     pub ismain: bool,
@@ -56,6 +57,7 @@ pub struct Staff {
 
     pub id: String,
 }
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StaffRoot {
     pub results: Vec<Staff>,
