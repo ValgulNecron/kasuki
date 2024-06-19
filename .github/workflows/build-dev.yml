@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  test:
+  build_dev_linux:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -52,13 +52,12 @@ jobs:
         with:
           files: build/*
           token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: Release ${{ github.sha }}
           body: |
-            Release ${{ github.sha }}
+            Release ${{ steps.tag.outputs.tag }}
             - [kasuki](kasuki)
             - [config.toml](config.toml)
             - [readme.md](readme.md)
             - [LICENSE](LICENSE)
-          tag_name: ${{ github.sha }}
+          tag_name: ${{ steps.tag.outputs.tag }}
           draft: false
           prerelease: true
