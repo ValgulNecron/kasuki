@@ -154,17 +154,35 @@ impl Default for Config {
 impl Config {
     pub fn set_default_value_on_none(&mut self) {
         if self.ai.image.ai_image_token.is_none()
-            || self.ai.image.ai_image_token.as_ref().unwrap().is_empty()
+            || self
+                .ai
+                .image
+                .ai_image_token
+                .clone()
+                .unwrap_or_default()
+                .is_empty()
         {
             self.ai.image.ai_image_token = Some(self.ai.ai_token.clone());
         }
         if self.ai.image.ai_image_base_url.is_none()
-            || self.ai.image.ai_image_base_url.as_ref().unwrap().is_empty()
+            || self
+                .ai
+                .image
+                .ai_image_base_url
+                .clone()
+                .unwrap_or_default()
+                .is_empty()
         {
             self.ai.image.ai_image_base_url = Some(self.ai.ai_base_url.clone());
         }
         if self.ai.image.ai_image_model.is_none()
-            || self.ai.image.ai_image_model.as_ref().unwrap().is_empty()
+            || self
+                .ai
+                .image
+                .ai_image_model
+                .clone()
+                .unwrap_or_default()
+                .is_empty()
         {
             self.ai.image.ai_image_model = Some("dall-e-3".to_string());
         }
@@ -174,8 +192,8 @@ impl Config {
                 .ai
                 .question
                 .ai_question_token
-                .as_ref()
-                .unwrap()
+                .clone()
+                .unwrap_or_default()
                 .is_empty()
         {
             self.ai.question.ai_question_token = Some(self.ai.ai_token.clone());
@@ -185,8 +203,8 @@ impl Config {
                 .ai
                 .question
                 .ai_question_base_url
-                .as_ref()
-                .unwrap()
+                .clone()
+                .unwrap_or_default()
                 .is_empty()
         {
             self.ai.question.ai_question_base_url = Some(self.ai.ai_base_url.clone());
@@ -196,8 +214,8 @@ impl Config {
                 .ai
                 .question
                 .ai_question_model
-                .as_ref()
-                .unwrap()
+                .clone()
+                .unwrap_or_default()
                 .is_empty()
         {
             self.ai.question.ai_question_model = Some("gpt-3.5-turbo".to_string());
@@ -208,8 +226,8 @@ impl Config {
                 .ai
                 .transcription
                 .ai_transcription_token
-                .as_ref()
-                .unwrap()
+                .clone()
+                .unwrap_or_default()
                 .is_empty()
         {
             self.ai.transcription.ai_transcription_token = Some(self.ai.ai_token.clone());
@@ -219,8 +237,8 @@ impl Config {
                 .ai
                 .transcription
                 .ai_transcription_base_url
-                .as_ref()
-                .unwrap()
+                .clone()
+                .unwrap_or_default()
                 .is_empty()
         {
             self.ai.transcription.ai_transcription_base_url = Some(self.ai.ai_base_url.clone());
@@ -230,8 +248,8 @@ impl Config {
                 .ai
                 .transcription
                 .ai_transcription_model
-                .as_ref()
-                .unwrap()
+                .clone()
+                .unwrap_or_default()
                 .is_empty()
         {
             self.ai.transcription.ai_transcription_model = Some("whisper-1".to_string());

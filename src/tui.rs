@@ -13,6 +13,7 @@ use ratatui::text::{Span, Text};
 use ratatui::widgets::{Block, Borders, LineGauge, Paragraph, Wrap};
 use ratatui::{symbols, Frame, Terminal};
 use sysinfo::System;
+use tracing::error;
 
 use crate::constant::{APP_VERSION, BOT_INFO, LOGS_PATH, TUI_FG_COLOR};
 
@@ -107,8 +108,18 @@ fn ui(frame: &mut Frame) {
     sys.refresh_all();
     let total_cpu_core = sys.cpus().len();
     let processes = sys.processes();
-    let pid = &sysinfo::get_current_pid().unwrap();
-    let process = processes.get(pid).unwrap();
+    let binding = sysinfo::get_current_pid();
+    let pid = match &binding {
+        Ok(pid) => pid,
+        Err(e) => {
+            error!("Error getting current PID: {}", e);
+            return;
+        },
+    };
+    let process = match processes.get(pid) {
+        Some(process) => process,
+        None => return,
+    };
     let app_cpu_usage = process.cpu_usage();
     let memory_usage = process.memory();
     let app_cpu_usage = app_cpu_usage / total_cpu_core as f32;
@@ -332,7 +343,13 @@ fn read_logs() -> Result<String, io::Error> {
     for path in paths {
         let path = path?.path();
         let metadata = fs::metadata(&path)?;
-        let modified = metadata.modified().unwrap().elapsed().unwrap().as_secs();
+        let modified = match metadata.modified() {
+            Ok(time) => match time.elapsed() {
+                Ok(elapsed) => elapsed.as_secs(),
+                Err(_) => continue,
+            },
+            Err(_) => continue,
+        };
         if latest_file.is_none() || modified > latest_time {
             latest_time = modified;
             latest_file = Some(path);

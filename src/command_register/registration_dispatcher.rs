@@ -23,7 +23,7 @@ use crate::command_register::registration_function::register_user_command::creat
 ///
 /// * `http` - An `Arc<Http>` instance used to send the commands to the Discord API.
 /// * `is_ok` - A boolean indicating whether to delete all existing global commands in Discord before creating new ones.
-pub async fn command_dispatcher(http: &Arc<Http>, is_ok: bool) {
+pub async fn command_registration(http: &Arc<Http>, is_ok: bool) {
     if is_ok {
         delete_command(http).await;
     }

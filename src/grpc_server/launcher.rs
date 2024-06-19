@@ -74,11 +74,8 @@ pub async fn grpc_server_launcher(
         // Convert to a string
         let key = String::from_utf8(key).unwrap();
         let cert = String::from_utf8(cert).unwrap();
-        trace!("Key: {:?}", key);
-        trace!("Cert: {:?}", cert);
         // Build the gRPC server with TLS, add the ShardService and the reflection service, and serve the gRPC server
         let identity = tonic::transport::Identity::from_pem(cert, key);
-        trace!("Identity: {:?}", identity);
         let tls_config = tonic::transport::ServerTlsConfig::new().identity(identity);
         tonic::transport::Server::builder()
             .tls_config(tls_config)
