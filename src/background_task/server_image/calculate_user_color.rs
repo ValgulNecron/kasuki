@@ -96,7 +96,11 @@ pub async fn return_average_user_color(
         let color = user_color.color.clone();
         let pfp_url_old = user_color.pfp_url.clone();
         let image_old = user_color.image;
-        if pfp_url != pfp_url_old.clone().unwrap_or_default() {
+        if color.is_none() || pfp_url_old.is_none() || image_old.is_none() {
+            let (average_color, image): (String, String) = calculate_user_color(member).await?;
+            set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?;
+            average_colors.push((average_color, pfp_url, image))
+        } else if pfp_url != pfp_url_old.clone().unwrap_or_default() {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
             set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?;
             average_colors.push((average_color, pfp_url, image))
@@ -165,7 +169,13 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
             img.height(),
             ExtendedColorType::Rgba8,
         )
-        .unwrap();
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to encode image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
+        })?;
 
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
     let image = format!("data:image/png;base64,{}", base64_image);
@@ -301,16 +311,27 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
     let mut members_temp_out: Vec<Member> = Vec::new();
     while members_temp_out.len() == (1000 * i) {
         let mut members_temp_in = if i == 0 {
-            guild
+            match guild
                 .members(&ctx_clone.http, Some(1000), None)
-                .await
-                .unwrap()
+                .await {
+                Ok(members) => members,
+                Err(e) => {
+                    error!("{}", e);
+                    break;
+                }
+            }
         } else {
             let user: UserId = members_temp_out.last().unwrap().user.id;
-            guild
+            match guild
                 .members(&ctx_clone.http, Some(1000), Some(user))
                 .await
-                .unwrap()
+            {
+                Ok(members) => members,
+                Err(e) => {
+                    error!("{}", e);
+                    break;
+                }
+            }
         };
         i += 1;
         members_temp_out.append(&mut members_temp_in);
