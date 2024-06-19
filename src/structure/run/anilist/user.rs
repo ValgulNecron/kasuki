@@ -9,20 +9,33 @@ use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
+use crate::structure::run::anilist::user::schema::__fields::Page::_media_arguments::search;
 
 #[cynic::schema("anilist")]
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct UserQuerryVariables<'a> {
+pub struct UserQuerryIdVariables {
     pub id: Option<i32>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "UserQuerryIdVariables")]
+pub struct UserQuerryId {
+    #[arguments(id: $ id)]
+    #[cynic(rename = "User")]
+    pub user: Option<User>,
+}
+
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct UserQuerrySearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "UserQuerryVariables")]
-pub struct UserQuerry {
-    #[arguments(id: $ id, search: $ search)]
+#[cynic(graphql_type = "Query", variables = "UserQuerrySearchVariables")]
+pub struct UserQuerrySearch {
+    #[arguments(search: $ search)]
     #[cynic(rename = "User")]
     pub user: Option<User>,
 }

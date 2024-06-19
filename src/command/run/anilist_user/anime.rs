@@ -1,9 +1,12 @@
+use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context};
 
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::media::{
-    get_media, send_embed, Media, MediaFormat, MediaQuerryVariables, MediaType,
+    send_embed, Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
+    MediaQuerrySearchVariables, MediaType,
 };
 
 /// This asynchronous function runs the command interaction for retrieving information about an anime.
@@ -35,7 +38,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     // If the value is not an integer, treat it as a name and retrieve the anime with that name
     let data: Media = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();
-        let var = MediaQuerryVariables {
+        let var = MediaQuerryIdVariables {
             format_in: Some(vec![
                 Some(MediaFormat::Tv),
                 Some(MediaFormat::TvShort),
@@ -47,11 +50,12 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             ]),
             id: Some(id),
             media_type: Some(MediaType::Anime),
-            search: None,
         };
-        get_media(var).await?
+        let operation = MediaQuerryId::build(var);
+        let data: GraphQlResponse<MediaQuerryId> = make_request_anilist(operation, false).await?;
+        data.data.unwrap().media.unwrap()
     } else {
-        let var = MediaQuerryVariables {
+        let var = MediaQuerrySearchVariables {
             format_in: Some(vec![
                 Some(MediaFormat::Tv),
                 Some(MediaFormat::TvShort),
@@ -63,9 +67,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             ]),
             search: Some(&*value),
             media_type: Some(MediaType::Anime),
-            id: None,
         };
-        get_media(var).await?
+        let operation = MediaQuerrySearch::build(var);
+        let data: GraphQlResponse<MediaQuerrySearch> =
+            make_request_anilist(operation, false).await?;
+        data.data.unwrap().media.unwrap()
     };
 
     // Send an embed with the anime information as a response to the command interaction

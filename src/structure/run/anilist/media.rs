@@ -18,17 +18,31 @@ use crate::structure::message::anilist_user::media::{load_localization_media, Me
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct MediaQuerryVariables<'a> {
+pub struct MediaQuerryIdVariables {
     pub format_in: Option<Vec<Option<MediaFormat>>>,
     pub id: Option<i32>,
+    pub media_type: Option<MediaType>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "MediaQuerryIdVariables")]
+pub struct MediaQuerryId {
+    #[arguments(type: $ media_type, id: $ id, format_in: $ format_in)]
+    #[cynic(rename = "Media")]
+    pub media: Option<Media>,
+}
+
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct MediaQuerrySearchVariables<'a> {
+    pub format_in: Option<Vec<Option<MediaFormat>>>,
     pub media_type: Option<MediaType>,
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "MediaQuerryVariables")]
-pub struct MediaQuerry {
-    #[arguments(search: $ search, type: $ media_type, id: $ id, format_in: $ format_in)]
+#[cynic(graphql_type = "Query", variables = "MediaQuerrySearchVariables")]
+pub struct MediaQuerrySearch {
+    #[arguments(search: $ search, type: $ media_type, format_in: $ format_in)]
     #[cynic(rename = "Media")]
     pub media: Option<Media>,
 }
@@ -747,12 +761,4 @@ pub async fn send_embed(
             error_type: ErrorType::Command,
             error_response_type: ErrorResponseType::Message,
         })
-}
-
-pub async fn get_media<'a>(var: MediaQuerryVariables<'a>) -> Result<Media, AppError> {
-    let operation = MediaQuerry::build(var);
-    let data: Result<GraphQlResponse<MediaQuerry>, AppError> =
-        make_request_anilist(operation, false).await;
-    let data = data?;
-    Ok(data.data.unwrap().media.unwrap())
 }

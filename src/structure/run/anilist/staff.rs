@@ -2,15 +2,27 @@
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct StaffQuerryVariables<'a> {
+pub struct StaffQuerryIdVariables {
     pub id: Option<i32>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "StaffQuerryIdVariables")]
+pub struct StaffQuerryId {
+    #[arguments(id: $ id)]
+    #[cynic(rename = "Staff")]
+    pub staff: Option<Staff>,
+}
+
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct StaffQuerrySearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "StaffQuerryVariables")]
-pub struct StaffQuerry {
-    #[arguments(id: $ id, search: $ search)]
+#[cynic(graphql_type = "Query", variables = "StaffQuerrySearchVariables")]
+pub struct StaffQuerrySearch {
+    #[arguments(search: $ search)]
     #[cynic(rename = "Staff")]
     pub staff: Option<Staff>,
 }

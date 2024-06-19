@@ -25,7 +25,8 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
 use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
 use crate::structure::run::anilist::minimal_anime::{
-    Media, MediaTitle, MinimalAnime, MinimalAnimeVariables,
+    Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
+    MinimalAnimeSearchVariables,
 };
 
 /// This asynchronous function gets or creates a webhook for a given channel.
@@ -209,9 +210,17 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 ///
 /// A boolean indicating whether the activity exists.
 async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
-    let row: Option<SmallServerActivity> =
-        get_one_activity(anime_id, server_id).await.unwrap_or(None);
-    row.is_some()
+    let row: SmallServerActivity = get_one_activity(anime_id, server_id.clone())
+        .await
+        .unwrap_or(SmallServerActivity {
+            anime_id: None,
+            timestamp: None,
+            guild_id: None,
+        });
+    if row.anime_id.is_none() || row.timestamp.is_none() || row.guild_id.is_none() {
+        return false;
+    };
+    true
 }
 
 /// This function gets the name of an anime from a `Title` struct.
@@ -387,28 +396,17 @@ async fn get_webhook(
 }
 
 pub async fn get_minimal_anime_by_id(id: i32) -> Result<Media, AppError> {
-    let query = MinimalAnimeVariables {
-        id: Some(id),
-        search: None,
-    };
-    get_minimal_anime(query, id.to_string()).await
+    let query = MinimalAnimeIdVariables { id: Some(id) };
+    let operation = MinimalAnimeId::build(query);
+    let data: GraphQlResponse<MinimalAnimeId> = make_request_anilist(operation, false).await?;
+    Ok(data.data.unwrap().media.unwrap())
 }
 
 pub async fn get_minimal_anime_by_search(value: &str) -> Result<Media, AppError> {
-    let query = MinimalAnimeVariables {
-        id: None,
+    let query = MinimalAnimeSearchVariables {
         search: Some(value),
     };
-    get_minimal_anime(query, value.to_string()).await
-}
-
-pub async fn get_minimal_anime<'a>(
-    query: MinimalAnimeVariables<'a>,
-    value: String,
-) -> Result<Media, AppError> {
-    let operation = MinimalAnime::build(query);
-    let data: Result<GraphQlResponse<MinimalAnime>, AppError> =
-        make_request_anilist(operation, false).await;
-    let data = data?;
+    let operation = MinimalAnimeSearch::build(query);
+    let data: GraphQlResponse<MinimalAnimeSearch> = make_request_anilist(operation, false).await?;
     Ok(data.data.unwrap().media.unwrap())
 }

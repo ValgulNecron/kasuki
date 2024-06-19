@@ -1,9 +1,12 @@
+use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context};
 
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::media::{
-    get_media, send_embed, Media, MediaFormat, MediaQuerryVariables, MediaType,
+    send_embed, Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
+    MediaQuerrySearchVariables, MediaType,
 };
 
 /// Executes the command to fetch and display information about a light novel (LN) based on its name or ID.
@@ -31,21 +34,25 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     // Fetch the LN data by ID if the value can be parsed as an `i32`, or by search otherwise
     let data: Media = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();
-        let var = MediaQuerryVariables {
+        let var = MediaQuerryIdVariables {
             format_in: Some(vec![Some(MediaFormat::Novel)]),
             id: Some(id),
             media_type: Some(MediaType::Manga),
-            search: None,
         };
-        get_media(var).await?
+        let operation = MediaQuerryId::build(var);
+        let data: GraphQlResponse<MediaQuerryId> = make_request_anilist(operation, false).await?;
+        data.data.unwrap().media.unwrap()
     } else {
-        let var = MediaQuerryVariables {
+        let var = MediaQuerrySearchVariables {
             format_in: Some(vec![Some(MediaFormat::Novel)]),
             search: Some(&*value),
             media_type: Some(MediaType::Manga),
-            id: None,
         };
-        get_media(var).await?
+
+        let operation = MediaQuerrySearch::build(var);
+        let data: GraphQlResponse<MediaQuerrySearch> =
+            make_request_anilist(operation, false).await?;
+        data.data.unwrap().media.unwrap()
     };
 
     // Send an embed containing the LN data as a response to the command interaction

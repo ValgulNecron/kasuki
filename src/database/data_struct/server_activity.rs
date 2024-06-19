@@ -42,7 +42,7 @@ pub struct ServerActivityFull {
 
 #[derive(sqlx::FromRow, Debug, Clone)]
 pub struct SmallServerActivity {
-    pub anime_id: i32,
-    pub timestamp: i64,
-    pub guild_id: String,
+    pub anime_id: Option<i32>,
+    pub timestamp: Option<i64>,
+    pub guild_id: Option<String>,
 }

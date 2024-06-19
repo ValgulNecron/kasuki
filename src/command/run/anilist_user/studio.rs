@@ -9,7 +9,9 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::studio::load_localization_studio;
-use crate::structure::run::anilist::studio::{StudioQuerry, StudioQuerryVariables};
+use crate::structure::run::anilist::studio::{
+    StudioQuerryId, StudioQuerryIdVariables, StudioQuerrySearch, StudioQuerrySearchVariables,
+};
 
 /// Executes the command to fetch and display information about a studio from AniList.
 ///
@@ -35,31 +37,26 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     ))?;
 
     // Fetch the studio's data from AniList
-    let var: StudioQuerryVariables = if value.parse::<i32>().is_ok() {
+    let studio = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();
-        StudioQuerryVariables {
-            id: Some(id),
-            search: None,
-        }
+        let var = StudioQuerryIdVariables { id: Some(id) };
+        let operation = StudioQuerryId::build(var);
+        let data: GraphQlResponse<StudioQuerryId> = make_request_anilist(operation, false).await?;
+        data.data.unwrap().studio.unwrap()
     } else {
-        StudioQuerryVariables {
-            id: None,
+        let var = StudioQuerrySearchVariables {
             search: Some(value.as_str()),
-        }
+        };
+        let operation = StudioQuerrySearch::build(var);
+        let data: GraphQlResponse<StudioQuerrySearch> =
+            make_request_anilist(operation, false).await?;
+        data.data.unwrap().studio.unwrap()
     };
-    let operation = StudioQuerry::build(var);
-    let data: Result<GraphQlResponse<StudioQuerry>, AppError> =
-        make_request_anilist(operation, false).await;
-    let data = data?;
-
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-
-    // Clone the studio data
-    let studio = data.data.unwrap().studio.unwrap();
 
     // Load the localized studio strings
     let studio_localised = load_localization_studio(guild_id).await?;

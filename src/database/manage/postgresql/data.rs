@@ -325,16 +325,20 @@ pub async fn get_data_module_activation_kill_switch_status_postgresql(
 pub async fn get_one_activity_postgresql(
     server_id: String,
     anime_id: i32,
-) -> Result<Option<SmallServerActivity>, AppError> {
+) -> Result<SmallServerActivity, AppError> {
     let pool = get_postgresql_pool().await?;
-    let row: Option<SmallServerActivity> = sqlx::query_as(
+    let row: SmallServerActivity = sqlx::query_as(
         "SELECT anime_id, timestamp, server_id FROM DATA.activity_data WHERE anime_id = $1 AND server_id = $2",
     )
         .bind(anime_id)
         .bind(server_id)
-        .fetch_optional(&pool)
+        .fetch_one(&pool)
         .await
-        .unwrap_or(None);
+        .unwrap_or(SmallServerActivity {
+            anime_id: None,
+            timestamp: None,
+            guild_id: None,
+        });
 
     pool.close().await;
 

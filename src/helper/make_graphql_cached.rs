@@ -1,6 +1,7 @@
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use tracing::trace;
 
 use crate::cache::manage::cache_dispatch::{get_cache, set_cache};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -14,7 +15,7 @@ pub async fn make_request_anilist<
     operation: Operation<T, S>,
     always_update: bool,
 ) -> Result<GraphQlResponse<U>, AppError> {
-    if always_update {
+    if !always_update {
         do_request(operation).await
     } else {
         let return_data: GraphQlResponse<U> = check_cache(operation).await?;
@@ -64,7 +65,6 @@ async fn do_request<
         error_response_type: ErrorResponseType::Unknown,
     })?;
     set_cache(operation.query, response_text.clone()).await;
-
     get_type(response_text)
 }
 

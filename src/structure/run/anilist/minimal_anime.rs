@@ -2,15 +2,27 @@
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct MinimalAnimeVariables<'a> {
+pub struct MinimalAnimeIdVariables {
     pub id: Option<i32>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "MinimalAnimeIdVariables")]
+pub struct MinimalAnimeId {
+    #[arguments(id: $ id, type: "ANIME")]
+    #[cynic(rename = "Media")]
+    pub media: Option<Media>,
+}
+
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct MinimalAnimeSearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "MinimalAnimeVariables")]
-pub struct MinimalAnime {
-    #[arguments(id: $ id, search: $ search, type: "ANIME")]
+#[cynic(graphql_type = "Query", variables = "MinimalAnimeSearchVariables")]
+pub struct MinimalAnimeSearch {
+    #[arguments( search: $ search, type: "ANIME")]
     #[cynic(rename = "Media")]
     pub media: Option<Media>,
 }

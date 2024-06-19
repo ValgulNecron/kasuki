@@ -1,4 +1,5 @@
 use serenity::all::{CommandInteraction, Context};
+use tracing::trace;
 
 use crate::command::autocomplete::anilist_user::anime::get_autocomplete_media_variables;
 use crate::constant::DEFAULT_STRING;
@@ -26,6 +27,7 @@ use crate::structure::autocomplete::anilist::media::send_auto_complete;
 /// This function is asynchronous. It awaits the creation of the `MediaPageWrapper` and the sending of the autocomplete response.
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
+    trace!("{:?}", map);
     let anime_search = map
         .get(&String::from("anime_name"))
         .unwrap_or(DEFAULT_STRING);

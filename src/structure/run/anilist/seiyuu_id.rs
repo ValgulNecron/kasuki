@@ -2,28 +2,27 @@
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct SeiyuuVariables<'a> {
+pub struct SeiyuuIdVariables {
     pub id: Option<i32>,
     pub per_page: Option<i32>,
-    pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "SeiyuuVariables")]
-pub struct Seiyuu {
+#[cynic(graphql_type = "Query", variables = "SeiyuuIdVariables")]
+pub struct SeiyuuId {
     #[cynic(rename = "Page")]
     pub page: Option<Page>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(variables = "SeiyuuVariables")]
+#[cynic(variables = "SeiyuuIdVariables")]
 pub struct Page {
-    #[arguments(search: $ search, id: $ id)]
+    #[arguments(id: $ id)]
     pub staff: Option<Vec<Option<Staff>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(variables = "SeiyuuVariables")]
+#[cynic(variables = "SeiyuuIdVariables")]
 pub struct Staff {
     pub site_url: Option<String>,
     pub image: Option<StaffImage>,
