@@ -1,11 +1,10 @@
-use serenity::all::{
-    ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, Timestamp,
-};
+use serenity::all::{ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup, EditMessage, Timestamp};
 use tracing::trace;
 
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::data_struct::server_activity::ServerActivity;
 use crate::database::manage::dispatcher::data_dispatch::get_all_server_activity;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 
@@ -48,6 +47,7 @@ pub async fn update(
     let len = list.len();
     let actual_page: u64 = page_number.parse().unwrap();
     let next_page: u64 = actual_page + 1;
+    let previous_page: u64 = actual_page - 1;
 
     let activity: Vec<String> = get_formatted_activity_list(list, actual_page);
 
@@ -62,13 +62,13 @@ pub async fn update(
     let mut response = EditMessage::new().embed(builder_message);
     if page_number != "0" {
         response = response.button(
-            CreateButton::new(format!("next_user_{}", page_number))
+            CreateButton::new(format!("next_activity_{}", previous_page))
                 .label(&list_activity_localised_text.previous),
         );
     }
     trace!("{:?}", len);
     trace!("{:?}", ACTIVITY_LIST_LIMIT);
-    if len > ACTIVITY_LIST_LIMIT as usize {
+    if len > ACTIVITY_LIST_LIMIT as usize && (len > (ACTIVITY_LIST_LIMIT * (actual_page + 1)) as usize) {
         response = response.button(
             CreateButton::new(format!("next_activity_{}", next_page))
                 .label(&list_activity_localised_text.next),
@@ -87,7 +87,32 @@ pub async fn update(
             ErrorType::Component,
             ErrorResponseType::None,
         )
-    })
+    })?;
+
+    component_interaction.defer(&ctx.http).await.map_err(|e|{
+        AppError::new(
+            format!("Error while sending the command {}", e),
+            ErrorType::Component,
+            ErrorResponseType::None,
+        )
+    })?;
+    let embed = get_default_embed(None).description(".");
+    let response = CreateInteractionResponseFollowup::new().embed(embed);
+    let mut msg = component_interaction.create_followup(&ctx.http, response).await.map_err(|e|{
+        AppError::new(
+            format!("Error while sending the command {}", e),
+            ErrorType::Component,
+            ErrorResponseType::None,
+        )
+    })?;
+    msg.delete(&ctx.http).await.map_err(|e|{
+        AppError::new(
+            format!("Error while sending the command {}", e),
+            ErrorType::Component,
+            ErrorResponseType::None,
+        )
+    })?;
+    Ok(())
 }
 
 /// Formats a list of server activities into a list of strings.
