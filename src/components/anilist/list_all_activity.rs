@@ -1,4 +1,8 @@
-use serenity::all::{ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup, EditMessage, Timestamp};
+use serenity::all::{
+    ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditInteractionResponse,
+    EditMessage, Timestamp,
+};
 use tracing::trace;
 
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
@@ -46,8 +50,9 @@ pub async fn update(
     let list = get_all_server_activity(&guild_id.to_string()).await?;
     let len = list.len();
     let actual_page: u64 = page_number.parse().unwrap();
+    trace!("{:?}", actual_page);
     let next_page: u64 = actual_page + 1;
-    let previous_page: u64 = actual_page - 1;
+    let previous_page: u64 = if actual_page > 0 { actual_page - 1 } else { 0 };
 
     let activity: Vec<String> = get_formatted_activity_list(list, actual_page);
 
@@ -58,60 +63,36 @@ pub async fn update(
         .color(COLOR)
         .title(list_activity_localised_text.title)
         .description(join_activity);
+    let mut message_rep = CreateInteractionResponseMessage::new().embed(builder_message);
 
-    let mut response = EditMessage::new().embed(builder_message);
     if page_number != "0" {
-        response = response.button(
+        message_rep = message_rep.button(
             CreateButton::new(format!("next_activity_{}", previous_page))
                 .label(&list_activity_localised_text.previous),
         );
     }
     trace!("{:?}", len);
     trace!("{:?}", ACTIVITY_LIST_LIMIT);
-    if len > ACTIVITY_LIST_LIMIT as usize && (len > (ACTIVITY_LIST_LIMIT * (actual_page + 1)) as usize) {
-        response = response.button(
+    if len > ACTIVITY_LIST_LIMIT as usize
+        && (len > (ACTIVITY_LIST_LIMIT * (actual_page + 1)) as usize)
+    {
+        message_rep = message_rep.button(
             CreateButton::new(format!("next_activity_{}", next_page))
                 .label(&list_activity_localised_text.next),
         )
     }
+    let response = CreateInteractionResponse::UpdateMessage(message_rep);
 
-    trace!("{:?}", response);
-
-    let mut message = component_interaction.message.clone();
-
-    let a = message.edit(&ctx.http, response).await;
-    trace!("{:?}", a);
-    a.map_err(|e| {
-        AppError::new(
-            format!("Error while sending the component {}", e),
-            ErrorType::Component,
-            ErrorResponseType::None,
-        )
-    })?;
-
-    component_interaction.defer(&ctx.http).await.map_err(|e|{
-        AppError::new(
-            format!("Error while sending the command {}", e),
-            ErrorType::Component,
-            ErrorResponseType::None,
-        )
-    })?;
-    let embed = get_default_embed(None).description(".");
-    let response = CreateInteractionResponseFollowup::new().embed(embed);
-    let mut msg = component_interaction.create_followup(&ctx.http, response).await.map_err(|e|{
-        AppError::new(
-            format!("Error while sending the command {}", e),
-            ErrorType::Component,
-            ErrorResponseType::None,
-        )
-    })?;
-    msg.delete(&ctx.http).await.map_err(|e|{
-        AppError::new(
-            format!("Error while sending the command {}", e),
-            ErrorType::Component,
-            ErrorResponseType::None,
-        )
-    })?;
+    component_interaction
+        .create_response(&ctx.http, response)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Error while sending the command {:?}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
+        })?;
     Ok(())
 }
 
