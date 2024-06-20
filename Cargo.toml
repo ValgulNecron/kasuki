@@ -1,6 +1,6 @@
 [package]
 name = "kasuki"
-version = "2.9.3"
+version = "2.9.4"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"

@@ -311,9 +311,7 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
     let mut members_temp_out: Vec<Member> = Vec::new();
     while members_temp_out.len() == (1000 * i) {
         let mut members_temp_in = if i == 0 {
-            match guild
-                .members(&ctx_clone.http, Some(1000), None)
-                .await {
+            match guild.members(&ctx_clone.http, Some(1000), None).await {
                 Ok(members) => members,
                 Err(e) => {
                     error!("{}", e);
@@ -322,10 +320,7 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
             }
         } else {
             let user: UserId = members_temp_out.last().unwrap().user.id;
-            match guild
-                .members(&ctx_clone.http, Some(1000), Some(user))
-                .await
-            {
+            match guild.members(&ctx_clone.http, Some(1000), Some(user)).await {
                 Ok(members) => members,
                 Err(e) => {
                     error!("{}", e);
