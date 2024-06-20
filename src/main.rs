@@ -14,7 +14,6 @@ use crate::event_handler::{Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
 use crate::struct_shard_manager::RootUsageContainer;
 
-mod api;
 mod background_task;
 mod cache;
 mod command;

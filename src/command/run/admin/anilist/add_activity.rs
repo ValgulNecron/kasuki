@@ -215,9 +215,10 @@ async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
         .unwrap_or(SmallServerActivity {
             anime_id: None,
             timestamp: None,
-            guild_id: None,
+            server_id: None,
         });
-    if row.anime_id.is_none() || row.timestamp.is_none() || row.guild_id.is_none() {
+    trace!("{:?}", row);
+    if row.anime_id.is_none() || row.timestamp.is_none() || row.server_id.is_none() {
         return false;
     };
     true

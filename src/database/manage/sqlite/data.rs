@@ -9,7 +9,7 @@ use crate::database::data_struct::server_activity::{
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use tracing::trace;
+use tracing::{error, trace};
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
 ///
@@ -330,12 +330,14 @@ pub async fn get_one_activity_sqlite(
         .bind(anime_id)
         .bind(server_id)
         .fetch_one(&pool)
-        .await
-        .unwrap_or(SmallServerActivity {
+        .await.unwrap_or_else(|e| {
+        error!(?e);
+        SmallServerActivity {
             anime_id: None,
             timestamp: None,
-            guild_id: None,
-        });
+            server_id: None,
+        }
+    });
     trace!(?row);
     pool.close().await;
 

@@ -337,7 +337,7 @@ pub async fn get_one_activity_postgresql(
         .unwrap_or(SmallServerActivity {
             anime_id: None,
             timestamp: None,
-            guild_id: None,
+            server_id: None,
         });
 
     pool.close().await;
