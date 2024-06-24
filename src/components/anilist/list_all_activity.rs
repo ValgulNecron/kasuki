@@ -1,14 +1,11 @@
 use serenity::all::{
-    ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditInteractionResponse,
-    EditMessage, Timestamp,
+    ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
 
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::data_struct::server_activity::ServerActivity;
 use crate::database::manage::dispatcher::data_dispatch::get_all_server_activity;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 
