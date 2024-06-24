@@ -160,7 +160,7 @@ impl Info for InfoService {
                     let role: InternalTeamMemberRole = member.role.into();
                     let membership_state: InternalMembershipState = member.membership_state.into();
                     let user = member.user;
-                    let username = user.name;
+                    let username = user.name.clone();
                     let id = user.id.to_string();
                     let profile_picture = user.face();
                     let banner = user.banner_url();
