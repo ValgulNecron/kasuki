@@ -7,10 +7,11 @@ use tonic::{Request, Response, Status};
 use tracing::trace;
 
 use crate::constant::{APP_VERSION, CONFIG};
+use crate::custom_serenity_impl::{InternalMembershipState, InternalTeamMemberRole};
 use crate::grpc_server::service::info::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::service::info::proto::{
     BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, InfoRequest, InfoResponse,
-    OwnerInfo, ShardStats, SystemInfoData,
+    OwnerInfo, ShardStats, SystemInfoData, TeamMember,
 };
 
 // Proto module contains the protobuf definitions for the shard service
@@ -124,8 +125,10 @@ impl Info for InfoService {
         let id = bot_owner.id;
         let owner_data = self.http.clone().get_user(id).await;
         let id = id.to_string();
-        let owner_info = match owner_data {
-            Ok(user) => {
+        let team = self.bot_info.team.clone();
+
+        let owner_info = match (owner_data, team) {
+            (Ok(user), None) => {
                 let profile_picture = user.face();
                 let banner = user.banner_url();
                 Some(OwnerInfo {
@@ -133,7 +136,63 @@ impl Info for InfoService {
                     id,
                     profile_picture,
                     banner,
+                    team_owned: false,
+                    team_members: Vec::new(),
+                    team_owner: None,
                 })
+            }
+            (_, Some(team)) => {
+                let name = team.name;
+                let id = team.id.to_string();
+                let icon_hash = match team.icon {
+                    Some(icon) => icon.to_string(),
+                    None => String::from("1"),
+                };
+                let profile_picture = format!(
+                    "https://cdn.discordapp.com/team-icons/{}.png?size=2048",
+                    icon_hash
+                );
+                let owner_id = team.owner_user_id;
+                let mut team_members = vec![];
+                let mut team_owner = None;
+                for member in team.members {
+                    let owner_id = owner_id.to_string();
+                    let role: InternalTeamMemberRole = member.role.into();
+                    let membership_state: InternalMembershipState = member.membership_state.into();
+                    let user = member.user;
+                    let username = user.name;
+                    let id = user.id.to_string();
+                    let profile_picture = user.face();
+                    let banner = user.banner_url();
+                    if id == owner_id {
+                        team_owner = Some(TeamMember {
+                            role: role.to_string(),
+                            membership_state: membership_state.to_string(),
+                            username: username.clone(),
+                            id: id.clone(),
+                            profile_picture: profile_picture.clone(),
+                            banner: banner.clone(),
+                        })
+                    }
+                    team_members.push(TeamMember {
+                        role: role.to_string(),
+                        membership_state: membership_state.to_string(),
+                        username,
+                        id,
+                        profile_picture,
+                        banner,
+                    });
+                }
+                let owner_info = OwnerInfo {
+                    name,
+                    id,
+                    profile_picture,
+                    banner: None,
+                    team_owned: true,
+                    team_members,
+                    team_owner: None,
+                };
+                Some(owner_info)
             }
             _ => None,
         };

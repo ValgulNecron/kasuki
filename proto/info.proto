@@ -52,6 +52,18 @@ message OwnerInfo {
     string id = 2;
     string profile_picture = 3;
     optional string banner = 4;
+    bool team_owned = 5;
+    repeated TeamMember team_members = 6;
+    optional TeamMember team_owner = 7;
+}
+
+message TeamMember {
+    string role = 1;
+    string membership_state = 2;
+    string username = 3;
+    string id = 4;
+            string profile_picture = 5;
+    optional   string  banner = 6;
 }
 
 message BotInfoData {
