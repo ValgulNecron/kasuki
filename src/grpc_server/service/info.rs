@@ -164,15 +164,18 @@ impl Info for InfoService {
                     let id = user.id.to_string();
                     let profile_picture = user.face();
                     let banner = user.banner_url();
+                    trace!(id);
+                    trace!(owner_id);
                     if id == owner_id {
                         team_owner = Some(TeamMember {
                             role: role.to_string(),
                             membership_state: membership_state.to_string(),
-                            username: username.clone(),
-                            id: id.clone(),
-                            profile_picture: profile_picture.clone(),
-                            banner: banner.clone(),
-                        })
+                            username,
+                            id,
+                            profile_picture,
+                            banner,
+                        });
+                        continue;
                     }
                     team_members.push(TeamMember {
                         role: role.to_string(),
@@ -190,7 +193,7 @@ impl Info for InfoService {
                     banner: None,
                     team_owned: true,
                     team_members,
-                    team_owner: None,
+                    team_owner,
                 };
                 Some(owner_info)
             }

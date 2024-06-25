@@ -1,5 +1,6 @@
 use serenity::all::{
-    ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
+    ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
 
