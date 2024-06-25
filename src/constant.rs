@@ -106,4 +106,3 @@ pub static mut BOT_INFO: Option<CurrentApplicationInfo> = None;
 pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
 /// Used library.
 pub const LIBRARY: &str = "serenity";
-pub static mut CONFIG: Lazy<Config> = Lazy::new(Config::default);

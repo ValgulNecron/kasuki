@@ -11,12 +11,14 @@ use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::background_task::update_random_stats::update_random_stats_launcher;
+use crate::config::Config;
 use crate::constant::{
-    CONFIG, PING_UPDATE_DELAYS, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_GAME_UPDATE,
+    PING_UPDATE_DELAYS, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_GAME_UPDATE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE, USER_BLACKLIST_SERVER_IMAGE,
 };
 use crate::database::data_struct::ping_history::PingHistory;
 use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
+use crate::event_handler::{BotData, RootUsage};
 use crate::grpc_server::launcher::grpc_server_launcher;
 use crate::struct_shard_manager::ShardManagerContainer;
 use crate::structure::steam_game_id_struct::get_game;
@@ -29,12 +31,13 @@ use crate::structure::steam_game_id_struct::get_game;
 ///
 /// * `ctx` - A `Context` instance which is used to clone and pass to the threads.
 ///
-pub async fn thread_management_launcher(ctx: Context, command_usage: Arc<RwLock<u128>>) {
+pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
     // Get the guilds from the context cache
     // Clone the context
     // Spawn a new thread for the web server
-
-    tokio::spawn(launch_web_server_thread(ctx.clone(), command_usage));
+    let command_usage = bot_data.number_of_command_use_per_command.clone();
+    let is_grpc_on = bot_data.config.grpc.grpc_is_on;
+    tokio::spawn(launch_web_server_thread(ctx.clone(), command_usage, is_grpc_on));
     // Spawn a new thread for user color management
     tokio::spawn(launch_user_color_management_thread(ctx.clone()));
     // Spawn a new thread for activity management
@@ -75,8 +78,7 @@ async fn ping_manager_thread(ctx: Context) {
 
 /// This function is responsible for launching the web server thread.
 /// It does not take any arguments and does not return anything.
-async fn launch_web_server_thread(ctx: Context, command_usage: Arc<RwLock<u128>>) {
-    let is_grpc_on = unsafe { CONFIG.grpc.grpc_is_on };
+async fn launch_web_server_thread(ctx: Context, command_usage: Arc<RwLock<RootUsage>>, is_grpc_on: bool) {
     if !is_grpc_on {
         info!("GRPC is off, skipping the GRPC server thread!");
         return;

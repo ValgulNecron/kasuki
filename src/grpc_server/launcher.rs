@@ -6,6 +6,7 @@ use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::constant::{BOT_COMMANDS, BOT_INFO, CONFIG};
+use crate::event_handler::RootUsage;
 use crate::grpc_server::command_list::get_list_of_all_command;
 use crate::grpc_server::service;
 use crate::grpc_server::service::command::{get_command_server, CommandServices};
@@ -25,7 +26,7 @@ use crate::grpc_server::service::shard::{get_shard_server, ShardService};
 /// This function will panic if it fails to build the reflection service or if it fails to serve the gRPC server.
 pub async fn grpc_server_launcher(
     shard_manager: &Arc<ShardManager>,
-    command_usage: Arc<RwLock<u128>>,
+    command_usage: Arc<RwLock<RootUsage>>,
     cache: Arc<Cache>,
     http: Arc<Http>,
 ) {

@@ -7,6 +7,7 @@ use serenity::all::{
     ActivityData, CommandType, Context, EventHandler, Guild, Interaction, Member, Ready,
 };
 use serenity::async_trait;
+use serenity::prelude::TypeMapKey;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
@@ -18,13 +19,18 @@ use crate::command::run::command_dispatch::command_dispatching;
 use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_registration;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{BOT_INFO, COMMAND_USE_PATH, CONFIG};
+use crate::config::Config;
+use crate::constant::{BOT_INFO, COMMAND_USE_PATH};
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-pub struct Handler {
-    pub number_of_command_use: Arc<RwLock<u128>>,
+pub struct BotData {
     pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
+    pub config: Arc<Config>,
+}
+
+pub struct Handler {
+    pub bot_data: Arc<BotData>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -52,12 +58,6 @@ impl RootUsage {
 }
 
 impl Handler {
-    // thread safe way to increment the number of command use
-    pub async fn increment_command_use(&self) {
-        let mut guard = self.number_of_command_use.write().await;
-        *guard = guard.add(1);
-    }
-
     // thread safe way to increment the number of command use per command
     pub async fn increment_command_use_per_command(
         &self,
@@ -65,7 +65,9 @@ impl Handler {
         user_id: String,
         user_name: String,
     ) {
-        let mut guard = self.number_of_command_use_per_command.write().await;
+        let bot_data = self.bot_data.clone();
+        let number_of_command_use_per_command = bot_data.number_of_command_use_per_command.clone();
+        let mut guard = number_of_command_use_per_command.write().await;
         let command_map = guard
             .command_list
             .entry(command_name)
@@ -84,7 +86,8 @@ impl Handler {
         // drop the guard
         drop(guard);
         // save the content as a json
-        match serde_json::to_string(&*self.number_of_command_use_per_command.read().await) {
+        match serde_json::to_string(&*self.bot_data.number_of_command_use_per_command.read().await)
+        {
             Ok(content) => {
                 // save the content to the file
                 if let Err(e) = std::fs::write(COMMAND_USE_PATH, content) {
@@ -164,15 +167,15 @@ impl EventHandler for Handler {
             BOT_INFO = Some(bot);
         }
 
-        let command_usage = self.number_of_command_use.clone();
+        let command_usage = self.bot_data.number_of_command_use_per_command.clone();
 
         // Spawns a new thread for managing various tasks
         tokio::spawn(thread_management_launcher(ctx.clone(), command_usage));
 
         // Sets the bot's activity
-        ctx.set_activity(Some(ActivityData::custom(unsafe {
-            CONFIG.bot.bot_activity.clone()
-        })));
+        ctx.set_activity(Some(ActivityData::custom(
+            self.bot_data.config.bot.bot_activity.clone(),
+        )));
 
         // Logs a message indicating that the shard is connected
         info!(
@@ -185,7 +188,7 @@ impl EventHandler for Handler {
         info!(server_number);
 
         // Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
-        let remove_old_command = unsafe { CONFIG.bot.config.remove_old_commands };
+        let remove_old_command = self.bot_data.config.bot.config.remove_old_commands;
 
         // Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
         command_registration(&ctx.http, remove_old_command).await;
