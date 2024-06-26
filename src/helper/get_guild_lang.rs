@@ -15,7 +15,7 @@ use crate::database::manage::dispatcher::data_dispatch::get_data_guild_language;
 /// # Returns
 ///
 /// * A string representing the language setting for the given guild. If no language setting is found, it returns "en".
-pub async fn get_guild_language(guild_id: String, db_type: &str) -> String {
+pub async fn get_guild_language(guild_id: String, db_type: String) -> String {
     if guild_id == *"0" {
         return String::from("en");
     };

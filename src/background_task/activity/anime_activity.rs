@@ -109,8 +109,8 @@ async fn send_specific_activity(
     guild_id: String,
     row2: ServerActivityFull,
     ctx: &Context,
-    db_type: &'static str,
-    cache_type: &'static str,
+    db_type:String,
+    cache_type: String,
 ) -> Result<(), AppError> {
     let localised_text = load_localization_send_activity(guild_id.clone(), db_type).await?;
     let webhook_url = row.webhook.clone();
@@ -206,8 +206,8 @@ async fn send_specific_activity(
 async fn update_info(
     row: ServerActivityFull,
     guild_id: String,
-    cache_type: &str,
-    db_type: &str,
+    cache_type: String,
+    db_type: String,
 ) -> Result<(), AppError> {
     let media = get_minimal_anime_by_id(row.anime_id, cache_type).await?;
     let next_airing = match media.next_airing_episode {

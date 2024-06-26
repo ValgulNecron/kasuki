@@ -72,8 +72,9 @@ pub async fn set_data_ping_history(
 /// * A Result that is either an Option variant containing the guild language if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_guild_language(
     guild_id: String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<Option<GuildLanguage>, AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_guild_language_sqlite(guild_id).await
     } else if db_type == "postgresql" {
@@ -125,8 +126,9 @@ pub async fn set_data_guild_language(
 /// * A Result that is either a Vec variant containing the activity data if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_activity(
     now: String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<Vec<ServerActivityFull>, AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_activity_sqlite(now).await
     } else if db_type == "postgresql" {

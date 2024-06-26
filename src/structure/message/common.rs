@@ -7,7 +7,7 @@ use crate::helper::read_file::read_file_as_string;
 pub async fn load_localization<'a, T: serde::Deserialize<'a> + Clone>(
     guild_id: String,
     path: &str,
-    db_type: &str,
+    db_type: String,
 ) -> Result<T, AppError> {
     let json_content = read_file_as_string(path)?;
     let json: &'a str = Box::leak(json_content.into_boxed_str());
