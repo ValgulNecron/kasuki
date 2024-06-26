@@ -13,7 +13,7 @@ pub async fn make_request_anilist<
 >(
     operation: Operation<T, S>,
     always_update: bool,
-    cache_type: &str,
+    cache_type: String,
 ) -> Result<GraphQlResponse<U>, AppError> {
     if !always_update {
         do_request(operation, cache_type).await
@@ -30,9 +30,9 @@ async fn check_cache<
     U: for<'de> Deserialize<'de>,
 >(
     operation: Operation<T, S>,
-    cache_type: &str,
+    cache_type: String,
 ) -> Result<GraphQlResponse<U>, AppError> {
-    let cache = get_cache(operation.query.clone(), cache_type).await;
+    let cache = get_cache(operation.query.clone(), cache_type.clone()).await;
     match cache {
         Some(data) => get_type(data),
         None => do_request(operation, cache_type).await,
@@ -45,7 +45,7 @@ async fn do_request<
     U: for<'de> Deserialize<'de>,
 >(
     operation: Operation<T, S>,
-    cache_type: &str,
+    cache_type: String,
 ) -> Result<GraphQlResponse<U>, AppError> {
     let client = Client::new();
     let resp = client

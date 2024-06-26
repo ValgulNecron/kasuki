@@ -46,7 +46,7 @@ pub async fn manage_activity(ctx: Context, db_type: String,cache_type:  String) 
 /// * `ctx` - A reference to the Context.
 async fn send_activity(ctx: &Context, db_type: String,cache_type: String,) {
     let now = Utc::now().timestamp().to_string();
-    let rows = match get_data_activity(now.clone(), db_type).await {
+    let rows = match get_data_activity(now.clone(), db_type.clone()).await {
         Ok(rows) => rows,
         Err(e) => {
             error!("{}", e);
@@ -62,6 +62,8 @@ async fn send_activity(ctx: &Context, db_type: String,cache_type: String,) {
         let guild_id = row.guild_id.clone();
         let ctx = ctx.clone();
         if row.delays != 0 {
+            let db_type = db_type.clone();
+            let cache_type = cache_type.clone();
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs(row2.delays as u64)).await;
                 if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx, db_type,cache_type).await {
@@ -69,6 +71,8 @@ async fn send_activity(ctx: &Context, db_type: String,cache_type: String,) {
                 }
             });
         } else {
+            let db_type = db_type.clone();
+            let cache_type = cache_type.clone();
             tokio::spawn(async move {
                 if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx, db_type,cache_type).await {
                     error!("{}", e);
@@ -112,7 +116,7 @@ async fn send_specific_activity(
     db_type:String,
     cache_type: String,
 ) -> Result<(), AppError> {
-    let localised_text = load_localization_send_activity(guild_id.clone(), db_type).await?;
+    let localised_text = load_localization_send_activity(guild_id.clone(), db_type.clone()).await?;
     let webhook_url = row.webhook.clone();
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
         .await
@@ -256,7 +260,7 @@ async fn update_info(
 async fn remove_activity(
     row: ServerActivityFull,
     guild_id: String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
     trace!("removing {:#?} for {}", row, guild_id);
     remove_data_activity_status(guild_id, row.anime_id.to_string(), db_type).await?;

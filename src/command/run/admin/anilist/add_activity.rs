@@ -405,7 +405,7 @@ async fn get_webhook(
     Ok(webhook_return)
 }
 
-pub async fn get_minimal_anime_by_id(id: i32, cache_type: &str) -> Result<Media, AppError> {
+pub async fn get_minimal_anime_by_id(id: i32, cache_type: String) -> Result<Media, AppError> {
     let query = MinimalAnimeIdVariables { id: Some(id) };
     let operation = MinimalAnimeId::build(query);
     let data: GraphQlResponse<MinimalAnimeId> =

@@ -130,7 +130,7 @@ impl EventHandler for Handler {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
         let cache_type = self.bot_data.config.bot.config.cache_type.clone();
         if is_new.unwrap_or_default() {
-            color_management(&ctx.cache.guilds(), &ctx, db_type.as_ref()).await;
+            color_management(&ctx.cache.guilds(), &ctx, db_type).await;
             server_image_management(&ctx, cache_type).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
@@ -155,8 +155,8 @@ impl EventHandler for Handler {
         let cache_type = self.bot_data.config.bot.config.cache_type.clone();
         let guild_id = member.guild_id.to_string();
         debug!("Member {} joined guild {}", member.user.tag(), guild_id);
-        color_management(&ctx.cache.guilds(), &ctx, db_type.as_ref()).await;
-        server_image_management(&ctx, cache_type.as_ref()).await;
+        color_management(&ctx.cache.guilds(), &ctx, db_type).await;
+        server_image_management(&ctx, cache_type).await;
     }
 
     /// This function is called when the bot is ready.

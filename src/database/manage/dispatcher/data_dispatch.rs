@@ -153,8 +153,9 @@ pub async fn get_data_activity(
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_data_activity(
     server_activity_full: ServerActivityFull,
-    db_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_data_activity_sqlite(server_activity_full).await
     } else if db_type == "postgresql" {
@@ -339,8 +340,9 @@ pub async fn get_data_module_activation_kill_switch_status(
 pub async fn remove_data_activity_status(
     server_id: String,
     anime_id: String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         remove_data_activity_status_sqlite(server_id, anime_id).await
     } else if db_type == "postgresql" {
