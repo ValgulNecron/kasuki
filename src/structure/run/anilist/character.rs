@@ -108,6 +108,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     character: Character,
+    db_type: String,
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -116,7 +117,7 @@ pub async fn send_embed(
 
     trace!("{:#?}", guild_id);
 
-    let character_localised = load_localization_character(guild_id).await?;
+    let character_localised = load_localization_character(guild_id, db_type).await?;
 
     let mut date_of_birth_string = String::new();
 

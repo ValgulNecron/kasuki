@@ -32,20 +32,22 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let cache_type = config.bot.config.cache_type.clone();
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the username from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
     match user {
         Some(value) => {
             // If a username is provided, fetch the user data and send an embed
-            let data: User = get_user(value).await?;
-            send_embed(ctx, command_interaction, data).await
+            let data: User = get_user(value, cache_type).await?;
+            send_embed(ctx, command_interaction, data, db_type).await
         }
         None => {
             // If no username is provided, retrieve the ID of the user who triggered the command
             let user_id = &command_interaction.user.id.to_string();
             // Check if the user is registered
-            let row: Option<RegisteredUser> = get_registered_user(user_id).await?;
+            let row: Option<RegisteredUser> = get_registered_user(user_id, db_type.clone()).await?;
             let user = row.ok_or(AppError::new(
                 String::from("There is no user selected"),
                 ErrorType::Option,
@@ -53,8 +55,8 @@ pub async fn run(
             ))?;
 
             // Fetch the user data and send an embed
-            let data: User = get_user(&user.anilist_id).await?;
-            send_embed(ctx, command_interaction, data).await
+            let data: User = get_user(&user.anilist_id, cache_type).await?;
+            send_embed(ctx, command_interaction, data, db_type).await
         }
     }
 }
@@ -76,6 +78,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: User,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -84,7 +87,7 @@ pub async fn send_embed(
     };
 
     // Load the localized level strings
-    let level_localised = load_localization_level(guild_id).await?;
+    let level_localised = load_localization_level(guild_id, db_type).await?;
 
     // Clone the manga and anime statistics
     let statistics = user.statistics.clone().unwrap();

@@ -32,6 +32,8 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
+    let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the username of the AniList account from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("username")).ok_or(AppError::new(
@@ -41,7 +43,7 @@ pub async fn run(
     ))?;
 
     // Fetch the user data from AniList
-    let user_data: User = get_user(value).await?;
+    let user_data: User = get_user(value, cache_type).await?;
 
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -50,7 +52,7 @@ pub async fn run(
     };
 
     // Load the localized register strings
-    let register_localised = load_localization_register(guild_id).await?;
+    let register_localised = load_localization_register(guild_id, db_type.clone()).await?;
 
     // Retrieve the user's Discord ID and username
     let user_id = &command_interaction.user.id.to_string();
@@ -61,7 +63,7 @@ pub async fn run(
         user_id: user_id.clone(),
         anilist_id: user_data.id.to_string(),
     };
-    set_registered_user(registered_user).await?;
+    set_registered_user(registered_user, db_type).await?;
 
     // Construct the description for the embed
     let desc = register_localised

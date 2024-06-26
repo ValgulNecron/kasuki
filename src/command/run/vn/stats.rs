@@ -13,11 +13,12 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let stats_localised = load_localization_stats(guild_id).await?;
+    let stats_localised = load_localization_stats(guild_id, db_type).await?;
 
     let stats = get_stats().await?;
 

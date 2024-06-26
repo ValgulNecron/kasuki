@@ -40,7 +40,7 @@ pub async fn run(
     // If the username is provided, fetch the user's data from AniList and send it as a response
     if let Some(value) = user {
         let data: User = get_user(value, cache_type).await?;
-        return send_embed(ctx, command_interaction, data).await;
+        return send_embed(ctx, command_interaction, data, db_type.clone()).await;
     }
 
     // If the username is not provided, fetch the data of the user who triggered the command interaction
@@ -54,7 +54,7 @@ pub async fn run(
 
     // Fetch the user's data from AniList and send it as a response
     let data = get_user(&user.anilist_id, cache_type).await?;
-    send_embed(ctx, command_interaction, data).await
+    send_embed(ctx, command_interaction, data, db_type).await
 }
 
 /// Fetches the data of a user from AniList.

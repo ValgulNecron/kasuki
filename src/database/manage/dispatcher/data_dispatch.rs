@@ -296,7 +296,7 @@ pub async fn get_registered_user(
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_registered_user(
     registered_user: RegisteredUser,
-    db_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
     if db_type == "sqlite" {
         set_registered_user_sqlite(registered_user).await
@@ -317,8 +317,9 @@ pub async fn set_registered_user(
 ///
 /// * A Result that is either an ActivationStatusModule variant if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_module_activation_kill_switch_status(
-    db_type: &str,
+    db_type: String,
 ) -> Result<ActivationStatusModule, AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_module_activation_kill_switch_status_sqlite().await
     } else if db_type == "postgresql" {
@@ -540,8 +541,9 @@ pub async fn set_server_image(
 pub async fn get_server_image(
     server_id: &String,
     image_type: &String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_server_image_sqlite(server_id, image_type).await
     } else if db_type == "postgresql" {

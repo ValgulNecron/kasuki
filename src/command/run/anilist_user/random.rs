@@ -40,6 +40,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -47,7 +48,7 @@ pub async fn run(
     };
 
     // Load the localized random strings
-    let random_localised = load_localization_random(guild_id).await?;
+    let random_localised = load_localization_random(guild_id, cache_type.clone()).await?;
 
     // Retrieve the type of media (anime or manga) from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
@@ -72,7 +73,7 @@ pub async fn run(
             )
         })?;
 
-    let random_stats = update_random_stats().await?;
+    let random_stats = update_random_stats(cache_type.clone()).await?;
     let last_page = if random_type.as_str() == "anime" {
         random_stats.anime_last_page
     } else if random_type.as_str() == "manga" {
@@ -86,6 +87,7 @@ pub async fn run(
         ctx,
         command_interaction,
         random_localised,
+        cache_type,
     )
     .await
 }
@@ -113,6 +115,7 @@ async fn embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     random_localised: RandomLocalised,
+    cache_type: String,
 ) -> Result<(), AppError> {
     let number = thread_rng().gen_range(1..=last_page);
     let mut var = RandomPageMediaVariables {
@@ -128,7 +131,7 @@ async fn embed(
 
     let operation = RandomPageMedia::build(var);
     let data: Result<GraphQlResponse<RandomPageMedia>, AppError> =
-        make_request_anilist(operation, false).await;
+        make_request_anilist(operation, false, cache_type).await;
     let data = data?;
     let data = data.data.unwrap();
     let inside_media = data.page.unwrap().media.unwrap()[0].clone().unwrap();

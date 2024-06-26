@@ -33,6 +33,7 @@ pub async fn run(
     config: Arc<Config>,
 ) -> Result<(), AppError> {
     let cache_type = config.bot.config.cache_type.clone();
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the name or ID of the character from the command interaction options
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map
@@ -55,7 +56,7 @@ pub async fn run(
     };
 
     // Send an embed with the character information as a response to the command interaction
-    send_embed(ctx, command_interaction, data).await
+    send_embed(ctx, command_interaction, data, db_type).await
 }
 
 pub async fn get_character_by_id(value: i32, cache_type: String) -> Result<Character, AppError> {

@@ -35,13 +35,13 @@ pub async fn run(
 
     // Execute the corresponding search function based on the specified type
     match search_type.as_str() {
-        "anime" => anime::run(ctx, command_interaction).await,
-        "character" => character::run(ctx, command_interaction).await,
-        "ln" => ln::run(ctx, command_interaction).await,
-        "manga" => manga::run(ctx, command_interaction).await,
-        "staff" => staff::run(ctx, command_interaction).await,
-        "user" => user::run(ctx, command_interaction).await,
-        "studio" => studio::run(ctx, command_interaction).await,
+        "anime" => anime::run(ctx, command_interaction, config).await,
+        "character" => character::run(ctx, command_interaction, config).await,
+        "ln" => ln::run(ctx, command_interaction, config).await,
+        "manga" => manga::run(ctx, command_interaction, config).await,
+        "staff" => staff::run(ctx, command_interaction, config).await,
+        "user" => user::run(ctx, command_interaction, config).await,
+        "studio" => studio::run(ctx, command_interaction, config).await,
         // Return an error if the specified type is not one of the expected types
         _ => Err(AppError::new(
             String::from("Invalid type"),

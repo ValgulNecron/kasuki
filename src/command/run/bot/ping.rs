@@ -26,6 +26,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -33,7 +34,7 @@ pub async fn run(
     };
 
     // Load the localized ping strings
-    let ping_localised = load_localization_ping(guild_id).await?;
+    let ping_localised = load_localization_ping(guild_id, db_type).await?;
 
     // Retrieve the shard manager from the context data
     let data_read = ctx.data.read().await;

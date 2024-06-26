@@ -25,6 +25,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -32,7 +33,7 @@ pub async fn run(
     };
 
     // Load the localized guild information
-    let guild_localised = load_localization_guild(guild_id).await?;
+    let guild_localised = load_localization_guild(guild_id, db_type).await?;
 
     // Retrieve the guild ID from the command interaction or return an error if it does not exist
     let guild_id = command_interaction.guild_id.ok_or(AppError::new(

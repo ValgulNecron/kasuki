@@ -26,6 +26,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction or use "0" if it does not exist
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -33,7 +34,7 @@ pub async fn run(
     };
 
     // Load the localized strings for the credits
-    let credit_localised = load_localization_credit(guild_id).await?;
+    let credit_localised = load_localization_credit(guild_id, db_type).await?;
 
     // Construct a description by concatenating the descriptions of all credits
     let mut desc: String = "".to_string();

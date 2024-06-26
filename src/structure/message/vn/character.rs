@@ -30,7 +30,10 @@ pub struct CharacterLocalised {
     pub traits: String,
 }
 
-pub async fn load_localization_character(guild_id: String) -> Result<CharacterLocalised, AppError> {
+pub async fn load_localization_character(
+    guild_id: String,
+    db_type: String,
+) -> Result<CharacterLocalised, AppError> {
     let path = "json/message/vn/character.json";
-    load_localization(guild_id, path).await
+    load_localization(guild_id, path, db_type).await
 }

@@ -22,5 +22,6 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
-    send_embed(ctx, command_interaction, "global").await
+    let db_type = config.bot.config.db_type.clone();
+    send_embed(ctx, command_interaction, "global", db_type).await
 }

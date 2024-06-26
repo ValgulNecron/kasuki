@@ -24,9 +24,11 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let cache_type = config.bot.config.cache_type.clone();
+    let db_type = config.bot.config.db_type.clone();
     // Fetch the data of the character with ID 156323 from AniList
     let value = 156323;
-    let data = get_character_by_id(value).await?;
+    let data = get_character_by_id(value, cache_type).await?;
     // Send the character's data as a response to the command interaction
-    send_embed(ctx, command_interaction, data).await
+    send_embed(ctx, command_interaction, data, db_type).await
 }

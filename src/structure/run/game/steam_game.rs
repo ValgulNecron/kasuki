@@ -203,6 +203,7 @@ impl SteamGameWrapper {
     pub async fn new_steam_game_by_id(
         appid: u128,
         guild_id: String,
+        db_type: String,
     ) -> Result<SteamGameWrapper, AppError> {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
@@ -214,7 +215,7 @@ impl SteamGameWrapper {
                     ErrorResponseType::Unknown,
                 )
             })?;
-        let lang = get_guild_language(guild_id).await;
+        let lang = get_guild_language(guild_id, db_type).await;
         let local_lang = LANG_MAP;
         let full_lang = *local_lang
             .get(lang.to_lowercase().as_str())
@@ -286,6 +287,7 @@ impl SteamGameWrapper {
     pub async fn new_steam_game_by_search(
         search: &str,
         guild_id: String,
+        db_type: String,
     ) -> Result<SteamGameWrapper, AppError> {
         let choices: Vec<(&String, &u128)>;
         unsafe { choices = APPS.iter().collect() }
@@ -314,6 +316,6 @@ impl SteamGameWrapper {
             }
         }
 
-        SteamGameWrapper::new_steam_game_by_id(*appid, guild_id).await
+        SteamGameWrapper::new_steam_game_by_id(*appid, guild_id, db_type).await
     }
 }

@@ -34,7 +34,8 @@ pub struct CommandUsageLocalised {
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
 pub async fn load_localization_command_usage(
     guild_id: String,
+    db_type: String,
 ) -> Result<CommandUsageLocalised, AppError> {
     let path = "json/message/user/command_usage.json";
-    load_localization(guild_id, path).await
+    load_localization(guild_id, path, db_type).await
 }

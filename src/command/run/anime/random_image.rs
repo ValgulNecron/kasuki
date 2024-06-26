@@ -29,6 +29,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the type of image to fetch from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let image_type = map.get(&String::from("image_type")).ok_or(AppError::new(
@@ -43,7 +44,7 @@ pub async fn run(
         None => String::from("0"),
     };
     // Load the localized random image strings
-    let random_image_localised = load_localization_random_image(guild_id).await?;
+    let random_image_localised = load_localization_random_image(guild_id, db_type).await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());

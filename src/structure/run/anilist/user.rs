@@ -196,13 +196,14 @@ pub async fn send_embed(
     ctx: &Context,
     command: &CommandInteraction,
     user: User,
+    db_type: String,
 ) -> Result<(), AppError> {
     let guild_id = match command.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
-    let user_localised = load_localization_user(guild_id).await?;
+    let user_localised = load_localization_user(guild_id, db_type).await?;
 
     let mut field = Vec::new();
     let statistics = user.statistics.clone().unwrap();

@@ -56,7 +56,7 @@ pub async fn run(
     };
 
     // Load the localized text for the list user command
-    let list_user_localised = load_localization_list_user(guild_id).await?;
+    let list_user_localised = load_localization_list_user(guild_id, db_type.clone()).await?;
 
     // Retrieve the guild from the guild ID
     let guild_id = command_interaction.guild_id.ok_or(AppError::new(

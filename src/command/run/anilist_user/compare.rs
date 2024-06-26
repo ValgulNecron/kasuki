@@ -36,6 +36,7 @@ pub async fn run(
     config: Arc<Config>,
 ) -> Result<(), AppError> {
     let cache_type = config.bot.config.cache_type.clone();
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the usernames from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map
@@ -58,7 +59,7 @@ pub async fn run(
     };
 
     // Load the localized comparison strings
-    let compare_localised = load_localization_compare(guild_id).await?;
+    let compare_localised = load_localization_compare(guild_id, db_type).await?;
 
     // Clone the user data
     let username = user.name.clone();

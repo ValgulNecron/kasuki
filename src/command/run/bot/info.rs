@@ -28,6 +28,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -35,7 +36,7 @@ pub async fn run(
     };
 
     // Load the localized information strings
-    let info_localised = load_localization_info(guild_id).await?;
+    let info_localised = load_localization_info(guild_id, db_type).await?;
 
     // Retrieve various details about the bot and the server
     let shard_count = ctx.cache.shard_count();

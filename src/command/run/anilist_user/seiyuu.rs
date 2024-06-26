@@ -40,6 +40,8 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let cache_type = config.bot.config.cache_type.clone();
+    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("staff_name")).ok_or(AppError::new(
         String::from("There is no option"),
@@ -55,7 +57,8 @@ pub async fn run(
             per_page: Some(per_page),
         };
         let operation = SeiyuuId::build(var);
-        let data: GraphQlResponse<SeiyuuId> = make_request_anilist(operation, false).await?;
+        let data: GraphQlResponse<SeiyuuId> =
+            make_request_anilist(operation, false, cache_type).await?;
 
         data.data.unwrap().page.unwrap().staff.unwrap()[0]
             .clone()
@@ -66,7 +69,8 @@ pub async fn run(
             search: Some(value),
         };
         let operation = SeiyuuSearch::build(var);
-        let data: GraphQlResponse<SeiyuuSearch> = make_request_anilist(operation, false).await?;
+        let data: GraphQlResponse<SeiyuuSearch> =
+            make_request_anilist(operation, false, cache_type).await?;
         let data = data.data.unwrap().page.unwrap().staff.unwrap()[0]
             .clone()
             .unwrap();
@@ -78,7 +82,7 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let seiyuu_localised = load_localization_seiyuu(guild_id).await?;
+    let seiyuu_localised = load_localization_seiyuu(guild_id, db_type).await?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 

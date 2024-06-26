@@ -195,10 +195,15 @@ pub async fn command_dispatching(
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the module is activated, or `Err` if an error occurred.
-pub async fn check_if_module_is_on(guild_id: String, module: &str) -> Result<bool, AppError> {
-    let row: ActivationStatusModule = get_data_module_activation_status(&guild_id).await?;
+pub async fn check_if_module_is_on(
+    guild_id: String,
+    module: &str,
+    db_type: String,
+) -> Result<bool, AppError> {
+    let row: ActivationStatusModule =
+        get_data_module_activation_status(&guild_id, db_type.clone()).await?;
     let state = check_activation_status(module, row).await;
-    let state = state && check_kill_switch_status(module).await?;
+    let state = state && check_kill_switch_status(module, db_type).await?;
     Ok(state)
 }
 
@@ -213,8 +218,9 @@ pub async fn check_if_module_is_on(guild_id: String, module: &str) -> Result<boo
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the kill switch is not activated, or `Err` if an error occurred.
-async fn check_kill_switch_status(module: &str) -> Result<bool, AppError> {
-    let row: ActivationStatusModule = get_data_module_activation_kill_switch_status().await?;
+async fn check_kill_switch_status(module: &str, db_type: String) -> Result<bool, AppError> {
+    let row: ActivationStatusModule =
+        get_data_module_activation_kill_switch_status(db_type).await?;
     Ok(check_activation_status(module, row).await)
 }
 
@@ -239,6 +245,8 @@ async fn admin(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
+    let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => "0".to_string(),
@@ -265,7 +273,7 @@ async fn admin(
             .await
         }
         "anilist" => {
-            if check_if_module_is_on(guild_id, "ANIME").await? {
+            if check_if_module_is_on(guild_id, "ANIME", db_type).await? {
                 anilist_admin(
                     ctx,
                     command_interaction,
@@ -393,6 +401,7 @@ async fn ai(
     self_handler: &Handler,
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
+    let db_type = config.bot.config.db_type.clone();
     // Define the error for when the AI module is off
     let ai_module_error: AppError = AppError {
         message: String::from("AI module is off."),
@@ -405,7 +414,7 @@ async fn ai(
         None => "0".to_string(),
     };
     // Check if the AI module is on for the guild
-    if !check_if_module_is_on(guild_id, "AI").await? {
+    if !check_if_module_is_on(guild_id, "AI", db_type).await? {
         return Err(ai_module_error);
     }
     // Match the command name to the appropriate function
@@ -455,7 +464,7 @@ async fn anilist_server(
     self_handler: &Handler,
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
-    // Define the error for when the Anilist module is off
+    let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anilist module is off
     let anilist_module_error: AppError = AppError {
         message: String::from("Anilist module is off."),
         error_type: ErrorType::Module,
@@ -467,7 +476,7 @@ async fn anilist_server(
         None => "0".to_string(),
     };
     // Check if the Anilist module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANIME").await? {
+    if !check_if_module_is_on(guild_id, "ANILIST", db_type).await? {
         return Err(anilist_module_error);
     }
     // Match the command name to the appropriate function
@@ -515,7 +524,7 @@ async fn anilist_user(
     self_handler: &Handler,
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
-    // Define the error for when the Anilist module is off
+    let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anilist module is off
     let anilist_module_error: AppError = AppError {
         message: String::from("Anilist module is off."),
         error_type: ErrorType::Module,
@@ -527,7 +536,7 @@ async fn anilist_user(
         None => "0".to_string(),
     };
     // Check if the Anilist module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANIME").await? {
+    if !check_if_module_is_on(guild_id, "ANILIST", db_type).await? {
         return Err(anilist_module_error);
     }
     // Match the command name to the appropriate function
@@ -587,7 +596,7 @@ async fn anime(
     self_handler: &Handler,
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
-    // Define the error for when the Anime module is off
+    let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anime module is off
     let anime_module_error: AppError = AppError {
         message: String::from("Anime module is off."),
         error_type: ErrorType::Module,
@@ -599,7 +608,7 @@ async fn anime(
         None => "0".to_string(),
     };
     // Check if the Anime module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANIME").await? {
+    if !check_if_module_is_on(guild_id, "ANIME", db_type).await? {
         return Err(anime_module_error);
     }
     // Match the command name to the appropriate function
@@ -646,7 +655,7 @@ async fn anime_nsfw(
     self_handler: &Handler,
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
-    // Define the error for when the Anime NSFW module is off
+    let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anime NSFW module is off
     let anime_module_error: AppError = AppError {
         message: String::from("Anime module is off."),
         error_type: ErrorType::Module,
@@ -658,7 +667,7 @@ async fn anime_nsfw(
         None => "0".to_string(),
     };
     // Check if the Anime NSFW module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANIME").await? {
+    if !check_if_module_is_on(guild_id, "ANIME", db_type).await? {
         return Err(anime_module_error);
     }
     // Match the command name to the appropriate function
@@ -792,6 +801,7 @@ async fn steam(
     self_handler: &Handler,
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
+    let db_type = config.bot.config.db_type.clone();
     let game_module_error: AppError = AppError {
         message: String::from("Game module is off."),
         error_type: ErrorType::Module,
@@ -801,7 +811,7 @@ async fn steam(
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
-    if !check_if_module_is_on(guild_id, "GAME").await? {
+    if !check_if_module_is_on(guild_id, "GAME", db_type).await? {
         return Err(game_module_error);
     }
     let return_data = match command_name {
@@ -883,6 +893,7 @@ async fn vn(
     self_handler: &Handler,
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
+    let db_type = config.bot.config.db_type.clone();
     let vn_module_error: AppError = AppError {
         message: String::from("Visual novel module is off."),
         error_type: ErrorType::Module,
@@ -892,7 +903,7 @@ async fn vn(
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
-    if !check_if_module_is_on(guild_id, "VN").await? {
+    if !check_if_module_is_on(guild_id, "VN", db_type).await? {
         return Err(vn_module_error);
     }
     let return_data = match command_name {

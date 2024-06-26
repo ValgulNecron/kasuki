@@ -10,7 +10,10 @@ pub struct ProducerLocalised {
     pub aliases: String,
 }
 
-pub async fn load_localization_producer(guild_id: String) -> Result<ProducerLocalised, AppError> {
+pub async fn load_localization_producer(
+    guild_id: String,
+    db_type: String,
+) -> Result<ProducerLocalised, AppError> {
     let path = "json/message/vn/producer.json";
-    load_localization(guild_id, path).await
+    load_localization(guild_id, path, db_type).await
 }

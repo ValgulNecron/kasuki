@@ -32,6 +32,8 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let cache_type = config.bot.config.cache_type.clone();
+    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("staff_name")).ok_or(AppError::new(
         String::from("There is no option"),
@@ -44,7 +46,8 @@ pub async fn run(
             id: Some(value.parse().unwrap()),
         };
         let operation = StaffQuerryId::build(var);
-        let data: GraphQlResponse<StaffQuerryId> = make_request_anilist(operation, false).await?;
+        let data: GraphQlResponse<StaffQuerryId> =
+            make_request_anilist(operation, false, cache_type).await?;
         data.data.unwrap().staff.unwrap()
     } else {
         let var = StaffQuerrySearchVariables {
@@ -52,7 +55,7 @@ pub async fn run(
         };
         let operation = StaffQuerrySearch::build(var);
         let data: GraphQlResponse<StaffQuerrySearch> =
-            make_request_anilist(operation, false).await?;
+            make_request_anilist(operation, false, cache_type).await?;
         data.data.unwrap().staff.unwrap()
     };
     let guild_id = match command_interaction.guild_id {
@@ -60,7 +63,7 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let staff_localised = load_localization_staff(guild_id).await?;
+    let staff_localised = load_localization_staff(guild_id, db_type).await?;
 
     let mut date = String::new();
     let mut day = false;

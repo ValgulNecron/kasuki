@@ -31,7 +31,8 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
-    send_embed(ctx, command_interaction, "local").await
+    let db_type = config.bot.config.db_type.clone();
+    send_embed(ctx, command_interaction, "local", db_type).await
 }
 
 /// Sends an embed with the server's profile picture.
@@ -52,6 +53,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     image_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -61,7 +63,7 @@ pub async fn send_embed(
 
     // Load the localized text for the server's profile picture image
     let pfp_server_image_localised_text =
-        load_localization_pfp_server_image(guild_id.clone()).await?;
+        load_localization_pfp_server_image(guild_id.clone(), db_type.clone()).await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -79,7 +81,7 @@ pub async fn send_embed(
         })?;
 
     // Retrieve the server's profile picture image
-    let image = get_server_image(&guild_id, &image_type.to_string())
+    let image = get_server_image(&guild_id, &image_type.to_string(), db_type)
         .await?
         .1
         .unwrap_or_default();

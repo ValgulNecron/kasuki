@@ -33,6 +33,8 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let cache_type = config.bot.config.cache_type.clone();
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the name or ID of the studio from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("studio")).ok_or(AppError::new(
@@ -46,7 +48,8 @@ pub async fn run(
         let id = value.parse::<i32>().unwrap();
         let var = StudioQuerryIdVariables { id: Some(id) };
         let operation = StudioQuerryId::build(var);
-        let data: GraphQlResponse<StudioQuerryId> = make_request_anilist(operation, false).await?;
+        let data: GraphQlResponse<StudioQuerryId> =
+            make_request_anilist(operation, false, cache_type).await?;
         data.data.unwrap().studio.unwrap()
     } else {
         let var = StudioQuerrySearchVariables {
@@ -54,7 +57,7 @@ pub async fn run(
         };
         let operation = StudioQuerrySearch::build(var);
         let data: GraphQlResponse<StudioQuerrySearch> =
-            make_request_anilist(operation, false).await?;
+            make_request_anilist(operation, false, cache_type).await?;
         data.data.unwrap().studio.unwrap()
     };
     // Retrieve the guild ID from the command interaction
@@ -64,7 +67,7 @@ pub async fn run(
     };
 
     // Load the localized studio strings
-    let studio_localised = load_localization_studio(guild_id).await?;
+    let studio_localised = load_localization_studio(guild_id, db_type).await?;
 
     // Initialize a string to store the content of the response
     let mut content = String::new();

@@ -32,6 +32,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the name or ID of the anime from the command interaction options
     let map = get_option_map_string_subcommand(command_interaction);
@@ -82,5 +83,5 @@ pub async fn run(
     };
 
     // Send an embed with the anime information as a response to the command interaction
-    send_embed(ctx, command_interaction, data).await
+    send_embed(ctx, command_interaction, data, db_type).await
 }
