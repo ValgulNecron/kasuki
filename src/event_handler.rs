@@ -128,9 +128,10 @@ impl EventHandler for Handler {
     /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
+        let cache_type = self.bot_data.config.bot.config.cache_type.clone();
         if is_new.unwrap_or_default() {
             color_management(&ctx.cache.guilds(), &ctx, db_type.as_ref()).await;
-            server_image_management(&ctx).await;
+            server_image_management(&ctx, cache_type.as_ref()).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
@@ -151,10 +152,11 @@ impl EventHandler for Handler {
     /// If an error occurs during the handling of the new member, it logs the error.
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
+        let cache_type = self.bot_data.config.bot.config.cache_type.clone();
         let guild_id = member.guild_id.to_string();
         debug!("Member {} joined guild {}", member.user.tag(), guild_id);
         color_management(&ctx.cache.guilds(), &ctx, db_type.as_ref()).await;
-        server_image_management(&ctx).await;
+        server_image_management(&ctx, cache_type.as_ref()).await;
     }
 
     /// This function is called when the bot is ready.

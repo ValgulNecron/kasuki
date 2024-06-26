@@ -66,11 +66,11 @@ pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId,cache_
 /// This function will return an error if there is a problem with fetching the approximated colors of all users, creating a color vector from user colors, or generating the server image.
 pub async fn generate_global_server_image(
     ctx: &Context,
-    guild_id: GuildId,cache_type:  &str
+    guild_id: GuildId,db_type:  &str
 ) -> Result<(), AppError> {
-    let average_colors = get_all_user_approximated_color(cache_type).await?;
+    let average_colors = get_all_user_approximated_color(db_type).await?;
     let color_vec = create_color_vector_from_user_color(average_colors.clone());
-    generate_server_image(ctx, guild_id, color_vec, String::from("global"), cache_type).await
+    generate_server_image(ctx, guild_id, color_vec, String::from("global"), db_type).await
 }
 
 /// This function generates a server image based on the average colors of the members' avatars.
@@ -93,7 +93,7 @@ pub async fn generate_server_image(
     ctx: &Context,
     guild_id: GuildId,
     average_colors: Vec<ColorWithUrl>,
-    image_type: String,cache_type:  &str
+    image_type: String,db_type:  &str
 ) -> Result<(), AppError> {
     // Fetch the guild
     let guild = guild_id.to_partial_guild(&ctx.http).await.map_err(|e| {
@@ -190,7 +190,7 @@ pub async fn generate_server_image(
     // Save the image
     image_saver(guild_id.to_string(), format!("{}.png", uuid), image_data).await?;
     // Set the server image
-    set_server_image(&guild_id.to_string(), &image_type, &image, &guild_pfp, cache_type).await
+    set_server_image(&guild_id.to_string(), &image_type, &image, &guild_pfp, db_type).await
 }
 
 /// This function manages the generation of server images for all guilds in the cache.
@@ -206,12 +206,12 @@ pub async fn generate_server_image(
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
-pub async fn server_image_management(ctx: &Context,cache_type:  &str) {
+pub async fn server_image_management(ctx: &Context,db_type: &'static str) {
     for guild in ctx.cache.guilds() {
         let ctx_clone = ctx.clone();
         let guild_clone = guild;
         task::spawn(async move {
-            if let Err(e) = generate_local_server_image(&ctx_clone, guild_clone, cache_type).await {
+            if let Err(e) = generate_local_server_image(&ctx_clone, guild_clone, db_type).await {
                 warn!(
                     "Failed to generate local server image for guild {}. {:?}",
                     guild, e
@@ -221,7 +221,7 @@ pub async fn server_image_management(ctx: &Context,cache_type:  &str) {
             }
         });
 
-        if let Err(e) = generate_global_server_image(ctx, guild, cache_type).await {
+        if let Err(e) = generate_global_server_image(ctx, guild, db_type).await {
             warn!(
                 "Failed to generate global server image for guild {}. {:?}",
                 guild, e

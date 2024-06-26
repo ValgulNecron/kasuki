@@ -189,7 +189,7 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type: &str) {
 ///
 /// * `ctx` - A `Context` instance which is used in the server image management function.
 ///
-async fn launch_server_image_management_thread(ctx: Context,cache_type:  &str) {
+async fn launch_server_image_management_thread(ctx: Context,cache_type: &'static str) {
     info!("Launching the server image management thread!");
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE));
     loop {
