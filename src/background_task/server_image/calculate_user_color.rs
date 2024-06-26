@@ -53,11 +53,11 @@ pub async fn calculate_users_color(members: Vec<Member>, db_type: String) -> Res
 
         let id = member.user.id.to_string();
 
-        let user_color: UserColor = get_user_approximated_color(&id, db_type).await?;
+        let user_color: UserColor = get_user_approximated_color(&id, db_type.clone()).await?;
         let pfp_url_old = user_color.pfp_url.clone();
         if pfp_url != pfp_url_old.unwrap_or_default() {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
-            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type).await?
+            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type.clone()).await?
         }
         sleep(Duration::from_millis(100)).await
     }
@@ -93,17 +93,17 @@ pub async fn return_average_user_color(
             .replace("?size=1024", "?size=64");
         let id = member.user.id.to_string();
 
-        let user_color: UserColor = get_user_approximated_color(&id, db_type).await?;
+        let user_color: UserColor = get_user_approximated_color(&id, db_type.clone()).await?;
         let color = user_color.color.clone();
         let pfp_url_old = user_color.pfp_url.clone();
         let image_old = user_color.image;
         if color.is_none() || pfp_url_old.is_none() || image_old.is_none() {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
-            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type).await?;
+            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type.clone()).await?;
             average_colors.push((average_color, pfp_url, image))
         } else if pfp_url != pfp_url_old.clone().unwrap_or_default() {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
-            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type).await?;
+            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type.clone()).await?;
             average_colors.push((average_color, pfp_url, image))
         } else {
             average_colors.push((color.unwrap(), pfp_url_old.unwrap(), image_old.unwrap()))

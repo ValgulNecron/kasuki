@@ -81,7 +81,7 @@ async fn ping_manager_thread(ctx: Context, db_type: String) {
     let mut interval = tokio::time::interval(Duration::from_secs(PING_UPDATE_DELAYS));
     loop {
         interval.tick().await;
-        ping_manager(shard_manager, db_type).await;
+        ping_manager(shard_manager, db_type.clone()).await;
     }
 }
 
@@ -152,7 +152,10 @@ async fn launch_activity_management_thread(ctx: Context, db_type: String,cache_t
     info!("Launching the activity management thread!");
     loop {
         interval.tick().await;
-        tokio::spawn(manage_activity(ctx.clone(), db_type, cache_type));
+        let ctx = ctx.clone();
+        let db_type = db_type.clone();
+        let cache_type = cache_type.clone();
+        tokio::spawn(manage_activity(ctx, db_type, cache_type));
     }
 }
 
@@ -178,7 +181,7 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type:String) {
             timestamp: now,
         };
 
-        set_data_ping_history(ping_history, db_type).await.unwrap();
+        set_data_ping_history(ping_history, db_type.clone()).await.unwrap();
     }
 }
 
@@ -194,7 +197,7 @@ async fn launch_server_image_management_thread(ctx: Context,db_type: String) {
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE));
     loop {
         interval.tick().await;
-        server_image_management(&ctx, db_type).await;
+        server_image_management(&ctx, db_type.clone()).await;
     }
 }
 
