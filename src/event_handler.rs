@@ -28,7 +28,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 pub struct BotData {
     pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
     pub config: Arc<Config>,
-    pub bot_info: Arc<Option<CurrentApplicationInfo>>,
+    pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
 }
 
 pub struct Handler {
@@ -127,8 +127,9 @@ impl EventHandler for Handler {
     /// If the bot has just joined a new guild, it performs color management, generates a server image, and logs a debug message.
     /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
+        let db_type = self.bot_data.config.bot.config.db_type.clone();
         if is_new.unwrap_or_default() {
-            color_management(&ctx.cache.guilds(), &ctx).await;
+            color_management(&ctx.cache.guilds(), &ctx, db_type.as_ref()).await;
             server_image_management(&ctx).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
@@ -149,9 +150,10 @@ impl EventHandler for Handler {
     /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
+        let db_type = self.bot_data.config.bot.config.db_type.clone();
         let guild_id = member.guild_id.to_string();
         debug!("Member {} joined guild {}", member.user.tag(), guild_id);
-        color_management(&ctx.cache.guilds(), &ctx).await;
+        color_management(&ctx.cache.guilds(), &ctx, db_type.as_ref()).await;
         server_image_management(&ctx).await;
     }
 

@@ -29,7 +29,8 @@ pub struct SendActivityLocalised {
 /// * `Result<SendActivityLocalised, AppError>`: A Result containing SendActivityLocalised data or an AppError.
 pub async fn load_localization_send_activity(
     guild_id: String,
+    db_type: &str,
 ) -> Result<SendActivityLocalised, AppError> {
     let path = "json/message/anilist_user/send_activity.json";
-    load_localization(guild_id, path).await
+    load_localization(guild_id, path, db_type).await
 }

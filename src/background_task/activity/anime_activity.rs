@@ -25,8 +25,8 @@ use crate::structure::message::anilist_user::send_activity::load_localization_se
 /// # Arguments
 ///
 /// * `ctx` - A Context that represents the context.
-pub async fn manage_activity(ctx: Context, db_type: &str) {
-    send_activity(&ctx, db_type).await;
+pub async fn manage_activity(ctx: Context, db_type: &'static str,cache_type:  &'static str) {
+    send_activity(&ctx, db_type, cache_type).await;
 }
 
 /// `send_activity` is an asynchronous function that sends activities.
@@ -44,7 +44,7 @@ pub async fn manage_activity(ctx: Context, db_type: &str) {
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context.
-async fn send_activity(ctx: &Context, db_type: &str) {
+async fn send_activity(ctx: &Context, db_type: &'static str,cache_type: &'static str,) {
     let now = Utc::now().timestamp().to_string();
     let rows = match get_data_activity(now.clone(), db_type).await {
         Ok(rows) => rows,
@@ -64,13 +64,13 @@ async fn send_activity(ctx: &Context, db_type: &str) {
         if row.delays != 0 {
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs(row2.delays as u64)).await;
-                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx, db_type).await {
+                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx, db_type,cache_type).await {
                     error!("{}", e)
                 }
             });
         } else {
             tokio::spawn(async move {
-                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx, db_type).await {
+                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx, db_type,cache_type).await {
                     error!("{}", e);
                 }
             });
@@ -109,9 +109,10 @@ async fn send_specific_activity(
     guild_id: String,
     row2: ServerActivityFull,
     ctx: &Context,
-    db_type: &str,
+    db_type: &'static str,
+    cache_type: &'static str,
 ) -> Result<(), AppError> {
-    let localised_text = load_localization_send_activity(guild_id.clone()).await?;
+    let localised_text = load_localization_send_activity(guild_id.clone(), db_type).await?;
     let webhook_url = row.webhook.clone();
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
         .await
@@ -178,7 +179,7 @@ async fn send_specific_activity(
             )
         })?;
 
-    tokio::spawn(async move { update_info(row2, guild_id, db_type).await });
+    tokio::spawn(async move { update_info(row2, guild_id, cache_type, db_type).await });
     Ok(())
 }
 
@@ -205,9 +206,10 @@ async fn send_specific_activity(
 async fn update_info(
     row: ServerActivityFull,
     guild_id: String,
+    cache_type: &str,
     db_type: &str,
 ) -> Result<(), AppError> {
-    let media = get_minimal_anime_by_id(row.anime_id).await?;
+    let media = get_minimal_anime_by_id(row.anime_id, cache_type).await?;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
         None => return remove_activity(row, guild_id, db_type).await,

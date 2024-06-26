@@ -39,6 +39,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
     let is_grpc_on = bot_data.config.grpc.grpc_is_on;
     let config = bot_data.config.clone();
     let db_type = config.bot.config.db_type.as_str();
+    let cache_type = config.bot.config.cache_type.as_str();
     tokio::spawn(launch_web_server_thread(
         ctx.clone(),
         command_usage,
@@ -46,9 +47,9 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
         config,
     ));
     // Spawn a new thread for user color management
-    tokio::spawn(launch_user_color_management_thread(ctx.clone()));
+    tokio::spawn(launch_user_color_management_thread(ctx.clone(), db_type));
     // Spawn a new thread for activity management
-    tokio::spawn(launch_activity_management_thread(ctx.clone(), db_type));
+    tokio::spawn(launch_activity_management_thread(ctx.clone(), db_type, cache_type));
     // Spawn a new thread for steam management
     tokio::spawn(launch_game_management_thread());
     // Spawn a new thread for ping management
@@ -58,11 +59,11 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
         let local_user_blacklist = USER_BLACKLIST_SERVER_IMAGE.clone();
         tokio::spawn(update_user_blacklist(local_user_blacklist));
     }
-    tokio::spawn(update_random_stats_launcher());
+    tokio::spawn(update_random_stats_launcher( cache_type));
     tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
-    tokio::spawn(launch_server_image_management_thread(ctx.clone()));
+    tokio::spawn(launch_server_image_management_thread(ctx.clone(), cache_type));
 
     info!("Done spawning thread manager.");
 }
@@ -118,13 +119,13 @@ async fn launch_web_server_thread(
 /// * `guilds` - A vector of `GuildId` which is used in the color management function.
 /// * `ctx` - A `Context` instance which is used in the color management function.
 ///
-async fn launch_user_color_management_thread(ctx: Context) {
+async fn launch_user_color_management_thread(ctx: Context, db_type: &str) {
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE));
     info!("Launching the user color management thread!");
     loop {
         interval.tick().await;
         let guilds = ctx.cache.guilds();
-        color_management(&guilds, &ctx).await;
+        color_management(&guilds, &ctx, db_type).await;
     }
 }
 
@@ -146,12 +147,12 @@ async fn launch_game_management_thread() {
 ///
 /// * `ctx` - A `Context` instance which is used in the manage activity function.
 ///
-async fn launch_activity_management_thread(ctx: Context, db_type: &str) {
+async fn launch_activity_management_thread(ctx: Context, db_type: &'static str,cache_type: &'static str,) {
     let mut interval = interval(Duration::from_secs(1));
     info!("Launching the activity management thread!");
     loop {
         interval.tick().await;
-        tokio::spawn(manage_activity(ctx.clone(), db_type));
+        tokio::spawn(manage_activity(ctx.clone(), db_type, cache_type));
     }
 }
 
@@ -188,12 +189,12 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type: &str) {
 ///
 /// * `ctx` - A `Context` instance which is used in the server image management function.
 ///
-async fn launch_server_image_management_thread(ctx: Context) {
+async fn launch_server_image_management_thread(ctx: Context,cache_type:  &str) {
     info!("Launching the server image management thread!");
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE));
     loop {
         interval.tick().await;
-        server_image_management(&ctx).await;
+        server_image_management(&ctx, cache_type).await;
     }
 }
 
@@ -235,6 +236,7 @@ async fn update_user_blacklist(user_blacklist_server_image: Arc<RwLock<Vec<Strin
 async fn update_bot_info(ctx: Context, bot_data: Arc<BotData>) {
     loop {
         let bot = ctx.http.get_current_application_info().await.unwrap();
-        bot_data.bot_info = Arc::new(Some(bot));
+        let mut guard = bot_data.bot_info.write().await;
+        *guard = Some(bot);
     }
 }

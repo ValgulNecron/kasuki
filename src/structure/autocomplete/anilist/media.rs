@@ -69,11 +69,11 @@ pub enum MediaType {
 pub async fn send_auto_complete<'a>(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    media: MediaAutocompleteVariables<'a>,
+    media: MediaAutocompleteVariables<'a>,cache_type:  &str
 ) {
     let operation = MediaAutocomplete::build(media);
     let data: Result<GraphQlResponse<MediaAutocomplete>, AppError> =
-        make_request_anilist(operation, false).await;
+        make_request_anilist(operation, false, cache_type).await;
     let data = match data {
         Ok(data) => data,
         Err(e) => {
