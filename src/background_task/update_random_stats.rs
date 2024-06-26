@@ -14,7 +14,7 @@ pub struct RandomStat {
     pub manga_last_page: i32,
 }
 
-pub async fn update_random_stats_launcher(cache_type:  String) {
+pub async fn update_random_stats_launcher(cache_type: String) {
     info!("Starting random stats update");
     loop {
         let _ = update_random_stats(cache_type.clone()).await;
@@ -22,7 +22,7 @@ pub async fn update_random_stats_launcher(cache_type:  String) {
     }
 }
 
-pub async fn update_random_stats(cache_type:  String) -> Result<RandomStat, AppError> {
+pub async fn update_random_stats(cache_type: String) -> Result<RandomStat, AppError> {
     // try to load random stats from a json file
     let mut random_stats: RandomStat = match std::fs::read_to_string(RANDOM_STATS_PATH) {
         Ok(stats) => serde_json::from_str(&stats).map_err(|e| {
@@ -59,7 +59,10 @@ pub async fn update_random_stats(cache_type:  String) -> Result<RandomStat, AppE
     Ok(random_stats)
 }
 
-async fn update_random(mut random_stats: RandomStat,cache_type:  String) -> Result<RandomStat, AppError> {
+async fn update_random(
+    mut random_stats: RandomStat,
+    cache_type: String,
+) -> Result<RandomStat, AppError> {
     let mut has_next_page = true;
     while has_next_page {
         let anime_page = random_stats.anime_last_page;

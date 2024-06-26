@@ -47,9 +47,16 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
         config,
     ));
     // Spawn a new thread for user color management
-    tokio::spawn(launch_user_color_management_thread(ctx.clone(), db_type.clone()));
+    tokio::spawn(launch_user_color_management_thread(
+        ctx.clone(),
+        db_type.clone(),
+    ));
     // Spawn a new thread for activity management
-    tokio::spawn(launch_activity_management_thread(ctx.clone(), db_type.clone(), cache_type.clone()));
+    tokio::spawn(launch_activity_management_thread(
+        ctx.clone(),
+        db_type.clone(),
+        cache_type.clone(),
+    ));
     // Spawn a new thread for steam management
     tokio::spawn(launch_game_management_thread());
     // Spawn a new thread for ping management
@@ -59,11 +66,14 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
         let local_user_blacklist = USER_BLACKLIST_SERVER_IMAGE.clone();
         tokio::spawn(update_user_blacklist(local_user_blacklist));
     }
-    tokio::spawn(update_random_stats_launcher( cache_type.clone()));
+    tokio::spawn(update_random_stats_launcher(cache_type.clone()));
     tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
-    tokio::spawn(launch_server_image_management_thread(ctx.clone(), cache_type));
+    tokio::spawn(launch_server_image_management_thread(
+        ctx.clone(),
+        cache_type,
+    ));
 
     info!("Done spawning thread manager.");
 }
@@ -147,7 +157,7 @@ async fn launch_game_management_thread() {
 ///
 /// * `ctx` - A `Context` instance which is used in the manage activity function.
 ///
-async fn launch_activity_management_thread(ctx: Context, db_type: String,cache_type: String,) {
+async fn launch_activity_management_thread(ctx: Context, db_type: String, cache_type: String) {
     let mut interval = interval(Duration::from_secs(1));
     info!("Launching the activity management thread!");
     loop {
@@ -166,7 +176,7 @@ async fn launch_activity_management_thread(ctx: Context, db_type: String,cache_t
 ///
 /// * `shard_manager` - A reference to an `Arc<ShardManager>` which is used to get the runners.
 ///
-async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type:String) {
+async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type: String) {
     // Lock the runners
     let runner = shard_manager.runners.lock().await;
     // Iterate over the runners
@@ -181,7 +191,9 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type:String) {
             timestamp: now,
         };
 
-        set_data_ping_history(ping_history, db_type.clone()).await.unwrap();
+        set_data_ping_history(ping_history, db_type.clone())
+            .await
+            .unwrap();
     }
 }
 
@@ -192,7 +204,7 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type:String) {
 ///
 /// * `ctx` - A `Context` instance which is used in the server image management function.
 ///
-async fn launch_server_image_management_thread(ctx: Context,db_type: String) {
+async fn launch_server_image_management_thread(ctx: Context, db_type: String) {
     info!("Launching the server image management thread!");
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE));
     loop {

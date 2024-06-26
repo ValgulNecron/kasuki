@@ -33,7 +33,11 @@ use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutoco
 /// # Async
 ///
 /// This function is asynchronous. It awaits the creation of the `UserPageWrapper` and the sending of the response.
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(
+    ctx: Context,
+    autocomplete_interaction: CommandInteraction,
+    cache_type: String,
+) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let user_search = map.get(&String::from("username")).unwrap_or(DEFAULT_STRING);
     let var = UserAutocompleteVariables {
@@ -41,7 +45,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     };
     let operation = UserAutocomplete::build(var);
     let data: Result<GraphQlResponse<UserAutocomplete>, AppError> =
-        make_request_anilist(operation, false).await;
+        make_request_anilist(operation, false, cache_type).await;
     let data = match data {
         Ok(data) => data,
         Err(e) => {

@@ -42,6 +42,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand_group(command_interaction);
     let lang = map.get(&String::from("lang_choice")).ok_or(AppError::new(
         String::from("There is no option"),
@@ -57,8 +58,8 @@ pub async fn run(
         guild: guild_id.clone(),
         lang: lang.clone(),
     };
-    let _ = set_data_guild_language(guild_language).await;
-    let lang_localised = load_localization_lang(guild_id).await?;
+    let _ = set_data_guild_language(guild_language, db_type.clone()).await;
+    let lang_localised = load_localization_lang(guild_id, db_type).await?;
 
     let builder_embed = get_default_embed(None)
         .description(lang_localised.desc.replace("$lang$", lang.as_str()))

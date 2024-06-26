@@ -48,6 +48,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand(command_interaction);
     let attachment_map = get_option_map_attachment_subcommand(command_interaction);
     let lang = map
@@ -75,7 +76,7 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let translation_localised = load_localization_translation(guild_id).await?;
+    let translation_localised = load_localization_translation(guild_id, db_type).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
         return Err(AppError::new(

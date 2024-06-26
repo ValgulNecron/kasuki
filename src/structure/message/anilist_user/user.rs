@@ -43,7 +43,10 @@ pub struct UserLocalised {
 /// # Returns
 ///
 /// * `Result<UserLocalised, AppError>`: A Result containing UserLocalised data or an AppError.
-pub async fn load_localization_user(guild_id: String) -> Result<UserLocalised, AppError> {
+pub async fn load_localization_user(
+    guild_id: String,
+    db_type: String,
+) -> Result<UserLocalised, AppError> {
     let path = "json/message/anilist_user/user.json";
-    load_localization(guild_id, path).await
+    load_localization(guild_id, path, db_type).await
 }

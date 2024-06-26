@@ -25,18 +25,22 @@ use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_su
 /// # Async
 ///
 /// This function is asynchronous. It awaits the execution of the corresponding autocomplete function.
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(
+    ctx: Context,
+    autocomplete_interaction: CommandInteraction,
+    cache_type: String,
+) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let search_type = map.get(&String::from("type")).unwrap_or(DEFAULT_STRING);
 
     match search_type.as_str() {
-        "anime" => anime::autocomplete(ctx, autocomplete_interaction).await,
-        "ln" => ln::autocomplete(ctx, autocomplete_interaction).await,
-        "manga" => manga::autocomplete(ctx, autocomplete_interaction).await,
-        "user" => user::autocomplete(ctx, autocomplete_interaction).await,
-        "character" => character::autocomplete(ctx, autocomplete_interaction).await,
-        "staff" => staff::autocomplete(ctx, autocomplete_interaction).await,
-        "studio" => studio::autocomplete(ctx, autocomplete_interaction).await,
+        "anime" => anime::autocomplete(ctx, autocomplete_interaction, cache_type).await,
+        "ln" => ln::autocomplete(ctx, autocomplete_interaction, cache_type).await,
+        "manga" => manga::autocomplete(ctx, autocomplete_interaction, cache_type).await,
+        "user" => user::autocomplete(ctx, autocomplete_interaction, cache_type).await,
+        "character" => character::autocomplete(ctx, autocomplete_interaction, cache_type).await,
+        "staff" => staff::autocomplete(ctx, autocomplete_interaction, cache_type).await,
+        "studio" => studio::autocomplete(ctx, autocomplete_interaction, cache_type).await,
         _ => {}
     }
 }

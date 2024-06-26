@@ -46,6 +46,8 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
+    let cache_type = config.bot.config.cache_type.clone();
     let map = get_option_map_string_subcommand_group(command_interaction);
     let anime = map
         .get(&String::from("anime_name"))
@@ -58,7 +60,7 @@ pub async fn run(
     };
 
     let delete_activity_localised_text =
-        load_localization_delete_activity(guild_id.clone()).await?;
+        load_localization_delete_activity(guild_id.clone(), db_type.clone()).await?;
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
@@ -73,13 +75,13 @@ pub async fn run(
         })?;
     trace!(anime);
     let media = if anime.parse::<i32>().is_ok() {
-        get_minimal_anime_by_id(anime.parse::<i32>().unwrap()).await?
+        get_minimal_anime_by_id(anime.parse::<i32>().unwrap(), cache_type).await?
     } else {
-        get_minimal_anime_by_search(anime.as_str()).await?
+        get_minimal_anime_by_search(anime.as_str(), cache_type).await?
     };
 
     let anime_id = media.id;
-    remove_activity(guild_id.as_str(), &anime_id).await?;
+    remove_activity(guild_id.as_str(), &anime_id, db_type).await?;
 
     let title = media.title.unwrap();
     let anime_name = get_name(title);
@@ -117,6 +119,6 @@ pub async fn run(
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-async fn remove_activity(guild_id: &str, anime_id: &i32) -> Result<(), AppError> {
-    remove_data_activity_status(guild_id.to_owned(), anime_id.to_string()).await
+async fn remove_activity(guild_id: &str, anime_id: &i32, db_type: String) -> Result<(), AppError> {
+    remove_data_activity_status(guild_id.to_owned(), anime_id.to_string(), db_type).await
 }

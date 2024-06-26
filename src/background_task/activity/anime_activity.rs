@@ -25,7 +25,7 @@ use crate::structure::message::anilist_user::send_activity::load_localization_se
 /// # Arguments
 ///
 /// * `ctx` - A Context that represents the context.
-pub async fn manage_activity(ctx: Context, db_type: String,cache_type:  String) {
+pub async fn manage_activity(ctx: Context, db_type: String, cache_type: String) {
     send_activity(&ctx, db_type, cache_type).await;
 }
 
@@ -44,7 +44,7 @@ pub async fn manage_activity(ctx: Context, db_type: String,cache_type:  String) 
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context.
-async fn send_activity(ctx: &Context, db_type: String,cache_type: String,) {
+async fn send_activity(ctx: &Context, db_type: String, cache_type: String) {
     let now = Utc::now().timestamp().to_string();
     let rows = match get_data_activity(now.clone(), db_type.clone()).await {
         Ok(rows) => rows,
@@ -66,7 +66,9 @@ async fn send_activity(ctx: &Context, db_type: String,cache_type: String,) {
             let cache_type = cache_type.clone();
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs(row2.delays as u64)).await;
-                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx, db_type,cache_type).await {
+                if let Err(e) =
+                    send_specific_activity(row, guild_id, row2, &ctx, db_type, cache_type).await
+                {
                     error!("{}", e)
                 }
             });
@@ -74,7 +76,9 @@ async fn send_activity(ctx: &Context, db_type: String,cache_type: String,) {
             let db_type = db_type.clone();
             let cache_type = cache_type.clone();
             tokio::spawn(async move {
-                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx, db_type,cache_type).await {
+                if let Err(e) =
+                    send_specific_activity(row, guild_id, row2, &ctx, db_type, cache_type).await
+                {
                     error!("{}", e);
                 }
             });
@@ -113,7 +117,7 @@ async fn send_specific_activity(
     guild_id: String,
     row2: ServerActivityFull,
     ctx: &Context,
-    db_type:String,
+    db_type: String,
     cache_type: String,
 ) -> Result<(), AppError> {
     let localised_text = load_localization_send_activity(guild_id.clone(), db_type.clone()).await?;

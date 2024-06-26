@@ -2,7 +2,7 @@ use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::cache::manage::cache_dispatch::{get_cache, set_cache};
+use crate::cache::manage::cache_dispatch::{get_anilist_cache, set_anilist_cache};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn make_request_anilist<
@@ -32,7 +32,7 @@ async fn check_cache<
     operation: Operation<T, S>,
     cache_type: String,
 ) -> Result<GraphQlResponse<U>, AppError> {
-    let cache = get_cache(operation.query.clone(), cache_type.clone()).await;
+    let cache = get_anilist_cache(operation.query.clone(), cache_type.clone()).await;
     match cache {
         Some(data) => get_type(data),
         None => do_request(operation, cache_type).await,
@@ -66,7 +66,7 @@ async fn do_request<
         error_type: ErrorType::WebRequest,
         error_response_type: ErrorResponseType::Unknown,
     })?;
-    set_cache(operation.query, response_text.clone(), cache_type).await;
+    set_anilist_cache(operation.query, response_text.clone(), cache_type).await;
     get_type(response_text)
 }
 

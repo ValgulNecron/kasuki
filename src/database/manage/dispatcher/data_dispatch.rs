@@ -100,8 +100,9 @@ pub async fn get_data_guild_language(
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_data_guild_language(
     guild_language: GuildLanguage,
-    db_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_data_guild_language_sqlite(guild_language).await
     } else if db_type == "postgresql" {
@@ -180,8 +181,9 @@ pub async fn set_data_activity(
 /// * A Result that is either an ActivationStatusModule variant if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_module_activation_status(
     guild_id: &String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<ActivationStatusModule, AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_module_activation_status_sqlite(guild_id).await
     } else if db_type == "postgresql" {
@@ -210,8 +212,9 @@ pub async fn get_data_module_activation_status(
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_data_module_activation_status(
     activation_status_module: ActivationStatusModule,
-    db_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_data_module_activation_status_sqlite(activation_status_module).await
     } else if db_type == "postgresql" {
@@ -238,8 +241,9 @@ pub async fn set_data_module_activation_status(
 pub async fn get_one_activity(
     anime_id: i32,
     server_id: String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<SmallServerActivity, AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_one_activity_sqlite(server_id, anime_id).await
     } else if db_type == "postgresql" {
@@ -264,8 +268,9 @@ pub async fn get_one_activity(
 /// * A Result that is either a tuple containing the Option variants of the registered user if the operation was successful, or an Err variant with an AppError.
 pub async fn get_registered_user(
     user_id: &String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<Option<RegisteredUser>, AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_registered_user_sqlite(user_id).await
     } else if db_type == "postgresql" {
@@ -454,8 +459,9 @@ pub async fn get_all_server_activity(
 /// * A Result that is either a Vec variant containing tuples of String if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_all_activity_by_server(
     server_id: &String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<Vec<(String, String)>, AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_all_activity_by_server_sqlite(server_id).await
     } else if db_type == "postgresql" {
@@ -474,7 +480,7 @@ pub async fn get_data_all_activity_by_server(
 /// # Returns
 ///
 /// * A Result that is either a Vec variant containing UserColor if the operation was successful, or an Err variant with an AppError.
-pub async fn get_all_user_approximated_color(db_type: &str) -> Result<Vec<UserColor>, AppError> {
+pub async fn get_all_user_approximated_color(db_type: String) -> Result<Vec<UserColor>, AppError> {
     if db_type == "sqlite" {
         get_all_user_approximated_color_sqlite().await
     } else if db_type == "postgresql" {
@@ -505,8 +511,9 @@ pub async fn set_server_image(
     image_type: &String,
     image: &String,
     image_url: &String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_server_image_sqlite(server_id, image_type, image, image_url).await
     } else if db_type == "postgresql" {

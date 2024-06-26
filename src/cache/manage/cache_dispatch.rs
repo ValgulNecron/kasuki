@@ -1,6 +1,6 @@
 use crate::cache::manage::in_memory_cache;
 
-pub async fn set_cache(input_json: String, response: String, cache_type:String) {
+pub async fn set_anilist_cache(input_json: String, response: String, cache_type: String) {
     let cache_type = cache_type.as_str();
     unsafe {
         if cache_type == "in-memory" {
@@ -11,7 +11,7 @@ pub async fn set_cache(input_json: String, response: String, cache_type:String) 
     }
 }
 
-pub async fn get_cache(input_json: String, cache_type: String) -> Option<String> {
+pub async fn get_anilist_cache(input_json: String, cache_type: String) -> Option<String> {
     let cache_type = cache_type.as_str();
     unsafe {
         if cache_type == "in-memory" {

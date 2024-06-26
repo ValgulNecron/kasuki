@@ -39,11 +39,15 @@ use crate::helper::image_saver::general_image_saver::image_saver;
 /// # Errors
 ///
 /// This function will return an error if there is a problem with fetching the members of the guild, calculating the average color, or generating the server image.
-pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId,cache_type:String) -> Result<(), AppError> {
+pub async fn generate_local_server_image(
+    ctx: &Context,
+    guild_id: GuildId,
+    cache_type: String,
+) -> Result<(), AppError> {
     // Fetch the members of the guild
     let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
     // Calculate the average color of the members' avatars
-    let average_colors = return_average_user_color(members, cache_type).await?;
+    let average_colors = return_average_user_color(members, cache_type.clone()).await?;
     // Create a vector of colors from the average colors
     let color_vec = create_color_vector_from_tuple(average_colors.clone());
     // Generate the server image using the color vector and save it as a "local" image
@@ -66,9 +70,10 @@ pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId,cache_
 /// This function will return an error if there is a problem with fetching the approximated colors of all users, creating a color vector from user colors, or generating the server image.
 pub async fn generate_global_server_image(
     ctx: &Context,
-    guild_id: GuildId,db_type: String
+    guild_id: GuildId,
+    db_type: String,
 ) -> Result<(), AppError> {
-    let average_colors = get_all_user_approximated_color(db_type).await?;
+    let average_colors = get_all_user_approximated_color(db_type.clone()).await?;
     let color_vec = create_color_vector_from_user_color(average_colors.clone());
     generate_server_image(ctx, guild_id, color_vec, String::from("global"), db_type).await
 }
@@ -93,7 +98,8 @@ pub async fn generate_server_image(
     ctx: &Context,
     guild_id: GuildId,
     average_colors: Vec<ColorWithUrl>,
-    image_type: String,db_type:  &str
+    image_type: String,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Fetch the guild
     let guild = guild_id.to_partial_guild(&ctx.http).await.map_err(|e| {
@@ -190,7 +196,14 @@ pub async fn generate_server_image(
     // Save the image
     image_saver(guild_id.to_string(), format!("{}.png", uuid), image_data).await?;
     // Set the server image
-    set_server_image(&guild_id.to_string(), &image_type, &image, &guild_pfp, db_type).await
+    set_server_image(
+        &guild_id.to_string(),
+        &image_type,
+        &image,
+        &guild_pfp,
+        db_type.clone(),
+    )
+    .await
 }
 
 /// This function manages the generation of server images for all guilds in the cache.
@@ -206,12 +219,15 @@ pub async fn generate_server_image(
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
-pub async fn server_image_management(ctx: &Context,db_type: String) {
+pub async fn server_image_management(ctx: &Context, db_type: String) {
     for guild in ctx.cache.guilds() {
         let ctx_clone = ctx.clone();
         let guild_clone = guild;
+        let db_type_clone = db_type.clone();
         task::spawn(async move {
-            if let Err(e) = generate_local_server_image(&ctx_clone, guild_clone, db_type).await {
+            if let Err(e) =
+                generate_local_server_image(&ctx_clone, guild_clone, db_type_clone).await
+            {
                 warn!(
                     "Failed to generate local server image for guild {}. {:?}",
                     guild, e
@@ -221,7 +237,7 @@ pub async fn server_image_management(ctx: &Context,db_type: String) {
             }
         });
 
-        if let Err(e) = generate_global_server_image(ctx, guild, db_type).await {
+        if let Err(e) = generate_global_server_image(ctx, guild, db_type.clone()).await {
             warn!(
                 "Failed to generate global server image for guild {}. {:?}",
                 guild, e

@@ -44,12 +44,14 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
-    let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
+    let list_activity_localised_text =
+        load_localization_list_activity(guild_id, db_type.clone()).await?;
 
     let guild_id = command_interaction.guild_id.ok_or(AppError::new(
         String::from("There is no guild id"),
@@ -69,7 +71,7 @@ pub async fn run(
                 ErrorResponseType::Message,
             )
         })?;
-    let list = get_all_server_activity(&guild_id.to_string()).await?;
+    let list = get_all_server_activity(&guild_id.to_string(), db_type).await?;
     let len = list.len();
     let next_page = 1;
 

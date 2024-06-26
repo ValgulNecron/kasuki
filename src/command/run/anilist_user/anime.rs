@@ -32,6 +32,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the name or ID of the anime from the command interaction options
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map
@@ -57,7 +58,8 @@ pub async fn run(
             media_type: Some(MediaType::Anime),
         };
         let operation = MediaQuerryId::build(var);
-        let data: GraphQlResponse<MediaQuerryId> = make_request_anilist(operation, false).await?;
+        let data: GraphQlResponse<MediaQuerryId> =
+            make_request_anilist(operation, false, cache_type).await?;
         data.data.unwrap().media.unwrap()
     } else {
         let var = MediaQuerrySearchVariables {
@@ -75,7 +77,7 @@ pub async fn run(
         };
         let operation = MediaQuerrySearch::build(var);
         let data: GraphQlResponse<MediaQuerrySearch> =
-            make_request_anilist(operation, false).await?;
+            make_request_anilist(operation, false, cache_type).await?;
         data.data.unwrap().media.unwrap()
     };
 

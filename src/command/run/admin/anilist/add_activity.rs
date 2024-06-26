@@ -51,7 +51,7 @@ pub async fn run(
     config: Arc<Config>,
 ) -> Result<(), AppError> {
     let cache_type = config.bot.config.db_type.clone();
-    let cache_type = cache_type.as_str();
+    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand_group(command_interaction);
     let delay = map
         .get(&String::from("delay"))
@@ -81,7 +81,8 @@ pub async fn run(
                 ErrorResponseType::Message,
             )
         })?;
-    let add_activity_localised = load_localization_add_activity(guild_id.clone()).await?;
+    let add_activity_localised =
+        load_localization_add_activity(guild_id.clone(), db_type.clone()).await?;
 
     let media = if anime.parse::<i32>().is_ok() {
         get_minimal_anime_by_id(anime.parse::<i32>().unwrap(), cache_type).await?
@@ -97,7 +98,7 @@ pub async fn run(
     let anime_name = get_name(title);
     let channel_id = command_interaction.channel_id;
 
-    if check_if_activity_exist(anime_id, guild_id.clone(), cache_type).await {
+    if check_if_activity_exist(anime_id, guild_id.clone(), db_type.clone()).await {
         let builder_embed = CreateEmbed::new()
             .timestamp(Timestamp::now())
             .color(COLOR)
@@ -176,7 +177,7 @@ pub async fn run(
                 delays: delay,
                 image: base64,
             },
-            cache_type,
+            db_type.clone(),
         )
         .await?;
 
@@ -218,8 +219,8 @@ pub async fn run(
 /// # Returns
 ///
 /// A boolean indicating whether the activity exists.
-async fn check_if_activity_exist(anime_id: i32, server_id: String, cache_type: &str) -> bool {
-    let row: SmallServerActivity = get_one_activity(anime_id, server_id.clone(), cache_type)
+async fn check_if_activity_exist(anime_id: i32, server_id: String, db_type: String) -> bool {
+    let row: SmallServerActivity = get_one_activity(anime_id, server_id.clone(), db_type)
         .await
         .unwrap_or(SmallServerActivity {
             anime_id: None,
@@ -413,7 +414,10 @@ pub async fn get_minimal_anime_by_id(id: i32, cache_type: String) -> Result<Medi
     Ok(data.data.unwrap().media.unwrap())
 }
 
-pub async fn get_minimal_anime_by_search(value: &str, cache_type: &str) -> Result<Media, AppError> {
+pub async fn get_minimal_anime_by_search(
+    value: &str,
+    cache_type: String,
+) -> Result<Media, AppError> {
     let query = MinimalAnimeSearchVariables {
         search: Some(value),
     };

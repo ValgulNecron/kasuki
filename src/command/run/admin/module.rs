@@ -48,6 +48,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -58,7 +59,8 @@ pub async fn run(
         ErrorType::Option,
         ErrorResponseType::Followup,
     ))?;
-    let module_localised = load_localization_module_activation(guild_id.clone()).await?;
+    let module_localised =
+        load_localization_module_activation(guild_id.clone(), db_type.clone()).await?;
     let map = get_option_map_boolean_subcommand_group(command_interaction);
     let state = *map.get(&String::from("state")).ok_or(AppError::new(
         String::from("There is no option 2"),
@@ -66,7 +68,7 @@ pub async fn run(
         ErrorResponseType::Followup,
     ))?;
 
-    let row = get_data_module_activation_status(&guild_id).await?;
+    let row = get_data_module_activation_status(&guild_id, db_type.clone()).await?;
     let mut ai_value = row.ai_module.unwrap_or(true);
     let mut anilist_value = row.anilist_module.unwrap_or(true);
     let mut game_value = row.game_module.unwrap_or(true);
@@ -99,7 +101,7 @@ pub async fn run(
         vn: Some(vn_value),
     };
 
-    set_data_module_activation_status(module_status).await?;
+    set_data_module_activation_status(module_status, db_type).await?;
     let desc = if state {
         &module_localised.on
     } else {

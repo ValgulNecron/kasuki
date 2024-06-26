@@ -32,6 +32,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the name or ID of the character from the command interaction options
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map
@@ -42,14 +43,14 @@ pub async fn run(
     // If the value is an integer, treat it as an ID and retrieve the character with that ID
     // If the value is not an integer, treat it as a name and retrieve the character with that name
     let data: Character = if value.parse::<i32>().is_ok() {
-        get_character_by_id(value.parse::<i32>().unwrap()).await?
+        get_character_by_id(value.parse::<i32>().unwrap(), cache_type).await?
     } else {
         let var = CharacterQuerrySearchVariables {
             search: Some(&*value),
         };
         let operation = CharacterQuerrySearch::build(var);
         let data: GraphQlResponse<CharacterQuerrySearch> =
-            make_request_anilist(operation, false).await?;
+            make_request_anilist(operation, false, cache_type).await?;
         data.data.unwrap().character.unwrap()
     };
 
@@ -57,9 +58,10 @@ pub async fn run(
     send_embed(ctx, command_interaction, data).await
 }
 
-pub async fn get_character_by_id(value: i32) -> Result<Character, AppError> {
+pub async fn get_character_by_id(value: i32, cache_type: String) -> Result<Character, AppError> {
     let var = CharacterQuerryIdVariables { id: Some(value) };
     let operation = CharacterQuerryId::build(var);
-    let data: GraphQlResponse<CharacterQuerryId> = make_request_anilist(operation, false).await?;
+    let data: GraphQlResponse<CharacterQuerryId> =
+        make_request_anilist(operation, false, cache_type).await?;
     Ok(data.data.unwrap().character.unwrap())
 }

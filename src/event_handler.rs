@@ -57,7 +57,7 @@ impl RootUsage {
             command_list: HashMap::new(),
         }
     }
-    pub async fn get_total_command_use<'a>(&self) -> String {
+    pub fn get_total_command_use<'a>(&self) -> String {
         let mut total = BigUint::ZERO;
         let command_usage = self.clone();
         for (_, user_info) in command_usage.command_list.iter() {
@@ -271,8 +271,9 @@ impl EventHandler for Handler {
                 error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
             }
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
+            let cache_type = self.bot_data.config.bot.config.cache_type.clone();
             // Dispatch the autocomplete interaction
-            autocomplete_dispatching(ctx, autocomplete_interaction).await
+            autocomplete_dispatching(ctx, autocomplete_interaction, cache_type).await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
             // Dispatch the component interaction
             if let Err(e) = components_dispatching(ctx, component_interaction).await {

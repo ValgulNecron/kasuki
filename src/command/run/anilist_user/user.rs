@@ -31,19 +31,21 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let cache_type = config.bot.config.cache_type.clone();
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the username from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
 
     // If the username is provided, fetch the user's data from AniList and send it as a response
     if let Some(value) = user {
-        let data: User = get_user(value).await?;
+        let data: User = get_user(value, cache_type).await?;
         return send_embed(ctx, command_interaction, data).await;
     }
 
     // If the username is not provided, fetch the data of the user who triggered the command interaction
     let user_id = &command_interaction.user.id.to_string();
-    let row: Option<RegisteredUser> = get_registered_user(user_id).await?;
+    let row: Option<RegisteredUser> = get_registered_user(user_id, db_type.clone()).await?;
     let user = row.ok_or(AppError::new(
         String::from("There is no option"),
         ErrorType::Option,
@@ -51,7 +53,7 @@ pub async fn run(
     ))?;
 
     // Fetch the user's data from AniList and send it as a response
-    let data = get_user(&user.anilist_id).await?;
+    let data = get_user(&user.anilist_id, cache_type).await?;
     send_embed(ctx, command_interaction, data).await
 }
 
@@ -67,13 +69,14 @@ pub async fn run(
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the user's data was fetched successfully, or `Err` if an error occurred.
-pub async fn get_user(value: &String) -> Result<User, AppError> {
+pub async fn get_user(value: &String, cache_type: String) -> Result<User, AppError> {
     // If the value is a valid user ID, fetch the user's data by ID
     let user = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();
         let var = UserQuerryIdVariables { id: Some(id) };
         let operation = UserQuerryId::build(var);
-        let data: GraphQlResponse<UserQuerryId> = make_request_anilist(operation, false).await?;
+        let data: GraphQlResponse<UserQuerryId> =
+            make_request_anilist(operation, false, cache_type).await?;
         data.data.unwrap().user.unwrap()
     } else {
         // If the value is not a valid user ID, fetch the user's data by username
@@ -82,7 +85,7 @@ pub async fn get_user(value: &String) -> Result<User, AppError> {
         };
         let operation = UserQuerrySearch::build(var);
         let data: GraphQlResponse<UserQuerrySearch> =
-            make_request_anilist(operation, false).await?;
+            make_request_anilist(operation, false, cache_type).await?;
         data.data.unwrap().user.unwrap()
     };
     Ok(user)

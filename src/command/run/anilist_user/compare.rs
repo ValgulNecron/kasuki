@@ -35,6 +35,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the usernames from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map
@@ -47,8 +48,8 @@ pub async fn run(
         .unwrap_or(String::new());
 
     // Fetch the user data for both users
-    let user: User = get_user(&value).await?;
-    let user2: User = get_user(&value2).await?;
+    let user: User = get_user(&value, cache_type.clone()).await?;
+    let user2: User = get_user(&value2, cache_type).await?;
 
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {

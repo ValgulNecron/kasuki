@@ -110,7 +110,7 @@ async fn main() {
     let bot_data: Arc<BotData> = Arc::new(BotData {
         number_of_command_use_per_command,
         config,
-        bot_info: Arc::new(None),
+        bot_info: Arc::new(RwLock::new(None)),
     });
     let handler = Handler { bot_data };
 

@@ -35,7 +35,8 @@ pub struct DeleteActivityLocalised {
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
 pub async fn load_localization_delete_activity(
     guild_id: String,
+    db_type: String,
 ) -> Result<DeleteActivityLocalised, AppError> {
     let path = "json/message/admin/anilist/delete_activity.json";
-    load_localization(guild_id, path).await
+    load_localization(guild_id, path, db_type).await
 }

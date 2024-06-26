@@ -47,6 +47,8 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
+    let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the guild ID from the command interaction or use "0" if it does not exist
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -90,7 +92,7 @@ pub async fn run(
 
     // Retrieve a list of AniList users in the guild
     let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) =
-        get_the_list(guild, ctx, &list_user_localised, None).await?;
+        get_the_list(guild, ctx, &list_user_localised, None, db_type, cache_type).await?;
 
     // Check if the number of AniList users is greater than the limit
     let mut response = CreateInteractionResponseFollowup::new().embed(builder_message);
@@ -146,6 +148,8 @@ pub async fn get_the_list(
     ctx: &Context,
     list_user_localised: &ListUserLocalised,
     last_id: Option<UserId>,
+    db_type: String,
+    cache_type: String,
 ) -> Result<(CreateEmbed, usize, Option<UserId>), AppError> {
     let mut anilist_user = Vec::new();
     let mut last_id: Option<UserId> = last_id;
@@ -165,9 +169,10 @@ pub async fn get_the_list(
         for member in members {
             last_id = Some(member.user.id);
             let user_id = member.user.id.to_string();
-            let row: Option<RegisteredUser> = get_registered_user(&user_id).await?;
+            let row: Option<RegisteredUser> =
+                get_registered_user(&user_id, db_type.clone()).await?;
             let user_data = match row {
-                Some(a) => get_user(&a.anilist_id).await?,
+                Some(a) => get_user(&a.anilist_id, cache_type.clone()).await?,
                 None => continue,
             };
             let data = Data {

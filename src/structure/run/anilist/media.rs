@@ -716,6 +716,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     data: Media,
+    db_type: String,
 ) -> Result<(), AppError> {
     let is_adult = data.is_adult.unwrap_or(true);
     if is_adult && !get_nsfw(command_interaction, ctx).await {
@@ -731,7 +732,7 @@ pub async fn send_embed(
         None => String::from("0"),
     };
 
-    let media_localised = load_localization_media(guild_id).await?;
+    let media_localised = load_localization_media(guild_id, db_type).await?;
 
     let title = data.title.clone().unwrap();
     let genres = data.genres.clone().unwrap_or_default();

@@ -66,10 +66,11 @@ pub enum MediaType {
     Manga,
 }
 
-pub async fn send_auto_complete<'a>(
+pub async fn send_auto_complete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    media: MediaAutocompleteVariables<'a>,cache_type:  &str
+    media: MediaAutocompleteVariables<'_>,
+    cache_type: String,
 ) {
     let operation = MediaAutocomplete::build(media);
     let data: Result<GraphQlResponse<MediaAutocomplete>, AppError> =

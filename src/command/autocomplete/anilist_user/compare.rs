@@ -32,16 +32,20 @@ use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutoco
 /// # Async
 ///
 /// This function is asynchronous. It awaits the getting of the choices and the sending of the response.
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(
+    ctx: Context,
+    autocomplete_interaction: CommandInteraction,
+    cache_type: String,
+) {
     let mut choice = Vec::new();
     trace!("{:?}", &autocomplete_interaction.data.options);
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let user1 = map.get(&String::from("username")).unwrap_or(DEFAULT_STRING);
-    choice.extend(get_choices(user1).await);
+    choice.extend(get_choices(user1, cache_type.clone()).await);
     let user2 = map
         .get(&String::from("username2"))
         .unwrap_or(DEFAULT_STRING);
-    choice.extend(get_choices(user2).await);
+    choice.extend(get_choices(user2, cache_type).await);
 
     let data = CreateAutocompleteResponse::new().set_choices(choice);
     let builder = CreateInteractionResponse::Autocomplete(data);
@@ -72,14 +76,14 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 /// # Async
 ///
 /// This function is asynchronous. It awaits the creation of the `UserPageWrapper`.
-async fn get_choices(search: &str) -> Vec<AutocompleteChoice> {
+async fn get_choices(search: &str, cache_type: String) -> Vec<AutocompleteChoice> {
     trace!("{:?}", search);
     let var = UserAutocompleteVariables {
         search: Some(search),
     };
     let operation = UserAutocomplete::build(var);
     let data: Result<GraphQlResponse<UserAutocomplete>, AppError> =
-        make_request_anilist(operation, false).await;
+        make_request_anilist(operation, false, cache_type).await;
     let data = match data {
         Ok(data) => data,
         Err(e) => {

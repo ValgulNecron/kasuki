@@ -31,13 +31,15 @@ pub async fn update(
     ctx: &Context,
     component_interaction: &ComponentInteraction,
     page_number: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
-    let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
+    let list_activity_localised_text =
+        load_localization_list_activity(guild_id, db_type.clone()).await?;
 
     let guild_id = component_interaction.guild_id.ok_or(AppError::new(
         String::from("There is no guild id"),
@@ -45,7 +47,7 @@ pub async fn update(
         ErrorResponseType::None,
     ))?;
 
-    let list = get_all_server_activity(&guild_id.to_string()).await?;
+    let list = get_all_server_activity(&guild_id.to_string(), db_type).await?;
     let len = list.len();
     let actual_page: u64 = page_number.parse().unwrap();
     trace!("{:?}", actual_page);
