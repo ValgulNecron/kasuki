@@ -38,8 +38,8 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
     let command_usage = bot_data.number_of_command_use_per_command.clone();
     let is_grpc_on = bot_data.config.grpc.grpc_is_on;
     let config = bot_data.config.clone();
-    let db_type = config.bot.config.db_type.as_str();
-    let cache_type = config.bot.config.cache_type.as_str();
+    let db_type = config.bot.config.db_type.clone();
+    let cache_type = config.bot.config.cache_type.clone();
     tokio::spawn(launch_web_server_thread(
         ctx.clone(),
         command_usage,
@@ -47,19 +47,19 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
         config,
     ));
     // Spawn a new thread for user color management
-    tokio::spawn(launch_user_color_management_thread(ctx.clone(), db_type));
+    tokio::spawn(launch_user_color_management_thread(ctx.clone(), db_type.clone()));
     // Spawn a new thread for activity management
-    tokio::spawn(launch_activity_management_thread(ctx.clone(), db_type, cache_type));
+    tokio::spawn(launch_activity_management_thread(ctx.clone(), db_type.clone(), cache_type.clone()));
     // Spawn a new thread for steam management
     tokio::spawn(launch_game_management_thread());
     // Spawn a new thread for ping management
-    tokio::spawn(ping_manager_thread(ctx.clone(), db_type));
+    tokio::spawn(ping_manager_thread(ctx.clone(), db_type.clone()));
     // Spawn a new thread for updating the user blacklist
     unsafe {
         let local_user_blacklist = USER_BLACKLIST_SERVER_IMAGE.clone();
         tokio::spawn(update_user_blacklist(local_user_blacklist));
     }
-    tokio::spawn(update_random_stats_launcher( cache_type));
+    tokio::spawn(update_random_stats_launcher( cache_type.clone()));
     tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
@@ -69,7 +69,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
 }
 
 /// This function is responsible for managing the ping of the shards.
-async fn ping_manager_thread(ctx: Context, db_type: &str) {
+async fn ping_manager_thread(ctx: Context, db_type: String) {
     info!("Launching the ping thread!");
     let data_read = ctx.data.read().await;
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
@@ -119,13 +119,13 @@ async fn launch_web_server_thread(
 /// * `guilds` - A vector of `GuildId` which is used in the color management function.
 /// * `ctx` - A `Context` instance which is used in the color management function.
 ///
-async fn launch_user_color_management_thread(ctx: Context, db_type: &str) {
+async fn launch_user_color_management_thread(ctx: Context, db_type: String) {
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE));
     info!("Launching the user color management thread!");
     loop {
         interval.tick().await;
         let guilds = ctx.cache.guilds();
-        color_management(&guilds, &ctx, db_type).await;
+        color_management(&guilds, &ctx, db_type.clone()).await;
     }
 }
 
@@ -147,7 +147,7 @@ async fn launch_game_management_thread() {
 ///
 /// * `ctx` - A `Context` instance which is used in the manage activity function.
 ///
-async fn launch_activity_management_thread(ctx: Context, db_type: &'static str,cache_type: &'static str,) {
+async fn launch_activity_management_thread(ctx: Context, db_type: String,cache_type: String,) {
     let mut interval = interval(Duration::from_secs(1));
     info!("Launching the activity management thread!");
     loop {
@@ -163,7 +163,7 @@ async fn launch_activity_management_thread(ctx: Context, db_type: &'static str,c
 ///
 /// * `shard_manager` - A reference to an `Arc<ShardManager>` which is used to get the runners.
 ///
-async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type: &str) {
+async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type:String) {
     // Lock the runners
     let runner = shard_manager.runners.lock().await;
     // Iterate over the runners
@@ -189,12 +189,12 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type: &str) {
 ///
 /// * `ctx` - A `Context` instance which is used in the server image management function.
 ///
-async fn launch_server_image_management_thread(ctx: Context,cache_type: &'static str) {
+async fn launch_server_image_management_thread(ctx: Context,db_type: String) {
     info!("Launching the server image management thread!");
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE));
     loop {
         interval.tick().await;
-        server_image_management(&ctx, cache_type).await;
+        server_image_management(&ctx, db_type).await;
     }
 }
 

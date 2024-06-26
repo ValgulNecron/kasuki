@@ -25,7 +25,7 @@ use crate::structure::message::anilist_user::send_activity::load_localization_se
 /// # Arguments
 ///
 /// * `ctx` - A Context that represents the context.
-pub async fn manage_activity(ctx: Context, db_type: &'static str,cache_type:  &'static str) {
+pub async fn manage_activity(ctx: Context, db_type: String,cache_type:  String) {
     send_activity(&ctx, db_type, cache_type).await;
 }
 
@@ -44,7 +44,7 @@ pub async fn manage_activity(ctx: Context, db_type: &'static str,cache_type:  &'
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context.
-async fn send_activity(ctx: &Context, db_type: &'static str,cache_type: &'static str,) {
+async fn send_activity(ctx: &Context, db_type: String,cache_type: String,) {
     let now = Utc::now().timestamp().to_string();
     let rows = match get_data_activity(now.clone(), db_type).await {
         Ok(rows) => rows,

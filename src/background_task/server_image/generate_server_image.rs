@@ -39,7 +39,7 @@ use crate::helper::image_saver::general_image_saver::image_saver;
 /// # Errors
 ///
 /// This function will return an error if there is a problem with fetching the members of the guild, calculating the average color, or generating the server image.
-pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId,cache_type:  &str) -> Result<(), AppError> {
+pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId,cache_type:String) -> Result<(), AppError> {
     // Fetch the members of the guild
     let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
     // Calculate the average color of the members' avatars
@@ -66,7 +66,7 @@ pub async fn generate_local_server_image(ctx: &Context, guild_id: GuildId,cache_
 /// This function will return an error if there is a problem with fetching the approximated colors of all users, creating a color vector from user colors, or generating the server image.
 pub async fn generate_global_server_image(
     ctx: &Context,
-    guild_id: GuildId,db_type:  &str
+    guild_id: GuildId,db_type: String
 ) -> Result<(), AppError> {
     let average_colors = get_all_user_approximated_color(db_type).await?;
     let color_vec = create_color_vector_from_user_color(average_colors.clone());
@@ -206,7 +206,7 @@ pub async fn generate_server_image(
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
-pub async fn server_image_management(ctx: &Context,db_type: &'static str) {
+pub async fn server_image_management(ctx: &Context,db_type: String) {
     for guild in ctx.cache.guilds() {
         let ctx_clone = ctx.clone();
         let guild_clone = guild;

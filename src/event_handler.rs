@@ -131,7 +131,7 @@ impl EventHandler for Handler {
         let cache_type = self.bot_data.config.bot.config.cache_type.clone();
         if is_new.unwrap_or_default() {
             color_management(&ctx.cache.guilds(), &ctx, db_type.as_ref()).await;
-            server_image_management(&ctx, cache_type.as_ref()).await;
+            server_image_management(&ctx, cache_type).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);

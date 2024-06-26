@@ -42,7 +42,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 ///
 /// This function will return an error if there's a problem retrieving the user's color from the database,
 /// calculating the user's color, or updating the user's color in the database.
-pub async fn calculate_users_color(members: Vec<Member>, db_type: &str) -> Result<(), AppError> {
+pub async fn calculate_users_color(members: Vec<Member>, db_type: String) -> Result<(), AppError> {
     let local_copy_user_blacklist = unsafe { USER_BLACKLIST_SERVER_IMAGE.read().await.clone() };
     for member in members {
         if local_copy_user_blacklist.contains(&member.user.id.to_string()) {
@@ -85,7 +85,7 @@ pub async fn calculate_users_color(members: Vec<Member>, db_type: &str) -> Resul
 /// calculating the user's color, or updating the user's color in the database.
 pub async fn return_average_user_color(
     members: Vec<Member>,
-    db_type: &str,
+    db_type: String,
 ) -> Result<Vec<(String, String, String)>, AppError> {
     let mut average_colors = Vec::new();
     for member in members {
@@ -264,7 +264,7 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
 /// # Errors
 ///
 /// This function will log an error if there's a problem calculating the color for any member.
-pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context, db_type: &str) {
+pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context, db_type: String) {
     let mut futures = FuturesUnordered::new();
     for guild in guilds {
         let guild_id = guild.to_string();

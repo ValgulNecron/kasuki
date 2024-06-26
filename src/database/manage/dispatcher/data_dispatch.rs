@@ -46,7 +46,7 @@ use crate::helper::error_management::error_enum::AppError;
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_data_ping_history(
     ping_history: PingHistory,
-    db_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
     if db_type == "sqlite" {
         set_data_ping_history_sqlite(ping_history).await
@@ -369,8 +369,9 @@ pub async fn set_user_approximated_color(
     color: &String,
     pfp_url: &String,
     image: &String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_user_approximated_color_sqlite(user_id, color, pfp_url, image).await
     } else if db_type == "postgresql" {
@@ -395,8 +396,9 @@ pub async fn set_user_approximated_color(
 /// * A Result that is either a UserColor variant if the operation was successful, or an Err variant with an AppError.
 pub async fn get_user_approximated_color(
     user_id: &String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<UserColor, AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_user_approximated_color_sqlite(user_id).await
     } else if db_type == "postgresql" {
@@ -421,8 +423,9 @@ pub async fn get_user_approximated_color(
 /// * A Result that is either a Vec variant containing the ServerActivity if the operation was successful, or an Err variant with an AppError.
 pub async fn get_all_server_activity(
     server_id: &String,
-    db_type: &str,
+    db_type: String,
 ) -> Result<Vec<ServerActivity>, AppError> {
+    let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_all_server_activity_sqlite(server_id).await
     } else if db_type == "postgresql" {

@@ -14,7 +14,7 @@ pub struct RandomStat {
     pub manga_last_page: i32,
 }
 
-pub async fn update_random_stats_launcher(cache_type:  &str) {
+pub async fn update_random_stats_launcher(cache_type:  String) {
     info!("Starting random stats update");
     loop {
         let _ = update_random_stats(cache_type).await;
