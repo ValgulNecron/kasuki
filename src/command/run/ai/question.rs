@@ -1,3 +1,8 @@
+use crate::config::Config;
+use crate::constant::DEFAULT_STRING;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
@@ -5,12 +10,8 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 use tracing::trace;
-
-use crate::constant::{CONFIG, DEFAULT_STRING};
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 
 /// This asynchronous function runs the command interaction for asking a question to the AI.
 ///
@@ -27,7 +28,11 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand(command_interaction);
     let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -42,15 +47,25 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Message,
             )
         })?;
-    let ai_config = unsafe { CONFIG.ai.clone() };
 
-    let api_key = ai_config.image.ai_image_token.clone().unwrap_or_default();
-    let api_base_url = ai_config
-        .image
-        .ai_image_base_url
+    let api_key = config
+        .ai
+        .question
+        .ai_question_token
         .clone()
         .unwrap_or_default();
-    let model = ai_config.image.ai_image_model.clone().unwrap_or_default();
+    let api_base_url = config
+        .ai
+        .question
+        .ai_question_base_url
+        .clone()
+        .unwrap_or_default();
+    let model = config
+        .ai
+        .question
+        .ai_question_model
+        .clone()
+        .unwrap_or_default();
 
     let text = question(prompt, api_key, api_base_url, model).await?;
 

@@ -1,3 +1,11 @@
+use crate::config::Config;
+use crate::constant::DEFAULT_STRING;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::{
+    get_option_map_integer_subcommand, get_option_map_string_subcommand,
+};
+use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
 use prost::bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
@@ -7,16 +15,9 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 use tracing::{info, trace};
 use uuid::Uuid;
-
-use crate::constant::{CONFIG, DEFAULT_STRING};
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::{
-    get_option_map_integer_subcommand, get_option_map_string_subcommand,
-};
-use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
 
 /// This module contains the implementation of the `run` function for handling AI image generation.
 ///
@@ -40,7 +41,11 @@ use crate::structure::message::ai::image::{load_localization_image, ImageLocalis
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -75,17 +80,26 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.png", uuid_name);
 
-    let config = unsafe { CONFIG.ai.image.clone() };
-    let model = config.ai_image_model.clone().unwrap_or_default();
-    let token = config.ai_image_token.clone().unwrap_or_default();
-    let url = config.ai_image_base_url.clone().unwrap_or_default();
+    let model = config.ai.image.ai_image_model.clone().unwrap_or_default();
+    let token = config.ai.image.ai_image_token.clone().unwrap_or_default();
+    let url = config
+        .ai
+        .image
+        .ai_image_base_url
+        .clone()
+        .unwrap_or_default();
 
     let model = model.as_str();
     info!("{}", model);
 
-    let quality = config.ai_image_style;
-    let style = config.ai_image_quality;
-    let size = config.ai_image_size.unwrap_or(String::from("1024x1024"));
+    let quality = config.ai.image.ai_image_style.clone();
+    let style = config.ai.image.ai_image_quality.clone();
+    let size = config
+        .ai
+        .image
+        .ai_image_size
+        .clone()
+        .unwrap_or(String::from("1024x1024"));
 
     let data: Value = match (quality, style) {
         (Some(quality), Some(style)) => {

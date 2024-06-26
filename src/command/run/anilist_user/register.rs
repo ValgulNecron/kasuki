@@ -1,8 +1,10 @@
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 
 use crate::command::run::anilist_user::user::get_user;
+use crate::config::Config;
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::set_registered_user;
 use crate::helper::create_default_embed::get_default_embed;
@@ -25,7 +27,11 @@ use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     // Retrieve the username of the AniList account from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("username")).ok_or(AppError::new(

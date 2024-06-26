@@ -1,6 +1,4 @@
-use cynic::{GraphQlResponse, QueryBuilder};
-use serenity::all::{CommandInteraction, Context};
-
+use crate::config::Config;
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -10,6 +8,9 @@ use crate::structure::run::anilist::user::{
     send_embed, User, UserQuerryId, UserQuerryIdVariables, UserQuerrySearch,
     UserQuerrySearchVariables,
 };
+use cynic::{GraphQlResponse, QueryBuilder};
+use serenity::all::{CommandInteraction, Context};
+use std::sync::Arc;
 
 /// Executes the command to fetch and display information about a user from AniList.
 ///
@@ -25,7 +26,11 @@ use crate::structure::run::anilist::user::{
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     // Retrieve the username from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let user = map.get(&String::from("username"));

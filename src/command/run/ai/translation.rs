@@ -1,3 +1,11 @@
+use crate::config::Config;
+use crate::constant::DEFAULT_STRING;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::{
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
+};
+use crate::structure::message::ai::translation::load_localization_translation;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
 use serde_json::{json, Value};
@@ -6,16 +14,9 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 use tracing::trace;
 use uuid::Uuid;
-
-use crate::constant::{CONFIG, DEFAULT_STRING};
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::{
-    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
-};
-use crate::structure::message::ai::translation::load_localization_translation;
 
 /// This asynchronous function runs the command interaction for transcribing an audio or video file.
 ///
@@ -42,7 +43,11 @@ use crate::structure::message::ai::translation::load_localization_translation;
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand(command_interaction);
     let attachment_map = get_option_map_attachment_subcommand(command_interaction);
     let lang = map
@@ -132,18 +137,20 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
-    let ai_config = unsafe { CONFIG.ai.clone() };
-    let token = ai_config
+    let token = config
+        .ai
         .transcription
         .ai_transcription_token
         .clone()
         .unwrap_or_default();
-    let model = ai_config
+    let model = config
+        .ai
         .transcription
         .ai_transcription_model
         .clone()
         .unwrap_or_default();
-    let api_base_url = ai_config
+    let api_base_url = config
+        .ai
         .transcription
         .ai_transcription_base_url
         .clone()
@@ -193,13 +200,24 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     trace!("{}", text);
 
     let text = if lang != "en" {
-        let api_key = ai_config.image.ai_image_token.clone().unwrap_or_default();
-        let api_base_url = ai_config
-            .image
-            .ai_image_base_url
+        let api_key = config
+            .ai
+            .question
+            .ai_question_token
             .clone()
             .unwrap_or_default();
-        let model = ai_config.image.ai_image_model.clone().unwrap_or_default();
+        let api_base_url = config
+            .ai
+            .question
+            .ai_question_base_url
+            .clone()
+            .unwrap_or_default();
+        let model = config
+            .ai
+            .question
+            .ai_question_model
+            .clone()
+            .unwrap_or_default();
         translation(lang, text.to_string(), api_key, api_base_url, model).await?
     } else {
         String::from(text)

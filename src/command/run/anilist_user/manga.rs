@@ -1,6 +1,4 @@
-use cynic::{GraphQlResponse, QueryBuilder};
-use serenity::all::{CommandInteraction, Context};
-
+use crate::config::Config;
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -8,6 +6,9 @@ use crate::structure::run::anilist::media::{
     send_embed, Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
     MediaQuerrySearchVariables, MediaType,
 };
+use cynic::{GraphQlResponse, QueryBuilder};
+use serenity::all::{CommandInteraction, Context};
+use std::sync::Arc;
 
 /// Executes the command to fetch and display information about a manga based on its name or ID.
 ///
@@ -23,7 +24,11 @@ use crate::structure::run::anilist::media::{
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     // Retrieve the name or ID of the manga from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map

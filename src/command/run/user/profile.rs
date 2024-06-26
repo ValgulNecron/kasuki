@@ -1,13 +1,14 @@
-use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Member, Timestamp, User,
-};
-
+use crate::config::Config;
 use crate::constant::COLOR;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::helper::get_user_data::get_user_data;
 use crate::structure::message::user::profile::load_localization_profile;
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Member, Timestamp, User,
+};
+use std::sync::Arc;
 
 /// Executes the command to display a user's profile.
 ///
@@ -22,7 +23,11 @@ use crate::structure::message::user::profile::load_localization_profile;
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     // Retrieve the user's name from the command interaction
     let map = get_option_map_user_subcommand(command_interaction);
     let user = map.get(&String::from("username"));

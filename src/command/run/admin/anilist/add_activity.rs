@@ -1,20 +1,4 @@
-use std::io::{Cursor, Read};
-
-use base64::engine::general_purpose::STANDARD;
-use base64::read::DecoderReader;
-use base64::Engine as _;
-use cynic::{GraphQlResponse, QueryBuilder};
-use image::imageops::FilterType;
-use image::{guess_format, GenericImageView, ImageFormat};
-use reqwest::get;
-use serde_json::json;
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    ChannelId, CommandInteraction, Context, CreateAttachment, CreateEmbed,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, Timestamp,
-};
-use tracing::{error, trace};
-
+use crate::config::Config;
 use crate::constant::COLOR;
 use crate::database::data_struct::server_activity::{ServerActivityFull, SmallServerActivity};
 use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
@@ -28,6 +12,22 @@ use crate::structure::run::anilist::minimal_anime::{
     Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
     MinimalAnimeSearchVariables,
 };
+use base64::engine::general_purpose::STANDARD;
+use base64::read::DecoderReader;
+use base64::Engine as _;
+use cynic::{GraphQlResponse, QueryBuilder};
+use image::imageops::FilterType;
+use image::{guess_format, GenericImageView, ImageFormat};
+use reqwest::get;
+use serde_json::json;
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    ChannelId, CommandInteraction, Context, CreateAttachment, CreateEmbed,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, Timestamp,
+};
+use std::io::{Cursor, Read};
+use std::sync::Arc;
+use tracing::{error, trace};
 
 /// This asynchronous function gets or creates a webhook for a given channel.
 ///
@@ -45,7 +45,11 @@ use crate::structure::run::anilist::minimal_anime::{
 /// # Returns
 ///
 /// A `Result` containing either the URL of the webhook if it is successfully retrieved or created, or an `AppError` if an error occurs.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand_group(command_interaction);
     let delay = map
         .get(&String::from("delay"))

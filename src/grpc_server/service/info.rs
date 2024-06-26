@@ -1,18 +1,19 @@
 use std::sync::Arc;
 
-use serenity::all::{Cache, CurrentApplicationInfo, Http, ShardManager};
-use sysinfo::System;
-use tokio::sync::RwLock;
-use tonic::{Request, Response, Status};
-use tracing::trace;
-
-use crate::constant::{APP_VERSION, CONFIG};
+use crate::config::Config;
+use crate::constant::APP_VERSION;
 use crate::custom_serenity_impl::{InternalMembershipState, InternalTeamMemberRole};
+use crate::event_handler::RootUsage;
 use crate::grpc_server::service::info::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::service::info::proto::{
     BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, InfoRequest, InfoResponse,
     OwnerInfo, ShardStats, SystemInfoData, TeamMember,
 };
+use serenity::all::{Cache, CurrentApplicationInfo, Http, ShardManager};
+use sysinfo::System;
+use tokio::sync::RwLock;
+use tonic::{Request, Response, Status};
+use tracing::trace;
 
 // Proto module contains the protobuf definitions for the shard service
 pub(crate) mod proto {
@@ -27,10 +28,11 @@ pub struct InfoService {
     pub bot_info: Arc<CurrentApplicationInfo>,
     pub sys: Arc<RwLock<System>>,
     pub os_info: Arc<os_info::Info>,
-    pub command_usage: Arc<RwLock<u128>>,
+    pub command_usage: Arc<RwLock<RootUsage>>,
     pub shard_manager: Arc<ShardManager>,
     pub cache: Arc<Cache>,
     pub http: Arc<Http>,
+    pub config: Arc<Config>,
 }
 
 #[tonic::async_trait]
@@ -69,8 +71,7 @@ impl Info for InfoService {
         // bot stat
         let uptime = process.run_time();
         let uptime = format!("{}s", uptime);
-        let command_usage_guard = self.command_usage.read().await;
-        let number_of_commands_executed: u128 = *command_usage_guard;
+        let number_of_commands_executed = self.command_usage.read().await.get_total_command_use();
         let number_of_commands_executed = number_of_commands_executed as i64;
         let number_of_members = self.cache.user_count() as i64;
         let number_of_guilds = self.cache.guild_count() as i64;
@@ -92,7 +93,7 @@ impl Info for InfoService {
         let name = bot_info_data.name.clone();
         let version = APP_VERSION.to_string();
         let id = bot_info_data.id;
-        let bot_activity = unsafe { CONFIG.bot.bot_activity.clone() };
+        let bot_activity = self.config.bot.bot_activity.clone();
         let description = bot_info_data.description.clone();
         let bot_data = self.http.clone().get_current_user().await;
         let id = id.to_string();

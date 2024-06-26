@@ -1,16 +1,4 @@
-use std::io::Cursor;
-
-use cynic::{GraphQlResponse, QueryBuilder};
-use image::imageops::FilterType;
-use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
-use prost::bytes::Bytes;
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage,
-};
-use uuid::Uuid;
-
+use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -20,6 +8,18 @@ use crate::structure::run::anilist::seiyuu_id::{
     Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
 };
 use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVariables};
+use cynic::{GraphQlResponse, QueryBuilder};
+use image::imageops::FilterType;
+use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
+use prost::bytes::Bytes;
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
+};
+use std::io::Cursor;
+use std::sync::Arc;
+use uuid::Uuid;
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -35,7 +35,11 @@ use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVa
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("staff_name")).ok_or(AppError::new(
         String::from("There is no option"),

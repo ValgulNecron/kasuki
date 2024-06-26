@@ -1,3 +1,8 @@
+use crate::config::Config;
+use crate::database::manage::dispatcher::data_dispatch::get_server_image;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -5,13 +10,9 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseMessage,
 };
 use serenity::builder::CreateInteractionResponseFollowup;
+use std::sync::Arc;
 use tracing::trace;
 use uuid::Uuid;
-
-use crate::database::manage::dispatcher::data_dispatch::get_server_image;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 
 /// Executes the command to send an embed with the server's profile picture.
 ///
@@ -25,7 +26,11 @@ use crate::structure::message::server::generate_image_pfp_server::load_localizat
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     send_embed(ctx, command_interaction, "local").await
 }
 

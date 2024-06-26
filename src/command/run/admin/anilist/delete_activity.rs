@@ -3,11 +3,13 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 use tracing::trace;
 
 use crate::command::run::admin::anilist::add_activity::{
     get_minimal_anime_by_id, get_minimal_anime_by_search, get_name,
 };
+use crate::config::Config;
 use crate::database::manage::dispatcher::data_dispatch::remove_data_activity_status;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -39,7 +41,11 @@ use crate::structure::message::admin::anilist::delete_activity::load_localizatio
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     let map = get_option_map_string_subcommand_group(command_interaction);
     let anime = map
         .get(&String::from("anime_name"))

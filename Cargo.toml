@@ -21,7 +21,6 @@ sqlx = { version = "0.7.4", features = ["sqlite", "runtime-tokio-native-tls", "p
 rand = "0.9.0-alpha.1"
 chrono = "0.4.38"
 uuid = { version = "1.8.0", features = ["v4"] }
-dotenvy = "0.15.7"
 image = "0.25.1"
 base64 = "0.22.1"
 tracing = { version = "0.1.40" }
@@ -50,6 +49,7 @@ rapidfuzz = "0.5.0"
 cynic = { version = "3.7.3", features = ["reqwest", "http-reqwest", "serde_json"] }
 moka = { version = "0.12.7", features = ["future"] }
 toml = "0.8.14"
+num-bigint = "0.4.5"
 
 [build-dependencies]
 tonic-build = "0.11.0"

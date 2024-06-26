@@ -1,4 +1,3 @@
-use once_cell::sync::Lazy;
 use serenity::all::{GatewayIntents, ShardManager};
 use serenity::Client;
 use std::sync::Arc;
@@ -10,6 +9,7 @@ use crate::constant::COMMAND_USE_PATH;
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
+use crate::struct_shard_manager::ShardManagerContainer;
 
 mod background_task;
 mod cache;
@@ -25,9 +25,9 @@ mod federation;
 mod grpc_server;
 mod helper;
 mod logger;
+mod struct_shard_manager;
 mod structure;
 mod tui;
-mod struct_shard_manager;
 #[tokio::main]
 /// The main function where the execution of the bot starts.
 /// It initializes the logger, the SQL database, and the bot client.
@@ -52,8 +52,11 @@ async fn main() {
     let log = config.logging.log_level.clone();
     let app_tui = config.bot.config.tui;
     let discord_token = config.bot.discord_token.clone();
-
-    let config = Arc::new(RwLock::new(config));
+    let db_type = config.bot.config.db_type.clone();
+    let db_type = db_type.as_str();
+    let max_log_retention_days = config.logging.max_log_retention;
+    let tui = config.bot.config.tui;
+    let config = Arc::new(config);
 
     // Get the log level from the environment variable "RUST_LOG".
     // If the variable is not set, default to "info".
@@ -68,7 +71,7 @@ async fn main() {
 
     // Initialize the logger with the specified log level.
     // If an error occurs, print the error and return.
-    if let Err(e) = init_logger(log) {
+    if let Err(e) = init_logger(log, max_log_retention_days, tui) {
         eprintln!("{:?}", e);
         std::process::exit(2);
     }
@@ -88,12 +91,11 @@ async fn main() {
 
     // Initialize the SQL database.
     // If an error occurs, log the error and return.
-    if let Err(e) = init_sql_database().await {
+    if let Err(e) = init_sql_database(db_type).await {
         error!("{:?}", e);
         std::process::exit(4);
     }
 
-    let number_of_command_use = Arc::new(RwLock::new(0u128));
     let number_of_command_use_per_command: RootUsage;
     // populate the number_of_command_use_per_command with the content of the file
     if let Ok(content) = std::fs::read_to_string(COMMAND_USE_PATH) {
@@ -105,10 +107,11 @@ async fn main() {
 
     let number_of_command_use_per_command =
         Arc::new(RwLock::new(number_of_command_use_per_command));
-    let bot_data: Arc<RwLock<BotData>> = Arc::new(RwLock::new(BotData {
-        number_of_command_use,
+    let bot_data: Arc<BotData> = Arc::new(BotData {
         number_of_command_use_per_command,
-    }));
+        config,
+        bot_info: Arc::new(None),
+    });
     let handler = Handler { bot_data };
 
     // Get all the non-privileged intent.
@@ -135,6 +138,7 @@ async fn main() {
             error!("Error while creating client: {}", e);
             std::process::exit(5);
         });
+    let shard_manager = client.shard_manager.clone();
     client
         .data
         .write()

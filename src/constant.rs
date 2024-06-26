@@ -25,6 +25,8 @@ pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 300;
 pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
 /// Time between cache updates.
 pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200;
+/// Time between bot info update
+pub const TIME_BETWEEN_BOT_INFO: u64 = 1_80;
 /// Max capacity for the cache.
 pub const CACHE_MAX_CAPACITY: u64 = 100_000;
 /// Anilist cache for the bot.

@@ -13,11 +13,12 @@ pub async fn make_request_anilist<
 >(
     operation: Operation<T, S>,
     always_update: bool,
+    cache_type: &str,
 ) -> Result<GraphQlResponse<U>, AppError> {
     if !always_update {
-        do_request(operation).await
+        do_request(operation, cache_type).await
     } else {
-        let return_data: GraphQlResponse<U> = check_cache(operation).await?;
+        let return_data: GraphQlResponse<U> = check_cache(operation, cache_type).await?;
         Ok(return_data)
     }
 }
@@ -29,11 +30,12 @@ async fn check_cache<
     U: for<'de> Deserialize<'de>,
 >(
     operation: Operation<T, S>,
+    cache_type: &str,
 ) -> Result<GraphQlResponse<U>, AppError> {
-    let cache = get_cache(operation.query.clone()).await;
+    let cache = get_cache(operation.query.clone(), cache_type).await;
     match cache {
         Some(data) => get_type(data),
-        None => do_request(operation).await,
+        None => do_request(operation, cache_type).await,
     }
 }
 
@@ -43,6 +45,7 @@ async fn do_request<
     U: for<'de> Deserialize<'de>,
 >(
     operation: Operation<T, S>,
+    cache_type: &str,
 ) -> Result<GraphQlResponse<U>, AppError> {
     let client = Client::new();
     let resp = client
@@ -63,7 +66,7 @@ async fn do_request<
         error_type: ErrorType::WebRequest,
         error_response_type: ErrorResponseType::Unknown,
     })?;
-    set_cache(operation.query, response_text.clone()).await;
+    set_cache(operation.query, response_text.clone(), cache_type).await;
     get_type(response_text)
 }
 

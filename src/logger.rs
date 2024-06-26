@@ -6,7 +6,7 @@ use tracing_subscriber::filter::{Directive, EnvFilter};
 use tracing_subscriber::fmt;
 use tracing_subscriber::layer::SubscriberExt;
 
-use crate::constant::{CONFIG, GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, OTHER_CRATE_LEVEL};
+use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, OTHER_CRATE_LEVEL};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// Initializes the logger for the application.
@@ -27,7 +27,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 ///
 /// This function will return an error if there's a problem creating the directives for the log levels,
 /// building the file appender, or setting the global default subscriber.
-pub fn init_logger(log: &str) -> Result<(), AppError> {
+pub fn init_logger(log: &str, max_log_retention_days: u32, tui: bool) -> Result<(), AppError> {
     let kasuki_filter = match log {
         "warn" => "kasuki=warn",
         "error" => "kasuki=error",
@@ -45,7 +45,6 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
 
     let log_prefix = LOGS_PREFIX;
     let log_suffix = LOGS_SUFFIX;
-    let max_log_retention_days = unsafe { CONFIG.logging.max_log_retention };
     let logs_path = LOGS_PATH;
 
     let file_appender = tracing_appender::rolling::Builder::new()
@@ -69,7 +68,7 @@ pub fn init_logger(log: &str) -> Result<(), AppError> {
 
     let format = fmt::layer().with_ansi(true);
 
-    let app_tui = unsafe { CONFIG.bot.config.tui };
+    let app_tui = tui;
     if app_tui {
         let registry = tracing_subscriber::registry().with(filter).with(
             tracing_subscriber::fmt::layer()

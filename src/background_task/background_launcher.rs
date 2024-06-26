@@ -37,21 +37,29 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
     // Spawn a new thread for the web server
     let command_usage = bot_data.number_of_command_use_per_command.clone();
     let is_grpc_on = bot_data.config.grpc.grpc_is_on;
-    tokio::spawn(launch_web_server_thread(ctx.clone(), command_usage, is_grpc_on));
+    let config = bot_data.config.clone();
+    let db_type = config.bot.config.db_type.as_str();
+    tokio::spawn(launch_web_server_thread(
+        ctx.clone(),
+        command_usage,
+        is_grpc_on,
+        config,
+    ));
     // Spawn a new thread for user color management
     tokio::spawn(launch_user_color_management_thread(ctx.clone()));
     // Spawn a new thread for activity management
-    tokio::spawn(launch_activity_management_thread(ctx.clone()));
+    tokio::spawn(launch_activity_management_thread(ctx.clone(), db_type));
     // Spawn a new thread for steam management
     tokio::spawn(launch_game_management_thread());
     // Spawn a new thread for ping management
-    tokio::spawn(ping_manager_thread(ctx.clone()));
+    tokio::spawn(ping_manager_thread(ctx.clone(), db_type));
     // Spawn a new thread for updating the user blacklist
     unsafe {
         let local_user_blacklist = USER_BLACKLIST_SERVER_IMAGE.clone();
         tokio::spawn(update_user_blacklist(local_user_blacklist));
     }
     tokio::spawn(update_random_stats_launcher());
+    tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
     tokio::spawn(launch_server_image_management_thread(ctx.clone()));
@@ -60,7 +68,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
 }
 
 /// This function is responsible for managing the ping of the shards.
-async fn ping_manager_thread(ctx: Context) {
+async fn ping_manager_thread(ctx: Context, db_type: &str) {
     info!("Launching the ping thread!");
     let data_read = ctx.data.read().await;
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
@@ -72,13 +80,18 @@ async fn ping_manager_thread(ctx: Context) {
     let mut interval = tokio::time::interval(Duration::from_secs(PING_UPDATE_DELAYS));
     loop {
         interval.tick().await;
-        ping_manager(shard_manager).await;
+        ping_manager(shard_manager, db_type).await;
     }
 }
 
 /// This function is responsible for launching the web server thread.
 /// It does not take any arguments and does not return anything.
-async fn launch_web_server_thread(ctx: Context, command_usage: Arc<RwLock<RootUsage>>, is_grpc_on: bool) {
+async fn launch_web_server_thread(
+    ctx: Context,
+    command_usage: Arc<RwLock<RootUsage>>,
+    is_grpc_on: bool,
+    config: Arc<Config>,
+) {
     if !is_grpc_on {
         info!("GRPC is off, skipping the GRPC server thread!");
         return;
@@ -93,7 +106,8 @@ async fn launch_web_server_thread(ctx: Context, command_usage: Arc<RwLock<RootUs
     let cache = ctx.cache.clone();
     let http = ctx.http.clone();
     info!("GRPC is on, launching the GRPC server thread!");
-    grpc_server_launcher(shard_manager, command_usage, cache, http).await
+
+    grpc_server_launcher(shard_manager, command_usage, cache, http, config.clone()).await
 }
 
 /// This function is responsible for launching the user color management thread.
@@ -132,12 +146,12 @@ async fn launch_game_management_thread() {
 ///
 /// * `ctx` - A `Context` instance which is used in the manage activity function.
 ///
-async fn launch_activity_management_thread(ctx: Context) {
+async fn launch_activity_management_thread(ctx: Context, db_type: &str) {
     let mut interval = interval(Duration::from_secs(1));
     info!("Launching the activity management thread!");
     loop {
         interval.tick().await;
-        tokio::spawn(manage_activity(ctx.clone()));
+        tokio::spawn(manage_activity(ctx.clone(), db_type));
     }
 }
 
@@ -148,7 +162,7 @@ async fn launch_activity_management_thread(ctx: Context) {
 ///
 /// * `shard_manager` - A reference to an `Arc<ShardManager>` which is used to get the runners.
 ///
-async fn ping_manager(shard_manager: &Arc<ShardManager>) {
+async fn ping_manager(shard_manager: &Arc<ShardManager>, db_type: &str) {
     // Lock the runners
     let runner = shard_manager.runners.lock().await;
     // Iterate over the runners
@@ -163,7 +177,7 @@ async fn ping_manager(shard_manager: &Arc<ShardManager>) {
             timestamp: now,
         };
 
-        set_data_ping_history(ping_history).await.unwrap();
+        set_data_ping_history(ping_history, db_type).await.unwrap();
     }
 }
 
@@ -215,5 +229,12 @@ async fn update_user_blacklist(user_blacklist_server_image: Arc<RwLock<Vec<Strin
         user_blacklist.shrink_to_fit();
         // Release the lock before sleeping
         drop(user_blacklist);
+    }
+}
+
+async fn update_bot_info(ctx: Context, bot_data: Arc<BotData>) {
+    loop {
+        let bot = ctx.http.get_current_application_info().await.unwrap();
+        bot_data.bot_info = Arc::new(Some(bot));
     }
 }

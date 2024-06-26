@@ -307,9 +307,10 @@ async fn anilist_admin(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     let return_data = match command_name {
-        "add_anime_activity" => add_activity::run(ctx, command_interaction).await,
-        "delete_activity" => delete_activity::run(ctx, command_interaction).await,
+        "add_anime_activity" => add_activity::run(ctx, command_interaction, config).await,
+        "delete_activity" => delete_activity::run(ctx, command_interaction, config).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -348,9 +349,10 @@ async fn general_admin(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     let return_data = match command_name {
-        "lang" => lang::run(ctx, command_interaction).await,
-        "module" => module::run(ctx, command_interaction).await,
+        "lang" => lang::run(ctx, command_interaction, config).await,
+        "module" => module::run(ctx, command_interaction, config).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -390,6 +392,7 @@ async fn ai(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     // Define the error for when the AI module is off
     let ai_module_error: AppError = AppError {
         message: String::from("AI module is off."),
@@ -407,10 +410,10 @@ async fn ai(
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
-        "image" => image::run(ctx, command_interaction).await,
-        "transcript" => transcript::run(ctx, command_interaction).await,
-        "translation" => translation::run(ctx, command_interaction).await,
-        "question" => question::run(ctx, command_interaction).await,
+        "image" => image::run(ctx, command_interaction, config).await,
+        "transcript" => transcript::run(ctx, command_interaction, config).await,
+        "translation" => translation::run(ctx, command_interaction, config).await,
+        "question" => question::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
@@ -451,6 +454,7 @@ async fn anilist_server(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     // Define the error for when the Anilist module is off
     let anilist_module_error: AppError = AppError {
         message: String::from("Anilist module is off."),
@@ -468,8 +472,8 @@ async fn anilist_server(
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
-        "list_user" => list_register_user::run(ctx, command_interaction).await,
-        "list_activity" => list_all_activity::run(ctx, command_interaction).await,
+        "list_user" => list_register_user::run(ctx, command_interaction, config).await,
+        "list_activity" => list_all_activity::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
@@ -510,6 +514,7 @@ async fn anilist_user(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     // Define the error for when the Anilist module is off
     let anilist_module_error: AppError = AppError {
         message: String::from("Anilist module is off."),
@@ -527,20 +532,20 @@ async fn anilist_user(
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
-        "anime" => anime::run(ctx, command_interaction).await,
-        "ln" => ln::run(ctx, command_interaction).await,
-        "manga" => manga::run(ctx, command_interaction).await,
-        "user" => user::run(ctx, command_interaction).await,
-        "character" => character::run(ctx, command_interaction).await,
-        "waifu" => waifu::run(ctx, command_interaction).await,
-        "compare" => compare::run(ctx, command_interaction).await,
-        "random" => random::run(ctx, command_interaction).await,
-        "register" => register::run(ctx, command_interaction).await,
-        "staff" => staff::run(ctx, command_interaction).await,
-        "studio" => studio::run(ctx, command_interaction).await,
-        "search" => search::run(ctx, command_interaction).await,
-        "seiyuu" => seiyuu::run(ctx, command_interaction).await,
-        "level" => level::run(ctx, command_interaction).await,
+        "anime" => anime::run(ctx, command_interaction, config).await,
+        "ln" => ln::run(ctx, command_interaction, config).await,
+        "manga" => manga::run(ctx, command_interaction, config).await,
+        "user" => user::run(ctx, command_interaction, config).await,
+        "character" => character::run(ctx, command_interaction, config).await,
+        "waifu" => waifu::run(ctx, command_interaction, config).await,
+        "compare" => compare::run(ctx, command_interaction, config).await,
+        "random" => random::run(ctx, command_interaction, config).await,
+        "register" => register::run(ctx, command_interaction, config).await,
+        "staff" => staff::run(ctx, command_interaction, config).await,
+        "studio" => studio::run(ctx, command_interaction, config).await,
+        "search" => search::run(ctx, command_interaction, config).await,
+        "seiyuu" => seiyuu::run(ctx, command_interaction, config).await,
+        "level" => level::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
@@ -581,6 +586,7 @@ async fn anime(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     // Define the error for when the Anime module is off
     let anime_module_error: AppError = AppError {
         message: String::from("Anime module is off."),
@@ -598,7 +604,7 @@ async fn anime(
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
-        "random_image" => random_image::run(ctx, command_interaction).await,
+        "random_image" => random_image::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
@@ -639,6 +645,7 @@ async fn anime_nsfw(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     // Define the error for when the Anime NSFW module is off
     let anime_module_error: AppError = AppError {
         message: String::from("Anime module is off."),
@@ -656,7 +663,7 @@ async fn anime_nsfw(
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
-        "random_nsfw_image" => random_nsfw_image::run(ctx, command_interaction).await,
+        "random_nsfw_image" => random_nsfw_image::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
@@ -695,11 +702,12 @@ async fn bot(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     // Match the command name to the appropriate function
     let return_data = match command_name {
-        "credit" => credit::run(ctx, command_interaction).await,
-        "info" => info::run(ctx, command_interaction).await,
-        "ping" => ping::run(ctx, command_interaction).await,
+        "credit" => credit::run(ctx, command_interaction, config).await,
+        "info" => info::run(ctx, command_interaction, config).await,
+        "ping" => ping::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
@@ -738,10 +746,13 @@ async fn server(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     let return_data = match command_name {
-        "guild" => guild::run(ctx, command_interaction).await,
-        "guild_image" => generate_image_pfp_server::run(ctx, command_interaction).await,
-        "guild_image_g" => generate_image_pfp_server_global::run(ctx, command_interaction).await,
+        "guild" => guild::run(ctx, command_interaction, config).await,
+        "guild_image" => generate_image_pfp_server::run(ctx, command_interaction, config).await,
+        "guild_image_g" => {
+            generate_image_pfp_server_global::run(ctx, command_interaction, config).await
+        }
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -780,6 +791,7 @@ async fn steam(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     let game_module_error: AppError = AppError {
         message: String::from("Game module is off."),
         error_type: ErrorType::Module,
@@ -793,7 +805,7 @@ async fn steam(
         return Err(game_module_error);
     }
     let return_data = match command_name {
-        "game" => steam_game_info::run(ctx, command_interaction).await,
+        "game" => steam_game_info::run(ctx, command_interaction, config).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -831,11 +843,22 @@ async fn user(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     let return_data = match command_name {
-        "avatar" => avatar::run(ctx, command_interaction).await,
-        "banner" => banner::run(ctx, command_interaction).await,
-        "profile" => profile::run(ctx, command_interaction).await,
-        "command_usage" => command_usage::run(ctx, command_interaction).await,
+        "avatar" => avatar::run(ctx, command_interaction, config).await,
+        "banner" => banner::run(ctx, command_interaction, config).await,
+        "profile" => profile::run(ctx, command_interaction, config).await,
+        "command_usage" => {
+            command_usage::run(
+                ctx,
+                command_interaction,
+                self_handler
+                    .bot_data
+                    .number_of_command_use_per_command
+                    .clone(),
+            )
+            .await
+        }
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -859,6 +882,7 @@ async fn vn(
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), AppError> {
+    let config = self_handler.bot_data.config.clone();
     let vn_module_error: AppError = AppError {
         message: String::from("Visual novel module is off."),
         error_type: ErrorType::Module,
@@ -872,12 +896,12 @@ async fn vn(
         return Err(vn_module_error);
     }
     let return_data = match command_name {
-        "game" => game::run(ctx, command_interaction).await,
-        "character" => vn::character::run(ctx, command_interaction).await,
-        "staff" => profile::run(ctx, command_interaction).await,
-        "user" => vn::user::run(ctx, command_interaction).await,
-        "producer" => producer::run(ctx, command_interaction).await,
-        "stats" => stats::run(ctx, command_interaction).await,
+        "game" => game::run(ctx, command_interaction, config).await,
+        "character" => vn::character::run(ctx, command_interaction, config).await,
+        "staff" => vn::staff::run(ctx, command_interaction, config).await,
+        "user" => vn::user::run(ctx, command_interaction, config).await,
+        "producer" => producer::run(ctx, command_interaction, config).await,
+        "stats" => stats::run(ctx, command_interaction, config).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,

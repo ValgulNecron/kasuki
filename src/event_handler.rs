@@ -1,13 +1,14 @@
-use std::collections::HashMap;
-use std::ops::Add;
-use std::sync::Arc;
-
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
-    ActivityData, CommandType, Context, EventHandler, Guild, Interaction, Member, Ready,
+    ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, Interaction,
+    Member, Ready,
 };
 use serenity::async_trait;
 use serenity::prelude::TypeMapKey;
+use std::collections::HashMap;
+use std::ops::{Add, AddAssign};
+use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
@@ -27,6 +28,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 pub struct BotData {
     pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
     pub config: Arc<Config>,
+    pub bot_info: Arc<Option<CurrentApplicationInfo>>,
 }
 
 pub struct Handler {
@@ -54,6 +56,17 @@ impl RootUsage {
         RootUsage {
             command_list: HashMap::new(),
         }
+    }
+    pub async fn get_total_command_use<'a>(&self) -> String {
+        let mut total = BigUint::ZERO;
+        let command_usage = self.clone();
+        for (_, user_info) in command_usage.command_list.iter() {
+            for (_, user_usage) in user_info.user_info.iter() {
+                total.add_assign(user_usage.usage)
+            }
+        }
+        let return_data = total.to_string();
+        return_data
     }
 }
 
@@ -162,15 +175,11 @@ impl EventHandler for Handler {
     /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
     async fn ready(&self, ctx: Context, ready: Ready) {
-        let bot = ctx.http.get_current_application_info().await.unwrap();
-        unsafe {
-            BOT_INFO = Some(bot);
-        }
-
-        let command_usage = self.bot_data.number_of_command_use_per_command.clone();
-
         // Spawns a new thread for managing various tasks
-        tokio::spawn(thread_management_launcher(ctx.clone(), command_usage));
+        tokio::spawn(thread_management_launcher(
+            ctx.clone(),
+            self.bot_data.clone(),
+        ));
 
         // Sets the bot's activity
         ctx.set_activity(Some(ActivityData::custom(
@@ -241,11 +250,11 @@ impl EventHandler for Handler {
                     command_interaction.data.options
                 );
                 if let Err(e) = command_dispatching(&ctx, &command_interaction, self).await {
-                    error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
+                    error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
                 }
             } else if command_interaction.data.kind == CommandType::User {
-                if let Err(e) = dispatch_user_command(&ctx, &command_interaction).await {
-                    error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
+                if let Err(e) = dispatch_user_command(&ctx, &command_interaction, self).await {
+                    error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
                 }
             } else if command_interaction.data.kind == CommandType::Message {
                 trace!("{:?}", command_interaction)
@@ -255,9 +264,8 @@ impl EventHandler for Handler {
                     error_type: ErrorType::Command,
                     error_response_type: ErrorResponseType::Message,
                 };
-                error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
+                error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
             }
-            self.increment_command_use().await;
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
             // Dispatch the autocomplete interaction
             autocomplete_dispatching(ctx, autocomplete_interaction).await

@@ -1,11 +1,12 @@
-use std::collections::HashSet;
-
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use std::collections::HashSet;
+use std::sync::Arc;
 use tracing::trace;
 
 use crate::command::run::anilist_user::user::get_user;
+use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -29,7 +30,11 @@ use crate::structure::run::anilist::user::{
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     // Retrieve the usernames from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map

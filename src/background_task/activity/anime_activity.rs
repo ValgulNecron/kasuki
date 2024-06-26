@@ -25,8 +25,8 @@ use crate::structure::message::anilist_user::send_activity::load_localization_se
 /// # Arguments
 ///
 /// * `ctx` - A Context that represents the context.
-pub async fn manage_activity(ctx: Context) {
-    send_activity(&ctx).await;
+pub async fn manage_activity(ctx: Context, db_type: &str) {
+    send_activity(&ctx, db_type).await;
 }
 
 /// `send_activity` is an asynchronous function that sends activities.
@@ -44,9 +44,9 @@ pub async fn manage_activity(ctx: Context) {
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context.
-async fn send_activity(ctx: &Context) {
+async fn send_activity(ctx: &Context, db_type: &str) {
     let now = Utc::now().timestamp().to_string();
-    let rows = match get_data_activity(now.clone()).await {
+    let rows = match get_data_activity(now.clone(), db_type).await {
         Ok(rows) => rows,
         Err(e) => {
             error!("{}", e);
@@ -64,13 +64,13 @@ async fn send_activity(ctx: &Context) {
         if row.delays != 0 {
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs(row2.delays as u64)).await;
-                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx).await {
+                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx, db_type).await {
                     error!("{}", e)
                 }
             });
         } else {
             tokio::spawn(async move {
-                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx).await {
+                if let Err(e) = send_specific_activity(row, guild_id, row2, &ctx, db_type).await {
                     error!("{}", e);
                 }
             });
@@ -109,6 +109,7 @@ async fn send_specific_activity(
     guild_id: String,
     row2: ServerActivityFull,
     ctx: &Context,
+    db_type: &str,
 ) -> Result<(), AppError> {
     let localised_text = load_localization_send_activity(guild_id.clone()).await?;
     let webhook_url = row.webhook.clone();
@@ -177,7 +178,7 @@ async fn send_specific_activity(
             )
         })?;
 
-    tokio::spawn(async move { update_info(row2, guild_id).await });
+    tokio::spawn(async move { update_info(row2, guild_id, db_type).await });
     Ok(())
 }
 
@@ -201,11 +202,15 @@ async fn send_specific_activity(
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
-async fn update_info(row: ServerActivityFull, guild_id: String) -> Result<(), AppError> {
+async fn update_info(
+    row: ServerActivityFull,
+    guild_id: String,
+    db_type: &str,
+) -> Result<(), AppError> {
     let media = get_minimal_anime_by_id(row.anime_id).await?;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
-        None => return remove_activity(row, guild_id).await,
+        None => return remove_activity(row, guild_id, db_type).await,
     };
     let title = media.title.ok_or(AppError::new(
         "Failed to get the title.".to_string(),
@@ -215,16 +220,19 @@ async fn update_info(row: ServerActivityFull, guild_id: String) -> Result<(), Ap
     let rj = title.romaji;
     let en = title.english;
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
-    set_data_activity(ServerActivityFull {
-        anime_id: media.id,
-        timestamp: next_airing.airing_at as i64,
-        guild_id,
-        webhook: row.webhook,
-        episode: next_airing.episode,
-        name,
-        delays: row.delays,
-        image: row.image,
-    })
+    set_data_activity(
+        ServerActivityFull {
+            anime_id: media.id,
+            timestamp: next_airing.airing_at as i64,
+            guild_id,
+            webhook: row.webhook,
+            episode: next_airing.episode,
+            name,
+            delays: row.delays,
+            image: row.image,
+        },
+        db_type,
+    )
     .await?;
     Ok(())
 }
@@ -243,8 +251,12 @@ async fn update_info(row: ServerActivityFull, guild_id: String) -> Result<(), Ap
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
-async fn remove_activity(row: ServerActivityFull, guild_id: String) -> Result<(), AppError> {
+async fn remove_activity(
+    row: ServerActivityFull,
+    guild_id: String,
+    db_type: &str,
+) -> Result<(), AppError> {
     trace!("removing {:#?} for {}", row, guild_id);
-    remove_data_activity_status(guild_id, row.anime_id.to_string()).await?;
+    remove_data_activity_status(guild_id, row.anime_id.to_string(), db_type).await?;
     Ok(())
 }

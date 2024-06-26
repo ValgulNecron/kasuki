@@ -3,9 +3,11 @@ use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 use tracing::trace;
 
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
+use crate::config::Config;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::database::manage::dispatcher::data_dispatch::get_all_server_activity;
 use crate::helper::create_default_embed::get_default_embed;
@@ -37,7 +39,11 @@ use crate::structure::message::anilist_server::list_all_activity::load_localizat
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),

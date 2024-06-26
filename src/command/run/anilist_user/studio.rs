@@ -1,8 +1,4 @@
-use cynic::{GraphQlResponse, QueryBuilder};
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-};
-
+use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -12,6 +8,11 @@ use crate::structure::message::anilist_user::studio::load_localization_studio;
 use crate::structure::run::anilist::studio::{
     StudioQuerryId, StudioQuerryIdVariables, StudioQuerrySearch, StudioQuerrySearchVariables,
 };
+use cynic::{GraphQlResponse, QueryBuilder};
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+};
+use std::sync::Arc;
 
 /// Executes the command to fetch and display information about a studio from AniList.
 ///
@@ -27,7 +28,11 @@ use crate::structure::run::anilist::studio::{
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
     // Retrieve the name or ID of the studio from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("studio")).ok_or(AppError::new(
