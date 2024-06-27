@@ -1,6 +1,4 @@
-use crate::constant::{
-    RANDOM_STATS_PATH, TIME_BETWEEN_ACTIVITY_CHECK,
-};
+use crate::constant::{RANDOM_STATS_PATH, TIME_BETWEEN_ACTIVITY_CHECK};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serde::{Deserialize, Serialize};
