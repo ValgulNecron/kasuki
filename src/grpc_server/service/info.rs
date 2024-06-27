@@ -9,7 +9,7 @@ use crate::grpc_server::service::info::proto::{
     BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, InfoRequest, InfoResponse,
     OwnerInfo, ShardStats, SystemInfoData, TeamMember,
 };
-use serenity::all::{Cache, CurrentApplicationInfo, Http, ShardManager};
+use serenity::all::{Cache, Http, ShardManager};
 use sysinfo::System;
 use tokio::sync::RwLock;
 use tonic::{Request, Response, Status};

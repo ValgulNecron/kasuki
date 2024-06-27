@@ -117,7 +117,7 @@ async fn update_random(
             Some(data) => match data.site_statistics {
                 Some(site_statistics) => match site_statistics.manga {
                     Some(manga) => match manga.page_info {
-                        Some(page_info) => page_info.has_next_page.unwrap_or_else(|| false),
+                        Some(page_info) => page_info.has_next_page.unwrap_or(false),
                         None => false,
                     },
                     None => false,
