@@ -14,9 +14,6 @@ remove_old_commands = true
 # The database type used by the bot. Options include sqlite or postgres.
 db_type = "sqlite"
 
-# The cache type used by the bot. Options include in-memory.
-cache_type = "in-memory"
-
 # Enables or disables the TUI.
 tui = false
 
