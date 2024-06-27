@@ -5,7 +5,6 @@ use serenity::all::{
     Member, Ready,
 };
 use serenity::async_trait;
-use serenity::prelude::TypeMapKey;
 use std::collections::HashMap;
 use std::ops::{Add, AddAssign};
 use std::sync::Arc;
@@ -21,7 +20,7 @@ use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_registration;
 use crate::components::components_dispatch::components_dispatching;
 use crate::config::Config;
-use crate::constant::{BOT_INFO, COMMAND_USE_PATH};
+use crate::constant::{COMMAND_USE_PATH};
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
@@ -65,8 +64,8 @@ impl RootUsage {
                 total.add_assign(user_usage.usage)
             }
         }
-        let return_data = total.to_string();
-        return_data
+        
+        total.to_string()
     }
 }
 

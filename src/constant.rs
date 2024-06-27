@@ -3,7 +3,6 @@ use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::config::Config;
 use moka::future::Cache;
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
