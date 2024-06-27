@@ -113,17 +113,19 @@ async fn update_random(
         let data: Result<GraphQlResponse<AnimeStat>, AppError> =
             make_request_anilist(operation, false, anilist_cache.clone()).await;
         let data = data?;
-        has_next_page = data
-            .data
-            .unwrap()
-            .site_statistics
-            .unwrap()
-            .manga
-            .unwrap()
-            .page_info
-            .unwrap()
-            .has_next_page
-            .unwrap();
+        has_next_page = match data.data {
+            Some(data) => match data.site_statistics {
+                Some(site_statistics) => match site_statistics.manga {
+                    Some(manga) => match manga.page_info {
+                        Some(page_info) => page_info.has_next_page.unwrap_or_else(|| false),
+                        None => false,
+                    },
+                    None => false,
+                },
+                None => false,
+            },
+            None => false,
+        };
         if has_next_page {
             random_stats.anime_last_page = anime_page + 1;
             random_stats.manga_last_page = manga_page + 1;
