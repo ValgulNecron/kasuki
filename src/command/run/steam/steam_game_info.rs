@@ -7,14 +7,12 @@ use crate::structure::message::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
 };
 use crate::structure::run::game::steam_game::SteamGameWrapper;
-use moka::future::Cache;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
 use std::sync::Arc;
-use tokio::sync::RwLock;
 use tracing::trace;
 
 /// Executes the command to retrieve and display a Steam game's information.

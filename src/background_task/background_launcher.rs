@@ -1,6 +1,6 @@
 use moka::future::Cache;
 use serde_json::Value;
-use serenity::all::{Context, ShardManager};
+use serenity::all::{Context};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
