@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::config::{Config, GrpcCfg};
 use crate::constant::{BOT_COMMANDS, BOT_INFO};
-use crate::event_handler::RootUsage;
+use crate::event_handler::{BotData, RootUsage};
 use crate::grpc_server::command_list::get_list_of_all_command;
 use crate::grpc_server::service;
 use crate::grpc_server::service::command::{get_command_server, CommandServices};
@@ -30,6 +30,7 @@ pub async fn grpc_server_launcher(
     cache: Arc<Cache>,
     http: Arc<Http>,
     config: Arc<Config>,
+    bot_data: Arc<BotData>,
 ) {
     let grpc_config = config.grpc.clone();
     get_list_of_all_command();
@@ -43,7 +44,7 @@ pub async fn grpc_server_launcher(
     };
     let info_service = unsafe {
         InfoService {
-            bot_info: Arc::new(BOT_INFO.clone().unwrap()),
+            bot_info: bot_data,
             sys: Arc::new(RwLock::new(System::new_all())),
             os_info: Arc::new(os_info::get()),
             command_usage,

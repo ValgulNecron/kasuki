@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::config::Config;
 use crate::constant::APP_VERSION;
 use crate::custom_serenity_impl::{InternalMembershipState, InternalTeamMemberRole};
-use crate::event_handler::RootUsage;
+use crate::event_handler::{BotData, RootUsage};
 use crate::grpc_server::service::info::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::service::info::proto::{
     BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, InfoRequest, InfoResponse,
@@ -25,7 +25,7 @@ pub(crate) mod proto {
 }
 
 pub struct InfoService {
-    pub bot_info: Arc<CurrentApplicationInfo>,
+    pub bot_info: Arc<BotData>,
     pub sys: Arc<RwLock<System>>,
     pub os_info: Arc<os_info::Info>,
     pub command_usage: Arc<RwLock<RootUsage>>,
@@ -42,7 +42,10 @@ impl Info for InfoService {
         _request: Request<InfoRequest>,
     ) -> Result<Response<InfoResponse>, Status> {
         trace!("Got a info request");
-        let bot_info_data = self.bot_info.clone();
+        let bot_data = self.bot_info.clone();
+
+        let guard = bot_data.bot_info.read().await.clone();
+        let bot_info_data = guard.ok_or(Status::internal("Failed to get the bot info."))?;
         let sys = self.sys.clone();
         let os_info = self.os_info.clone();
         sys.write().await.refresh_all();
@@ -125,7 +128,8 @@ impl Info for InfoService {
         let id = bot_owner.id;
         let owner_data = self.http.clone().get_user(id).await;
         let id = id.to_string();
-        let team = self.bot_info.team.clone();
+        let team = bot_info_data.team.clone();
+        trace!(?team);
 
         let owner_info = match (owner_data, team) {
             (Ok(user), None) => {

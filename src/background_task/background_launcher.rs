@@ -69,6 +69,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
         command_usage,
         is_grpc_on,
         config,
+        bot_data.clone(),
     ));
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
@@ -121,6 +122,7 @@ async fn launch_web_server_thread(
     command_usage: Arc<RwLock<RootUsage>>,
     is_grpc_on: bool,
     config: Arc<Config>,
+    bot_data: Arc<BotData>,
 ) {
     if !is_grpc_on {
         info!("GRPC is off, skipping the GRPC server thread!");
@@ -137,7 +139,15 @@ async fn launch_web_server_thread(
     let http = ctx.http.clone();
     info!("GRPC is on, launching the GRPC server thread!");
 
-    grpc_server_launcher(shard_manager, command_usage, cache, http, config.clone()).await
+    grpc_server_launcher(
+        shard_manager,
+        command_usage,
+        cache,
+        http,
+        config.clone(),
+        bot_data.clone(),
+    )
+    .await
 }
 
 /// This function is responsible for launching the user color management thread.
