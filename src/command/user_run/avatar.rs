@@ -17,7 +17,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 /// # Asynchronous
 ///
 /// This function is asynchronous, meaning it will return immediately, and the actual work will be done in the background.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(ctx: &Context, command_interaction: &CommandInteraction, db_type: String) -> Result<(), AppError> {
     // Get a reference to the users involved in the command interaction
     let users = &command_interaction.data.resolved.users;
 
@@ -44,5 +44,5 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     })?;
 
     // Call the avatar_with_user function with the context, command interaction, and user
-    avatar_with_user(ctx, command_interaction, &user).await
+    avatar_with_user(ctx, command_interaction, &user, db_type).await
 }

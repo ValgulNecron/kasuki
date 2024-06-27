@@ -28,15 +28,16 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_user_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
 
     match user {
         Some(user) => {
             let user = get_user_data(ctx.http.clone(), user).await?;
-            banner_with_user(ctx, command_interaction, &user).await
+            banner_with_user(ctx, command_interaction, &user, db_type).await
         }
-        None => banner_without_user(ctx, command_interaction).await,
+        None => banner_without_user(ctx, command_interaction, db_type).await,
     }
 }
 
@@ -57,13 +58,13 @@ pub async fn run(
 pub async fn no_banner(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    username: &str,
+    username: &str, db_type: String
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let banner_localised = load_localization_banner(guild_id).await?;
+    let banner_localised = load_localization_banner(guild_id, db_type).await?;
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -101,11 +102,11 @@ pub async fn no_banner(
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn banner_without_user(
     ctx: &Context,
-    command_interaction: &CommandInteraction,
+    command_interaction: &CommandInteraction, db_type: String
 ) -> Result<(), AppError> {
     let user = &command_interaction.user;
 
-    banner_with_user(ctx, command_interaction, user).await
+    banner_with_user(ctx, command_interaction, user, db_type).await
 }
 
 /// Executes the command to display a specified user's banner.
@@ -125,14 +126,14 @@ pub async fn banner_without_user(
 pub async fn banner_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    user_data: &User,
+    user_data: &User, db_type: String
 ) -> Result<(), AppError> {
     let user = user_data;
     let banner_url = match user.banner_url() {
         Some(banner) => banner,
-        None => return no_banner(ctx, command_interaction, &user.name).await,
+        None => return no_banner(ctx, command_interaction, &user.name, db_type).await,
     };
-    send_embed(ctx, command_interaction, banner_url, &user.name).await
+    send_embed(ctx, command_interaction, banner_url, &user.name, db_type).await
 }
 
 /// Sends an embed with a user's banner.
@@ -153,13 +154,13 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     banner: String,
-    username: &str,
+    username: &str, db_type: String
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let banner_localised = load_localization_banner(guild_id).await?;
+    let banner_localised = load_localization_banner(guild_id, db_type).await?;
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())

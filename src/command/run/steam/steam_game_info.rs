@@ -33,6 +33,8 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
+    let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the game's name from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("game_name")).ok_or(AppError::new(
@@ -48,7 +50,7 @@ pub async fn run(
     };
 
     // Load the localized strings for the game's information
-    let steam_game_info_localised = load_localization_steam_game_info(guild_id.clone()).await?;
+    let steam_game_info_localised = load_localization_steam_game_info(guild_id.clone(), db_type).await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -67,9 +69,9 @@ pub async fn run(
 
     // Retrieve the game's information from Steam
     let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
-        SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id).await?
+        SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, cache_type).await?
     } else {
-        SteamGameWrapper::new_steam_game_by_search(value, guild_id).await?
+        SteamGameWrapper::new_steam_game_by_search(value, guild_id, cache_type).await?
     };
 
     // Send an embed with the game's information

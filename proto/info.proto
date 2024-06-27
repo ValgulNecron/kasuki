@@ -16,7 +16,7 @@ message InfoResponse {
 
 message BotStat {
     string uptime = 1;
-    int64 number_of_commands_executed = 2;
+    string number_of_commands_executed = 2;
     int64 number_of_members = 3;
     int64 number_of_guilds = 4;
     repeated ShardStats shard_info = 5;

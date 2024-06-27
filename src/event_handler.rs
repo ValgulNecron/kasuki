@@ -275,8 +275,10 @@ impl EventHandler for Handler {
             // Dispatch the autocomplete interaction
             autocomplete_dispatching(ctx, autocomplete_interaction, cache_type).await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
+            let db_type = self.bot_data.config.bot.config.db_type.clone();
+            let cache_type = self.bot_data.config.bot.config.cache_type.clone();
             // Dispatch the component interaction
-            if let Err(e) = components_dispatching(ctx, component_interaction).await {
+            if let Err(e) = components_dispatching(ctx, component_interaction, db_type, cache_type).await {
                 // If an error occurs, log it
                 error!("{:?}", e)
             }

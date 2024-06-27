@@ -72,7 +72,6 @@ impl Info for InfoService {
         let uptime = process.run_time();
         let uptime = format!("{}s", uptime);
         let number_of_commands_executed = self.command_usage.read().await.get_total_command_use();
-        let number_of_commands_executed = number_of_commands_executed as i64;
         let number_of_members = self.cache.user_count() as i64;
         let number_of_guilds = self.cache.guild_count() as i64;
         let stat = Some(BotStat {

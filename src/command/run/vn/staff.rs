@@ -16,6 +16,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -26,7 +27,7 @@ pub async fn run(
         .get(&String::from("name"))
         .cloned()
         .unwrap_or(String::new());
-    let staff_localised = load_localization_staff(guild_id).await?;
+    let staff_localised = load_localization_staff(guild_id, db_type).await?;
 
     let staff = get_staff(staff.clone()).await?;
     let staff = staff.results[0].clone();

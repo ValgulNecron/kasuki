@@ -30,7 +30,7 @@ pub async fn update(
     ctx: &Context,
     component_interaction: &ComponentInteraction,
     user_id: &str,
-    prev_id: &str,
+    prev_id: &str, db_type: String, cache_type: String
 ) -> Result<(), AppError> {
     // Retrieve the guild ID from the component interaction
     let guild_id = match component_interaction.guild_id {
@@ -39,7 +39,7 @@ pub async fn update(
     };
 
     // Load the localized user list
-    let list_user_localised = load_localization_list_user(guild_id).await?;
+    let list_user_localised = load_localization_list_user(guild_id, db_type.clone()).await?;
 
     // Retrieve the guild ID from the component interaction
     let guild_id = component_interaction.guild_id.ok_or(AppError::new(
@@ -69,7 +69,7 @@ pub async fn update(
 
     // Get the list of users
     let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) =
-        get_the_list(guild, ctx, &list_user_localised, id).await?;
+        get_the_list(guild, ctx, &list_user_localised, id, db_type, cache_type).await?;
 
     // Create the response message
     let mut response = EditMessage::new().embed(builder_message);

@@ -863,9 +863,6 @@ async fn user(
                 ctx,
                 command_interaction,
                 self_handler
-                    .bot_data
-                    .number_of_command_use_per_command
-                    .clone(),
             )
             .await
         }
