@@ -5,15 +5,18 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::user::get_user;
 use crate::structure::message::vn::user::load_localization_user;
 use crate::structure::message::vn::user::UserLocalised;
+use moka::future::Cache;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
     let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
@@ -27,7 +30,7 @@ pub async fn run(
         error_response_type: ErrorResponseType::Message,
     })?;
     let path = format!("/user?q={}&fields=lengthvotes,lengthvotes_sum", user);
-    let user = get_user(path).await?;
+    let user = get_user(path, vndb_cache).await?;
     let user_localised: UserLocalised = load_localization_user(guild_id, db_type).await?;
     let mut fields = vec![];
     fields.push((user_localised.id.clone(), user.id.clone(), true));

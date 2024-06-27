@@ -15,6 +15,8 @@ use crate::structure::run::anilist::user::{
     User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
     UserStatusStatistic, UserTagStatistic,
 };
+use moka::future::Cache;
+use tokio::sync::RwLock;
 
 /// Executes the comparison between two users' anime and manga statistics.
 ///
@@ -34,8 +36,8 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
-    let cache_type = config.bot.config.cache_type.clone();
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the usernames from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
@@ -49,8 +51,8 @@ pub async fn run(
         .unwrap_or(String::new());
 
     // Fetch the user data for both users
-    let user: User = get_user(&value, cache_type.clone()).await?;
-    let user2: User = get_user(&value2, cache_type).await?;
+    let user: User = get_user(&value, anilist_cache.clone()).await?;
+    let user2: User = get_user(&value2, anilist_cache).await?;
 
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {

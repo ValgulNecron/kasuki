@@ -7,6 +7,9 @@ use crate::command::run::anilist_server::list_register_user::get_the_list;
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// Updates the user list in the server.
 ///
@@ -30,7 +33,9 @@ pub async fn update(
     ctx: &Context,
     component_interaction: &ComponentInteraction,
     user_id: &str,
-    prev_id: &str, db_type: String, cache_type: String
+    prev_id: &str,
+    db_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
     // Retrieve the guild ID from the component interaction
     let guild_id = match component_interaction.guild_id {
@@ -69,7 +74,7 @@ pub async fn update(
 
     // Get the list of users
     let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) =
-        get_the_list(guild, ctx, &list_user_localised, id, db_type, cache_type).await?;
+        get_the_list(guild, ctx, &list_user_localised, id, db_type, anilist_cache).await?;
 
     // Create the response message
     let mut response = EditMessage::new().embed(builder_message);

@@ -1,8 +1,11 @@
 use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::constant::DEFAULT_STRING;
@@ -41,7 +44,7 @@ use crate::structure::autocomplete::anilist::character::{
 pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    cache_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let character_search = map.get(&String::from("name")).unwrap_or(DEFAULT_STRING);
@@ -50,7 +53,7 @@ pub async fn autocomplete(
     };
     let operation = CharacterAutocomplete::build(var);
     let data: Result<GraphQlResponse<CharacterAutocomplete>, AppError> =
-        make_request_anilist(operation, false, cache_type).await;
+        make_request_anilist(operation, false, anilist_cache).await;
     let data = match data {
         Ok(data) => data,
         Err(e) => {

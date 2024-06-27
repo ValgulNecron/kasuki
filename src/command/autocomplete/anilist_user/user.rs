@@ -9,6 +9,9 @@ use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for user search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -36,7 +39,7 @@ use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutoco
 pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    cache_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let user_search = map.get(&String::from("username")).unwrap_or(DEFAULT_STRING);
@@ -45,7 +48,7 @@ pub async fn autocomplete(
     };
     let operation = UserAutocomplete::build(var);
     let data: Result<GraphQlResponse<UserAutocomplete>, AppError> =
-        make_request_anilist(operation, false, cache_type).await;
+        make_request_anilist(operation, false, anilist_cache).await;
     let data = match data {
         Ok(data) => data,
         Err(e) => {

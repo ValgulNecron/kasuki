@@ -7,8 +7,10 @@ use crate::structure::run::anilist::media::{
     MediaQuerrySearchVariables, MediaType,
 };
 use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// This asynchronous function runs the command interaction for retrieving information about an anime.
 ///
@@ -31,9 +33,9 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
     let db_type = config.bot.config.db_type.clone();
-    let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the name or ID of the anime from the command interaction options
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map
@@ -60,7 +62,7 @@ pub async fn run(
         };
         let operation = MediaQuerryId::build(var);
         let data: GraphQlResponse<MediaQuerryId> =
-            make_request_anilist(operation, false, cache_type).await?;
+            make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().media.unwrap()
     } else {
         let var = MediaQuerrySearchVariables {
@@ -78,7 +80,7 @@ pub async fn run(
         };
         let operation = MediaQuerrySearch::build(var);
         let data: GraphQlResponse<MediaQuerrySearch> =
-            make_request_anilist(operation, false, cache_type).await?;
+            make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().media.unwrap()
     };
 

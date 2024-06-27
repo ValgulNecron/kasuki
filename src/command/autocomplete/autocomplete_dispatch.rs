@@ -12,13 +12,15 @@ use crate::helper::get_option::subcommand_group::get_subcommand;
 pub async fn autocomplete_dispatching(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    cache_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_type: String,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
     match autocomplete_interaction.data.name.as_str() {
-        "admin" => admin_autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "anilist_user" => anilist_autocomplete(ctx, autocomplete_interaction, cache_type).await,
+        "admin" => admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_type).await,
+        "anilist_user" => anilist_autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
         "steam" => steam_autocomplete(ctx, autocomplete_interaction).await,
-        "vn" => vn_autocomplete(ctx, autocomplete_interaction).await,
+        "vn" => vn_autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
         _ => {}
     }
 }
@@ -26,7 +28,8 @@ pub async fn autocomplete_dispatching(
 async fn admin_autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    cache_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_type: String,
 ) {
     match autocomplete_interaction
         .data
@@ -36,12 +39,18 @@ async fn admin_autocomplete(
         .name
         .as_str()
     {
-        "anilist" => anilist_admin_autocomplete(ctx, autocomplete_interaction, cache_type).await,
+        "anilist" => {
+            anilist_admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_type).await
+        }
         _ => {}
     }
 }
 
-async fn vn_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+async fn vn_autocomplete(
+    ctx: Context,
+    autocomplete_interaction: CommandInteraction,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
+) {
     match autocomplete_interaction
         .data
         .options
@@ -50,26 +59,30 @@ async fn vn_autocomplete(ctx: Context, autocomplete_interaction: CommandInteract
         .name
         .as_str()
     {
-        "game" => game::autocomplete(ctx, autocomplete_interaction).await,
-        "character" => vn::character::autocomplete(ctx, autocomplete_interaction).await,
-        "producer" => producer::autocomplete(ctx, autocomplete_interaction).await,
+        "game" => game::autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
+        "character" => vn::character::autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
+        "producer" => producer::autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
         _ => {}
     }
 }
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 async fn anilist_admin_autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    cache_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_type: String,
 ) {
     let subcommand = get_subcommand(&autocomplete_interaction).unwrap();
     let subcommand_name = subcommand.name;
     match subcommand_name {
         "add_anime_activity" => {
-            add_anime_activity::autocomplete(ctx, autocomplete_interaction, cache_type).await
+            add_anime_activity::autocomplete(ctx, autocomplete_interaction, anilist_cache).await
         }
         "delete_activity" => {
-            delete_activity::autocomplete(ctx, autocomplete_interaction, cache_type).await
+            delete_activity::autocomplete(ctx, autocomplete_interaction, db_type).await
         }
         _ => {}
     }
@@ -78,7 +91,7 @@ async fn anilist_admin_autocomplete(
 async fn anilist_autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    cache_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
     match autocomplete_interaction
         .data
@@ -88,17 +101,17 @@ async fn anilist_autocomplete(
         .name
         .as_str()
     {
-        "anime" => anime::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "ln" => ln::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "manga" => manga::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "user" => user::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "character" => character::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "compare" => compare::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "register" => user::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "staff" => staff::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "studio" => studio::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "search" => search::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "seiyuu" => staff::autocomplete(ctx, autocomplete_interaction, cache_type).await,
+        "anime" => anime::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "ln" => ln::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "manga" => manga::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "user" => user::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "character" => character::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "compare" => compare::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "register" => user::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "staff" => staff::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "studio" => studio::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "search" => search::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "seiyuu" => staff::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
         _ => {}
     }
 }

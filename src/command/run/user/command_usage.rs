@@ -18,7 +18,10 @@ pub async fn run(
     self_handler: &Handler,
 ) -> Result<(), AppError> {
     let db_type = self_handler.bot_data.config.bot.config.db_type.clone();
-    let command_usage = self_handler.bot_data.number_of_command_use_per_command.clone();
+    let command_usage = self_handler
+        .bot_data
+        .number_of_command_use_per_command
+        .clone();
     // Retrieve the user's name from the command interaction
     let map = get_option_map_user_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
@@ -38,7 +41,8 @@ pub async fn run(
 async fn command_usage_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    command_usage: Arc<RwLock<RootUsage>>, db_type: String
+    command_usage: Arc<RwLock<RootUsage>>,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
@@ -50,7 +54,8 @@ pub async fn command_usage_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
-    command_usage: Arc<RwLock<RootUsage>>, db_type: String
+    command_usage: Arc<RwLock<RootUsage>>,
+    db_type: String,
 ) -> Result<(), AppError> {
     send_embed(ctx, command_interaction, user, command_usage, db_type).await
 }
@@ -59,7 +64,8 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
-    command_usage: Arc<RwLock<RootUsage>>,  db_type: String
+    command_usage: Arc<RwLock<RootUsage>>,
+    db_type: String,
 ) -> Result<(), AppError> {
     let id = user.id.to_string();
     let username = user.name.clone();

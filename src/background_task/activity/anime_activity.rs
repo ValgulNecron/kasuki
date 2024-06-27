@@ -1,10 +1,13 @@
 use std::io::{Cursor, Read};
+use std::sync::Arc;
 use std::time::Duration;
 
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use chrono::Utc;
+use moka::future::Cache;
 use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webhook};
+use tokio::sync::RwLock;
 use tracing::{error, trace};
 
 use crate::command::run::admin::anilist::add_activity::get_minimal_anime_by_id;
@@ -25,8 +28,12 @@ use crate::structure::message::anilist_user::send_activity::load_localization_se
 /// # Arguments
 ///
 /// * `ctx` - A Context that represents the context.
-pub async fn manage_activity(ctx: Context, db_type: String, cache_type: String) {
-    send_activity(&ctx, db_type, cache_type).await;
+pub async fn manage_activity(
+    ctx: Context,
+    db_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) {
+    send_activity(&ctx, db_type, anilist_cache).await;
 }
 
 /// `send_activity` is an asynchronous function that sends activities.
@@ -44,7 +51,11 @@ pub async fn manage_activity(ctx: Context, db_type: String, cache_type: String) 
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context.
-async fn send_activity(ctx: &Context, db_type: String, cache_type: String) {
+async fn send_activity(
+    ctx: &Context,
+    db_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) {
     let now = Utc::now().timestamp().to_string();
     let rows = match get_data_activity(now.clone(), db_type.clone()).await {
         Ok(rows) => rows,
@@ -63,21 +74,21 @@ async fn send_activity(ctx: &Context, db_type: String, cache_type: String) {
         let ctx = ctx.clone();
         if row.delays != 0 {
             let db_type = db_type.clone();
-            let cache_type = cache_type.clone();
+            let anilist_cache = anilist_cache.clone();
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs(row2.delays as u64)).await;
                 if let Err(e) =
-                    send_specific_activity(row, guild_id, row2, &ctx, db_type, cache_type).await
+                    send_specific_activity(row, guild_id, row2, &ctx, db_type, anilist_cache).await
                 {
                     error!("{}", e)
                 }
             });
         } else {
             let db_type = db_type.clone();
-            let cache_type = cache_type.clone();
+            let anilist_cache = anilist_cache.clone();
             tokio::spawn(async move {
                 if let Err(e) =
-                    send_specific_activity(row, guild_id, row2, &ctx, db_type, cache_type).await
+                    send_specific_activity(row, guild_id, row2, &ctx, db_type, anilist_cache).await
                 {
                     error!("{}", e);
                 }
@@ -118,7 +129,7 @@ async fn send_specific_activity(
     row2: ServerActivityFull,
     ctx: &Context,
     db_type: String,
-    cache_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
     let localised_text = load_localization_send_activity(guild_id.clone(), db_type.clone()).await?;
     let webhook_url = row.webhook.clone();
@@ -187,7 +198,7 @@ async fn send_specific_activity(
             )
         })?;
 
-    tokio::spawn(async move { update_info(row2, guild_id, cache_type, db_type).await });
+    tokio::spawn(async move { update_info(row2, guild_id, anilist_cache.clone(), db_type).await });
     Ok(())
 }
 
@@ -214,10 +225,10 @@ async fn send_specific_activity(
 async fn update_info(
     row: ServerActivityFull,
     guild_id: String,
-    cache_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_type: String,
 ) -> Result<(), AppError> {
-    let media = get_minimal_anime_by_id(row.anime_id, cache_type).await?;
+    let media = get_minimal_anime_by_id(row.anime_id, anilist_cache).await?;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
         None => return remove_activity(row, guild_id, db_type).await,

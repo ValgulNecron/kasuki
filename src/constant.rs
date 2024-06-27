@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
-use std::time::Duration;
 
-use moka::future::Cache;
 use once_cell::sync::Lazy;
 use ratatui::style::Color;
 use serenity::all::{Colour, CurrentApplicationInfo};
@@ -13,7 +11,7 @@ use crate::grpc_server::command_list::{get_list_of_all_command, CommandItem};
 
 /// Delay before a new thread is spawned.
 /// Delay between ping updates.
-pub const PING_UPDATE_DELAYS: u64 = 600;
+pub const TIME_BETWEEN_PING_UPDATE: u64 = 600;
 /// Time before a server image is updated.
 pub const TIME_BEFORE_SERVER_IMAGE: u64 = 600;
 /// Time between server image updates.
@@ -25,23 +23,15 @@ pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
 /// Time between cache updates.
 pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200;
 /// Time between bot info update
-pub const TIME_BETWEEN_BOT_INFO: u64 = 1_80;
+pub const TIME_BETWEEN_BOT_INFO: u64 = 1_800;
+/// time between blacklisted user update
+pub const TIME_BETWEEN_BLACKLISTED_USER_UPDATE: u64 = 3600;
+/// time between activity check.
+pub const TIME_BETWEEN_ACTIVITY_CHECK: u64 = 1;
+/// time between random stats update.
+pub const TIME_BETWEEN_RANDOM_STATS_UPDATE: u64 = 86_400;
 /// Max capacity for the cache.
 pub const CACHE_MAX_CAPACITY: u64 = 100_000;
-/// Anilist cache for the bot.
-pub static mut ANILIST_CACHE: Lazy<Cache<String, String>> = Lazy::new(|| {
-    Cache::builder()
-        .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
-        .max_capacity(CACHE_MAX_CAPACITY)
-        .build()
-});
-/// vndb cache for the bot.
-pub static mut VNDB_CACHE: Lazy<Cache<String, String>> = Lazy::new(|| {
-    Cache::builder()
-        .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
-        .max_capacity(CACHE_MAX_CAPACITY)
-        .build()
-});
 /// Limit for autocomplete count.
 pub const AUTOCOMPLETE_COUNT_LIMIT: u32 = 25;
 /// Limit for pass count.

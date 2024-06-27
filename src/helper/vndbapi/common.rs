@@ -1,15 +1,23 @@
-use crate::constant::VNDB_CACHE;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
-pub async fn do_request_cached(path: String) -> Result<String, AppError> {
-    let cache = unsafe { VNDB_CACHE.get(&path).await };
+pub async fn do_request_cached(
+    path: String,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<String, AppError> {
+    let cache = vndb_cache.read().await.get(&path).await;
     if let Some(cached) = cache {
         return Ok(cached);
     }
-    do_request(path).await
+    do_request(path, vndb_cache).await
 }
 
-pub async fn do_request(path: String) -> Result<String, AppError> {
+pub async fn do_request(
+    path: String,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<String, AppError> {
     let client = reqwest::Client::new();
     let url = format!("https://api.vndb.org/kana{}", path);
     let res = client
@@ -28,22 +36,32 @@ pub async fn do_request(path: String) -> Result<String, AppError> {
         error_type: ErrorType::WebRequest,
         error_response_type: ErrorResponseType::Unknown,
     })?;
-    unsafe {
-        VNDB_CACHE.insert(path.clone(), response_text.clone()).await;
-    }
+    vndb_cache
+        .write()
+        .await
+        .insert(path, response_text.clone())
+        .await;
     Ok(response_text)
 }
 
-pub async fn do_request_cached_with_json(path: String, json: String) -> Result<String, AppError> {
+pub async fn do_request_cached_with_json(
+    path: String,
+    json: String,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<String, AppError> {
     let key = format!("{}_{}", path, json);
-    let cache = unsafe { VNDB_CACHE.get(&key).await };
+    let cache = vndb_cache.read().await.get(&key).await;
     if let Some(cached) = cache {
         return Ok(cached);
     }
-    do_request_with_json(path, json).await
+    do_request_with_json(path, json, vndb_cache).await
 }
 
-pub async fn do_request_with_json(path: String, json: String) -> Result<String, AppError> {
+pub async fn do_request_with_json(
+    path: String,
+    json: String,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<String, AppError> {
     let key = format!("{}_{}", path, json);
     let client = reqwest::Client::new();
     let url = format!("https://api.vndb.org/kana{}", path);
@@ -64,8 +82,10 @@ pub async fn do_request_with_json(path: String, json: String) -> Result<String, 
         error_type: ErrorType::WebRequest,
         error_response_type: ErrorResponseType::Unknown,
     })?;
-    unsafe {
-        VNDB_CACHE.insert(key, response_text.clone()).await;
-    }
+    vndb_cache
+        .write()
+        .await
+        .insert(key, response_text.clone())
+        .await;
     Ok(response_text)
 }

@@ -7,12 +7,14 @@ use crate::structure::message::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
 };
 use crate::structure::run::game::steam_game::SteamGameWrapper;
+use moka::future::Cache;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
 use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::trace;
 
 /// Executes the command to retrieve and display a Steam game's information.
@@ -34,7 +36,6 @@ pub async fn run(
     config: Arc<Config>,
 ) -> Result<(), AppError> {
     let db_type = config.bot.config.db_type.clone();
-    let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the game's name from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("game_name")).ok_or(AppError::new(
@@ -50,7 +51,8 @@ pub async fn run(
     };
 
     // Load the localized strings for the game's information
-    let steam_game_info_localised = load_localization_steam_game_info(guild_id.clone(), db_type).await?;
+    let steam_game_info_localised =
+        load_localization_steam_game_info(guild_id.clone(), db_type.clone()).await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -69,9 +71,9 @@ pub async fn run(
 
     // Retrieve the game's information from Steam
     let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
-        SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, cache_type).await?
+        SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, db_type).await?
     } else {
-        SteamGameWrapper::new_steam_game_by_search(value, guild_id, cache_type).await?
+        SteamGameWrapper::new_steam_game_by_search(value, guild_id, db_type).await?
     };
 
     // Send an embed with the game's information

@@ -20,10 +20,13 @@ pub struct Stats {
 
     pub vn: i32,
 }
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
-pub async fn get_stats() -> Result<Stats, AppError> {
+pub async fn get_stats(vndb_cache: Arc<RwLock<Cache<String, String>>>) -> Result<Stats, AppError> {
     let path = "/stats".to_string();
-    let response = do_request_cached(path.clone()).await?;
+    let response = do_request_cached(path.clone(), vndb_cache).await?;
     trace!("Response: {}", response);
     let response: Stats = serde_json::from_str(&response).map_err(|e| AppError {
         message: format!("Error while parsing response: '{}'", e),

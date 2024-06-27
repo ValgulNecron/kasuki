@@ -5,6 +5,9 @@ use crate::command::autocomplete::anilist_user::{
 };
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for various search types.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -28,19 +31,19 @@ use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_su
 pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    cache_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let search_type = map.get(&String::from("type")).unwrap_or(DEFAULT_STRING);
 
     match search_type.as_str() {
-        "anime" => anime::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "ln" => ln::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "manga" => manga::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "user" => user::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "character" => character::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "staff" => staff::autocomplete(ctx, autocomplete_interaction, cache_type).await,
-        "studio" => studio::autocomplete(ctx, autocomplete_interaction, cache_type).await,
+        "anime" => anime::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "ln" => ln::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "manga" => manga::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "user" => user::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "character" => character::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "staff" => staff::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "studio" => studio::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
         _ => {}
     }
 }

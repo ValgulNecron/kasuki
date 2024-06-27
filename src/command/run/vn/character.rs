@@ -5,16 +5,19 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::character::get_character;
 use crate::structure::message::vn::character::load_localization_character;
 use markdown_converter::vndb::convert_vndb_markdown;
+use moka::future::Cache;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::trace;
 
 pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
     let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
@@ -28,7 +31,7 @@ pub async fn run(
         .cloned()
         .unwrap_or(String::new());
     let character_localised = load_localization_character(guild_id, db_type).await?;
-    let character = get_character(character.clone()).await?;
+    let character = get_character(character.clone(), vndb_cache).await?;
     let character = character.results[0].clone();
 
     let mut fields = vec![];

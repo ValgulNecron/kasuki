@@ -1,3 +1,4 @@
+use moka::future::Cache;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
@@ -20,7 +21,7 @@ use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_registration;
 use crate::components::components_dispatch::components_dispatching;
 use crate::config::Config;
-use crate::constant::{COMMAND_USE_PATH};
+use crate::constant::COMMAND_USE_PATH;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
@@ -28,6 +29,8 @@ pub struct BotData {
     pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
     pub config: Arc<Config>,
     pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
+    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 pub struct Handler {
@@ -64,7 +67,7 @@ impl RootUsage {
                 total.add_assign(user_usage.usage)
             }
         }
-        
+
         total.to_string()
     }
 }
@@ -127,10 +130,9 @@ impl EventHandler for Handler {
     /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
-        let cache_type = self.bot_data.config.bot.config.cache_type.clone();
         if is_new.unwrap_or_default() {
-            color_management(&ctx.cache.guilds(), &ctx, db_type).await;
-            server_image_management(&ctx, cache_type).await;
+            color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
+            server_image_management(&ctx, db_type).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
@@ -151,11 +153,10 @@ impl EventHandler for Handler {
     /// If an error occurs during the handling of the new member, it logs the error.
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
-        let cache_type = self.bot_data.config.bot.config.cache_type.clone();
         let guild_id = member.guild_id.to_string();
         debug!("Member {} joined guild {}", member.user.tag(), guild_id);
-        color_management(&ctx.cache.guilds(), &ctx, db_type).await;
-        server_image_management(&ctx, cache_type).await;
+        color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
+        server_image_management(&ctx, db_type).await;
     }
 
     /// This function is called when the bot is ready.
@@ -270,14 +271,25 @@ impl EventHandler for Handler {
                 error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
             }
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
-            let cache_type = self.bot_data.config.bot.config.cache_type.clone();
+            let db_type = self.bot_data.config.bot.config.db_type.clone();
+            let anilist_cache = self.bot_data.anilist_cache.clone();
+            let vndb_cache = self.bot_data.vndb_cache.clone();
             // Dispatch the autocomplete interaction
-            autocomplete_dispatching(ctx, autocomplete_interaction, cache_type).await
+            autocomplete_dispatching(
+                ctx,
+                autocomplete_interaction,
+                anilist_cache,
+                db_type,
+                vndb_cache,
+            )
+            .await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
             let db_type = self.bot_data.config.bot.config.db_type.clone();
-            let cache_type = self.bot_data.config.bot.config.cache_type.clone();
+            let anilist_cache = self.bot_data.anilist_cache.clone();
             // Dispatch the component interaction
-            if let Err(e) = components_dispatching(ctx, component_interaction, db_type, cache_type).await {
+            if let Err(e) =
+                components_dispatching(ctx, component_interaction, db_type, anilist_cache).await
+            {
                 // If an error occurs, log it
                 error!("{:?}", e)
             }

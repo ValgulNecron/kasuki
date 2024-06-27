@@ -316,9 +316,14 @@ async fn anilist_admin(
     self_handler: &Handler,
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
+    let anilist_cache = self_handler.bot_data.anilist_cache.clone();
     let return_data = match command_name {
-        "add_anime_activity" => add_activity::run(ctx, command_interaction, config).await,
-        "delete_activity" => delete_activity::run(ctx, command_interaction, config).await,
+        "add_anime_activity" => {
+            add_activity::run(ctx, command_interaction, config, anilist_cache).await
+        }
+        "delete_activity" => {
+            delete_activity::run(ctx, command_interaction, config, anilist_cache).await
+        }
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -465,6 +470,7 @@ async fn anilist_server(
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anilist module is off
+    let anilist_cache = self_handler.bot_data.anilist_cache.clone();
     let anilist_module_error: AppError = AppError {
         message: String::from("Anilist module is off."),
         error_type: ErrorType::Module,
@@ -481,7 +487,9 @@ async fn anilist_server(
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
-        "list_user" => list_register_user::run(ctx, command_interaction, config).await,
+        "list_user" => {
+            list_register_user::run(ctx, command_interaction, config, anilist_cache).await
+        }
         "list_activity" => list_all_activity::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
@@ -525,6 +533,7 @@ async fn anilist_user(
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anilist module is off
+    let anilist_cache = self_handler.bot_data.anilist_cache.clone();
     let anilist_module_error: AppError = AppError {
         message: String::from("Anilist module is off."),
         error_type: ErrorType::Module,
@@ -541,20 +550,20 @@ async fn anilist_user(
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
-        "anime" => anime::run(ctx, command_interaction, config).await,
-        "ln" => ln::run(ctx, command_interaction, config).await,
-        "manga" => manga::run(ctx, command_interaction, config).await,
-        "user" => user::run(ctx, command_interaction, config).await,
-        "character" => character::run(ctx, command_interaction, config).await,
-        "waifu" => waifu::run(ctx, command_interaction, config).await,
-        "compare" => compare::run(ctx, command_interaction, config).await,
-        "random" => random::run(ctx, command_interaction, config).await,
-        "register" => register::run(ctx, command_interaction, config).await,
-        "staff" => staff::run(ctx, command_interaction, config).await,
-        "studio" => studio::run(ctx, command_interaction, config).await,
-        "search" => search::run(ctx, command_interaction, config).await,
-        "seiyuu" => seiyuu::run(ctx, command_interaction, config).await,
-        "level" => level::run(ctx, command_interaction, config).await,
+        "anime" => anime::run(ctx, command_interaction, config, anilist_cache).await,
+        "ln" => ln::run(ctx, command_interaction, config, anilist_cache).await,
+        "manga" => manga::run(ctx, command_interaction, config, anilist_cache).await,
+        "user" => user::run(ctx, command_interaction, config, anilist_cache).await,
+        "character" => character::run(ctx, command_interaction, config, anilist_cache).await,
+        "waifu" => waifu::run(ctx, command_interaction, config, anilist_cache).await,
+        "compare" => compare::run(ctx, command_interaction, config, anilist_cache).await,
+        "random" => random::run(ctx, command_interaction, config, anilist_cache).await,
+        "register" => register::run(ctx, command_interaction, config, anilist_cache).await,
+        "staff" => staff::run(ctx, command_interaction, config, anilist_cache).await,
+        "studio" => studio::run(ctx, command_interaction, config, anilist_cache).await,
+        "search" => search::run(ctx, command_interaction, config, anilist_cache).await,
+        "seiyuu" => seiyuu::run(ctx, command_interaction, config, anilist_cache).await,
+        "level" => level::run(ctx, command_interaction, config, anilist_cache).await,
         // If the command name does not match any of the specified commands, return an error
         _ => Err(AppError::new(
             String::from("Command does not exist."),
@@ -858,14 +867,7 @@ async fn user(
         "avatar" => avatar::run(ctx, command_interaction, config).await,
         "banner" => banner::run(ctx, command_interaction, config).await,
         "profile" => profile::run(ctx, command_interaction, config).await,
-        "command_usage" => {
-            command_usage::run(
-                ctx,
-                command_interaction,
-                self_handler
-            )
-            .await
-        }
+        "command_usage" => command_usage::run(ctx, command_interaction, self_handler).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
@@ -891,6 +893,7 @@ async fn vn(
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone();
+    let vndb_cache = self_handler.bot_data.vndb_cache.clone();
     let vn_module_error: AppError = AppError {
         message: String::from("Visual novel module is off."),
         error_type: ErrorType::Module,
@@ -904,12 +907,12 @@ async fn vn(
         return Err(vn_module_error);
     }
     let return_data = match command_name {
-        "game" => game::run(ctx, command_interaction, config).await,
-        "character" => vn::character::run(ctx, command_interaction, config).await,
-        "staff" => vn::staff::run(ctx, command_interaction, config).await,
-        "user" => vn::user::run(ctx, command_interaction, config).await,
-        "producer" => producer::run(ctx, command_interaction, config).await,
-        "stats" => stats::run(ctx, command_interaction, config).await,
+        "game" => game::run(ctx, command_interaction, config, vndb_cache).await,
+        "character" => vn::character::run(ctx, command_interaction, config, vndb_cache).await,
+        "staff" => vn::staff::run(ctx, command_interaction, config, vndb_cache).await,
+        "user" => vn::user::run(ctx, command_interaction, config, vndb_cache).await,
+        "producer" => producer::run(ctx, command_interaction, config, vndb_cache).await,
+        "stats" => stats::run(ctx, command_interaction, config, vndb_cache).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,

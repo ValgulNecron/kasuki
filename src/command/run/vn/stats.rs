@@ -3,15 +3,18 @@ use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::vndbapi::stats::get_stats;
 use crate::structure::message::vn::stats::load_localization_stats;
+use moka::future::Cache;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
     let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
@@ -20,7 +23,7 @@ pub async fn run(
     };
     let stats_localised = load_localization_stats(guild_id, db_type).await?;
 
-    let stats = get_stats().await?;
+    let stats = get_stats(vndb_cache).await?;
 
     let mut fields = vec![];
     fields.push((stats_localised.chars.clone(), stats.chars.to_string(), true));

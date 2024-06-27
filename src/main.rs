@@ -1,18 +1,19 @@
+use moka::future::Cache;
 use serenity::all::{GatewayIntents, ShardManager};
 use serenity::Client;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
 use crate::config::Config;
-use crate::constant::COMMAND_USE_PATH;
+use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
 use crate::struct_shard_manager::ShardManagerContainer;
 
 mod background_task;
-mod cache;
 mod command;
 mod command_register;
 mod components;
@@ -107,10 +108,22 @@ async fn main() {
 
     let number_of_command_use_per_command =
         Arc::new(RwLock::new(number_of_command_use_per_command));
+    let cache: Cache<String, String> = Cache::builder()
+        .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
+        .max_capacity(CACHE_MAX_CAPACITY)
+        .build();
+    let anilist_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
+    let cache: Cache<String, String> = Cache::builder()
+        .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
+        .max_capacity(CACHE_MAX_CAPACITY)
+        .build();
+    let vndb_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
     let bot_data: Arc<BotData> = Arc::new(BotData {
         number_of_command_use_per_command,
         config,
         bot_info: Arc::new(RwLock::new(None)),
+        anilist_cache,
+        vndb_cache,
     });
     let handler = Handler { bot_data };
 

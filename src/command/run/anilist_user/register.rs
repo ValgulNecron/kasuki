@@ -12,6 +12,8 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::register::load_localization_register;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
+use moka::future::Cache;
+use tokio::sync::RwLock;
 
 /// Executes the command to register a user's AniList account.
 ///
@@ -31,9 +33,9 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
     let db_type = config.bot.config.db_type.clone();
-    let cache_type = config.bot.config.cache_type.clone();
     // Retrieve the username of the AniList account from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("username")).ok_or(AppError::new(
@@ -43,7 +45,7 @@ pub async fn run(
     ))?;
 
     // Fetch the user data from AniList
-    let user_data: User = get_user(value, cache_type).await?;
+    let user_data: User = get_user(value, anilist_cache).await?;
 
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {

@@ -11,6 +11,7 @@ use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVa
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
+use moka::future::Cache;
 use prost::bytes::Bytes;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -19,6 +20,7 @@ use serenity::all::{
 };
 use std::io::Cursor;
 use std::sync::Arc;
+use tokio::sync::RwLock;
 use uuid::Uuid;
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
@@ -39,8 +41,8 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
-    let cache_type = config.bot.config.cache_type.clone();
     let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("staff_name")).ok_or(AppError::new(
@@ -58,7 +60,7 @@ pub async fn run(
         };
         let operation = SeiyuuId::build(var);
         let data: GraphQlResponse<SeiyuuId> =
-            make_request_anilist(operation, false, cache_type).await?;
+            make_request_anilist(operation, false, anilist_cache).await?;
 
         data.data.unwrap().page.unwrap().staff.unwrap()[0]
             .clone()
@@ -70,7 +72,7 @@ pub async fn run(
         };
         let operation = SeiyuuSearch::build(var);
         let data: GraphQlResponse<SeiyuuSearch> =
-            make_request_anilist(operation, false, cache_type).await?;
+            make_request_anilist(operation, false, anilist_cache).await?;
         let data = data.data.unwrap().page.unwrap().staff.unwrap()[0]
             .clone()
             .unwrap();

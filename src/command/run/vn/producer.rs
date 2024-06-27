@@ -5,16 +5,19 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::producer::get_producer;
 use crate::structure::message::vn::producer::load_localization_producer;
 use markdown_converter::vndb::convert_vndb_markdown;
+use moka::future::Cache;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::trace;
 
 pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
     let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
@@ -29,7 +32,7 @@ pub async fn run(
         .unwrap_or(String::new());
     let producer_localised = load_localization_producer(guild_id, db_type).await?;
 
-    let producer = get_producer(producer.clone()).await?;
+    let producer = get_producer(producer.clone(), vndb_cache).await?;
     let producer = producer.results[0].clone();
     let mut fields = vec![];
     if let Some(lang) = producer.lang {

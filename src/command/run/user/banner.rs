@@ -58,7 +58,8 @@ pub async fn run(
 pub async fn no_banner(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    username: &str, db_type: String
+    username: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -102,7 +103,8 @@ pub async fn no_banner(
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn banner_without_user(
     ctx: &Context,
-    command_interaction: &CommandInteraction, db_type: String
+    command_interaction: &CommandInteraction,
+    db_type: String,
 ) -> Result<(), AppError> {
     let user = &command_interaction.user;
 
@@ -126,7 +128,8 @@ pub async fn banner_without_user(
 pub async fn banner_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    user_data: &User, db_type: String
+    user_data: &User,
+    db_type: String,
 ) -> Result<(), AppError> {
     let user = user_data;
     let banner_url = match user.banner_url() {
@@ -154,7 +157,8 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     banner: String,
-    username: &str, db_type: String
+    username: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

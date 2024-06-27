@@ -60,7 +60,8 @@ pub async fn run(
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 async fn profile_without_user(
     ctx: &Context,
-    command_interaction: &CommandInteraction, db_type: String
+    command_interaction: &CommandInteraction,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
@@ -84,7 +85,8 @@ async fn profile_without_user(
 pub async fn profile_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    user: &User, db_type: String
+    user: &User,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Retrieve the avatar URL of the specified user
     let avatar_url = user.face();
@@ -114,7 +116,8 @@ pub async fn send_embed(
     avatar_url: String,
     ctx: &Context,
     command_interaction: &CommandInteraction,
-    user: &User, db_type: String
+    user: &User,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {

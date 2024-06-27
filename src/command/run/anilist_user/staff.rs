@@ -8,10 +8,12 @@ use crate::structure::run::anilist::staff::{
     StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch, StaffQuerrySearchVariables,
 };
 use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -31,8 +33,8 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
-    let cache_type = config.bot.config.cache_type.clone();
     let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("staff_name")).ok_or(AppError::new(
@@ -47,7 +49,7 @@ pub async fn run(
         };
         let operation = StaffQuerryId::build(var);
         let data: GraphQlResponse<StaffQuerryId> =
-            make_request_anilist(operation, false, cache_type).await?;
+            make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().staff.unwrap()
     } else {
         let var = StaffQuerrySearchVariables {
@@ -55,7 +57,7 @@ pub async fn run(
         };
         let operation = StaffQuerrySearch::build(var);
         let data: GraphQlResponse<StaffQuerrySearch> =
-            make_request_anilist(operation, false, cache_type).await?;
+            make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().staff.unwrap()
     };
     let guild_id = match command_interaction.guild_id {

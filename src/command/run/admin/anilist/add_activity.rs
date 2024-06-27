@@ -18,6 +18,7 @@ use base64::Engine as _;
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
+use moka::future::Cache;
 use reqwest::get;
 use serde_json::json;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -27,6 +28,7 @@ use serenity::all::{
 };
 use std::io::{Cursor, Read};
 use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::{error, trace};
 
 /// This asynchronous function gets or creates a webhook for a given channel.
@@ -49,8 +51,8 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
-    let cache_type = config.bot.config.db_type.clone();
     let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand_group(command_interaction);
     let delay = map
@@ -85,9 +87,9 @@ pub async fn run(
         load_localization_add_activity(guild_id.clone(), db_type.clone()).await?;
 
     let media = if anime.parse::<i32>().is_ok() {
-        get_minimal_anime_by_id(anime.parse::<i32>().unwrap(), cache_type).await?
+        get_minimal_anime_by_id(anime.parse::<i32>().unwrap(), anilist_cache).await?
     } else {
-        get_minimal_anime_by_search(anime.as_str(), cache_type).await?
+        get_minimal_anime_by_search(anime.as_str(), anilist_cache).await?
     };
     let anime_id = media.id;
     let title = media.title.ok_or(AppError::new(
@@ -406,23 +408,26 @@ async fn get_webhook(
     Ok(webhook_return)
 }
 
-pub async fn get_minimal_anime_by_id(id: i32, cache_type: String) -> Result<Media, AppError> {
+pub async fn get_minimal_anime_by_id(
+    id: i32,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<Media, AppError> {
     let query = MinimalAnimeIdVariables { id: Some(id) };
     let operation = MinimalAnimeId::build(query);
     let data: GraphQlResponse<MinimalAnimeId> =
-        make_request_anilist(operation, false, cache_type).await?;
+        make_request_anilist(operation, false, anilist_cache).await?;
     Ok(data.data.unwrap().media.unwrap())
 }
 
 pub async fn get_minimal_anime_by_search(
     value: &str,
-    cache_type: String,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Media, AppError> {
     let query = MinimalAnimeSearchVariables {
         search: Some(value),
     };
     let operation = MinimalAnimeSearch::build(query);
     let data: GraphQlResponse<MinimalAnimeSearch> =
-        make_request_anilist(operation, false, cache_type).await?;
+        make_request_anilist(operation, false, anilist_cache).await?;
     Ok(data.data.unwrap().media.unwrap())
 }

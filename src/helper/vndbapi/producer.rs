@@ -1,7 +1,11 @@
+use moka::future::Cache;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 pub async fn get_producer(
     value: String,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<ProducerRoot, crate::helper::error_management::error_enum::AppError> {
     let value = value.to_lowercase();
     let value = value.trim();
@@ -27,9 +31,12 @@ pub async fn get_producer(
         .to_string()
     };
     let path = "/producer".to_string();
-    let response =
-        crate::helper::vndbapi::common::do_request_cached_with_json(path.clone(), json.to_string())
-            .await?;
+    let response = crate::helper::vndbapi::common::do_request_cached_with_json(
+        path.clone(),
+        json.to_string(),
+        vndb_cache,
+    )
+    .await?;
     let response: ProducerRoot = serde_json::from_str(&response).map_err(|e| {
         crate::helper::error_management::error_enum::AppError {
             message: format!("Error while parsing response: '{}'", e),

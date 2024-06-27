@@ -1,5 +1,7 @@
+use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 use crate::command::run::anilist_user::character::get_character_by_id;
 use crate::config::Config;
@@ -23,12 +25,12 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
-    let cache_type = config.bot.config.cache_type.clone();
     let db_type = config.bot.config.db_type.clone();
     // Fetch the data of the character with ID 156323 from AniList
     let value = 156323;
-    let data = get_character_by_id(value, cache_type).await?;
+    let data = get_character_by_id(value, anilist_cache).await?;
     // Send the character's data as a response to the command interaction
     send_embed(ctx, command_interaction, data, db_type).await
 }

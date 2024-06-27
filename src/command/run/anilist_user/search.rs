@@ -5,6 +5,8 @@ use crate::command::run::anilist_user::{anime, character, ln, manga, staff, stud
 use crate::config::Config;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use moka::future::Cache;
+use tokio::sync::RwLock;
 
 /// Executes the command to search for a specific type of AniList data.
 ///
@@ -24,6 +26,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
     // Retrieve the type of AniList data to search for from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
@@ -35,13 +38,13 @@ pub async fn run(
 
     // Execute the corresponding search function based on the specified type
     match search_type.as_str() {
-        "anime" => anime::run(ctx, command_interaction, config).await,
-        "character" => character::run(ctx, command_interaction, config).await,
-        "ln" => ln::run(ctx, command_interaction, config).await,
-        "manga" => manga::run(ctx, command_interaction, config).await,
-        "staff" => staff::run(ctx, command_interaction, config).await,
-        "user" => user::run(ctx, command_interaction, config).await,
-        "studio" => studio::run(ctx, command_interaction, config).await,
+        "anime" => anime::run(ctx, command_interaction, config, anilist_cache).await,
+        "character" => character::run(ctx, command_interaction, config, anilist_cache).await,
+        "ln" => ln::run(ctx, command_interaction, config, anilist_cache).await,
+        "manga" => manga::run(ctx, command_interaction, config, anilist_cache).await,
+        "staff" => staff::run(ctx, command_interaction, config, anilist_cache).await,
+        "user" => user::run(ctx, command_interaction, config, anilist_cache).await,
+        "studio" => studio::run(ctx, command_interaction, config, anilist_cache).await,
         // Return an error if the specified type is not one of the expected types
         _ => Err(AppError::new(
             String::from("Invalid type"),

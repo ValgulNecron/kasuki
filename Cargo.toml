@@ -1,6 +1,6 @@
 [package]
 name = "kasuki"
-version = "2.9.4"
+version = "2.9.5"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
@@ -20,7 +20,7 @@ tokio = { version = "1.38.0", features = ["full"] }
 sqlx = { version = "0.7.4", features = ["sqlite", "runtime-tokio-native-tls", "postgres"] }
 rand = "0.9.0-alpha.1"
 chrono = "0.4.38"
-uuid = { version = "1.8.0", features = ["v4"] }
+uuid = { version = "1.9.1", features = ["v4"] }
 image = "0.25.1"
 base64 = "0.22.1"
 tracing = { version = "0.1.40" }
