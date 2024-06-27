@@ -5,8 +5,10 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 
 use crate::background_task::update_random_stats::update_random_stats;
+use crate::config::Config;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -17,6 +19,8 @@ use crate::structure::message::anilist_user::random::{load_localization_random, 
 use crate::structure::run::anilist::random::{
     Media, MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
+use moka::future::Cache;
+use tokio::sync::RwLock;
 
 /// Executes the command to fetch and display a random anime or manga based on the type specified in the command interaction.
 ///
@@ -33,7 +37,13 @@ use crate::structure::run::anilist::random::{
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -41,7 +51,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     };
 
     // Load the localized random strings
-    let random_localised = load_localization_random(guild_id).await?;
+    let random_localised = load_localization_random(guild_id, db_type.clone()).await?;
 
     // Retrieve the type of media (anime or manga) from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
@@ -66,7 +76,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             )
         })?;
 
-    let random_stats = update_random_stats().await?;
+    let random_stats = update_random_stats(anilist_cache.clone()).await?;
     let last_page = if random_type.as_str() == "anime" {
         random_stats.anime_last_page
     } else if random_type.as_str() == "manga" {
@@ -80,6 +90,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         ctx,
         command_interaction,
         random_localised,
+        anilist_cache,
     )
     .await
 }
@@ -107,6 +118,7 @@ async fn embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     random_localised: RandomLocalised,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), AppError> {
     let number = thread_rng().gen_range(1..=last_page);
     let mut var = RandomPageMediaVariables {
@@ -122,7 +134,7 @@ async fn embed(
 
     let operation = RandomPageMedia::build(var);
     let data: Result<GraphQlResponse<RandomPageMedia>, AppError> =
-        make_request_anilist(operation, false).await;
+        make_request_anilist(operation, false, anilist_cache).await;
     let data = data?;
     let data = data.data.unwrap();
     let inside_media = data.page.unwrap().media.unwrap()[0].clone().unwrap();

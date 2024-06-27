@@ -1,20 +1,4 @@
-use std::io::{Cursor, Read};
-
-use base64::engine::general_purpose::STANDARD;
-use base64::read::DecoderReader;
-use base64::Engine as _;
-use cynic::{GraphQlResponse, QueryBuilder};
-use image::imageops::FilterType;
-use image::{guess_format, GenericImageView, ImageFormat};
-use reqwest::get;
-use serde_json::json;
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    ChannelId, CommandInteraction, Context, CreateAttachment, CreateEmbed,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, Timestamp,
-};
-use tracing::{error, trace};
-
+use crate::config::Config;
 use crate::constant::COLOR;
 use crate::database::data_struct::server_activity::{ServerActivityFull, SmallServerActivity};
 use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
@@ -28,6 +12,24 @@ use crate::structure::run::anilist::minimal_anime::{
     Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
     MinimalAnimeSearchVariables,
 };
+use base64::engine::general_purpose::STANDARD;
+use base64::read::DecoderReader;
+use base64::Engine as _;
+use cynic::{GraphQlResponse, QueryBuilder};
+use image::imageops::FilterType;
+use image::{guess_format, GenericImageView, ImageFormat};
+use moka::future::Cache;
+use reqwest::get;
+use serde_json::json;
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    ChannelId, CommandInteraction, Context, CreateAttachment, CreateEmbed,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, Timestamp,
+};
+use std::io::{Cursor, Read};
+use std::sync::Arc;
+use tokio::sync::RwLock;
+use tracing::{error, trace};
 
 /// This asynchronous function gets or creates a webhook for a given channel.
 ///
@@ -45,7 +47,13 @@ use crate::structure::run::anilist::minimal_anime::{
 /// # Returns
 ///
 /// A `Result` containing either the URL of the webhook if it is successfully retrieved or created, or an `AppError` if an error occurs.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand_group(command_interaction);
     let delay = map
         .get(&String::from("delay"))
@@ -75,12 +83,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Message,
             )
         })?;
-    let add_activity_localised = load_localization_add_activity(guild_id.clone()).await?;
+    let add_activity_localised =
+        load_localization_add_activity(guild_id.clone(), db_type.clone()).await?;
 
     let media = if anime.parse::<i32>().is_ok() {
-        get_minimal_anime_by_id(anime.parse::<i32>().unwrap()).await?
+        get_minimal_anime_by_id(anime.parse::<i32>().unwrap(), anilist_cache).await?
     } else {
-        get_minimal_anime_by_search(anime.as_str()).await?
+        get_minimal_anime_by_search(anime.as_str(), anilist_cache).await?
     };
     let anime_id = media.id;
     let title = media.title.ok_or(AppError::new(
@@ -91,7 +100,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     let anime_name = get_name(title);
     let channel_id = command_interaction.channel_id;
 
-    if check_if_activity_exist(anime_id, guild_id.clone()).await {
+    if check_if_activity_exist(anime_id, guild_id.clone(), db_type.clone()).await {
         let builder_embed = CreateEmbed::new()
             .timestamp(Timestamp::now())
             .color(COLOR)
@@ -159,16 +168,19 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         let webhook =
             get_webhook(ctx, channel_id, image, base64.clone(), trimed_anime_name).await?;
 
-        set_data_activity(ServerActivityFull {
-            anime_id,
-            timestamp: next_airing.airing_at as i64,
-            guild_id,
-            webhook,
-            episode: next_airing.episode,
-            name: anime_name.clone(),
-            delays: delay,
-            image: base64,
-        })
+        set_data_activity(
+            ServerActivityFull {
+                anime_id,
+                timestamp: next_airing.airing_at as i64,
+                guild_id,
+                webhook,
+                episode: next_airing.episode,
+                name: anime_name.clone(),
+                delays: delay,
+                image: base64,
+            },
+            db_type.clone(),
+        )
         .await?;
 
         let builder_embed = get_default_embed(None)
@@ -209,15 +221,16 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 /// # Returns
 ///
 /// A boolean indicating whether the activity exists.
-async fn check_if_activity_exist(anime_id: i32, server_id: String) -> bool {
-    let row: SmallServerActivity = get_one_activity(anime_id, server_id.clone())
+async fn check_if_activity_exist(anime_id: i32, server_id: String, db_type: String) -> bool {
+    let row: SmallServerActivity = get_one_activity(anime_id, server_id.clone(), db_type)
         .await
         .unwrap_or(SmallServerActivity {
             anime_id: None,
             timestamp: None,
-            guild_id: None,
+            server_id: None,
         });
-    if row.anime_id.is_none() || row.timestamp.is_none() || row.guild_id.is_none() {
+    trace!("{:?}", row);
+    if row.anime_id.is_none() || row.timestamp.is_none() || row.server_id.is_none() {
         return false;
     };
     true
@@ -395,18 +408,26 @@ async fn get_webhook(
     Ok(webhook_return)
 }
 
-pub async fn get_minimal_anime_by_id(id: i32) -> Result<Media, AppError> {
+pub async fn get_minimal_anime_by_id(
+    id: i32,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<Media, AppError> {
     let query = MinimalAnimeIdVariables { id: Some(id) };
     let operation = MinimalAnimeId::build(query);
-    let data: GraphQlResponse<MinimalAnimeId> = make_request_anilist(operation, false).await?;
+    let data: GraphQlResponse<MinimalAnimeId> =
+        make_request_anilist(operation, false, anilist_cache).await?;
     Ok(data.data.unwrap().media.unwrap())
 }
 
-pub async fn get_minimal_anime_by_search(value: &str) -> Result<Media, AppError> {
+pub async fn get_minimal_anime_by_search(
+    value: &str,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<Media, AppError> {
     let query = MinimalAnimeSearchVariables {
         search: Some(value),
     };
     let operation = MinimalAnimeSearch::build(query);
-    let data: GraphQlResponse<MinimalAnimeSearch> = make_request_anilist(operation, false).await?;
+    let data: GraphQlResponse<MinimalAnimeSearch> =
+        make_request_anilist(operation, false, anilist_cache).await?;
     Ok(data.data.unwrap().media.unwrap())
 }

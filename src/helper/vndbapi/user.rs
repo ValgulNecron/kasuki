@@ -15,9 +15,15 @@ pub struct VnUser {
 
     pub username: String,
 }
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
-pub async fn get_user(path: String) -> Result<VnUser, AppError> {
-    let response = do_request_cached(path.clone()).await?;
+pub async fn get_user(
+    path: String,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<VnUser, AppError> {
+    let response = do_request_cached(path.clone(), vndb_cache).await?;
     let response: HashMap<String, VnUser> =
         serde_json::from_str(&response).map_err(|e| AppError {
             message: format!("Error while parsing response: '{}'", e),

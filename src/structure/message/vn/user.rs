@@ -15,7 +15,10 @@ pub struct UserLocalised {
     pub playtime: String,
 }
 
-pub async fn load_localization_user(guild_id: String) -> Result<UserLocalised, AppError> {
+pub async fn load_localization_user(
+    guild_id: String,
+    db_type: String,
+) -> Result<UserLocalised, AppError> {
     let path = "json/message/vn/user.json";
-    load_localization(guild_id, path).await
+    load_localization(guild_id, path, db_type).await
 }

@@ -2,8 +2,10 @@ use once_cell::sync::Lazy;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 
 use crate::command::run::anilist_user::user::get_user;
+use crate::config::Config;
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::create_default_embed::get_default_embed;
@@ -11,6 +13,8 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
+use moka::future::Cache;
+use tokio::sync::RwLock;
 
 /// Executes the command to display a user's level based on their anime and manga statistics.
 ///
@@ -25,21 +29,27 @@ use crate::structure::run::anilist::user::{get_color, get_completed, get_user_ur
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the username from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
     match user {
         Some(value) => {
             // If a username is provided, fetch the user data and send an embed
-            let data: User = get_user(value).await?;
-            send_embed(ctx, command_interaction, data).await
+            let data: User = get_user(value, anilist_cache).await?;
+            send_embed(ctx, command_interaction, data, db_type).await
         }
         None => {
             // If no username is provided, retrieve the ID of the user who triggered the command
             let user_id = &command_interaction.user.id.to_string();
             // Check if the user is registered
-            let row: Option<RegisteredUser> = get_registered_user(user_id).await?;
+            let row: Option<RegisteredUser> = get_registered_user(user_id, db_type.clone()).await?;
             let user = row.ok_or(AppError::new(
                 String::from("There is no user selected"),
                 ErrorType::Option,
@@ -47,8 +57,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             ))?;
 
             // Fetch the user data and send an embed
-            let data: User = get_user(&user.anilist_id).await?;
-            send_embed(ctx, command_interaction, data).await
+            let data: User = get_user(&user.anilist_id, anilist_cache).await?;
+            send_embed(ctx, command_interaction, data, db_type).await
         }
     }
 }
@@ -70,6 +80,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: User,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -78,7 +89,7 @@ pub async fn send_embed(
     };
 
     // Load the localized level strings
-    let level_localised = load_localization_level(guild_id).await?;
+    let level_localised = load_localization_level(guild_id, db_type).await?;
 
     // Clone the manga and anime statistics
     let statistics = user.statistics.clone().unwrap();

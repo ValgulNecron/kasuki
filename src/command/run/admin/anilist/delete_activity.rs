@@ -3,16 +3,20 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 use tracing::trace;
 
 use crate::command::run::admin::anilist::add_activity::{
     get_minimal_anime_by_id, get_minimal_anime_by_search, get_name,
 };
+use crate::config::Config;
 use crate::database::manage::dispatcher::data_dispatch::remove_data_activity_status;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
+use moka::future::Cache;
+use tokio::sync::RwLock;
 
 /// This asynchronous function runs the command interaction for deleting an anime activity.
 ///
@@ -39,7 +43,13 @@ use crate::structure::message::admin::anilist::delete_activity::load_localizatio
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand_group(command_interaction);
     let anime = map
         .get(&String::from("anime_name"))
@@ -52,7 +62,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     };
 
     let delete_activity_localised_text =
-        load_localization_delete_activity(guild_id.clone()).await?;
+        load_localization_delete_activity(guild_id.clone(), db_type.clone()).await?;
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
@@ -67,13 +77,13 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         })?;
     trace!(anime);
     let media = if anime.parse::<i32>().is_ok() {
-        get_minimal_anime_by_id(anime.parse::<i32>().unwrap()).await?
+        get_minimal_anime_by_id(anime.parse::<i32>().unwrap(), anilist_cache).await?
     } else {
-        get_minimal_anime_by_search(anime.as_str()).await?
+        get_minimal_anime_by_search(anime.as_str(), anilist_cache).await?
     };
 
     let anime_id = media.id;
-    remove_activity(guild_id.as_str(), &anime_id).await?;
+    remove_activity(guild_id.as_str(), &anime_id, db_type).await?;
 
     let title = media.title.unwrap();
     let anime_name = get_name(title);
@@ -111,6 +121,6 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-async fn remove_activity(guild_id: &str, anime_id: &i32) -> Result<(), AppError> {
-    remove_data_activity_status(guild_id.to_owned(), anime_id.to_string()).await
+async fn remove_activity(guild_id: &str, anime_id: &i32, db_type: String) -> Result<(), AppError> {
+    remove_data_activity_status(guild_id.to_owned(), anime_id.to_string(), db_type).await
 }

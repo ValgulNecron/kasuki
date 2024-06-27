@@ -1,10 +1,4 @@
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage,
-};
-use tracing::trace;
-
+use crate::config::Config;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -13,6 +7,13 @@ use crate::structure::message::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
 };
 use crate::structure::run::game::steam_game::SteamGameWrapper;
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
+};
+use std::sync::Arc;
+use tracing::trace;
 
 /// Executes the command to retrieve and display a Steam game's information.
 ///
@@ -27,7 +28,12 @@ use crate::structure::run::game::steam_game::SteamGameWrapper;
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the game's name from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("game_name")).ok_or(AppError::new(
@@ -43,7 +49,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     };
 
     // Load the localized strings for the game's information
-    let steam_game_info_localised = load_localization_steam_game_info(guild_id.clone()).await?;
+    let steam_game_info_localised =
+        load_localization_steam_game_info(guild_id.clone(), db_type.clone()).await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -62,9 +69,9 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 
     // Retrieve the game's information from Steam
     let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
-        SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id).await?
+        SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, db_type).await?
     } else {
-        SteamGameWrapper::new_steam_game_by_search(value, guild_id).await?
+        SteamGameWrapper::new_steam_game_by_search(value, guild_id, db_type).await?
     };
 
     // Send an embed with the game's information

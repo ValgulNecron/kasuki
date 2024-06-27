@@ -1,12 +1,14 @@
+use crate::constant::DEFAULT_STRING;
+use crate::helper::error_management::error_enum::AppError;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-
-use crate::constant::DEFAULT_STRING;
-use crate::helper::error_management::error_enum::AppError;
-use crate::helper::make_graphql_cached::make_request_anilist;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 #[cynic::schema("anilist")]
 mod schema {}
@@ -66,14 +68,15 @@ pub enum MediaType {
     Manga,
 }
 
-pub async fn send_auto_complete<'a>(
+pub async fn send_auto_complete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    media: MediaAutocompleteVariables<'a>,
+    media: MediaAutocompleteVariables<'_>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
     let operation = MediaAutocomplete::build(media);
     let data: Result<GraphQlResponse<MediaAutocomplete>, AppError> =
-        make_request_anilist(operation, false).await;
+        make_request_anilist(operation, false, anilist_cache).await;
     let data = match data {
         Ok(data) => data,
         Err(e) => {

@@ -1,11 +1,12 @@
-use std::collections::HashSet;
-
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use std::collections::HashSet;
+use std::sync::Arc;
 use tracing::trace;
 
 use crate::command::run::anilist_user::user::get_user;
+use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -14,6 +15,8 @@ use crate::structure::run::anilist::user::{
     User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
     UserStatusStatistic, UserTagStatistic,
 };
+use moka::future::Cache;
+use tokio::sync::RwLock;
 
 /// Executes the comparison between two users' anime and manga statistics.
 ///
@@ -29,7 +32,13 @@ use crate::structure::run::anilist::user::{
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the usernames from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map
@@ -42,8 +51,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         .unwrap_or(String::new());
 
     // Fetch the user data for both users
-    let user: User = get_user(&value).await?;
-    let user2: User = get_user(&value2).await?;
+    let user: User = get_user(&value, anilist_cache.clone()).await?;
+    let user2: User = get_user(&value2, anilist_cache).await?;
 
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -52,7 +61,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     };
 
     // Load the localized comparison strings
-    let compare_localised = load_localization_compare(guild_id).await?;
+    let compare_localised = load_localization_compare(guild_id, db_type).await?;
 
     // Clone the user data
     let username = user.name.clone();

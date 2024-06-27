@@ -1,6 +1,4 @@
-use cynic::{GraphQlResponse, QueryBuilder};
-use serenity::all::{CommandInteraction, Context};
-
+use crate::config::Config;
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -8,6 +6,11 @@ use crate::structure::run::anilist::character::{
     send_embed, Character, CharacterQuerryId, CharacterQuerryIdVariables, CharacterQuerrySearch,
     CharacterQuerrySearchVariables,
 };
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use serenity::all::{CommandInteraction, Context};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// This asynchronous function runs the command interaction for retrieving information about a character.
 ///
@@ -26,7 +29,13 @@ use crate::structure::run::anilist::character::{
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the name or ID of the character from the command interaction options
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map
@@ -37,24 +46,28 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     // If the value is an integer, treat it as an ID and retrieve the character with that ID
     // If the value is not an integer, treat it as a name and retrieve the character with that name
     let data: Character = if value.parse::<i32>().is_ok() {
-        get_character_by_id(value.parse::<i32>().unwrap()).await?
+        get_character_by_id(value.parse::<i32>().unwrap(), anilist_cache).await?
     } else {
         let var = CharacterQuerrySearchVariables {
             search: Some(&*value),
         };
         let operation = CharacterQuerrySearch::build(var);
         let data: GraphQlResponse<CharacterQuerrySearch> =
-            make_request_anilist(operation, false).await?;
+            make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().character.unwrap()
     };
 
     // Send an embed with the character information as a response to the command interaction
-    send_embed(ctx, command_interaction, data).await
+    send_embed(ctx, command_interaction, data, db_type).await
 }
 
-pub async fn get_character_by_id(value: i32) -> Result<Character, AppError> {
+pub async fn get_character_by_id(
+    value: i32,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<Character, AppError> {
     let var = CharacterQuerryIdVariables { id: Some(value) };
     let operation = CharacterQuerryId::build(var);
-    let data: GraphQlResponse<CharacterQuerryId> = make_request_anilist(operation, false).await?;
+    let data: GraphQlResponse<CharacterQuerryId> =
+        make_request_anilist(operation, false, anilist_cache).await?;
     Ok(data.data.unwrap().character.unwrap())
 }

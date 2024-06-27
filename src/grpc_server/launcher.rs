@@ -1,16 +1,17 @@
 use std::sync::Arc;
 
-use serenity::all::{Cache, Http, ShardManager};
-use sysinfo::System;
-use tokio::sync::RwLock;
-use tracing::trace;
-
-use crate::constant::{BOT_COMMANDS, BOT_INFO, CONFIG};
+use crate::config::{Config, GrpcCfg};
+use crate::constant::{BOT_COMMANDS};
+use crate::event_handler::{BotData, RootUsage};
 use crate::grpc_server::command_list::get_list_of_all_command;
 use crate::grpc_server::service;
 use crate::grpc_server::service::command::{get_command_server, CommandServices};
 use crate::grpc_server::service::info::{get_info_server, InfoService};
 use crate::grpc_server::service::shard::{get_shard_server, ShardService};
+use serenity::all::{Cache, Http, ShardManager};
+use sysinfo::System;
+use tokio::sync::RwLock;
+use tracing::trace;
 
 /// `grpc_server_launcher` is an asynchronous function that launches the gRPC server for the shard service.
 /// It takes a reference to an `Arc<ShardManager>` as a parameter.
@@ -25,29 +26,32 @@ use crate::grpc_server::service::shard::{get_shard_server, ShardService};
 /// This function will panic if it fails to build the reflection service or if it fails to serve the gRPC server.
 pub async fn grpc_server_launcher(
     shard_manager: &Arc<ShardManager>,
-    command_usage: Arc<RwLock<u128>>,
+    command_usage: Arc<RwLock<RootUsage>>,
     cache: Arc<Cache>,
     http: Arc<Http>,
+    config: Arc<Config>,
+    bot_data: Arc<BotData>,
 ) {
+    let grpc_config = config.grpc.clone();
     get_list_of_all_command();
     // Clone the Arc<ShardManager>
     let shard_manager_arc: Arc<ShardManager> = shard_manager.clone();
-    let config = unsafe { CONFIG.grpc.clone() };
     // Define the address for the gRPC server
-    let addr = format!("0.0.0.0:{}", config.grpc_port);
+    let addr = format!("0.0.0.0:{}", grpc_config.grpc_port);
     // Create a new ShardService with the cloned Arc<ShardManager>
     let shard_service = ShardService {
         shard_manager: shard_manager_arc.clone(),
     };
     let info_service = unsafe {
         InfoService {
-            bot_info: Arc::new(BOT_INFO.clone().unwrap()),
+            bot_info: bot_data,
             sys: Arc::new(RwLock::new(System::new_all())),
             os_info: Arc::new(os_info::get()),
             command_usage,
             shard_manager: shard_manager_arc.clone(),
             cache,
             http,
+            config: config.clone(),
         }
     };
     let command_service = CommandServices {
@@ -62,12 +66,14 @@ pub async fn grpc_server_launcher(
         .build()
         .unwrap();
 
-    let is_tls = config.use_tls;
+    let federation_is_on = grpc_config.federation.federation_is_on;
+
+    let is_tls = grpc_config.use_tls;
     trace!("TLS: {}", is_tls);
     let service = if is_tls {
-        generate_key();
-        let private_key_path = config.tls_key_path.clone();
-        let cert_path = config.tls_cert_path.clone();
+        let private_key_path = grpc_config.tls_key_path.clone();
+        let cert_path = grpc_config.tls_cert_path.clone();
+        generate_key(grpc_config);
         // Load the server's key and certificate
         let key = tokio::fs::read(private_key_path).await.unwrap();
         let cert = tokio::fs::read(cert_path).await.unwrap();
@@ -93,13 +99,11 @@ pub async fn grpc_server_launcher(
             .add_service(reflection)
     };
 
-    let federation_is_on = config.federation.federation_is_on;
-
     // Serve the gRPC server
     service.serve(addr.parse().unwrap()).await.unwrap()
 }
 
-fn generate_key() {
+fn generate_key(grpc_config: GrpcCfg) {
     // Specify the subject alternative names. Since we're not using a domain,
     // we'll just use "localhost" as an example.
     let subject_alt_names = vec![
@@ -116,10 +120,9 @@ fn generate_key() {
     let certificate = cert.cert.pem();
     trace!("Private key: {}", private_key);
     trace!("Certificate: {}", certificate);
-    let config = unsafe { CONFIG.grpc.clone() };
 
-    let private_key_path = config.tls_key_path.clone();
-    let cert_path = config.tls_cert_path.clone();
+    let private_key_path = grpc_config.tls_key_path.clone();
+    let cert_path = grpc_config.tls_cert_path.clone();
 
     // create all the directories in the path if they don't exist except the last one
     let parent = std::path::Path::new(&private_key_path).parent().unwrap();

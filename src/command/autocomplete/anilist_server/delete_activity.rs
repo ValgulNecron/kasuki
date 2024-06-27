@@ -35,7 +35,11 @@ use crate::helper::get_option::subcommand_group::get_option_map_string_autocompl
 /// # Async
 ///
 /// This function is asynchronous. It awaits the getting of all activities by the server, the fuzzy search, and the sending of the response.
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(
+    ctx: Context,
+    autocomplete_interaction: CommandInteraction,
+    db_type: String,
+) {
     let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
     let activity_search = map
         .get(&String::from("anime_name"))
@@ -46,7 +50,9 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
         None => String::from("0"),
     };
 
-    let activities = get_data_all_activity_by_server(&guild_id).await.unwrap();
+    let activities = get_data_all_activity_by_server(&guild_id, db_type)
+        .await
+        .unwrap();
     let activity: Vec<String> = activities
         .clone()
         .into_iter()

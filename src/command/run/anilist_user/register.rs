@@ -1,8 +1,10 @@
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 
 use crate::command::run::anilist_user::user::get_user;
+use crate::config::Config;
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::set_registered_user;
 use crate::helper::create_default_embed::get_default_embed;
@@ -10,6 +12,8 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::register::load_localization_register;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
+use moka::future::Cache;
+use tokio::sync::RwLock;
 
 /// Executes the command to register a user's AniList account.
 ///
@@ -25,7 +29,13 @@ use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the username of the AniList account from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("username")).ok_or(AppError::new(
@@ -35,7 +45,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     ))?;
 
     // Fetch the user data from AniList
-    let user_data: User = get_user(value).await?;
+    let user_data: User = get_user(value, anilist_cache).await?;
 
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -44,7 +54,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     };
 
     // Load the localized register strings
-    let register_localised = load_localization_register(guild_id).await?;
+    let register_localised = load_localization_register(guild_id, db_type.clone()).await?;
 
     // Retrieve the user's Discord ID and username
     let user_id = &command_interaction.user.id.to_string();
@@ -55,7 +65,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         user_id: user_id.clone(),
         anilist_id: user_data.id.to_string(),
     };
-    set_registered_user(registered_user).await?;
+    set_registered_user(registered_user, db_type).await?;
 
     // Construct the description for the embed
     let desc = register_localised

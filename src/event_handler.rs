@@ -1,12 +1,14 @@
-use std::collections::HashMap;
-use std::ops::Add;
-use std::sync::Arc;
-
+use moka::future::Cache;
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
-    ActivityData, CommandType, Context, EventHandler, Guild, Interaction, Member, Ready,
+    ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, Interaction,
+    Member, Ready,
 };
 use serenity::async_trait;
+use std::collections::HashMap;
+use std::ops::{Add, AddAssign};
+use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
@@ -18,13 +20,21 @@ use crate::command::run::command_dispatch::command_dispatching;
 use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_registration;
 use crate::components::components_dispatch::components_dispatching;
-use crate::constant::{BOT_INFO, COMMAND_USE_PATH, CONFIG};
+use crate::config::Config;
+use crate::constant::COMMAND_USE_PATH;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
-pub struct Handler {
-    pub number_of_command_use: Arc<RwLock<u128>>,
+pub struct BotData {
     pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
+    pub config: Arc<Config>,
+    pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
+    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
+}
+
+pub struct Handler {
+    pub bot_data: Arc<BotData>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -49,15 +59,20 @@ impl RootUsage {
             command_list: HashMap::new(),
         }
     }
+    pub fn get_total_command_use<'a>(&self) -> String {
+        let mut total = BigUint::ZERO;
+        let command_usage = self.clone();
+        for (_, user_info) in command_usage.command_list.iter() {
+            for (_, user_usage) in user_info.user_info.iter() {
+                total.add_assign(user_usage.usage)
+            }
+        }
+
+        total.to_string()
+    }
 }
 
 impl Handler {
-    // thread safe way to increment the number of command use
-    pub async fn increment_command_use(&self) {
-        let mut guard = self.number_of_command_use.write().await;
-        *guard = guard.add(1);
-    }
-
     // thread safe way to increment the number of command use per command
     pub async fn increment_command_use_per_command(
         &self,
@@ -65,7 +80,9 @@ impl Handler {
         user_id: String,
         user_name: String,
     ) {
-        let mut guard = self.number_of_command_use_per_command.write().await;
+        let bot_data = self.bot_data.clone();
+        let number_of_command_use_per_command = bot_data.number_of_command_use_per_command.clone();
+        let mut guard = number_of_command_use_per_command.write().await;
         let command_map = guard
             .command_list
             .entry(command_name)
@@ -84,7 +101,8 @@ impl Handler {
         // drop the guard
         drop(guard);
         // save the content as a json
-        match serde_json::to_string(&*self.number_of_command_use_per_command.read().await) {
+        match serde_json::to_string(&*self.bot_data.number_of_command_use_per_command.read().await)
+        {
             Ok(content) => {
                 // save the content to the file
                 if let Err(e) = std::fs::write(COMMAND_USE_PATH, content) {
@@ -111,9 +129,10 @@ impl EventHandler for Handler {
     /// If the bot has just joined a new guild, it performs color management, generates a server image, and logs a debug message.
     /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
+        let db_type = self.bot_data.config.bot.config.db_type.clone();
         if is_new.unwrap_or_default() {
-            color_management(&ctx.cache.guilds(), &ctx).await;
-            server_image_management(&ctx).await;
+            color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
+            server_image_management(&ctx, db_type).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
@@ -133,10 +152,11 @@ impl EventHandler for Handler {
     /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
+        let db_type = self.bot_data.config.bot.config.db_type.clone();
         let guild_id = member.guild_id.to_string();
         debug!("Member {} joined guild {}", member.user.tag(), guild_id);
-        color_management(&ctx.cache.guilds(), &ctx).await;
-        server_image_management(&ctx).await;
+        color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
+        server_image_management(&ctx, db_type).await;
     }
 
     /// This function is called when the bot is ready.
@@ -159,20 +179,16 @@ impl EventHandler for Handler {
     /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
     async fn ready(&self, ctx: Context, ready: Ready) {
-        let bot = ctx.http.get_current_application_info().await.unwrap();
-        unsafe {
-            BOT_INFO = Some(bot);
-        }
-
-        let command_usage = self.number_of_command_use.clone();
-
         // Spawns a new thread for managing various tasks
-        tokio::spawn(thread_management_launcher(ctx.clone(), command_usage));
+        tokio::spawn(thread_management_launcher(
+            ctx.clone(),
+            self.bot_data.clone(),
+        ));
 
         // Sets the bot's activity
-        ctx.set_activity(Some(ActivityData::custom(unsafe {
-            CONFIG.bot.bot_activity.clone()
-        })));
+        ctx.set_activity(Some(ActivityData::custom(
+            self.bot_data.config.bot.bot_activity.clone(),
+        )));
 
         // Logs a message indicating that the shard is connected
         info!(
@@ -185,7 +201,7 @@ impl EventHandler for Handler {
         info!(server_number);
 
         // Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
-        let remove_old_command = unsafe { CONFIG.bot.config.remove_old_commands };
+        let remove_old_command = self.bot_data.config.bot.config.remove_old_commands;
 
         // Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
         command_registration(&ctx.http, remove_old_command).await;
@@ -238,11 +254,11 @@ impl EventHandler for Handler {
                     command_interaction.data.options
                 );
                 if let Err(e) = command_dispatching(&ctx, &command_interaction, self).await {
-                    error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
+                    error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
                 }
             } else if command_interaction.data.kind == CommandType::User {
-                if let Err(e) = dispatch_user_command(&ctx, &command_interaction).await {
-                    error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
+                if let Err(e) = dispatch_user_command(&ctx, &command_interaction, self).await {
+                    error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
                 }
             } else if command_interaction.data.kind == CommandType::Message {
                 trace!("{:?}", command_interaction)
@@ -252,15 +268,28 @@ impl EventHandler for Handler {
                     error_type: ErrorType::Command,
                     error_response_type: ErrorResponseType::Message,
                 };
-                error_dispatch::command_dispatching(e, &command_interaction, &ctx).await
+                error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
             }
-            self.increment_command_use().await;
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
+            let db_type = self.bot_data.config.bot.config.db_type.clone();
+            let anilist_cache = self.bot_data.anilist_cache.clone();
+            let vndb_cache = self.bot_data.vndb_cache.clone();
             // Dispatch the autocomplete interaction
-            autocomplete_dispatching(ctx, autocomplete_interaction).await
+            autocomplete_dispatching(
+                ctx,
+                autocomplete_interaction,
+                anilist_cache,
+                db_type,
+                vndb_cache,
+            )
+            .await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
+            let db_type = self.bot_data.config.bot.config.db_type.clone();
+            let anilist_cache = self.bot_data.anilist_cache.clone();
             // Dispatch the component interaction
-            if let Err(e) = components_dispatching(ctx, component_interaction).await {
+            if let Err(e) =
+                components_dispatching(ctx, component_interaction, db_type, anilist_cache).await
+            {
                 // If an error occurs, log it
                 error!("{:?}", e)
             }

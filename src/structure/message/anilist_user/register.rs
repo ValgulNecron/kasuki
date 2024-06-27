@@ -29,7 +29,10 @@ pub struct RegisterLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
-pub async fn load_localization_register(guild_id: String) -> Result<RegisterLocalised, AppError> {
+pub async fn load_localization_register(
+    guild_id: String,
+    db_type: String,
+) -> Result<RegisterLocalised, AppError> {
     let path = "json/message/anilist_user/register.json";
-    load_localization(guild_id, path).await
+    load_localization(guild_id, path, db_type).await
 }

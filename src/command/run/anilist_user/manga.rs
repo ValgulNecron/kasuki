@@ -1,6 +1,4 @@
-use cynic::{GraphQlResponse, QueryBuilder};
-use serenity::all::{CommandInteraction, Context};
-
+use crate::config::Config;
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -8,6 +6,11 @@ use crate::structure::run::anilist::media::{
     send_embed, Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
     MediaQuerrySearchVariables, MediaType,
 };
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use serenity::all::{CommandInteraction, Context};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// Executes the command to fetch and display information about a manga based on its name or ID.
 ///
@@ -23,7 +26,13 @@ use crate::structure::run::anilist::media::{
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the name or ID of the manga from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map
@@ -41,7 +50,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         };
 
         let operation = MediaQuerryId::build(var);
-        let data: GraphQlResponse<MediaQuerryId> = make_request_anilist(operation, false).await?;
+        let data: GraphQlResponse<MediaQuerryId> =
+            make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().media.unwrap()
     } else {
         let var = MediaQuerrySearchVariables {
@@ -51,10 +61,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         };
         let operation = MediaQuerrySearch::build(var);
         let data: GraphQlResponse<MediaQuerrySearch> =
-            make_request_anilist(operation, false).await?;
+            make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().media.unwrap()
     };
 
     // Send an embed containing the manga data as a response to the command interaction
-    send_embed(ctx, command_interaction, data).await
+    send_embed(ctx, command_interaction, data, db_type).await
 }

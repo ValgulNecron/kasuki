@@ -1,12 +1,13 @@
-use serenity::all::{
-    ButtonStyle, CommandInteraction, Context, CreateActionRow, CreateButton, CreateEmbedFooter,
-    CreateInteractionResponse, CreateInteractionResponseMessage,
-};
-
+use crate::config::Config;
 use crate::constant::{APP_VERSION, LIBRARY};
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::bot::info::load_localization_info;
+use serenity::all::{
+    ButtonStyle, CommandInteraction, Context, CreateActionRow, CreateButton, CreateEmbedFooter,
+    CreateInteractionResponse, CreateInteractionResponseMessage,
+};
+use std::sync::Arc;
 
 /// Executes the command to display the bot's information.
 ///
@@ -22,7 +23,12 @@ use crate::structure::message::bot::info::load_localization_info;
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -30,7 +36,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     };
 
     // Load the localized information strings
-    let info_localised = load_localization_info(guild_id).await?;
+    let info_localised = load_localization_info(guild_id, db_type).await?;
 
     // Retrieve various details about the bot and the server
     let shard_count = ctx.cache.shard_count();

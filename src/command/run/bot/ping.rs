@@ -1,11 +1,12 @@
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-};
-
+use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::struct_shard_manager::ShardManagerContainer;
 use crate::structure::message::bot::ping::load_localization_ping;
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+};
+use std::sync::Arc;
 
 /// Executes the command to display the bot's ping.
 ///
@@ -20,7 +21,12 @@ use crate::structure::message::bot::ping::load_localization_ping;
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -28,7 +34,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     };
 
     // Load the localized ping strings
-    let ping_localised = load_localization_ping(guild_id).await?;
+    let ping_localised = load_localization_ping(guild_id, db_type).await?;
 
     // Retrieve the shard manager from the context data
     let data_read = ctx.data.read().await;

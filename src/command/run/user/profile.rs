@@ -1,13 +1,14 @@
-use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Member, Timestamp, User,
-};
-
+use crate::config::Config;
 use crate::constant::COLOR;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::helper::get_user_data::get_user_data;
 use crate::structure::message::user::profile::load_localization_profile;
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Member, Timestamp, User,
+};
+use std::sync::Arc;
 
 /// Executes the command to display a user's profile.
 ///
@@ -22,7 +23,12 @@ use crate::structure::message::user::profile::load_localization_profile;
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the user's name from the command interaction
     let map = get_option_map_user_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
@@ -31,11 +37,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     match user {
         Some(user) => {
             let user = get_user_data(ctx.http.clone(), user).await?;
-            profile_with_user(ctx, command_interaction, &user).await
+            profile_with_user(ctx, command_interaction, &user, db_type).await
         }
         None => {
             // If the user does not exist, display the profile of the user who triggered the command
-            profile_without_user(ctx, command_interaction).await
+            profile_without_user(ctx, command_interaction, db_type).await
         }
     }
 }
@@ -55,11 +61,12 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 async fn profile_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
     // Display the user's profile
-    profile_with_user(ctx, command_interaction, &user).await
+    profile_with_user(ctx, command_interaction, &user, db_type).await
 }
 
 /// Displays the profile of a specified user.
@@ -79,11 +86,12 @@ pub async fn profile_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Retrieve the avatar URL of the specified user
     let avatar_url = user.face();
     // Send an embed with the user's profile
-    send_embed(avatar_url, ctx, command_interaction, user).await
+    send_embed(avatar_url, ctx, command_interaction, user, db_type).await
 }
 
 /// Sends an embed with a user's profile.
@@ -109,6 +117,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -118,7 +127,7 @@ pub async fn send_embed(
     let mut fields = Vec::new();
 
     // Load the localized profile
-    let profile_localised = load_localization_profile(guild_id).await?;
+    let profile_localised = load_localization_profile(guild_id, db_type).await?;
 
     let member: Option<Member> = {
         match command_interaction.guild_id {

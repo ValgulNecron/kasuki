@@ -1,16 +1,4 @@
-use std::io::Cursor;
-
-use cynic::{GraphQlResponse, QueryBuilder};
-use image::imageops::FilterType;
-use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
-use prost::bytes::Bytes;
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage,
-};
-use uuid::Uuid;
-
+use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -20,6 +8,20 @@ use crate::structure::run::anilist::seiyuu_id::{
     Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
 };
 use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVariables};
+use cynic::{GraphQlResponse, QueryBuilder};
+use image::imageops::FilterType;
+use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
+use moka::future::Cache;
+use prost::bytes::Bytes;
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
+};
+use std::io::Cursor;
+use std::sync::Arc;
+use tokio::sync::RwLock;
+use uuid::Uuid;
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -35,7 +37,13 @@ use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVa
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("staff_name")).ok_or(AppError::new(
         String::from("There is no option"),
@@ -51,7 +59,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             per_page: Some(per_page),
         };
         let operation = SeiyuuId::build(var);
-        let data: GraphQlResponse<SeiyuuId> = make_request_anilist(operation, false).await?;
+        let data: GraphQlResponse<SeiyuuId> =
+            make_request_anilist(operation, false, anilist_cache).await?;
 
         data.data.unwrap().page.unwrap().staff.unwrap()[0]
             .clone()
@@ -62,7 +71,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
             search: Some(value),
         };
         let operation = SeiyuuSearch::build(var);
-        let data: GraphQlResponse<SeiyuuSearch> = make_request_anilist(operation, false).await?;
+        let data: GraphQlResponse<SeiyuuSearch> =
+            make_request_anilist(operation, false, anilist_cache).await?;
         let data = data.data.unwrap().page.unwrap().staff.unwrap()[0]
             .clone()
             .unwrap();
@@ -74,7 +84,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         None => String::from("0"),
     };
 
-    let seiyuu_localised = load_localization_seiyuu(guild_id).await?;
+    let seiyuu_localised = load_localization_seiyuu(guild_id, db_type).await?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 

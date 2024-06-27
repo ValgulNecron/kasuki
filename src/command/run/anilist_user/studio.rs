@@ -1,8 +1,4 @@
-use cynic::{GraphQlResponse, QueryBuilder};
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-};
-
+use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -12,6 +8,13 @@ use crate::structure::message::anilist_user::studio::load_localization_studio;
 use crate::structure::run::anilist::studio::{
     StudioQuerryId, StudioQuerryIdVariables, StudioQuerrySearch, StudioQuerrySearchVariables,
 };
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// Executes the command to fetch and display information about a studio from AniList.
 ///
@@ -27,7 +30,13 @@ use crate::structure::run::anilist::studio::{
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the name or ID of the studio from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
     let value = map.get(&String::from("studio")).ok_or(AppError::new(
@@ -41,7 +50,8 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         let id = value.parse::<i32>().unwrap();
         let var = StudioQuerryIdVariables { id: Some(id) };
         let operation = StudioQuerryId::build(var);
-        let data: GraphQlResponse<StudioQuerryId> = make_request_anilist(operation, false).await?;
+        let data: GraphQlResponse<StudioQuerryId> =
+            make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().studio.unwrap()
     } else {
         let var = StudioQuerrySearchVariables {
@@ -49,7 +59,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         };
         let operation = StudioQuerrySearch::build(var);
         let data: GraphQlResponse<StudioQuerrySearch> =
-            make_request_anilist(operation, false).await?;
+            make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().studio.unwrap()
     };
     // Retrieve the guild ID from the command interaction
@@ -59,7 +69,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     };
 
     // Load the localized studio strings
-    let studio_localised = load_localization_studio(guild_id).await?;
+    let studio_localised = load_localization_studio(guild_id, db_type).await?;
 
     // Initialize a string to store the content of the response
     let mut content = String::new();

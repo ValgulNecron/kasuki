@@ -1,6 +1,10 @@
+use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 use crate::command::run::anilist_user::character::get_character_by_id;
+use crate::config::Config;
 use crate::helper::error_management::error_enum::AppError;
 use crate::structure::run::anilist::character::send_embed;
 
@@ -17,10 +21,16 @@ use crate::structure::run::anilist::character::send_embed;
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Fetch the data of the character with ID 156323 from AniList
     let value = 156323;
-    let data = get_character_by_id(value).await?;
+    let data = get_character_by_id(value, anilist_cache).await?;
     // Send the character's data as a response to the command interaction
-    send_embed(ctx, command_interaction, data).await
+    send_embed(ctx, command_interaction, data, db_type).await
 }

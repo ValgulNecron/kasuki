@@ -1,5 +1,6 @@
 use serenity::all::{
-    ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, Timestamp,
+    ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::trace;
 
@@ -30,13 +31,15 @@ pub async fn update(
     ctx: &Context,
     component_interaction: &ComponentInteraction,
     page_number: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
-    let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
+    let list_activity_localised_text =
+        load_localization_list_activity(guild_id, db_type.clone()).await?;
 
     let guild_id = component_interaction.guild_id.ok_or(AppError::new(
         String::from("There is no guild id"),
@@ -44,10 +47,12 @@ pub async fn update(
         ErrorResponseType::None,
     ))?;
 
-    let list = get_all_server_activity(&guild_id.to_string()).await?;
+    let list = get_all_server_activity(&guild_id.to_string(), db_type).await?;
     let len = list.len();
     let actual_page: u64 = page_number.parse().unwrap();
+    trace!("{:?}", actual_page);
     let next_page: u64 = actual_page + 1;
+    let previous_page: u64 = if actual_page > 0 { actual_page - 1 } else { 0 };
 
     let activity: Vec<String> = get_formatted_activity_list(list, actual_page);
 
@@ -58,36 +63,37 @@ pub async fn update(
         .color(COLOR)
         .title(list_activity_localised_text.title)
         .description(join_activity);
+    let mut message_rep = CreateInteractionResponseMessage::new().embed(builder_message);
 
-    let mut response = EditMessage::new().embed(builder_message);
     if page_number != "0" {
-        response = response.button(
-            CreateButton::new(format!("next_user_{}", page_number))
+        message_rep = message_rep.button(
+            CreateButton::new(format!("next_activity_{}", previous_page))
                 .label(&list_activity_localised_text.previous),
         );
     }
     trace!("{:?}", len);
     trace!("{:?}", ACTIVITY_LIST_LIMIT);
-    if len > ACTIVITY_LIST_LIMIT as usize {
-        response = response.button(
+    if len > ACTIVITY_LIST_LIMIT as usize
+        && (len > (ACTIVITY_LIST_LIMIT * (actual_page + 1)) as usize)
+    {
+        message_rep = message_rep.button(
             CreateButton::new(format!("next_activity_{}", next_page))
                 .label(&list_activity_localised_text.next),
         )
     }
+    let response = CreateInteractionResponse::UpdateMessage(message_rep);
 
-    trace!("{:?}", response);
-
-    let mut message = component_interaction.message.clone();
-
-    let a = message.edit(&ctx.http, response).await;
-    trace!("{:?}", a);
-    a.map_err(|e| {
-        AppError::new(
-            format!("Error while sending the component {}", e),
-            ErrorType::Component,
-            ErrorResponseType::None,
-        )
-    })
+    component_interaction
+        .create_response(&ctx.http, response)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Error while sending the command {:?}", e),
+                ErrorType::Command,
+                ErrorResponseType::Message,
+            )
+        })?;
+    Ok(())
 }
 
 /// Formats a list of server activities into a list of strings.

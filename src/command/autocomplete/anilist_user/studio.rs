@@ -11,6 +11,9 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::studio::{
     StudioAutocomplete, StudioAutocompleteVariables,
 };
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for studio search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -35,7 +38,11 @@ use crate::structure::autocomplete::anilist::studio::{
 /// # Async
 ///
 /// This function is asynchronous. It awaits the creation of the `StudioPageWrapper` and the sending of the response.
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(
+    ctx: Context,
+    autocomplete_interaction: CommandInteraction,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let studio_search = map.get(&String::from("studio")).unwrap_or(DEFAULT_STRING);
     let var = StudioAutocompleteVariables {
@@ -43,7 +50,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     };
     let operation = StudioAutocomplete::build(var);
     let data: Result<GraphQlResponse<StudioAutocomplete>, AppError> =
-        make_request_anilist(operation, false).await;
+        make_request_anilist(operation, false, anilist_cache).await;
     let data = match data {
         Ok(data) => data,
         Err(e) => {

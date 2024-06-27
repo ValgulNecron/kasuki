@@ -1,4 +1,3 @@
-use crate::constant::CONFIG;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
@@ -45,9 +44,10 @@ use crate::helper::error_management::error_enum::AppError;
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn set_data_ping_history(ping_history: PingHistory) -> Result<(), AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
-    let db_type = db_type.as_str();
+pub async fn set_data_ping_history(
+    ping_history: PingHistory,
+    db_type: String,
+) -> Result<(), AppError> {
     if db_type == "sqlite" {
         set_data_ping_history_sqlite(ping_history).await
     } else if db_type == "postgresql" {
@@ -70,8 +70,10 @@ pub async fn set_data_ping_history(ping_history: PingHistory) -> Result<(), AppE
 /// # Returns
 ///
 /// * A Result that is either an Option variant containing the guild language if the operation was successful, or an Err variant with an AppError.
-pub async fn get_data_guild_language(guild_id: String) -> Result<Option<GuildLanguage>, AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
+pub async fn get_data_guild_language(
+    guild_id: String,
+    db_type: String,
+) -> Result<Option<GuildLanguage>, AppError> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_guild_language_sqlite(guild_id).await
@@ -96,8 +98,10 @@ pub async fn get_data_guild_language(guild_id: String) -> Result<Option<GuildLan
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn set_data_guild_language(guild_language: GuildLanguage) -> Result<(), AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
+pub async fn set_data_guild_language(
+    guild_language: GuildLanguage,
+    db_type: String,
+) -> Result<(), AppError> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_data_guild_language_sqlite(guild_language).await
@@ -121,8 +125,10 @@ pub async fn set_data_guild_language(guild_language: GuildLanguage) -> Result<()
 /// # Returns
 ///
 /// * A Result that is either a Vec variant containing the activity data if the operation was successful, or an Err variant with an AppError.
-pub async fn get_data_activity(now: String) -> Result<Vec<ServerActivityFull>, AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
+pub async fn get_data_activity(
+    now: String,
+    db_type: String,
+) -> Result<Vec<ServerActivityFull>, AppError> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_activity_sqlite(now).await
@@ -146,8 +152,10 @@ pub async fn get_data_activity(now: String) -> Result<Vec<ServerActivityFull>, A
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn set_data_activity(server_activity_full: ServerActivityFull) -> Result<(), AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
+pub async fn set_data_activity(
+    server_activity_full: ServerActivityFull,
+    db_type: String,
+) -> Result<(), AppError> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_data_activity_sqlite(server_activity_full).await
@@ -173,8 +181,8 @@ pub async fn set_data_activity(server_activity_full: ServerActivityFull) -> Resu
 /// * A Result that is either an ActivationStatusModule variant if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_module_activation_status(
     guild_id: &String,
+    db_type: String,
 ) -> Result<ActivationStatusModule, AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_module_activation_status_sqlite(guild_id).await
@@ -204,8 +212,8 @@ pub async fn get_data_module_activation_status(
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
 pub async fn set_data_module_activation_status(
     activation_status_module: ActivationStatusModule,
+    db_type: String,
 ) -> Result<(), AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_data_module_activation_status_sqlite(activation_status_module).await
@@ -233,8 +241,8 @@ pub async fn set_data_module_activation_status(
 pub async fn get_one_activity(
     anime_id: i32,
     server_id: String,
+    db_type: String,
 ) -> Result<SmallServerActivity, AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_one_activity_sqlite(server_id, anime_id).await
@@ -258,8 +266,10 @@ pub async fn get_one_activity(
 /// # Returns
 ///
 /// * A Result that is either a tuple containing the Option variants of the registered user if the operation was successful, or an Err variant with an AppError.
-pub async fn get_registered_user(user_id: &String) -> Result<Option<RegisteredUser>, AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
+pub async fn get_registered_user(
+    user_id: &String,
+    db_type: String,
+) -> Result<Option<RegisteredUser>, AppError> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_registered_user_sqlite(user_id).await
@@ -284,9 +294,10 @@ pub async fn get_registered_user(user_id: &String) -> Result<Option<RegisteredUs
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn set_registered_user(registered_user: RegisteredUser) -> Result<(), AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
-    let db_type = db_type.as_str();
+pub async fn set_registered_user(
+    registered_user: RegisteredUser,
+    db_type: String,
+) -> Result<(), AppError> {
     if db_type == "sqlite" {
         set_registered_user_sqlite(registered_user).await
     } else if db_type == "postgresql" {
@@ -306,8 +317,8 @@ pub async fn set_registered_user(registered_user: RegisteredUser) -> Result<(), 
 ///
 /// * A Result that is either an ActivationStatusModule variant if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_module_activation_kill_switch_status(
+    db_type: String,
 ) -> Result<ActivationStatusModule, AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_module_activation_kill_switch_status_sqlite().await
@@ -335,8 +346,8 @@ pub async fn get_data_module_activation_kill_switch_status(
 pub async fn remove_data_activity_status(
     server_id: String,
     anime_id: String,
+    db_type: String,
 ) -> Result<(), AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         remove_data_activity_status_sqlite(server_id, anime_id).await
@@ -368,8 +379,8 @@ pub async fn set_user_approximated_color(
     color: &String,
     pfp_url: &String,
     image: &String,
+    db_type: String,
 ) -> Result<(), AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_user_approximated_color_sqlite(user_id, color, pfp_url, image).await
@@ -393,8 +404,10 @@ pub async fn set_user_approximated_color(
 /// # Returns
 ///
 /// * A Result that is either a UserColor variant if the operation was successful, or an Err variant with an AppError.
-pub async fn get_user_approximated_color(user_id: &String) -> Result<UserColor, AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
+pub async fn get_user_approximated_color(
+    user_id: &String,
+    db_type: String,
+) -> Result<UserColor, AppError> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_user_approximated_color_sqlite(user_id).await
@@ -418,8 +431,10 @@ pub async fn get_user_approximated_color(user_id: &String) -> Result<UserColor, 
 /// # Returns
 ///
 /// * A Result that is either a Vec variant containing the ServerActivity if the operation was successful, or an Err variant with an AppError.
-pub async fn get_all_server_activity(server_id: &String) -> Result<Vec<ServerActivity>, AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
+pub async fn get_all_server_activity(
+    server_id: &String,
+    db_type: String,
+) -> Result<Vec<ServerActivity>, AppError> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_all_server_activity_sqlite(server_id).await
@@ -445,8 +460,8 @@ pub async fn get_all_server_activity(server_id: &String) -> Result<Vec<ServerAct
 /// * A Result that is either a Vec variant containing tuples of String if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_all_activity_by_server(
     server_id: &String,
+    db_type: String,
 ) -> Result<Vec<(String, String)>, AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_all_activity_by_server_sqlite(server_id).await
@@ -466,9 +481,7 @@ pub async fn get_data_all_activity_by_server(
 /// # Returns
 ///
 /// * A Result that is either a Vec variant containing UserColor if the operation was successful, or an Err variant with an AppError.
-pub async fn get_all_user_approximated_color() -> Result<Vec<UserColor>, AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
-    let db_type = db_type.as_str();
+pub async fn get_all_user_approximated_color(db_type: String) -> Result<Vec<UserColor>, AppError> {
     if db_type == "sqlite" {
         get_all_user_approximated_color_sqlite().await
     } else if db_type == "postgresql" {
@@ -499,8 +512,8 @@ pub async fn set_server_image(
     image_type: &String,
     image: &String,
     image_url: &String,
+    db_type: String,
 ) -> Result<(), AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_server_image_sqlite(server_id, image_type, image, image_url).await
@@ -528,8 +541,8 @@ pub async fn set_server_image(
 pub async fn get_server_image(
     server_id: &String,
     image_type: &String,
+    db_type: String,
 ) -> Result<(Option<String>, Option<String>), AppError> {
-    let db_type = unsafe { CONFIG.bot.config.db_type.clone() };
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_server_image_sqlite(server_id, image_type).await

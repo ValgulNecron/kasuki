@@ -5,7 +5,8 @@ use serenity::all::{
 };
 use tracing::error;
 
-use crate::constant::{COLOR, CONFIG};
+use crate::constant::COLOR;
+use crate::event_handler::Handler;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 /// ERROR_MESSAGE is a constant string that contains the default error message
@@ -29,18 +30,21 @@ pub async fn command_dispatching(
     error: AppError,
     command_interaction: &CommandInteraction,
     ctx: &Context,
+    self_handler: &Handler,
 ) {
     error!("{}", error);
     let response_type = error.error_response_type.clone();
     match response_type {
-        ErrorResponseType::Message => match send_error(error, command_interaction, ctx).await {
-            Ok(_) => {}
-            Err(e) => {
-                error!("{}", e);
+        ErrorResponseType::Message => {
+            match send_error(error, command_interaction, ctx, self_handler).await {
+                Ok(_) => {}
+                Err(e) => {
+                    error!("{}", e);
+                }
             }
-        },
+        }
         ErrorResponseType::Followup => {
-            match send_differed_error(error, command_interaction, ctx).await {
+            match send_differed_error(error, command_interaction, ctx, self_handler).await {
                 Ok(_) => {}
                 Err(e) => {
                     error!("{}", e);
@@ -48,14 +52,16 @@ pub async fn command_dispatching(
             }
         }
         ErrorResponseType::Unknown => {
-            match send_error(error.clone(), command_interaction, ctx).await {
+            match send_error(error.clone(), command_interaction, ctx, self_handler).await {
                 Ok(_) => {}
-                Err(_) => match send_differed_error(error, command_interaction, ctx).await {
-                    Ok(_) => {}
-                    Err(e) => {
-                        error!("{}", e);
+                Err(_) => {
+                    match send_differed_error(error, command_interaction, ctx, self_handler).await {
+                        Ok(_) => {}
+                        Err(e) => {
+                            error!("{}", e);
+                        }
                     }
-                },
+                }
             }
         }
         ErrorResponseType::None => {}
@@ -80,10 +86,11 @@ async fn send_error(
     e: AppError,
     command_interaction: &CommandInteraction,
     ctx: &Context,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
     // censor url and token in the error message
-    let error_message = censor_url_and_token(error_message);
+    let error_message = censor_url_and_token(error_message, self_handler);
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
@@ -124,8 +131,11 @@ async fn send_differed_error(
     e: AppError,
     command_interaction: &CommandInteraction,
     ctx: &Context,
+    self_handler: &Handler,
 ) -> Result<(), AppError> {
     let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
+    // censor url and token in the error message
+    let error_message = censor_url_and_token(error_message, self_handler);
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
@@ -160,9 +170,9 @@ async fn send_differed_error(
 /// # Returns
 ///
 /// * `String` - A String which is the censored error message.
-fn censor_url_and_token(error_message: String) -> String {
+fn censor_url_and_token(error_message: String, self_handler: &Handler) -> String {
+    let config = self_handler.bot_data.config.clone();
     let mut error_message = error_message;
-    let config = unsafe { CONFIG.clone() };
     let discord_token = config.bot.discord_token.clone();
     let image_token = config.ai.image.ai_image_token.clone().unwrap_or_default();
     let transcript_token = config

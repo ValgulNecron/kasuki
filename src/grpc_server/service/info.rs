@@ -1,17 +1,19 @@
 use std::sync::Arc;
 
-use serenity::all::{Cache, CurrentApplicationInfo, Http, ShardManager};
+use crate::config::Config;
+use crate::constant::APP_VERSION;
+use crate::custom_serenity_impl::{InternalMembershipState, InternalTeamMemberRole};
+use crate::event_handler::{BotData, RootUsage};
+use crate::grpc_server::service::info::proto::info_server::{Info, InfoServer};
+use crate::grpc_server::service::info::proto::{
+    BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, InfoRequest, InfoResponse,
+    OwnerInfo, ShardStats, SystemInfoData, TeamMember,
+};
+use serenity::all::{Cache, Http, ShardManager};
 use sysinfo::System;
 use tokio::sync::RwLock;
 use tonic::{Request, Response, Status};
 use tracing::trace;
-
-use crate::constant::{APP_VERSION, CONFIG};
-use crate::grpc_server::service::info::proto::info_server::{Info, InfoServer};
-use crate::grpc_server::service::info::proto::{
-    BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, InfoRequest, InfoResponse,
-    OwnerInfo, ShardStats, SystemInfoData,
-};
 
 // Proto module contains the protobuf definitions for the shard service
 pub(crate) mod proto {
@@ -23,13 +25,14 @@ pub(crate) mod proto {
 }
 
 pub struct InfoService {
-    pub bot_info: Arc<CurrentApplicationInfo>,
+    pub bot_info: Arc<BotData>,
     pub sys: Arc<RwLock<System>>,
     pub os_info: Arc<os_info::Info>,
-    pub command_usage: Arc<RwLock<u128>>,
+    pub command_usage: Arc<RwLock<RootUsage>>,
     pub shard_manager: Arc<ShardManager>,
     pub cache: Arc<Cache>,
     pub http: Arc<Http>,
+    pub config: Arc<Config>,
 }
 
 #[tonic::async_trait]
@@ -39,7 +42,10 @@ impl Info for InfoService {
         _request: Request<InfoRequest>,
     ) -> Result<Response<InfoResponse>, Status> {
         trace!("Got a info request");
-        let bot_info_data = self.bot_info.clone();
+        let bot_data = self.bot_info.clone();
+
+        let guard = bot_data.bot_info.read().await.clone();
+        let bot_info_data = guard.ok_or(Status::internal("Failed to get the bot info."))?;
         let sys = self.sys.clone();
         let os_info = self.os_info.clone();
         sys.write().await.refresh_all();
@@ -68,9 +74,7 @@ impl Info for InfoService {
         // bot stat
         let uptime = process.run_time();
         let uptime = format!("{}s", uptime);
-        let command_usage_guard = self.command_usage.read().await;
-        let number_of_commands_executed: u128 = *command_usage_guard;
-        let number_of_commands_executed = number_of_commands_executed as i64;
+        let number_of_commands_executed = self.command_usage.read().await.get_total_command_use();
         let number_of_members = self.cache.user_count() as i64;
         let number_of_guilds = self.cache.guild_count() as i64;
         let stat = Some(BotStat {
@@ -91,7 +95,7 @@ impl Info for InfoService {
         let name = bot_info_data.name.clone();
         let version = APP_VERSION.to_string();
         let id = bot_info_data.id;
-        let bot_activity = unsafe { CONFIG.bot.bot_activity.clone() };
+        let bot_activity = self.config.bot.bot_activity.clone();
         let description = bot_info_data.description.clone();
         let bot_data = self.http.clone().get_current_user().await;
         let id = id.to_string();
@@ -124,8 +128,11 @@ impl Info for InfoService {
         let id = bot_owner.id;
         let owner_data = self.http.clone().get_user(id).await;
         let id = id.to_string();
-        let owner_info = match owner_data {
-            Ok(user) => {
+        let team = bot_info_data.team.clone();
+        trace!(?team);
+
+        let owner_info = match (owner_data, team) {
+            (Ok(user), None) => {
                 let profile_picture = user.face();
                 let banner = user.banner_url();
                 Some(OwnerInfo {
@@ -133,7 +140,66 @@ impl Info for InfoService {
                     id,
                     profile_picture,
                     banner,
+                    team_owned: false,
+                    team_members: Vec::new(),
+                    team_owner: None,
                 })
+            }
+            (_, Some(team)) => {
+                let name = team.name;
+                let id = team.id.to_string();
+                let icon_hash = match team.icon {
+                    Some(icon) => icon.to_string(),
+                    None => String::from("1"),
+                };
+                let profile_picture = format!(
+                    "https://cdn.discordapp.com/team-icons/{}.png?size=2048",
+                    icon_hash
+                );
+                let owner_id = team.owner_user_id;
+                let mut team_members = vec![];
+                let mut team_owner = None;
+                for member in team.members {
+                    let owner_id = owner_id.to_string();
+                    let role: InternalTeamMemberRole = member.role.into();
+                    let membership_state: InternalMembershipState = member.membership_state.into();
+                    let user = member.user;
+                    let username = user.name.clone();
+                    let id = user.id.to_string();
+                    let profile_picture = user.face();
+                    let banner = user.banner_url();
+                    trace!(id);
+                    trace!(owner_id);
+                    if id == owner_id {
+                        team_owner = Some(TeamMember {
+                            role: role.to_string(),
+                            membership_state: membership_state.to_string(),
+                            username,
+                            id,
+                            profile_picture,
+                            banner,
+                        });
+                        continue;
+                    }
+                    team_members.push(TeamMember {
+                        role: role.to_string(),
+                        membership_state: membership_state.to_string(),
+                        username,
+                        id,
+                        profile_picture,
+                        banner,
+                    });
+                }
+                let owner_info = OwnerInfo {
+                    name,
+                    id,
+                    profile_picture,
+                    banner: None,
+                    team_owned: true,
+                    team_members,
+                    team_owner,
+                };
+                Some(owner_info)
             }
             _ => None,
         };

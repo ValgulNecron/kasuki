@@ -16,7 +16,7 @@ message InfoResponse {
 
 message BotStat {
     string uptime = 1;
-    int64 number_of_commands_executed = 2;
+    string number_of_commands_executed = 2;
     int64 number_of_members = 3;
     int64 number_of_guilds = 4;
     repeated ShardStats shard_info = 5;
@@ -52,6 +52,18 @@ message OwnerInfo {
     string id = 2;
     string profile_picture = 3;
     optional string banner = 4;
+    bool team_owned = 5;
+    repeated TeamMember team_members = 6;
+    optional TeamMember team_owner = 7;
+}
+
+message TeamMember {
+    string role = 1;
+    string membership_state = 2;
+    string username = 3;
+    string id = 4;
+            string profile_picture = 5;
+    optional   string  banner = 6;
 }
 
 message BotInfoData {

@@ -3,9 +3,11 @@ use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 use tracing::trace;
 
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
+use crate::config::Config;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::database::manage::dispatcher::data_dispatch::get_all_server_activity;
 use crate::helper::create_default_embed::get_default_embed;
@@ -37,13 +39,19 @@ use crate::structure::message::anilist_server::list_all_activity::load_localizat
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
-    let list_activity_localised_text = load_localization_list_activity(guild_id).await?;
+    let list_activity_localised_text =
+        load_localization_list_activity(guild_id, db_type.clone()).await?;
 
     let guild_id = command_interaction.guild_id.ok_or(AppError::new(
         String::from("There is no guild id"),
@@ -63,7 +71,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
                 ErrorResponseType::Message,
             )
         })?;
-    let list = get_all_server_activity(&guild_id.to_string()).await?;
+    let list = get_all_server_activity(&guild_id.to_string(), db_type).await?;
     let len = list.len();
     let next_page = 1;
 

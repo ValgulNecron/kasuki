@@ -1,3 +1,8 @@
+use crate::config::Config;
+use crate::database::manage::dispatcher::data_dispatch::get_server_image;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -5,13 +10,9 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseMessage,
 };
 use serenity::builder::CreateInteractionResponseFollowup;
+use std::sync::Arc;
 use tracing::trace;
 use uuid::Uuid;
-
-use crate::database::manage::dispatcher::data_dispatch::get_server_image;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 
 /// Executes the command to send an embed with the server's profile picture.
 ///
@@ -25,8 +26,13 @@ use crate::structure::message::server::generate_image_pfp_server::load_localizat
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
-    send_embed(ctx, command_interaction, "local").await
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
+    send_embed(ctx, command_interaction, "local", db_type).await
 }
 
 /// Sends an embed with the server's profile picture.
@@ -47,6 +53,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     image_type: &str,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -56,7 +63,7 @@ pub async fn send_embed(
 
     // Load the localized text for the server's profile picture image
     let pfp_server_image_localised_text =
-        load_localization_pfp_server_image(guild_id.clone()).await?;
+        load_localization_pfp_server_image(guild_id.clone(), db_type.clone()).await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -74,7 +81,7 @@ pub async fn send_embed(
         })?;
 
     // Retrieve the server's profile picture image
-    let image = get_server_image(&guild_id, &image_type.to_string())
+    let image = get_server_image(&guild_id, &image_type.to_string(), db_type)
         .await?
         .1
         .unwrap_or_default();

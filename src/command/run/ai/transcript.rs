@@ -1,3 +1,11 @@
+use crate::config::Config;
+use crate::constant::DEFAULT_STRING;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::{
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
+};
+use crate::structure::message::ai::transcript::load_localization_transcript;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
 use serde_json::Value;
@@ -6,16 +14,9 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::sync::Arc;
 use tracing::trace;
 use uuid::Uuid;
-
-use crate::constant::{CONFIG, DEFAULT_STRING};
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::{
-    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
-};
-use crate::structure::message::ai::transcript::load_localization_transcript;
 
 /// This asynchronous function runs the command interaction for transcribing an audio or video file.
 ///
@@ -42,7 +43,12 @@ use crate::structure::message::ai::transcript::load_localization_transcript;
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand(command_interaction);
     let attachment_map = get_option_map_attachment_subcommand(command_interaction);
     let prompt = map
@@ -73,7 +79,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         None => String::from("0"),
     };
 
-    let transcript_localised = load_localization_transcript(guild_id).await?;
+    let transcript_localised = load_localization_transcript(guild_id, db_type).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
         return Err(AppError::new(
@@ -140,18 +146,20 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
     })?;
     let uuid_name = Uuid::new_v4().to_string();
 
-    let ai_config = unsafe { CONFIG.ai.clone() };
-    let token = ai_config
+    let token = config
+        .ai
         .transcription
         .ai_transcription_token
         .clone()
         .unwrap_or_default();
-    let model = ai_config
+    let model = config
+        .ai
         .transcription
         .ai_transcription_model
         .clone()
         .unwrap_or_default();
-    let api_base_url = ai_config
+    let api_base_url = config
+        .ai
         .transcription
         .ai_transcription_base_url
         .clone()

@@ -1,29 +1,27 @@
-use std::sync::Arc;
-
+use moka::future::Cache;
 use serenity::all::{GatewayIntents, ShardManager};
 use serenity::Client;
+use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
-use struct_shard_manager::ShardManagerContainer;
-
-use crate::constant::COMMAND_USE_PATH;
-use crate::constant::CONFIG;
+use crate::config::Config;
+use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
-use crate::event_handler::{Handler, RootUsage};
+use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
-use crate::struct_shard_manager::RootUsageContainer;
+use crate::struct_shard_manager::ShardManagerContainer;
 
-mod api;
 mod background_task;
-mod cache;
 mod command;
 mod command_register;
 mod components;
 mod config;
-pub(crate) mod constant;
+mod constant;
+mod custom_serenity_impl;
 mod database;
-pub(crate) mod event_handler;
+mod event_handler;
 mod federation;
 mod grpc_server;
 mod helper;
@@ -31,14 +29,12 @@ mod logger;
 mod struct_shard_manager;
 mod structure;
 mod tui;
-
 #[tokio::main]
 /// The main function where the execution of the bot starts.
 /// It initializes the logger, the SQL database, and the bot client.
 /// It also spawns asynchronous tasks for managing the ping of the shards and starting the client.
 async fn main() {
     println!("Preparing bot environment please wait...");
-
     // read config.toml as string
     let config = match std::fs::read_to_string("config.toml") {
         Ok(config) => config,
@@ -47,20 +43,24 @@ async fn main() {
             std::process::exit(1);
         }
     };
-    let config: config::Config = match toml::from_str(&config) {
+    let config: Config = match toml::from_str(&config) {
         Ok(config) => config,
         Err(e) => {
             eprintln!("Error while parsing config.toml: {:?}", e);
             std::process::exit(1);
         }
     };
-    unsafe {
-        *CONFIG = config.clone();
-    }
+    let log = config.logging.log_level.clone();
+    let app_tui = config.bot.config.tui;
+    let discord_token = config.bot.discord_token.clone();
+    let db_type = config.bot.config.db_type.clone();
+    let db_type = db_type.as_str();
+    let max_log_retention_days = config.logging.max_log_retention;
+    let tui = config.bot.config.tui;
+    let config = Arc::new(config);
 
     // Get the log level from the environment variable "RUST_LOG".
     // If the variable is not set, default to "info".
-    let log = config.logging.log_level;
     let log = log.as_str();
 
     // Create the log directory.
@@ -72,12 +72,11 @@ async fn main() {
 
     // Initialize the logger with the specified log level.
     // If an error occurs, print the error and return.
-    if let Err(e) = init_logger(log) {
+    if let Err(e) = init_logger(log, max_log_retention_days, tui) {
         eprintln!("{:?}", e);
         std::process::exit(2);
     }
 
-    let app_tui = config.bot.config.tui;
     if app_tui {
         // create a new tui in a new thread
         tokio::spawn(async {
@@ -93,12 +92,11 @@ async fn main() {
 
     // Initialize the SQL database.
     // If an error occurs, log the error and return.
-    if let Err(e) = init_sql_database().await {
+    if let Err(e) = init_sql_database(db_type).await {
         error!("{:?}", e);
         std::process::exit(4);
     }
 
-    let number_of_command_use = Arc::new(RwLock::new(0u128));
     let number_of_command_use_per_command: RootUsage;
     // populate the number_of_command_use_per_command with the content of the file
     if let Ok(content) = std::fs::read_to_string(COMMAND_USE_PATH) {
@@ -107,18 +105,33 @@ async fn main() {
     } else {
         number_of_command_use_per_command = RootUsage::new();
     }
+
     let number_of_command_use_per_command =
         Arc::new(RwLock::new(number_of_command_use_per_command));
-    let handler = Handler {
-        number_of_command_use,
-        number_of_command_use_per_command: number_of_command_use_per_command.clone(),
-    };
+    let cache: Cache<String, String> = Cache::builder()
+        .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
+        .max_capacity(CACHE_MAX_CAPACITY)
+        .build();
+    let anilist_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
+    let cache: Cache<String, String> = Cache::builder()
+        .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
+        .max_capacity(CACHE_MAX_CAPACITY)
+        .build();
+    let vndb_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
+    let bot_data: Arc<BotData> = Arc::new(BotData {
+        number_of_command_use_per_command,
+        config,
+        bot_info: Arc::new(RwLock::new(None)),
+        anilist_cache,
+        vndb_cache,
+    });
+    let handler = Handler { bot_data };
 
     // Get all the non-privileged intent.
     let gateway_intent_non_privileged = GatewayIntents::non_privileged();
     // Get the needed privileged intent.
-    let gateway_intent_privileged = GatewayIntents::GUILD_PRESENCES
-        | GatewayIntents::GUILD_MEMBERS
+    let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
+        // | GatewayIntents::GUILD_PRESENCES
         //         | GatewayIntents::MESSAGE_CONTENT
         ;
     // Combine both intents for the client to consume.
@@ -130,7 +143,6 @@ async fn main() {
     // Create a new client instance using the provided token and gateway intents.
     // The client is built with an event handler of type `Handler`.
     // If the client creation fails, log the error and exit the process.
-    let discord_token = config.bot.discord_token;
     let discord_token = discord_token.as_str();
     let mut client = Client::builder(discord_token, gateway_intent)
         .event_handler(handler)
@@ -139,22 +151,16 @@ async fn main() {
             error!("Error while creating client: {}", e);
             std::process::exit(5);
         });
-
-    // Clone the shard manager from the client.
     let shard_manager = client.shard_manager.clone();
-    let shutdown = shard_manager.clone();
-    // Insert the cloned shard manager into the client's data.
-    // This allows for the shard manager to be accessed from the context in event handlers.
     client
         .data
         .write()
         .await
         .insert::<ShardManagerContainer>(Arc::clone(&shard_manager));
-    client
-        .data
-        .write()
-        .await
-        .insert::<RootUsageContainer>(Arc::clone(&number_of_command_use_per_command));
+
+    // Clone the shard manager from the client.
+    let shard_manager = client.shard_manager.clone();
+    let shutdown = shard_manager.clone();
 
     // Spawn a new asynchronous task for starting the client.
     // If the client fails to start, log the error.

@@ -1,14 +1,15 @@
-use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp, User,
-};
-
+use crate::config::Config;
 use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::helper::get_user_data::get_user_data;
 use crate::structure::message::user::avatar::load_localization_avatar;
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp, User,
+};
+use std::sync::Arc;
 
 /// Executes the command to display a user's avatar.
 ///
@@ -23,7 +24,12 @@ use crate::structure::message::user::avatar::load_localization_avatar;
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Result<(), AppError> {
+pub async fn run(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    config: Arc<Config>,
+) -> Result<(), AppError> {
+    let db_type = config.bot.config.db_type.clone();
     // Retrieve the user's name from the command interaction
     let map = get_option_map_user_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
@@ -33,11 +39,11 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
         Some(user) => {
             let user = get_user_data(ctx.http.clone(), user).await?;
             // If the user exists, retrieve the user's information and display their avatar
-            avatar_with_user(ctx, command_interaction, &user).await
+            avatar_with_user(ctx, command_interaction, &user, db_type).await
         }
         None => {
             // If the user does not exist, display the avatar of the user who triggered the command
-            avatar_without_user(ctx, command_interaction).await
+            avatar_without_user(ctx, command_interaction, db_type).await
         }
     }
 }
@@ -57,11 +63,12 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction) -> Res
 async fn avatar_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
+    db_type: String,
 ) -> Result<(), AppError> {
     // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
     // Display the user's avatar
-    avatar_with_user(ctx, command_interaction, &user).await
+    avatar_with_user(ctx, command_interaction, &user, db_type).await
 }
 
 /// Displays the avatar of a specified user.
@@ -82,6 +89,7 @@ pub async fn avatar_with_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: &User,
+    db_type: String,
 ) -> Result<(), AppError> {
     let avatar_url = user.face();
     let guild_id = command_interaction.guild_id.unwrap_or_default();
@@ -96,6 +104,7 @@ pub async fn avatar_with_user(
         command_interaction,
         user.name.clone(),
         server_avatar,
+        db_type,
     )
     .await
 }
@@ -122,13 +131,14 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     username: String,
     server_avatar: Option<String>,
+    db_type: String,
 ) -> Result<(), AppError> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
-    let avatar_localised = load_localization_avatar(guild_id).await?;
+    let avatar_localised = load_localization_avatar(guild_id, db_type).await?;
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())

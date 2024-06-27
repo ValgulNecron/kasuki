@@ -23,7 +23,10 @@ use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
 
-pub async fn load_localization_stats(guild_id: String) -> Result<StatsLocalised, AppError> {
+pub async fn load_localization_stats(
+    guild_id: String,
+    db_type: String,
+) -> Result<StatsLocalised, AppError> {
     let path = "json/message/vn/stats.json";
-    load_localization(guild_id, path).await
+    load_localization(guild_id, path, db_type).await
 }

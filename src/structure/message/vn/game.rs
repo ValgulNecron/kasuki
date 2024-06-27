@@ -20,7 +20,10 @@ pub struct GameLocalised {
     pub characters: String,
 }
 
-pub async fn load_localization_game(guild_id: String) -> Result<GameLocalised, AppError> {
+pub async fn load_localization_game(
+    guild_id: String,
+    db_type: String,
+) -> Result<GameLocalised, AppError> {
     let path = "json/message/vn/game.json";
-    load_localization(guild_id, path).await
+    load_localization(guild_id, path, db_type).await
 }

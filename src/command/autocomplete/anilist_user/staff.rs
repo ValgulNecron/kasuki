@@ -11,6 +11,9 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::staff::{
     StaffAutocomplete, StaffAutocompleteVariables,
 };
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for staff search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -36,7 +39,11 @@ use crate::structure::autocomplete::anilist::staff::{
 /// # Async
 ///
 /// This function is asynchronous. It awaits the creation of the `StaffPageWrapper` and the sending of the response.
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(
+    ctx: Context,
+    autocomplete_interaction: CommandInteraction,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let staff_search = map
         .get(&String::from("staff_name"))
@@ -46,7 +53,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     };
     let operation = StaffAutocomplete::build(var);
     let data: Result<GraphQlResponse<StaffAutocomplete>, AppError> =
-        make_request_anilist(operation, false).await;
+        make_request_anilist(operation, false, anilist_cache).await;
     let data = match data {
         Ok(data) => data,
         Err(e) => {

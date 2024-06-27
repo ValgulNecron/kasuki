@@ -45,9 +45,13 @@ pub struct CharacterRoot {
     pub more: bool,
     pub results: Vec<Character>,
 }
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 pub async fn get_character(
     value: String,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<CharacterRoot, crate::helper::error_management::error_enum::AppError> {
     let value = value.to_lowercase();
     let value = value.trim();
@@ -65,9 +69,12 @@ pub async fn get_character(
 		}"#).to_string()
     };
     let path = "/character".to_string();
-    let response =
-        crate::helper::vndbapi::common::do_request_cached_with_json(path.clone(), json.to_string())
-            .await?;
+    let response = crate::helper::vndbapi::common::do_request_cached_with_json(
+        path.clone(),
+        json.to_string(),
+        vndb_cache,
+    )
+    .await?;
     let response: CharacterRoot = serde_json::from_str(&response).map_err(|e| {
         crate::helper::error_management::error_enum::AppError {
             message: format!("Error while parsing response: '{}'", e),

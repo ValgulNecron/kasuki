@@ -6,11 +6,18 @@ use tracing::trace;
 
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::vndbapi::character::{get_character, Character};
+use moka::future::Cache;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(
+    ctx: Context,
+    autocomplete_interaction: CommandInteraction,
+    vndb_cache: Arc<RwLock<Cache<String, String>>>,
+) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let game = map.get(&String::from("name")).unwrap();
-    let char = get_character(game.clone()).await.unwrap();
+    let char = get_character(game.clone(), vndb_cache).await.unwrap();
     let vn_result = char.results;
     // take the 25 first results
     let characters: Vec<Character> = vn_result.iter().take(25).cloned().collect();

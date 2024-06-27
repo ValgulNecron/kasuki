@@ -42,7 +42,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 ///
 /// This function will return an error if there's a problem retrieving the user's color from the database,
 /// calculating the user's color, or updating the user's color in the database.
-pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError> {
+pub async fn calculate_users_color(members: Vec<Member>, db_type: String) -> Result<(), AppError> {
     let local_copy_user_blacklist = unsafe { USER_BLACKLIST_SERVER_IMAGE.read().await.clone() };
     for member in members {
         if local_copy_user_blacklist.contains(&member.user.id.to_string()) {
@@ -53,11 +53,12 @@ pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError>
 
         let id = member.user.id.to_string();
 
-        let user_color: UserColor = get_user_approximated_color(&id).await?;
+        let user_color: UserColor = get_user_approximated_color(&id, db_type.clone()).await?;
         let pfp_url_old = user_color.pfp_url.clone();
         if pfp_url != pfp_url_old.unwrap_or_default() {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
-            set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?
+            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type.clone())
+                .await?
         }
         sleep(Duration::from_millis(100)).await
     }
@@ -85,6 +86,7 @@ pub async fn calculate_users_color(members: Vec<Member>) -> Result<(), AppError>
 /// calculating the user's color, or updating the user's color in the database.
 pub async fn return_average_user_color(
     members: Vec<Member>,
+    db_type: String,
 ) -> Result<Vec<(String, String, String)>, AppError> {
     let mut average_colors = Vec::new();
     for member in members {
@@ -92,13 +94,19 @@ pub async fn return_average_user_color(
             .replace("?size=1024", "?size=64");
         let id = member.user.id.to_string();
 
-        let user_color: UserColor = get_user_approximated_color(&id).await?;
+        let user_color: UserColor = get_user_approximated_color(&id, db_type.clone()).await?;
         let color = user_color.color.clone();
         let pfp_url_old = user_color.pfp_url.clone();
         let image_old = user_color.image;
-        if pfp_url != pfp_url_old.clone().unwrap_or_default() {
+        if color.is_none() || pfp_url_old.is_none() || image_old.is_none() {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
-            set_user_approximated_color(&id, &average_color, &pfp_url, &image).await?;
+            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type.clone())
+                .await?;
+            average_colors.push((average_color, pfp_url, image))
+        } else if pfp_url != pfp_url_old.clone().unwrap_or_default() {
+            let (average_color, image): (String, String) = calculate_user_color(member).await?;
+            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type.clone())
+                .await?;
             average_colors.push((average_color, pfp_url, image))
         } else {
             average_colors.push((color.unwrap(), pfp_url_old.unwrap(), image_old.unwrap()))
@@ -165,7 +173,13 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
             img.height(),
             ExtendedColorType::Rgba8,
         )
-        .unwrap();
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to encode image. {}", e),
+                ErrorType::File,
+                ErrorResponseType::None,
+            )
+        })?;
 
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
     let image = format!("data:image/png;base64,{}", base64_image);
@@ -253,7 +267,7 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
 /// # Errors
 ///
 /// This function will log an error if there's a problem calculating the color for any member.
-pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context) {
+pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context, db_type: String) {
     let mut futures = FuturesUnordered::new();
     for guild in guilds {
         let guild_id = guild.to_string();
@@ -273,7 +287,7 @@ pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context) {
         debug!("{}: {}", guild_id, result.len());
         members.append(&mut result);
     }
-    match calculate_users_color(members.into_iter().collect()).await {
+    match calculate_users_color(members.into_iter().collect(), db_type).await {
         Ok(_) => {}
         Err(e) => error!("{:?}", e),
     };
@@ -301,16 +315,22 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
     let mut members_temp_out: Vec<Member> = Vec::new();
     while members_temp_out.len() == (1000 * i) {
         let mut members_temp_in = if i == 0 {
-            guild
-                .members(&ctx_clone.http, Some(1000), None)
-                .await
-                .unwrap()
+            match guild.members(&ctx_clone.http, Some(1000), None).await {
+                Ok(members) => members,
+                Err(e) => {
+                    error!("{}", e);
+                    break;
+                }
+            }
         } else {
             let user: UserId = members_temp_out.last().unwrap().user.id;
-            guild
-                .members(&ctx_clone.http, Some(1000), Some(user))
-                .await
-                .unwrap()
+            match guild.members(&ctx_clone.http, Some(1000), Some(user)).await {
+                Ok(members) => members,
+                Err(e) => {
+                    error!("{}", e);
+                    break;
+                }
+            }
         };
         i += 1;
         members_temp_out.append(&mut members_temp_in);
