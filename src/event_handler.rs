@@ -31,6 +31,7 @@ pub struct BotData {
     pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
     pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    pub already_launched: RwLock<bool>,
 }
 
 pub struct Handler {
@@ -41,6 +42,7 @@ pub struct Handler {
 pub struct UserUsage {
     pub user_name: String,
     pub usage: u128,
+    pub hourly_usage: HashMap<String, u128>
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -95,8 +97,14 @@ impl Handler {
             .or_insert_with(|| UserUsage {
                 user_name,
                 usage: 0,
+                hourly_usage: Default::default(),
             });
         user_map.usage = user_map.usage.add(1);
+        // create a timestamp in format dd:mm:aaaa:hh
+        let timestamp = chrono::Local::now().format("%d:%m:%Y:%H").to_string();
+        // insert or update the hourly usage
+        let hourly_usage = user_map.hourly_usage.entry(timestamp).or_insert(0);
+        *hourly_usage += 1;
 
         // drop the guard
         drop(guard);
@@ -151,13 +159,13 @@ impl EventHandler for Handler {
     /// The function performs color management, generates a server image, and logs a trace message.
     /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
-    async fn guild_member_addition(&self, ctx: Context, member: Member) {
+    /*async fn guild_member_addition(&self, ctx: Context, member: Member) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
         let guild_id = member.guild_id.to_string();
         debug!("Member {} joined guild {}", member.user.tag(), guild_id);
         color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
         server_image_management(&ctx, db_type).await;
-    }
+    }*/
 
     /// This function is called when the bot is ready.
     ///
@@ -179,12 +187,18 @@ impl EventHandler for Handler {
     /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
     async fn ready(&self, ctx: Context, ready: Ready) {
+
+
         // Spawns a new thread for managing various tasks
-        tokio::spawn(thread_management_launcher(
+        let guard = self.bot_data.already_launched.read().await;
+        if *guard == false{
+            tokio::spawn(thread_management_launcher(
             ctx.clone(),
             self.bot_data.clone(),
         ));
-
+            let write_guard = self.bot_data.already_launched.write().await;
+            *write_guard = true;
+    }
         // Sets the bot's activity
         ctx.set_activity(Some(ActivityData::custom(
             self.bot_data.config.bot.bot_activity.clone(),

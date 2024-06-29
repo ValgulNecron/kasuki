@@ -130,12 +130,12 @@ async fn main() {
     // Get all the non-privileged intent.
     let gateway_intent_non_privileged = GatewayIntents::non_privileged();
     // Get the needed privileged intent.
-    let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
+   // let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
         // | GatewayIntents::GUILD_PRESENCES
         //         | GatewayIntents::MESSAGE_CONTENT
         ;
     // Combine both intents for the client to consume.
-    let gateway_intent = gateway_intent_non_privileged | gateway_intent_privileged;
+    let gateway_intent = gateway_intent_non_privileged; // | gateway_intent_privileged;
 
     // Log a message indicating the bot is starting.
     info!("Finished preparing the environment. Starting the bot.");
