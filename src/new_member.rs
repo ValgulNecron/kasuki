@@ -1,5 +1,4 @@
 use crate::constant::{NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
-use crate::event_handler::Handler;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use image::{DynamicImage, ImageFormat};
 use serde::{Deserialize, Serialize};
@@ -26,7 +25,7 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
         serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
     let guild_specific = hashmap
         .get(&guild_id.to_string())
-        .unwrap_or_else(|| &NewMemberSetting {
+        .unwrap_or(&NewMemberSetting {
             custom_channel: false,
             channel_id: 0,
             custom_image: false,

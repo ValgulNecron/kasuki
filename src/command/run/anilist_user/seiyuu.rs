@@ -73,9 +73,43 @@ pub async fn run(
         let operation = SeiyuuSearch::build(var);
         let data: GraphQlResponse<SeiyuuSearch> =
             make_request_anilist(operation, false, anilist_cache).await?;
-        let data = data.data.unwrap().page.unwrap().staff.unwrap()[0]
-            .clone()
-            .unwrap();
+        let data = match data.data {
+            Some(data) => match data.page {
+                Some(page) => match page.staff {
+                    Some(staff) => match staff[0].clone() {
+                        Some(staff) => staff,
+                        None => {
+                            return Err(AppError::new(
+                                String::from("No data found"),
+                                ErrorType::Option,
+                                ErrorResponseType::Followup,
+                            ))
+                        }
+                    },
+                    None => {
+                        return Err(AppError::new(
+                            String::from("No data found"),
+                            ErrorType::Option,
+                            ErrorResponseType::Followup,
+                        ))
+                    }
+                },
+                None => {
+                    return Err(AppError::new(
+                        String::from("No data found"),
+                        ErrorType::Option,
+                        ErrorResponseType::Followup,
+                    ))
+                }
+            },
+            None => {
+                return Err(AppError::new(
+                    String::from("No data found"),
+                    ErrorType::Option,
+                    ErrorResponseType::Followup,
+                ))
+            }
+        };
         Staff::from(data)
     };
 

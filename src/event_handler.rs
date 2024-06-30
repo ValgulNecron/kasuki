@@ -191,7 +191,7 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         // Spawns a new thread for managing various tasks
         let guard = self.bot_data.already_launched.read().await;
-        if *guard == false {
+        if !(*guard) {
             tokio::spawn(thread_management_launcher(
                 ctx.clone(),
                 self.bot_data.clone(),
