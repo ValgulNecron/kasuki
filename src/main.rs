@@ -138,7 +138,9 @@ async fn main() {
         //         | GatewayIntents::MESSAGE_CONTENT
         ;
     // Combine both intents for the client to consume.
-    let gateway_intent = gateway_intent_non_privileged | gateway_intent_privileged;
+    let mut intent = gateway_intent_non_privileged;
+    intent = intent | gateway_intent_privileged;
+    let gateway_intent = intent;
 
     // Log a message indicating the bot is starting.
     info!("Finished preparing the environment. Starting the bot.");

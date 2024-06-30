@@ -22,8 +22,8 @@ tui = false
 # Determines where to save generated images. Options include local, remote, or false.
 save_image = "local"
 
-# The server to save media to. Options include imgur or catbox.
-save_server = "imgur"
+# The server to save media to. Options include catbox.
+save_server = "catbox"
 
 # Authentication token required for the chosen media saving server.
 token = ""

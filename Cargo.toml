@@ -12,7 +12,7 @@ license-file = "LICENSE"
 
 [dependencies]
 regex = "1.10.5"
-reqwest = { version = "0.12.4", features = ["json", "multipart", "blocking"] }
+reqwest = { version = "0.12.5", features = ["json", "multipart", "blocking"] }
 serde = "1.0.203"
 serde_json = "1.0.117"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "current", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils", "full", "unstable_discord_api"] }
@@ -30,8 +30,6 @@ tracing-core = "0.1.32"
 serde_with = { version = "3.8.1", features = ["macros"] }
 rust-fuzzy-search = "0.1.1"
 palette = "0.7.6"
-catbox = "0.8.2"
-imgurs = "0.11.2"
 tracing-appender = "0.2.3"
 tonic = { version = "0.11.0", features = ["tls"] }
 prost = "0.12.6"
@@ -50,6 +48,7 @@ cynic = { version = "3.7.3", features = ["reqwest", "http-reqwest", "serde_json"
 moka = { version = "0.12.7", features = ["future"] }
 toml = "0.8.14"
 num-bigint = "0.4.5"
+text-to-png = "0.2.0"
 
 [build-dependencies]
 tonic-build = "0.11.0"

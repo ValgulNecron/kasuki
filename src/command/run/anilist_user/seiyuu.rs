@@ -80,7 +80,7 @@ pub async fn run(
                         Some(staff) => staff,
                         None => {
                             return Err(AppError::new(
-                                String::from("No data found"),
+                                String::from("No data found 4"),
                                 ErrorType::Option,
                                 ErrorResponseType::Followup,
                             ))
@@ -88,7 +88,7 @@ pub async fn run(
                     },
                     None => {
                         return Err(AppError::new(
-                            String::from("No data found"),
+                            String::from("No data found 3"),
                             ErrorType::Option,
                             ErrorResponseType::Followup,
                         ))
@@ -96,7 +96,7 @@ pub async fn run(
                 },
                 None => {
                     return Err(AppError::new(
-                        String::from("No data found"),
+                        String::from("No data found 2"),
                         ErrorType::Option,
                         ErrorResponseType::Followup,
                     ))
@@ -104,7 +104,7 @@ pub async fn run(
             },
             None => {
                 return Err(AppError::new(
-                    String::from("No data found"),
+                    String::from("No data found 1 "),
                     ErrorType::Option,
                     ErrorResponseType::Followup,
                 ))
