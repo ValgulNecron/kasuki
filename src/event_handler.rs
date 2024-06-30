@@ -16,7 +16,7 @@ use crate::background_task::background_launcher::thread_management_launcher;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::command::run::command_dispatch::command_dispatching;
+use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_registration;
 use crate::components::components_dispatch::components_dispatching;
@@ -161,12 +161,18 @@ impl EventHandler for Handler {
     /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
-        new_member_message(&ctx, &member).await;
         let db_type = self.bot_data.config.bot.config.db_type.clone();
         let guild_id = member.guild_id.to_string();
-        debug!("Member {} joined guild {}", member.user.tag(), guild_id);
+        debug!(
+            "Member {} joined guild {}",
+            member.user.tag(),
+            guild_id.clone()
+        );
         color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
         server_image_management(&ctx, db_type).await;
+        let is_module_on = check_if_module_is_on(guild_id.clone(), "NEW_MEMBER", db_type.clone());
+        if is_module_on {}
+        new_member_message(&ctx, &member).await;
     }
 
     /// This function is called when the bot is ready.

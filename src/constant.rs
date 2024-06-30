@@ -52,6 +52,7 @@ App embed color.
 /// Color for the app embed.
 pub const COLOR: Colour = Colour::FABLED_PINK;
 pub const TUI_FG_COLOR: Color = Color::Rgb(250, 177, 237);
+pub const HEX_COLOR: &str = "#FAB1ED";
 
 /// Log level for other crates.
 pub const OTHER_CRATE_LEVEL: &str = "warn";

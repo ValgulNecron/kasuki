@@ -1,11 +1,14 @@
-use crate::constant::{NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
+use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage, ImageFormat};
 use serde::{Deserialize, Serialize};
-use serenity::all::{ChannelId, Context, Member};
+use serenity::all::{Attachment, ChannelId, Context, CreateMessage, Member};
+use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Cursor;
+use text_to_png::TextRenderer;
 use tracing::error;
 
 pub async fn new_member_message(ctx: &Context, member: &Member) {
@@ -19,7 +22,6 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             return;
         }
     };
-    let guild_name = partial_guild.name.clone();
     let content = fs::read_to_string(NEW_MEMBER_PATH).unwrap_or_else(|_| String::new());
     let hashmap: HashMap<String, NewMemberSetting> =
         serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
@@ -38,13 +40,6 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
         match partial_guild.system_channel_id {
             Some(channel_id) => channel_id,
             None => return,
-        }
-    };
-    let channel = match channel_id.to_channel(&ctx.http).await {
-        Ok(channel) => channel,
-        Err(e) => {
-            error!("Failed to get the channel. {}", e);
-            return;
         }
     };
 
@@ -106,6 +101,49 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             error!("Failed to overlay the image. {}", e);
         }
     }
+
+    let renderer = TextRenderer::default();
+    let text_png = match renderer.render_text_to_png_data(user_name, 52, HEX_COLOR) {
+        Ok(text_png) => text_png,
+        Err(e) => {
+            error!("Failed to render the text to png. {}", e);
+            return;
+        }
+    };
+    let text_image = match image::load_from_memory(&text_png.data) {
+        Ok(image) => image,
+        Err(e) => {
+            error!("Failed to load the image. {}", e);
+            return;
+        }
+    };
+    let text_image_width = text_image.width();
+    let text_image_height = text_image.height();
+    let x = (guild_image_width - text_image_width) / 2;
+    let y = (guild_image_height - text_image_height) / 2 - (image_height / 2 + image_height / 16);
+    match guild_image.copy_from(&text_image, x, y) {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Failed to overlay the image. {}", e);
+        }
+    }
+    let rgba8_image = guild_image.to_rgba8();
+    let mut bytes: Vec<u8> = Vec::new();
+    match rgba8_image.write_to(&mut Cursor::new(&mut bytes), WebP) {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Failed to write the image to the buffer. {}", e);
+            return;
+        }
+    };
+    let attachement = CreateAttachment::bytes(bytes, "new_member.webp");
+    let builder = CreateMessage::new().add_file(attachement);
+    match channel_id.send_message(&ctx.http, builder).await {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Failed to send the message. {}", e);
+        }
+    };
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
