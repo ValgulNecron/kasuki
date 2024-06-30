@@ -139,7 +139,7 @@ async fn main() {
         ;
     // Combine both intents for the client to consume.
     let mut intent = gateway_intent_non_privileged;
-    intent = intent | gateway_intent_privileged;
+    intent |= gateway_intent_privileged;
     let gateway_intent = intent;
 
     // Log a message indicating the bot is starting.

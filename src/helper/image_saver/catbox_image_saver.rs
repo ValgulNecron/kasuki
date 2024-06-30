@@ -1,6 +1,6 @@
 // Importing necessary libraries and modules
 use reqwest::multipart;
-use std::{env, fs};
+use std::{env};
 use tracing::debug;
 
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -35,7 +35,7 @@ pub async fn upload_image_catbox(filename: String, image_data: Vec<u8>) -> Resul
         Err(e) => return Err(e),
     };
 
-    let mut form = multipart::Form::new()
+    let form = multipart::Form::new()
         .text("reqtype", "fileupload")
         .text("userhash", token)
         .part(

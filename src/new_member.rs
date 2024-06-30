@@ -104,9 +104,8 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
         Ok(_) => {}
         Err(e) => {
             error!("Failed to overlay the image. {}", e);
-            return;
         }
-    };
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
