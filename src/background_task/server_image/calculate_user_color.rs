@@ -318,7 +318,7 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
             match guild.members(&ctx_clone.http, Some(1000), None).await {
                 Ok(members) => members,
                 Err(e) => {
-                    error!("{}", e);
+                    error!("{:?}", e);
                     break;
                 }
             }
@@ -327,7 +327,7 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
             match guild.members(&ctx_clone.http, Some(1000), Some(user)).await {
                 Ok(members) => members,
                 Err(e) => {
-                    error!("{}", e);
+                    error!("{:?}", e);
                     break;
                 }
             }

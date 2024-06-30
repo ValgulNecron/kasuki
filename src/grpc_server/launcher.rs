@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::config::{Config, GrpcCfg};
-use crate::constant::{BOT_COMMANDS};
+use crate::constant::BOT_COMMANDS;
 use crate::event_handler::{BotData, RootUsage};
 use crate::grpc_server::command_list::get_list_of_all_command;
 use crate::grpc_server::service;

@@ -24,6 +24,7 @@ use crate::config::Config;
 use crate::constant::COMMAND_USE_PATH;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::new_member::new_member_message;
 
 pub struct BotData {
     pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
@@ -42,7 +43,7 @@ pub struct Handler {
 pub struct UserUsage {
     pub user_name: String,
     pub usage: u128,
-    pub hourly_usage: HashMap<String, u128>
+    pub hourly_usage: HashMap<String, u128>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -159,13 +160,14 @@ impl EventHandler for Handler {
     /// The function performs color management, generates a server image, and logs a trace message.
     /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
-    /*async fn guild_member_addition(&self, ctx: Context, member: Member) {
+    async fn guild_member_addition(&self, ctx: Context, member: Member) {
+        new_member_message(&ctx, &member).await;
         let db_type = self.bot_data.config.bot.config.db_type.clone();
         let guild_id = member.guild_id.to_string();
         debug!("Member {} joined guild {}", member.user.tag(), guild_id);
         color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
         server_image_management(&ctx, db_type).await;
-    }*/
+    }
 
     /// This function is called when the bot is ready.
     ///
@@ -187,18 +189,16 @@ impl EventHandler for Handler {
     /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
     async fn ready(&self, ctx: Context, ready: Ready) {
-
-
         // Spawns a new thread for managing various tasks
         let guard = self.bot_data.already_launched.read().await;
-        if *guard == false{
+        if *guard == false {
             tokio::spawn(thread_management_launcher(
-            ctx.clone(),
-            self.bot_data.clone(),
-        ));
-            let write_guard = self.bot_data.already_launched.write().await;
+                ctx.clone(),
+                self.bot_data.clone(),
+            ));
+            let mut write_guard = self.bot_data.already_launched.write().await;
             *write_guard = true;
-    }
+        }
         // Sets the bot's activity
         ctx.set_activity(Some(ActivityData::custom(
             self.bot_data.config.bot.bot_activity.clone(),

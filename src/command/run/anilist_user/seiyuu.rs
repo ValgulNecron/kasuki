@@ -99,7 +99,16 @@ pub async fn run(
             )
         })?;
     let mut buffers: Vec<Bytes> = Vec::new();
-    let staff_image = staff.image.unwrap();
+    let staff_image = match staff.image {
+        Some(image) => image,
+        None => {
+            return Err(AppError::new(
+                String::from("No image found"),
+                ErrorType::Option,
+                ErrorResponseType::Followup,
+            ))
+        }
+    };
     let url = get_staff_image(staff_image);
     let response = reqwest::get(url).await.map_err(|e| {
         AppError::new(

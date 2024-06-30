@@ -52,16 +52,19 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let hourly_limit= true;
-    if hourly_limit{
+    let hourly_limit = true;
+    if hourly_limit {
         let need_premium = PremiumRequired;
-        command_interaction.create_response(&ctx.http,need_premium).await.map_err(|e|{
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            )
-        })?;
+        command_interaction
+            .create_response(&ctx.http, need_premium)
+            .await
+            .map_err(|e| {
+                AppError::new(
+                    format!("Error while sending the command {}", e),
+                    ErrorType::Option,
+                    ErrorResponseType::Message,
+                )
+            })?;
         return Ok(());
     }
 

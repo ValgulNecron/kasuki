@@ -44,6 +44,8 @@ pub const ACTIVITY_LIST_LIMIT: u64 = 10;
 pub const SQLITE_DB_PATH: &str = "db/data.db";
 pub const COMMAND_USE_PATH: &str = "db/command_use.json";
 pub const RANDOM_STATS_PATH: &str = "db/random_stats.json";
+pub const NEW_MEMBER_PATH: &str = "db/new_member.json";
+pub const NEW_MEMBER_IMAGE_PATH: &str = "new_member_image/";
 /*
 App embed color.
  */

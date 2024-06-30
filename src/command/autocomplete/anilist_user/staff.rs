@@ -62,7 +62,20 @@ pub async fn autocomplete(
         }
     };
     let mut choices = Vec::new();
-    let staffs = data.data.unwrap().page.unwrap().staff.unwrap();
+    let staffs = match data.data {
+        Some(data) => match data.page {
+            Some(page) => match page.staff {
+                Some(staff) => staff,
+                None => {
+                    return;
+                }
+            },
+            None => {
+                return;
+            }
+        },
+        None => return,
+    };
 
     for staff in staffs {
         let data = staff.unwrap();
