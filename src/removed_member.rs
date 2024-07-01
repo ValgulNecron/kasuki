@@ -1,10 +1,11 @@
 use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::structure::message::new_member::load_localization_new_member;
+use crate::new_member::{create_default_new_member_image, load_new_member_image, NewMemberSetting};
+use crate::structure::message::removed_member::load_localization_removed_member;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage, ImageFormat};
 use serde::{Deserialize, Serialize};
-use serenity::all::{Attachment, ChannelId, Context, CreateMessage, Member};
+use serenity::all::{Attachment, ChannelId, Context, CreateMessage, GuildId, Member, User};
 use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
 use std::fs;
@@ -12,11 +13,10 @@ use std::io::Cursor;
 use text_to_png::TextRenderer;
 use tracing::{error, trace};
 
-pub async fn new_member_message(ctx: &Context, member: &Member) {
+pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User) {
     trace!("New member message.");
     let ctx = ctx.clone();
-    let user_name = member.user.name.clone();
-    let guild_id = member.guild_id;
+    let user_name = user.name.clone();
     let partial_guild = match guild_id.to_partial_guild(&ctx.http).await {
         Ok(guild) => guild,
         Err(e) => {
@@ -74,7 +74,7 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             return;
         }
     };
-    let avatar = member.user.face().replace("size=1024", "size=128");
+    let avatar = user.face().replace("size=1024", "size=128");
     trace!(avatar);
     let client = reqwest::Client::new();
     let res = match client.get(avatar).send().await {
@@ -113,9 +113,10 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             error!("Failed to overlay the image. {}", e);
         }
     }
-    let local = match load_localization_new_member(guild_id.to_string(), "db".to_string()).await {
-        Ok(local) => local.welcome,
-        Err(_) => "Welcome $user$".to_string(),
+    let local = match load_localization_removed_member(guild_id.to_string(), "db".to_string()).await
+    {
+        Ok(local) => local.bye,
+        Err(_) => "$user$ quited the server".to_string(),
     };
     let text = local.replace("$user$", &user_name);
     let renderer = TextRenderer::default();
@@ -144,9 +145,8 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             error!("Failed to overlay the image. {}", e);
         }
     }
-    let join_data = member.joined_at.unwrap_or_default();
-    // timestamp in format mm/dd/yyyy hh:mm:ss
-    let join_data = join_data.format("%m/%d/%Y %H:%M:%S").to_string();
+    let now = chrono::Utc::now();
+    let join_data = now.format("%m/%d/%Y %H:%M:%S").to_string();
     let renderer = TextRenderer::default();
     let text_png = match renderer.render_text_to_png_data(join_data, 52, HEX_COLOR) {
         Ok(text_png) => text_png,
@@ -191,42 +191,4 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             error!("Failed to send the message. {}", e);
         }
     };
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NewMemberSetting {
-    pub custom_channel: bool,
-    pub channel_id: u64,
-    pub custom_image: bool,
-    pub show_username: bool,
-    pub show_time_join: bool,
-}
-
-pub fn load_new_member_image(guild_id: String) -> Option<Vec<u8>> {
-    // load the image from the file
-    let path = format!("{}{}.png", NEW_MEMBER_IMAGE_PATH, guild_id);
-    let image = fs::read(path);
-    match image {
-        Ok(image) => Some(image),
-        Err(e) => {
-            error!("Failed to load the image. {}", e);
-            None
-        }
-    }
-}
-
-pub fn create_default_new_member_image() -> Result<Vec<u8>, AppError> {
-    let width = 2000;
-    let height = width / 4;
-    let img = DynamicImage::new_rgba8(width, height);
-    let mut bytes: Vec<u8> = Vec::new();
-    img.write_to(&mut Cursor::new(&mut bytes), WebP)
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to write the image to the buffer. {}", e),
-                ErrorType::Image,
-                ErrorResponseType::None,
-            )
-        })?;
-    Ok(bytes)
 }

@@ -27,6 +27,7 @@ mod grpc_server;
 mod helper;
 mod logger;
 mod new_member;
+mod removed_member;
 mod struct_shard_manager;
 mod structure;
 mod tui;

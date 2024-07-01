@@ -2,8 +2,8 @@ use moka::future::Cache;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
-    ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, Interaction,
-    Member, Ready,
+    ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,
+    Interaction, Member, Ready, User,
 };
 use serenity::async_trait;
 use std::collections::HashMap;
@@ -25,6 +25,7 @@ use crate::constant::COMMAND_USE_PATH;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::new_member::new_member_message;
+use crate::removed_member::removed_member_message;
 
 pub struct BotData {
     pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
@@ -168,13 +169,34 @@ impl EventHandler for Handler {
             member.user.tag(),
             guild_id.clone()
         );
-        color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
-        server_image_management(&ctx, db_type).await;
-        let is_module_on = check_if_module_is_on(guild_id.clone(), "NEW_MEMBER", db_type.clone());
-        if is_module_on {}
+        let is_module_on = check_if_module_is_on(guild_id.clone(), "NEW_MEMBER", db_type.clone())
+            .await
+            .unwrap_or_else(|e| {
+                error!("Failed to get the module status. {}", e);
+                false
+            });
         new_member_message(&ctx, &member).await;
+        color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
+        server_image_management(&ctx, db_type.clone()).await;
     }
 
+    async fn guild_member_removal(
+        &self,
+        ctx: Context,
+        guild_id: GuildId,
+        user: User,
+        member_data_if_available: Option<Member>,
+    ) {
+        let db_type = self.bot_data.config.bot.config.db_type.clone();
+        let is_module_on =
+            check_if_module_is_on(guild_id.to_string().clone(), "NEW_MEMBER", db_type.clone())
+                .await
+                .unwrap_or_else(|e| {
+                    error!("Failed to get the module status. {}", e);
+                    false
+                });
+        removed_member_message(&ctx, guild_id, user).await
+    }
     /// This function is called when the bot is ready.
     ///
     /// # Arguments

@@ -1,0 +1,14 @@
+{
+  "en": {
+    "bye": "$user$ quited the server"
+  },
+  "fr": {
+    "bye": "$user$ a quitté le serveur"
+  },
+  "jp": {
+    "bye": "$user$ さんがサーバーから退出しました"
+  },
+  "de": {
+    "bye": "$user$ hat den Server verlassen"
+  }
+}

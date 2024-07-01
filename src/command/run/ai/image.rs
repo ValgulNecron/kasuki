@@ -52,7 +52,7 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let hourly_limit = true;
+    let hourly_limit = false;
     if hourly_limit {
         let need_premium = PremiumRequired;
         command_interaction
@@ -187,7 +187,7 @@ pub async fn run(
     let url = url.as_str();
     trace!(token);
     trace!("{}", url);
-    let res: Value = client
+    let res = client
         .post(url)
         .headers(headers)
         .json(&data)
@@ -195,20 +195,21 @@ pub async fn run(
         .await
         .map_err(|e| {
             AppError::new(
-                format!("Failed to get the response from the server. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Followup,
-            )
-        })?
-        .json()
-        .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to get the response from the server. {}", e),
+                format!("Failed to send data. {}", e),
                 ErrorType::WebRequest,
                 ErrorResponseType::Followup,
             )
         })?;
+    trace!(?res);
+    let res = res.json().await.map_err(|e| {
+        AppError::new(
+            format!("Failed to get the response from the server. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
+    })?;
+    trace!(?res);
+
     let bytes = get_image_from_response(res).await?;
 
     if n == 1 {
