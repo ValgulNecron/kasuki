@@ -5,6 +5,7 @@ use crate::structure::message::removed_member::load_localization_removed_member;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage, ImageFormat};
 use serde::{Deserialize, Serialize};
+use serenity::all::audit_log::Action;
 use serenity::all::{Attachment, ChannelId, Context, CreateMessage, GuildId, Member, User};
 use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
@@ -100,6 +101,33 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         }
     };
 
+    // get server audit log
+    let audit_log = match guild_id
+        .audit_logs(&ctx.http, None, Some(user.id.clone()), None, Some(1))
+        .await
+    {
+        Ok(audit_log) => audit_log,
+        Err(e) => {
+            error!("Failed to get the audit log. {}", e);
+            return;
+        }
+    };
+    let mut reason = if audit_log.entries.is_empty() {
+        "User left".to_string()
+    } else {
+        "".to_string()
+    };
+    let internal_action: InternalAction = audit_log.entries[0].action.into();
+    reason = if internal_action == InternalAction::Member(BanAdd) {
+        let a = audit_log.entries[0].clone().reason.unwrap_or_default();
+        format!("User Banned for {}", a)
+    } else if internal_action == InternalAction::Member(Kick) {
+        let a = audit_log.entries[0].clone().reason.unwrap_or_default();
+        format!("User kicked for {}", a)
+    } else {
+        "User left".to_string()
+    };
+
     let guild_image_width = guild_image.width();
     let guild_image_height = guild_image.height();
     let image_width = image.width();
@@ -118,7 +146,9 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         Ok(local) => local.bye,
         Err(_) => "$user$ quited the server".to_string(),
     };
-    let text = local.replace("$user$", &user_name);
+    let text = local
+        .replace("$user$", &user_name)
+        .replace("$reason$", &reason);
     let renderer = TextRenderer::default();
     let text_png = match renderer.render_text_to_png_data(text, 52, HEX_COLOR) {
         Ok(text_png) => text_png,
@@ -192,3 +222,7 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         }
     };
 }
+
+use crate::custom_serenity_impl::InternalAction;
+use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
+use std::cmp::PartialEq;

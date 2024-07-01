@@ -177,7 +177,9 @@ impl EventHandler for Handler {
             });
         new_member_message(&ctx, &member).await;
         color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
-        server_image_management(&ctx, db_type.clone()).await;
+        if is_module_on {
+            server_image_management(&ctx, db_type.clone()).await;
+        }
     }
 
     async fn guild_member_removal(
@@ -195,7 +197,9 @@ impl EventHandler for Handler {
                     error!("Failed to get the module status. {}", e);
                     false
                 });
-        removed_member_message(&ctx, guild_id, user).await
+        if is_module_on {
+            removed_member_message(&ctx, guild_id, user).await
+        }
     }
     /// This function is called when the bot is ready.
     ///

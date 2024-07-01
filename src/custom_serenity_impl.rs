@@ -1,4 +1,5 @@
-use serenity::all::{MembershipState, TeamMemberRole};
+use serenity::all::audit_log::Action;
+use serenity::all::{MemberAction, MembershipState, TeamMemberRole};
 use std::fmt::Display;
 
 pub enum InternalTeamMemberRole {
@@ -60,6 +61,57 @@ impl Display for InternalMembershipState {
             _ => {
                 write!(f, "Unknown")
             }
+        }
+    }
+}
+
+pub enum InternalAction {
+    Member(InternalMemberAction),
+    Other,
+}
+
+pub enum InternalMemberAction {
+    BanAdd,
+    Kick,
+    Other,
+}
+
+impl PartialEq for InternalAction {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (InternalAction::Member(a), InternalAction::Member(b)) => a == b,
+            (InternalAction::Other, InternalAction::Other) => true,
+            _ => false,
+        }
+    }
+}
+
+impl PartialEq for InternalMemberAction {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (InternalMemberAction::BanAdd, InternalMemberAction::BanAdd) => true,
+            (InternalMemberAction::Kick, InternalMemberAction::Kick) => true,
+            (InternalMemberAction::Other, InternalMemberAction::Other) => true,
+            _ => false,
+        }
+    }
+}
+
+impl From<Action> for InternalAction {
+    fn from(action: Action) -> Self {
+        match action {
+            Action::Member(a) => InternalAction::Member(a.into()),
+            _ => InternalAction::Other,
+        }
+    }
+}
+
+impl From<MemberAction> for InternalMemberAction {
+    fn from(action: MemberAction) -> Self {
+        match action {
+            MemberAction::BanAdd => InternalMemberAction::BanAdd,
+            MemberAction::Kick => InternalMemberAction::Kick,
+            _ => InternalMemberAction::Other,
         }
     }
 }
