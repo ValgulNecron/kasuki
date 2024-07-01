@@ -1,12 +1,9 @@
-use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::constant::{HEX_COLOR, NEW_MEMBER_PATH};
 use crate::new_member::{create_default_new_member_image, load_new_member_image, NewMemberSetting};
 use crate::structure::message::removed_member::load_localization_removed_member;
 use image::ImageFormat::WebP;
-use image::{DynamicImage, GenericImage, ImageFormat};
-use serde::{Deserialize, Serialize};
-use serenity::all::audit_log::Action;
-use serenity::all::{Attachment, ChannelId, Context, CreateMessage, GuildId, Member, User};
+use image::{GenericImage};
+use serenity::all::{ChannelId, Context, CreateMessage, GuildId, User};
 use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
 use std::fs;
@@ -103,7 +100,7 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
 
     // get server audit log
     let audit_log = match guild_id
-        .audit_logs(&ctx.http, None, Some(user.id.clone()), None, Some(1))
+        .audit_logs(&ctx.http, None, Some(user.id), None, Some(1))
         .await
     {
         Ok(audit_log) => audit_log,
@@ -225,4 +222,3 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
 
 use crate::custom_serenity_impl::InternalAction;
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
-use std::cmp::PartialEq;
