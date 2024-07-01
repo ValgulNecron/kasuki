@@ -1,13 +1,6 @@
-use crate::config::Config;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
-use crate::structure::run::anilist::seiyuu_id::{
-    Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
-};
-use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVariables};
+use std::io::Cursor;
+use std::sync::Arc;
+
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
@@ -18,10 +11,19 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::io::Cursor;
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
+
+use crate::config::Config;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
+use crate::structure::run::anilist::seiyuu_id::{
+    Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
+};
+use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVariables};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///
@@ -73,9 +75,43 @@ pub async fn run(
         let operation = SeiyuuSearch::build(var);
         let data: GraphQlResponse<SeiyuuSearch> =
             make_request_anilist(operation, false, anilist_cache).await?;
-        let data = data.data.unwrap().page.unwrap().staff.unwrap()[0]
-            .clone()
-            .unwrap();
+        let data = match data.data {
+            Some(data) => match data.page {
+                Some(page) => match page.staff {
+                    Some(staff) => match staff[0].clone() {
+                        Some(staff) => staff,
+                        None => {
+                            return Err(AppError::new(
+                                String::from("No data found 4"),
+                                ErrorType::Option,
+                                ErrorResponseType::Followup,
+                            ))
+                        }
+                    },
+                    None => {
+                        return Err(AppError::new(
+                            String::from("No data found 3"),
+                            ErrorType::Option,
+                            ErrorResponseType::Followup,
+                        ))
+                    }
+                },
+                None => {
+                    return Err(AppError::new(
+                        String::from("No data found 2"),
+                        ErrorType::Option,
+                        ErrorResponseType::Followup,
+                    ))
+                }
+            },
+            None => {
+                return Err(AppError::new(
+                    String::from("No data found 1 "),
+                    ErrorType::Option,
+                    ErrorResponseType::Followup,
+                ))
+            }
+        };
         Staff::from(data)
     };
 
@@ -99,7 +135,16 @@ pub async fn run(
             )
         })?;
     let mut buffers: Vec<Bytes> = Vec::new();
-    let staff_image = staff.image.unwrap();
+    let staff_image = match staff.image {
+        Some(image) => image,
+        None => {
+            return Err(AppError::new(
+                String::from("No image found"),
+                ErrorType::Option,
+                ErrorResponseType::Followup,
+            ))
+        }
+    };
     let url = get_staff_image(staff_image);
     let response = reqwest::get(url).await.map_err(|e| {
         AppError::new(

@@ -1,5 +1,7 @@
-use moka::future::Cache;
 use std::sync::Arc;
+
+use moka::future::Cache;
+use serenity::all::{CommandInteraction, Context};
 use tokio::sync::RwLock;
 
 use crate::constant::DEFAULT_STRING;
@@ -7,7 +9,6 @@ use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_su
 use crate::structure::autocomplete::anilist::media::{
     send_auto_complete, MediaAutocompleteVariables, MediaFormat, MediaType,
 };
-use serenity::all::{CommandInteraction, Context};
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for light novel search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.

@@ -1,3 +1,17 @@
+use std::sync::Arc;
+
+use prost::bytes::Bytes;
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+use serenity::all::CreateInteractionResponse::{Defer, PremiumRequired};
+use serenity::all::{
+    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
+};
+use tracing::{info, trace};
+use uuid::Uuid;
+
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::create_default_embed::get_default_embed;
@@ -6,18 +20,6 @@ use crate::helper::get_option::subcommand::{
     get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
 use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
-use prost::bytes::Bytes;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage,
-};
-use std::sync::Arc;
-use tracing::{info, trace};
-use uuid::Uuid;
 
 /// This module contains the implementation of the `run` function for handling AI image generation.
 ///
@@ -51,6 +53,22 @@ pub async fn run(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+
+    let hourly_limit = false;
+    if hourly_limit {
+        let need_premium = PremiumRequired;
+        command_interaction
+            .create_response(&ctx.http, need_premium)
+            .await
+            .map_err(|e| {
+                AppError::new(
+                    format!("Error while sending the command {}", e),
+                    ErrorType::Option,
+                    ErrorResponseType::Message,
+                )
+            })?;
+        return Ok(());
+    }
 
     let map = get_option_map_string_subcommand(command_interaction);
     trace!("{:#?}", map);
@@ -171,7 +189,7 @@ pub async fn run(
     let url = url.as_str();
     trace!(token);
     trace!("{}", url);
-    let res: Value = client
+    let res = client
         .post(url)
         .headers(headers)
         .json(&data)
@@ -179,20 +197,21 @@ pub async fn run(
         .await
         .map_err(|e| {
             AppError::new(
-                format!("Failed to get the response from the server. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Followup,
-            )
-        })?
-        .json()
-        .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to get the response from the server. {}", e),
+                format!("Failed to send data. {}", e),
                 ErrorType::WebRequest,
                 ErrorResponseType::Followup,
             )
         })?;
+    trace!(?res);
+    let res = res.json().await.map_err(|e| {
+        AppError::new(
+            format!("Failed to get the response from the server. {}", e),
+            ErrorType::WebRequest,
+            ErrorResponseType::Followup,
+        )
+    })?;
+    trace!(?res);
+
     let bytes = get_image_from_response(res).await?;
 
     if n == 1 {

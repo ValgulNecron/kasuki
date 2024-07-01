@@ -1,4 +1,8 @@
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serde::{Deserialize, Serialize};
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::helper::error_management::error_enum::AppError;
@@ -20,10 +24,6 @@ pub struct Stats {
 
     pub vn: i32,
 }
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
-
 pub async fn get_stats(vndb_cache: Arc<RwLock<Cache<String, String>>>) -> Result<Stats, AppError> {
     let path = "/stats".to_string();
     let response = do_request_cached(path.clone(), vndb_cache).await?;

@@ -17,6 +17,7 @@ services:
       - ./logs/:/kasuki/logs/
       - ./server_image:/kasuki/server_image/
       - ./cert:/kasuki/cert/
+      - ./new_member_image:/kasuki/new_member_image
       - ./config.toml:/kasuki/config.toml
       - /etc/localtime:/etc/localtime:ro
 

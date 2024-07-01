@@ -1,8 +1,11 @@
+use std::sync::Arc;
+
+use moka::future::Cache;
 use once_cell::sync::Lazy;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
-use std::sync::Arc;
+use tokio::sync::RwLock;
 
 use crate::command::run::anilist_user::user::get_user;
 use crate::config::Config;
@@ -13,8 +16,6 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
-use moka::future::Cache;
-use tokio::sync::RwLock;
 
 /// Executes the command to display a user's level based on their anime and manga statistics.
 ///

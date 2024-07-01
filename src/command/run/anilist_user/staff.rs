@@ -1,3 +1,12 @@
+use std::sync::Arc;
+
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+};
+use tokio::sync::RwLock;
+
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
@@ -7,13 +16,6 @@ use crate::structure::message::anilist_user::staff::load_localization_staff;
 use crate::structure::run::anilist::staff::{
     StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch, StaffQuerrySearchVariables,
 };
-use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-};
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///

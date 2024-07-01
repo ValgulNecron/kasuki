@@ -1,15 +1,17 @@
-use crate::config::Config;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::structure::message::anime::random_image::load_localization_random_image;
+use std::sync::Arc;
+
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::sync::Arc;
 use uuid::Uuid;
+
+use crate::config::Config;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::structure::message::anime::random_image::load_localization_random_image;
 
 /// Executes the command to fetch and display a random image from the waifu.pics API.
 ///

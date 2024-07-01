@@ -62,8 +62,8 @@ message TeamMember {
     string membership_state = 2;
     string username = 3;
     string id = 4;
-            string profile_picture = 5;
-    optional   string  banner = 6;
+    string profile_picture = 5;
+    optional string banner = 6;
 }
 
 message BotInfoData {

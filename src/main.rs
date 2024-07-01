@@ -1,8 +1,9 @@
+use std::sync::Arc;
+use std::time::Duration;
+
 use moka::future::Cache;
 use serenity::all::{GatewayIntents, ShardManager};
 use serenity::Client;
-use std::sync::Arc;
-use std::time::Duration;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
@@ -26,9 +27,12 @@ mod federation;
 mod grpc_server;
 mod helper;
 mod logger;
+mod new_member;
+mod removed_member;
 mod struct_shard_manager;
 mod structure;
 mod tui;
+
 #[tokio::main]
 /// The main function where the execution of the bot starts.
 /// It initializes the logger, the SQL database, and the bot client.
@@ -124,6 +128,7 @@ async fn main() {
         bot_info: Arc::new(RwLock::new(None)),
         anilist_cache,
         vndb_cache,
+        already_launched: false.into(),
     });
     let handler = Handler { bot_data };
 
@@ -135,7 +140,9 @@ async fn main() {
         //         | GatewayIntents::MESSAGE_CONTENT
         ;
     // Combine both intents for the client to consume.
-    let gateway_intent = gateway_intent_non_privileged | gateway_intent_privileged;
+    let mut intent = gateway_intent_non_privileged;
+    intent |= gateway_intent_privileged;
+    let gateway_intent = intent;
 
     // Log a message indicating the bot is starting.
     info!("Finished preparing the environment. Starting the bot.");

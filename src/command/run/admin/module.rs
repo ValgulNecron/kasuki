@@ -1,3 +1,9 @@
+use std::sync::Arc;
+
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+};
+
 use crate::config::Config;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::manage::dispatcher::data_dispatch::{
@@ -9,10 +15,6 @@ use crate::helper::get_option::subcommand_group::{
     get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
 use crate::structure::message::admin::module::load_localization_module_activation;
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-};
-use std::sync::Arc;
 
 /// This asynchronous function runs the command interaction for setting the activation status of a module.
 ///

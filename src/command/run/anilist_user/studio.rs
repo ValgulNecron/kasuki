@@ -1,3 +1,12 @@
+use std::sync::Arc;
+
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+};
+use tokio::sync::RwLock;
+
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::create_default_embed::get_default_embed;
@@ -8,13 +17,6 @@ use crate::structure::message::anilist_user::studio::load_localization_studio;
 use crate::structure::run::anilist::studio::{
     StudioQuerryId, StudioQuerryIdVariables, StudioQuerrySearch, StudioQuerrySearchVariables,
 };
-use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-};
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// Executes the command to fetch and display information about a studio from AniList.
 ///

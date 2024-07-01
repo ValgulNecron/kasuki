@@ -1,8 +1,12 @@
+use std::sync::Arc;
+
 use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
+use tokio::sync::RwLock;
 
 use crate::constant::DEFAULT_STRING;
 use crate::helper::error_management::error_enum::AppError;
@@ -11,9 +15,6 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::staff::{
     StaffAutocomplete, StaffAutocompleteVariables,
 };
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for staff search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -62,7 +63,20 @@ pub async fn autocomplete(
         }
     };
     let mut choices = Vec::new();
-    let staffs = data.data.unwrap().page.unwrap().staff.unwrap();
+    let staffs = match data.data {
+        Some(data) => match data.page {
+            Some(page) => match page.staff {
+                Some(staff) => staff,
+                None => {
+                    return;
+                }
+            },
+            None => {
+                return;
+            }
+        },
+        None => return,
+    };
 
     for staff in staffs {
         let data = staff.unwrap();

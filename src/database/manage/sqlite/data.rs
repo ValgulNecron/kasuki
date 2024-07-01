@@ -1,3 +1,5 @@
+use tracing::{error, trace};
+
 use crate::constant::SQLITE_DB_PATH;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
@@ -9,7 +11,6 @@ use crate::database::data_struct::server_activity::{
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use tracing::{error, trace};
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.
 ///
@@ -213,12 +214,13 @@ pub async fn set_data_module_activation_status_sqlite(
 ) -> Result<(), AppError> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let _ = sqlx::query(
-        "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module, game_module, new_member, vn) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO module_activation (guild_id, anilist_module, ai_module, game_module, anime, new_member, vn) VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
         .bind(activation_status_module.id)
         .bind(activation_status_module.anilist_module)
         .bind(activation_status_module.ai_module)
         .bind(activation_status_module.game_module)
+        .bind(activation_status_module.anime)
         .bind(activation_status_module.new_member)
         .bind(activation_status_module.vn)
         .execute(&pool)

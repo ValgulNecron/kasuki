@@ -3,7 +3,6 @@ use std::env;
 
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::image_saver::catbox_image_saver::upload_image_catbox;
-use crate::helper::image_saver::imgur_image_saver::upload_image_imgur;
 use crate::helper::image_saver::local_image_saver::local_image_save;
 
 /// `image_saver` is an asynchronous function that saves an image either locally or remotely.
@@ -66,9 +65,6 @@ pub async fn remote_saver(filename: String, image_data: Vec<u8>) -> Result<(), A
     if saver_server == *"catbox" {
         upload_image_catbox(filename, image_data).await
         // If the server is imgur, upload the image to imgur
-    } else if saver_server == *"imgur" {
-        upload_image_imgur(filename, image_data).await
-        // If the server is not specified, upload the image to catbox by default
     } else {
         upload_image_catbox(filename, image_data).await
     }

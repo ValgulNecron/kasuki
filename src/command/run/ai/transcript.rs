@@ -1,11 +1,5 @@
-use crate::config::Config;
-use crate::constant::DEFAULT_STRING;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::{
-    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
-};
-use crate::structure::message::ai::transcript::load_localization_transcript;
+use std::sync::Arc;
+
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
 use serde_json::Value;
@@ -14,9 +8,17 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::sync::Arc;
 use tracing::trace;
 use uuid::Uuid;
+
+use crate::config::Config;
+use crate::constant::DEFAULT_STRING;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::{
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
+};
+use crate::structure::message::ai::transcript::load_localization_transcript;
 
 /// This asynchronous function runs the command interaction for transcribing an audio or video file.
 ///

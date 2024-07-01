@@ -1,6 +1,7 @@
+use std::sync::Arc;
+
 use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
-use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::command::run::anilist_user::character::get_character_by_id;

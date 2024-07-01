@@ -1,9 +1,12 @@
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::command::run::admin::anilist::add_activity::{
@@ -15,8 +18,6 @@ use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
-use moka::future::Cache;
-use tokio::sync::RwLock;
 
 /// This asynchronous function runs the command interaction for deleting an anime activity.
 ///

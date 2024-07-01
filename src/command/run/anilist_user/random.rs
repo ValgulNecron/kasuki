@@ -1,11 +1,14 @@
+use std::sync::Arc;
+
 use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
 use rand::{thread_rng, Rng};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::sync::Arc;
+use tokio::sync::RwLock;
 
 use crate::background_task::update_random_stats::update_random_stats;
 use crate::config::Config;
@@ -19,8 +22,6 @@ use crate::structure::message::anilist_user::random::{load_localization_random, 
 use crate::structure::run::anilist::random::{
     Media, MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
-use moka::future::Cache;
-use tokio::sync::RwLock;
 
 /// Executes the command to fetch and display a random anime or manga based on the type specified in the command interaction.
 ///

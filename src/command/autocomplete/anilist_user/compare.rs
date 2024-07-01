@@ -1,10 +1,11 @@
+use std::sync::Arc;
+
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::log::trace;
 

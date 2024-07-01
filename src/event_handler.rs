@@ -2,8 +2,8 @@ use moka::future::Cache;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
-    ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, Interaction,
-    Member, Ready,
+    ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,
+    Interaction, Member, Ready, User,
 };
 use serenity::async_trait;
 use std::collections::HashMap;
@@ -16,7 +16,7 @@ use crate::background_task::background_launcher::thread_management_launcher;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::command::run::command_dispatch::command_dispatching;
+use crate::command::run::command_dispatch::{check_if_module_is_on, command_dispatching};
 use crate::command::user_run::dispatch::dispatch_user_command;
 use crate::command_register::registration_dispatcher::command_registration;
 use crate::components::components_dispatch::components_dispatching;
@@ -24,6 +24,8 @@ use crate::config::Config;
 use crate::constant::COMMAND_USE_PATH;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::new_member::new_member_message;
+use crate::removed_member::removed_member_message;
 
 pub struct BotData {
     pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
@@ -31,6 +33,7 @@ pub struct BotData {
     pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
     pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    pub already_launched: RwLock<bool>,
 }
 
 pub struct Handler {
@@ -41,6 +44,7 @@ pub struct Handler {
 pub struct UserUsage {
     pub user_name: String,
     pub usage: u128,
+    pub hourly_usage: HashMap<String, u128>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -95,8 +99,14 @@ impl Handler {
             .or_insert_with(|| UserUsage {
                 user_name,
                 usage: 0,
+                hourly_usage: Default::default(),
             });
         user_map.usage = user_map.usage.add(1);
+        // create a timestamp in format dd:mm:aaaa:hh
+        let timestamp = chrono::Local::now().format("%d:%m:%Y:%H").to_string();
+        // insert or update the hourly usage
+        let hourly_usage = user_map.hourly_usage.entry(timestamp).or_insert(0);
+        *hourly_usage += 1;
 
         // drop the guard
         drop(guard);
@@ -154,11 +164,43 @@ impl EventHandler for Handler {
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
         let guild_id = member.guild_id.to_string();
-        debug!("Member {} joined guild {}", member.user.tag(), guild_id);
+        debug!(
+            "Member {} joined guild {}",
+            member.user.tag(),
+            guild_id.clone()
+        );
+        let is_module_on = check_if_module_is_on(guild_id.clone(), "NEW_MEMBER", db_type.clone())
+            .await
+            .unwrap_or_else(|e| {
+                error!("Failed to get the module status. {}", e);
+                false
+            });
+        new_member_message(&ctx, &member).await;
         color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
-        server_image_management(&ctx, db_type).await;
+        if is_module_on {
+            server_image_management(&ctx, db_type.clone()).await;
+        }
     }
 
+    async fn guild_member_removal(
+        &self,
+        ctx: Context,
+        guild_id: GuildId,
+        user: User,
+        member_data_if_available: Option<Member>,
+    ) {
+        let db_type = self.bot_data.config.bot.config.db_type.clone();
+        let is_module_on =
+            check_if_module_is_on(guild_id.to_string().clone(), "NEW_MEMBER", db_type.clone())
+                .await
+                .unwrap_or_else(|e| {
+                    error!("Failed to get the module status. {}", e);
+                    false
+                });
+        if is_module_on {
+            removed_member_message(&ctx, guild_id, user).await
+        }
+    }
     /// This function is called when the bot is ready.
     ///
     /// # Arguments
@@ -180,11 +222,15 @@ impl EventHandler for Handler {
     /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
     async fn ready(&self, ctx: Context, ready: Ready) {
         // Spawns a new thread for managing various tasks
-        tokio::spawn(thread_management_launcher(
-            ctx.clone(),
-            self.bot_data.clone(),
-        ));
-
+        let guard = self.bot_data.already_launched.read().await;
+        if !(*guard) {
+            tokio::spawn(thread_management_launcher(
+                ctx.clone(),
+                self.bot_data.clone(),
+            ));
+            let mut write_guard = self.bot_data.already_launched.write().await;
+            *write_guard = true;
+        }
         // Sets the bot's activity
         ctx.set_activity(Some(ActivityData::custom(
             self.bot_data.config.bot.bot_activity.clone(),
