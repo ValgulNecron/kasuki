@@ -1,9 +1,10 @@
+use std::sync::Arc;
+
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::sync::Arc;
 use tracing::trace;
 
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;

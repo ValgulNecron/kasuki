@@ -1,9 +1,12 @@
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, PartialGuild, User, UserId,
 };
-use std::sync::Arc;
+use tokio::sync::RwLock;
 
 use crate::command::run::anilist_user::user::get_user;
 use crate::config::Config;
@@ -15,8 +18,6 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::structure::message::anilist_server::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };
-use moka::future::Cache;
-use tokio::sync::RwLock;
 
 /// This asynchronous function runs the command interaction for listing registered AniList users in a Discord guild.
 ///

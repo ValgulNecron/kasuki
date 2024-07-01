@@ -1,8 +1,11 @@
+use std::collections::HashSet;
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
-use std::collections::HashSet;
-use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::command::run::anilist_user::user::get_user;
@@ -15,8 +18,6 @@ use crate::structure::run::anilist::user::{
     User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
     UserStatusStatistic, UserTagStatistic,
 };
-use moka::future::Cache;
-use tokio::sync::RwLock;
 
 /// Executes the comparison between two users' anime and manga statistics.
 ///

@@ -1,6 +1,7 @@
+use std::env;
+
 // Importing necessary libraries and modules
 use reqwest::multipart;
-use std::env;
 use tracing::debug;
 
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};

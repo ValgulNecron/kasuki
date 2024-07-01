@@ -1,10 +1,12 @@
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use std::sync::Arc;
+
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use moka::future::Cache;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use tokio::sync::RwLock;
+
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn make_request_anilist<
     'a,

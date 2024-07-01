@@ -1,6 +1,9 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
+use moka::future::Cache;
 use serde::{Deserialize, Serialize};
+use tokio::sync::RwLock;
 
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::vndbapi::common::do_request_cached;
@@ -15,10 +18,6 @@ pub struct VnUser {
 
     pub username: String,
 }
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
-
 pub async fn get_user(
     path: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,

@@ -1,3 +1,10 @@
+use std::sync::Arc;
+
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use serenity::all::{CommandInteraction, Context};
+use tokio::sync::RwLock;
+
 use crate::config::Config;
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -6,11 +13,6 @@ use crate::structure::run::anilist::media::{
     send_embed, Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
     MediaQuerrySearchVariables, MediaType,
 };
-use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
-use serenity::all::{CommandInteraction, Context};
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// Executes the command to fetch and display information about a manga based on its name or ID.
 ///

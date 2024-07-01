@@ -1,8 +1,9 @@
+use std::sync::Arc;
+use std::time::Duration;
+
 use moka::future::Cache;
 use serenity::all::{GatewayIntents, ShardManager};
 use serenity::Client;
-use std::sync::Arc;
-use std::time::Duration;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 

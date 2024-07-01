@@ -1,5 +1,6 @@
-use serenity::all::{CommandInteraction, Context};
 use std::sync::Arc;
+
+use serenity::all::{CommandInteraction, Context};
 
 use crate::command::run::server::generate_image_pfp_server::send_embed;
 use crate::config::Config;

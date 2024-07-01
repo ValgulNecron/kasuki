@@ -1,3 +1,12 @@
+use std::sync::Arc;
+
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
+};
+use tracing::trace;
+
 use crate::config::Config;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
@@ -7,13 +16,6 @@ use crate::structure::message::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
 };
 use crate::structure::run::game::steam_game::SteamGameWrapper;
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage,
-};
-use std::sync::Arc;
-use tracing::trace;
 
 /// Executes the command to retrieve and display a Steam game's information.
 ///

@@ -22,7 +22,7 @@ pub struct MinimalAnimeSearchVariables<'a> {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "MinimalAnimeSearchVariables")]
 pub struct MinimalAnimeSearch {
-    #[arguments( search: $ search, type: "ANIME")]
+    #[arguments(search: $ search, type: "ANIME")]
     #[cynic(rename = "Media")]
     pub media: Option<Media>,
 }

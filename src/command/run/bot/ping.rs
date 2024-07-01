@@ -1,12 +1,14 @@
+use std::sync::Arc;
+
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+};
+
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::struct_shard_manager::ShardManagerContainer;
 use crate::structure::message::bot::ping::load_localization_ping;
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-};
-use std::sync::Arc;
 
 /// Executes the command to display the bot's ping.
 ///

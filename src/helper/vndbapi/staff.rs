@@ -1,4 +1,8 @@
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serde::{Deserialize, Serialize};
+use tokio::sync::RwLock;
 
 pub async fn get_staff(
     value: String,
@@ -44,10 +48,6 @@ pub async fn get_staff(
     })?;
     Ok(response)
 }
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Staff {
     pub ismain: bool,

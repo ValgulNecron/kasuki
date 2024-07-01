@@ -1,17 +1,6 @@
-use crate::config::Config;
-use crate::constant::COLOR;
-use crate::database::data_struct::server_activity::{ServerActivityFull, SmallServerActivity};
-use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
-use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::helper::trimer::trim_webhook;
-use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
-use crate::structure::run::anilist::minimal_anime::{
-    Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
-    MinimalAnimeSearchVariables,
-};
+use std::io::{Cursor, Read};
+use std::sync::Arc;
+
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use base64::Engine as _;
@@ -26,10 +15,23 @@ use serenity::all::{
     ChannelId, CommandInteraction, Context, CreateAttachment, CreateEmbed,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, Timestamp,
 };
-use std::io::{Cursor, Read};
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{error, trace};
+
+use crate::config::Config;
+use crate::constant::COLOR;
+use crate::database::data_struct::server_activity::{ServerActivityFull, SmallServerActivity};
+use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
+use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::helper::trimer::trim_webhook;
+use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
+use crate::structure::run::anilist::minimal_anime::{
+    Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
+    MinimalAnimeSearchVariables,
+};
 
 /// This asynchronous function gets or creates a webhook for a given channel.
 ///

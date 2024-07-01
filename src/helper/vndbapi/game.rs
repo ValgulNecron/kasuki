@@ -1,6 +1,9 @@
 use std::fmt::Display;
+use std::sync::Arc;
 
+use moka::future::Cache;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use tokio::sync::RwLock;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Image {
@@ -67,10 +70,6 @@ pub struct VNRoot {
     pub results: Vec<VN>,
     pub more: bool,
 }
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
-
 pub async fn get_vn(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,

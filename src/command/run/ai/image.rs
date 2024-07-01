@@ -1,11 +1,5 @@
-use crate::config::Config;
-use crate::constant::DEFAULT_STRING;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::{
-    get_option_map_integer_subcommand, get_option_map_string_subcommand,
-};
-use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
+use std::sync::Arc;
+
 use prost::bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
@@ -15,9 +9,17 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::sync::Arc;
 use tracing::{info, trace};
 use uuid::Uuid;
+
+use crate::config::Config;
+use crate::constant::DEFAULT_STRING;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::{
+    get_option_map_integer_subcommand, get_option_map_string_subcommand,
+};
+use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
 
 /// This module contains the implementation of the `run` function for handling AI image generation.
 ///

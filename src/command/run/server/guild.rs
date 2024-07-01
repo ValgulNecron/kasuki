@@ -1,11 +1,13 @@
+use std::sync::Arc;
+
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+};
+
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::structure::message::server::guild::load_localization_guild;
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-};
-use std::sync::Arc;
 
 /// Executes the command to display the guild's information.
 ///

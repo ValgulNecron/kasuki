@@ -1,4 +1,8 @@
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
+use tokio::sync::RwLock;
 
 use crate::command::autocomplete::anilist_server::{add_anime_activity, delete_activity};
 use crate::command::autocomplete::anilist_user::{
@@ -65,10 +69,6 @@ async fn vn_autocomplete(
         _ => {}
     }
 }
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
-
 async fn anilist_admin_autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,

@@ -1,14 +1,15 @@
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::vndbapi::game::{get_vn, VN};
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 pub async fn autocomplete(
     ctx: Context,

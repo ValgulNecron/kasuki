@@ -1,4 +1,8 @@
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serde::{Deserialize, Serialize};
+use tokio::sync::RwLock;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Image {
@@ -45,10 +49,6 @@ pub struct CharacterRoot {
     pub more: bool,
     pub results: Vec<Character>,
 }
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
-
 pub async fn get_character(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,

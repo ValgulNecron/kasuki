@@ -1,6 +1,7 @@
+use std::sync::Arc;
+
 use moka::future::Cache;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub async fn get_producer(

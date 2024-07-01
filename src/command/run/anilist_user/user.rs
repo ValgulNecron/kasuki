@@ -1,3 +1,10 @@
+use std::sync::Arc;
+
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use serenity::all::{CommandInteraction, Context};
+use tokio::sync::RwLock;
+
 use crate::config::Config;
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
@@ -8,9 +15,6 @@ use crate::structure::run::anilist::user::{
     send_embed, User, UserQuerryId, UserQuerryIdVariables, UserQuerrySearch,
     UserQuerrySearchVariables,
 };
-use cynic::{GraphQlResponse, QueryBuilder};
-use serenity::all::{CommandInteraction, Context};
-use std::sync::Arc;
 
 /// Executes the command to fetch and display information about a user from AniList.
 ///
@@ -56,9 +60,6 @@ pub async fn run(
     let data = get_user(&user.anilist_id, anilist_cache).await?;
     send_embed(ctx, command_interaction, data, db_type).await
 }
-use moka::future::Cache;
-use tokio::sync::RwLock;
-
 /// Fetches the data of a user from AniList.
 ///
 /// This function takes a username or user ID and fetches the user's data from AniList.

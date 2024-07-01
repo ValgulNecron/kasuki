@@ -1,13 +1,6 @@
-use crate::config::Config;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
-use crate::structure::run::anilist::seiyuu_id::{
-    Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
-};
-use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVariables};
+use std::io::Cursor;
+use std::sync::Arc;
+
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
@@ -18,10 +11,19 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::io::Cursor;
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
+
+use crate::config::Config;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
+use crate::structure::run::anilist::seiyuu_id::{
+    Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
+};
+use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVariables};
 
 /// Executes the command to fetch and display information about a seiyuu (voice actor) from AniList.
 ///

@@ -1,13 +1,14 @@
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
+use tokio::sync::RwLock;
 
 use crate::command::autocomplete::anilist_user::{
     anime, character, ln, manga, staff, studio, user,
 };
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for various search types.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
