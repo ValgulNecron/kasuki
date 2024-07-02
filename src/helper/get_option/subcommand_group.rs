@@ -154,7 +154,7 @@ pub fn get_option_map_user_subcommand_group(
     let subcommand = &binding.first().unwrap().value;
     if let ResolvedValue::SubCommandGroup(op) = subcommand {
         for option in op {
-            if let ResolvedValue::SubCommandGroup(op2) = &option.value {
+            if let ResolvedValue::SubCommand(op2) = &option.value {
                 for option2 in op2 {
                     let name = option2.name.to_string();
                     let value = match option2.value {
@@ -190,7 +190,7 @@ pub fn get_option_map_channel_subcommand_group(
     let subcommand = &binding.first().unwrap().value;
     if let ResolvedValue::SubCommandGroup(op) = subcommand {
         for option in op {
-            if let ResolvedValue::SubCommandGroup(op2) = &option.value {
+            if let ResolvedValue::SubCommand(op2) = &option.value {
                 for option2 in op2 {
                     let name = option2.name.to_string();
                     let value = match option2.value {
@@ -226,7 +226,7 @@ pub fn get_option_map_role_subcommand_group(
     let subcommand = &binding.first().unwrap().value;
     if let ResolvedValue::SubCommandGroup(op) = subcommand {
         for option in op {
-            if let ResolvedValue::SubCommandGroup(op2) = &option.value {
+            if let ResolvedValue::SubCommand(op2) = &option.value {
                 for option2 in op2 {
                     let name = option2.name.to_string();
                     let value = match option2.value {
@@ -262,7 +262,7 @@ pub fn get_option_map_number_subcommand_group(
     let subcommand = &binding.first().unwrap().value;
     if let ResolvedValue::SubCommandGroup(op) = subcommand {
         for option in op {
-            if let ResolvedValue::SubCommandGroup(op2) = &option.value {
+            if let ResolvedValue::SubCommand(op2) = &option.value {
                 for option2 in op2 {
                     let name = option2.name.to_string();
                     let value = match option2.value {
@@ -298,7 +298,7 @@ pub fn get_option_map_attachment_subcommand_group(
     let subcommand = &binding.first().unwrap().value;
     if let ResolvedValue::SubCommandGroup(op) = subcommand {
         for option in op {
-            if let ResolvedValue::SubCommandGroup(op2) = &option.value {
+            if let ResolvedValue::SubCommand(op2) = &option.value {
                 for option2 in op2 {
                     let name = option2.name.to_string();
                     let value = match option2.value {

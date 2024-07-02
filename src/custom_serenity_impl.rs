@@ -65,10 +65,12 @@ impl Display for InternalMembershipState {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InternalAction {
     Member(InternalMemberAction),
     Other,
 }
+#[derive(Debug, Clone)]
 
 pub enum InternalMemberAction {
     BanAdd,

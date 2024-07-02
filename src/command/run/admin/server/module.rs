@@ -14,7 +14,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 use crate::helper::get_option::subcommand_group::{
     get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
-use crate::structure::message::admin::module::load_localization_module_activation;
+use crate::structure::message::admin::server::module::load_localization_module_activation;
 
 /// This asynchronous function runs the command interaction for setting the activation status of a module.
 ///

@@ -2,8 +2,9 @@ use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
 
 use crate::command::run::admin::anilist::{add_activity, delete_activity};
-use crate::command::run::admin::module::check_activation_status;
-use crate::command::run::admin::{lang, module};
+use crate::command::run::admin::server::module;
+use crate::command::run::admin::server::module::check_activation_status;
+use crate::command::run::admin::server::{lang, new_member_setting};
 use crate::command::run::ai::{image, question, transcript, translation};
 use crate::command::run::anilist_server::{list_all_activity, list_register_user};
 use crate::command::run::anilist_user::{
@@ -366,6 +367,7 @@ async fn general_admin(
     let return_data = match command_name {
         "lang" => lang::run(ctx, command_interaction, config).await,
         "module" => module::run(ctx, command_interaction, config).await,
+        "member_info_setting" => new_member_setting::run(ctx, command_interaction, config).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,
