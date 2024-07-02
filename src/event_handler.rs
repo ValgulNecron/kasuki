@@ -221,14 +221,6 @@ impl EventHandler for Handler {
     /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
     async fn ready(&self, ctx: Context, ready: Ready) {
-        let guild_id = GuildId::from(1117152661620408531);
-        match guild_id
-            .audit_logs(&ctx.http, None, None, None, Some(100))
-            .await {
-            Ok(_) => {error!("good")}
-            Err(e) => {error!("bad {}", e)}
-        };
-
         // Sets the bot's activity
         ctx.set_activity(Some(ActivityData::custom(
             self.bot_data.config.bot.bot_activity.clone(),
