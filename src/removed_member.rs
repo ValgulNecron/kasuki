@@ -1,8 +1,8 @@
 use crate::constant::{HEX_COLOR, NEW_MEMBER_PATH};
 use crate::new_member::{create_default_new_member_image, load_new_member_image, NewMemberSetting};
 use crate::structure::message::removed_member::load_localization_removed_member;
+use image::GenericImage;
 use image::ImageFormat::WebP;
-use image::{GenericImage};
 use serenity::all::{ChannelId, Context, CreateMessage, GuildId, User};
 use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
@@ -25,6 +25,7 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
     let content = fs::read_to_string(NEW_MEMBER_PATH).unwrap_or_else(|_| String::new());
     let hashmap: HashMap<String, NewMemberSetting> =
         serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
+    trace!(?hashmap);
     let guild_specific = hashmap
         .get(&guild_id.to_string())
         .unwrap_or(&NewMemberSetting {
@@ -34,6 +35,7 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             show_username: true,
             show_time_join: true,
         });
+    trace!(?guild_specific);
     let channel_id = if guild_specific.custom_channel {
         ChannelId::from(guild_specific.channel_id)
     } else {
@@ -100,7 +102,7 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
 
     // get server audit log
     let audit_log = match guild_id
-        .audit_logs(&ctx.http, None, Some(user.id), None, Some(1))
+        .audit_logs(&ctx.http, None, None, None, Some(100))
         .await
     {
         Ok(audit_log) => audit_log,
@@ -109,20 +111,32 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             return;
         }
     };
-    let mut reason = if audit_log.entries.is_empty() {
-        "User left".to_string()
+    trace!(?audit_log);
+    let mut reason = "".to_string();
+    if audit_log.entries.is_empty() || audit_log.entries.len() == 0 {
+        reason = "User left".to_string()
     } else {
-        "".to_string()
-    };
-    let internal_action: InternalAction = audit_log.entries[0].action.into();
-    reason = if internal_action == InternalAction::Member(BanAdd) {
-        let a = audit_log.entries[0].clone().reason.unwrap_or_default();
-        format!("User Banned for {}", a)
-    } else if internal_action == InternalAction::Member(Kick) {
-        let a = audit_log.entries[0].clone().reason.unwrap_or_default();
-        format!("User kicked for {}", a)
-    } else {
-        "User left".to_string()
+        let mut internal_action: InternalAction = audit_log.entries[0].action.into();
+        for entry in &audit_log.entries {
+            let target = match entry.target_id {
+                Some(target) => target,
+                None => continue,
+            };
+            if target.to_string() == user.id.to_string() {
+                internal_action = entry.action.into();
+                break;
+            }
+        }
+        trace!(?internal_action, ?audit_log);
+        reason = if internal_action == InternalAction::Member(BanAdd) {
+            let a = audit_log.entries[0].clone().reason.unwrap_or_default();
+            format!("User Banned for {}", a)
+        } else if internal_action == InternalAction::Member(Kick) {
+            let a = audit_log.entries[0].clone().reason.unwrap_or_default();
+            format!("User kicked for {}", a)
+        } else {
+            "User left".to_string()
+        };
     };
 
     let guild_image_width = guild_image.width();

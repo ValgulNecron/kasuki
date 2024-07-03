@@ -26,19 +26,32 @@ use crate::command_register::registration_function::register_user_command::creat
 pub async fn command_registration(http: &Arc<Http>, is_ok: bool) {
     if is_ok {
         delete_command(http).await;
+        info!("Starting to create commands...");
+
+        let start = std::time::Instant::now();
+        creates_commands(http).await;
+        creates_subcommands(http).await;
+        creates_subcommands_group(http).await;
+        creates_user_command(http).await;
+        creates_message_command(http).await;
+        let duration = start.elapsed();
+        info!("Time taken to create commands: {:?}", duration);
+
+        info!("Done creating commands")
+    } else {
+        info!("Starting to create commands...");
+
+        let start = std::time::Instant::now();
+        creates_commands(http).await;
+        creates_subcommands(http).await;
+        creates_subcommands_group(http).await;
+        creates_user_command(http).await;
+        creates_message_command(http).await;
+        let duration = start.elapsed();
+        info!("Time taken to create commands: {:?}", duration);
+
+        info!("Done creating commands")
     }
-    info!("Starting to create commands...");
-
-    let start = std::time::Instant::now();
-    creates_commands(http).await;
-    creates_subcommands(http).await;
-    creates_subcommands_group(http).await;
-    creates_user_command(http).await;
-    creates_message_command(http).await;
-    let duration = start.elapsed();
-    info!("Time taken to create commands: {:?}", duration);
-
-    info!("Done creating commands")
 }
 
 /// This asynchronous function deletes all existing global commands in Discord.

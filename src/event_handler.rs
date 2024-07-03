@@ -221,16 +221,6 @@ impl EventHandler for Handler {
     /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
     async fn ready(&self, ctx: Context, ready: Ready) {
-        // Spawns a new thread for managing various tasks
-        let guard = self.bot_data.already_launched.read().await;
-        if !(*guard) {
-            tokio::spawn(thread_management_launcher(
-                ctx.clone(),
-                self.bot_data.clone(),
-            ));
-            let mut write_guard = self.bot_data.already_launched.write().await;
-            *write_guard = true;
-        }
         // Sets the bot's activity
         ctx.set_activity(Some(ActivityData::custom(
             self.bot_data.config.bot.bot_activity.clone(),
@@ -261,6 +251,18 @@ impl EventHandler for Handler {
                 &partial_guild.name,
                 &partial_guild.id.to_string()
             )
+        }
+        // Spawns a new thread for managing various tasks
+        let guard = self.bot_data.already_launched.read().await;
+        if !(*guard) {
+            drop(guard);
+            let mut write_guard = self.bot_data.already_launched.write().await;
+            *write_guard = true;
+            tokio::spawn(thread_management_launcher(
+                ctx.clone(),
+                self.bot_data.clone(),
+            ));
+            drop(write_guard)
         }
     }
 

@@ -1,0 +1,18 @@
+{
+  "en": {
+    "title": "New Member Setting",
+    "description": "The setting was successfully updated."
+  },
+  "ja": {
+    "title": "新規メンバー設定",
+    "description": "設定が正常に更新されました。"
+  },
+  "de": {
+    "title": "Neues Mitglied Einstellung",
+    "description": "Die Einstellung wurde erfolgreich aktualisiert."
+  },
+    "fr": {
+        "title": "Nouveau membre Réglage",
+        "description": "Le réglage a été mis à jour avec succès."
+    }
+}
