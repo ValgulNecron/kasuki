@@ -114,7 +114,7 @@ pub async fn run(
             )?;
             true
         }
-        None => guild_specific.custom_image.clone(),
+        None => guild_specific.custom_image,
     };
     let new_member_setting = NewMemberSetting {
         custom_channel: channel_id != 0,

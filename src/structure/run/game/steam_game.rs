@@ -291,9 +291,9 @@ impl SteamGameWrapper {
         db_type: String,
         apps: Arc<RwLock<HashMap<String, u128>>>,
     ) -> Result<SteamGameWrapper, AppError> {
-        let choices: Vec<(&String, &u128)>;
+        
         let guard = apps.read().await;
-        choices = guard.iter().collect();
+        let choices: Vec<(&String, &u128)> = guard.iter().collect();
 
         let choices: Vec<&str> = choices.into_iter().map(|(s, _)| s.as_str()).collect();
         let results: Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
