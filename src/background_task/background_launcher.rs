@@ -1,6 +1,7 @@
 use moka::future::Cache;
 use serde_json::Value;
 use serenity::all::Context;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
@@ -41,6 +42,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
     let config = bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone();
     let anilist_cache = bot_data.anilist_cache.clone();
+    let apps = bot_data.apps.clone();
     // Spawn a new thread for user color management
     tokio::spawn(launch_user_color_management_thread(
         ctx.clone(),
@@ -53,7 +55,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
         anilist_cache.clone(),
     ));
     // Spawn a new thread for steam management
-    tokio::spawn(launch_game_management_thread());
+    tokio::spawn(launch_game_management_thread(apps));
     // Spawn a new thread for ping management
     tokio::spawn(ping_manager_thread(ctx.clone(), db_type.clone()));
     // Spawn a new thread for updating the user blacklist
@@ -170,12 +172,12 @@ async fn launch_user_color_management_thread(ctx: Context, db_type: String) {
 
 /// This function is responsible for launching the steam management thread.
 /// It does not take any arguments and does not return anything.
-async fn launch_game_management_thread() {
+async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>) {
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_GAME_UPDATE));
     info!("Launching the steam management thread!");
     loop {
         interval.tick().await;
-        get_game().await;
+        get_game(apps.clone()).await;
     }
 }
 

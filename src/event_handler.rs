@@ -1,5 +1,6 @@
 use moka::future::Cache;
 use num_bigint::BigUint;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,
@@ -34,6 +35,7 @@ pub struct BotData {
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
     pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
     pub already_launched: RwLock<bool>,
+    pub apps: Arc<RwLock<HashMap<String, u128>>>,
 }
 
 pub struct Handler {
@@ -322,6 +324,7 @@ impl EventHandler for Handler {
             let db_type = self.bot_data.config.bot.config.db_type.clone();
             let anilist_cache = self.bot_data.anilist_cache.clone();
             let vndb_cache = self.bot_data.vndb_cache.clone();
+            let apps = self.bot_data.apps.clone();
             // Dispatch the autocomplete interaction
             autocomplete_dispatching(
                 ctx,
@@ -329,6 +332,7 @@ impl EventHandler for Handler {
                 anilist_cache,
                 db_type,
                 vndb_cache,
+                apps,
             )
             .await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {

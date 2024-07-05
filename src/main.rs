@@ -31,8 +31,6 @@ mod new_member;
 mod removed_member;
 mod struct_shard_manager;
 mod structure;
-mod tui;
-
 #[tokio::main]
 /// The main function where the execution of the bot starts.
 /// It initializes the logger, the SQL database, and the bot client.
@@ -55,12 +53,10 @@ async fn main() {
         }
     };
     let log = config.logging.log_level.clone();
-    let app_tui = config.bot.config.tui;
     let discord_token = config.bot.discord_token.clone();
     let db_type = config.bot.config.db_type.clone();
     let db_type = db_type.as_str();
     let max_log_retention_days = config.logging.max_log_retention;
-    let tui = config.bot.config.tui;
     let config = Arc::new(config);
 
     // Get the log level from the environment variable "RUST_LOG".
@@ -76,22 +72,9 @@ async fn main() {
 
     // Initialize the logger with the specified log level.
     // If an error occurs, print the error and return.
-    if let Err(e) = init_logger(log, max_log_retention_days, tui) {
+    if let Err(e) = init_logger(log, max_log_retention_days) {
         eprintln!("{:?}", e);
         std::process::exit(2);
-    }
-
-    if app_tui {
-        // create a new tui in a new thread
-        tokio::spawn(async {
-            match tui::create_tui().await {
-                Ok(_) => {}
-                Err(e) => {
-                    error!("{:?}", e);
-                    std::process::exit(3);
-                }
-            };
-        });
     }
 
     // Initialize the SQL database.
@@ -129,6 +112,7 @@ async fn main() {
         anilist_cache,
         vndb_cache,
         already_launched: false.into(),
+        apps: Arc::new(Default::default()),
     });
     let handler = Handler { bot_data };
 

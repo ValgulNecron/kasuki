@@ -103,13 +103,15 @@ pub async fn run(
                     ErrorResponseType::Followup,
                 )
             })?;
-            fs::write(format!("{}{}.png", NEW_MEMBER_IMAGE_PATH,guild_id), bytes).map_err(|e| {
-                AppError::new(
-                    format!("Error while saving the attachment {}", e),
-                    ErrorType::Option,
-                    ErrorResponseType::Followup,
-                )
-            })?;
+            fs::write(format!("{}{}.png", NEW_MEMBER_IMAGE_PATH, guild_id), bytes).map_err(
+                |e| {
+                    AppError::new(
+                        format!("Error while saving the attachment {}", e),
+                        ErrorType::Option,
+                        ErrorResponseType::Followup,
+                    )
+                },
+            )?;
             true
         }
         None => guild_specific.custom_image.clone(),

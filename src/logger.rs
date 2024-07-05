@@ -27,7 +27,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 ///
 /// This function will return an error if there's a problem creating the directives for the log levels,
 /// building the file appender, or setting the global default subscriber.
-pub fn init_logger(log: &str, max_log_retention_days: u32, tui: bool) -> Result<(), AppError> {
+pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), AppError> {
     let kasuki_filter = match log {
         "warn" => "kasuki=warn",
         "error" => "kasuki=error",
@@ -68,39 +68,22 @@ pub fn init_logger(log: &str, max_log_retention_days: u32, tui: bool) -> Result<
 
     let format = fmt::layer().with_ansi(true);
 
-    let app_tui = tui;
-    if app_tui {
-        let registry = tracing_subscriber::registry().with(filter).with(
+    let registry = tracing_subscriber::registry()
+        .with(filter)
+        .with(format)
+        .with(
             tracing_subscriber::fmt::layer()
                 .with_writer(file_appender_non_blocking)
                 .with_ansi(false),
         );
 
-        tracing::subscriber::set_global_default(registry).map_err(|e| {
-            AppError::new(
-                format!("Error creating the Logger. {}", e),
-                ErrorType::Logging,
-                ErrorResponseType::None,
-            )
-        })?;
-    } else {
-        let registry = tracing_subscriber::registry()
-            .with(filter)
-            .with(format)
-            .with(
-                tracing_subscriber::fmt::layer()
-                    .with_writer(file_appender_non_blocking)
-                    .with_ansi(false),
-            );
-
-        tracing::subscriber::set_global_default(registry).map_err(|e| {
-            AppError::new(
-                format!("Error creating the Logger. {}", e),
-                ErrorType::Logging,
-                ErrorResponseType::None,
-            )
-        })?;
-    }
+    tracing::subscriber::set_global_default(registry).map_err(|e| {
+        AppError::new(
+            format!("Error creating the Logger. {}", e),
+            ErrorType::Logging,
+            ErrorResponseType::None,
+        )
+    })?;
 
     Ok(())
 }

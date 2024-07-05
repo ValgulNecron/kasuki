@@ -70,9 +70,6 @@ pub const LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
     languages.iter().cloned().collect()
 });
 
-/// Map of app names to their respective IDs.
-pub static mut APPS: Lazy<HashMap<String, u128>> = Lazy::new(HashMap::new);
-
 /// Path to the logs.
 pub const LOGS_PATH: &str = "./logs";
 /// Prefix for the logs.
@@ -93,9 +90,6 @@ pub static mut USER_BLACKLIST_SERVER_IMAGE: Lazy<Arc<RwLock<Vec<String>>>> = Laz
     let user_ids: Vec<String> = Vec::new();
     Arc::from(RwLock::from(user_ids))
 });
-
-/// The bot's information.
-pub static mut BOT_INFO: Option<CurrentApplicationInfo> = None;
 /// Vec of all available bot commands.
 pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
 /// Used library.
