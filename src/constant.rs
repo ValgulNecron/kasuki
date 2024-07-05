@@ -3,7 +3,6 @@ use std::env;
 use std::sync::Arc;
 
 use once_cell::sync::Lazy;
-use ratatui::style::Color;
 use serenity::all::{Colour, CurrentApplicationInfo};
 use tokio::sync::RwLock;
 
@@ -51,7 +50,6 @@ App embed color.
  */
 /// Color for the app embed.
 pub const COLOR: Colour = Colour::FABLED_PINK;
-pub const TUI_FG_COLOR: Color = Color::Rgb(250, 177, 237);
 pub const HEX_COLOR: &str = "#FAB1ED";
 
 /// Log level for other crates.
