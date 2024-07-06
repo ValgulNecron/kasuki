@@ -113,6 +113,7 @@ async fn main() {
         vndb_cache,
         already_launched: false.into(),
         apps: Arc::new(Default::default()),
+        user_blacklist_server_image: Arc::new(Default::default()),
     });
     let handler = Handler { bot_data };
 

@@ -291,7 +291,6 @@ impl SteamGameWrapper {
         db_type: String,
         apps: Arc<RwLock<HashMap<String, u128>>>,
     ) -> Result<SteamGameWrapper, AppError> {
-        
         let guard = apps.read().await;
         let choices: Vec<(&String, &u128)> = guard.iter().collect();
 

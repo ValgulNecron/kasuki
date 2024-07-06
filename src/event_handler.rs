@@ -1,5 +1,6 @@
 use moka::future::Cache;
 use num_bigint::BigUint;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,
@@ -35,6 +36,7 @@ pub struct BotData {
     pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
     pub already_launched: RwLock<bool>,
     pub apps: Arc<RwLock<HashMap<String, u128>>>,
+    pub user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
 }
 
 pub struct Handler {
@@ -141,8 +143,15 @@ impl EventHandler for Handler {
     /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
+        let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
         if is_new.unwrap_or_default() {
-            color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
+            color_management(
+                &ctx.cache.guilds(),
+                &ctx,
+                db_type.clone(),
+                user_blacklist_server_image,
+            )
+            .await;
             server_image_management(&ctx, db_type).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
@@ -163,6 +172,7 @@ impl EventHandler for Handler {
     /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
+        let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
         let db_type = self.bot_data.config.bot.config.db_type.clone();
         let guild_id = member.guild_id.to_string();
         debug!(
@@ -177,7 +187,13 @@ impl EventHandler for Handler {
                 false
             });
         new_member_message(&ctx, &member).await;
-        color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
+        color_management(
+            &ctx.cache.guilds(),
+            &ctx,
+            db_type.clone(),
+            user_blacklist_server_image,
+        )
+        .await;
         if is_module_on {
             server_image_management(&ctx, db_type.clone()).await;
         }

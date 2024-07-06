@@ -3,7 +3,7 @@ use std::env;
 use std::sync::Arc;
 
 use once_cell::sync::Lazy;
-use serenity::all::{Colour};
+use serenity::all::Colour;
 use tokio::sync::RwLock;
 
 use crate::grpc_server::command_list::{get_list_of_all_command, CommandItem};
@@ -82,12 +82,6 @@ pub const DEFAULT_STRING: &String = &String::new();
 
 /// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-/// User blacklist for the server image.
-pub static mut USER_BLACKLIST_SERVER_IMAGE: Lazy<Arc<RwLock<Vec<String>>>> = Lazy::new(|| {
-    let user_ids: Vec<String> = Vec::new();
-    Arc::from(RwLock::from(user_ids))
-});
 /// Vec of all available bot commands.
 pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
 /// Used library.

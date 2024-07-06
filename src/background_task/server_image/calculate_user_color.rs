@@ -1,4 +1,5 @@
 use std::io::Cursor;
+use std::sync::Arc;
 use std::time::Duration;
 
 use base64::engine::general_purpose;
@@ -11,10 +12,10 @@ use image::{DynamicImage, ExtendedColorType, ImageEncoder};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use serenity::all::{Context, GuildId, Member, UserId};
+use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error};
 
-use crate::constant::USER_BLACKLIST_SERVER_IMAGE;
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
@@ -42,10 +43,14 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 ///
 /// This function will return an error if there's a problem retrieving the user's color from the database,
 /// calculating the user's color, or updating the user's color in the database.
-pub async fn calculate_users_color(members: Vec<Member>, db_type: String) -> Result<(), AppError> {
-    let local_copy_user_blacklist = unsafe { USER_BLACKLIST_SERVER_IMAGE.read().await.clone() };
+pub async fn calculate_users_color(
+    members: Vec<Member>,
+    db_type: String,
+    user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
+) -> Result<(), AppError> {
+    let guard = user_blacklist_server_image.read().await;
     for member in members {
-        if local_copy_user_blacklist.contains(&member.user.id.to_string()) {
+        if guard.contains(&member.user.id.to_string()) {
             continue;
         }
         let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://cdn.discordapp.com/avatars/260706120086192129/ec231a35c9a33dd29ea4819d29d06056.webp?size=64"))
@@ -267,7 +272,12 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
 /// # Errors
 ///
 /// This function will log an error if there's a problem calculating the color for any member.
-pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context, db_type: String) {
+pub async fn color_management(
+    guilds: &Vec<GuildId>,
+    ctx_clone: &Context,
+    db_type: String,
+    user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
+) {
     let mut futures = FuturesUnordered::new();
     for guild in guilds {
         let guild_id = guild.to_string();
@@ -287,7 +297,13 @@ pub async fn color_management(guilds: &Vec<GuildId>, ctx_clone: &Context, db_typ
         debug!("{}: {}", guild_id, result.len());
         members.append(&mut result);
     }
-    match calculate_users_color(members.into_iter().collect(), db_type).await {
+    match calculate_users_color(
+        members.into_iter().collect(),
+        db_type,
+        user_blacklist_server_image,
+    )
+    .await
+    {
         Ok(_) => {}
         Err(e) => error!("{:?}", e),
     };
