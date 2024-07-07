@@ -1,6 +1,5 @@
 use moka::future::Cache;
 use num_bigint::BigUint;
-use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,

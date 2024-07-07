@@ -1,10 +1,8 @@
 use std::collections::HashMap;
 use std::env;
-use std::sync::Arc;
 
 use once_cell::sync::Lazy;
 use serenity::all::Colour;
-use tokio::sync::RwLock;
 
 use crate::grpc_server::command_list::{get_list_of_all_command, CommandItem};
 
