@@ -36,12 +36,12 @@ pub async fn run(
 
     let staff = get_staff(staff.clone(), vndb_cache).await?;
     let staff = staff.results[0].clone();
-    let mut fields = vec![];
-
-    fields.push((staff_localised.lang.clone(), staff.lang, true));
-    fields.push((staff_localised.aid.clone(), staff.aid.to_string(), true));
-    fields.push((staff_localised.gender.clone(), staff.gender.clone(), true));
-    fields.push((staff_localised.main.clone(), staff.ismain.to_string(), true));
+    let fields = vec![
+        (staff_localised.lang.clone(), staff.lang, true),
+        (staff_localised.aid.clone(), staff.aid.to_string(), true),
+        (staff_localised.gender.clone(), staff.gender.clone(), true),
+        (staff_localised.main.clone(), staff.ismain.to_string(), true),
+    ];
 
     let builder_embed = get_default_embed(None)
         .description(convert_vndb_markdown(&staff.description.clone()))

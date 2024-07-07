@@ -217,7 +217,7 @@ impl SteamGameWrapper {
                 )
             })?;
         let lang = get_guild_language(guild_id, db_type).await;
-        let local_lang = LANG_MAP;
+        let local_lang = LANG_MAP.clone();
         let full_lang = *local_lang
             .get(lang.to_lowercase().as_str())
             .unwrap_or(&"english");

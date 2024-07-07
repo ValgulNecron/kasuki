@@ -158,7 +158,14 @@ pub async fn run(
         .ai_transcription_base_url
         .clone()
         .unwrap_or_default();
-
+    // check the last 3 characters of the url if it v1/ or v1 or something else
+    let api_base_url = if api_base_url.ends_with("v1/") {
+        format!("{}audio/translations/", api_base_url)
+    } else if api_base_url.ends_with("v1") {
+        format!("{}/audio/translations/", api_base_url)
+    } else {
+        format!("{}/v1/audio/translations/", api_base_url)
+    };
     headers.insert(
         AUTHORIZATION,
         HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
@@ -215,6 +222,13 @@ pub async fn run(
             .ai_question_base_url
             .clone()
             .unwrap_or_default();
+        let api_base_url = if api_base_url.ends_with("v1/") {
+            format!("{}chat/completions", api_base_url)
+        } else if api_base_url.ends_with("v1") {
+            format!("{}/chat/completions", api_base_url)
+        } else {
+            format!("{}/v1/chat/completions", api_base_url)
+        };
         let model = config
             .ai
             .question

@@ -70,9 +70,10 @@ pub async fn autocomplete(
                 name.clone()
             };
             if !name.is_empty() {
-                choices.push(AutocompleteChoice::new(name_show.clone(), unsafe {
-                    guard[&name].to_string()
-                }));
+                choices.push(AutocompleteChoice::new(
+                    name_show.clone(),
+                    guard[&name].to_string(),
+                ));
             }
         }
     }

@@ -412,7 +412,7 @@ fn embed_desc(media: &Media) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the genres of the media.
-fn get_genre(genres: &Vec<Option<String>>) -> String {
+fn get_genre(genres: &[Option<String>]) -> String {
     genres
         .iter()
         .map(|string| string.clone().unwrap_or_default())
@@ -437,7 +437,7 @@ fn get_genre(genres: &Vec<Option<String>>) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the tags of the media.
-fn get_tag(tags: &Vec<Option<MediaTag>>) -> String {
+fn get_tag(tags: &[Option<MediaTag>]) -> String {
     tags.iter()
         .map(|media_tag| media_tag.clone().unwrap().name)
         .take(5)

@@ -28,9 +28,6 @@ impl Display for InternalTeamMemberRole {
             InternalTeamMemberRole::Developer => write!(f, "Developer"),
             InternalTeamMemberRole::ReadOnly => write!(f, "ReadOnly"),
             InternalTeamMemberRole::Other(a) => write!(f, "Other ({})", a),
-            _ => {
-                write!(f, "Other")
-            }
         }
     }
 }
@@ -58,9 +55,6 @@ impl Display for InternalMembershipState {
             InternalMembershipState::Invited => write!(f, "Invited"),
             InternalMembershipState::Accepted => write!(f, "Accepted"),
             InternalMembershipState::Unknown(a) => write!(f, "Unknown ({})", a),
-            _ => {
-                write!(f, "Unknown")
-            }
         }
     }
 }
@@ -90,12 +84,12 @@ impl PartialEq for InternalAction {
 
 impl PartialEq for InternalMemberAction {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (InternalMemberAction::BanAdd, InternalMemberAction::BanAdd) => true,
-            (InternalMemberAction::Kick, InternalMemberAction::Kick) => true,
-            (InternalMemberAction::Other, InternalMemberAction::Other) => true,
-            _ => false,
-        }
+        matches!(
+            (self, other),
+            (InternalMemberAction::BanAdd, InternalMemberAction::BanAdd)
+                | (InternalMemberAction::Kick, InternalMemberAction::Kick)
+                | (InternalMemberAction::Other, InternalMemberAction::Other)
+        )
     }
 }
 

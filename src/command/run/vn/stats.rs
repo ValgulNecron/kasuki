@@ -27,27 +27,29 @@ pub async fn run(
 
     let stats = get_stats(vndb_cache).await?;
 
-    let mut fields = vec![];
-    fields.push((stats_localised.chars.clone(), stats.chars.to_string(), true));
-    fields.push((
-        stats_localised.producer.clone(),
-        stats.producers.to_string(),
-        true,
-    ));
-    fields.push((
-        stats_localised.release.clone(),
-        stats.releases.to_string(),
-        true,
-    ));
-    fields.push((stats_localised.staff.clone(), stats.staff.to_string(), true));
-    fields.push((stats_localised.tags.clone(), stats.tags.to_string(), true));
-    fields.push((
-        stats_localised.traits.clone(),
-        stats.traits.to_string(),
-        true,
-    ));
-    fields.push((stats_localised.vns.clone(), stats.vn.to_string(), true));
-    fields.push((stats_localised.api.clone(), String::from("VNDB API"), true));
+    let fields = vec![
+        (stats_localised.chars.clone(), stats.chars.to_string(), true),
+        (
+            stats_localised.producer.clone(),
+            stats.producers.to_string(),
+            true,
+        ),
+        (
+            stats_localised.release.clone(),
+            stats.releases.to_string(),
+            true,
+        ),
+        (stats_localised.staff.clone(), stats.staff.to_string(), true),
+        (stats_localised.staff.clone(), stats.staff.to_string(), true),
+        (stats_localised.tags.clone(), stats.tags.to_string(), true),
+        (
+            stats_localised.traits.clone(),
+            stats.traits.to_string(),
+            true,
+        ),
+        (stats_localised.vns.clone(), stats.vn.to_string(), true),
+        (stats_localised.api.clone(), String::from("VNDB API"), true),
+    ];
     let builder_embed = get_default_embed(None)
         .title(stats_localised.title)
         .fields(fields);

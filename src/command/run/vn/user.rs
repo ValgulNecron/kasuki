@@ -34,19 +34,20 @@ pub async fn run(
     let path = format!("/user?q={}&fields=lengthvotes,lengthvotes_sum", user);
     let user = get_user(path, vndb_cache).await?;
     let user_localised: UserLocalised = load_localization_user(guild_id, db_type).await?;
-    let mut fields = vec![];
-    fields.push((user_localised.id.clone(), user.id.clone(), true));
-    fields.push((
-        user_localised.playtime.clone(),
-        user.lengthvotes.to_string(),
-        true,
-    ));
-    fields.push((
-        user_localised.playtimesum.clone(),
-        user.lengthvotes_sum.to_string(),
-        true,
-    ));
-    fields.push((user_localised.name.clone(), user.username.clone(), true));
+    let fields = vec![
+        (user_localised.id.clone(), user.id.clone(), true),
+        (
+            user_localised.playtime.clone(),
+            user.lengthvotes.to_string(),
+            true,
+        ),
+        (
+            user_localised.playtimesum.clone(),
+            user.lengthvotes_sum.to_string(),
+            true,
+        ),
+        (user_localised.name.clone(), user.username.clone(), true),
+    ];
     let builder_embed = get_default_embed(None)
         .title(user_localised.title)
         .fields(fields);

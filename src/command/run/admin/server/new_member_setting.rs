@@ -73,8 +73,6 @@ pub async fn run(
             show_time_join: true,
         });
 
-    let show_username = show_username;
-    let show_time = show_time;
     trace!(?show_username, ?show_time, ?channel_id, ?attachment);
     let channel_id = match channel_id {
         Some(channel_id) => channel_id.to_string().parse::<u64>().map_err(|e| {

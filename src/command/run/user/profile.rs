@@ -147,37 +147,28 @@ pub async fn send_embed(
         format!("<t:{}>", user.created_at().timestamp()),
         true,
     ));
-    match member {
-        Some(member) => match member.joined_at {
-            Some(joined_at) => {
-                fields.push((
-                    profile_localised.joined_date,
-                    format!("<t:{}>", joined_at.timestamp()),
-                    true,
-                ));
-            }
-            None => {}
-        },
-        None => {}
+    if let Some(member) = member {
+        if let Some(joined_at) = member.joined_at {
+            fields.push((
+                profile_localised.joined_date,
+                format!("<t:{}>", joined_at.timestamp()),
+                true,
+            ));
+        }
     }
 
     fields.push((profile_localised.bot, user.bot.to_string(), true));
     fields.push((profile_localised.system, user.system.to_string(), true));
-
-    // Check if there are any public flags for the user
-    match user.public_flags {
-        Some(public_flag) => {
-            let mut user_flags = Vec::new();
-            // If there are, iterate over the flags and add them to a vector
-            for (flag, _) in public_flag.iter_names() {
-                user_flags.push(flag)
-            }
-            if !user_flags.is_empty() {
-                fields.push((profile_localised.public_flag, user_flags.join(" / "), false));
-            }
+    if let Some(public_flag) = user.public_flags {
+        let mut user_flags = Vec::new();
+        // If there are, iterate over the flags and add them to a vector
+        for (flag, _) in public_flag.iter_names() {
+            user_flags.push(flag)
         }
-        None => {}
-    };
+        if !user_flags.is_empty() {
+            fields.push((profile_localised.public_flag, user_flags.join(" / "), false));
+        }
+    }
 
     // Create an embed with the user's profile information
     let mut builder_embed = CreateEmbed::new()
@@ -191,12 +182,9 @@ pub async fn send_embed(
         )
         .fields(fields);
 
-    match user.banner_url() {
-        Some(banner) => {
-            builder_embed = builder_embed.image(banner);
-        }
-        None => {}
-    };
+    if let Some(banner) = user.banner_url() {
+        builder_embed = builder_embed.image(banner);
+    }
 
     // Create a message with the embed
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);

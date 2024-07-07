@@ -185,8 +185,8 @@ async fn main() {
             _ = sigusr1.recv() => {},
             _ = sigusr2.recv() => {},
         }
-        ShardManager::shutdown_all(&shutdown).await;
         info!("Received bot shutdown signal. Shutting down bot.");
+        ShardManager::shutdown_all(&shutdown).await;
         std::process::exit(0);
     }
     #[cfg(windows)]
@@ -206,8 +206,8 @@ async fn main() {
             _ = ctrl_logoff.recv() => {},
             _ = ctrl_shutdown.recv() => {},
         }
-        ShardManager::shutdown_all(&shutdown).await;
         info!("Received bot shutdown signal. Shutting down bot.");
+        ShardManager::shutdown_all(&shutdown).await;
         std::process::exit(0);
     }
 }

@@ -1,5 +1,4 @@
 use crate::structure::run::anilist::seiyuu_id;
-use futures::StreamExt;
 
 #[cynic::schema("anilist")]
 mod schema {}

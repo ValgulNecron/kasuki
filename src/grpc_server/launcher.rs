@@ -42,20 +42,19 @@ pub async fn grpc_server_launcher(
     let shard_service = ShardService {
         shard_manager: shard_manager_arc.clone(),
     };
-    let info_service = unsafe {
-        InfoService {
-            bot_info: bot_data,
-            sys: Arc::new(RwLock::new(System::new_all())),
-            os_info: Arc::new(os_info::get()),
-            command_usage,
-            shard_manager: shard_manager_arc.clone(),
-            cache,
-            http,
-            config: config.clone(),
-        }
+    let info_service = InfoService {
+        bot_info: bot_data,
+        sys: Arc::new(RwLock::new(System::new_all())),
+        os_info: Arc::new(os_info::get()),
+        command_usage,
+        shard_manager: shard_manager_arc.clone(),
+        cache,
+        http,
+        config: config.clone(),
     };
+    let bot_commands = BOT_COMMANDS.clone();
     let command_service = CommandServices {
-        command_list: Arc::new(BOT_COMMANDS.clone()),
+        command_list: Arc::new(bot_commands),
     };
 
     // Configure the reflection service and register the file descriptor set for the shard service

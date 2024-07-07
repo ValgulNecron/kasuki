@@ -166,6 +166,14 @@ pub async fn run(
         .ai_transcription_base_url
         .clone()
         .unwrap_or_default();
+    // check the last 3 characters of the url if it v1/ or v1 or something else
+    let api_base_url = if api_base_url.ends_with("v1/") {
+        format!("{}audio/transcriptions/", api_base_url)
+    } else if api_base_url.ends_with("v1") {
+        format!("{}/audio/transcriptions/", api_base_url)
+    } else {
+        format!("{}/v1/audio/transcriptions/", api_base_url)
+    };
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(

@@ -65,7 +65,7 @@ impl RootUsage {
             command_list: HashMap::new(),
         }
     }
-    pub fn get_total_command_use<'a>(&self) -> String {
+    pub fn get_total_command_use(&self) -> String {
         let mut total = BigUint::ZERO;
         let command_usage = self.clone();
         for (_, user_info) in command_usage.command_list.iter() {
@@ -203,7 +203,7 @@ impl EventHandler for Handler {
         ctx: Context,
         guild_id: GuildId,
         user: User,
-        member_data_if_available: Option<Member>,
+        _member_data_if_available: Option<Member>,
     ) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
         let is_module_on =

@@ -56,7 +56,7 @@ pub const OTHER_CRATE_LEVEL: &str = "warn";
 pub const UNKNOWN: &str = "Unknown";
 
 /// Map of language codes to language names.
-pub const LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
+pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
     let languages = [
         ("en", "english"),
         ("fr", "french"),
@@ -81,6 +81,6 @@ pub const DEFAULT_STRING: &String = &String::new();
 /// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Vec of all available bot commands.
-pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
+pub static BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
 /// Used library.
 pub const LIBRARY: &str = "serenity";

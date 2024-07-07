@@ -112,7 +112,7 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         }
     };
     trace!(?audit_log);
-    let mut reason = "".to_string();
+    let reason;
     if audit_log.entries.is_empty() || audit_log.entries.is_empty() {
         reason = "User left".to_string()
     } else {
