@@ -58,7 +58,7 @@ pub async fn grpc_server_launcher(
     };
 
     // Configure the reflection service and register the file descriptor set for the shard service
-    let mut reflection = tonic_reflection::server::Builder::configure()
+    let reflection = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(service::shard::proto::SHARD_FILE_DESCRIPTOR_SET)
         .register_encoded_file_descriptor_set(service::info::proto::INFO_FILE_DESCRIPTOR_SET)
         .register_encoded_file_descriptor_set(service::command::proto::COMMAND_FILE_DESCRIPTOR_SET);

@@ -22,6 +22,11 @@ pub struct SteamGameInfoLocalised {
     pub free: String,
     pub coming_soon: String,
     pub tba: String,
+    pub win: String,
+    pub mac: String,
+    pub linux: String,
+    pub website: String,
+    pub required_age: String,
 }
 
 /// `load_localization_steam_game_info` is an asynchronous function that loads the localized data for a Steam game.
