@@ -1,5 +1,3 @@
-use std::env;
-
 // Importing necessary libraries and modules
 use reqwest::multipart;
 use tracing::debug;
@@ -23,19 +21,11 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 /// # Errors
 ///
 /// This function will return an `AppError` if it encounters any issues while getting the token, writing the image to a file, or uploading the image to catbox.moe.
-pub async fn upload_image_catbox(filename: String, image_data: Vec<u8>) -> Result<(), AppError> {
-    // Get the token from the environment variables
-    let token = match env::var("TOKEN").map_err(|e| {
-        AppError::new(
-            format!("Failed to get the token. {}", e),
-            ErrorType::Option,
-            ErrorResponseType::Unknown,
-        )
-    }) {
-        Ok(token) => token,
-        Err(e) => return Err(e),
-    };
-
+pub async fn upload_image_catbox(
+    filename: String,
+    image_data: Vec<u8>,
+    token: String,
+) -> Result<(), AppError> {
     let form = multipart::Form::new()
         .text("reqtype", "fileupload")
         .text("userhash", token)

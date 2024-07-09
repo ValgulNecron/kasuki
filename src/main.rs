@@ -23,7 +23,6 @@ mod constant;
 mod custom_serenity_impl;
 mod database;
 mod event_handler;
-mod federation;
 mod grpc_server;
 mod helper;
 mod logger;
@@ -45,13 +44,14 @@ async fn main() {
             std::process::exit(1);
         }
     };
-    let config: Config = match toml::from_str(&config) {
+    let mut config: Config = match toml::from_str(&config) {
         Ok(config) => config,
         Err(e) => {
             eprintln!("Error while parsing config.toml: {:?}", e);
             std::process::exit(1);
         }
     };
+    config.set_default_value_on_none();
     let log = config.logging.log_level.clone();
     let discord_token = config.bot.discord_token.clone();
     let db_type = config.bot.config.db_type.clone();

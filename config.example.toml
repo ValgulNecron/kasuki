@@ -98,19 +98,3 @@ use_tls = false
 tls_cert_path = ""
 tls_key_path = ""
 
-# Additional federation settings for the gRPC server
-[grpc.federation]
-# Whether federation is enabled.
-federation_is_on = false
-
-# The name of the bot in the federation.
-federation_name = ""
-
-# The address of the current node in the federation.
-self_address = ""
-
-# Indicates whether to join a new federation.
-new_federation = false
-
-# The address of the federation to join.
-federation_address = ""

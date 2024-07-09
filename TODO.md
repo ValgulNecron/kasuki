@@ -44,7 +44,7 @@
     - [X] Video translation.
     - [X] Ask a question and reply the response.
 
-- Music module: (Not sure if I will do this one.)
+- Music module: (Not sure if I will do this one. since it broke tos)
     - [ ] Play music from youtube.
     - [ ] Play music from file upload.
     - [ ] Play music from a link.
@@ -100,11 +100,6 @@
         - [X] User command
         - [ ] Message command
         - [ ] User installed app (waiting on serenity to support it).
-    - [ ] Federation
-        - [ ] Add a federation system to share data between bot.
-            - Should be able to share data between bot.
-            - Should be P2P.
-            - Should work with a "token" system to allow different "federation" to share different data.
 
 - Optimisation needed:
     - [ ] anilist_server list_user

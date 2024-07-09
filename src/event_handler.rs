@@ -142,6 +142,7 @@ impl EventHandler for Handler {
     /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
+        let image_config = self.bot_data.config.image.clone();
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
         if is_new.unwrap_or_default() {
             color_management(
@@ -151,7 +152,7 @@ impl EventHandler for Handler {
                 user_blacklist_server_image,
             )
             .await;
-            server_image_management(&ctx, db_type).await;
+            server_image_management(&ctx, db_type, image_config).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
@@ -174,6 +175,7 @@ impl EventHandler for Handler {
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
         let db_type = self.bot_data.config.bot.config.db_type.clone();
         let guild_id = member.guild_id.to_string();
+        let image_config = self.bot_data.config.image.clone();
         debug!(
             "Member {} joined guild {}",
             member.user.tag(),
@@ -194,7 +196,7 @@ impl EventHandler for Handler {
         )
         .await;
         if is_module_on {
-            server_image_management(&ctx, db_type.clone()).await;
+            server_image_management(&ctx, db_type.clone(), image_config).await;
         }
     }
 
@@ -237,6 +239,18 @@ impl EventHandler for Handler {
     /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
     /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
     async fn ready(&self, ctx: Context, ready: Ready) {
+        // Spawns a new thread for managing various tasks
+        let guard = self.bot_data.already_launched.read().await;
+        if !(*guard) {
+            drop(guard);
+            let mut write_guard = self.bot_data.already_launched.write().await;
+            *write_guard = true;
+            tokio::spawn(thread_management_launcher(
+                ctx.clone(),
+                self.bot_data.clone(),
+            ));
+            drop(write_guard)
+        }
         // Sets the bot's activity
         ctx.set_activity(Some(ActivityData::custom(
             self.bot_data.config.bot.bot_activity.clone(),
@@ -267,18 +281,6 @@ impl EventHandler for Handler {
                 &partial_guild.name,
                 &partial_guild.id.to_string()
             )
-        }
-        // Spawns a new thread for managing various tasks
-        let guard = self.bot_data.already_launched.read().await;
-        if !(*guard) {
-            drop(guard);
-            let mut write_guard = self.bot_data.already_launched.write().await;
-            *write_guard = true;
-            tokio::spawn(thread_management_launcher(
-                ctx.clone(),
-                self.bot_data.clone(),
-            ));
-            drop(write_guard)
         }
     }
 

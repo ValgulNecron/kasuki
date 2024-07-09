@@ -352,7 +352,6 @@ async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, AppError> {
 
 #[derive(Debug, Deserialize)]
 struct Root {
-    created: u64,
     #[serde(rename = "data")]
     data: Vec<Data>,
 }
