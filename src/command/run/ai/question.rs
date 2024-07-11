@@ -111,6 +111,14 @@ async fn question(
     model: String,
 ) -> Result<String, AppError> {
     let api_url = api_base_url.to_string();
+    // check the last 3 characters of the url if it v1/ or v1 or something else
+    let api_url = if api_url.ends_with("v1/") {
+        format!("{}chat/completions", api_url)
+    } else if api_url.ends_with("v1") {
+        format!("{}/chat/completions", api_url)
+    } else {
+        format!("{}/v1/chat/completions", api_url)
+    };
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(

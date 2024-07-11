@@ -2,9 +2,12 @@ use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::debug;
 
-use crate::constant::{APPS, AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
+use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::helper::fuzzy_search::distance_top_n;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 
@@ -35,13 +38,19 @@ use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_su
 /// # Safety
 ///
 /// This function uses `unsafe` to access the global `APPS` array. The safety of this function depends on the correct usage of the `APPS` array.
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(
+    ctx: Context,
+    autocomplete_interaction: CommandInteraction,
+    apps: Arc<RwLock<HashMap<String, u128>>>,
+) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
     let game_search = map
         .get(&String::from("game_name"))
         .unwrap_or(DEFAULT_STRING);
 
-    let app_names: Vec<&str> = unsafe { APPS.iter().map(|app| app.0.as_str()).collect() };
+    let guard = apps.read().await;
+    let app_names: Vec<String> = guard.clone().iter().map(|app| app.0.clone()).collect();
+    let app_names: Vec<&str> = app_names.iter().map(|a| a.as_str()).collect();
     let result = distance_top_n(
         game_search.as_str(),
         app_names.clone(),
@@ -61,9 +70,10 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
                 name.clone()
             };
             if !name.is_empty() {
-                choices.push(AutocompleteChoice::new(name_show.clone(), unsafe {
-                    APPS[&name].to_string()
-                }));
+                choices.push(AutocompleteChoice::new(
+                    name_show.clone(),
+                    guard[&name].to_string(),
+                ));
             }
         }
     }

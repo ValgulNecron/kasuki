@@ -14,9 +14,6 @@ remove_old_commands = true
 # The database type used by the bot. Options include sqlite or postgres.
 db_type = "sqlite"
 
-# Enables or disables the TUI.
-tui = false
-
 # Image saving settings
 [image]
 # Determines where to save generated images. Options include local, remote, or false.

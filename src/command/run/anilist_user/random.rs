@@ -126,7 +126,7 @@ async fn embed(
         media_type: None,
         page: Some(number),
     };
-    let mut url = String::new();
+
     if random_type == "manga" {
         var.media_type = Some(MediaType::Manga)
     } else {
@@ -140,11 +140,11 @@ async fn embed(
     let data = data.data.unwrap();
     let inside_media = data.page.unwrap().media.unwrap()[0].clone().unwrap();
     let id = inside_media.id;
-    if random_type == "manga" {
-        url = format!("https://anilist.co/manga/{}", id);
+    let url = if random_type == "manga" {
+        format!("https://anilist.co/manga/{}", id)
     } else {
-        url = format!("https://anilist.co/anime/{}", id);
-    }
+        format!("https://anilist.co/anime/{}", id)
+    };
     follow_up_message(
         ctx,
         command_interaction,

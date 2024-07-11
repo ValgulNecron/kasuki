@@ -1,11 +1,8 @@
 use std::collections::HashMap;
 use std::env;
-use std::sync::Arc;
 
 use once_cell::sync::Lazy;
-use ratatui::style::Color;
-use serenity::all::{Colour, CurrentApplicationInfo};
-use tokio::sync::RwLock;
+use serenity::all::Colour;
 
 use crate::grpc_server::command_list::{get_list_of_all_command, CommandItem};
 
@@ -51,7 +48,6 @@ App embed color.
  */
 /// Color for the app embed.
 pub const COLOR: Colour = Colour::FABLED_PINK;
-pub const TUI_FG_COLOR: Color = Color::Rgb(250, 177, 237);
 pub const HEX_COLOR: &str = "#FAB1ED";
 
 /// Log level for other crates.
@@ -60,7 +56,7 @@ pub const OTHER_CRATE_LEVEL: &str = "warn";
 pub const UNKNOWN: &str = "Unknown";
 
 /// Map of language codes to language names.
-pub const LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
+pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
     let languages = [
         ("en", "english"),
         ("fr", "french"),
@@ -69,9 +65,6 @@ pub const LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
     ];
     languages.iter().cloned().collect()
 });
-
-/// Map of app names to their respective IDs.
-pub static mut APPS: Lazy<HashMap<String, u128>> = Lazy::new(HashMap::new);
 
 /// Path to the logs.
 pub const LOGS_PATH: &str = "./logs";
@@ -87,16 +80,7 @@ pub const DEFAULT_STRING: &String = &String::new();
 
 /// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-/// User blacklist for the server image.
-pub static mut USER_BLACKLIST_SERVER_IMAGE: Lazy<Arc<RwLock<Vec<String>>>> = Lazy::new(|| {
-    let user_ids: Vec<String> = Vec::new();
-    Arc::from(RwLock::from(user_ids))
-});
-
-/// The bot's information.
-pub static mut BOT_INFO: Option<CurrentApplicationInfo> = None;
 /// Vec of all available bot commands.
-pub const BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
+pub static BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
 /// Used library.
 pub const LIBRARY: &str = "serenity";

@@ -62,10 +62,8 @@ pub async fn remote_saver(filename: String, image_data: Vec<u8>) -> Result<(), A
     // Get the server for saving from the environment variables
     let saver_server = env::var("SAVE_SERVER").unwrap_or("catbox".to_string());
     // If the server is catbox, upload the image to catbox
-    if saver_server == *"catbox" {
-        upload_image_catbox(filename, image_data).await
-        // If the server is imgur, upload the image to imgur
-    } else {
-        upload_image_catbox(filename, image_data).await
+
+    match saver_server.as_str() {
+        _ => upload_image_catbox(filename, image_data).await,
     }
 }

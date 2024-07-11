@@ -73,8 +73,6 @@ pub async fn run(
             show_time_join: true,
         });
 
-    let show_username = show_username;
-    let show_time = show_time;
     trace!(?show_username, ?show_time, ?channel_id, ?attachment);
     let channel_id = match channel_id {
         Some(channel_id) => channel_id.to_string().parse::<u64>().map_err(|e| {
@@ -103,16 +101,18 @@ pub async fn run(
                     ErrorResponseType::Followup,
                 )
             })?;
-            fs::write(format!("{}{}.png", NEW_MEMBER_IMAGE_PATH,guild_id), bytes).map_err(|e| {
-                AppError::new(
-                    format!("Error while saving the attachment {}", e),
-                    ErrorType::Option,
-                    ErrorResponseType::Followup,
-                )
-            })?;
+            fs::write(format!("{}{}.png", NEW_MEMBER_IMAGE_PATH, guild_id), bytes).map_err(
+                |e| {
+                    AppError::new(
+                        format!("Error while saving the attachment {}", e),
+                        ErrorType::Option,
+                        ErrorResponseType::Followup,
+                    )
+                },
+            )?;
             true
         }
-        None => guild_specific.custom_image.clone(),
+        None => guild_specific.custom_image,
     };
     let new_member_setting = NewMemberSetting {
         custom_channel: channel_id != 0,

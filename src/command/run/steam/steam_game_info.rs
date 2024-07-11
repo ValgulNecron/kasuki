@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use serenity::all::CreateInteractionResponse::Defer;
@@ -5,6 +6,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::config::Config;
@@ -34,6 +36,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
+    apps: Arc<RwLock<HashMap<String, u128>>>,
 ) -> Result<(), AppError> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the game's name from the command interaction
@@ -73,7 +76,7 @@ pub async fn run(
     let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
         SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, db_type).await?
     } else {
-        SteamGameWrapper::new_steam_game_by_search(value, guild_id, db_type).await?
+        SteamGameWrapper::new_steam_game_by_search(value, guild_id, db_type, apps).await?
     };
 
     // Send an embed with the game's information

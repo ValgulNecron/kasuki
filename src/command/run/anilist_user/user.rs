@@ -73,7 +73,7 @@ pub async fn run(
 ///
 /// A `Result` that is `Ok` if the user's data was fetched successfully, or `Err` if an error occurred.
 pub async fn get_user(
-    value: &String,
+    value: &str,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<User, AppError> {
     // If the value is a valid user ID, fetch the user's data by ID
@@ -87,7 +87,7 @@ pub async fn get_user(
     } else {
         // If the value is not a valid user ID, fetch the user's data by username
         let var = UserQuerrySearchVariables {
-            search: Some(value.as_str()),
+            search: Some(value),
         };
         let operation = UserQuerrySearch::build(var);
         let data: GraphQlResponse<UserQuerrySearch> =

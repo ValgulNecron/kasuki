@@ -1,14 +1,15 @@
-use std::collections::HashMap;
-
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
 use serde_with::formats::PreferOne;
 use serde_with::serde_as;
 use serde_with::OneOrMany;
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::trace;
 
-use crate::constant::{APPS, LANG_MAP};
+use crate::constant::LANG_MAP;
 use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 use crate::helper::get_guild_lang::get_guild_language;
 
@@ -216,7 +217,7 @@ impl SteamGameWrapper {
                 )
             })?;
         let lang = get_guild_language(guild_id, db_type).await;
-        let local_lang = LANG_MAP;
+        let local_lang = LANG_MAP.clone();
         let full_lang = *local_lang
             .get(lang.to_lowercase().as_str())
             .unwrap_or(&"english");
@@ -288,31 +289,30 @@ impl SteamGameWrapper {
         search: &str,
         guild_id: String,
         db_type: String,
+        apps: Arc<RwLock<HashMap<String, u128>>>,
     ) -> Result<SteamGameWrapper, AppError> {
-        let choices: Vec<(&String, &u128)>;
-        unsafe { choices = APPS.iter().collect() }
+        let guard = apps.read().await;
+        let choices: Vec<(&String, &u128)> = guard.iter().collect();
 
         let choices: Vec<&str> = choices.into_iter().map(|(s, _)| s.as_str()).collect();
         let results: Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
 
         let mut appid = &0u128;
-        unsafe {
-            if results.is_empty() {
-                return Err(AppError::new(
-                    "Game not found.".to_string(),
-                    ErrorType::WebRequest,
-                    ErrorResponseType::Unknown,
-                ));
+        if results.is_empty() {
+            return Err(AppError::new(
+                "Game not found.".to_string(),
+                ErrorType::WebRequest,
+                ErrorResponseType::Unknown,
+            ));
+        }
+        for (name, _) in results {
+            if appid == &0u128 {
+                appid = guard.get(name).unwrap()
             }
-            for (name, _) in results {
-                if appid == &0u128 {
-                    appid = APPS.get(name).unwrap()
-                }
 
-                if search.to_lowercase() == name.to_lowercase() {
-                    appid = APPS.get(name).unwrap();
-                    break;
-                }
+            if search.to_lowercase() == name.to_lowercase() {
+                appid = guard.get(name).unwrap();
+                break;
             }
         }
 

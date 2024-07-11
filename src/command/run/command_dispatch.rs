@@ -813,6 +813,7 @@ async fn steam(
 ) -> Result<(), AppError> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone();
+    let apps = self_handler.bot_data.apps.clone();
     let game_module_error: AppError = AppError {
         message: String::from("Game module is off."),
         error_type: ErrorType::Module,
@@ -826,7 +827,7 @@ async fn steam(
         return Err(game_module_error);
     }
     let return_data = match command_name {
-        "game" => steam_game_info::run(ctx, command_interaction, config).await,
+        "game" => steam_game_info::run(ctx, command_interaction, config, apps).await,
         _ => Err(AppError::new(
             String::from("Command does not exist."),
             ErrorType::Option,

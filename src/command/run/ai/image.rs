@@ -107,6 +107,14 @@ pub async fn run(
         .ai_image_base_url
         .clone()
         .unwrap_or_default();
+    // check the last 3 characters of the url if it v1/ or v1 or something else
+    let url = if url.ends_with("v1/") {
+        format!("{}images/generations", url)
+    } else if url.ends_with("v1") {
+        format!("{}/images/generations", url)
+    } else {
+        format!("{}/v1/images/generations", url)
+    };
 
     let model = model.as_str();
     info!("{}", model);

@@ -34,6 +34,8 @@ pub struct BotData {
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
     pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
     pub already_launched: RwLock<bool>,
+    pub apps: Arc<RwLock<HashMap<String, u128>>>,
+    pub user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
 }
 
 pub struct Handler {
@@ -63,7 +65,7 @@ impl RootUsage {
             command_list: HashMap::new(),
         }
     }
-    pub fn get_total_command_use<'a>(&self) -> String {
+    pub fn get_total_command_use(&self) -> String {
         let mut total = BigUint::ZERO;
         let command_usage = self.clone();
         for (_, user_info) in command_usage.command_list.iter() {
@@ -140,8 +142,15 @@ impl EventHandler for Handler {
     /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
+        let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
         if is_new.unwrap_or_default() {
-            color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
+            color_management(
+                &ctx.cache.guilds(),
+                &ctx,
+                db_type.clone(),
+                user_blacklist_server_image,
+            )
+            .await;
             server_image_management(&ctx, db_type).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
@@ -162,6 +171,7 @@ impl EventHandler for Handler {
     /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
     /// If an error occurs during the handling of the new member, it logs the error.
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
+        let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
         let db_type = self.bot_data.config.bot.config.db_type.clone();
         let guild_id = member.guild_id.to_string();
         debug!(
@@ -176,7 +186,13 @@ impl EventHandler for Handler {
                 false
             });
         new_member_message(&ctx, &member).await;
-        color_management(&ctx.cache.guilds(), &ctx, db_type.clone()).await;
+        color_management(
+            &ctx.cache.guilds(),
+            &ctx,
+            db_type.clone(),
+            user_blacklist_server_image,
+        )
+        .await;
         if is_module_on {
             server_image_management(&ctx, db_type.clone()).await;
         }
@@ -187,7 +203,7 @@ impl EventHandler for Handler {
         ctx: Context,
         guild_id: GuildId,
         user: User,
-        member_data_if_available: Option<Member>,
+        _member_data_if_available: Option<Member>,
     ) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
         let is_module_on =
@@ -322,6 +338,7 @@ impl EventHandler for Handler {
             let db_type = self.bot_data.config.bot.config.db_type.clone();
             let anilist_cache = self.bot_data.anilist_cache.clone();
             let vndb_cache = self.bot_data.vndb_cache.clone();
+            let apps = self.bot_data.apps.clone();
             // Dispatch the autocomplete interaction
             autocomplete_dispatching(
                 ctx,
@@ -329,6 +346,7 @@ impl EventHandler for Handler {
                 anilist_cache,
                 db_type,
                 vndb_cache,
+                apps,
             )
             .await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {

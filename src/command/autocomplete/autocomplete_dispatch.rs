@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -19,11 +20,12 @@ pub async fn autocomplete_dispatching(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_type: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    apps: Arc<RwLock<HashMap<String, u128>>>,
 ) {
     match autocomplete_interaction.data.name.as_str() {
         "admin" => admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_type).await,
         "anilist_user" => anilist_autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "steam" => steam_autocomplete(ctx, autocomplete_interaction).await,
+        "steam" => steam_autocomplete(ctx, autocomplete_interaction, apps).await,
         "vn" => vn_autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
         _ => {}
     }
@@ -116,7 +118,11 @@ async fn anilist_autocomplete(
     }
 }
 
-async fn steam_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+async fn steam_autocomplete(
+    ctx: Context,
+    autocomplete_interaction: CommandInteraction,
+    apps: Arc<RwLock<HashMap<String, u128>>>,
+) {
     match autocomplete_interaction
         .data
         .options
@@ -125,7 +131,7 @@ async fn steam_autocomplete(ctx: Context, autocomplete_interaction: CommandInter
         .name
         .as_str()
     {
-        "game" => steam_game_info::autocomplete(ctx, autocomplete_interaction).await,
+        "game" => steam_game_info::autocomplete(ctx, autocomplete_interaction, apps).await,
         _ => {}
     }
 }
