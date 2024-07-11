@@ -19,6 +19,7 @@ use crate::background_task::server_image::common::{
     create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
     ColorWithUrl,
 };
+use crate::config::ImageConfig;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_all_user_approximated_color, set_server_image,
 };
@@ -43,6 +44,7 @@ pub async fn generate_local_server_image(
     ctx: &Context,
     guild_id: GuildId,
     cache_type: String,
+    image_config: ImageConfig,
 ) -> Result<(), AppError> {
     // Fetch the members of the guild
     let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
@@ -51,7 +53,15 @@ pub async fn generate_local_server_image(
     // Create a vector of colors from the average colors
     let color_vec = create_color_vector_from_tuple(average_colors.clone());
     // Generate the server image using the color vector and save it as a "local" image
-    generate_server_image(ctx, guild_id, color_vec, String::from("local"), cache_type).await
+    generate_server_image(
+        ctx,
+        guild_id,
+        color_vec,
+        String::from("local"),
+        cache_type,
+        image_config,
+    )
+    .await
 }
 
 /// This function generates a global server image.
@@ -72,10 +82,19 @@ pub async fn generate_global_server_image(
     ctx: &Context,
     guild_id: GuildId,
     db_type: String,
+    image_config: ImageConfig,
 ) -> Result<(), AppError> {
     let average_colors = get_all_user_approximated_color(db_type.clone()).await?;
     let color_vec = create_color_vector_from_user_color(average_colors.clone());
-    generate_server_image(ctx, guild_id, color_vec, String::from("global"), db_type).await
+    generate_server_image(
+        ctx,
+        guild_id,
+        color_vec,
+        String::from("global"),
+        db_type,
+        image_config,
+    )
+    .await
 }
 
 /// This function generates a server image based on the average colors of the members' avatars.
@@ -100,6 +119,7 @@ pub async fn generate_server_image(
     average_colors: Vec<ColorWithUrl>,
     image_type: String,
     db_type: String,
+    image_config: ImageConfig,
 ) -> Result<(), AppError> {
     // Fetch the guild
     let guild = guild_id.to_partial_guild(&ctx.http).await.map_err(|e| {
@@ -194,7 +214,18 @@ pub async fn generate_server_image(
     let image = format!("data:image/png;base64,{}", base64_image);
     let uuid = Uuid::new_v4();
     // Save the image
-    image_saver(guild_id.to_string(), format!("{}.png", uuid), image_data).await?;
+    let token = image_config.token.clone().unwrap_or_default();
+    let saver = image_config.save_server.clone().unwrap_or_default();
+    let save_type = image_config.save_image.clone();
+    image_saver(
+        guild_id.to_string(),
+        format!("{}.png", uuid),
+        image_data,
+        saver,
+        token,
+        save_type,
+    )
+    .await?;
     // Set the server image
     set_server_image(
         &guild_id.to_string(),
@@ -219,14 +250,16 @@ pub async fn generate_server_image(
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
-pub async fn server_image_management(ctx: &Context, db_type: String) {
+pub async fn server_image_management(ctx: &Context, db_type: String, image_config: ImageConfig) {
     for guild in ctx.cache.guilds() {
         let ctx_clone = ctx.clone();
         let guild_clone = guild;
         let db_type_clone = db_type.clone();
+        let image_config_a = image_config.clone();
         task::spawn(async move {
             if let Err(e) =
-                generate_local_server_image(&ctx_clone, guild_clone, db_type_clone).await
+                generate_local_server_image(&ctx_clone, guild_clone, db_type_clone, image_config_a)
+                    .await
             {
                 warn!(
                     "Failed to generate local server image for guild {}. {:?}",
@@ -237,7 +270,9 @@ pub async fn server_image_management(ctx: &Context, db_type: String) {
             }
         });
 
-        if let Err(e) = generate_global_server_image(ctx, guild, db_type.clone()).await {
+        if let Err(e) =
+            generate_global_server_image(ctx, guild, db_type.clone(), image_config.clone()).await
+        {
             warn!(
                 "Failed to generate global server image for guild {}. {:?}",
                 guild, e

@@ -11,7 +11,7 @@ use crate::grpc_server::service::shard::{get_shard_server, ShardService};
 use serenity::all::{Cache, Http, ShardManager};
 use sysinfo::System;
 use tokio::sync::RwLock;
-use tracing::trace;
+use tracing::{error, trace};
 
 /// `grpc_server_launcher` is an asynchronous function that launches the gRPC server for the shard service.
 /// It takes a reference to an `Arc<ShardManager>` as a parameter.
@@ -61,18 +61,15 @@ pub async fn grpc_server_launcher(
     let reflection = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(service::shard::proto::SHARD_FILE_DESCRIPTOR_SET)
         .register_encoded_file_descriptor_set(service::info::proto::INFO_FILE_DESCRIPTOR_SET)
-        .register_encoded_file_descriptor_set(service::command::proto::COMMAND_FILE_DESCRIPTOR_SET)
-        .build()
-        .unwrap();
-
-    let federation_is_on = grpc_config.federation.federation_is_on;
+        .register_encoded_file_descriptor_set(service::command::proto::COMMAND_FILE_DESCRIPTOR_SET);
 
     let is_tls = grpc_config.use_tls;
     trace!("TLS: {}", is_tls);
-    let service = if is_tls {
+    let mut builder = tonic::transport::Server::builder();
+    if is_tls {
         let private_key_path = grpc_config.tls_key_path.clone();
         let cert_path = grpc_config.tls_cert_path.clone();
-        generate_key(grpc_config);
+        generate_key(grpc_config.clone());
         // Load the server's key and certificate
         let key = tokio::fs::read(private_key_path).await.unwrap();
         let cert = tokio::fs::read(cert_path).await.unwrap();
@@ -82,24 +79,24 @@ pub async fn grpc_server_launcher(
         // Build the gRPC server with TLS, add the ShardService and the reflection service, and serve the gRPC server
         let identity = tonic::transport::Identity::from_pem(cert, key);
         let tls_config = tonic::transport::ServerTlsConfig::new().identity(identity);
-        tonic::transport::Server::builder()
-            .tls_config(tls_config)
-            .unwrap()
-            .add_service(get_shard_server(shard_service))
-            .add_service(get_info_server(info_service))
-            .add_service(get_command_server(command_service))
-            .add_service(reflection)
-    } else {
-        // Build the gRPC server, add the ShardService and the reflection service, and serve the gRPC server
-        tonic::transport::Server::builder()
-            .add_service(get_shard_server(shard_service))
-            .add_service(get_info_server(info_service))
-            .add_service(get_command_server(command_service))
-            .add_service(reflection)
+        builder = builder.tls_config(tls_config).unwrap()
+    }
+    let mut builder = builder
+        .add_service(get_shard_server(shard_service))
+        .add_service(get_info_server(info_service))
+        .add_service(get_command_server(command_service));
+
+    let reflection = match reflection.build() {
+        Ok(reflection) => reflection,
+        Err(e) => {
+            error!("Failed to build reflection service: {}", e);
+            return;
+        }
     };
+    builder = builder.add_service(reflection);
 
     // Serve the gRPC server
-    service.serve(addr.parse().unwrap()).await.unwrap()
+    builder.serve(addr.parse().unwrap()).await.unwrap()
 }
 
 fn generate_key(grpc_config: GrpcCfg) {
@@ -109,7 +106,7 @@ fn generate_key(grpc_config: GrpcCfg) {
         "127.0.0.1".to_string(),
         "localhost".to_string(),
         "*.localhost".to_string(),
-        "*.kasuki.moe".to_string(),
+        "*".to_string(),
     ];
 
     // Generate the certificate and private key

@@ -103,17 +103,23 @@ pub async fn return_average_user_color(
         let color = user_color.color.clone();
         let pfp_url_old = user_color.pfp_url.clone();
         let image_old = user_color.image;
-        if color.is_none()
-            || pfp_url_old.is_none()
-            || image_old.is_none()
-            || pfp_url != pfp_url_old.clone().unwrap_or_default()
-        {
-            let (average_color, image): (String, String) = calculate_user_color(member).await?;
-            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type.clone())
-                .await?;
-            average_colors.push((average_color, pfp_url, image))
-        } else {
-            average_colors.push((color.unwrap(), pfp_url_old.unwrap(), image_old.unwrap()))
+        match (
+            color,
+            pfp_url_old.clone(),
+            image_old,
+            pfp_url == pfp_url_old.unwrap_or_default(),
+        ) {
+            (Some(color), Some(pfp_url_old), Some(image_old), true) => {
+                average_colors.push((color, pfp_url_old, image_old));
+                continue;
+            }
+            _ => {
+                let (average_color, image): (String, String) = calculate_user_color(member).await?;
+                set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type.clone())
+                    .await?;
+                average_colors.push((average_color, pfp_url, image));
+                continue;
+            }
         }
     }
 

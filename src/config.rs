@@ -75,16 +75,6 @@ pub struct GrpcCfg {
     pub use_tls: bool,
     pub tls_cert_path: String,
     pub tls_key_path: String,
-    pub federation: FederationCfg,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct FederationCfg {
-    pub federation_is_on: bool,
-    pub federation_name: String,
-    pub self_address: String,
-    pub new_federation: bool,
-    pub federation_address: Option<String>,
 }
 
 impl Default for Config {
@@ -135,13 +125,6 @@ impl Default for Config {
                 use_tls: false,
                 tls_cert_path: "cert/cert.pem".to_string(),
                 tls_key_path: "cert/key.pem".to_string(),
-                federation: FederationCfg {
-                    federation_is_on: false,
-                    federation_name: "".to_string(),
-                    self_address: "".to_string(),
-                    new_federation: false,
-                    federation_address: None,
-                },
             },
         }
     }

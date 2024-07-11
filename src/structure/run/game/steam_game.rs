@@ -1,9 +1,7 @@
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
-use serde_with::formats::PreferOne;
 use serde_with::serde_as;
-use serde_with::OneOrMany;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -29,81 +27,23 @@ pub struct Data {
     pub steam_appid: Option<u32>,
     pub required_age: Option<u32>,
     pub is_free: Option<bool>,
-    pub detailed_description: Option<String>,
-    pub about_the_game: Option<String>,
     pub short_description: Option<String>,
     pub supported_languages: Option<String>,
-    pub reviews: Option<String>,
     pub header_image: Option<String>,
-    pub capsule_image: Option<String>,
-    pub capsule_imagev5: Option<String>,
     pub website: Option<String>,
-    #[serde_as(deserialize_as = "OneOrMany<_, PreferOne>")]
-    pub pc_requirements: Vec<Requirements>,
-    #[serde_as(deserialize_as = "OneOrMany<_, PreferOne>")]
-    pub mac_requirements: Vec<Requirements>,
-    #[serde_as(deserialize_as = "OneOrMany<_, PreferOne>")]
-    pub linux_requirements: Vec<Requirements>,
     pub developers: Option<Vec<String>>,
     pub publishers: Option<Vec<String>>,
     pub price_overview: Option<PriceOverview>,
-    pub packages: Option<Vec<u32>>,
-    pub package_groups: Option<Vec<PackageGroup>>,
     pub platforms: Option<Platforms>,
     pub categories: Option<Vec<Category>>,
-    pub screenshots: Option<Vec<Screenshot>>,
-    pub movies: Option<Vec<Movie>>,
-    pub recommendations: Option<Recommendations>,
     pub release_date: Option<ReleaseDate>,
-    pub support_info: Option<SupportInfo>,
-    pub background: Option<String>,
-    pub background_raw: Option<String>,
-    pub content_descriptors: Option<ContentDescriptors>,
-}
-
-#[serde_as]
-#[derive(Deserialize, Clone, Debug)]
-pub struct Requirements {
-    pub minimum: Option<String>,
-    pub recommended: Option<String>,
 }
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
 pub struct PriceOverview {
-    pub currency: Option<String>,
-    pub initial: Option<u32>,
-    #[serde(rename = "final")]
-    pub final_price: Option<u32>,
     pub discount_percent: Option<u32>,
-    pub initial_formatted: Option<String>,
     pub final_formatted: Option<String>,
-}
-
-#[serde_as]
-#[derive(Deserialize, Clone, Debug)]
-pub struct PackageGroup {
-    pub name: Option<String>,
-    pub title: Option<String>,
-    pub description: Option<String>,
-    pub selection_text: Option<String>,
-    pub save_text: Option<String>,
-    pub display_type: Option<u32>,
-    pub is_recurring_subscription: Option<String>,
-    pub subs: Option<Vec<Sub>>,
-}
-
-#[serde_as]
-#[derive(Deserialize, Clone, Debug)]
-pub struct Sub {
-    pub packageid: Option<u32>,
-    pub percent_savings_text: Option<String>,
-    pub percent_savings: Option<u32>,
-    pub option_text: Option<String>,
-    pub option_description: Option<String>,
-    pub can_get_free_license: Option<String>,
-    pub is_free_license: Option<bool>,
-    pub price_in_cents_with_discount: Option<u32>,
 }
 
 #[serde_as]
@@ -117,27 +57,7 @@ pub struct Platforms {
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
 pub struct Category {
-    pub id: Option<u32>,
     pub description: Option<String>,
-}
-
-#[serde_as]
-#[derive(Deserialize, Clone, Debug)]
-pub struct Screenshot {
-    pub id: Option<u32>,
-    pub path_thumbnail: Option<String>,
-    pub path_full: Option<String>,
-}
-
-#[serde_as]
-#[derive(Deserialize, Clone, Debug)]
-pub struct Movie {
-    pub id: Option<u32>,
-    pub name: Option<String>,
-    pub thumbnail: Option<String>,
-    pub webm: Option<Webm>,
-    pub mp4: Option<Mp4>,
-    pub highlight: Option<bool>,
 }
 
 #[serde_as]
@@ -145,7 +65,6 @@ pub struct Movie {
 pub struct Webm {
     #[serde(rename = "480°")]
     pub _480: Option<String>,
-    pub max: Option<String>,
 }
 
 #[serde_as]
@@ -153,7 +72,6 @@ pub struct Webm {
 pub struct Mp4 {
     #[serde(rename = "480°")]
     pub _480: Option<String>,
-    pub max: Option<String>,
 }
 
 #[serde_as]
@@ -167,20 +85,6 @@ pub struct Recommendations {
 pub struct ReleaseDate {
     pub coming_soon: bool,
     pub date: Option<String>,
-}
-
-#[serde_as]
-#[derive(Deserialize, Clone, Debug)]
-pub struct SupportInfo {
-    pub url: Option<String>,
-    pub email: Option<String>,
-}
-
-#[serde_as]
-#[derive(Deserialize, Clone, Debug)]
-pub struct ContentDescriptors {
-    pub ids: Vec<u32>,
-    pub notes: Option<String>,
 }
 
 impl SteamGameWrapper {

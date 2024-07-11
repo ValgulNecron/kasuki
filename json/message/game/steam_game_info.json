@@ -9,7 +9,12 @@
     "field7": "Categories",
     "free": "Free",
     "coming_soon": "Coming soon",
-    "tba": "TBA"
+    "tba": "TBA",
+    "win": "Windows",
+    "mac": "Mac",
+    "linux": "Linux",
+    "website": "Website",
+    "required_age": "Required age"
   },
   "fr": {
     "field1": "Prix",
@@ -22,7 +27,12 @@
     "field8": "Avis",
     "free": "Gratuit",
     "coming_soon": "Bientôt disponible",
-    "tba": "À annoncer"
+    "tba": "À annoncer",
+    "win": "Windows",
+    "mac": "Mac",
+    "linux": "Linux",
+    "website": "Site web",
+    "required_age": "Âge requis"
   },
   "de": {
     "field1": "Preis",
@@ -35,7 +45,12 @@
     "field8": "Bewertungen",
     "free": "Kostenlos",
     "coming_soon": "Demnächst verfügbar",
-    "tba": "TBA"
+    "tba": "TBA",
+    "win": "Windows",
+    "mac": "Mac",
+    "linux": "Linux",
+    "website": "Webseite",
+    "required_age": "Erforderliches Alter"
   },
   "jp": {
     "field1": "価格",
@@ -48,6 +63,11 @@
     "field8": "レビュー",
     "free": "無料",
     "coming_soon": "近日公開",
-    "tba": "TBA"
+    "tba": "TBA",
+    "win": "Windows",
+    "mac": "Mac",
+    "linux": "Linux",
+    "website": "ウェブサイト",
+    "required_age": "必要年齢"
   }
 }

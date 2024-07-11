@@ -29,12 +29,20 @@
     - [X] Command for a random anime image NSFW.
 
 - Games module:
-    - [X] Search for a steam game.
     - [ ] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found),
       etc…)
       Get the currency and language from the server language setting.
+      - [X] Steam
+      - [ ] Epic
+      - [ ] Ubisoft
+      - [ ] EA
+      - [ ] GOG
+      - [ ] Xbox
+      - [ ] Playstation
     - [ ] get player stat
     - [ ] get free promotion notification
+      - [ ] Steam
+      - [ ] Epic
     - [ ] get game release notification
     - [ ] get game update notification
 
@@ -44,15 +52,15 @@
     - [X] Video translation.
     - [X] Ask a question and reply the response.
 
-- Music module: (Not sure if I will do this one.)
-    - [ ] Play music from youtube.
+- Music module: (Not sure if I will do this one. since it broke tos)
+    - [ ] Play music from YouTube.
     - [ ] Play music from file upload.
     - [ ] Play music from a link.
     - [ ] Play music from a playlist.
     - [ ] Play music from a search.
 
 - General module:
-    - [X] Command to change the bot response langage.
+    - [X] Command to change the bot response language.
     - [X] Command to turn on and off module.
     - [X] Credit command.
     - [X] Bot info command.
@@ -72,22 +80,23 @@
         - [X] Localisation for response.
         - [X] Localisation for command.
     - [X] Find a name for the bot.
-    - [ ] Database
+    - [X] Database
         - [x] Add a sqlite database.
         - [X] Add postgres database choices.
-        - [ ] Add redis for cache.
-        - [ ] In memory cache.
         - [ ] Rework the database to be more efficient.
+    - [X] Cache 
+      - [ ] Add redis for cache.
+      - [X] In memory cache.
     - [X] Create a parser because some description uses html and not markdown.
         - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases
           are
           supported
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
       size.
-    - [X] Better error handling.
+    - [ ] Better error handling.
     - [X] Doing something with error else than logging it.
     - [ ] Rename function and variable for better clarity.
-    - [X] Add docs to every public function.
+    - [ ] Add docs to every public function.
       (Run, Register and Autocomplete don’t need this.).
     - [X] Logging
     - [X] Updating to serenity 0.12.
@@ -99,12 +108,10 @@
         - [X] Subcommand group
         - [X] User command
         - [ ] Message command
-        - [ ] User installed app (waiting on serenity to support it).
-    - [ ] Federation
-        - [ ] Add a federation system to share data between bot.
-            - Should be able to share data between bot.
-            - Should be P2P.
-            - Should work with a "token" system to allow different "federation" to share different data.
+        - [X] User installed app.
 
 - Optimisation needed:
     - [ ] anilist_server list_user
+
+- Fix needed:
+  - [ ] steam game search

@@ -17,7 +17,7 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
 };
-use crate::structure::run::game::steam_game::SteamGameWrapper;
+use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
 
 /// Executes the command to retrieve and display a Steam game's information.
 ///
@@ -118,11 +118,14 @@ async fn send_embed(
         )
     } else {
         match game.price_overview {
-            Some(price) => (
-                steam_game_info_localised.field1,
-                convert_steam_to_discord_flavored_markdown(price.final_formatted.unwrap()),
-                true,
-            ),
+            Some(price) => {
+                let price = format!("{} {}", price.final_formatted.unwrap_or_default(), price.discount_percent.unwrap_or_default());
+                (
+                    steam_game_info_localised.field1,
+                    convert_steam_to_discord_flavored_markdown(price),
+                    true,
+                )
+            },
             None => (
                 steam_game_info_localised.field1,
                 steam_game_info_localised.tba,
@@ -131,6 +134,30 @@ async fn send_embed(
         }
     };
     fields.push(field1);
+    let platforms = match game.platforms {
+        Some(platforms) => platforms,
+        _ => {
+            Platforms {
+                windows: None,
+                mac: None,
+                linux: None,
+        }
+    }};
+
+    if let Some(website) = game.website {
+        fields.push((
+            steam_game_info_localised.website,
+            convert_steam_to_discord_flavored_markdown(website),
+            true,
+        ));
+    }
+    if let Some(required_age) = game.required_age {
+        fields.push((
+            steam_game_info_localised.required_age,
+            required_age.to_string(),
+            true,
+        ));
+    }
 
     // Determine the release date field based on whether the game is coming soon or not
     let field2 = if game.release_date.clone().unwrap().coming_soon {
@@ -187,9 +214,27 @@ async fn send_embed(
         fields.push((
             steam_game_info_localised.field6,
             convert_steam_to_discord_flavored_markdown(game_lang),
-            false,
+            true,
         ))
     }
+    let win = platforms.windows.unwrap_or(false);
+    let mac = platforms.mac.unwrap_or(false);
+    let linux = platforms.linux.unwrap_or(false);
+    fields.push((
+        steam_game_info_localised.win,
+        win.to_string(),
+        true,
+    ));
+    fields.push((
+        steam_game_info_localised.mac,
+        mac.to_string(),
+        true,
+    ));
+    fields.push((
+        steam_game_info_localised.linux,
+        linux.to_string(),
+        true,
+    ));
 
     // Add the categories field if it exists
     if let Some(categories) = game.categories {

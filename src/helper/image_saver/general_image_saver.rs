@@ -1,6 +1,4 @@
 // Importing necessary libraries and modules
-use std::env;
-
 use crate::helper::error_management::error_enum::AppError;
 use crate::helper::image_saver::catbox_image_saver::upload_image_catbox;
 use crate::helper::image_saver::local_image_saver::local_image_save;
@@ -27,15 +25,16 @@ pub async fn image_saver(
     guild_id: String,
     filename: String,
     image_data: Vec<u8>,
+    saver_server: String,
+    token: String,
+    save_type: String,
 ) -> Result<(), AppError> {
-    // Get the type of saver from the environment variables
-    let saver_type = env::var("SAVE_IMAGE").unwrap_or("local".to_string());
     // If the saver type is local, save the image locally
-    if saver_type == *"local" {
+    if save_type == *"local" {
         local_image_save(guild_id, filename, image_data).await
         // If the saver type is remote, save the image remotely
-    } else if saver_type == *"remote" {
-        remote_saver(filename, image_data).await
+    } else if save_type == *"remote" {
+        remote_saver(filename, image_data, saver_server, token).await
     } else {
         Ok(())
     }
@@ -58,12 +57,15 @@ pub async fn image_saver(
 /// # Errors
 ///
 /// This function will return an `AppError` if it encounters any issues while saving the image remotely.
-pub async fn remote_saver(filename: String, image_data: Vec<u8>) -> Result<(), AppError> {
-    // Get the server for saving from the environment variables
-    let saver_server = env::var("SAVE_SERVER").unwrap_or("catbox".to_string());
+pub async fn remote_saver(
+    filename: String,
+    image_data: Vec<u8>,
+    saver_server: String,
+    token: String,
+) -> Result<(), AppError> {
     // If the server is catbox, upload the image to catbox
 
     match saver_server.as_str() {
-        _ => upload_image_catbox(filename, image_data).await,
+        _ => upload_image_catbox(filename, image_data, token).await,
     }
 }

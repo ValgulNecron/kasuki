@@ -12,7 +12,7 @@ use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::background_task::update_random_stats::update_random_stats_launcher;
-use crate::config::Config;
+use crate::config::{Config, ImageConfig};
 use crate::constant::{
     TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_BLACKLISTED_USER_UPDATE,
     TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
@@ -74,9 +74,11 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
     ));
     // Sleep for a specified duration before spawning the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
+    let image_config = bot_data.config.image.clone();
     tokio::spawn(launch_server_image_management_thread(
         ctx.clone(),
         db_type.clone(),
+        image_config,
     ));
 
     info!("Done spawning thread manager.");
@@ -219,12 +221,16 @@ async fn launch_activity_management_thread(
 ///
 /// * `ctx` - A `Context` instance which is used in the server image management function.
 ///
-async fn launch_server_image_management_thread(ctx: Context, db_type: String) {
+async fn launch_server_image_management_thread(
+    ctx: Context,
+    db_type: String,
+    image_config: ImageConfig,
+) {
     info!("Launching the server image management thread!");
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_SERVER_IMAGE_UPDATE));
     loop {
         interval.tick().await;
-        server_image_management(&ctx, db_type.clone()).await;
+        server_image_management(&ctx, db_type.clone(), image_config.clone()).await;
     }
 }
 
