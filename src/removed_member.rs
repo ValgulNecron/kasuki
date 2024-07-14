@@ -1,5 +1,7 @@
 use crate::constant::{HEX_COLOR, NEW_MEMBER_PATH};
-use crate::new_member::{create_default_new_member_image, load_new_member_image, NewMemberSetting};
+use crate::new_member::{
+    create_default_new_member_image, load_guild_settings, load_new_member_image, NewMemberSetting,
+};
 use crate::structure::message::removed_member::load_localization_removed_member;
 use image::GenericImage;
 use image::ImageFormat::WebP;
@@ -12,7 +14,6 @@ use text_to_png::TextRenderer;
 use tracing::{error, trace};
 
 pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User) {
-    trace!("New member message.");
     let ctx = ctx.clone();
     let user_name = user.name.clone();
     let partial_guild = match guild_id.to_partial_guild(&ctx.http).await {
@@ -22,22 +23,10 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             return;
         }
     };
-    let content = fs::read_to_string(NEW_MEMBER_PATH).unwrap_or_else(|_| String::new());
-    let hashmap: HashMap<String, NewMemberSetting> =
-        serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
-    trace!(?hashmap);
-    let guild_specific = hashmap
-        .get(&guild_id.to_string())
-        .unwrap_or(&NewMemberSetting {
-            custom_channel: false,
-            channel_id: 0,
-            custom_image: false,
-            show_username: true,
-            show_time_join: true,
-        });
-    trace!(?guild_specific);
-    let channel_id = if guild_specific.custom_channel {
-        ChannelId::from(guild_specific.channel_id)
+    let guild_settings = load_guild_settings(guild_id).await;
+
+    let channel_id = if guild_settings.custom_channel {
+        ChannelId::from(guild_settings.channel_id)
     } else {
         match partial_guild.system_channel_id {
             Some(channel_id) => channel_id,
@@ -48,7 +37,7 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         }
     };
 
-    let guild_image = if guild_specific.custom_image {
+    let guild_image = if guild_settings.custom_image {
         let image = load_new_member_image(guild_id.to_string());
         match image {
             Some(image) => image,
@@ -75,7 +64,6 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         }
     };
     let avatar = user.face().replace("size=1024", "size=128");
-    trace!(avatar);
     let client = reqwest::Client::new();
     let res = match client.get(avatar).send().await {
         Ok(res) => res,
@@ -111,7 +99,6 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             return;
         }
     };
-    trace!(?audit_log);
     let reason;
     if audit_log.entries.is_empty() || audit_log.entries.is_empty() {
         reason = "User left".to_string()
@@ -127,7 +114,6 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
                 break;
             }
         }
-        trace!(?internal_action, ?audit_log);
         reason = if internal_action == InternalAction::Member(BanAdd) {
             let a = audit_log.entries[0].clone().reason.unwrap_or_default();
             format!("User Banned for {}", a)

@@ -4,7 +4,7 @@ use crate::structure::message::new_member::load_localization_new_member;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage};
 use serde::{Deserialize, Serialize};
-use serenity::all::{ChannelId, Context, CreateMessage, Member};
+use serenity::all::{ChannelId, Context, CreateMessage, GuildId, Member};
 use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
 use std::fs;
@@ -24,20 +24,9 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             return;
         }
     };
-    let content = fs::read_to_string(NEW_MEMBER_PATH).unwrap_or_else(|_| String::new());
-    let hashmap: HashMap<String, NewMemberSetting> =
-        serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
-    let guild_specific = hashmap
-        .get(&guild_id.to_string())
-        .unwrap_or(&NewMemberSetting {
-            custom_channel: false,
-            channel_id: 0,
-            custom_image: false,
-            show_username: true,
-            show_time_join: true,
-        });
-    let channel_id = if guild_specific.custom_channel {
-        ChannelId::from(guild_specific.channel_id)
+    let guild_settings = load_guild_settings(guild_id).await;
+    let channel_id = if guild_settings.custom_channel {
+        ChannelId::from(guild_settings.channel_id)
     } else {
         match partial_guild.system_channel_id {
             Some(channel_id) => channel_id,
@@ -48,7 +37,7 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
         }
     };
 
-    let guild_image = if guild_specific.custom_image {
+    let guild_image = if guild_settings.custom_image {
         let image = load_new_member_image(guild_id.to_string());
         match image {
             Some(image) => image,
@@ -200,6 +189,27 @@ pub struct NewMemberSetting {
     pub custom_image: bool,
     pub show_username: bool,
     pub show_time_join: bool,
+}
+
+impl Default for NewMemberSetting {
+    fn default() -> Self {
+        NewMemberSetting {
+            custom_channel: false,
+            channel_id: 0,
+            custom_image: false,
+            show_username: true,
+            show_time_join: true,
+        }
+    }
+}
+pub async fn load_guild_settings(guild_id: GuildId) -> NewMemberSetting {
+    let content = fs::read_to_string(NEW_MEMBER_PATH).unwrap_or_default();
+    let hashmap: HashMap<String, NewMemberSetting> =
+        serde_json::from_str(&content).unwrap_or_default();
+    hashmap
+        .get(&guild_id.to_string())
+        .unwrap_or(&NewMemberSetting::default())
+        .clone()
 }
 
 pub fn load_new_member_image(guild_id: String) -> Option<Vec<u8>> {
