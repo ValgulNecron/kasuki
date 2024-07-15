@@ -102,8 +102,14 @@ async fn update_random(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<RandomStat, Box<dyn Error>> {
     // Keep updating pages until there are no more pages to update.
-    while update_page(&mut random_stats, &anilist_cache, true, true).await {}
-    while update_page(&mut random_stats, &anilist_cache, false, false).await {}
+    let mut has_more_pages = true;
+    while has_more_pages {
+        has_more_pages = update_page(&mut random_stats, &anilist_cache, true, true).await;
+    }
+    has_more_pages = true;
+    while has_more_pages {
+        has_more_pages = update_page(&mut random_stats, &anilist_cache, false, false).await;
+    }
 
     Ok(random_stats)
 }
@@ -174,12 +180,6 @@ async fn update_page(
             random_stats.anime_last_page += 1;
         } else {
             random_stats.manga_last_page += 1;
-        }
-    } else {
-        if update_anime {
-            random_stats.anime_last_page -= 1;
-        } else {
-            random_stats.manga_last_page -= 1;
         }
     }
 

@@ -87,11 +87,9 @@ pub async fn send_auto_complete(
     let mut choices = Vec::new();
     let data = match data.data {
         Some(data) => data,
-        None =>
-            return,
+        None => return,
     };
-    let page = match data.
-        page {
+    let page = match data.page {
         Some(page) => page,
         None => return,
     };

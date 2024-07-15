@@ -582,6 +582,7 @@ fn get_info(media: &Media, media_localised: &MediaLocalised) -> String {
         Some(d) => get_date(&d),
         None => UNKNOWN.to_string(),
     };
+    // only take the first 5 staff
     let staff_edges = media.staff.clone().unwrap().edges.unwrap_or_default();
     text.replace("$format$", format.as_str())
         .replace("$source$", source.as_str())
@@ -668,7 +669,11 @@ fn get_date(date: &FuzzyDate) -> String {
 /// * `String` - A String that represents the staff of the media.
 fn get_staff(staff: Vec<Option<StaffEdge>>, staff_string: &str) -> String {
     let mut staff_text = String::new();
-    for s in staff {
+    // iterate over staff with index
+    for (i, s) in staff.into_iter().enumerate() {
+        if i > 4 {
+            break;
+        }
         let s = s.unwrap();
         let node = s.node.clone().unwrap();
         let text = staff_string;

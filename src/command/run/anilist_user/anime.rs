@@ -1,10 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
-use serenity::all::{CommandInteraction, Context};
-use tokio::sync::RwLock;
 use crate::command::run::admin::anilist::add_activity::get_minimal_anime_media;
 use crate::config::Config;
 use crate::helper::error_management::error_enum::ResponseError;
@@ -14,6 +10,10 @@ use crate::structure::run::anilist::media::{
     send_embed, Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
     MediaQuerrySearchVariables, MediaType,
 };
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use serenity::all::{CommandInteraction, Context};
+use tokio::sync::RwLock;
 
 /// This asynchronous function runs the command interaction for retrieving information about an anime.
 ///
@@ -66,7 +66,7 @@ pub async fn run(
         let operation = MediaQuerryId::build(var);
         let data: GraphQlResponse<MediaQuerryId> =
             make_request_anilist(operation, false, anilist_cache).await?;
-        match data.data  {
+        match data.data {
             Some(data) => match data.media {
                 Some(media) => media,
                 None => {
@@ -74,13 +74,14 @@ pub async fn run(
                         "Anime not found",
                     ))))
                 }
-            }
+            },
             None => {
                 return Err(Box::new(ResponseError::Option(String::from(
                     "Anime not found",
                 ))))
             }
-        }    } else {
+        }
+    } else {
         let var = MediaQuerrySearchVariables {
             format_in,
             search: Some(&*value),
@@ -89,7 +90,7 @@ pub async fn run(
         let operation = MediaQuerrySearch::build(var);
         let data: GraphQlResponse<MediaQuerrySearch> =
             make_request_anilist(operation, false, anilist_cache).await?;
-        match data.data  {
+        match data.data {
             Some(data) => match data.media {
                 Some(media) => media,
                 None => {
@@ -97,7 +98,7 @@ pub async fn run(
                         "Anime not found",
                     ))))
                 }
-            }
+            },
             None => {
                 return Err(Box::new(ResponseError::Option(String::from(
                     "Anime not found",
