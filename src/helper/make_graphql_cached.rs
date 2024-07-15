@@ -1,12 +1,12 @@
+use std::error::Error;
 use std::sync::Arc;
 
+use crate::helper::error_management::error_enum::UnknownResponseError;
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use moka::future::Cache;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
-
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
 
 pub async fn make_request_anilist<
     'a,
@@ -17,7 +17,7 @@ pub async fn make_request_anilist<
     operation: Operation<T, S>,
     always_update: bool,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<GraphQlResponse<U>, AppError> {
+) -> Result<GraphQlResponse<U>, Box<dyn Error>> {
     if !always_update {
         do_request(operation, anilist_cache).await
     } else {
@@ -34,7 +34,7 @@ async fn check_cache<
 >(
     operation: Operation<T, S>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<GraphQlResponse<U>, AppError> {
+) -> Result<GraphQlResponse<U>, Box<dyn Error>> {
     let anilist_cache_clone = anilist_cache.clone();
     let guard = anilist_cache_clone.read().await;
     let cache = guard.get(&operation.query).await;
@@ -52,7 +52,7 @@ async fn do_request<
 >(
     operation: Operation<T, S>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<GraphQlResponse<U>, AppError> {
+) -> Result<GraphQlResponse<U>, Box<dyn Error>> {
     let client = Client::new();
     let resp = client
         .post("https://graphql.anilist.co/")
@@ -61,17 +61,12 @@ async fn do_request<
         .json(&operation)
         .send()
         .await
-        .map_err(|e| AppError {
-            message: format!("Timeout: {}", e),
-            error_type: ErrorType::WebRequest,
-            error_response_type: ErrorResponseType::Unknown,
-        })?;
+        .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
 
-    let response_text = resp.text().await.map_err(|e| AppError {
-        message: format!("Error: {}", e),
-        error_type: ErrorType::WebRequest,
-        error_response_type: ErrorResponseType::Unknown,
-    })?;
+    let response_text = resp
+        .text()
+        .await
+        .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
     anilist_cache
         .write()
         .await
@@ -80,10 +75,10 @@ async fn do_request<
     get_type(response_text)
 }
 
-fn get_type<U: for<'de> Deserialize<'de>>(value: String) -> Result<GraphQlResponse<U>, AppError> {
-    serde_json::from_str::<GraphQlResponse<U>>(&value).map_err(|e| AppError {
-        message: format!("Error deserializing studio data {}", e),
-        error_type: ErrorType::WebRequest,
-        error_response_type: ErrorResponseType::Message,
-    })
+fn get_type<U: for<'de> Deserialize<'de>>(
+    value: String,
+) -> Result<GraphQlResponse<U>, Box<dyn Error>> {
+    let data = serde_json::from_str::<GraphQlResponse<U>>(&value)
+        .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
+    Ok(data)
 }

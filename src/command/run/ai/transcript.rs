@@ -95,7 +95,8 @@ pub async fn run(
         .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm", "ogg"];
-    let parsed_url = Url::parse(content.as_str()).map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
+    let parsed_url =
+        Url::parse(content.as_str()).map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
     let path_segments = parsed_url
         .path_segments()
         .ok_or(FollowupError::File(String::from(

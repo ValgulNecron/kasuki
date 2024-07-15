@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -6,7 +7,7 @@ use tokio::sync::RwLock;
 
 use crate::command::run::anilist_user::{anime, character, ln, manga, staff, studio, user};
 use crate::config::Config;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 
 /// Executes the command to search for a specific type of AniList data.
@@ -28,14 +29,12 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the type of AniList data to search for from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
-    let search_type = map.get(&String::from("type")).ok_or(AppError::new(
-        String::from("There is no option"),
-        ErrorType::Option,
-        ErrorResponseType::Followup,
-    ))?;
+    let search_type = map
+        .get(&String::from("type"))
+        .ok_or(ResponseError::Option(String::from("No type specified")))?;
 
     // Execute the corresponding search function based on the specified type
     match search_type.as_str() {
@@ -47,10 +46,8 @@ pub async fn run(
         "user" => user::run(ctx, command_interaction, config, anilist_cache).await,
         "studio" => studio::run(ctx, command_interaction, config, anilist_cache).await,
         // Return an error if the specified type is not one of the expected types
-        _ => Err(AppError::new(
-            String::from("Invalid type"),
-            ErrorType::Option,
-            ErrorResponseType::Followup,
-        )),
+        _ => Err(Box::new(ResponseError::Option(String::from(
+            "Type does not exist.",
+        )))),
     }
 }

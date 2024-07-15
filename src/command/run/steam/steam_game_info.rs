@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::CreateInteractionResponse::Defer;
@@ -12,7 +13,7 @@ use tracing::trace;
 use crate::config::Config;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::game::steam_game_info::{
     load_localization_steam_game_info, SteamGameInfoLocalised,
@@ -37,15 +38,15 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     apps: Arc<RwLock<HashMap<String, u128>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the game's name from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
-    let value = map.get(&String::from("game_name")).ok_or(AppError::new(
-        String::from("There is no option"),
-        ErrorType::Option,
-        ErrorResponseType::Followup,
-    ))?;
+    let value = map
+        .get(&String::from("game_name"))
+        .ok_or(ResponseError::Option(String::from(
+            "No option for game_name",
+        )))?;
 
     // Retrieve the guild ID from the command interaction or use "0" if it does not exist
     let guild_id = match command_interaction.guild_id {
@@ -64,13 +65,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
     // Retrieve the game's information from Steam
     let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
@@ -103,7 +98,7 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     data: SteamGameWrapper,
     steam_game_info_localised: SteamGameInfoLocalised,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     trace!("Sending embed.");
     let game = data.data;
 
@@ -256,13 +251,7 @@ async fn send_embed(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
 
     Ok(())
 }

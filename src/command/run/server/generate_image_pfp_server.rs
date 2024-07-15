@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use base64::engine::general_purpose::STANDARD as BASE64;
@@ -13,7 +14,7 @@ use uuid::Uuid;
 use crate::config::Config;
 use crate::database::manage::dispatcher::data_dispatch::get_server_image;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 
 /// Executes the command to send an embed with the server's profile picture.
@@ -32,7 +33,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     send_embed(ctx, command_interaction, "local", db_type).await
 }
@@ -56,7 +57,7 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     image_type: &str,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -74,13 +75,7 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
     // Retrieve the server's profile picture image
     let image = get_server_image(&guild_id, &image_type.to_string(), db_type)
@@ -90,13 +85,9 @@ pub async fn send_embed(
 
     // Decode the image from base64
     let input = image.trim_start_matches("data:image/png;base64,");
-    let image_data: Vec<u8> = BASE64.decode(input).map_err(|e| {
-        AppError::new(
-            format!("Error when decoding the image or there is no image {}", e),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )
-    })?;
+    let image_data: Vec<u8> = BASE64
+        .decode(input)
+        .map_err(|e| FollowupError::Decoding(format!("{:#?}", e)))?;
 
     // Generate a unique filename for the image
     let uuid = Uuid::new_v4();
@@ -119,13 +110,7 @@ pub async fn send_embed(
     command_interaction
         .create_followup(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
     trace!("Done");
     Ok(())
 }

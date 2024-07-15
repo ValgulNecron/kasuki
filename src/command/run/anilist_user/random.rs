@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use cynic::{GraphQlResponse, QueryBuilder};
@@ -14,7 +15,7 @@ use crate::background_task::update_random_stats::update_random_stats;
 use crate::config::Config;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
@@ -43,7 +44,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -56,11 +57,9 @@ pub async fn run(
 
     // Retrieve the type of media (anime or manga) from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
-    let random_type = map.get(&String::from("type")).ok_or(AppError::new(
-        String::from("There is no option"),
-        ErrorType::Option,
-        ErrorResponseType::Message,
-    ))?;
+    let random_type = map
+        .get(&String::from("type"))
+        .ok_or(ResponseError::Option(String::from("No type specified")))?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -69,13 +68,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
     let random_stats = update_random_stats(anilist_cache.clone()).await?;
     let last_page = if random_type.as_str() == "anime" {
@@ -93,7 +86,9 @@ pub async fn run(
         random_localised,
         anilist_cache,
     )
-    .await
+    .await?;
+
+    Ok(())
 }
 
 /// Generates and sends an embed containing information about a random anime or manga.
@@ -120,7 +115,7 @@ async fn embed(
     command_interaction: &CommandInteraction,
     random_localised: RandomLocalised,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let number = thread_rng().gen_range(1..=last_page);
     let mut var = RandomPageMediaVariables {
         media_type: None,
@@ -134,7 +129,7 @@ async fn embed(
     }
 
     let operation = RandomPageMedia::build(var);
-    let data: Result<GraphQlResponse<RandomPageMedia>, AppError> =
+    let data: Result<GraphQlResponse<RandomPageMedia>, Box<dyn Error>> =
         make_request_anilist(operation, false, anilist_cache).await;
     let data = data?;
     let data = data.data.unwrap();
@@ -181,7 +176,7 @@ async fn follow_up_message(
     media: Media,
     url: String,
     random_localised: RandomLocalised,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let format = media.format.unwrap();
     let genres = media
         .genres
@@ -225,12 +220,6 @@ async fn follow_up_message(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| format!("{:#?}", e))?;
     Ok(())
 }

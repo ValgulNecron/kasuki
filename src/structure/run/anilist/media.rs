@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fmt::Display;
 
 use serenity::all::{
@@ -7,7 +8,7 @@ use serenity::all::{
 
 use crate::constant::{COLOR, UNKNOWN};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::{load_localization_media, MediaLocalised};
@@ -717,14 +718,10 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     data: Media,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let is_adult = data.is_adult.unwrap_or(true);
     if is_adult && !get_nsfw(command_interaction, ctx).await {
-        return Err(AppError {
-            message: String::from("The channel is not nsfw but the media you requested is."),
-            error_type: ErrorType::Command,
-            error_response_type: ErrorResponseType::Message,
-        });
+        return Err(Box::new(ResponseError::AdultMedia));
     }
 
     let guild_id = match command_interaction.guild_id {
@@ -755,9 +752,7 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| AppError {
-            message: format!("Error sending the media embed. {}", e),
-            error_type: ErrorType::Command,
-            error_response_type: ErrorResponseType::Message,
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+
+    Ok(())
 }

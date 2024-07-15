@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use cynic::{GraphQlResponse, QueryBuilder};
@@ -8,7 +9,7 @@ use tokio::sync::RwLock;
 use crate::config::Config;
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::user::{
@@ -35,7 +36,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the username from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
@@ -50,11 +51,7 @@ pub async fn run(
     // If the username is not provided, fetch the data of the user who triggered the command interaction
     let user_id = &command_interaction.user.id.to_string();
     let row: Option<RegisteredUser> = get_registered_user(user_id, db_type.clone()).await?;
-    let user = row.ok_or(AppError::new(
-        String::from("There is no option"),
-        ErrorType::Option,
-        ErrorResponseType::Followup,
-    ))?;
+    let user = row.ok_or(ResponseError::Option(String::from("No user found")))?;
 
     // Fetch the user's data from AniList and send it as a response
     let data = get_user(&user.anilist_id, anilist_cache).await?;
@@ -75,7 +72,7 @@ pub async fn run(
 pub async fn get_user(
     value: &str,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<User, AppError> {
+) -> Result<User, Box<dyn Error>> {
     // If the value is a valid user ID, fetch the user's data by ID
     let user = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();

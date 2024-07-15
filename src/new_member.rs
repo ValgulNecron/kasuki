@@ -1,5 +1,5 @@
 use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum;
 use crate::structure::message::new_member::load_localization_new_member;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage};
@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use serenity::all::{ChannelId, Context, CreateMessage, GuildId, Member};
 use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
+use std::error::Error;
 use std::fs;
 use std::io::Cursor;
 use text_to_png::TextRenderer;
@@ -225,18 +226,12 @@ pub fn load_new_member_image(guild_id: String) -> Option<Vec<u8>> {
     }
 }
 
-pub fn create_default_new_member_image() -> Result<Vec<u8>, AppError> {
+pub fn create_default_new_member_image() -> Result<Vec<u8>, Box<dyn Error>> {
     let width = 2000;
     let height = width / 4;
     let img = DynamicImage::new_rgba8(width, height);
     let mut bytes: Vec<u8> = Vec::new();
     img.write_to(&mut Cursor::new(&mut bytes), WebP)
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to write the image to the buffer. {}", e),
-                ErrorType::Image,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?;
     Ok(bytes)
 }

@@ -2,12 +2,13 @@ use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
+use std::error::Error;
 use tracing::trace;
 
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::data_struct::server_activity::ServerActivity;
 use crate::database::manage::dispatcher::data_dispatch::get_all_server_activity;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::UnknownResponseError;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 
 /// Updates the activity list in the server.
@@ -32,7 +33,7 @@ pub async fn update(
     component_interaction: &ComponentInteraction,
     page_number: &str,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -41,11 +42,11 @@ pub async fn update(
     let list_activity_localised_text =
         load_localization_list_activity(guild_id, db_type.clone()).await?;
 
-    let guild_id = component_interaction.guild_id.ok_or(AppError::new(
-        String::from("There is no guild id"),
-        ErrorType::Option,
-        ErrorResponseType::None,
-    ))?;
+    let guild_id = component_interaction
+        .guild_id
+        .ok_or(UnknownResponseError::Option(String::from(
+            "Guild ID not found",
+        )))?;
 
     let list = get_all_server_activity(&guild_id.to_string(), db_type).await?;
     let len = list.len();
@@ -86,13 +87,7 @@ pub async fn update(
     component_interaction
         .create_response(&ctx.http, response)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {:?}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| UnknownResponseError::Sending(format!("{:#?}", e)))?;
     Ok(())
 }
 

@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{
@@ -7,7 +8,7 @@ use serenity::all::{
 
 use crate::config::Config;
 use crate::constant::COLOR;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::helper::get_user_data::get_user_data;
 use crate::structure::message::user::banner::load_localization_banner;
@@ -29,7 +30,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_user_subcommand(command_interaction);
     let user = map.get(&String::from("username"));
@@ -62,7 +63,7 @@ pub async fn no_banner(
     command_interaction: &CommandInteraction,
     username: &str,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -82,13 +83,8 @@ pub async fn no_banner(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }
 
 /// Executes the command to display a user's banner when no user is specified.
@@ -107,7 +103,7 @@ pub async fn banner_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let user = &command_interaction.user;
 
     banner_with_user(ctx, command_interaction, user, db_type).await
@@ -132,7 +128,7 @@ pub async fn banner_with_user(
     command_interaction: &CommandInteraction,
     user_data: &User,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let user = user_data;
     let banner_url = match user.banner_url() {
         Some(banner) => banner,
@@ -161,7 +157,7 @@ pub async fn send_embed(
     banner: String,
     username: &str,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -181,11 +177,6 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }

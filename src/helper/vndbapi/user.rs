@@ -1,12 +1,12 @@
 use std::collections::HashMap;
+use std::error::Error;
 use std::sync::Arc;
 
+use crate::helper::error_management::error_enum::UnknownResponseError;
+use crate::helper::vndbapi::common::do_request_cached;
 use moka::future::Cache;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
-
-use crate::helper::error_management::error_enum::AppError;
-use crate::helper::vndbapi::common::do_request_cached;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VnUser {
@@ -21,15 +21,10 @@ pub struct VnUser {
 pub async fn get_user(
     path: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<VnUser, AppError> {
+) -> Result<VnUser, Box<dyn Error>> {
     let response = do_request_cached(path.clone(), vndb_cache).await?;
-    let response: HashMap<String, VnUser> =
-        serde_json::from_str(&response).map_err(|e| AppError {
-            message: format!("Error while parsing response: '{}'", e),
-            error_type: crate::helper::error_management::error_enum::ErrorType::WebRequest,
-            error_response_type:
-                crate::helper::error_management::error_enum::ErrorResponseType::Unknown,
-        })?;
+    let response: HashMap<String, VnUser> = serde_json::from_str(&response)
+        .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
     let response = response.into_iter().next().unwrap().1;
     Ok(response)
 }

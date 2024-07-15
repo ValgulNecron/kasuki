@@ -2,11 +2,12 @@ use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
+use std::error::Error;
 use tracing::log::trace;
 
 use crate::constant::COLOR;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
 
@@ -109,7 +110,7 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     character: Character,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -193,10 +194,6 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| AppError {
-            message: format!("Error sending the character embed. {}", e),
-            error_type: ErrorType::Command,
-            error_response_type: ErrorResponseType::Message,
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
     Ok(())
 }

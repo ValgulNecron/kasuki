@@ -1,10 +1,10 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{CommandInteraction, Context};
 
 use crate::command::run::server::generate_image_pfp_server::send_embed;
 use crate::config::Config;
-use crate::helper::error_management::error_enum::AppError;
 
 /// Executes the command to send an embed with the global server's profile picture.
 ///
@@ -22,7 +22,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     send_embed(ctx, command_interaction, "global", db_type).await
 }

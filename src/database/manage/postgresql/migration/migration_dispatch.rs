@@ -1,5 +1,6 @@
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum;
+use std::error::Error;
 
 /// Migrates the PostgreSQL database.
 ///
@@ -17,7 +18,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn migrate_postgres() -> Result<(), AppError> {
+pub async fn migrate_postgres() -> Result<(), Box<dyn Error>> {
     // used to update the database when new row are added to a table.
     add_image_to_activity_data().await?;
     add_new_member_to_global_kill_switch().await?;
@@ -27,25 +28,28 @@ pub async fn migrate_postgres() -> Result<(), AppError> {
     add_vn_to_global_kill_switch().await?;
     add_vn_to_module_activation().await?;
     update_name_of_id_in_global_kill_switch().await?;
+    update_name_of_id_in_global_module_activation().await?;
     Ok(())
 }
 
-async fn update_name_of_id_in_global_kill_switch() -> Result<(), AppError> {
+async fn update_name_of_id_in_global_kill_switch() -> Result<(), Box<dyn Error>> {
     // change the name of the row id to guild_id
     let pool = get_postgresql_pool().await?;
     sqlx::query("ALTER TABLE global_kill_switch RENAME COLUMN id TO guild_id")
         .execute(&pool)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to update name of id in global_kill_switch. {}", e),
-                ErrorType::Database,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
     Ok(())
 }
-
+async fn update_name_of_id_in_global_module_activation() -> Result<(), Box<dyn Error>> {
+    // change the name of the row id to guild_id
+    let pool = get_postgresql_pool().await?;
+    sqlx::query("ALTER TABLE module_activation RENAME COLUMN id TO guild_id")
+        .execute(&pool)
+        .await
+        .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
+    Ok(())
+}
 /// Adds an "image" column to the "activity_data" table in the PostgreSQL database.
 ///
 /// This function does not take any parameters.
@@ -55,7 +59,7 @@ async fn update_name_of_id_in_global_kill_switch() -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn add_image_to_activity_data() -> Result<(), AppError> {
+pub async fn add_image_to_activity_data() -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "image" column exists in the "activity_data" table
@@ -70,13 +74,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
 
     // If the "image" column doesn't exist, add it
     if !row.0 {
@@ -84,11 +82,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
             .execute(&pool)
             .await
             .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
+                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
             })?;
     }
 
@@ -105,7 +99,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
+pub async fn add_new_member_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "new_member" column exists in the "global_kill_switch" table
@@ -120,13 +114,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
 
     // If the "new_member" column doesn't exist, add it
     if !row.0 {
@@ -134,11 +122,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
             .execute(&pool)
             .await
             .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
+                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
             })?;
     }
 
@@ -155,7 +139,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
+pub async fn add_new_member_to_module_activation() -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "new_member" column exists in the "module_activation" table
@@ -170,13 +154,7 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
 
     // If the "new_member" column doesn't exist, add it
     if !row.0 {
@@ -184,11 +162,7 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
             .execute(&pool)
             .await
             .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
+                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
             })?;
     }
 
@@ -205,7 +179,7 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
+pub async fn add_anime_to_module_activation() -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "anime" column exists in the "module_activation" table
@@ -220,13 +194,7 @@ pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
 
     // If the "anime" column doesn't exist, add it
     if !row.0 {
@@ -234,11 +202,7 @@ pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
             .execute(&pool)
             .await
             .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
+                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
             })?;
     }
 
@@ -255,7 +219,7 @@ pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
+pub async fn add_anime_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "anime" column exists in the "global_kill_switch" table
@@ -270,13 +234,7 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
 
     // If the "anime" column doesn't exist, add it
     if !row.0 {
@@ -284,11 +242,7 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
             .execute(&pool)
             .await
             .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
+                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
             })?;
     }
 
@@ -296,7 +250,7 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
     Ok(())
 }
 
-pub async fn add_vn_to_global_kill_switch() -> Result<(), AppError> {
+pub async fn add_vn_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "vn" column exists in the "global_kill_switch" table
@@ -311,13 +265,7 @@ pub async fn add_vn_to_global_kill_switch() -> Result<(), AppError> {
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
 
     // If the "vn" column doesn't exist, add it
     if !row.0 {
@@ -325,11 +273,7 @@ pub async fn add_vn_to_global_kill_switch() -> Result<(), AppError> {
             .execute(&pool)
             .await
             .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
+                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
             })?;
     }
 
@@ -337,7 +281,7 @@ pub async fn add_vn_to_global_kill_switch() -> Result<(), AppError> {
     Ok(())
 }
 
-pub async fn add_vn_to_module_activation() -> Result<(), AppError> {
+pub async fn add_vn_to_module_activation() -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool().await?;
 
     // Check if the "vn" column exists in the "module_activation" table
@@ -352,13 +296,7 @@ pub async fn add_vn_to_module_activation() -> Result<(), AppError> {
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
-    })?;
+    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
 
     // If the "vn" column doesn't exist, add it
     if !row.0 {
@@ -366,11 +304,7 @@ pub async fn add_vn_to_module_activation() -> Result<(), AppError> {
             .execute(&pool)
             .await
             .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
+                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
             })?;
     }
 

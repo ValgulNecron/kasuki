@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use cynic::{GraphQlResponse, QueryBuilder};
@@ -10,7 +11,6 @@ use tokio::sync::RwLock;
 use tracing::log::trace;
 
 use crate::constant::DEFAULT_STRING;
-use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
@@ -89,7 +89,7 @@ async fn get_choices(
         search: Some(search),
     };
     let operation = UserAutocomplete::build(var);
-    let data: Result<GraphQlResponse<UserAutocomplete>, AppError> =
+    let data: Result<GraphQlResponse<UserAutocomplete>, Box<dyn Error>> =
         make_request_anilist(operation, false, anilist_cache).await;
     let data = match data {
         Ok(data) => data,

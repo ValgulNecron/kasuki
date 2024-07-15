@@ -1,6 +1,8 @@
+use std::error::Error;
 use std::fmt::Display;
 use std::sync::Arc;
 
+use crate::helper::error_management::error_enum::UnknownResponseError;
 use moka::future::Cache;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::RwLock;
@@ -73,7 +75,7 @@ pub struct VNRoot {
 pub async fn get_vn(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<VNRoot, crate::helper::error_management::error_enum::AppError> {
+) -> Result<VNRoot, Box<dyn Error>> {
     let value = value.to_lowercase();
     let value = value.trim();
     let start_with_v = value.starts_with('v');
@@ -96,14 +98,8 @@ pub async fn get_vn(
         vndb_cache,
     )
     .await?;
-    let response: VNRoot = serde_json::from_str(&response).map_err(|e| {
-        crate::helper::error_management::error_enum::AppError {
-            message: format!("Error while parsing response: '{}'", e),
-            error_type: crate::helper::error_management::error_enum::ErrorType::WebRequest,
-            error_response_type:
-                crate::helper::error_management::error_enum::ErrorResponseType::Unknown,
-        }
-    })?;
+    let response: VNRoot = serde_json::from_str(&response)
+        .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
     Ok(response)
 }
 

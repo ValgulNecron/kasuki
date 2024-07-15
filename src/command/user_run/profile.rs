@@ -1,7 +1,8 @@
 use serenity::all::{CommandInteraction, Context, User};
+use std::error::Error;
 
 use crate::command::run::user::profile::profile_with_user;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 
 /// This function is responsible for running the profile command.
 ///
@@ -21,7 +22,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Get a reference to the users involved in the command interaction
     let users = &command_interaction.data.resolved.users;
 
@@ -39,13 +40,11 @@ pub async fn run(
     }
 
     let user = user.unwrap_or(command_user);
-    let user = user.id.to_user(&ctx.http).await.map_err(|e| {
-        AppError::new(
-            format!("Could not get the user. {}", e),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )
-    })?;
+    let user = user
+        .id
+        .to_user(&ctx.http)
+        .await
+        .map_err(|e| ResponseError::Option(String::from("Not a valid user")))?;
 
     // Call the profile_with_user function with the context, command interaction, and user
     profile_with_user(ctx, command_interaction, &user, db_type).await

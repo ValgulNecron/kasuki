@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fs;
 use std::str::FromStr;
 
@@ -7,7 +8,7 @@ use tracing_subscriber::fmt;
 use tracing_subscriber::layer::SubscriberExt;
 
 use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, OTHER_CRATE_LEVEL};
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum;
 
 /// Initializes the logger for the application.
 ///
@@ -27,7 +28,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 ///
 /// This function will return an error if there's a problem creating the directives for the log levels,
 /// building the file appender, or setting the global default subscriber.
-pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), AppError> {
+pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), Box<dyn Error>> {
     let kasuki_filter = match log {
         "warn" => "kasuki=warn",
         "error" => "kasuki=error",
@@ -53,13 +54,7 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), AppErro
         .rotation(Rotation::DAILY)
         .max_log_files(max_log_retention_days as usize)
         .build(logs_path)
-        .map_err(|e| {
-            AppError::new(
-                format!("Error creating the Logger. {}", e),
-                ErrorType::Logging,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| error_enum::Error::Logger(format!("{:#?}", e)))?;
     let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
     unsafe {
@@ -77,13 +72,8 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), AppErro
                 .with_ansi(false),
         );
 
-    tracing::subscriber::set_global_default(registry).map_err(|e| {
-        AppError::new(
-            format!("Error creating the Logger. {}", e),
-            ErrorType::Logging,
-            ErrorResponseType::None,
-        )
-    })?;
+    tracing::subscriber::set_global_default(registry)
+        .map_err(|e| error_enum::Error::Logger(format!("{:#?}", e)))?;
 
     Ok(())
 }
@@ -121,16 +111,11 @@ pub fn create_log_directory() -> std::io::Result<()> {
 /// fails to create a `Directive` from the filter string.
 /// The error is of type `AppError` with a message indicating the failure reason,
 /// an `ErrorType::Logging`, and an `ErrorResponseType::None`.
-fn get_directive(filter: &str) -> Result<Directive, AppError> {
-    Directive::from_str(filter).map_err(|e| {
+fn get_directive(filter: &str) -> Result<Directive, Box<dyn Error>> {
+    let directive = Directive::from_str(filter).map_err(|e| {
         eprintln!("{}", e);
-        AppError::new(
-            format!(
-                "Error creating the Logger. Please check the log level filter. {}",
-                e
-            ),
-            ErrorType::Logging,
-            ErrorResponseType::None,
-        )
-    })
+        error_enum::Error::Logger(format!("{:#?}", e))
+    })?;
+
+    Ok(directive)
 }

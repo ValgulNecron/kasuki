@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use cynic::{GraphQlResponse, QueryBuilder};
@@ -10,7 +11,7 @@ use tokio::sync::RwLock;
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::studio::load_localization_studio;
@@ -37,15 +38,13 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the name or ID of the studio from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
-    let value = map.get(&String::from("studio")).ok_or(AppError::new(
-        String::from("There is no option"),
-        ErrorType::Option,
-        ErrorResponseType::Message,
-    ))?;
+    let value = map
+        .get(&String::from("studio"))
+        .ok_or(ResponseError::Option(String::from("No studio specified")))?;
 
     // Fetch the studio's data from AniList
     let studio = if value.parse::<i32>().is_ok() {
@@ -132,11 +131,6 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }

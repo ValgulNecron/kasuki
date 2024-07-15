@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fmt::Display;
 
 use serenity::all::CommandInteraction;
@@ -7,7 +8,7 @@ use serenity::prelude::Context;
 
 use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
 
 #[cynic::schema("anilist")]
@@ -197,7 +198,7 @@ pub async fn send_embed(
     command: &CommandInteraction,
     user: User,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let guild_id = match command.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -235,13 +236,7 @@ pub async fn send_embed(
     command
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
     Ok(())
 }
 

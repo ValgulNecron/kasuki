@@ -1,5 +1,4 @@
 use crate::constant::DEFAULT_STRING;
-use crate::helper::error_management::error_enum::AppError;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
@@ -7,6 +6,7 @@ use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
+use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -75,26 +75,38 @@ pub async fn send_auto_complete(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
     let operation = MediaAutocomplete::build(media);
-    let data: Result<GraphQlResponse<MediaAutocomplete>, AppError> =
-        make_request_anilist(operation, false, anilist_cache).await;
-    let data = match data {
-        Ok(data) => data,
-        Err(e) => {
-            tracing::error!(?e);
-            return;
-        }
-    };
+    let data: GraphQlResponse<MediaAutocomplete> =
+        match make_request_anilist(operation, false, anilist_cache).await {
+            Ok(data) => data,
+            Err(e) => {
+                tracing::error!(?e);
+                return;
+            }
+        };
 
     let mut choices = Vec::new();
-    let data = data.data.unwrap().page.unwrap().media.unwrap();
-    for page in data {
-        let data = page.unwrap();
-        let title_data = data.title.unwrap();
+    let data = match data.data {
+        Some(data) => data,
+        None =>
+            return,
+    };
+    let page = match data.
+        page {
+        Some(page) => page,
+        None => return,
+    };
+    let medias = match page.media {
+        Some(media) => media,
+        None => return,
+    };
+    for media in medias {
+        let media = media.unwrap();
+        let title_data = media.title.unwrap();
         let english = title_data.user_preferred;
         let romaji = title_data.romaji;
         let native = title_data.native;
         let title = english.unwrap_or(romaji.unwrap_or(native.unwrap_or(DEFAULT_STRING.clone())));
-        choices.push(AutocompleteChoice::new(title, data.id.to_string()))
+        choices.push(AutocompleteChoice::new(title, media.id.to_string()))
     }
 
     let data = CreateAutocompleteResponse::new().set_choices(choices);

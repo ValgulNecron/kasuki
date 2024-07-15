@@ -89,7 +89,7 @@ pub async fn run(
     }
 
     let module_status = ActivationStatusModule {
-        id: Some(guild_id),
+        guild_id: Some(guild_id),
         ai_module: Some(ai_value),
         anilist_module: Some(anilist_value),
         game_module: Some(game_value),

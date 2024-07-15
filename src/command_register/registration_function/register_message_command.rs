@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{CommandType, CreateCommand, Http};
@@ -7,7 +8,6 @@ use crate::command_register::command_struct::message_command::MessageCommand;
 use crate::command_register::registration_function::common::{
     get_permission, get_vec, get_vec_installation_context,
 };
-use crate::helper::error_management::error_enum::AppError;
 
 pub async fn creates_message_command(http: &Arc<Http>) {
     let commands = match get_message_command("./json/message_command") {
@@ -23,7 +23,7 @@ pub async fn creates_message_command(http: &Arc<Http>) {
     }
 }
 
-fn get_message_command(path: &str) -> Result<Vec<MessageCommand>, AppError> {
+fn get_message_command(path: &str) -> Result<Vec<MessageCommand>, Box<dyn Error>> {
     let commands: Vec<MessageCommand> = get_vec(path)?;
     if commands.is_empty() {
         trace!("No commands found in the directory: {:?}", path);

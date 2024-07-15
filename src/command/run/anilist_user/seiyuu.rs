@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::io::Cursor;
 use std::sync::Arc;
 
@@ -16,7 +17,7 @@ use uuid::Uuid;
 
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
@@ -44,14 +45,14 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand(command_interaction);
-    let value = map.get(&String::from("staff_name")).ok_or(AppError::new(
-        String::from("There is no option"),
-        ErrorType::Option,
-        ErrorResponseType::Message,
-    ))?;
+    let value = map
+        .get(&String::from("staff_name"))
+        .ok_or(ResponseError::Option(String::from(
+            "No staff name specified",
+        )))?;
     let total_per_row = 4u32;
     let per_page = (total_per_row * total_per_row) as i32;
     let staff: Staff = if value.parse::<i32>().is_ok() {
@@ -81,35 +82,27 @@ pub async fn run(
                     Some(staff) => match staff[0].clone() {
                         Some(staff) => staff,
                         None => {
-                            return Err(AppError::new(
-                                String::from("No data found 4"),
-                                ErrorType::Option,
-                                ErrorResponseType::Followup,
-                            ))
+                            return Err(Box::new(ResponseError::Option(String::from(
+                                "No staff found",
+                            ))))
                         }
                     },
                     None => {
-                        return Err(AppError::new(
-                            String::from("No data found 3"),
-                            ErrorType::Option,
-                            ErrorResponseType::Followup,
-                        ))
+                        return Err(Box::new(ResponseError::Option(String::from(
+                            "No staff list found",
+                        ))))
                     }
                 },
                 None => {
-                    return Err(AppError::new(
-                        String::from("No data found 2"),
-                        ErrorType::Option,
-                        ErrorResponseType::Followup,
-                    ))
+                    return Err(Box::new(ResponseError::Option(String::from(
+                        "No page found",
+                    ))))
                 }
             },
             None => {
-                return Err(AppError::new(
-                    String::from("No data found 1 "),
-                    ErrorType::Option,
-                    ErrorResponseType::Followup,
-                ))
+                return Err(Box::new(ResponseError::Option(String::from(
+                    "No data found",
+                ))))
             }
         };
         Staff::from(data)
@@ -127,73 +120,55 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
     let mut buffers: Vec<Bytes> = Vec::new();
     let staff_image = match staff.image {
         Some(image) => image,
         None => {
-            return Err(AppError::new(
-                String::from("No image found"),
-                ErrorType::Option,
-                ErrorResponseType::Followup,
-            ))
+            return Err(Box::new(FollowupError::Option(String::from(
+                "No image found",
+            ))))
         }
     };
     let url = get_staff_image(staff_image);
-    let response = reqwest::get(url).await.map_err(|e| {
-        AppError::new(
-            format!("Error while getting the response from the server. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
-    let bytes = response.bytes().await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get bytes data from response. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let response = reqwest::get(url)
+        .await
+        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
+    let bytes = response
+        .bytes()
+        .await
+        .map_err(|e| FollowupError::Byte(format!("{:#?}", e)))?;
     buffers.push(bytes);
     let character = staff.characters.unwrap();
     let characters_images_url = get_characters_image(character);
     for character_image in characters_images_url {
-        let response = reqwest::get(&character_image.unwrap().image.unwrap().large.unwrap())
-            .await
-            .map_err(|e| {
-                AppError::new(
-                    format!("Error while getting the response from the server. {}", e),
-                    ErrorType::WebRequest,
-                    ErrorResponseType::Followup,
-                )
-            })?;
+        let response = reqwest::get(match &character_image {
+            Some(char) => match char.clone().image {
+                Some(image) => match image.large {
+                    Some(large) => large,
+                    None => continue,
+                },
+                None => continue,
+            },
+            None => continue,
+        })
+        .await
+        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
 
-        let bytes = response.bytes().await.map_err(|e| {
-            AppError::new(
-                format!("Failed to get bytes data from response. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        let bytes = match response.bytes().await {
+            Ok(bytes) => bytes,
+            Err(_) => continue,
+        };
         buffers.push(bytes);
     }
 
     let mut images: Vec<DynamicImage> = Vec::new();
     for bytes in &buffers {
         // Load the image from the byte vector
-        images.push(image::load_from_memory(bytes).map_err(|e| {
-            AppError::new(
-                format!("Failed to create the image from the file. {}", e),
-                ErrorType::Image,
-                ErrorResponseType::Followup,
-            )
-        })?);
+        images.push(
+            image::load_from_memory(bytes)
+                .map_err(|e| FollowupError::ImageProcessing(format!("{:#?}", e)))?,
+        );
     }
 
     let (width, height) = images[0].dimensions();
@@ -230,13 +205,7 @@ pub async fn run(
         let (pos_width, pos_height) = pos_list[i];
         combined_image
             .copy_from(&resized_img, pos_width, pos_height)
-            .map_err(|e| {
-                AppError::new(
-                    format!("Failed to copy the image. {}", e),
-                    ErrorType::Image,
-                    ErrorResponseType::Followup,
-                )
-            })?;
+            .map_err(|e| FollowupError::ImageProcessing(format!("{:#?}", e)))?;
     }
 
     let combined_uuid = Uuid::new_v4();
@@ -250,13 +219,7 @@ pub async fn run(
     let mut bytes: Vec<u8> = Vec::new();
     rgba8_image
         .write_to(&mut Cursor::new(&mut bytes), ImageFormat::WebP)
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to write the image to the buffer. {}", e),
-                ErrorType::Image,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::ImageProcessing(format!("{:#?}", e)))?;
     let attachment = CreateAttachment::bytes(bytes, image_path.to_string());
 
     let builder_message = CreateInteractionResponseFollowup::new()
@@ -266,13 +229,7 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
     Ok(())
 }
 

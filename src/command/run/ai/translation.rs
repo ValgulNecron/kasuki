@@ -1,6 +1,15 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::command::run::ai::question::question_api_url;
+use crate::config::Config;
+use crate::constant::DEFAULT_STRING;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::get_option::subcommand::{
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
+};
+use crate::structure::message::ai::translation::load_localization_translation;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
 use serde_json::{json, Value};
@@ -11,15 +20,6 @@ use serenity::all::{
 };
 use tracing::trace;
 use uuid::Uuid;
-use crate::command::run::ai::question::question_api_url;
-use crate::config::Config;
-use crate::constant::DEFAULT_STRING;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
-use crate::helper::get_option::subcommand::{
-    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
-};
-use crate::structure::message::ai::translation::load_localization_translation;
 
 /// This asynchronous function runs the command interaction for transcribing an audio or video file.
 ///
@@ -63,9 +63,12 @@ pub async fn run(
         .get(&String::from("video"))
         .ok_or(ResponseError::Option(String::from("No option for video")))?;
 
-    let content_type = attachment.content_type.clone().ok_or(ResponseError::File(String::from(
-        "Failed to get the content type",
-    )))?;
+    let content_type = attachment
+        .content_type
+        .clone()
+        .ok_or(ResponseError::File(String::from(
+            "Failed to get the content type",
+        )))?;
     let content = attachment.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
@@ -88,22 +91,23 @@ pub async fn run(
         .await
         .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
-
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm", "ogg"];
-    let parsed_url = Url::parse(content.as_str()).map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
+    let parsed_url =
+        Url::parse(content.as_str()).map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
     let path_segments = parsed_url
         .path_segments()
         .ok_or(FollowupError::File(String::from(
             "Failed to get the path segments",
-        )))?;        let last_segment = path_segments.last().unwrap_or_default();
-
+        )))?;
+    let last_segment = path_segments.last().unwrap_or_default();
 
     let file_extension = last_segment
         .rsplit('.')
         .next()
         .ok_or(FollowupError::File(String::from(
             "Failed to get the file extension",
-        )))?        .to_lowercase();
+        )))?
+        .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
         return Err(Box::new(FollowupError::File(String::from(
@@ -111,8 +115,13 @@ pub async fn run(
         ))));
     }
 
-    let response = reqwest::get(content).await.map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?; // save the file into a buffer
-    let buffer = response.bytes().await.map_err(|e| FollowupError::Byte(format!("{:#?}", e)))?;
+    let response = reqwest::get(content)
+        .await
+        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?; // save the file into a buffer
+    let buffer = response
+        .bytes()
+        .await
+        .map_err(|e| FollowupError::Byte(format!("{:#?}", e)))?;
     let uuid_name = Uuid::new_v4().to_string();
 
     let client = reqwest::Client::new();
@@ -270,10 +279,10 @@ pub async fn translation(
         .json(&data)
         .send()
         .await
-        .map_err(|e| FollowupError::WebRequest(format!("{:#?}",e)))?
+        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?
         .json()
         .await
-        .map_err(|e| FollowupError::Json(format!("{:#?}",e)))?;
+        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?;
     let content = res["choices"][0]["message"]["content"].to_string();
     let no_quote = content.replace('"', "");
 

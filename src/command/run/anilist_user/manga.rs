@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use cynic::{GraphQlResponse, QueryBuilder};
@@ -6,7 +7,6 @@ use serenity::all::{CommandInteraction, Context};
 use tokio::sync::RwLock;
 
 use crate::config::Config;
-use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::media::{
@@ -33,7 +33,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the name or ID of the manga from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
@@ -68,5 +68,6 @@ pub async fn run(
     };
 
     // Send an embed containing the manga data as a response to the command interaction
-    send_embed(ctx, command_interaction, data, db_type).await
+    send_embed(ctx, command_interaction, data, db_type).await?;
+    Ok(())
 }

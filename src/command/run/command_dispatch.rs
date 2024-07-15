@@ -1,4 +1,5 @@
 use serenity::all::{CommandInteraction, Context};
+use std::error::Error;
 use tracing::trace;
 
 use crate::command::run::admin::anilist::{add_activity, delete_activity};
@@ -26,7 +27,7 @@ use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
 };
 use crate::event_handler::Handler;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand_group::get_subcommand;
 
 /// Dispatches the command to the appropriate function based on the command name.
@@ -46,7 +47,7 @@ pub async fn command_dispatching(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the command name from the command interaction
     let command_name = command_interaction
         .data
@@ -172,11 +173,9 @@ pub async fn command_dispatching(
         }
         // If the command name does not match any of the specified commands, return an error
         _ => {
-            return Err(AppError::new(
-                String::from("Command does not exist."),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            ));
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))));
         }
     }
 
@@ -200,11 +199,14 @@ pub async fn check_if_module_is_on(
     guild_id: String,
     module: &str,
     db_type: String,
-) -> Result<bool, AppError> {
+) -> Result<bool, Box<dyn Error>> {
     let row: ActivationStatusModule =
         get_data_module_activation_status(&guild_id, db_type.clone()).await?;
+    trace!(?row);
     let state = check_activation_status(module, row).await;
+    trace!(state);
     let state = state && check_kill_switch_status(module, db_type).await?;
+    trace!(state);
     Ok(state)
 }
 
@@ -219,7 +221,7 @@ pub async fn check_if_module_is_on(
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the kill switch is not activated, or `Err` if an error occurred.
-async fn check_kill_switch_status(module: &str, db_type: String) -> Result<bool, AppError> {
+async fn check_kill_switch_status(module: &str, db_type: String) -> Result<bool, Box<dyn Error>> {
     let row: ActivationStatusModule =
         get_data_module_activation_kill_switch_status(db_type).await?;
     Ok(check_activation_status(module, row).await)
@@ -245,18 +247,16 @@ async fn admin(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
-    let anime_module_error: AppError = AppError {
-        message: String::from("Anime module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
+    let anime_module_error = ResponseError::Option(String::from(
+        "Anime module is not enabled. Please enable it first.",
+    ));
     trace!(command_name);
     let subcommand = get_subcommand(command_interaction).unwrap();
     let subcommand_name = subcommand.name;
@@ -284,14 +284,12 @@ async fn admin(
                 )
                 .await
             } else {
-                Err(anime_module_error.clone())
+                Err(Box::new(anime_module_error))
             }
         }
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => Err(Box::new(ResponseError::Option(String::from(
+            "Unknown command",
+        )))),
     }
 }
 
@@ -315,7 +313,7 @@ async fn anilist_admin(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let anilist_cache = self_handler.bot_data.anilist_cache.clone();
     let return_data = match command_name {
@@ -325,12 +323,13 @@ async fn anilist_admin(
         "delete_activity" => {
             delete_activity::run(ctx, command_interaction, config, anilist_cache).await
         }
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
 
     self_handler
         .increment_command_use_per_command(
@@ -339,7 +338,7 @@ async fn anilist_admin(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 /// Executes the general admin command.
@@ -362,18 +361,19 @@ async fn general_admin(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let return_data = match command_name {
         "lang" => lang::run(ctx, command_interaction, config).await,
         "module" => module::run(ctx, command_interaction, config).await,
         "member_info_setting" => new_member_setting::run(ctx, command_interaction, config).await,
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
 
     self_handler
         .increment_command_use_per_command(
@@ -382,7 +382,7 @@ async fn general_admin(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 /// Executes the AI command.
@@ -406,15 +406,13 @@ async fn ai(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone();
     // Define the error for when the AI module is off
-    let ai_module_error: AppError = AppError {
-        message: String::from("AI module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
+    let ai_module_error = ResponseError::Option(String::from(
+        "AI module is not activated. Please enable it first.",
+    ));
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -422,7 +420,7 @@ async fn ai(
     };
     // Check if the AI module is on for the guild
     if !check_if_module_is_on(guild_id, "AI", db_type).await? {
-        return Err(ai_module_error);
+        return Err(Box::new(ai_module_error));
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
@@ -431,12 +429,13 @@ async fn ai(
         "translation" => translation::run(ctx, command_interaction, config).await,
         "question" => question::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
 
     self_handler
         .increment_command_use_per_command(
@@ -445,7 +444,7 @@ async fn ai(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 /// Executes the Anilist server command.
@@ -469,15 +468,13 @@ async fn anilist_server(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anilist module is off
     let anilist_cache = self_handler.bot_data.anilist_cache.clone();
-    let anilist_module_error: AppError = AppError {
-        message: String::from("Anilist module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
+    let anilist_module_error = ResponseError::Option(String::from(
+        "Anilist module is not activated. Please enable it first.",
+    ));
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -485,7 +482,7 @@ async fn anilist_server(
     };
     // Check if the Anilist module is on for the guild
     if !check_if_module_is_on(guild_id, "ANILIST", db_type).await? {
-        return Err(anilist_module_error);
+        return Err(Box::new(anilist_module_error));
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
@@ -494,12 +491,13 @@ async fn anilist_server(
         }
         "list_activity" => list_all_activity::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
 
     self_handler
         .increment_command_use_per_command(
@@ -508,7 +506,7 @@ async fn anilist_server(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 /// Executes the Anilist user command.
@@ -532,15 +530,13 @@ async fn anilist_user(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anilist module is off
     let anilist_cache = self_handler.bot_data.anilist_cache.clone();
-    let anilist_module_error: AppError = AppError {
-        message: String::from("Anilist module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
+    let anilist_module_error = ResponseError::Option(String::from(
+        "Anilist module is not activated. Please enable it first.",
+    ));
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -548,7 +544,7 @@ async fn anilist_user(
     };
     // Check if the Anilist module is on for the guild
     if !check_if_module_is_on(guild_id, "ANILIST", db_type).await? {
-        return Err(anilist_module_error);
+        return Err(Box::new(anilist_module_error));
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
@@ -567,12 +563,13 @@ async fn anilist_user(
         "seiyuu" => seiyuu::run(ctx, command_interaction, config, anilist_cache).await,
         "level" => level::run(ctx, command_interaction, config, anilist_cache).await,
         // If the command name does not match any of the specified commands, return an error
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
 
     self_handler
         .increment_command_use_per_command(
@@ -581,7 +578,7 @@ async fn anilist_user(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 /// Executes the Anime command.
@@ -605,14 +602,12 @@ async fn anime(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anime module is off
-    let anime_module_error: AppError = AppError {
-        message: String::from("Anime module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
+    let anime_module_error = ResponseError::Option(String::from(
+        "Anime module is not activated. Please enable it first.",
+    ));
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -620,18 +615,19 @@ async fn anime(
     };
     // Check if the Anime module is on for the guild
     if !check_if_module_is_on(guild_id, "ANIME", db_type).await? {
-        return Err(anime_module_error);
+        return Err(Box::new(anime_module_error));
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
         "random_image" => random_image::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
 
     self_handler
         .increment_command_use_per_command(
@@ -640,7 +636,7 @@ async fn anime(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 /// Executes the Anime NSFW command.
@@ -664,14 +660,12 @@ async fn anime_nsfw(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anime NSFW module is off
-    let anime_module_error: AppError = AppError {
-        message: String::from("Anime module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
+    let anime_module_error = ResponseError::Option(String::from(
+        "Anime module is not activated. Please enable it first.",
+    ));
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -679,18 +673,20 @@ async fn anime_nsfw(
     };
     // Check if the Anime NSFW module is on for the guild
     if !check_if_module_is_on(guild_id, "ANIME", db_type).await? {
-        return Err(anime_module_error);
+        return Err(Box::new(anime_module_error));
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
         "random_nsfw_image" => random_nsfw_image::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
+
     self_handler
         .increment_command_use_per_command(
             full_command_name,
@@ -698,7 +694,7 @@ async fn anime_nsfw(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 /// Executes the Bot command.
@@ -721,7 +717,7 @@ async fn bot(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     // Match the command name to the appropriate function
     let return_data = match command_name {
@@ -729,12 +725,14 @@ async fn bot(
         "info" => info::run(ctx, command_interaction, config).await,
         "ping" => ping::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
+
     self_handler
         .increment_command_use_per_command(
             full_command_name,
@@ -742,7 +740,7 @@ async fn bot(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 /// Executes the server command.
@@ -765,7 +763,7 @@ async fn server(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let return_data = match command_name {
         "guild" => guild::run(ctx, command_interaction, config).await,
@@ -773,12 +771,13 @@ async fn server(
         "guild_image_g" => {
             generate_image_pfp_server_global::run(ctx, command_interaction, config).await
         }
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
     self_handler
         .increment_command_use_per_command(
             full_command_name,
@@ -786,7 +785,7 @@ async fn server(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 /// Executes the steam command.
@@ -810,30 +809,29 @@ async fn steam(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone();
     let apps = self_handler.bot_data.apps.clone();
-    let game_module_error: AppError = AppError {
-        message: String::from("Game module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
+    let game_module_error = ResponseError::Option(String::from(
+        "The Game module is not activated for this guild.",
+    ));
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
     if !check_if_module_is_on(guild_id, "GAME", db_type).await? {
-        return Err(game_module_error);
+        return Err(Box::new(game_module_error));
     }
     let return_data = match command_name {
         "game" => steam_game_info::run(ctx, command_interaction, config, apps).await,
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
     self_handler
         .increment_command_use_per_command(
             full_command_name,
@@ -841,7 +839,7 @@ async fn steam(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 /// Executes the user command.
@@ -864,19 +862,20 @@ async fn user(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let return_data = match command_name {
         "avatar" => avatar::run(ctx, command_interaction, config).await,
         "banner" => banner::run(ctx, command_interaction, config).await,
         "profile" => profile::run(ctx, command_interaction, config).await,
         "command_usage" => command_usage::run(ctx, command_interaction, self_handler).await,
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
     self_handler
         .increment_command_use_per_command(
             full_command_name,
@@ -884,7 +883,7 @@ async fn user(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }
 
 async fn vn(
@@ -893,21 +892,19 @@ async fn vn(
     command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone();
     let vndb_cache = self_handler.bot_data.vndb_cache.clone();
-    let vn_module_error: AppError = AppError {
-        message: String::from("Visual novel module is off."),
-        error_type: ErrorType::Module,
-        error_response_type: ErrorResponseType::Message,
-    };
+    let vn_module_error = ResponseError::Option(String::from(
+        "The VN module is not activated for this guild.",
+    ));
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
     if !check_if_module_is_on(guild_id, "VN", db_type).await? {
-        return Err(vn_module_error);
+        return Err(Box::new(vn_module_error));
     }
     let return_data = match command_name {
         "game" => game::run(ctx, command_interaction, config, vndb_cache).await,
@@ -916,12 +913,13 @@ async fn vn(
         "user" => vn::user::run(ctx, command_interaction, config, vndb_cache).await,
         "producer" => producer::run(ctx, command_interaction, config, vndb_cache).await,
         "stats" => stats::run(ctx, command_interaction, config, vndb_cache).await,
-        _ => Err(AppError::new(
-            String::from("Command does not exist."),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )),
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
     };
+    return_data?;
     self_handler
         .increment_command_use_per_command(
             full_command_name,
@@ -929,5 +927,5 @@ async fn vn(
             command_interaction.user.name.to_string(),
         )
         .await;
-    return_data
+    Ok(())
 }

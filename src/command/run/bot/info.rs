@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{
@@ -8,7 +9,7 @@ use serenity::all::{
 use crate::config::Config;
 use crate::constant::{APP_VERSION, LIBRARY};
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::bot::info::load_localization_info;
 
 /// Executes the command to display the bot's information.
@@ -29,7 +30,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -45,23 +46,19 @@ pub async fn run(
     let shard = ctx.shard_id.to_string();
     let user_count = ctx.cache.user_count();
     let server_count = ctx.cache.guild_count();
-    let bot = ctx.http.get_current_application_info().await.map_err(|e| {
-        AppError::new(
-            format!("Error while getting the bot info {}", e),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        )
-    })?;
+    let bot = ctx
+        .http
+        .get_current_application_info()
+        .await
+        .map_err(|e| ResponseError::WebRequest(format!("{:#?}", e)))?;
     let bot_name = bot.name;
     let bot_id = bot.id.to_string();
     let creation_date = format!("<t:{}:F>", bot.id.created_at().unix_timestamp());
 
     // Retrieve the bot's avatar
-    let bot_icon = bot.icon.ok_or(AppError::new(
-        String::from("The bot has no avatar"),
-        ErrorType::Option,
-        ErrorResponseType::Message,
-    ))?;
+    let bot_icon = bot
+        .icon
+        .ok_or(ResponseError::WebRequest("No bot icon".to_string()))?;
     let avatar = if bot_icon.is_animated() {
         format!(
             "https://cdn.discordapp.com/icons/{}/{}.gif?size=1024",
@@ -133,11 +130,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+
+    Ok(())
 }

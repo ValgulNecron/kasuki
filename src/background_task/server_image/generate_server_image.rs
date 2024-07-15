@@ -9,7 +9,6 @@ use image::imageops::FilterType;
 use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
 use palette::{IntoColor, Lab, Srgb};
 use serenity::all::{Context, GuildId, Member};
-use tokio::sync::oneshot;
 use tokio::task;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -133,7 +132,8 @@ pub async fn generate_server_image(
                 let g = pixel[1] as f32 / 255.0;
                 let b = pixel[2] as f32 / 255.0;
                 let rgb_color = Srgb::new(r, g, b);
-                let lab_color: Lab = rgb_color.into_color().into();
+                let lab_color: Lab =
+                    <palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color).into();
                 let color_target = Color { cielab: lab_color };
                 let closest_color = match find_closest_color(&color_vec_moved, &color_target) {
                     Some(color) => color,
@@ -153,12 +153,6 @@ pub async fn generate_server_image(
                     }
                 }
                 handles = Vec::new();
-            }
-        }
-        for handle in handles {
-            match handle.join() {
-                Ok(_) => {}
-                Err(_) => continue,
             }
         }
     }

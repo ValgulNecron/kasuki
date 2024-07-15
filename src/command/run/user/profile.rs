@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{
@@ -7,7 +8,7 @@ use serenity::all::{
 
 use crate::config::Config;
 use crate::constant::COLOR;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::helper::get_user_data::get_user_data;
 use crate::structure::message::user::profile::load_localization_profile;
@@ -29,7 +30,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the user's name from the command interaction
     let map = get_option_map_user_subcommand(command_interaction);
@@ -64,7 +65,7 @@ async fn profile_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
     // Display the user's profile
@@ -89,7 +90,7 @@ pub async fn profile_with_user(
     command_interaction: &CommandInteraction,
     user: &User,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the avatar URL of the specified user
     let avatar_url = user.face();
     // Send an embed with the user's profile
@@ -120,7 +121,7 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     user: &User,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -196,11 +197,6 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }

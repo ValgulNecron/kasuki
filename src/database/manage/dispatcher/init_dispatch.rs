@@ -1,6 +1,6 @@
 use crate::database::manage::postgresql::init::init_postgres;
 use crate::database::manage::sqlite::init::init_sqlite;
-use crate::helper::error_management::error_enum::AppError;
+use std::error::Error;
 
 /// Initializes the SQL database.
 ///
@@ -11,7 +11,7 @@ use crate::helper::error_management::error_enum::AppError;
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn init_sql_database(db_type: &str) -> Result<(), AppError> {
+pub async fn init_sql_database(db_type: &str) -> Result<(), Box<dyn Error>> {
     if db_type == "sqlite" {
         init_sqlite().await
     } else if db_type == "postgresql" {

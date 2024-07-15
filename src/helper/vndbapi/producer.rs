@@ -1,5 +1,7 @@
+use std::error::Error;
 use std::sync::Arc;
 
+use crate::helper::error_management::error_enum::UnknownResponseError;
 use moka::future::Cache;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::RwLock;
@@ -7,7 +9,7 @@ use tokio::sync::RwLock;
 pub async fn get_producer(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<ProducerRoot, crate::helper::error_management::error_enum::AppError> {
+) -> Result<ProducerRoot, Box<dyn Error>> {
     let value = value.to_lowercase();
     let value = value.trim();
     let start_with_v = value.starts_with('v');
@@ -38,14 +40,8 @@ pub async fn get_producer(
         vndb_cache,
     )
     .await?;
-    let response: ProducerRoot = serde_json::from_str(&response).map_err(|e| {
-        crate::helper::error_management::error_enum::AppError {
-            message: format!("Error while parsing response: '{}'", e),
-            error_type: crate::helper::error_management::error_enum::ErrorType::WebRequest,
-            error_response_type:
-                crate::helper::error_management::error_enum::ErrorResponseType::Unknown,
-        }
-    })?;
+    let response: ProducerRoot = serde_json::from_str(&response)
+        .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
     Ok(response)
 }
 

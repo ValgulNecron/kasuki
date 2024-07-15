@@ -59,7 +59,8 @@ pub async fn run(
         serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
     let guild_specific = hashmap
         .get(&guild_id.to_string())
-        .unwrap_or(&NewMemberSetting::default());
+        .cloned()
+        .unwrap_or(NewMemberSetting::default());
 
     trace!(?show_username, ?show_time, ?channel_id, ?attachment);
     let channel_id = match channel_id {

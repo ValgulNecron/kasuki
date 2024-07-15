@@ -1,8 +1,8 @@
 // Importing necessary libraries and modules
 
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 
-use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// ListUserLocalised struct represents a user list's localized data.
@@ -37,7 +37,7 @@ pub struct ListUserLocalised {
 pub async fn load_localization_list_user(
     guild_id: String,
     db_type: String,
-) -> Result<ListUserLocalised, AppError> {
+) -> Result<ListUserLocalised, Box<dyn Error>> {
     let path = "json/message/anilist_server/list_register_user.json";
     load_localization(guild_id, path, db_type).await
 }

@@ -81,7 +81,7 @@ pub async fn update_random_stats(
     let random_stats_json = serde_json::to_string(&random_stats)
         .map_err(|e| UnknownResponseError::Parsing(format!("{:#?}", e)))?;
     std::fs::write(RANDOM_STATS_PATH, random_stats_json)
-        .map_err(|e| UnknownResponseError::Writing(format!("{:#?}", e)))?;
+        .map_err(|e| UnknownResponseError::File(format!("{:#?}", e)))?;
 
     // Return the updated random statistics.
     Ok(random_stats)

@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -11,7 +12,7 @@ use tracing::trace;
 use crate::command::run::anilist_user::user::get_user;
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
 use crate::structure::run::anilist::user::{
@@ -38,7 +39,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the usernames from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
@@ -295,13 +296,9 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+
+    Ok(())
 }
 
 /// Calculates the affinity between two users based on their anime and manga statistics.

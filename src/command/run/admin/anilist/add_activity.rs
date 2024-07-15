@@ -381,9 +381,17 @@ pub(crate) async fn get_minimal_anime_by_id(
     Ok(match data.data {
         Some(data) => match data.media {
             Some(media) => media,
-            None => return UnknownResponseError::Option("No media found".to_string()).into(),
+            None => {
+                return Err(Box::new(UnknownResponseError::Option(
+                    "No media found".to_string(),
+                )))
+            }
         },
-        None => return UnknownResponseError::Option("No data found".to_string()).into(),
+        None => {
+            return Err(Box::new(UnknownResponseError::Option(
+                "No data found".to_string(),
+            )))
+        }
     })
 }
 
@@ -400,9 +408,17 @@ async fn get_minimal_anime_by_search(
     Ok(match data.data {
         Some(data) => match data.media {
             Some(media) => media,
-            None => return UnknownResponseError::Option("No media found".to_string()).into(),
+            None => {
+                return Err(Box::new(UnknownResponseError::Option(
+                    "No media found".to_string(),
+                )))
+            }
         },
-        None => return UnknownResponseError::Option("No data found".to_string()).into(),
+        None => {
+            return Err(Box::new(UnknownResponseError::Option(
+                "No data found".to_string(),
+            )))
+        }
     })
 }
 

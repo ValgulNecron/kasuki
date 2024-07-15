@@ -1,8 +1,8 @@
 // Importing necessary libraries and modules
 
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 
-use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// `DeleteActivityLocalised` is a struct that represents a delete activity's localized data.
@@ -36,7 +36,7 @@ pub struct DeleteActivityLocalised {
 pub async fn load_localization_delete_activity(
     guild_id: String,
     db_type: String,
-) -> Result<DeleteActivityLocalised, AppError> {
+) -> Result<DeleteActivityLocalised, Box<dyn Error>> {
     let path = "json/message/admin/anilist/delete_activity.json";
     load_localization(guild_id, path, db_type).await
 }

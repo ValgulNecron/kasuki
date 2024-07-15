@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 
 // Importing necessary libraries and modules
-use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// StudioLocalised struct represents a studio's localized data.
@@ -28,7 +28,7 @@ pub struct StudioLocalised {
 pub async fn load_localization_studio(
     guild_id: String,
     db_type: String,
-) -> Result<StudioLocalised, AppError> {
+) -> Result<StudioLocalised, Box<dyn Error>> {
     let path = "json/message/anilist_user/studio.json";
     load_localization(guild_id, path, db_type).await
 }

@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{
@@ -7,7 +8,7 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 
 use crate::event_handler::{Handler, RootUsage};
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::helper::get_user_data::get_user_data;
 use crate::structure::message::user::command_usage::load_localization_command_usage;
@@ -16,7 +17,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     self_handler: &Handler,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = self_handler.bot_data.config.bot.config.db_type.clone();
     let command_usage = self_handler
         .bot_data
@@ -43,7 +44,7 @@ async fn command_usage_without_user(
     command_interaction: &CommandInteraction,
     command_usage: Arc<RwLock<RootUsage>>,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
     // Display the user's profile
@@ -56,7 +57,7 @@ pub async fn command_usage_with_user(
     user: &User,
     command_usage: Arc<RwLock<RootUsage>>,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     send_embed(ctx, command_interaction, user, command_usage, db_type).await
 }
 
@@ -66,7 +67,7 @@ pub async fn send_embed(
     user: &User,
     command_usage: Arc<RwLock<RootUsage>>,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let id = user.id.to_string();
     let username = user.name.clone();
     let read_command_usage = command_usage.read().await;
@@ -115,13 +116,8 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Followup,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }
 
 fn get_usage_for_id(

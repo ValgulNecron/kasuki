@@ -1,6 +1,6 @@
 /// ActivationStatusModule is a struct that represents the activation status of various modules in the application.
 /// It is derived from a row in a SQL database.
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub struct ActivationStatusModule {
     /// id is an Option<String> that represents the ID of the module. It can be None if the ID is not set.
     pub guild_id: Option<String>,
