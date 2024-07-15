@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use prost::bytes::Bytes;
@@ -15,7 +16,7 @@ use uuid::Uuid;
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand::{
     get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
@@ -47,7 +48,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -61,11 +62,7 @@ pub async fn run(
             .create_response(&ctx.http, need_premium)
             .await
             .map_err(|e| {
-                AppError::new(
-                    format!("Error while sending the command {}", e),
-                    ErrorType::Option,
-                    ErrorResponseType::Message,
-                )
+                ResponseError::Sending(format!("Error while sending the prenium: {:#?}", e))
             })?;
         return Ok(());
     }
@@ -88,13 +85,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.png", uuid_name);
@@ -182,13 +173,7 @@ pub async fn run(
         AUTHORIZATION,
         match HeaderValue::from_str(&format!("Bearer {}", token)) {
             Ok(data) => data,
-            Err(e) => {
-                return Err(AppError::new(
-                    format!("Failed to create the header. {}", e),
-                    ErrorType::WebRequest,
-                    ErrorResponseType::Followup,
-                ));
-            }
+            Err(e) => return Err(Box::new(FollowupError::WebRequest(format!("{:#?}", e)))),
         },
     );
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
@@ -203,21 +188,12 @@ pub async fn run(
         .json(&data)
         .send()
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to send data. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
     trace!(?res);
-    let res = res.json().await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get the response from the server. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let res = res
+        .json()
+        .await
+        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?;
     trace!(?res);
 
     let bytes = get_image_from_response(res).await?;
@@ -244,7 +220,7 @@ async fn image_with_n_equal_1(
     command_interaction: &CommandInteraction,
     ctx: &Context,
     bytes: Bytes,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let builder_embed = get_default_embed(None)
         .image(format!("attachment://{}", &filename))
         .title(image_localised.title);
@@ -258,13 +234,7 @@ async fn image_with_n_equal_1(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Option,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
     Ok(())
 }
 
@@ -274,7 +244,7 @@ async fn image_with_n_greater_than_1(
     command_interaction: &CommandInteraction,
     ctx: &Context,
     bytes: Vec<Bytes>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let message = image_localised.title;
     let attachments: Vec<CreateAttachment> = bytes
         .iter()
@@ -291,36 +261,25 @@ async fn image_with_n_greater_than_1(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Option,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
     Ok(())
 }
 
-async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, AppError> {
+async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, Box<dyn Error>> {
     let mut bytes = Vec::new();
     let root: Root = match serde_json::from_value(json.clone()) {
         Ok(root) => root,
         Err(e) => {
             let root1: Result<Root1, serde_json::error::Error> = serde_json::from_value(json);
             return match root1 {
-                Ok(root1) => Err(AppError::new(
-                    format!(
-                        "Failed to get the response from the server. {}\n{}",
-                        root1.error.message, e
-                    ),
-                    ErrorType::File,
-                    ErrorResponseType::Followup,
-                )),
-                Err(e) => Err(AppError::new(
-                    format!("Failed to parse the json. {}", e),
-                    ErrorType::File,
-                    ErrorResponseType::Followup,
-                )),
+                Ok(root1) => Err(Box::new(FollowupError::WebRequest(format!(
+                    "{:#?}/{:#?}",
+                    root1.error, e
+                )))),
+                Err(e2) => Err(Box::new(FollowupError::WebRequest(format!(
+                    "{:#?}/{:#?}",
+                    e, e2
+                )))),
             };
         }
     };
@@ -328,21 +287,15 @@ async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, AppError> {
     trace!("{:?}", urls);
     for url in urls {
         let client = reqwest::Client::new();
-        let res = client.get(url).send().await.map_err(|e| {
-            AppError::new(
-                format!("Failed to get the response from the server. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        let res = client
+            .get(url)
+            .send()
+            .await
+            .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
         let body = match res.bytes().await {
             Ok(body) => body,
             Err(e) => {
-                return Err(AppError::new(
-                    format!("Failed to get the body from the response. {}", e),
-                    ErrorType::WebRequest,
-                    ErrorResponseType::Followup,
-                ));
+                return Err(Box::new(FollowupError::Byte(format!("{:#?}", e))));
             }
         };
         bytes.push(body);
@@ -362,7 +315,7 @@ struct Data {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Error {
+struct AiError {
     pub message: String,
     #[serde(rename = "type")]
     pub error_type: String,
@@ -372,5 +325,5 @@ struct Error {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Root1 {
-    pub error: Error,
+    pub error: AiError,
 }

@@ -596,79 +596,80 @@
         {
           "name": "member_info_setting",
           "desc": "Change the member info setting (new and removed member).",
-          "args": [{
-            "name": "show_username",
-            "desc": "Show the username in the member info.",
-            "required": true,
-            "autocomplete": false,
-            "arg_type": "Boolean",
-            "choices": [
-              {
-                "option_choice": "True",
-                "option_choice_localised": [
-                  {
-                    "code": "en-US",
-                    "name": "True"
-                  },
-                  {
-                    "code": "fr",
-                    "name": "Vrai"
-                  },
-                  {
-                    "code": "de",
-                    "name": "Wahr"
-                  },
-                  {
-                    "code": "ja",
-                    "name": "真"
-                  }
-                ]
-              },
-              {
-                "option_choice": "False",
-                "option_choice_localised": [
-                  {
-                    "code": "en-US",
-                    "name": "False"
-                  },
-                  {
-                    "code": "fr",
-                    "name": "Faux"
-                  },
-                  {
-                    "code": "de",
-                    "name": "Falsch"
-                  },
-                  {
-                    "code": "ja",
-                    "name": "偽"
-                  }
-                ]
-              }
-            ],
-            "localised": [
-              {
-                "code": "en-US",
-                "name": "show_username",
-                "desc": "Show the username in the member info."
-              },
-              {
-                "code": "fr",
-                "name": "afficher_nom_utilisateur",
-                "desc": "Afficher le nom d'utilisateur dans les informations sur les membres."
-              },
-              {
-                "code": "de",
-                "name": "benutzernamen_anzeigen",
-                "desc": "Zeigen Sie den Benutzernamen in den Mitgliederinformationen an."
-              },
-              {
-                "code": "ja",
-                "name": "yuza_nemuo_shimesu",
-                "desc": "メンバー情報にユーザー名を表示します。"
-              }
-            ]
-          },
+          "args": [
+            {
+              "name": "show_username",
+              "desc": "Show the username in the member info.",
+              "required": true,
+              "autocomplete": false,
+              "arg_type": "Boolean",
+              "choices": [
+                {
+                  "option_choice": "True",
+                  "option_choice_localised": [
+                    {
+                      "code": "en-US",
+                      "name": "True"
+                    },
+                    {
+                      "code": "fr",
+                      "name": "Vrai"
+                    },
+                    {
+                      "code": "de",
+                      "name": "Wahr"
+                    },
+                    {
+                      "code": "ja",
+                      "name": "真"
+                    }
+                  ]
+                },
+                {
+                  "option_choice": "False",
+                  "option_choice_localised": [
+                    {
+                      "code": "en-US",
+                      "name": "False"
+                    },
+                    {
+                      "code": "fr",
+                      "name": "Faux"
+                    },
+                    {
+                      "code": "de",
+                      "name": "Falsch"
+                    },
+                    {
+                      "code": "ja",
+                      "name": "偽"
+                    }
+                  ]
+                }
+              ],
+              "localised": [
+                {
+                  "code": "en-US",
+                  "name": "show_username",
+                  "desc": "Show the username in the member info."
+                },
+                {
+                  "code": "fr",
+                  "name": "afficher_nom_utilisateur",
+                  "desc": "Afficher le nom d'utilisateur dans les informations sur les membres."
+                },
+                {
+                  "code": "de",
+                  "name": "benutzernamen_anzeigen",
+                  "desc": "Zeigen Sie den Benutzernamen in den Mitgliederinformationen an."
+                },
+                {
+                  "code": "ja",
+                  "name": "yuza_nemuo_shimesu",
+                  "desc": "メンバー情報にユーザー名を表示します。"
+                }
+              ]
+            },
             {
               "name": "show_time",
               "desc": "Show the time when he joined or left.",
@@ -873,7 +874,6 @@
                 }
               ]
             }
-
           ],
           "localised": [
             {

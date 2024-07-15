@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 use std::time::Duration;
@@ -16,7 +17,7 @@ use crate::database::manage::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum;
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
 
 /// `manage_activity` is an asynchronous function that manages activities.
@@ -130,18 +131,12 @@ async fn send_specific_activity(
     ctx: &Context,
     db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let localised_text = load_localization_send_activity(guild_id.clone(), db_type.clone()).await?;
     let webhook_url = row.webhook.clone();
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("There was an error getting the webhook from the url {}", e),
-                ErrorType::Webhook,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| error_enum::Error::Webhook(format!("{:#?}", e)))?;
 
     let image = row.image;
     trace!(image);
@@ -151,13 +146,9 @@ async fn send_specific_activity(
 
     // Read the decoded bytes into a Vec
     let mut decoded_bytes = Vec::new();
-    decoder.read_to_end(&mut decoded_bytes).map_err(|e| {
-        AppError::new(
-            format!("There was an error reading the decoded bytes {}", e),
-            ErrorType::File,
-            ErrorResponseType::None,
-        )
-    })?;
+    decoder
+        .read_to_end(&mut decoded_bytes)
+        .map_err(|e| error_enum::Error::Byte(format!("{:#?}", e)))?;
     let name = row.name.clone();
     let trimmed_name = if name.len() > 100 {
         name[..100].to_string()
@@ -166,13 +157,10 @@ async fn send_specific_activity(
     };
     let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
     let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(&attachment);
-    webhook.edit(&ctx.http, edit_webhook).await.map_err(|e| {
-        AppError::new(
-            format!("There was an error editing the webhook {}", e),
-            ErrorType::Webhook,
-            ErrorResponseType::None,
-        )
-    })?;
+    webhook
+        .edit(&ctx.http, edit_webhook)
+        .await
+        .map_err(|e| error_enum::Error::Webhook(format!("{:#?}", e)))?;
 
     let embed = get_default_embed(None)
         .description(
@@ -190,15 +178,14 @@ async fn send_specific_activity(
     webhook
         .execute(&ctx.http, false, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("There was an error sending the webhook {}", e),
-                ErrorType::Webhook,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| error_enum::Error::Webhook(format!("{:#?}", e)))?;
 
-    tokio::spawn(async move { update_info(row2, guild_id, anilist_cache.clone(), db_type).await });
+    tokio::spawn(async move {
+        match update_info(row2, guild_id, anilist_cache.clone(), db_type).await {
+            Err(e) => error!("{}", e),
+            _ => {}
+        }
+    });
     Ok(())
 }
 
@@ -227,17 +214,15 @@ async fn update_info(
     guild_id: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let media = get_minimal_anime_by_id(row.anime_id, anilist_cache).await?;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
         None => return remove_activity(row, guild_id, db_type).await,
     };
-    let title = media.title.ok_or(AppError::new(
-        "Failed to get the title.".to_string(),
-        ErrorType::Option,
-        ErrorResponseType::None,
-    ))?;
+    let title = media
+        .title
+        .ok_or(error_enum::Error::Option(String::from("no title")))?;
     let rj = title.romaji;
     let en = title.english;
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
@@ -276,7 +261,7 @@ async fn remove_activity(
     row: ServerActivityFull,
     guild_id: String,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     trace!("removing {:#?} for {}", row, guild_id);
     remove_data_activity_status(guild_id, row.anime_id.to_string(), db_type).await?;
     Ok(())

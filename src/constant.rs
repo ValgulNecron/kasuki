@@ -33,6 +33,7 @@ pub const CACHE_MAX_CAPACITY: u64 = 100_000;
 pub const AUTOCOMPLETE_COUNT_LIMIT: u32 = 25;
 /// Limit for pass count.
 pub const PASS_LIMIT: u32 = 10;
+pub const THREAD_POOL_SIZE: usize = 25;
 /// Limit for member list.
 pub const MEMBER_LIST_LIMIT: u64 = 10;
 /// Limit for activity list.

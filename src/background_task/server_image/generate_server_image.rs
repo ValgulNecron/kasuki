@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -8,6 +9,7 @@ use image::imageops::FilterType;
 use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
 use palette::{IntoColor, Lab, Srgb};
 use serenity::all::{Context, GuildId, Member};
+use tokio::sync::oneshot;
 use tokio::task;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -20,10 +22,11 @@ use crate::background_task::server_image::common::{
     ColorWithUrl,
 };
 use crate::config::ImageConfig;
+use crate::constant::THREAD_POOL_SIZE;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_all_user_approximated_color, set_server_image,
 };
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum;
 use crate::helper::image_saver::general_image_saver::image_saver;
 
 /// This function generates a local server image.
@@ -32,27 +35,21 @@ use crate::helper::image_saver::general_image_saver::image_saver;
 ///
 /// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
 /// * `guild_id` - The ID of the guild (server) for which the image is being generated.
+/// * `cache_type` - A String representing the cache type.
+/// * `image_config` - The ImageConfig struct that contains configuration options for the image.
 ///
 /// # Returns
 ///
-/// * `Result<(), AppError>` - This function returns a Result type. If the image generation is successful, it returns Ok(()), otherwise it returns an AppError.
-///
-/// # Errors
-///
-/// This function will return an error if there is a problem with fetching the members of the guild, calculating the average color, or generating the server image.
+/// * `Result<(), Box<dyn Error>>` - This function returns a Result type. If the image generation is successful, it returns Ok(()), otherwise it returns an error wrapped in a Box.
 pub async fn generate_local_server_image(
     ctx: &Context,
     guild_id: GuildId,
     cache_type: String,
     image_config: ImageConfig,
-) -> Result<(), AppError> {
-    // Fetch the members of the guild
+) -> Result<(), Box<dyn Error>> {
     let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
-    // Calculate the average color of the members' avatars
     let average_colors = return_average_user_color(members, cache_type.clone()).await?;
-    // Create a vector of colors from the average colors
     let color_vec = create_color_vector_from_tuple(average_colors.clone());
-    // Generate the server image using the color vector and save it as a "local" image
     generate_server_image(
         ctx,
         guild_id,
@@ -70,20 +67,18 @@ pub async fn generate_local_server_image(
 ///
 /// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
 /// * `guild_id` - The ID of the guild (server) for which the image is being generated.
+/// * `db_type` - A String representing the database type.
+/// * `image_config` - The ImageConfig struct that contains configuration options for the image.
 ///
 /// # Returns
 ///
-/// * `Result<(), AppError>` - This function returns a Result type. If the image generation is successful, it returns Ok(()), otherwise it returns an AppError.
-///
-/// # Errors
-///
-/// This function will return an error if there is a problem with fetching the approximated colors of all users, creating a color vector from user colors, or generating the server image.
+/// * `Result<(), Box<dyn Error>>` - This function returns a Result type. If the image generation is successful, it returns Ok(()), otherwise it returns an error wrapped in a Box.
 pub async fn generate_global_server_image(
     ctx: &Context,
     guild_id: GuildId,
     db_type: String,
     image_config: ImageConfig,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let average_colors = get_all_user_approximated_color(db_type.clone()).await?;
     let color_vec = create_color_vector_from_user_color(average_colors.clone());
     generate_server_image(
@@ -97,22 +92,6 @@ pub async fn generate_global_server_image(
     .await
 }
 
-/// This function generates a server image based on the average colors of the members' avatars.
-///
-/// # Arguments
-///
-/// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
-/// * `guild_id` - The ID of the guild (server) for which the image is being generated.
-/// * `average_colors` - A vector of ColorWithUrl, which represents the average colors of the members' avatars.
-/// * `image_type` - A string that represents the type of the image. It can be either "local" or "global".
-///
-/// # Returns
-///
-/// * `Result<(), AppError>` - This function returns a Result type. If the image generation is successful, it returns Ok(()), otherwise it returns an AppError.
-///
-/// # Errors
-///
-/// This function will return an error if there is a problem with fetching the guild, getting the guild's icon URL, getting the image from the URL, spawning threads, joining threads, copying from the image, resizing the image, writing the image, encoding the image, saving the image, or setting the server image.
 pub async fn generate_server_image(
     ctx: &Context,
     guild_id: GuildId,
@@ -120,34 +99,29 @@ pub async fn generate_server_image(
     image_type: String,
     db_type: String,
     image_config: ImageConfig,
-) -> Result<(), AppError> {
-    // Fetch the guild
-    let guild = guild_id.to_partial_guild(&ctx.http).await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get the guild. {}", e),
-            ErrorType::Option,
-            ErrorResponseType::None,
-        )
-    })?;
-    // Get the guild's icon URL
+) -> Result<(), Box<dyn Error>> {
+    // Fetch the guild information
+    let guild = guild_id
+        .to_partial_guild(&ctx.http)
+        .await
+        .map_err(|e| error_enum::Error::GettingGuild(format!("{:#?}", e)))?;
+
+    // Retrieve and process the guild image
     let guild_pfp = guild
         .icon_url()
-        .ok_or(AppError::new(
-            String::from("There is no option, no image for the guild."),
-            ErrorType::Option,
-            ErrorResponseType::None,
-        ))?
+        .ok_or(error_enum::Error::Option(String::from(
+            "The guild has no icon",
+        )))?
         .replace("?size=1024", "?size=128");
 
-    // Get the image from the URL
     let img = get_image_from_url(guild_pfp.clone()).await?;
 
-    // Initialize the combined image
     let dim = 128 * 64;
     let mut combined_image = DynamicImage::new_rgba8(dim, dim);
     let vec_image = Arc::new(Mutex::new(Vec::new()));
 
-    // For each pixel in the image, spawn a thread to find the closest color and push it to the vec_image
+    let mut handles = Vec::new();
+    // Process image pixels in parallel
     for y in 0..img.height() {
         for x in 0..img.width() {
             let pixel = img.get_pixel(x, y);
@@ -155,34 +129,58 @@ pub async fn generate_server_image(
             let vec_image_clone = Arc::clone(&vec_image);
 
             let handle = thread::spawn(move || {
-                let r = pixel[0];
-                let g = pixel[1];
-                let b = pixel[2];
-                let r_normalized = r as f32 / 255.0;
-                let g_normalized = g as f32 / 255.0;
-                let b_normalized = b as f32 / 255.0;
-                let rgb_color = Srgb::new(r_normalized, g_normalized, b_normalized);
-                let lab_color: Lab = rgb_color.into_color();
+                let r = pixel[0] as f32 / 255.0;
+                let g = pixel[1] as f32 / 255.0;
+                let b = pixel[2] as f32 / 255.0;
+                let rgb_color = Srgb::new(r, g, b);
+                let lab_color: Lab = rgb_color.into_color().into();
                 let color_target = Color { cielab: lab_color };
-                let closest_color = find_closest_color(&color_vec_moved, &color_target).unwrap();
-                vec_image_clone
-                    .lock()
-                    .unwrap()
-                    .push((x, y, closest_color.image));
+                let closest_color = match find_closest_color(&color_vec_moved, &color_target) {
+                    Some(color) => color,
+                    None => return,
+                };
+                match vec_image_clone.lock() {
+                    Ok(mut vec_image) => vec_image.push((x, y, closest_color.image)),
+                    Err(_) => return,
+                }
             });
-
-            // Join the thread
-            handle.join().unwrap();
+            handles.push(handle);
+            if handles.len() >= THREAD_POOL_SIZE {
+                for handle in handles {
+                    match handle.join() {
+                        Ok(_) => {}
+                        Err(_) => continue,
+                    }
+                }
+                handles = Vec::new();
+            }
+        }
+        for handle in handles {
+            match handle.join() {
+                Ok(_) => {}
+                Err(_) => continue,
+            }
         }
     }
 
-    // Copy from the vec_image to the combined image
-    let vec_image = vec_image.lock().unwrap().clone();
+    // Combine processed images
+    let vec_image = match vec_image.lock() {
+        Ok(vec_image) => vec_image.clone(),
+        Err(e) => {
+            return Err(Box::new(error_enum::Error::ImageProcessing(format!(
+                "{:#?}",
+                e
+            ))))
+        }
+    };
     for (x, y, image) in vec_image {
-        combined_image.copy_from(&image, x * 64, y * 64).unwrap()
+        match combined_image.copy_from(&image, x * 64, y * 64) {
+            Ok(_) => {}
+            Err(_) => continue,
+        }
     }
 
-    // Resize the combined image
+    // Resize the final image
     let image = image::imageops::resize(
         &combined_image,
         (4096.0 * 0.6) as u32,
@@ -201,18 +199,13 @@ pub async fn generate_server_image(
             img.height(),
             ExtendedColorType::Rgba8,
         )
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to write the image. {}", e),
-                ErrorType::File,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?;
 
-    // Encode the image
+    // Encode the image to base64
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
     let image = format!("data:image/png;base64,{}", base64_image);
     let uuid = Uuid::new_v4();
+
     // Save the image
     let token = image_config.token.clone().unwrap_or_default();
     let saver = image_config.save_server.clone().unwrap_or_default();

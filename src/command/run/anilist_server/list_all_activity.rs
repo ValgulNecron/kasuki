@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::CreateInteractionResponse::Defer;
@@ -12,7 +13,7 @@ use crate::config::Config;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::database::manage::dispatcher::data_dispatch::get_all_server_activity;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 
 /// This asynchronous function runs the command interaction for transcribing an audio or video file.
@@ -44,7 +45,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -54,11 +55,7 @@ pub async fn run(
     let list_activity_localised_text =
         load_localization_list_activity(guild_id, db_type.clone()).await?;
 
-    let guild_id = command_interaction.guild_id.ok_or(AppError::new(
-        String::from("There is no guild id"),
-        ErrorType::Option,
-        ErrorResponseType::Message,
-    ))?;
+    let guild_id = command_interaction.guild_id.ok_or(ResponseError::Option(String::from("Could not get the id of the guild")))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 

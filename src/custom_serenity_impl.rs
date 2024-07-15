@@ -65,7 +65,6 @@ pub enum InternalAction {
     Other,
 }
 #[derive(Debug, Clone)]
-
 pub enum InternalMemberAction {
     BanAdd,
     Kick,

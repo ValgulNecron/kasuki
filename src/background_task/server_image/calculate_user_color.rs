@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::io::Cursor;
 use std::sync::Arc;
 use std::time::Duration;
@@ -20,7 +21,7 @@ use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum;
 
 /// Calculates the color for each user in a list of members.
 ///
@@ -47,7 +48,7 @@ pub async fn calculate_users_color(
     members: Vec<Member>,
     db_type: String,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let guard = user_blacklist_server_image.read().await;
     for member in members {
         if guard.contains(&member.user.id.to_string()) {
@@ -92,7 +93,7 @@ pub async fn calculate_users_color(
 pub async fn return_average_user_color(
     members: Vec<Member>,
     db_type: String,
-) -> Result<Vec<(String, String, String)>, AppError> {
+) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
     let mut average_colors = Vec::new();
     for member in members {
         let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://cdn.discordapp.com/avatars/260706120086192129/ec231a35c9a33dd29ea4819d29d06056.webp?size=64"))
@@ -146,7 +147,7 @@ pub async fn return_average_user_color(
 /// # Errors
 ///
 /// This function will return an error if there's a problem retrieving the user's profile picture, downloading the image, or calculating the color.
-async fn calculate_user_color(member: Member) -> Result<(String, String), AppError> {
+async fn calculate_user_color(member: Member) -> Result<(String, String), Box<dyn Error>> {
     let pfp_url = member.user.face().replace("?size=1024", "?size=64");
 
     let img = get_image_from_url(pfp_url).await?;
@@ -183,13 +184,7 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
             img.height(),
             ExtendedColorType::Rgba8,
         )
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to encode image. {}", e),
-                ErrorType::File,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?;
 
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
     let image = format!("data:image/png;base64,{}", base64_image);
@@ -218,45 +213,21 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), AppErr
 ///
 /// This function will return an error if there's a problem fetching the image from the URL,
 /// converting the response into bytes, or decoding the image data.
-pub async fn get_image_from_url(url: String) -> Result<DynamicImage, AppError> {
+pub async fn get_image_from_url(url: String) -> Result<DynamicImage, Box<dyn Error>> {
     // Fetch the image data
     let resp = reqwest::get(&url)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to download image. {}", e),
-                ErrorType::File,
-                ErrorResponseType::None,
-            )
-        })?
+        .map_err(|e| error_enum::Error::WebRequest(format!("{:#?}", e)))?
         .bytes()
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to get bytes image. {}", e),
-                ErrorType::File,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| error_enum::Error::Byte(format!("{:#?}", e)))?;
 
     // Decode the image data
     let img = ImageReader::new(Cursor::new(resp))
         .with_guessed_format()
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to load image. {} for image {}", e, &url),
-                ErrorType::File,
-                ErrorResponseType::None,
-            )
-        })?
+        .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?
         .decode()
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to decode image. {} for image {}", e, &url),
-                ErrorType::File,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?;
 
     Ok(img)
 }

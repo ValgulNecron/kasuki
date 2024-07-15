@@ -32,17 +32,17 @@
     - [ ] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found),
       etc…)
       Get the currency and language from the server language setting.
-      - [X] Steam
-      - [ ] Epic
-      - [ ] Ubisoft
-      - [ ] EA
-      - [ ] GOG
-      - [ ] Xbox
-      - [ ] Playstation
+        - [X] Steam
+        - [ ] Epic
+        - [ ] Ubisoft
+        - [ ] EA
+        - [ ] GOG
+        - [ ] Xbox
+        - [ ] Playstation
     - [ ] get player stat
     - [ ] get free promotion notification
-      - [ ] Steam
-      - [ ] Epic
+        - [ ] Steam
+        - [ ] Epic
     - [ ] get game release notification
     - [ ] get game update notification
 
@@ -84,9 +84,9 @@
         - [x] Add a sqlite database.
         - [X] Add postgres database choices.
         - [ ] Rework the database to be more efficient.
-    - [X] Cache 
-      - [ ] Add redis for cache.
-      - [X] In memory cache.
+    - [X] Cache
+        - [ ] Add redis for cache.
+        - [X] In memory cache.
     - [X] Create a parser because some description uses html and not markdown.
         - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases
           are
@@ -114,4 +114,4 @@
     - [ ] anilist_server list_user
 
 - Fix needed:
-  - [ ] steam game search
+    - [ ] steam game search

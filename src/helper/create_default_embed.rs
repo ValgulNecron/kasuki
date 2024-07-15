@@ -19,3 +19,7 @@ pub fn get_default_embed(option: Option<Colour>) -> CreateEmbed {
     let color = option.unwrap_or(COLOR);
     CreateEmbed::new().timestamp(Timestamp::now()).color(color)
 }
+
+pub fn get_anilist_anime_embed(option: Option<Colour>, id: i32) -> CreateEmbed {
+    get_default_embed(option).url(format!("https://anilist.co/anime/{}", id))
+}

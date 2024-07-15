@@ -1,5 +1,3 @@
-use std::num::ParseIntError;
-
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use image::DynamicImage;
@@ -25,6 +23,14 @@ pub struct ColorWithUrl {
     pub image: DynamicImage,
 }
 
+fn convert_hex_to_rgb(hex: String) -> (u8, u8, u8) {
+    (
+        hex[1..3].parse::<u8>().unwrap_or_default(),
+        hex[3..5].parse::<u8>().unwrap_or_default(),
+        hex[5..7].parse::<u8>().unwrap_or_default(),
+    )
+}
+
 /// `create_color_vector_from_tuple` is a function that takes a vector of tuples,
 /// where each tuple contains three strings representing a hex color code and an image
 /// in base64 format. It returns a vector of `ColorWithUrl` objects, where each object
@@ -38,14 +44,16 @@ pub fn create_color_vector_from_tuple(tuples: Vec<(String, String, String)>) -> 
     tuples
         .into_iter()
         .filter_map(|(hex, _, image)| {
-            let (r, g, b) = (
-                hex[1..3].parse::<u8>(),
-                hex[3..5].parse::<u8>(),
-                hex[5..7].parse::<u8>(),
-            );
+            let (r, g, b) = convert_hex_to_rgb(hex);
             let input = image.trim_start_matches("data:image/png;base64,");
-            let img = image::load_from_memory(&BASE64.decode(input).unwrap()).unwrap();
-            get_color_with_url(img, r, g, b)
+            let img = match image::load_from_memory(match &BASE64.decode(input) {
+                Ok(img) => img,
+                Err(_) => return None,
+            }) {
+                Ok(img) => img,
+                Err(_) => return None,
+            };
+            Some(get_color_with_url(img, r, g, b))
         })
         .collect()
 }
@@ -63,18 +71,18 @@ pub fn create_color_vector_from_user_color(tuples: Vec<UserColor>) -> Vec<ColorW
         .filter_map(|user_color| {
             let hex = user_color.color.unwrap_or_default();
             let image = user_color.image.unwrap_or_default();
-
-            let (r, g, b) = (
-                hex[1..3].parse::<u8>(),
-                hex[3..5].parse::<u8>(),
-                hex[5..7].parse::<u8>(),
-            );
+            let (r, g, b) = convert_hex_to_rgb(hex);
 
             let input = image.trim_start_matches("data:image/png;base64,");
-            let decoded = BASE64.decode(input).unwrap();
-            let img = image::load_from_memory(&decoded).unwrap();
-
-            get_color_with_url(img, r, g, b)
+            let decoded = match BASE64.decode(input) {
+                Ok(decoded) => decoded,
+                Err(_) => return None,
+            };
+            let img = match image::load_from_memory(&decoded) {
+                Ok(img) => img,
+                Err(_) => return None,
+            };
+            Some(get_color_with_url(img, r, g, b))
         })
         .collect()
 }
@@ -95,7 +103,9 @@ pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<Col
         .min_by(|&a, &b| {
             let delta_e_a = a.cielab.improved_delta_e(target.cielab);
             let delta_e_b = b.cielab.improved_delta_e(target.cielab);
-            delta_e_a.partial_cmp(&delta_e_b).unwrap()
+            delta_e_a
+                .partial_cmp(&delta_e_b)
+                .unwrap_or(std::cmp::Ordering::Equal)
         })
         .cloned()
 }
@@ -112,20 +122,11 @@ pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<Col
 /// # Returns
 ///
 /// * `Option<ColorWithUrl>` - Returns an optional `ColorWithUrl`. If the RGB color values are valid, it returns `Some(ColorWithUrl)`. If any of the RGB color values are invalid, it returns `None`.
-pub fn get_color_with_url(
-    img: DynamicImage,
-    r: Result<u8, ParseIntError>,
-    g: Result<u8, ParseIntError>,
-    b: Result<u8, ParseIntError>,
-) -> Option<ColorWithUrl> {
-    if let (Ok(r), Ok(g), Ok(b)) = (r, g, b) {
-        let rgb_color = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-        let lab_color: Lab = rgb_color.into_color();
-        Some(ColorWithUrl {
-            cielab: lab_color,
-            image: img,
-        })
-    } else {
-        None
+pub fn get_color_with_url(img: DynamicImage, r: u8, g: u8, b: u8) -> ColorWithUrl {
+    let rgb_color = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
+    let lab_color: Lab = rgb_color.into_color();
+    ColorWithUrl {
+        cielab: lab_color,
+        image: img,
     }
 }
