@@ -26,6 +26,23 @@ pub async fn migrate_postgres() -> Result<(), AppError> {
     add_anime_to_module_activation().await?;
     add_vn_to_global_kill_switch().await?;
     add_vn_to_module_activation().await?;
+    update_name_of_id_in_global_kill_switch().await?;
+    Ok(())
+}
+
+async fn update_name_of_id_in_global_kill_switch() -> Result<(), AppError> {
+    // change the name of the row id to guild_id
+    let pool = get_postgresql_pool().await?;
+    sqlx::query("ALTER TABLE global_kill_switch RENAME COLUMN id TO guild_id")
+        .execute(&pool)
+        .await
+        .map_err(|e| {
+            AppError::new(
+                format!("Failed to update name of id in global_kill_switch. {}", e),
+                ErrorType::Database,
+                ErrorResponseType::None,
+            )
+        })?;
     Ok(())
 }
 

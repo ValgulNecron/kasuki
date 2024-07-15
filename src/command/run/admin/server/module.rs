@@ -135,7 +135,7 @@ pub async fn check_activation_status(module: &str, row: ActivationStatusModule) 
         "ANILIST" => row.anilist_module.unwrap_or(true),
         "AI" => row.ai_module.unwrap_or(true),
         "GAME" => row.game_module.unwrap_or(true),
-        "NEW_MEMBER" => row.new_member.unwrap_or(true),
+        "NEW_MEMBER" => row.new_member.unwrap_or(false),
         "ANIME" => row.anime.unwrap_or(true),
         "VN" => row.vn.unwrap_or(true),
         _ => false,

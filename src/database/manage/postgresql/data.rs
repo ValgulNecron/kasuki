@@ -190,7 +190,7 @@ pub async fn get_data_module_activation_status_postgresql(
         .fetch_one(&pool)
         .await
         .unwrap_or(ActivationStatusModule {
-            id: None,
+            guild_id: None,
             ai_module: None,
             anilist_module: None,
             game_module: None,
@@ -226,7 +226,7 @@ pub async fn set_data_module_activation_status_postgresql(
         "INSERT INTO DATA.module_activation (guild_id, anilist_module, ai_module, game_module, new_member, vn) VALUES ($1, $2, $3, $4, $5, $6) \
         ON CONFLICT (guild_id) DO UPDATE SET anilist_module = EXCLUDED.anilist_module, ai_module = EXCLUDED.ai_module, game_module = EXCLUDED.game_module, new_member = EXCLUDED.new_member, vn = EXCLUDED.vn",
     )
-        .bind(activation_status_module.id)
+        .bind(activation_status_module.guild_id)
         .bind(activation_status_module.anilist_module)
         .bind(activation_status_module.ai_module)
         .bind(activation_status_module.game_module)
@@ -290,13 +290,13 @@ pub async fn get_data_module_activation_kill_switch_status_postgresql(
 ) -> Result<ActivationStatusModule, AppError> {
     let pool = get_postgresql_pool().await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT id, ai_module, anilist_module, game_module, new_member, anime, vn FROM DATA.module_activation WHERE guild = $1",
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM DATA.module_activation WHERE guild = $1",
     )
         .bind(1)
         .fetch_one(&pool)
         .await
         .unwrap_or(ActivationStatusModule {
-            id: None,
+            guild_id: None,
             ai_module: None,
             anilist_module: None,
             game_module: None,

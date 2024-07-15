@@ -3,7 +3,7 @@
 #[derive(sqlx::FromRow)]
 pub struct ActivationStatusModule {
     /// id is an Option<String> that represents the ID of the module. It can be None if the ID is not set.
-    pub id: Option<String>,
+    pub guild_id: Option<String>,
     /// ai_module is an Option<bool> that represents the activation status of the AI module. It can be None if the status is not set.
     pub ai_module: Option<bool>,
     /// anilist_module is an Option<bool> that represents the activation status of the Anilist module. It can be None if the status is not set.

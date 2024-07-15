@@ -179,7 +179,7 @@ pub async fn get_data_module_activation_status_sqlite(
         .fetch_one(&pool)
         .await
         .unwrap_or(ActivationStatusModule {
-            id: None,
+            guild_id: None,
             ai_module: None,
             anilist_module: None,
             game_module: None,
@@ -286,13 +286,13 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
 ) -> Result<ActivationStatusModule, AppError> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild = 1",
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild = 1",
     )
         .fetch_one(&pool)
         .await
         .unwrap_or(
             ActivationStatusModule {
-                id: None,
+                guild_id: None,
                 ai_module: None,
                 anilist_module: None,
                 game_module: None,

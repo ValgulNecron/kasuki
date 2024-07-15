@@ -188,11 +188,12 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), AppError> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
-            id TEXT PRIMARY KEY,
+            guild_id TEXT PRIMARY KEY,
             ai_module INTEGER NOT NULL,
             anilist_module INTEGER NOT NULL,
             game_module INTEGER NOT NULL,
-            new_member INTEGER NOT NULL
+            new_member INTEGER NOT NULL,
+            anime INTEGER NOT NULL
         )",
     )
     .execute(pool)

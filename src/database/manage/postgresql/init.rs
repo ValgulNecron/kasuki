@@ -165,11 +165,12 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS global_kill_switch (
-            id TEXT PRIMARY KEY,
+            guild_id TEXT PRIMARY KEY,
             ai_module BIGINT NOT NULL,
             anilist_module BIGINT NOT NULL,
             game_module BIGINT NOT NULL,
-            new_member BIGINT NOT NULL
+            new_member BIGINT NOT NULL,
+            anime BIGINT NOT NULL
         )",
     )
     .execute(pool)
