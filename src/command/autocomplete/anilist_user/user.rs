@@ -56,7 +56,19 @@ pub async fn autocomplete(
                 return;
             }
         };
-    let users = data.data.unwrap().page.unwrap().users.unwrap();
+    let users = match data.data {
+        Some(data) => match data.page {
+            Some(page) => match page.users {
+                Some(users) => users,
+                None => return,
+            },
+            None => return,
+        },
+        None => {
+            tracing::debug!(?data.errors);
+            return;
+        }
+    };
     let mut choices = Vec::new();
 
     for user in users {

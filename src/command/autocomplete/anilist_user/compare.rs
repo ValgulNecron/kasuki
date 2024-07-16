@@ -98,7 +98,19 @@ async fn get_choices(
             return Vec::new();
         }
     };
-    let users = data.data.unwrap().page.unwrap().users.unwrap();
+    let users = match data.data {
+        Some(data) => match data.page {
+            Some(page) => match page.users {
+                Some(users) => users,
+                None => return Vec::new(),
+            },
+            None => return Vec::new(),
+        },
+        None => {
+            tracing::error!(?data.errors);
+            return Vec::new();
+        }
+    };
     let mut choices = Vec::new();
 
     for user in users {

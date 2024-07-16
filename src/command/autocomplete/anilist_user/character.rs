@@ -57,13 +57,25 @@ pub async fn autocomplete(
         match make_request_anilist(operation, false, anilist_cache).await {
             Ok(data) => data,
             Err(e) => {
-                tracing::error!(?e);
+                tracing::debug!(?e);
                 return;
             }
         };
     trace!(?data);
     let mut choices = Vec::new();
-    let characters = data.data.unwrap().page.unwrap().characters.unwrap();
+    let characters = match data.data {
+        Some(data) => match data.page {
+            Some(page) => match page.characters {
+                Some(characters) => characters,
+                None => return,
+            },
+            None => return,
+        },
+        None => {
+            tracing::debug!(?data.errors);
+            return;
+        }
+    };
 
     for character in characters {
         let data = character.unwrap();

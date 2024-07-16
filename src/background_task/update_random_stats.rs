@@ -1,4 +1,4 @@
-use crate::constant::{RANDOM_STATS_PATH, TIME_BETWEEN_ACTIVITY_CHECK};
+use crate::constant::{RANDOM_STATS_PATH, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_RANDOM_STATS_UPDATE};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serde::{Deserialize, Serialize};
@@ -43,7 +43,7 @@ pub async fn update_random_stats_launcher(anilist_cache: Arc<RwLock<Cache<String
     info!("Starting random stats update");
 
     // Create an interval that ticks every `TIME_BETWEEN_ACTIVITY_CHECK` seconds.
-    let mut interval = interval(Duration::from_secs(TIME_BETWEEN_ACTIVITY_CHECK));
+    let mut interval = interval(Duration::from_secs(TIME_BETWEEN_RANDOM_STATS_UPDATE));
 
     // Run the update task indefinitely.
     loop {
@@ -105,10 +105,14 @@ async fn update_random(
     let mut has_more_pages = true;
     while has_more_pages {
         has_more_pages = update_page(&mut random_stats, &anilist_cache, true, true).await;
+        // sleep 1s
+        tokio::time::sleep(Duration::from_secs(1)).await;
     }
     has_more_pages = true;
     while has_more_pages {
         has_more_pages = update_page(&mut random_stats, &anilist_cache, false, false).await;
+        // sleep 1s
+        tokio::time::sleep(Duration::from_secs(1)).await;
     }
 
     Ok(random_stats)

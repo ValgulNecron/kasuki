@@ -116,10 +116,18 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         }
         reason = if internal_action == InternalAction::Member(BanAdd) {
             let a = audit_log.entries[0].clone().reason.unwrap_or_default();
-            format!("User Banned for {}", a)
+            if a.is_empty() {
+                "User Banned".to_string()
+            } else {
+                format!("User Banned for {}", a)
+            }
         } else if internal_action == InternalAction::Member(Kick) {
             let a = audit_log.entries[0].clone().reason.unwrap_or_default();
-            format!("User kicked for {}", a)
+            if a.is_empty() {
+                "User kicked".to_string()
+            } else {
+                format!("User kicked for {}", a)
+            }
         } else {
             "User left".to_string()
         };

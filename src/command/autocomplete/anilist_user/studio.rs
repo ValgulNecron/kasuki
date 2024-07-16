@@ -58,7 +58,19 @@ pub async fn autocomplete(
                 return;
             }
         };
-    let studios = data.data.unwrap().page.unwrap().studios.unwrap();
+    let studios = match data.data {
+        Some(data) => match data.page {
+            Some(page) => match page.studios {
+                Some(studios) => studios,
+                None => return,
+            },
+            None => return,
+        },
+        None => {
+            tracing::debug!(?data.errors);
+            return;
+        }
+    };
 
     let mut choices = Vec::new();
 
