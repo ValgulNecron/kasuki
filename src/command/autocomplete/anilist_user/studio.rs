@@ -14,7 +14,6 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::studio::{
     StudioAutocomplete, StudioAutocompleteVariables,
 };
-use std::error::Error;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for studio search.
 /// It takes a `Context` and a `CommandInteraction` as parameters.

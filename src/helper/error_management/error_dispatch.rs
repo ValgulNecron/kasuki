@@ -8,10 +8,6 @@ use tracing::error;
 
 use crate::constant::COLOR;
 use crate::event_handler::Handler;
-use crate::helper::error_management::error_enum;
-use crate::helper::error_management::error_enum::{
-    FollowupError, ResponseError, UnknownResponseError,
-};
 
 /// ERROR_MESSAGE is a constant string that contains the default error message
 const ERROR_MESSAGE: &str = "**There was an error while processing the command**\

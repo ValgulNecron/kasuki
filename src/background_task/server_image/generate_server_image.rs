@@ -133,7 +133,7 @@ pub async fn generate_server_image(
                 let b = pixel[2] as f32 / 255.0;
                 let rgb_color = Srgb::new(r, g, b);
                 let lab_color: Lab =
-                    <palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color).into();
+                    <palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color);
                 let color_target = Color { cielab: lab_color };
                 let closest_color = match find_closest_color(&color_vec_moved, &color_target) {
                     Some(color) => color,
@@ -141,7 +141,7 @@ pub async fn generate_server_image(
                 };
                 match vec_image_clone.lock() {
                     Ok(mut vec_image) => vec_image.push((x, y, closest_color.image)),
-                    Err(_) => return,
+                    Err(_) => (),
                 }
             });
             handles.push(handle);

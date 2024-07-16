@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use crate::command::run::admin::anilist::add_activity::get_minimal_anime_media;
 use crate::config::Config;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;

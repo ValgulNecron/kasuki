@@ -1,17 +1,15 @@
-use crate::constant::{HEX_COLOR, NEW_MEMBER_PATH};
+use crate::constant::{HEX_COLOR};
 use crate::new_member::{
-    create_default_new_member_image, load_guild_settings, load_new_member_image, NewMemberSetting,
+    create_default_new_member_image, load_guild_settings, load_new_member_image,
 };
 use crate::structure::message::removed_member::load_localization_removed_member;
 use image::GenericImage;
 use image::ImageFormat::WebP;
 use serenity::all::{ChannelId, Context, CreateMessage, GuildId, User};
 use serenity::builder::CreateAttachment;
-use std::collections::HashMap;
-use std::fs;
 use std::io::Cursor;
 use text_to_png::TextRenderer;
-use tracing::{error, trace};
+use tracing::{error};
 
 pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User) {
     let ctx = ctx.clone();

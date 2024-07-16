@@ -6,7 +6,6 @@ use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 

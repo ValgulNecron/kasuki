@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::fmt::format;
 use std::sync::Arc;
 
 use serenity::all::CreateInteractionResponse::Defer;
