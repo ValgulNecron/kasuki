@@ -1,14 +1,15 @@
-use crate::constant::{RANDOM_STATS_PATH, TIME_BETWEEN_RANDOM_STATS_UPDATE};
-use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
-use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
+
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use tokio::time::interval;
 use tracing::info;
 
+use crate::constant::{RANDOM_STATS_PATH, TIME_BETWEEN_RANDOM_STATS_UPDATE};
 use crate::helper::error_management::error_enum::UnknownResponseError;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::site_statistic_anime::{AnimeStat, AnimeStatVariables};

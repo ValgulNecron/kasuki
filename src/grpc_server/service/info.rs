@@ -1,5 +1,11 @@
 use std::sync::Arc;
 
+use serenity::all::{Cache, Http, ShardManager};
+use sysinfo::System;
+use tokio::sync::RwLock;
+use tonic::{Request, Response, Status};
+use tracing::trace;
+
 use crate::config::Config;
 use crate::constant::APP_VERSION;
 use crate::custom_serenity_impl::{InternalMembershipState, InternalTeamMemberRole};
@@ -9,11 +15,6 @@ use crate::grpc_server::service::info::proto::{
     BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, InfoRequest, InfoResponse,
     OwnerInfo, ShardStats, SystemInfoData, TeamMember,
 };
-use serenity::all::{Cache, Http, ShardManager};
-use sysinfo::System;
-use tokio::sync::RwLock;
-use tonic::{Request, Response, Status};
-use tracing::trace;
 
 // Proto module contains the protobuf definitions for the shard service
 pub(crate) mod proto {

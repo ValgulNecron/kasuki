@@ -70,7 +70,10 @@ impl proto::shard_server::Shard for ShardService {
             return Err(Status::not_found("Shard not found"));
         }
         // Get the shard
-        let shard = runners.get(&ShardId(id as u32)).unwrap();
+        let shard = match runners.get(&ShardId(id as u32)) {
+            Some(shard) => shard,
+            None => return Err(Status::not_found("Shard not found")),
+        };
         // Create a ShardInfoResponse with the shard id, latency, and stage
         let reply = proto::ShardInfoResponse {
             shard_id: id,

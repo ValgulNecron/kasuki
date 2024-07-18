@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+use std::ops::{Add, AddAssign};
+use std::sync::Arc;
+
 use moka::future::Cache;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
@@ -6,9 +10,6 @@ use serenity::all::{
     Interaction, Member, Ready, User,
 };
 use serenity::async_trait;
-use std::collections::HashMap;
-use std::ops::{Add, AddAssign};
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
@@ -22,10 +23,10 @@ use crate::command_register::registration_dispatcher::command_registration;
 use crate::components::components_dispatch::components_dispatching;
 use crate::config::Config;
 use crate::constant::COMMAND_USE_PATH;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{
     FollowupError, ResponseError, UnknownResponseError,
 };
-use crate::helper::error_management::{error_dispatch};
 use crate::new_member::new_member_message;
 use crate::removed_member::removed_member_message;
 
@@ -319,8 +320,8 @@ impl EventHandler for Handler {
                     command_interaction.guild_id.unwrap_or_default().to_string(),
                     command_interaction.data.options
                 );
-                let mut message = String::new();
-                let mut error_type = "";
+                let message;
+                let error_type;
                 match command_dispatching(&ctx, &command_interaction, self).await {
                     Ok(()) => return,
                     Err(e) => {

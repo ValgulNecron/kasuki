@@ -1,8 +1,9 @@
+use std::error::Error;
+
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
-use std::error::Error;
 use tracing::trace;
 
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};

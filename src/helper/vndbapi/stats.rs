@@ -1,12 +1,13 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
-use crate::helper::vndbapi::common::do_request_cached;
 use moka::future::Cache;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use tracing::trace;
+
+use crate::helper::error_management::error_enum::UnknownResponseError;
+use crate::helper::vndbapi::common::do_request_cached;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Stats {

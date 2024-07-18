@@ -1,4 +1,5 @@
 use std::error::Error;
+
 use tracing::{error, trace};
 
 use crate::constant::SQLITE_DB_PATH;

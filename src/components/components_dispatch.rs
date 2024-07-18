@@ -1,11 +1,12 @@
-use serenity::all::{ComponentInteraction, Context};
 use std::error::Error;
+use std::sync::Arc;
+
+use moka::future::Cache;
+use serenity::all::{ComponentInteraction, Context};
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::components::anilist::{list_all_activity, list_register_user};
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// Dispatches component interactions based on their custom ID.
 ///

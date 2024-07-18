@@ -1,5 +1,6 @@
-use serenity::all::{CommandInteraction, Context};
 use std::error::Error;
+
+use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
 
 use crate::command::run::admin::anilist::{add_activity, delete_activity};
@@ -111,7 +112,7 @@ pub async fn command_dispatching(
             )
             .await?
         }
-        "anime_nsfw" => {
+        "hanime" => {
             anime_nsfw(
                 ctx,
                 command_interaction,
@@ -677,7 +678,7 @@ async fn anime_nsfw(
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
-        "random_nsfw_image" => random_nsfw_image::run(ctx, command_interaction, config).await,
+        "random_himage" => random_nsfw_image::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
         _ => {
             return Err(Box::new(ResponseError::Option(String::from(

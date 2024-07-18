@@ -1,8 +1,9 @@
+use std::error::Error;
+
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
-use std::error::Error;
 use tracing::log::trace;
 
 use crate::constant::COLOR;

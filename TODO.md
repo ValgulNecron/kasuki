@@ -53,11 +53,7 @@
     - [X] Ask a question and reply the response.
 
 - Music module: (Not sure if I will do this one. since it broke tos)
-    - [ ] Play music from YouTube.
     - [ ] Play music from file upload.
-    - [ ] Play music from a link.
-    - [ ] Play music from a playlist.
-    - [ ] Play music from a search.
 
 - General module:
     - [X] Command to change the bot response language.
@@ -88,9 +84,9 @@
         - [ ] Add redis for cache.
         - [X] In memory cache.
     - [X] Create a parser because some description uses html and not markdown.
-        - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases
+        - [X] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases
           are
-          supported
+          supported open issue here for markdown (https://github.com/ValgulNecron/markdown_converter)
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
       size.
     - [ ] Better error handling.

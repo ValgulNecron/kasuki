@@ -1,5 +1,10 @@
 use std::sync::Arc;
 
+use serenity::all::{Cache, Http, ShardManager};
+use sysinfo::System;
+use tokio::sync::RwLock;
+use tracing::{error, trace};
+
 use crate::config::{Config, GrpcCfg};
 use crate::constant::BOT_COMMANDS;
 use crate::event_handler::{BotData, RootUsage};
@@ -8,10 +13,6 @@ use crate::grpc_server::service;
 use crate::grpc_server::service::command::{get_command_server, CommandServices};
 use crate::grpc_server::service::info::{get_info_server, InfoService};
 use crate::grpc_server::service::shard::{get_shard_server, ShardService};
-use serenity::all::{Cache, Http, ShardManager};
-use sysinfo::System;
-use tokio::sync::RwLock;
-use tracing::{error, trace};
 
 /// `grpc_server_launcher` is an asynchronous function that launches the gRPC server for the shard service.
 /// It takes a reference to an `Arc<ShardManager>` as a parameter.

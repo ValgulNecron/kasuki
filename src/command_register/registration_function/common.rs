@@ -210,7 +210,7 @@ pub fn get_permission(
                 perm_bit |= permission.bits()
             }
             trace!("{:?}", perm_bit);
-            let permission = Permissions::from_bits(perm_bit).unwrap();
+            let permission = Permissions::from_bits(perm_bit).unwrap_or(Permissions::empty());
             command_build.default_member_permissions(permission)
         }
         None => command_build,

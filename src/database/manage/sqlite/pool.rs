@@ -1,5 +1,6 @@
-use sqlx::{Pool, Sqlite, SqlitePool};
 use std::error::Error;
+
+use sqlx::{Pool, Sqlite, SqlitePool};
 
 use crate::helper::error_management::error_enum::UnknownResponseError;
 

@@ -32,7 +32,8 @@ y\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\"
 22292\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\": \"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1253134172030242971\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"125313417203024
 2970\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":
 \"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1253133297618260058\",\"action_type\":51,\"user_id\":null,\"target_id\":\"1199614987195400287\",\"changes\":[
-{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\",\"old_value\":\"Whisper Me a Love Song\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\",\"old_value\":\"b4650247ac8ca250d0f55588cd
+{
+\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\",\"old_value\":\"Whisper Me a Love Song\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\",\"old_value\":\"b4650247ac8ca250d0f55588cd
 5e6131\"}]},{\"id\":\"1253017898499182594\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1253017898499182593\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"
 application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_va
 lue\":1}]},{\"id\":\"1253017858187853845\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1253017858187853844\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"a
@@ -49,7 +50,7 @@ tion_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\"
 ]}, {
 \"id\":\"1253014332808105985\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252995677928034367\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"applicati
 on_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]
-},{
+}, {
 \"id\":\"1253014323010469900\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252996423226622073\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application
 _id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]},
 {

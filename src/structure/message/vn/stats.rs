@@ -1,3 +1,9 @@
+use std::error::Error;
+
+use serde::{Deserialize, Serialize};
+
+use crate::structure::message::common::load_localization;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StatsLocalised {
     pub title: String,
@@ -18,10 +24,6 @@ pub struct StatsLocalised {
 
     pub api: String,
 }
-
-use crate::structure::message::common::load_localization;
-use serde::{Deserialize, Serialize};
-use std::error::Error;
 
 pub async fn load_localization_stats(
     guild_id: String,

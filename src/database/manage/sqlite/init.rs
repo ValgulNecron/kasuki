@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs;
-use std::fs::{File};
+use std::fs::File;
 use std::path::Path;
 
 use sqlx::{Pool, Sqlite};

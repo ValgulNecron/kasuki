@@ -1,10 +1,11 @@
+use std::collections::HashMap;
+use std::error::Error;
+use std::sync::Arc;
+
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use std::collections::HashMap;
-use std::error::Error;
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::trace;
 
@@ -142,7 +143,15 @@ impl SteamGameWrapper {
             .await
             .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
 
-        let re = Regex::new(r#""required_age":"(\d+)""#).unwrap();
+        let re = match Regex::new(r#""required_age":"(\d+)""#) {
+            Ok(r) => r,
+            Err(e) => {
+                return Err(Box::new(UnknownResponseError::WebRequest(format!(
+                    "{:#?}",
+                    e
+                ))));
+            }
+        };
 
         if let Some(cap) = re.captures(&text) {
             if let Some(number) = cap.get(1) {

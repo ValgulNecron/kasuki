@@ -1,16 +1,17 @@
+use std::error::Error;
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, UserId,
 };
-use std::error::Error;
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::command::run::anilist_server::list_register_user::get_the_list;
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::helper::error_management::error_enum::UnknownResponseError;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// Updates the user list in the server.
 ///
@@ -64,7 +65,10 @@ pub async fn update(
     let id = if user_id == "0" {
         None
     } else {
-        Some(user_id.parse().unwrap())
+        match user_id.parse() {
+            Ok(id) => Some(id),
+            Err(_) => None,
+        }
     };
 
     // Get the list of users

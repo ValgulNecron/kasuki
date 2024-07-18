@@ -1,12 +1,13 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use moka::future::Cache;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
+
+use crate::helper::error_management::error_enum::UnknownResponseError;
 
 pub async fn make_request_anilist<
     'a,

@@ -1,5 +1,6 @@
-use serenity::all::{CommandInteraction, Context, User};
 use std::error::Error;
+
+use serenity::all::{CommandInteraction, Context, User};
 
 use crate::command::run::user::profile::profile_with_user;
 use crate::helper::error_management::error_enum::ResponseError;
@@ -44,7 +45,7 @@ pub async fn run(
         .id
         .to_user(&ctx.http)
         .await
-        .map_err(|e| ResponseError::Option(String::from("Not a valid user")))?;
+        .map_err(|e| ResponseError::Option(format!("{:#?}", e)))?;
 
     // Call the profile_with_user function with the context, command interaction, and user
     profile_with_user(ctx, command_interaction, &user, db_type).await

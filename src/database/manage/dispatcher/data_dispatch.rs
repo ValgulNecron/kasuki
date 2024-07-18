@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
@@ -28,7 +30,6 @@ use crate::database::manage::sqlite::data::{
     set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
     set_registered_user_sqlite, set_server_image_sqlite, set_user_approximated_color_sqlite,
 };
-use std::error::Error;
 
 /// Sets the ping history in the database.
 ///

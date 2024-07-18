@@ -1,5 +1,6 @@
-use sqlx::{Pool, Postgres};
 use std::error::Error;
+
+use sqlx::{Pool, Postgres};
 
 use crate::database::manage::postgresql::migration::migration_dispatch::migrate_postgres;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;

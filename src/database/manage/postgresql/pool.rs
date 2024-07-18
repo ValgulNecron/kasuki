@@ -1,7 +1,9 @@
-use crate::helper::error_management::error_enum::UnknownResponseError;
+use std::error::Error;
+
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
-use std::error::Error;
+
+use crate::helper::error_management::error_enum::UnknownResponseError;
 
 /// Retrieves a connection pool to the PostgreSQL database.
 ///

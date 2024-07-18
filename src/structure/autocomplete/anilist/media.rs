@@ -1,13 +1,15 @@
-use crate::constant::DEFAULT_STRING;
-use crate::helper::make_graphql_cached::make_request_anilist;
+use std::sync::Arc;
+
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-use std::sync::Arc;
 use tokio::sync::RwLock;
+
+use crate::constant::DEFAULT_STRING;
+use crate::helper::make_graphql_cached::make_request_anilist;
 
 #[cynic::schema("anilist")]
 mod schema {}
@@ -89,7 +91,7 @@ pub async fn send_auto_complete(
         None => {
             tracing::debug!(?data.errors);
             return;
-        },
+        }
     };
     let page = match data.page {
         Some(page) => page,
@@ -100,8 +102,14 @@ pub async fn send_auto_complete(
         None => return,
     };
     for media in medias {
-        let media = media.unwrap();
-        let title_data = media.title.unwrap();
+        let media = match media {
+            Some(media) => media,
+            None => continue,
+        };
+        let title_data = match media.title {
+            Some(title) => title,
+            None => continue,
+        };
         let english = title_data.user_preferred;
         let romaji = title_data.romaji;
         let native = title_data.native;

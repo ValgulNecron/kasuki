@@ -1,15 +1,19 @@
-use crate::constant::{HEX_COLOR};
-use crate::new_member::{
-    create_default_new_member_image, load_guild_settings, load_new_member_image,
-};
-use crate::structure::message::removed_member::load_localization_removed_member;
+use std::io::Cursor;
+
 use image::GenericImage;
 use image::ImageFormat::WebP;
 use serenity::all::{ChannelId, Context, CreateMessage, GuildId, User};
 use serenity::builder::CreateAttachment;
-use std::io::Cursor;
 use text_to_png::TextRenderer;
-use tracing::{error};
+use tracing::error;
+
+use crate::constant::HEX_COLOR;
+use crate::custom_serenity_impl::InternalAction;
+use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
+use crate::new_member::{
+    create_default_new_member_image, load_guild_settings, load_new_member_image,
+};
+use crate::structure::message::removed_member::load_localization_removed_member;
 
 pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User) {
     let ctx = ctx.clone();
@@ -225,6 +229,3 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         }
     };
 }
-
-use crate::custom_serenity_impl::InternalAction;
-use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};

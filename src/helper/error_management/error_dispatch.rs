@@ -3,7 +3,6 @@ use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
-use std::error::Error;
 use tracing::error;
 
 use crate::constant::COLOR;

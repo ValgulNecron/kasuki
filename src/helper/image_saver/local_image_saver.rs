@@ -3,8 +3,9 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
 use chrono::Local;
+
+use crate::helper::error_management::error_enum::UnknownResponseError;
 
 /// `local_image_save` is an asynchronous function that saves an image locally.
 /// It takes a `guild_id`, `filename`, and `image_data` as parameters.

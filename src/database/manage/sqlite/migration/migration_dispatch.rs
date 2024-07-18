@@ -1,7 +1,8 @@
+use std::error::Error;
+
 use crate::constant::SQLITE_DB_PATH;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum;
-use std::error::Error;
 
 /// Migrates the SQLite database.
 ///

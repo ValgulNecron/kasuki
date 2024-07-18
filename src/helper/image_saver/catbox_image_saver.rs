@@ -1,8 +1,10 @@
 use std::error::Error;
-// Importing necessary libraries and modules
-use crate::helper::error_management::error_enum::UnknownResponseError;
+
 use reqwest::multipart;
 use tracing::debug;
+
+// Importing necessary libraries and modules
+use crate::helper::error_management::error_enum::UnknownResponseError;
 
 /// `upload_image_catbox` is an asynchronous function that uploads an image to catbox.moe.
 /// It takes a `filename` and `image_data` as parameters.

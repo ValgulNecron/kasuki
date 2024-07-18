@@ -1,6 +1,7 @@
+use std::error::Error;
+
 use crate::database::manage::postgresql::init::init_postgres;
 use crate::database::manage::sqlite::init::init_sqlite;
-use std::error::Error;
 
 /// Initializes the SQL database.
 ///

@@ -23,7 +23,7 @@ use crate::config::Config;
 use crate::constant::COLOR;
 use crate::database::data_struct::server_activity::{ServerActivityFull, SmallServerActivity};
 use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
-use crate::helper::create_default_embed::{get_anilist_anime_embed};
+use crate::helper::create_default_embed::get_anilist_anime_embed;
 use crate::helper::error_management::error_enum::{
     FollowupError, ResponseError, UnknownResponseError,
 };

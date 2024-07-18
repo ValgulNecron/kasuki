@@ -9,7 +9,7 @@ use tokio::sync::RwLock;
 
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{ResponseError};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::user::get_user;
 use crate::structure::message::vn::user::load_localization_user;

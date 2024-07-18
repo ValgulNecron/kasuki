@@ -1,5 +1,6 @@
-use serde::{Deserialize, Serialize};
 use std::error::Error;
+
+use serde::{Deserialize, Serialize};
 
 // Importing necessary libraries and modules
 use crate::structure::message::common::load_localization;

@@ -4,6 +4,7 @@ use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
 use tokio::sync::RwLock;
 use tracing::trace;
+
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::structure::autocomplete::anilist::media::{

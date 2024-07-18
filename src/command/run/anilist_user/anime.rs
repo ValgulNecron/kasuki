@@ -1,6 +1,11 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use serenity::all::{CommandInteraction, Context};
+use tokio::sync::RwLock;
+
 use crate::config::Config;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -9,10 +14,6 @@ use crate::structure::run::anilist::media::{
     send_embed, Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
     MediaQuerrySearchVariables, MediaType,
 };
-use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
-use serenity::all::{CommandInteraction, Context};
-use tokio::sync::RwLock;
 
 /// This asynchronous function runs the command interaction for retrieving information about an anime.
 ///

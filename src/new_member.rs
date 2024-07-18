@@ -1,17 +1,19 @@
-use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
-use crate::helper::error_management::error_enum;
-use crate::structure::message::new_member::load_localization_new_member;
+use std::collections::HashMap;
+use std::error::Error;
+use std::fs;
+use std::io::Cursor;
+
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage};
 use serde::{Deserialize, Serialize};
 use serenity::all::{ChannelId, Context, CreateMessage, GuildId, Member};
 use serenity::builder::CreateAttachment;
-use std::collections::HashMap;
-use std::error::Error;
-use std::fs;
-use std::io::Cursor;
 use text_to_png::TextRenderer;
 use tracing::{error, trace};
+
+use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
+use crate::helper::error_management::error_enum;
+use crate::structure::message::new_member::load_localization_new_member;
 
 pub async fn new_member_message(ctx: &Context, member: &Member) {
     trace!("New member message.");

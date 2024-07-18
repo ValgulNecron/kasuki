@@ -207,7 +207,12 @@ pub async fn send_embed(
     let user_localised = load_localization_user(guild_id, db_type).await?;
 
     let mut field = Vec::new();
-    let statistics = user.statistics.clone().unwrap();
+    let statistics = user
+        .statistics
+        .clone()
+        .ok_or(ResponseError::Option(String::from(
+            "Could not get the statistics",
+        )))?;
     let manga = statistics.manga.clone();
     let anime = statistics.anime.clone();
 

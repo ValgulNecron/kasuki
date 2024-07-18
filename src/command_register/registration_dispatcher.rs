@@ -69,7 +69,13 @@ pub async fn command_registration(http: &Arc<Http>, is_ok: bool) {
 /// * `http` - An `Arc<Http>` instance used to send the delete command requests to the Discord API.
 async fn delete_command(http: &Arc<Http>) {
     info!("Started deleting command");
-    let cmds = Command::get_global_commands(http).await.unwrap();
+    let cmds = match Command::get_global_commands(http).await {
+        Ok(res) => res,
+        Err(e) => {
+            error!("could not get the command: {:#?}", e);
+            return;
+        }
+    };
     for cmd in cmds {
         trace!("Removing {:?}", cmd.name);
         match Command::delete_global_command(http, cmd.id).await {

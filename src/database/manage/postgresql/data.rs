@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
@@ -8,7 +10,6 @@ use crate::database::data_struct::server_activity::{
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
 use crate::helper::error_management::error_enum::UnknownResponseError;
-use std::error::Error;
 
 /// Inserts or updates a ping history record in the PostgreSQL database.
 ///
@@ -223,7 +224,7 @@ pub async fn set_data_module_activation_status_postgresql(
         .bind(activation_status_module.vn)
         .execute(&pool)
         .await
-        .map_err(|e| UnknownResponseError::Database(format!("Failed to insert into the table. {:#?}", e)) )?;
+        .map_err(|e| UnknownResponseError::Database(format!("Failed to insert into the table. {:#?}", e)))?;
     pool.close().await;
     Ok(())
 }

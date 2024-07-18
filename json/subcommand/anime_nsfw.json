@@ -1,6 +1,6 @@
 {
-  "name": "anime_nsfw",
-  "desc": "Nsfw command from the ANIME module",
+  "name": "hanime",
+  "desc": "Command from the ANIME module",
   "integration_context": {
     "bot_dm": true,
     "guild": true,
@@ -13,8 +13,8 @@
   "nsfw": true,
   "command": [
     {
-      "name": "random_nsfw_image",
-      "desc": "Get a random nsfw anime image.",
+      "name": "random_himage",
+      "desc": "Get a random hanime image.",
       "args": [
         {
           "name": "image_type",
@@ -31,9 +31,6 @@
             },
             {
               "option_choice": "trap"
-            },
-            {
-              "option_choice": "blowjob"
             }
           ],
           "localised_args": [
@@ -45,17 +42,17 @@
             {
               "code": "fr",
               "name": "type_image",
-              "desc": "Le type de l'image nsfw aléatoire que vous souhaitez."
+              "desc": "Le type de l'image aléatoire que vous souhaitez."
             },
             {
               "code": "de",
               "name": "bildtyp",
-              "desc": "Die Art des zufälligen nsfw-Bildes, das Sie möchten."
+              "desc": "Die Art des zufälligen Bildes, das Sie möchten."
             },
             {
               "code": "ja",
               "name": "imeji_taipu",
-              "desc": "欲しいランダムな nsfw 画像の種類。"
+              "desc": "欲しいランダムな 画像の種類。"
             }
           ]
         }
@@ -63,23 +60,23 @@
       "localised": [
         {
           "code": "en-US",
-          "name": "random_nsfw_image",
-          "desc": "Get a random nsfw anime image."
+          "name": "random_himage",
+          "desc": "Get a random hanime image."
         },
         {
           "code": "fr",
-          "name": "image_aleatoire_nsfw",
-          "desc": "Obtenez une image nsfw anime aléatoire."
+          "name": "random_himage",
+          "desc": "Obtenez une image aleatoire hanime."
         },
         {
           "code": "de",
-          "name": "zufalliges_nsfw_bild",
-          "desc": "Erhalte ein zufälliges nsfw Anime-Bild."
+          "name": "random_himage",
+          "desc": "Erhalte eine zufällige hanime-Bild."
         },
         {
           "code": "ja",
-          "name": "random_nsfw_naime_imeji",
-          "desc": "ランダムな nsfw アニメ画像を取得します。"
+          "name": "random_himage",
+          "desc": "ランダムな hanime 画像を取得します。"
         }
       ]
     }
@@ -87,23 +84,23 @@
   "localised": [
     {
       "code": "en-US",
-      "name": "anime",
-      "desc": "Nsfw command from the ANIME module"
+      "name": "hanime",
+      "desc": "Command from the ANIME module"
     },
     {
       "code": "fr",
-      "name": "anime",
-      "desc": "Commande nsfw du module ANIME"
+      "name": "hanime",
+      "desc": "Commande du module ANIME"
     },
     {
       "code": "de",
-      "name": "anime",
-      "desc": "Nsfw-Befehl aus dem ANIME-Modul"
+      "name": "hanime",
+      "desc": "Befehl aus dem ANIME-Modul"
     },
     {
       "code": "ja",
-      "name": "anime",
-      "desc": "ANIMEモジュールのNsfwコマンド"
+      "name": "hanime",
+      "desc": "ANIMEモジュールのコマンド"
     }
   ]
 }

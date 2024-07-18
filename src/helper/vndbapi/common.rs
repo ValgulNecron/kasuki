@@ -1,9 +1,10 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
 use moka::future::Cache;
 use tokio::sync::RwLock;
+
+use crate::helper::error_management::error_enum::UnknownResponseError;
 
 pub async fn do_request_cached(
     path: String,
