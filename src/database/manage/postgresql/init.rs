@@ -151,18 +151,12 @@ async fn init_postgres_data(pool: &Pool<Postgres>) -> Result<(), Box<dyn Error>>
     .await
     .map_err(|e| error_enum::Error::Database(format!("Failed to create the table. {:#?}", e)))?;
 
+    // on conflict do nothing
     sqlx::query(
         "INSERT INTO global_kill_switch
         (guild_id, anilist_module, ai_module, game_module, new_member, anime, vn)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
-        ON CONFLICT (id)
-            DO UPDATE
-            SET anilist_module = excluded.anilist_module,
-            ai_module = excluded.ai_module,
-            game_module = excluded.game_module,
-            new_member = excluded.new_member,
-            anime = excluded.anime,
-            vn = excluded.vn",
+        ON CONFLICT (guild_id) DO NOTHING",
     )
     .bind("1")
     .bind(1)

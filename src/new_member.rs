@@ -6,7 +6,7 @@ use std::io::Cursor;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage};
 use serde::{Deserialize, Serialize};
-use serenity::all::{ChannelId, Context, CreateMessage, GuildId, Member};
+use serenity::all::{ChannelId, Context, CreateMessage, GuildId, Member, PartialGuild};
 use serenity::builder::CreateAttachment;
 use text_to_png::TextRenderer;
 use tracing::{error, trace};
@@ -28,36 +28,16 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
         }
     };
     let guild_settings = load_guild_settings(guild_id).await;
-    let channel_id = if guild_settings.custom_channel {
-        ChannelId::from(guild_settings.channel_id)
+    let channel_id = if let Some(channel_id) = get_channel_id(&guild_settings, &partial_guild) {
+        channel_id
     } else {
-        match partial_guild.system_channel_id {
-            Some(channel_id) => channel_id,
-            None => {
-                error!("Failed to get the system channel id.");
-                return;
-            }
-        }
+        return;
     };
 
-    let guild_image = if guild_settings.custom_image {
-        let image = load_new_member_image(guild_id.to_string());
-        match image {
-            Some(image) => image,
-            None => {
-                error!("Failed to load the image.");
-                return;
-            }
-        }
+    let guild_image = if let Some(img) = get_server_image(guild_id.to_string(), &guild_settings) {
+        img
     } else {
-        let image = create_default_new_member_image();
-        match image {
-            Ok(image) => image,
-            Err(e) => {
-                error!("Failed to create the default image. {}", e);
-                return;
-            }
-        }
+        return;
     };
     let mut guild_image = match image::load_from_memory(&guild_image) {
         Ok(image) => image,
@@ -236,4 +216,45 @@ pub fn create_default_new_member_image() -> Result<Vec<u8>, Box<dyn Error>> {
     img.write_to(&mut Cursor::new(&mut bytes), WebP)
         .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?;
     Ok(bytes)
+}
+
+pub fn get_server_image(guild_id: String, guild_settings: &NewMemberSetting) -> Option<Vec<u8>> {
+    let img = if guild_settings.custom_image {
+        let image = load_new_member_image(guild_id.to_string());
+        match image {
+            Some(image) => image,
+            None => {
+                error!("Failed to load the image.");
+                return None;
+            }
+        }
+    } else {
+        let image = create_default_new_member_image();
+        match image {
+            Ok(image) => image,
+            Err(e) => {
+                error!("Failed to create the default image. {}", e);
+                return None;
+            }
+        }
+    };
+    Some(img)
+}
+
+pub fn get_channel_id(
+    guild_settings: &NewMemberSetting,
+    partial_guild: &PartialGuild,
+) -> Option<ChannelId> {
+    let channel_id = if guild_settings.custom_channel {
+        ChannelId::from(guild_settings.channel_id)
+    } else {
+        match partial_guild.system_channel_id {
+            Some(channel_id) => channel_id,
+            None => {
+                error!("Failed to get the system channel id.");
+                return None;
+            }
+        }
+    };
+    Some(channel_id)
 }

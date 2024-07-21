@@ -228,7 +228,26 @@ pub async fn set_data_module_activation_status_postgresql(
     pool.close().await;
     Ok(())
 }
-
+pub async fn set_data_kill_switch_activation_status_postgresql(
+    activation_status_module: ActivationStatusModule,
+) -> Result<(), Box<dyn Error>> {
+    let pool = get_postgresql_pool().await?;
+    sqlx::query(
+        "INSERT INTO DATA.global_kill_switch (guild_id, anilist_module, ai_module, game_module, new_member, vn) VALUES ($1, $2, $3, $4, $5, $6) \
+        ON CONFLICT (guild_id) DO UPDATE SET anilist_module = EXCLUDED.anilist_module, ai_module = EXCLUDED.ai_module, game_module = EXCLUDED.game_module, new_member = EXCLUDED.new_member, vn = EXCLUDED.vn",
+    )
+        .bind(1)
+        .bind(activation_status_module.anilist_module)
+        .bind(activation_status_module.ai_module)
+        .bind(activation_status_module.game_module)
+        .bind(activation_status_module.new_member)
+        .bind(activation_status_module.vn)
+        .execute(&pool)
+        .await
+        .map_err(|e| UnknownResponseError::Database(format!("Failed to insert into the table. {:#?}", e)))?;
+    pool.close().await;
+    Ok(())
+}
 /// Removes an activity data record from the PostgreSQL database.
 ///
 /// This function takes two parameters: `server_id` and `anime_id`.
@@ -271,7 +290,7 @@ pub async fn get_data_module_activation_kill_switch_status_postgresql(
 ) -> Result<ActivationStatusModule, Box<dyn Error>> {
     let pool = get_postgresql_pool().await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM DATA.module_activation WHERE guild = $1",
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM DATA.global_kill_switch WHERE guild = $1",
     )
         .bind(1)
         .fetch_one(&pool)

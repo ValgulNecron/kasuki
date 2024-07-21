@@ -173,8 +173,8 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), Box<dyn Error>> {
     .await
     .map_err(|e| error_enum::Error::Database(format!("Failed to create the table. {:#?}", e)))?;
 
-    sqlx::query(
-        "INSERT OR REPLACE INTO global_kill_switch
+    let _ = sqlx::query(
+        "INSERT INTO global_kill_switch
         (guild_id, anilist_module, ai_module, game_module, new_member, anime, vn)
         VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
@@ -186,8 +186,7 @@ async fn init_sqlite_data(pool: &Pool<Sqlite>) -> Result<(), Box<dyn Error>> {
     .bind(1)
     .bind(1)
     .execute(pool)
-    .await
-    .map_err(|e| error_enum::Error::Database(format!("Failed to create the table. {:#?}", e)))?;
+    .await;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_color (

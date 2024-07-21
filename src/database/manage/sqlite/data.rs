@@ -166,7 +166,7 @@ pub async fn get_data_module_activation_status_sqlite(
 ) -> Result<ActivationStatusModule, Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild = ?",
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild_id = ?",
     )
         .bind(guild_id)
         .fetch_one(&pool)
@@ -222,7 +222,26 @@ pub async fn set_data_module_activation_status_sqlite(
     pool.close().await;
     Ok(())
 }
-
+pub async fn set_data_module_kill_switch_status_sqlite(
+    activation_status_module: ActivationStatusModule,
+) -> Result<(), Box<dyn Error>> {
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
+    let _ = sqlx::query(
+        "INSERT OR REPLACE INTO global_kill_switch (guild_id, anilist_module, ai_module, game_module, anime, new_member, vn) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    )
+        .bind(1)
+        .bind(activation_status_module.anilist_module)
+        .bind(activation_status_module.ai_module)
+        .bind(activation_status_module.game_module)
+        .bind(activation_status_module.anime)
+        .bind(activation_status_module.new_member)
+        .bind(activation_status_module.vn)
+        .execute(&pool)
+        .await
+        .map_err(|e| UnknownResponseError::Database(format!("Failed to insert into the table. {:#?}", e)))?;
+    pool.close().await;
+    Ok(())
+}
 /// Removes a record from the `activity_data` table in the SQLite database.
 ///
 /// This function performs the following operations in order:
@@ -270,21 +289,20 @@ pub async fn get_data_module_activation_kill_switch_status_sqlite(
 ) -> Result<ActivationStatusModule, Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild = 1",
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM global_kill_switch WHERE guild_id = 1",
     )
         .fetch_one(&pool)
-        .await
-        .unwrap_or(
-            ActivationStatusModule {
-                guild_id: None,
-                ai_module: None,
-                anilist_module: None,
-                game_module: None,
-                new_member: None,
-                anime: None,
-                vn: None,
-            },
-        );
+        .await.unwrap_or(
+        ActivationStatusModule {
+            guild_id: None,
+            ai_module: None,
+            anilist_module: None,
+            game_module: None,
+            new_member: None,
+            anime: None,
+            vn: None,
+        },
+    );
     pool.close().await;
 
     Ok(row)

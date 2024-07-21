@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fs;
 use std::str::FromStr;
-
+use tracing::trace;
 use tracing_appender::rolling::Rotation;
 use tracing_subscriber::filter::{Directive, EnvFilter};
 use tracing_subscriber::fmt;
@@ -112,10 +112,8 @@ pub fn create_log_directory() -> std::io::Result<()> {
 /// The error is of type `AppError` with a message indicating the failure reason,
 /// an `ErrorType::Logging`, and an `ErrorResponseType::None`.
 fn get_directive(filter: &str) -> Result<Directive, Box<dyn Error>> {
-    let directive = Directive::from_str(filter).map_err(|e| {
-        eprintln!("{}", e);
-        error_enum::Error::Logger(format!("{:#?}", e))
-    })?;
+    let directive =
+        Directive::from_str(filter).map_err(|e| error_enum::Error::Logger(format!("{:#?}", e)))?;
 
     Ok(directive)
 }

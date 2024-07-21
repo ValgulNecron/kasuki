@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::command_register::command_struct::common::{
-    Arg, CommandInstallationContext, CommandIntegrationContext, DefaultPermission, Localised,
-};
+use crate::command_register::command_struct::common::{Arg, DefaultPermission, Localised};
 
 /// The `Command` struct represents a command that can be executed by the bot.
 /// It is derived from `Debug`, `Serialize`, `Deserialize`, and `Clone` traits.

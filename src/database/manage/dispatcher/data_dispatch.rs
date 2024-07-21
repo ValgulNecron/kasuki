@@ -16,6 +16,7 @@ use crate::database::manage::postgresql::data::{
     get_registered_user_postgresql, get_server_image_postgresql,
     get_user_approximated_color_postgresql, remove_data_activity_status_postgresql,
     set_data_activity_postgresql, set_data_guild_language_postgresql,
+    set_data_kill_switch_activation_status_postgresql,
     set_data_module_activation_status_postgresql, set_data_ping_history_postgresql,
     set_registered_user_postgresql, set_server_image_postgresql,
     set_user_approximated_color_postgresql,
@@ -27,8 +28,9 @@ use crate::database::manage::sqlite::data::{
     get_data_module_activation_status_sqlite, get_one_activity_sqlite, get_registered_user_sqlite,
     get_server_image_sqlite, get_user_approximated_color_sqlite,
     remove_data_activity_status_sqlite, set_data_activity_sqlite, set_data_guild_language_sqlite,
-    set_data_module_activation_status_sqlite, set_data_ping_history_sqlite,
-    set_registered_user_sqlite, set_server_image_sqlite, set_user_approximated_color_sqlite,
+    set_data_module_activation_status_sqlite, set_data_module_kill_switch_status_sqlite,
+    set_data_ping_history_sqlite, set_registered_user_sqlite, set_server_image_sqlite,
+    set_user_approximated_color_sqlite,
 };
 
 /// Sets the ping history in the database.
@@ -222,6 +224,20 @@ pub async fn set_data_module_activation_status(
         set_data_module_activation_status_postgresql(activation_status_module).await
     } else {
         set_data_module_activation_status_sqlite(activation_status_module).await
+    }
+}
+
+pub async fn set_data_kill_switch_activation_status(
+    activation_status_module: ActivationStatusModule,
+    db_type: String,
+) -> Result<(), Box<dyn Error>> {
+    let db_type = db_type.as_str();
+    if db_type == "sqlite" {
+        set_data_module_kill_switch_status_sqlite(activation_status_module).await
+    } else if db_type == "postgresql" {
+        set_data_kill_switch_activation_status_postgresql(activation_status_module).await
+    } else {
+        set_data_module_kill_switch_status_sqlite(activation_status_module).await
     }
 }
 

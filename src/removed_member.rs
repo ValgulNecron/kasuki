@@ -11,7 +11,8 @@ use crate::constant::HEX_COLOR;
 use crate::custom_serenity_impl::InternalAction;
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
 use crate::new_member::{
-    create_default_new_member_image, load_guild_settings, load_new_member_image,
+    create_default_new_member_image, get_channel_id, get_server_image, load_guild_settings,
+    load_new_member_image,
 };
 use crate::structure::message::removed_member::load_localization_removed_member;
 
@@ -27,36 +28,17 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
     };
     let guild_settings = load_guild_settings(guild_id).await;
 
-    let channel_id = if guild_settings.custom_channel {
-        ChannelId::from(guild_settings.channel_id)
+    let guild_settings = load_guild_settings(guild_id).await;
+    let channel_id = if let Some(channel_id) = get_channel_id(&guild_settings, &partial_guild) {
+        channel_id
     } else {
-        match partial_guild.system_channel_id {
-            Some(channel_id) => channel_id,
-            None => {
-                error!("Failed to get the system channel id.");
-                return;
-            }
-        }
+        return;
     };
 
-    let guild_image = if guild_settings.custom_image {
-        let image = load_new_member_image(guild_id.to_string());
-        match image {
-            Some(image) => image,
-            None => {
-                error!("Failed to load the image.");
-                return;
-            }
-        }
+    let guild_image = if let Some(img) = get_server_image(guild_id.to_string(), &guild_settings) {
+        img
     } else {
-        let image = create_default_new_member_image();
-        match image {
-            Ok(image) => image,
-            Err(e) => {
-                error!("Failed to create the default image. {}", e);
-                return;
-            }
-        }
+        return;
     };
     let mut guild_image = match image::load_from_memory(&guild_image) {
         Ok(image) => image,

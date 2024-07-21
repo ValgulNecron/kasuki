@@ -16,6 +16,7 @@ use crate::command::run::anilist_user::{
 use crate::command::run::anime::random_image;
 use crate::command::run::anime_nsfw::random_nsfw_image;
 use crate::command::run::bot::{credit, info, ping};
+use crate::command::run::management::{give_premium_sub, kill_switch};
 use crate::command::run::server::{
     generate_image_pfp_server, generate_image_pfp_server_global, guild,
 };
@@ -172,6 +173,24 @@ pub async fn command_dispatching(
             )
             .await?
         }
+        // Management
+        "kill_switch" => {
+            kill_switch::run(
+                ctx,
+                command_interaction,
+                self_handler.bot_data.config.clone(),
+            )
+            .await?
+        }
+        "give_premium_sub" => {
+            give_premium_sub::run(
+                ctx,
+                command_interaction,
+                self_handler.bot_data.config.clone(),
+            )
+            .await?
+        }
+
         // If the command name does not match any of the specified commands, return an error
         _ => {
             return Err(Box::new(ResponseError::Option(String::from(
@@ -225,6 +244,7 @@ pub async fn check_if_module_is_on(
 async fn check_kill_switch_status(module: &str, db_type: String) -> Result<bool, Box<dyn Error>> {
     let row: ActivationStatusModule =
         get_data_module_activation_kill_switch_status(db_type).await?;
+    trace!(?row);
     Ok(check_activation_status(module, row).await)
 }
 

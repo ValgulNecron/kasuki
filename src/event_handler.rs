@@ -346,8 +346,8 @@ impl EventHandler for Handler {
                 )
                 .await
             } else if command_interaction.data.kind == CommandType::User {
-                let mut message = String::new();
-                let mut error_type = "";
+                let message;
+                let error_type;
                 match dispatch_user_command(&ctx, &command_interaction, self).await {
                     Ok(()) => return,
                     Err(e) => {

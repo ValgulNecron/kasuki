@@ -10,6 +10,7 @@ use crate::command::autocomplete::anilist_user::{
     anime, character, compare, ln, manga, search, staff, studio, user,
 };
 use crate::command::autocomplete::game::steam_game_info;
+use crate::command::autocomplete::management::give_premium_sub::give_premium_sub_autocomplete;
 use crate::command::autocomplete::vn;
 use crate::command::autocomplete::vn::{game, producer};
 use crate::helper::get_option::subcommand_group::get_subcommand;
@@ -27,6 +28,7 @@ pub async fn autocomplete_dispatching(
         "anilist_user" => anilist_autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
         "steam" => steam_autocomplete(ctx, autocomplete_interaction, apps).await,
         "vn" => vn_autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
+        "give_premium_sub" => give_premium_sub_autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
 }

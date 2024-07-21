@@ -1,14 +1,15 @@
 use std::sync::Arc;
 
-use serenity::all::{Command, GuildId, Http};
-use tracing::{error, info, trace};
-use crate::command_register::command_struct::guild_command::GuildCommand;
 use crate::command_register::registration_function::register_command::creates_commands;
-use crate::command_register::registration_function::register_guild_specific_command::{creates_guild_commands, get_commands};
+use crate::command_register::registration_function::register_guild_specific_command::{
+    creates_guild_commands, get_commands,
+};
 use crate::command_register::registration_function::register_message_command::creates_message_command;
 use crate::command_register::registration_function::register_subcommand::creates_subcommands;
 use crate::command_register::registration_function::register_subcommand_group::creates_subcommands_group;
 use crate::command_register::registration_function::register_user_command::creates_user_command;
+use serenity::all::{Command, GuildId, Http};
+use tracing::{error, info, trace};
 
 /// This asynchronous function dispatches the creation and deletion of commands in Discord.
 ///
