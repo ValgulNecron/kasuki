@@ -11,8 +11,8 @@ use crate::constant::HEX_COLOR;
 use crate::custom_serenity_impl::InternalAction;
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
 use crate::new_member::{
-    create_default_new_member_image, get_channel_id, get_server_image, load_guild_settings,
-    load_new_member_image,
+    create_default_new_member_image, get_channel_id, get_guild_image_bytes, get_server_image,
+    load_guild_settings, load_new_member_image, send_member_image,
 };
 use crate::structure::message::removed_member::load_localization_removed_member;
 
@@ -28,7 +28,6 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
     };
     let guild_settings = load_guild_settings(guild_id).await;
 
-    let guild_settings = load_guild_settings(guild_id).await;
     let channel_id = if let Some(channel_id) = get_channel_id(&guild_settings, &partial_guild) {
         channel_id
     } else {
@@ -192,22 +191,12 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             error!("Failed to overlay the image. {}", e);
         }
     }
-
-    let rgba8_image = guild_image.to_rgba8();
-    let mut bytes: Vec<u8> = Vec::new();
-    match rgba8_image.write_to(&mut Cursor::new(&mut bytes), WebP) {
-        Ok(_) => {}
+    let bytes = match get_guild_image_bytes(guild_image) {
+        Ok(bytes) => bytes,
         Err(e) => {
-            error!("Failed to write the image to the buffer. {}", e);
+            error!("Failed to get the bytes. {}", e);
             return;
         }
     };
-    let attachement = CreateAttachment::bytes(bytes, "new_member.webp");
-    let builder = CreateMessage::new().add_file(attachement);
-    match channel_id.send_message(&ctx.http, builder).await {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to send the message. {}", e);
-        }
-    };
+    send_member_image(guild_id, bytes, &ctx.http).await;
 }

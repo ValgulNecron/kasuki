@@ -98,12 +98,13 @@
     - [X] Updating to serenity 0.12.
     - [X] Support for command in dm.
     - [X] Make an anilist forum post.
-    - [ ] Rework the command registration to support all type of command.
+    - [X] Rework the command registration to support all type of command.
         - [X] Command
+        - [X] Guild Command
         - [X] Subcommand
         - [X] Subcommand group
         - [X] User command
-        - [ ] Message command
+        - [X] Message command (none exist but registration exist)
         - [X] User installed app.
 
 - Optimisation needed:

@@ -1,13 +1,13 @@
+use image::ImageFormat::WebP;
+use image::{DynamicImage, GenericImage};
+use serde::{Deserialize, Serialize};
+use serenity::all::{ChannelId, Context, CreateMessage, GuildId, Http, Member, PartialGuild};
+use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::io::Cursor;
-
-use image::ImageFormat::WebP;
-use image::{DynamicImage, GenericImage};
-use serde::{Deserialize, Serialize};
-use serenity::all::{ChannelId, Context, CreateMessage, GuildId, Member, PartialGuild};
-use serenity::builder::CreateAttachment;
+use std::sync::Arc;
 use text_to_png::TextRenderer;
 use tracing::{error, trace};
 
@@ -145,24 +145,14 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             error!("Failed to overlay the image. {}", e);
         }
     }
-
-    let rgba8_image = guild_image.to_rgba8();
-    let mut bytes: Vec<u8> = Vec::new();
-    match rgba8_image.write_to(&mut Cursor::new(&mut bytes), WebP) {
-        Ok(_) => {}
+    let bytes = match get_guild_image_bytes(guild_image) {
+        Ok(bytes) => bytes,
         Err(e) => {
-            error!("Failed to write the image to the buffer. {}", e);
+            error!("Failed to get the bytes. {}", e);
             return;
         }
     };
-    let attachement = CreateAttachment::bytes(bytes, "new_member.webp");
-    let builder = CreateMessage::new().add_file(attachement);
-    match channel_id.send_message(&ctx.http, builder).await {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to send the message. {}", e);
-        }
-    };
+    send_member_image(channel_id, bytes, &ctx.http).await;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -241,10 +231,21 @@ pub fn get_server_image(guild_id: String, guild_settings: &NewMemberSetting) -> 
     Some(img)
 }
 
+/// Retrieves the channel ID based on guild settings and partial guild information.
+///
+/// # Arguments
+///
+/// * `guild_settings` - A reference to the NewMemberSetting struct containing settings for the guild.
+/// * `partial_guild` - A reference to the PartialGuild struct containing partial information about the guild.
+///
+/// # Returns
+///
+/// * `Option<ChannelId>` - An option containing the ChannelId if successfully retrieved, otherwise None.
 pub fn get_channel_id(
     guild_settings: &NewMemberSetting,
     partial_guild: &PartialGuild,
 ) -> Option<ChannelId> {
+    // Determine the channel ID based on custom channel settings or system channel ID
     let channel_id = if guild_settings.custom_channel {
         ChannelId::from(guild_settings.channel_id)
     } else {
@@ -256,5 +257,50 @@ pub fn get_channel_id(
             }
         }
     };
+
     Some(channel_id)
+}
+
+/// This function takes a DynamicImage, converts it to RGBA8 format, and writes it to a buffer in WebP format.
+///
+/// # Arguments
+///
+/// * `guild_image` - A DynamicImage containing the guild image data.
+///
+/// # Returns
+///
+/// * `Result<Vec<u8>, Box<dyn Error>>` - A Result containing a vector of bytes representing the image data if successful, otherwise an error.
+pub fn get_guild_image_bytes(guild_image: DynamicImage) -> Result<Vec<u8>, Box<dyn Error>> {
+    // Convert the DynamicImage to RGBA8 format
+    let rgba8_image = guild_image.to_rgba8();
+
+    // Create a vector to store the image bytes
+    let mut bytes: Vec<u8> = Vec::new();
+
+    // Write the RGBA8 image data to the buffer in WebP format
+    match rgba8_image.write_to(&mut Cursor::new(&mut bytes), WebP) {
+        Ok(_) => {
+            // Image write successful
+        }
+        Err(e) => {
+            // Image write failed, log the error
+            return Err(Box::new(error_enum::Error::ImageProcessing(format!(
+                "Failed to write the image to the buffer. {}",
+                e
+            ))));
+        }
+    };
+    // Return the vector of image bytes
+    Ok(bytes)
+}
+
+pub async fn send_member_image(channel_id: ChannelId, bytes: Vec<u8>, http: &Arc<Http>) {
+    let attachement = CreateAttachment::bytes(bytes, "new_member.webp");
+    let builder = CreateMessage::new().add_file(attachement);
+    match channel_id.send_message(http, builder).await {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Failed to send the message. {}", e);
+        }
+    };
 }
