@@ -148,6 +148,7 @@ pub async fn get_the_list(
     let mut last_id: Option<UserId> = last_id;
     let mut pass = 0;
     while anilist_user.len() < MEMBER_LIST_LIMIT as usize && pass < PASS_LIMIT {
+        pass += 1;
         let members = guild
             .members(&ctx.http, Some(MEMBER_LIST_LIMIT), last_id)
             .await
@@ -171,7 +172,6 @@ pub async fn get_the_list(
             };
             anilist_user.push(data)
         }
-        pass += 1
     }
 
     let user_links: Vec<String> = anilist_user
