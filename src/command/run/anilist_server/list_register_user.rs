@@ -152,6 +152,9 @@ pub async fn get_the_list(
             .members(&ctx.http, Some(MEMBER_LIST_LIMIT), last_id)
             .await
             .map_err(|e| FollowupError::UserOrGuild(format!("{:#?}", e)))?;
+        if members.is_empty() {
+            break;
+        }
 
         for member in members {
             last_id = Some(member.user.id);
