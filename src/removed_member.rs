@@ -198,5 +198,5 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             return;
         }
     };
-    send_member_image(guild_id, bytes, &ctx.http).await;
+    send_member_image(channel_id, bytes, &ctx.http).await;
 }

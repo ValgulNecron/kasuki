@@ -89,7 +89,7 @@
           supported open issue here for markdown (https://github.com/ValgulNecron/markdown_converter)
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
       size.
-    - [ ] Better error handling.
+    - [X] Better error handling.
     - [X] Doing something with error else than logging it.
     - [ ] Rename function and variable for better clarity.
     - [ ] Add docs to every public function.
