@@ -48,6 +48,7 @@ toml = "0.8.15"
 num-bigint = "0.4.6"
 text-to-png = "0.2.0"
 thiserror = "1.0.63"
+songbird = "0.4.3"
 
 [build-dependencies]
 tonic-build = "0.12.1"

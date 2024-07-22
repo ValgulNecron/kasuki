@@ -56,7 +56,7 @@ pub async fn run(
     let map = get_option_map_string_subcommand(command_interaction);
     let attachment_map = get_option_map_attachment_subcommand(command_interaction);
     let lang = map
-        .get(&String::from("prompt"))
+        .get(&String::from("lang"))
         .unwrap_or(DEFAULT_STRING)
         .clone();
 
@@ -139,6 +139,7 @@ pub async fn run(
         .ai_transcription_model
         .clone()
         .unwrap_or_default();
+    trace!("{} {}", token, model);
     let api_base_url = config
         .ai
         .transcription
@@ -153,6 +154,7 @@ pub async fn run(
     } else {
         format!("{}/v1/audio/translations/", api_base_url)
     };
+    trace!("{}", api_base_url);
     headers.insert(
         AUTHORIZATION,
         HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
@@ -174,10 +176,10 @@ pub async fn run(
         .multipart(form)
         .send()
         .await;
-    let response = response_result.map_err(|e| FollowupError::WebRequest(format!("{:?}", e)))?;
+    let response = response_result.map_err(|e| FollowupError::WebRequest(format!("1{:?}", e)))?;
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
-    let res = res_result.map_err(|e| FollowupError::WebRequest(format!("{:?}", e)))?;
+    let res = res_result.map_err(|e| FollowupError::WebRequest(format!("2{:?}", e)))?;
 
     trace!("{}", res);
     let text = res["text"].as_str().unwrap_or("");

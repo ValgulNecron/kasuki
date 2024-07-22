@@ -52,7 +52,7 @@
     - [X] Video translation.
     - [X] Ask a question and reply the response.
 
-- Music module: (Not sure if I will do this one. since it broke tos)
+- Audio module: (Not sure if I will do this one. since it broke tos (in some case))
     - [ ] Play music from file upload.
 
 - General module:

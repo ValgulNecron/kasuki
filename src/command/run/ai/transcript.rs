@@ -147,7 +147,7 @@ pub async fn run(
         .clone()
         .unwrap_or_default();
     // check the last 3 characters of the url if it v1/ or v1 or something else
-    let api_base_url = if api_base_url.ends_with("v1/") {
+    let url = if api_base_url.ends_with("v1/") {
         format!("{}audio/transcriptions/", api_base_url)
     } else if api_base_url.ends_with("v1") {
         format!("{}/audio/transcriptions/", api_base_url)
@@ -172,7 +172,6 @@ pub async fn run(
         .text("language", lang)
         .text("response_format", "json");
 
-    let url = format!("{}transcriptions", api_base_url);
     let response_result = client
         .post(url)
         .headers(headers)
