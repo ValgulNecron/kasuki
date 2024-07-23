@@ -15,10 +15,9 @@ pub async fn run(
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
     let map = get_option_map_user(command_interaction);
-    let user = map
+    let user = *map
         .get(&String::from("user"))
-        .ok_or(ResponseError::Option(String::from("No option for user")))?
-        .clone();
+        .ok_or(ResponseError::Option(String::from("No option for user")))?;
     let map = get_option_map_string(command_interaction);
     let subscription = map
         .get(&String::from("subscription"))

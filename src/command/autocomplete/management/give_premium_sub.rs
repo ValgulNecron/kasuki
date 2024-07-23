@@ -1,9 +1,8 @@
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
-use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
-    CreateInteractionResponse, SkuFlags, SkuKind,
+    CreateInteractionResponse, SkuKind,
 };
 use tracing::debug;
 

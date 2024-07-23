@@ -101,7 +101,7 @@ async fn delete_command(http: &Arc<Http>) {
     };
     for cmd in commands {
         if !already_done.contains(&cmd.guild_id) {
-            guild_ids.push(cmd.guild_id.clone());
+            guild_ids.push(cmd.guild_id);
             already_done.push(cmd.guild_id);
         }
     }

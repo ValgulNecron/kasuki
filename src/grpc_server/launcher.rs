@@ -62,7 +62,9 @@ pub async fn grpc_server_launcher(
     let reflection = match tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(service::shard::proto::SHARD_FILE_DESCRIPTOR_SET)
         .register_encoded_file_descriptor_set(service::info::proto::INFO_FILE_DESCRIPTOR_SET)
-        .register_encoded_file_descriptor_set(service::command::proto::COMMAND_FILE_DESCRIPTOR_SET).build() {
+        .register_encoded_file_descriptor_set(service::command::proto::COMMAND_FILE_DESCRIPTOR_SET)
+        .build()
+    {
         Ok(reflection) => reflection,
         Err(e) => {
             error!("Failed to build the reflection service: {}", e);

@@ -13,7 +13,6 @@ use crate::database::manage::dispatcher::data_dispatch::{
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
-use crate::structure::message::admin::server::module::load_localization_module_activation;
 use crate::structure::message::management::kill_switch::load_localization_kill_switch;
 
 pub async fn run(

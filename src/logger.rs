@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fs;
 use std::str::FromStr;
-use tracing::trace;
 use tracing_appender::rolling::Rotation;
 use tracing_subscriber::filter::{Directive, EnvFilter};
 use tracing_subscriber::fmt;
