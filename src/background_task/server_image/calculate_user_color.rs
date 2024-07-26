@@ -8,7 +8,7 @@ use base64::Engine;
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use image::codecs::png::PngEncoder;
-use image::io::Reader as ImageReader;
+use image::ImageReader;
 use image::{DynamicImage, ExtendedColorType, ImageEncoder};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;

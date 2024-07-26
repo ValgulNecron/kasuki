@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context, CreateButton, CreateInteractionResponseMessage};
 use tracing::trace;
 
 use crate::command::run::admin::anilist::{add_activity, delete_activity};
@@ -24,6 +24,7 @@ use crate::command::run::steam::steam_game_info;
 use crate::command::run::user::{avatar, banner, command_usage, profile};
 use crate::command::run::vn;
 use crate::command::run::vn::{game, producer, stats};
+use crate::constant::{MAX_FREE_AI_IMAGES, PAID_MULTIPLIER};
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
@@ -445,7 +446,14 @@ async fn ai(
     }
     // Match the command name to the appropriate function
     let return_data = match command_name {
-        "image" => image::run(ctx, command_interaction, config).await,
+        "image" => {
+            let limit = check_hourly_limit(command_interaction, ctx, &full_command_name,self_handler).await?;
+            if limit {
+                return Ok(());
+            } else {
+                image::run(ctx, command_interaction, config).await
+            }
+        }
         "transcript" => transcript::run(ctx, command_interaction, config).await,
         "translation" => translation::run(ctx, command_interaction, config).await,
         "question" => question::run(ctx, command_interaction, config).await,
@@ -466,6 +474,57 @@ async fn ai(
         )
         .await;
     Ok(())
+}
+
+async fn check_hourly_limit(
+    command_interaction: &CommandInteraction,
+    ctx: &Context,
+    full_command_name: &String,
+    self_handler: &Handler,
+) -> Result<bool, Box<dyn Error>> {
+    let user_sku = command_interaction.entitlements.as_ref().map(|entitlements| {
+        entitlements
+            .iter()
+            .find(|entitlement| entitlement.sku_id == "premium")
+            .map(|entitlement| entitlement.sku_id.clone())
+    });
+    let usage = self_handler.get_hourly_usage(full_command_name.clone(), command_interaction.user.id.to_string()).await;
+    let max_usage = if {
+        (MAX_FREE_AI_IMAGES as f64 )* PAID_MULTIPLIER
+    } else {
+        MAX_FREE_AI_IMAGES
+    }
+    if (usage as usize) <= max_usage {
+
+    }
+    let skus = ctx.http.get_skus().await.map_err(|e| {
+        ResponseError::Sending(format!("Error while sending the premium: {:#?}", e))
+    })?;
+
+    const USER_SUBSCRIPTION: u64 = 1 << 8;
+    let user_sub_sku_id = if let Some(user_sub) = skus.iter().find_map(|sku| {
+        // Check if the USER_SUBSCRIPTION flag is set in the sku.flags
+        if sku.flags.bits() & USER_SUBSCRIPTION != 0 {
+            Some(sku.id)
+        } else {
+            None
+        }
+    }) {
+        user_sub
+    } else {
+        return Ok(false);
+    };
+
+    let premium_button = CreateButton::new_premium(user_sub_sku_id);
+    let builder = CreateInteractionResponseMessage::new();
+    let builder = builder.button(premium_button);
+    let builder = serenity::builder::CreateInteractionResponse::Message(builder);
+    command_interaction
+        .create_response(&ctx.http, builder)
+        .await
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+
+    Ok(true)
 }
 
 /// Executes the Anilist server command.

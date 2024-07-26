@@ -82,6 +82,19 @@ impl RootUsage {
 }
 
 impl Handler {
+    pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {
+        let bot_data = self.bot_data.clone();
+        let number_of_command_use_per_command = bot_data.number_of_command_use_per_command.clone();
+        let guard = number_of_command_use_per_command.read().await;
+        let user_map = guard
+            .command_list
+            .get(&command_name)
+            .unwrap_or_default()
+            .user_info
+            .get(&user_id)
+            .unwrap_or_default();
+        user_map.hourly_usage.get(&chrono::Local::now().format("%H").to_string()).unwrap_or_default().clone()
+    }
     // thread safe way to increment the number of command use per command
     pub async fn increment_command_use_per_command(
         &self,

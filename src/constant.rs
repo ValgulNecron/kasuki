@@ -85,3 +85,5 @@ pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub static BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
 /// Used library.
 pub const LIBRARY: &str = "serenity";
+pub const MAX_FREE_AI_IMAGES: usize = 5;
+pub const PAID_MULTIPLIER: f64 = 4.0;

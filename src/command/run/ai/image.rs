@@ -5,11 +5,12 @@ use prost::bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use serenity::all::CreateInteractionResponse::{Defer, PremiumRequired};
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage,
+    CommandInteraction, Context, CreateAttachment, CreateButton, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, SkuFlags, SkuKind,
 };
+use serenity::builder::CreateInteractionResponse;
 use tracing::{info, trace};
 use uuid::Uuid;
 
@@ -54,18 +55,6 @@ pub async fn run(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-
-    let hourly_limit = false;
-    if hourly_limit {
-        let need_premium = PremiumRequired;
-        command_interaction
-            .create_response(&ctx.http, need_premium)
-            .await
-            .map_err(|e| {
-                ResponseError::Sending(format!("Error while sending the prenium: {:#?}", e))
-            })?;
-        return Ok(());
-    }
 
     let map = get_option_map_string_subcommand(command_interaction);
     trace!("{:#?}", map);
