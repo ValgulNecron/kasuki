@@ -18,6 +18,7 @@ pub struct ProfileLocalised {
     pub nitro: String,
     pub system: String,
     pub public_flag: String,
+    pub premium: String,
 }
 
 /// Loads the localized profile data.

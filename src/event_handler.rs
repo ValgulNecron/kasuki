@@ -45,19 +45,19 @@ pub struct Handler {
     pub bot_data: Arc<BotData>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct UserUsage {
     pub user_name: String,
     pub usage: u128,
     pub hourly_usage: HashMap<String, u128>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct UserInfo {
     pub user_info: HashMap<String, UserUsage>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct RootUsage {
     pub command_list: HashMap<String, UserInfo>,
 }
@@ -89,11 +89,17 @@ impl Handler {
         let user_map = guard
             .command_list
             .get(&command_name)
+            .cloned()
             .unwrap_or_default()
             .user_info
             .get(&user_id)
+            .cloned()
             .unwrap_or_default();
-        user_map.hourly_usage.get(&chrono::Local::now().format("%H").to_string()).unwrap_or_default().clone()
+        user_map
+            .hourly_usage
+            .get(&chrono::Local::now().format("%H").to_string())
+            .unwrap_or(&(0u128))
+            .clone()
     }
     // thread safe way to increment the number of command use per command
     pub async fn increment_command_use_per_command(

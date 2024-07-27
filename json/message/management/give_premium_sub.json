@@ -3,10 +3,10 @@
     "success": "Successfully gave user {user} the subscription {subscription} \n {res}"
   },
   "fr": {
-      "success": "Vous avez bien donne l'utilisateur {user} la souscription {subscription} \n {res}"
+    "success": "Vous avez bien donne l'utilisateur {user} la souscription {subscription} \n {res}"
   },
   "de": {
-      "success": "Die Benutzer {user} hat die Abonnement {subscription} gegeben \n {res}"
+    "success": "Die Benutzer {user} hat die Abonnement {subscription} gegeben \n {res}"
   },
   "ja": {
     "success": "{user} ユーザーに {subscription} によって与えられたサブスクリプション \n {res}"

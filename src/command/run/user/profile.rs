@@ -170,7 +170,30 @@ pub async fn send_embed(
             fields.push((profile_localised.public_flag, user_flags.join(" / "), false));
         }
     }
-
+    let skus = ctx.http.get_skus().await;
+    let user_premium = ctx
+        .http
+        .get_entitlements(Some(user.id), None, None, None, None, None, Some(true))
+        .await;
+    if user_premium.is_ok() && skus.is_ok() {
+        let skus = skus.unwrap().clone();
+        let data = user_premium.unwrap();
+        let string = data.iter().map(|e| {
+            let sku_id = e.sku_id;
+            let sku = skus.iter().find(|e2| e2.id == sku_id);
+            let sku_name = match sku {
+                Some(sku) => sku.name.clone(),
+                None => String::from("Unknown"),
+            };
+            format!(
+                "{}: {}/{} \n",
+                sku_name,
+                e.starts_at.unwrap_or_default(),
+                e.ends_at.unwrap_or_default()
+            )
+        });
+        fields.push((profile_localised.premium, string.collect::<String>(), true));
+    }
     // Create an embed with the user's profile information
     let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())

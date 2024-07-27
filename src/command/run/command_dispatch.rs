@@ -1,6 +1,9 @@
 use std::error::Error;
 
-use serenity::all::{CommandInteraction, Context, CreateButton, CreateInteractionResponseMessage};
+use serenity::all::{
+    CommandInteraction, Context, CreateButton, CreateInteractionResponseMessage, EntitlementKind,
+    SkuFlags, SkuId, SkuKind,
+};
 use tracing::trace;
 
 use crate::command::run::admin::anilist::{add_activity, delete_activity};
@@ -447,7 +450,9 @@ async fn ai(
     // Match the command name to the appropriate function
     let return_data = match command_name {
         "image" => {
-            let limit = check_hourly_limit(command_interaction, ctx, &full_command_name,self_handler).await?;
+            let limit =
+                check_hourly_limit(command_interaction, ctx, &full_command_name, self_handler)
+                    .await?;
             if limit {
                 return Ok(());
             } else {
@@ -482,40 +487,48 @@ async fn check_hourly_limit(
     full_command_name: &String,
     self_handler: &Handler,
 ) -> Result<bool, Box<dyn Error>> {
-    let user_sku = command_interaction.entitlements.as_ref().map(|entitlements| {
-        entitlements
-            .iter()
-            .find(|entitlement| entitlement.sku_id == "premium")
-            .map(|entitlement| entitlement.sku_id.clone())
-    });
-    let usage = self_handler.get_hourly_usage(full_command_name.clone(), command_interaction.user.id.to_string()).await;
-    let max_usage = if {
-        (MAX_FREE_AI_IMAGES as f64 )* PAID_MULTIPLIER
-    } else {
-        MAX_FREE_AI_IMAGES
-    }
-    if (usage as usize) <= max_usage {
-
-    }
-    let skus = ctx.http.get_skus().await.map_err(|e| {
+    // get the first sku that is a user subscription
+    let user_skus: Vec<SkuId> = command_interaction
+        .entitlements
+        .iter()
+        .map(|entitlement| entitlement.sku_id)
+        .collect();
+    let available_skus = ctx.http.get_skus().await.map_err(|e| {
         ResponseError::Sending(format!("Error while sending the premium: {:#?}", e))
     })?;
-
-    const USER_SUBSCRIPTION: u64 = 1 << 8;
-    let user_sub_sku_id = if let Some(user_sub) = skus.iter().find_map(|sku| {
-        // Check if the USER_SUBSCRIPTION flag is set in the sku.flags
-        if sku.flags.bits() & USER_SUBSCRIPTION != 0 {
-            Some(sku.id)
-        } else {
-            None
+    let mut user_sub = None;
+    for available_sku in available_skus {
+        match available_sku.kind {
+            SkuKind::Subscription => match available_sku.flags {
+                SkuFlags::USER_SUBSCRIPTION => {
+                    if user_sub.is_none() {
+                        if user_skus.contains(&available_sku.id) {
+                            user_sub = Some(available_sku.id);
+                        }
+                    }
+                }
+                _ => {}
+            },
+            SkuKind::SubscriptionGroup => {}
+            SkuKind::Unknown(_) => {}
+            _ => {}
         }
-    }) {
-        user_sub
-    } else {
+    }
+    let usage = self_handler
+        .get_hourly_usage(
+            full_command_name.clone(),
+            command_interaction.user.id.to_string(),
+        )
+        .await;
+    if usage <= MAX_FREE_AI_IMAGES as u128 && user_sub.is_none() {
         return Ok(false);
-    };
+    }
 
-    let premium_button = CreateButton::new_premium(user_sub_sku_id);
+    if usage <= (MAX_FREE_AI_IMAGES as f64 * PAID_MULTIPLIER) as u128 && user_sub.is_some() {
+        return Ok(false);
+    }
+
+    let premium_button = CreateButton::new_premium(user_sub.unwrap());
     let builder = CreateInteractionResponseMessage::new();
     let builder = builder.button(premium_button);
     let builder = serenity::builder::CreateInteractionResponse::Message(builder);
