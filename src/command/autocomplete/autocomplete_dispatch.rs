@@ -39,18 +39,14 @@ async fn admin_autocomplete(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_type: String,
 ) {
-    match autocomplete_interaction
+    if autocomplete_interaction
         .data
         .options
         .first()
         .unwrap()
         .name
-        .as_str()
-    {
-        "anilist" => {
-            anilist_admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_type).await
-        }
-        _ => {}
+        .as_str() == "anilist" {
+        anilist_admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_type).await
     }
 }
 
@@ -125,15 +121,11 @@ async fn steam_autocomplete(
     autocomplete_interaction: CommandInteraction,
     apps: Arc<RwLock<HashMap<String, u128>>>,
 ) {
-    match autocomplete_interaction
+    if autocomplete_interaction
         .data
         .options
         .first()
         .unwrap()
         .name
-        .as_str()
-    {
-        "game" => steam_game_info::autocomplete(ctx, autocomplete_interaction, apps).await,
-        _ => {}
-    }
+        .as_str() == "game" { steam_game_info::autocomplete(ctx, autocomplete_interaction, apps).await }
 }

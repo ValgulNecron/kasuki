@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use serenity::all::{
-    CommandInteraction, Context, CreateButton, CreateInteractionResponseMessage, EntitlementKind,
+    CommandInteraction, Context, CreateButton, CreateInteractionResponseMessage,
     SkuFlags, SkuId, SkuKind,
 };
 use tracing::trace;
@@ -507,15 +507,8 @@ async fn check_hourly_limit(
     let mut user_sub = None;
     for available_sku in available_skus {
         match available_sku.kind {
-            SkuKind::Subscription => match available_sku.flags {
-                SkuFlags::USER_SUBSCRIPTION => {
-                    if user_sub.is_none() {
-                        if user_skus.contains(&available_sku.id) {
-                            user_sub = Some(available_sku.id);
-                        }
-                    }
-                }
-                _ => {}
+            SkuKind::Subscription => if available_sku.flags == SkuFlags::USER_SUBSCRIPTION && user_sub.is_none() && user_skus.contains(&available_sku.id) {
+                user_sub = Some(available_sku.id);
             },
             SkuKind::SubscriptionGroup => {}
             SkuKind::Unknown(_) => {}

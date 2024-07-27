@@ -7,10 +7,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateButton, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, SkuFlags, SkuKind,
+    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
 };
-use serenity::builder::CreateInteractionResponse;
 use tracing::{info, trace};
 use uuid::Uuid;
 

@@ -95,11 +95,10 @@ impl Handler {
             .get(&user_id)
             .cloned()
             .unwrap_or_default();
-        user_map
+        *user_map
             .hourly_usage
             .get(&chrono::Local::now().format("%H").to_string())
             .unwrap_or(&(0u128))
-            .clone()
     }
     // thread safe way to increment the number of command use per command
     pub async fn increment_command_use_per_command(

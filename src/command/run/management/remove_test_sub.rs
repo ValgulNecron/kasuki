@@ -1,13 +1,12 @@
 use std::error::Error;
 use std::sync::Arc;
-use serenity::all::{CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage};
+use serenity::all::{CommandInteraction, Context, CreateInteractionResponseFollowup, CreateInteractionResponseMessage};
 use serenity::all::CreateInteractionResponse::Defer;
 use tracing::error;
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::command::get_option_map_user;
-use crate::structure::message::management::give_premium_sub::load_localization_give_premium_sub;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
 
 pub async fn run(ctx: &Context, command_interaction: &CommandInteraction, config: Arc<Config>) -> Result<(), Box<dyn Error>> {
@@ -19,7 +18,7 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction, config
             return Err(ResponseError::Sending(String::from("No user provided")).into());
         }
     };
-    let entitlements = ctx.http.get_entitlements(Some(user.clone()), None, None, None, None, None, None).await.map_err(
+    let entitlements = ctx.http.get_entitlements(Some(*user), None, None, None, None, None, None).await.map_err(
         |e| {
             ResponseError::Sending(format!("Error while sending the premium: {:#?}", e))
         }
@@ -36,14 +35,10 @@ pub async fn run(ctx: &Context, command_interaction: &CommandInteraction, config
         .await
         .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
     for entitlement in entitlements {
-        match ctx.http
+        if let Err(e) = ctx.http
             .delete_test_entitlement(entitlement.id)
-            .await
-        {
-            Err(e) => {
-                error!("Error while deleting entitlement: {}", e);
-            }
-            _ => {}
+            .await {
+            error!("Error while deleting entitlement: {}", e);
         }
     }
 
