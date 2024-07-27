@@ -19,7 +19,7 @@ use crate::command::run::anilist_user::{
 use crate::command::run::anime::random_image;
 use crate::command::run::anime_nsfw::random_nsfw_image;
 use crate::command::run::bot::{credit, info, ping};
-use crate::command::run::management::{give_premium_sub, kill_switch};
+use crate::command::run::management::{give_premium_sub, kill_switch, remove_test_sub};
 use crate::command::run::server::{
     generate_image_pfp_server, generate_image_pfp_server_global, guild,
 };
@@ -191,6 +191,14 @@ pub async fn command_dispatching(
                 ctx,
                 command_interaction,
                 self_handler.bot_data.config.clone(),
+            )
+            .await?
+        }
+        "remove_test_sub" => {
+            remove_test_sub::run(
+                ctx,
+                command_interaction,                self_handler.bot_data.config.clone(),
+
             )
             .await?
         }

@@ -1,0 +1,14 @@
+{
+  "en": {
+    "success": "Successfully removed all premium subscriptions from {user}."
+  },
+  "fr": {
+    "success": "Vous avez bien supprimez toutes les souscriptions premium de {user}."
+  },
+  "de": {
+    "success": "Die Abonnements von {user} wurden erfolgreich entfernt."
+  },
+  "ja": {
+    "success": "{user} ユーザーのプレミアムサブスクリプションを削除しました。"
+  }
+}

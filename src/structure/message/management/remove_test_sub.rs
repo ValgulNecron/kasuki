@@ -3,14 +3,14 @@ use serde::{Deserialize, Serialize};
 use crate::structure::message::common::load_localization;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct GivePremiumLocalised {
+pub struct RemoveTestLocalised {
     pub success: String,
 }
 
-pub async fn load_localization_give_premium_sub(
+pub async fn load_localization_remove_test_sub(
     guild_id: String,
     db_type: String,
-) -> Result<GivePremiumLocalised, Box<dyn Error>> {
-    let path = "json/message/management/give_premium_sub.json";
+) -> Result<RemoveTestLocalised, Box<dyn Error>> {
+    let path = "json/message/management/remove_test_sub.json";
     load_localization(guild_id, path, db_type).await
 }

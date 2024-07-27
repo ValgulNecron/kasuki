@@ -10,6 +10,7 @@ use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
+use crate::structure::message::management::give_premium_sub::load_localization_give_premium_sub;
 
 pub async fn run(
     ctx: &Context,
@@ -50,10 +51,13 @@ pub async fn run(
         .await
         .map_err(|e| ResponseError::WebRequest(format!("{:#?}", e)))?;
 
-    let embed = get_default_embed(None).description(format!(
-        "Successfully gave user {} the subscription {} \n {:#?}",
-        user, subscription, res
-    ));
+    let localization = load_localization_give_premium_sub(
+        command_interaction.guild_id.unwrap().to_string(),
+        config.bot.config.db_type.clone(),
+    ).await?;
+    let embed = get_default_embed(None).description(
+        localization.success.replace("{user}", &user.to_string())
+            .replace("{subscription}", &subscription), );
     let builder_message = CreateInteractionResponseMessage::new().embed(embed);
 
     let builder = CreateInteractionResponse::Message(builder_message);

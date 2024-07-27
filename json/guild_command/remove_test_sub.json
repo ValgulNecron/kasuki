@@ -1,0 +1,64 @@
+{
+  "guild_id": 1117152661620408531,
+  "name": "remove_test_sub",
+  "desc": "Remove all premium subscriptions from a user",
+  "nsfw": false,
+  "permissions": [
+    {
+      "permission": "Administrator"
+    }
+  ],
+  "args": [
+    {
+      "name": "user",
+      "desc": "The user you want to remove all premium subscriptions from.",
+      "arg_type": "User",
+      "required": true,
+      "autocomplete": false,
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "user",
+          "desc": "The user you want to remove all premium subscriptions from."
+        },
+        {
+          "code": "fr",
+          "name": "utilisateur",
+          "desc": "L'utilisateur dont vous souhaitez retirer toutes les souscriptions premium."
+        },
+        {
+          "code": "de",
+          "name": "Benutzer",
+          "desc": "Der Benutzer, dem Sie alle Premium-Abonnements entfernen können."
+        },
+        {
+          "code": "ja",
+          "name": "ユーザー",
+          "desc": "プレミアムサブスクリプションを削除するユーザー"
+        }
+        ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "remove_test_sub",
+      "desc": "Remove all premium subscriptions from a user"
+    },
+    {
+      "code": "fr",
+      "name": "supprimer_test_sub",
+      "desc": "Supprime toutes les souscriptions premium d'un utilisateur"
+    },
+    {
+      "code": "de",
+      "name": "remove_test_sub",
+      "desc": "Entferne alle Premium-Abonnements von einem Benutzer"
+    },
+    {
+      "code": "ja",
+      "name": "remove_test_sub",
+      "desc": "remove_test_sub"
+    }
+  ]
+}
