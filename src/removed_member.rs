@@ -1,18 +1,17 @@
-use crate::constant::{HEX_COLOR, NEW_MEMBER_PATH};
-use crate::new_member::{create_default_new_member_image, load_new_member_image, NewMemberSetting};
-use crate::structure::message::removed_member::load_localization_removed_member;
 use image::GenericImage;
-use image::ImageFormat::WebP;
-use serenity::all::{ChannelId, Context, CreateMessage, GuildId, User};
-use serenity::builder::CreateAttachment;
-use std::collections::HashMap;
-use std::fs;
-use std::io::Cursor;
+use serenity::all::{Context, GuildId, User};
 use text_to_png::TextRenderer;
-use tracing::{error, trace};
+use tracing::error;
+
+use crate::constant::HEX_COLOR;
+use crate::custom_serenity_impl::InternalAction;
+use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
+use crate::new_member::{
+    get_channel_id, get_guild_image_bytes, get_server_image, load_guild_settings, send_member_image,
+};
+use crate::structure::message::removed_member::load_localization_removed_member;
 
 pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User) {
-    trace!("New member message.");
     let ctx = ctx.clone();
     let user_name = user.name.clone();
     let partial_guild = match guild_id.to_partial_guild(&ctx.http).await {
@@ -22,50 +21,18 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             return;
         }
     };
-    let content = fs::read_to_string(NEW_MEMBER_PATH).unwrap_or_else(|_| String::new());
-    let hashmap: HashMap<String, NewMemberSetting> =
-        serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
-    trace!(?hashmap);
-    let guild_specific = hashmap
-        .get(&guild_id.to_string())
-        .unwrap_or(&NewMemberSetting {
-            custom_channel: false,
-            channel_id: 0,
-            custom_image: false,
-            show_username: true,
-            show_time_join: true,
-        });
-    trace!(?guild_specific);
-    let channel_id = if guild_specific.custom_channel {
-        ChannelId::from(guild_specific.channel_id)
+    let guild_settings = load_guild_settings(guild_id).await;
+
+    let channel_id = if let Some(channel_id) = get_channel_id(&guild_settings, &partial_guild) {
+        channel_id
     } else {
-        match partial_guild.system_channel_id {
-            Some(channel_id) => channel_id,
-            None => {
-                error!("Failed to get the system channel id.");
-                return;
-            }
-        }
+        return;
     };
 
-    let guild_image = if guild_specific.custom_image {
-        let image = load_new_member_image(guild_id.to_string());
-        match image {
-            Some(image) => image,
-            None => {
-                error!("Failed to load the image.");
-                return;
-            }
-        }
+    let guild_image = if let Some(img) = get_server_image(guild_id.to_string(), &guild_settings) {
+        img
     } else {
-        let image = create_default_new_member_image();
-        match image {
-            Ok(image) => image,
-            Err(e) => {
-                error!("Failed to create the default image. {}", e);
-                return;
-            }
-        }
+        return;
     };
     let mut guild_image = match image::load_from_memory(&guild_image) {
         Ok(image) => image,
@@ -75,7 +42,6 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         }
     };
     let avatar = user.face().replace("size=1024", "size=128");
-    trace!(avatar);
     let client = reqwest::Client::new();
     let res = match client.get(avatar).send().await {
         Ok(res) => res,
@@ -111,7 +77,6 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             return;
         }
     };
-    trace!(?audit_log);
     let reason;
     if audit_log.entries.is_empty() || audit_log.entries.is_empty() {
         reason = "User left".to_string()
@@ -127,13 +92,20 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
                 break;
             }
         }
-        trace!(?internal_action, ?audit_log);
         reason = if internal_action == InternalAction::Member(BanAdd) {
             let a = audit_log.entries[0].clone().reason.unwrap_or_default();
-            format!("User Banned for {}", a)
+            if a.is_empty() {
+                "User Banned".to_string()
+            } else {
+                format!("User Banned for {}", a)
+            }
         } else if internal_action == InternalAction::Member(Kick) {
             let a = audit_log.entries[0].clone().reason.unwrap_or_default();
-            format!("User kicked for {}", a)
+            if a.is_empty() {
+                "User kicked".to_string()
+            } else {
+                format!("User kicked for {}", a)
+            }
         } else {
             "User left".to_string()
         };
@@ -214,25 +186,12 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             error!("Failed to overlay the image. {}", e);
         }
     }
-
-    let rgba8_image = guild_image.to_rgba8();
-    let mut bytes: Vec<u8> = Vec::new();
-    match rgba8_image.write_to(&mut Cursor::new(&mut bytes), WebP) {
-        Ok(_) => {}
+    let bytes = match get_guild_image_bytes(guild_image) {
+        Ok(bytes) => bytes,
         Err(e) => {
-            error!("Failed to write the image to the buffer. {}", e);
+            error!("Failed to get the bytes. {}", e);
             return;
         }
     };
-    let attachement = CreateAttachment::bytes(bytes, "new_member.webp");
-    let builder = CreateMessage::new().add_file(attachement);
-    match channel_id.send_message(&ctx.http, builder).await {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to send the message. {}", e);
-        }
-    };
+    send_member_image(channel_id, bytes, &ctx.http).await;
 }
-
-use crate::custom_serenity_impl::InternalAction;
-use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};

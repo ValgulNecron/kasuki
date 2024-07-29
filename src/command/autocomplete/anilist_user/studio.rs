@@ -9,7 +9,6 @@ use serenity::all::{
 use tokio::sync::RwLock;
 
 use crate::constant::DEFAULT_STRING;
-use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::studio::{
@@ -50,16 +49,27 @@ pub async fn autocomplete(
         search: Some(studio_search),
     };
     let operation = StudioAutocomplete::build(var);
-    let data: Result<GraphQlResponse<StudioAutocomplete>, AppError> =
-        make_request_anilist(operation, false, anilist_cache).await;
-    let data = match data {
-        Ok(data) => data,
-        Err(e) => {
-            tracing::error!(?e);
+    let data: GraphQlResponse<StudioAutocomplete> =
+        match make_request_anilist(operation, false, anilist_cache).await {
+            Ok(data) => data,
+            Err(e) => {
+                tracing::error!(?e);
+                return;
+            }
+        };
+    let studios = match data.data {
+        Some(data) => match data.page {
+            Some(page) => match page.studios {
+                Some(studios) => studios,
+                None => return,
+            },
+            None => return,
+        },
+        None => {
+            tracing::debug!(?data.errors);
             return;
         }
     };
-    let studios = data.data.unwrap().page.unwrap().studios.unwrap();
 
     let mut choices = Vec::new();
 

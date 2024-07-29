@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -6,7 +7,6 @@ use tokio::sync::RwLock;
 
 use crate::command::run::anilist_user::character::get_character_by_id;
 use crate::config::Config;
-use crate::helper::error_management::error_enum::AppError;
 use crate::structure::run::anilist::character::send_embed;
 
 /// Executes the command to fetch and display information about a specific character from AniList.
@@ -27,7 +27,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Fetch the data of the character with ID 156323 from AniList
     let value = 156323;

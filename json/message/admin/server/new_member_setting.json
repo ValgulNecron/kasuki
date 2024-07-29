@@ -11,8 +11,8 @@
     "title": "Neues Mitglied Einstellung",
     "description": "Die Einstellung wurde erfolgreich aktualisiert."
   },
-    "fr": {
-        "title": "Nouveau membre Réglage",
-        "description": "Le réglage a été mis à jour avec succès."
-    }
+  "fr": {
+    "title": "Nouveau membre Réglage",
+    "description": "Le réglage a été mis à jour avec succès."
+  }
 }

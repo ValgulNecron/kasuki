@@ -1,6 +1,8 @@
+use std::error::Error;
+
 use sqlx::{Pool, Sqlite, SqlitePool};
 
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::UnknownResponseError;
 
 /// Establishes a connection to a SQLite database and returns a connection pool.
 ///
@@ -19,12 +21,9 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 /// # Errors
 ///
 /// This function will return an error if the connection to the database fails. The error will be of type `AppError`, with the `ErrorType` set to `Database` and the `ErrorResponseType` set to `Unknown`.
-pub async fn get_sqlite_pool(database_url: &str) -> Result<Pool<Sqlite>, AppError> {
-    SqlitePool::connect(database_url).await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get the sqlite pool: {}", e),
-            ErrorType::Database,
-            ErrorResponseType::Unknown,
-        )
-    })
+pub async fn get_sqlite_pool(database_url: &str) -> Result<Pool<Sqlite>, Box<dyn Error>> {
+    let pool = SqlitePool::connect(database_url).await.map_err(|e| {
+        UnknownResponseError::Database(format!("Failed to connect to the sqlite pool: {:#?}", e))
+    })?;
+    Ok(pool)
 }

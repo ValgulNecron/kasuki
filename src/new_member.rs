@@ -1,16 +1,19 @@
-use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
-use crate::structure::message::new_member::load_localization_new_member;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage};
 use serde::{Deserialize, Serialize};
-use serenity::all::{ChannelId, Context, CreateMessage, Member};
+use serenity::all::{ChannelId, Context, CreateMessage, GuildId, Http, Member, PartialGuild};
 use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
+use std::error::Error;
 use std::fs;
 use std::io::Cursor;
+use std::sync::Arc;
 use text_to_png::TextRenderer;
 use tracing::{error, trace};
+
+use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
+use crate::helper::error_management::error_enum;
+use crate::structure::message::new_member::load_localization_new_member;
 
 pub async fn new_member_message(ctx: &Context, member: &Member) {
     trace!("New member message.");
@@ -24,48 +27,17 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             return;
         }
     };
-    let content = fs::read_to_string(NEW_MEMBER_PATH).unwrap_or_else(|_| String::new());
-    let hashmap: HashMap<String, NewMemberSetting> =
-        serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
-    let guild_specific = hashmap
-        .get(&guild_id.to_string())
-        .unwrap_or(&NewMemberSetting {
-            custom_channel: false,
-            channel_id: 0,
-            custom_image: false,
-            show_username: true,
-            show_time_join: true,
-        });
-    let channel_id = if guild_specific.custom_channel {
-        ChannelId::from(guild_specific.channel_id)
+    let guild_settings = load_guild_settings(guild_id).await;
+    let channel_id = if let Some(channel_id) = get_channel_id(&guild_settings, &partial_guild) {
+        channel_id
     } else {
-        match partial_guild.system_channel_id {
-            Some(channel_id) => channel_id,
-            None => {
-                error!("Failed to get the system channel id.");
-                return;
-            }
-        }
+        return;
     };
 
-    let guild_image = if guild_specific.custom_image {
-        let image = load_new_member_image(guild_id.to_string());
-        match image {
-            Some(image) => image,
-            None => {
-                error!("Failed to load the image.");
-                return;
-            }
-        }
+    let guild_image = if let Some(img) = get_server_image(guild_id.to_string(), &guild_settings) {
+        img
     } else {
-        let image = create_default_new_member_image();
-        match image {
-            Ok(image) => image,
-            Err(e) => {
-                error!("Failed to create the default image. {}", e);
-                return;
-            }
-        }
+        return;
     };
     let mut guild_image = match image::load_from_memory(&guild_image) {
         Ok(image) => image,
@@ -173,24 +145,14 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             error!("Failed to overlay the image. {}", e);
         }
     }
-
-    let rgba8_image = guild_image.to_rgba8();
-    let mut bytes: Vec<u8> = Vec::new();
-    match rgba8_image.write_to(&mut Cursor::new(&mut bytes), WebP) {
-        Ok(_) => {}
+    let bytes = match get_guild_image_bytes(guild_image) {
+        Ok(bytes) => bytes,
         Err(e) => {
-            error!("Failed to write the image to the buffer. {}", e);
+            error!("Failed to get the bytes. {}", e);
             return;
         }
     };
-    let attachement = CreateAttachment::bytes(bytes, "new_member.webp");
-    let builder = CreateMessage::new().add_file(attachement);
-    match channel_id.send_message(&ctx.http, builder).await {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to send the message. {}", e);
-        }
-    };
+    send_member_image(channel_id, bytes, &ctx.http).await;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -200,6 +162,27 @@ pub struct NewMemberSetting {
     pub custom_image: bool,
     pub show_username: bool,
     pub show_time_join: bool,
+}
+
+impl Default for NewMemberSetting {
+    fn default() -> Self {
+        NewMemberSetting {
+            custom_channel: false,
+            channel_id: 0,
+            custom_image: false,
+            show_username: true,
+            show_time_join: true,
+        }
+    }
+}
+pub async fn load_guild_settings(guild_id: GuildId) -> NewMemberSetting {
+    let content = fs::read_to_string(NEW_MEMBER_PATH).unwrap_or_default();
+    let hashmap: HashMap<String, NewMemberSetting> =
+        serde_json::from_str(&content).unwrap_or_default();
+    hashmap
+        .get(&guild_id.to_string())
+        .unwrap_or(&NewMemberSetting::default())
+        .clone()
 }
 
 pub fn load_new_member_image(guild_id: String) -> Option<Vec<u8>> {
@@ -215,18 +198,109 @@ pub fn load_new_member_image(guild_id: String) -> Option<Vec<u8>> {
     }
 }
 
-pub fn create_default_new_member_image() -> Result<Vec<u8>, AppError> {
+pub fn create_default_new_member_image() -> Result<Vec<u8>, Box<dyn Error>> {
     let width = 2000;
     let height = width / 4;
     let img = DynamicImage::new_rgba8(width, height);
     let mut bytes: Vec<u8> = Vec::new();
     img.write_to(&mut Cursor::new(&mut bytes), WebP)
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to write the image to the buffer. {}", e),
-                ErrorType::Image,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?;
     Ok(bytes)
+}
+
+pub fn get_server_image(guild_id: String, guild_settings: &NewMemberSetting) -> Option<Vec<u8>> {
+    let img = if guild_settings.custom_image {
+        let image = load_new_member_image(guild_id.to_string());
+        match image {
+            Some(image) => image,
+            None => {
+                error!("Failed to load the image.");
+                return None;
+            }
+        }
+    } else {
+        let image = create_default_new_member_image();
+        match image {
+            Ok(image) => image,
+            Err(e) => {
+                error!("Failed to create the default image. {}", e);
+                return None;
+            }
+        }
+    };
+    Some(img)
+}
+
+/// Retrieves the channel ID based on guild settings and partial guild information.
+///
+/// # Arguments
+///
+/// * `guild_settings` - A reference to the NewMemberSetting struct containing settings for the guild.
+/// * `partial_guild` - A reference to the PartialGuild struct containing partial information about the guild.
+///
+/// # Returns
+///
+/// * `Option<ChannelId>` - An option containing the ChannelId if successfully retrieved, otherwise None.
+pub fn get_channel_id(
+    guild_settings: &NewMemberSetting,
+    partial_guild: &PartialGuild,
+) -> Option<ChannelId> {
+    // Determine the channel ID based on custom channel settings or system channel ID
+    let channel_id = if guild_settings.custom_channel {
+        ChannelId::from(guild_settings.channel_id)
+    } else {
+        match partial_guild.system_channel_id {
+            Some(channel_id) => channel_id,
+            None => {
+                error!("Failed to get the system channel id.");
+                return None;
+            }
+        }
+    };
+
+    Some(channel_id)
+}
+
+/// This function takes a DynamicImage, converts it to RGBA8 format, and writes it to a buffer in WebP format.
+///
+/// # Arguments
+///
+/// * `guild_image` - A DynamicImage containing the guild image data.
+///
+/// # Returns
+///
+/// * `Result<Vec<u8>, Box<dyn Error>>` - A Result containing a vector of bytes representing the image data if successful, otherwise an error.
+pub fn get_guild_image_bytes(guild_image: DynamicImage) -> Result<Vec<u8>, Box<dyn Error>> {
+    // Convert the DynamicImage to RGBA8 format
+    let rgba8_image = guild_image.to_rgba8();
+
+    // Create a vector to store the image bytes
+    let mut bytes: Vec<u8> = Vec::new();
+
+    // Write the RGBA8 image data to the buffer in WebP format
+    match rgba8_image.write_to(&mut Cursor::new(&mut bytes), WebP) {
+        Ok(_) => {
+            // Image write successful
+        }
+        Err(e) => {
+            // Image write failed, log the error
+            return Err(Box::new(error_enum::Error::ImageProcessing(format!(
+                "Failed to write the image to the buffer. {}",
+                e
+            ))));
+        }
+    };
+    // Return the vector of image bytes
+    Ok(bytes)
+}
+
+pub async fn send_member_image(channel_id: ChannelId, bytes: Vec<u8>, http: &Arc<Http>) {
+    let attachement = CreateAttachment::bytes(bytes, "new_member.webp");
+    let builder = CreateMessage::new().add_file(attachement);
+    match channel_id.send_message(http, builder).await {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Failed to send the message. {}", e);
+        }
+    };
 }

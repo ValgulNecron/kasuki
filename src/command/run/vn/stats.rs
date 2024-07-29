@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -8,7 +9,7 @@ use tokio::sync::RwLock;
 
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::vndbapi::stats::get_stats;
 use crate::structure::message::vn::stats::load_localization_stats;
 
@@ -17,7 +18,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -58,11 +59,6 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }

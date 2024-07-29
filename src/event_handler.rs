@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+use std::ops::{Add, AddAssign};
+use std::sync::Arc;
+
 use moka::future::Cache;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
@@ -6,9 +10,6 @@ use serenity::all::{
     Interaction, Member, Ready, User,
 };
 use serenity::async_trait;
-use std::collections::HashMap;
-use std::ops::{Add, AddAssign};
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
@@ -23,7 +24,9 @@ use crate::components::components_dispatch::components_dispatching;
 use crate::config::Config;
 use crate::constant::COMMAND_USE_PATH;
 use crate::helper::error_management::error_dispatch;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{
+    FollowupError, ResponseError, UnknownResponseError,
+};
 use crate::new_member::new_member_message;
 use crate::removed_member::removed_member_message;
 
@@ -42,19 +45,19 @@ pub struct Handler {
     pub bot_data: Arc<BotData>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct UserUsage {
     pub user_name: String,
     pub usage: u128,
     pub hourly_usage: HashMap<String, u128>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct UserInfo {
     pub user_info: HashMap<String, UserUsage>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct RootUsage {
     pub command_list: HashMap<String, UserInfo>,
 }
@@ -79,6 +82,24 @@ impl RootUsage {
 }
 
 impl Handler {
+    pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {
+        let bot_data = self.bot_data.clone();
+        let number_of_command_use_per_command = bot_data.number_of_command_use_per_command.clone();
+        let guard = number_of_command_use_per_command.read().await;
+        let user_map = guard
+            .command_list
+            .get(&command_name)
+            .cloned()
+            .unwrap_or_default()
+            .user_info
+            .get(&user_id)
+            .cloned()
+            .unwrap_or_default();
+        *user_map
+            .hourly_usage
+            .get(&chrono::Local::now().format("%H").to_string())
+            .unwrap_or(&(0u128))
+    }
     // thread safe way to increment the number of command use per command
     pub async fn increment_command_use_per_command(
         &self,
@@ -308,8 +329,6 @@ impl EventHandler for Handler {
     /// This function does not return any errors. However, it logs errors that occur during the dispatching of commands and components.
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
-            // call self.increment_command_use() in a way that would not block the event loop
-
             if command_interaction.data.kind == CommandType::ChatInput {
                 // Log the details of the command interaction
                 info!(
@@ -319,22 +338,59 @@ impl EventHandler for Handler {
                     command_interaction.guild_id.unwrap_or_default().to_string(),
                     command_interaction.data.options
                 );
-                if let Err(e) = command_dispatching(&ctx, &command_interaction, self).await {
-                    error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
+                let message;
+                let error_type;
+                match command_dispatching(&ctx, &command_interaction, self).await {
+                    Ok(()) => return,
+                    Err(e) => {
+                        message = e.to_string();
+                        error_type = if e.is::<ResponseError>() {
+                            "ResponseError"
+                        } else if e.is::<FollowupError>() {
+                            "FollowupError"
+                        } else if e.is::<UnknownResponseError>() {
+                            "UnknownResponseError"
+                        } else {
+                            "other"
+                        };
+                    }
                 }
+                error_dispatch::command_dispatching(
+                    message,
+                    error_type,
+                    &command_interaction,
+                    &ctx,
+                    self,
+                )
+                .await
             } else if command_interaction.data.kind == CommandType::User {
-                if let Err(e) = dispatch_user_command(&ctx, &command_interaction, self).await {
-                    error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
+                let message;
+                let error_type;
+                match dispatch_user_command(&ctx, &command_interaction, self).await {
+                    Ok(()) => return,
+                    Err(e) => {
+                        message = e.to_string();
+                        error_type = if e.is::<ResponseError>() {
+                            "ResponseError"
+                        } else if e.is::<FollowupError>() {
+                            "FollowupError"
+                        } else if e.is::<UnknownResponseError>() {
+                            "UnknownResponseError"
+                        } else {
+                            "other"
+                        };
+                    }
                 }
+                error_dispatch::command_dispatching(
+                    message,
+                    error_type,
+                    &command_interaction,
+                    &ctx,
+                    self,
+                )
+                .await
             } else if command_interaction.data.kind == CommandType::Message {
                 trace!("{:?}", command_interaction)
-            } else {
-                let e = AppError {
-                    message: "Command kind invalid".to_string(),
-                    error_type: ErrorType::Command,
-                    error_response_type: ErrorResponseType::Message,
-                };
-                error_dispatch::command_dispatching(e, &command_interaction, &ctx, self).await
             }
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
             let db_type = self.bot_data.config.bot.config.db_type.clone();

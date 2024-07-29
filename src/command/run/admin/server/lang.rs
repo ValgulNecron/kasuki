@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{
@@ -8,7 +9,7 @@ use crate::config::Config;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::manage::dispatcher::data_dispatch::set_data_guild_language;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::server::lang::load_localization_lang;
 
@@ -43,14 +44,14 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand_group(command_interaction);
-    let lang = map.get(&String::from("lang_choice")).ok_or(AppError::new(
-        String::from("There is no option"),
-        ErrorType::Option,
-        ErrorResponseType::Followup,
-    ))?;
+    let lang = map
+        .get(&String::from("lang_choice"))
+        .ok_or(ResponseError::Option(String::from(
+            "No option for lang_choice",
+        )))?;
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -74,11 +75,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+
+    Ok(())
 }

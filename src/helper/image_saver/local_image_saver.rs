@@ -1,10 +1,11 @@
+use std::error::Error;
 // Importing necessary libraries and modules
 use std::fs;
 use std::path::Path;
 
 use chrono::Local;
 
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::UnknownResponseError;
 
 /// `local_image_save` is an asynchronous function that saves an image locally.
 /// It takes a `guild_id`, `filename`, and `image_data` as parameters.
@@ -28,7 +29,7 @@ pub async fn local_image_save(
     guild_id: String,
     filename: String,
     image_data: Vec<u8>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Get the current date and time
     let now = Local::now();
     // Format the date and time
@@ -38,25 +39,15 @@ pub async fn local_image_save(
     let file_path = format!("images/{}/", guild_id);
     // Check if the directory exists, if not, create it
     if !Path::new(&file_path).exists() {
-        fs::create_dir_all(&file_path).map_err(|e| {
-            AppError::new(
-                format!("Failed to create directory. {}", e),
-                ErrorType::File,
-                ErrorResponseType::Unknown,
-            )
-        })?;
+        fs::create_dir_all(&file_path)
+            .map_err(|e| UnknownResponseError::File(format!("{:#?}", e)))?;
     }
 
     // Format the filename
     let filename = format!("{}_{}", formatted, filename);
     // Write the image data to the file
-    fs::write(format!("{}/{}", file_path, filename), image_data).map_err(|e| {
-        AppError::new(
-            format!("Failed to write image. {}", e),
-            ErrorType::File,
-            ErrorResponseType::Unknown,
-        )
-    })?;
+    fs::write(format!("{}/{}", file_path, filename), image_data)
+        .map_err(|e| UnknownResponseError::File(format!("{:#?}", e)))?;
 
     // Return Ok if the function executed successfully
     Ok(())

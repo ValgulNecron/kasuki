@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fmt::Display;
 
 use serenity::all::{
@@ -7,7 +8,7 @@ use serenity::all::{
 
 use crate::constant::{COLOR, UNKNOWN};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::{load_localization_media, MediaLocalised};
@@ -581,6 +582,7 @@ fn get_info(media: &Media, media_localised: &MediaLocalised) -> String {
         Some(d) => get_date(&d),
         None => UNKNOWN.to_string(),
     };
+    // only take the first 5 staff
     let staff_edges = media.staff.clone().unwrap().edges.unwrap_or_default();
     text.replace("$format$", format.as_str())
         .replace("$source$", source.as_str())
@@ -667,7 +669,11 @@ fn get_date(date: &FuzzyDate) -> String {
 /// * `String` - A String that represents the staff of the media.
 fn get_staff(staff: Vec<Option<StaffEdge>>, staff_string: &str) -> String {
     let mut staff_text = String::new();
-    for s in staff {
+    // iterate over staff with index
+    for (i, s) in staff.into_iter().enumerate() {
+        if i > 4 {
+            break;
+        }
         let s = s.unwrap();
         let node = s.node.clone().unwrap();
         let text = staff_string;
@@ -717,14 +723,10 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     data: Media,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let is_adult = data.is_adult.unwrap_or(true);
     if is_adult && !get_nsfw(command_interaction, ctx).await {
-        return Err(AppError {
-            message: String::from("The channel is not nsfw but the media you requested is."),
-            error_type: ErrorType::Command,
-            error_response_type: ErrorResponseType::Message,
-        });
+        return Err(Box::new(ResponseError::AdultMedia));
     }
 
     let guild_id = match command_interaction.guild_id {
@@ -755,9 +757,7 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| AppError {
-            message: format!("Error sending the media embed. {}", e),
-            error_type: ErrorType::Command,
-            error_response_type: ErrorResponseType::Message,
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+
+    Ok(())
 }

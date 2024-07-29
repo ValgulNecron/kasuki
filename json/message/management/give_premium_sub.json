@@ -1,0 +1,14 @@
+{
+  "en": {
+    "success": "Successfully gave user {user} the subscription {subscription}"
+  },
+  "fr": {
+    "success": "Vous avez bien donne l'utilisateur {user} la souscription {subscription}"
+  },
+  "de": {
+    "success": "Die Benutzer {user} hat die Abonnement {subscription} gegeben"
+  },
+  "ja": {
+    "success": "{user} ユーザーに {subscription} によって与えられたサブスクリプション"
+  }
+}

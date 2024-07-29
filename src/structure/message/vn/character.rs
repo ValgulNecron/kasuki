@@ -1,6 +1,7 @@
+use std::error::Error;
+
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -33,7 +34,7 @@ pub struct CharacterLocalised {
 pub async fn load_localization_character(
     guild_id: String,
     db_type: String,
-) -> Result<CharacterLocalised, AppError> {
+) -> Result<CharacterLocalised, Box<dyn Error>> {
     let path = "json/message/vn/character.json";
     load_localization(guild_id, path, db_type).await
 }

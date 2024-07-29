@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
@@ -11,10 +12,11 @@ use serenity::all::{
 use tracing::trace;
 use uuid::Uuid;
 
+use crate::command::run::ai::question::question_api_url;
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand::{
     get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
@@ -49,28 +51,25 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand(command_interaction);
     let attachment_map = get_option_map_attachment_subcommand(command_interaction);
     let lang = map
-        .get(&String::from("prompt"))
+        .get(&String::from("lang"))
         .unwrap_or(DEFAULT_STRING)
         .clone();
 
     let attachment = attachment_map
         .get(&String::from("video"))
-        .ok_or(AppError::new(
-            String::from("There is no attachment"),
-            ErrorType::Option,
-            ErrorResponseType::Message,
-        ))?;
+        .ok_or(ResponseError::Option(String::from("No option for video")))?;
 
-    let content_type = attachment.content_type.clone().ok_or(AppError::new(
-        String::from("Error getting content type"),
-        ErrorType::File,
-        ErrorResponseType::Message,
-    ))?;
+    let content_type = attachment
+        .content_type
+        .clone()
+        .ok_or(ResponseError::File(String::from(
+            "Failed to get the content type",
+        )))?;
     let content = attachment.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
@@ -81,11 +80,9 @@ pub async fn run(
     let translation_localised = load_localization_translation(guild_id, db_type).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-        return Err(AppError::new(
-            String::from("Bad file type."),
-            ErrorType::File,
-            ErrorResponseType::Message,
-        ));
+        return Err(Box::new(ResponseError::File(String::from(
+            "Unsupported file type",
+        ))));
     }
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -93,49 +90,39 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm", "ogg"];
-    let parsed_url = Url::parse(content.as_str()).expect("Failed to parse URL");
+    let parsed_url =
+        Url::parse(content.as_str()).map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
     let path_segments = parsed_url
         .path_segments()
-        .expect("Failed to retrieve path segments");
-    let last_segment = path_segments.last().expect("URL has no path segments");
+        .ok_or(FollowupError::File(String::from(
+            "Failed to get the path segments",
+        )))?;
+    let last_segment = path_segments.last().unwrap_or_default();
 
     let file_extension = last_segment
         .rsplit('.')
         .next()
-        .expect("No file extension found")
+        .ok_or(FollowupError::File(String::from(
+            "Failed to get the file extension",
+        )))?
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
-        return Err(AppError::new(
-            String::from("Bad file extension"),
-            ErrorType::Option,
-            ErrorResponseType::Followup,
-        ));
+        return Err(Box::new(FollowupError::File(String::from(
+            "Unsupported file extension",
+        ))));
     }
 
-    let response = reqwest::get(content).await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get the response from the server. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?; // save the file into a buffer
-    let buffer = response.bytes().await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get bytes data from response. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let response = reqwest::get(content)
+        .await
+        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?; // save the file into a buffer
+    let buffer = response
+        .bytes()
+        .await
+        .map_err(|e| FollowupError::Byte(format!("{:#?}", e)))?;
     let uuid_name = Uuid::new_v4().to_string();
 
     let client = reqwest::Client::new();
@@ -152,6 +139,7 @@ pub async fn run(
         .ai_transcription_model
         .clone()
         .unwrap_or_default();
+    trace!("{} {}", token, model);
     let api_base_url = config
         .ai
         .transcription
@@ -166,6 +154,7 @@ pub async fn run(
     } else {
         format!("{}/v1/audio/translations/", api_base_url)
     };
+    trace!("{}", api_base_url);
     headers.insert(
         AUTHORIZATION,
         HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
@@ -181,29 +170,16 @@ pub async fn run(
         .text("language", lang.clone())
         .text("response_format", "json");
 
-    let url = format!("{}translations", api_base_url);
     let response_result = client
-        .post(url)
+        .post(api_base_url)
         .headers(headers)
         .multipart(form)
         .send()
         .await;
-    let response = response_result.map_err(|e| {
-        AppError::new(
-            format!("Failed to get the response from the server. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let response = response_result.map_err(|e| FollowupError::WebRequest(format!("1{:?}", e)))?;
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
-    let res = res_result.map_err(|e| {
-        AppError::new(
-            format!("Failed to get the response from the server. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let res = res_result.map_err(|e| FollowupError::WebRequest(format!("2{:?}", e)))?;
 
     trace!("{}", res);
     let text = res["text"].as_str().unwrap_or("");
@@ -222,13 +198,7 @@ pub async fn run(
             .ai_question_base_url
             .clone()
             .unwrap_or_default();
-        let api_base_url = if api_base_url.ends_with("v1/") {
-            format!("{}chat/completions", api_base_url)
-        } else if api_base_url.ends_with("v1") {
-            format!("{}/chat/completions", api_base_url)
-        } else {
-            format!("{}/v1/chat/completions", api_base_url)
-        };
+        let api_base_url = question_api_url(api_base_url);
         let model = config
             .ai
             .question
@@ -249,13 +219,7 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Sending(format!("{:?}", e)))?;
 
     Ok(())
 }
@@ -289,9 +253,9 @@ pub async fn translation(
     lang: String,
     text: String,
     api_key: String,
-    api_base_url: String,
+    api_url: String,
     model: String,
-) -> Result<String, AppError> {
+) -> Result<String, Box<dyn Error>> {
     let prompt_gpt = format!("
             i will give you a text and a ISO-639-1 code and you will translate it in the corresponding language
             iso code: {}
@@ -299,7 +263,6 @@ pub async fn translation(
             {}
             ", lang, text);
 
-    let api_url = format!("{}chat/completions", api_base_url);
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -319,22 +282,10 @@ pub async fn translation(
         .json(&data)
         .send()
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("error during translation. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Followup,
-            )
-        })?
+        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?
         .json()
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("error during translation. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?;
     let content = res["choices"][0]["message"]["content"].to_string();
     let no_quote = content.replace('"', "");
 

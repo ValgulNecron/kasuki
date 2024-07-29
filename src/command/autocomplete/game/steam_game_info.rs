@@ -1,9 +1,10 @@
+use std::collections::HashMap;
+use std::sync::Arc;
+
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-use std::collections::HashMap;
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::debug;
 

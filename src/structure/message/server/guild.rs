@@ -1,6 +1,7 @@
+use std::error::Error;
+
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// Represents the localized guild data.
@@ -45,7 +46,7 @@ pub struct GuildLocalised {
 pub async fn load_localization_guild(
     guild_id: String,
     db_type: String,
-) -> Result<GuildLocalised, AppError> {
+) -> Result<GuildLocalised, Box<dyn Error>> {
     let path = "json/message/server/guild.json";
     load_localization(guild_id, path, db_type).await
 }

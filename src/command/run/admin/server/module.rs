@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{
@@ -10,7 +11,7 @@ use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
 };
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand_group::{
     get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
@@ -49,26 +50,22 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
     let map = get_option_map_string_subcommand_group(command_interaction);
-    let module = map.get(&String::from("name")).ok_or(AppError::new(
-        String::from("There is no option 1"),
-        ErrorType::Option,
-        ErrorResponseType::Followup,
-    ))?;
+    let module = map
+        .get(&String::from("name"))
+        .ok_or(ResponseError::Option(String::from("No option for name")))?;
     let module_localised =
         load_localization_module_activation(guild_id.clone(), db_type.clone()).await?;
     let map = get_option_map_boolean_subcommand_group(command_interaction);
-    let state = *map.get(&String::from("state")).ok_or(AppError::new(
-        String::from("There is no option 2"),
-        ErrorType::Option,
-        ErrorResponseType::Followup,
-    ))?;
+    let state = *map
+        .get(&String::from("state"))
+        .ok_or(ResponseError::Option(String::from("No option for state")))?;
 
     let row = get_data_module_activation_status(&guild_id, db_type.clone()).await?;
     let mut ai_value = row.ai_module.unwrap_or(true);
@@ -85,16 +82,14 @@ pub async fn run(
         "ANIME" => anime_value = state,
         "VN" => vn_value = state,
         _ => {
-            return Err(AppError::new(
-                String::from("This module does not exist."),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            ));
+            return Err(Box::new(ResponseError::Option(String::from(
+                "The module specified does not exist",
+            ))));
         }
     }
 
     let module_status = ActivationStatusModule {
-        id: Some(guild_id),
+        guild_id: Some(guild_id),
         ai_module: Some(ai_value),
         anilist_module: Some(anilist_value),
         game_module: Some(game_value),
@@ -119,13 +114,8 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }
 
 /// This asynchronous function checks the activation status of a module.
@@ -145,7 +135,7 @@ pub async fn check_activation_status(module: &str, row: ActivationStatusModule) 
         "ANILIST" => row.anilist_module.unwrap_or(true),
         "AI" => row.ai_module.unwrap_or(true),
         "GAME" => row.game_module.unwrap_or(true),
-        "NEW_MEMBER" => row.new_member.unwrap_or(true),
+        "NEW_MEMBER" => row.new_member.unwrap_or(false),
         "ANIME" => row.anime.unwrap_or(true),
         "VN" => row.vn.unwrap_or(true),
         _ => false,

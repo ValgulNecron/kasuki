@@ -1,5 +1,10 @@
 use std::sync::Arc;
 
+use serenity::all::{Cache, Http, ShardManager};
+use sysinfo::System;
+use tokio::sync::RwLock;
+use tracing::{error, trace};
+
 use crate::config::{Config, GrpcCfg};
 use crate::constant::BOT_COMMANDS;
 use crate::event_handler::{BotData, RootUsage};
@@ -8,10 +13,6 @@ use crate::grpc_server::service;
 use crate::grpc_server::service::command::{get_command_server, CommandServices};
 use crate::grpc_server::service::info::{get_info_server, InfoService};
 use crate::grpc_server::service::shard::{get_shard_server, ShardService};
-use serenity::all::{Cache, Http, ShardManager};
-use sysinfo::System;
-use tokio::sync::RwLock;
-use tracing::{error, trace};
 
 /// `grpc_server_launcher` is an asynchronous function that launches the gRPC server for the shard service.
 /// It takes a reference to an `Arc<ShardManager>` as a parameter.
@@ -58,10 +59,18 @@ pub async fn grpc_server_launcher(
     };
 
     // Configure the reflection service and register the file descriptor set for the shard service
-    let reflection = tonic_reflection::server::Builder::configure()
+    let reflection = match tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(service::shard::proto::SHARD_FILE_DESCRIPTOR_SET)
         .register_encoded_file_descriptor_set(service::info::proto::INFO_FILE_DESCRIPTOR_SET)
-        .register_encoded_file_descriptor_set(service::command::proto::COMMAND_FILE_DESCRIPTOR_SET);
+        .register_encoded_file_descriptor_set(service::command::proto::COMMAND_FILE_DESCRIPTOR_SET)
+        .build()
+    {
+        Ok(reflection) => reflection,
+        Err(e) => {
+            error!("Failed to build the reflection service: {}", e);
+            return;
+        }
+    };
 
     let is_tls = grpc_config.use_tls;
     trace!("TLS: {}", is_tls);
@@ -81,19 +90,11 @@ pub async fn grpc_server_launcher(
         let tls_config = tonic::transport::ServerTlsConfig::new().identity(identity);
         builder = builder.tls_config(tls_config).unwrap()
     }
-    let mut builder = builder
+    let builder = builder
         .add_service(get_shard_server(shard_service))
         .add_service(get_info_server(info_service))
-        .add_service(get_command_server(command_service));
-
-    let reflection = match reflection.build() {
-        Ok(reflection) => reflection,
-        Err(e) => {
-            error!("Failed to build reflection service: {}", e);
-            return;
-        }
-    };
-    builder = builder.add_service(reflection);
+        .add_service(get_command_server(command_service))
+        .add_service(reflection);
 
     // Serve the gRPC server
     builder.serve(addr.parse().unwrap()).await.unwrap()

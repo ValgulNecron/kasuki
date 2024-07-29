@@ -1,137 +1,209 @@
-Ok("{\"audit_log_entries\":[{\"id\":\"1257472222218555463\",\"action_type\":20,\"user_id\":\"260706120086192129\",\"target_id\":\"1139684789683761182\"},{\"id\":\"1257471432061882389\",\"action_type\":23,\"user_id\":\"260706
-120086192129\",\"target_id\":\"1139684789683761182\"},{\"id\":\"1257471380392378420\",\"action_type\":22,\"user_id\":\"260706120086192129\",\"target_id\":\"1139684789683761182\"},{\"id\":\"1257468489464025099\",\"action_type
-\":20,\"user_id\":\"260706120086192129\",\"target_id\":\"1139684789683761182\"},{\"id\":\"1257040221820686426\",\"action_type\":40,\"user_id\":\"260706120086192129\",\"target_id\":null,\"changes\":[{\"key\":\"code\",\"new_va
-lue\":\"3dxQGS9H\"},{\"key\":\"channel_id\",\"new_value\":\"1145068913558814840\"},{\"key\":\"inviter_id\",\"new_value\":\"260706120086192129\"},{\"key\":\"uses\",\"new_value\":0},{\"key\":\"max_uses\",\"new_value\":0},{\"ke
-y\":\"max_age\",\"new_value\":604800},{\"key\":\"temporary\",\"new_value\":false},{\"key\":\"flags\",\"new_value\":0}]},{\"id\":\"1257040221770617028\",\"action_type\":40,\"user_id\":\"260706120086192129\",\"target_id\":null
-,\"changes\":[{\"key\":\"code\",\"new_value\":\"KQK86fAx\"},{\"key\":\"channel_id\",\"new_value\":\"1145068913558814840\"},{\"key\":\"inviter_id\",\"new_value\":\"260706120086192129\"},{\"key\":\"uses\",\"new_value\":0},{\"k
-ey\":\"max_uses\",\"new_value\":0},{\"key\":\"max_age\",\"new_value\":604800},{\"key\":\"temporary\",\"new_value\":false},{\"key\":\"flags\",\"new_value\":0}]},{\"id\":\"1256293800817594519\",\"action_type\":72,\"user_id\":\
-"260706120086192129\",\"target_id\":\"923286536445894697\",\"options\":{\"channel_id\":\"1256292845623709777\",\"count\":\"1\"}},{\"id\":\"1256292845623709778\",\"action_type\":10,\"user_id\":\"260706120086192129\",\"target_
-id\":\"1256292845623709777\",\"changes\":[{\"key\":\"name\",\"new_value\":\"bot-test\"},{\"key\":\"type\",\"new_value\":0},{\"key\":\"permission_overwrites\",\"new_value\":[{\"id\":\"1117152661620408531\",\"type\":0,\"allow\
-":\"0\",\"deny\":\"1049600\"}]},{\"key\":\"nsfw\",\"new_value\":false},{\"key\":\"rate_limit_per_user\",\"new_value\":0},{\"key\":\"flags\",\"new_value\":0}]},{\"id\":\"1253136165331275807\",\"action_type\":50,\"user_id\":\"
-1193280664137650237\",\"target_id\":\"1253136165331275806\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"n
-ew_value\":\"Jellyfish Can\\u2019t Swim in the Night / Yoru no Kura\"},{\"key\":\"avatar_hash\",\"new_value\":\"8120e9729eda8cfec8fcf84b7f69833f\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1253136095328337940\",\"actio
-n_type\":51,\"user_id\":null,\"target_id\":\"1253136028441510109\",\"changes\":[{\"key\":\"avatar_hash\",\"new_value\":\"8120e9729eda8cfec8fcf84b7f69833f\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"name\
-",\"new_value\":\"Jellyfish Can\\u2019t Swim in the Night / Yoru no Kura\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"}]},{\"id\":\"1253136028441510110\",\"action_type\":50,\"user_id\":\"1122304053620260924\",\"target_id\"
-:\"1253136028441510109\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1122304053620260924\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW
-GATE\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1253135855636451370\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\
-"1199614987195400287\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"old_value\":\"1122304053620260924\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW G
-ATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]},{\"id\":\"1253135845788094514\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1
-253017858187853844\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GAT
-E\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]},{\"id\":\"1253135835373502557\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"125
-3017898499182593\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\
-"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]},{\"id\":\"1253135826263609384\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"12531
-34172030242970\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"}
-,{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]},{\"id\":\"1253135816297807875\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1253134
-263940022292\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{
-\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]},{\"id\":\"1253135804159492119\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"125313512
-6561427518\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"
-key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]},{\"id\":\"1253135791656403096\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"12531356982
-82676316\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"ke
-y\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]},{\"id\":\"1253135698282676317\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"125313569828
-2676316\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key
-\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1253135127014408272\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1253135126561
-427518\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\
-":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1253134263940022293\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"12531342639400
-22292\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\"
-:\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1253134172030242971\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"125313417203024
-2970\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":
-\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1253133297618260058\",\"action_type\":51,\"user_id\":null,\"target_id\":\"1199614987195400287\",\"changes\":[
-{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\",\"old_value\":\"Whisper Me a Love Song\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\",\"old_value\":\"b4650247ac8ca250d0f55588cd
-5e6131\"}]},{\"id\":\"1253017898499182594\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1253017898499182593\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"
-application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_va
-lue\":1}]},{\"id\":\"1253017858187853845\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1253017858187853844\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"a
-pplication_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_val
-ue\":1}]},{\"id\":\"1253014368203837612\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1199618935155339269\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"app
-lication_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value
-\":1}]},{\"id\":\"1253014356183089153\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1233548754515263549\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"appli
-cation_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\"
-:1}]},{\"id\":\"1253014344933834812\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252995625327398953\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"applica
-tion_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1
-}]},{\"id\":\"1253014332808105985\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252995677928034367\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"applicati
-on_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]
-},{\"id\":\"1253014323010469900\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252996423226622073\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application
-_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]},
-{\"id\":\"1253014312184709120\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252996449109671996\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application_i
-d\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_value\":1}]},{\
-"id\":\"1253014299882819645\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252996483976794254\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"application_id\
-",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"Jellyfish Can\\u2019t Swim in the Night / Yoru no Kura\"},{\"key\":\"avatar_hash\",\"old_value\":\"8120e9729eda8cfec8fcf84b7f69833f\"},{\"key\":\"typ
-e\",\"old_value\":1}]},{\"id\":\"1253014288264859719\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252997529771966544\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{
-\"key\":\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\
-",\"old_value\":1}]},{\"id\":\"1253014269394554882\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252997562173100135\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"
-key\":\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",
-\"old_value\":1}]},{\"id\":\"1253014256077766676\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252997626258002101\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"ke
-y\":\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"
-old_value\":1}]},{\"id\":\"1253014243448717324\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1253011967916900432\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\
-":\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"ol
-d_value\":1}]},{\"id\":\"1253014228311212033\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1252998890857169046\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":
-\"application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_
-value\":1}]},{\"id\":\"1253014215443349617\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1253011999093297162\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"
-application_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_va
-lue\":1}]},{\"id\":\"1253014201170137188\",\"action_type\":52,\"user_id\":\"260706120086192129\",\"target_id\":\"1253014122291925114\",\"changes\":[{\"key\":\"channel_id\",\"old_value\":\"1119268740341711008\"},{\"key\":\"ap
-plication_id\",\"old_value\":\"1193280664137650237\"},{\"key\":\"name\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"old_valu
-e\":1}]},{\"id\":\"1253014122291925116\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1253014122291925114\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"app
-lication_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value
-\":1}]},{\"id\":\"1253011999093297163\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1253011999093297162\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"appl
-ication_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\
-":1}]},{\"id\":\"1253011967916900433\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1253011967916900432\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"appli
-cation_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\"
-:1}]},{\"id\":\"1252998890857169047\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1252998890857169046\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"applic
-ation_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":
-1}]},{\"id\":\"1252998563563180125\",\"action_type\":72,\"user_id\":\"260706120086192129\",\"target_id\":\"1193280664137650237\",\"options\":{\"channel_id\":\"1119268740341711008\",\"count\":\"2\"}},{\"id\":\"125299762625800
-2102\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1252997626258002101\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193
-280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1252997564593078
-303\",\"action_type\":51,\"user_id\":null,\"target_id\":\"1252997529771966544\",\"changes\":[{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\",\"old_value\":\"Jellyfish Can\\u2019t Swim in the Night / Yoru no K
-ura\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\",\"old_value\":\"8120e9729eda8cfec8fcf84b7f69833f\"}]},{\"id\":\"1252997562714034206\",\"action_type\":50,\"user_id\":\"1193280664137650237\",
-\"target_id\":\"1252997562173100135\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW G
-ATE / THE NEW GATE\"},{\"key\":\"avatar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1252997532108193934\",\"action_type\":51,\"user_id\":null,\"target_id\":\"1252
-996483976794254\",\"changes\":[{\"key\":\"avatar_hash\",\"new_value\":\"8120e9729eda8cfec8fcf84b7f69833f\",\"old_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"name\",\"new_value\":\"Jellyfish Can\\u2019t Swim in t
-he Night / Yoru no Kura\",\"old_value\":\"THE NEW GATE / THE NEW GATE\"}]},{\"id\":\"1252997530296385546\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1252997529771966544\",\"changes\":[{\"key\":\"
-channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"Jellyfish Can\\u2019t Swim in the Night / Yoru no Kura\"},{\"key\":\"av
-atar_hash\",\"new_value\":\"8120e9729eda8cfec8fcf84b7f69833f\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1252996483976794255\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1252996483976794254\
-",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"ava
-tar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1252996449793347594\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1252996449109671996\"
-,\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avat
-ar_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1252996423226622074\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1252996423226622073\",
-\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avata
-r_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1252995678490329189\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1252995677928034367\",\
-"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar
-_hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1252995625327398955\",\"action_type\":50,\"user_id\":\"1193280664137650237\",\"target_id\":\"1252995625327398953\",\"
-changes\":[{\"key\":\"channel_id\",\"new_value\":\"1119268740341711008\"},{\"key\":\"application_id\",\"new_value\":\"1193280664137650237\"},{\"key\":\"name\",\"new_value\":\"THE NEW GATE / THE NEW GATE\"},{\"key\":\"avatar_
-hash\",\"new_value\":\"68787e5ed700348a5eb2a25f274d2dcb\"},{\"key\":\"type\",\"new_value\":1}]},{\"id\":\"1252058022453313556\",\"action_type\":72,\"user_id\":\"260706120086192129\",\"target_id\":\"1193280664137650237\",\"op
-tions\":{\"channel_id\":\"1117167148889026620\",\"count\":\"1\"}},{\"id\":\"1250907614703779960\",\"action_type\":40,\"user_id\":\"260706120086192129\",\"target_id\":null,\"changes\":[{\"key\":\"code\",\"new_value\":\"JwdYfn
-XaeK\"},{\"key\":\"channel_id\",\"new_value\":\"1145068913558814840\"},{\"key\":\"inviter_id\",\"new_value\":\"260706120086192129\"},{\"key\":\"uses\",\"new_value\":0},{\"key\":\"max_uses\",\"new_value\":0},{\"key\":\"max_ag
-e\",\"new_value\":0},{\"key\":\"temporary\",\"new_value\":false},{\"key\":\"flags\",\"new_value\":0}]},{\"id\":\"1250907596001513582\",\"action_type\":40,\"user_id\":\"260706120086192129\",\"target_id\":null,\"changes\":[{\"
-key\":\"code\",\"new_value\":\"muw5R4y7\"},{\"key\":\"channel_id\",\"new_value\":\"1145068913558814840\"},{\"key\":\"inviter_id\",\"new_value\":\"260706120086192129\"},{\"key\":\"uses\",\"new_value\":0},{\"key\":\"max_uses\"
-,\"new_value\":0},{\"key\":\"max_age\",\"new_value\":604800},{\"key\":\"temporary\",\"new_value\":false},{\"key\":\"flags\",\"new_value\":0}]},{\"id\":\"1250907595842126026\",\"action_type\":40,\"user_id\":\"2607061200861921
-29\",\"target_id\":null,\"changes\":[{\"key\":\"code\",\"new_value\":\"sQUXrVEM\"},{\"key\":\"channel_id\",\"new_value\":\"1145068913558814840\"},{\"key\":\"inviter_id\",\"new_value\":\"260706120086192129\"},{\"key\":\"uses\
-",\"new_value\":0},{\"key\":\"max_uses\",\"new_value\":0},{\"key\":\"max_age\",\"new_value\":604800},{\"key\":\"temporary\",\"new_value\":false},{\"key\":\"flags\",\"new_value\":0}]},{\"id\":\"1249037730931937320\",\"action_
-type\":51,\"user_id\":null,\"target_id\":\"1199614987195400287\",\"changes\":[{\"key\":\"avatar_hash\",\"new_value\":\"b4650247ac8ca250d0f55588cd5e6131\",\"old_value\":\"cc7aabd4f93f36eb212f65c94be27aa5\"},{\"key\":\"name\",
-\"new_value\":\"Whisper Me a Love Song\",\"old_value\":\"That Time I Got Reincarnated as a Slime Season 3\"}]},{\"id\":\"1248637594523406346\",\"action_type\":51,\"user_id\":null,\"target_id\":\"1199614987195400287\",\"chang
-es\":[{\"key\":\"name\",\"new_value\":\"That Time I Got Reincarnated as a Slime Season 3\",\"old_value\":\"Sound! Euphonium 3 / Hibike! Euphonium 3\"},{\"key\":\"avatar_hash\",\"new_value\":\"cc7aabd4f93f36eb212f65c94be27aa5
-\",\"old_value\":\"93e619b237c0c8e32ea047a497b045d4\"}]},{\"id\":\"1248237311389466695\",\"action_type\":72,\"user_id\":\"260706120086192129\",\"target_id\":\"1193280664137650237\",\"options\":{\"channel_id\":\"1119268740341
-711008\",\"count\":\"1\"}},{\"id\":\"1247167184397140090\",\"action_type\":40,\"user_id\":\"468836656078651416\",\"target_id\":null,\"changes\":[{\"key\":\"code\",\"new_value\":\"eRwhbYpr\"},{\"key\":\"channel_id\",\"new_val
-ue\":\"1119268651254698064\"},{\"key\":\"inviter_id\",\"new_value\":\"468836656078651416\"},{\"key\":\"uses\",\"new_value\":0},{\"key\":\"max_uses\",\"new_value\":1},{\"key\":\"max_age\",\"new_value\":86400},{\"key\":\"tempo
-rary\",\"new_value\":false},{\"key\":\"flags\",\"new_value\":0}]},{\"id\":\"1246735058543317064\",\"action_type\":51,\"user_id\":null,\"target_id\":\"1199614987195400287\",\"changes\":[{\"key\":\"avatar_hash\",\"new_value\":
-\"93e619b237c0c8e32ea047a497b045d4\",\"old_value\":\"b4650247ac8ca250d0f55588cd5e6131\"},{\"key\":\"name\",\"new_value\":\"Sound! Euphonium 3 / Hibike! Euphonium 3\",\"old_value\":\"Whisper Me a Love Song / Sasayaku You ni K
-oi wo Ut\"}]},{\"id\":\"1246501016179048509\",\"action_type\":51,\"user_id\":null,\"target_id\":\"1199614987195400287\",\"changes\":[{\"key\":\"avatar_hash\",\"new_value\":\"b4650247ac8ca250d0f55588cd5e6131\",\"old_value\":\
-"cc7aabd4f93f36eb212f65c94be27aa5\"},{\"key\":\"name\",\"new_value\":\"Whisper Me a Love Song / Sasayaku You ni Koi wo Ut\",\"old_value\":\"That Time I Got Reincarnated as a Slime Season 3 /\"}]},{\"id\":\"124589588276392760
-6\",\"action_type\":72,\"user_id\":\"260706120086192129\",\"target_id\":\"1122304053620260924\",\"options\":{\"channel_id\":\"1119268740341711008\",\"count\":\"1\"}},{\"id\":\"1245868076348477520\",\"action_type\":51,\"user_
-id\":null,\"target_id\":\"1199614987195400287\",\"changes\":[{\"key\":\"name\",\"new_value\":\"That Time I Got Reincarnated as a Slime Season 3 /\",\"old_value\":\"Whisper Me a Love Song / Sasayaku You ni Koi wo Ut\"},{\"key
-\":\"avatar_hash\",\"new_value\":\"cc7aabd4f93f36eb212f65c94be27aa5\",\"old_value\":\"b4650247ac8ca250d0f55588cd5e6131\"}]},{\"id\":\"1245867949445873695\",\"action_type\":51,\"user_id\":null,\"target_id\":\"1199614987195400
-287\",\"changes\":[{\"key\":\"name\",\"new_value\":\"Whisper Me a Love Song / Sasayaku You ni Koi wo Ut\",\"old_value\":\"Sound! Euphonium 3 / Hibike! Euphonium 3\"},{\"key\":\"avatar_hash\",\"new_value\":\"b4650247ac8ca250d
-0f55588cd5e6131\",\"old_value\":\"93e619b237c0c8e32ea047a497b045d4\"}]},{\"id\":\"1245867918328070235\",\"action_type\":51,\"user_id\":null,\"target_id\":\"1199614987195400287\",\"changes\":[{\"key\":\"name\",\"new_value\":\
-"Sound! Euphonium 3 / Hibike! Euphonium 3\",\"old_value\":\"Fushigi Dagashiya: Zenitendou\"},{\"key\":\"avatar_hash\",\"new_value\":\"93e619b237c0c8e32ea047a497b045d4\",\"old_value\":\"149c34a98692cfa3da1fee1d91c42f7c\"}]},{
-\"id\":\"1243890105920524288\",\"action_type\":51,\"user_id\":\"260706120086192129\",\"target_id\":\"1243890077981999175\",\"changes\":[{\"key\":\"name\",\"new_value\":\"anilist api\",\"old_value\":\"Spidey Bot\"}]},{\"id\":
-\"1243890077981999176\",\"action_type\":50,\"user_id\":\"260706120086192129\",\"target_id\":\"1243890077981999175\",\"changes\":[{\"key\":\"channel_id\",\"new_value\":\"1117167148889026620\"},{\"key\":\"name\",\"new_value\":
-\"Spidey Bot\"},{\"key\":\"type\",\"new_value\":1}]}],\"users\":[{\"id\":\"260706120086192129\",\"username\":\"valgul\",\"avatar\":\"8d2a35e5f6b03bfb3f5bb86eb55138a9\",\"discriminator\":\"0\",\"public_flags\":4194560,\"flags
-\":4194560,\"banner\":null,\"accent_color\":null,\"global_name\":\"valgul\",\"avatar_decoration_data\":null,\"banner_color\":null,\"clan\":null},{\"id\":\"923286536445894697\",\"username\":\"kasuki\",\"avatar\":\"80bcefdb4d1
-2244fc58723a0f64464d2\",\"discriminator\":\"7115\",\"public_flags\":0,\"flags\":0,\"bot\":true,\"banner\":null,\"accent_color\":null,\"global_name\":null,\"avatar_decoration_data\":null,\"banner_color\":null,\"clan\":null},{
-\"id\":\"468836656078651416\",\"username\":\"mistereggs\",\"avatar\":\"c71e646bab0a71e813236fd1a0e13c45\",\"discriminator\":\"0\",\"public_flags\":0,\"flags\":0,\"banner\":null,\"accent_color\":null,\"global_name\":\"MisterE
-gg\",\"avatar_decoration_data\":null,\"banner_color\":null,\"clan\":null},{\"id\":\"1122304053620260924\",\"username\":\"kasuki beta\",\"avatar\":\"2187b06f25ee3f453e6a493f24466245\",\"discriminator\":\"4061\",\"public_flags
-\":0,\"flags\":0,\"bot\":true,\"banner\":null,\"accent_color\":null,\"global_name\":null,\"avatar_decoration_data\":null,\"banner_color\":null,\"clan\":null},{\"id\":\"1193280664137650237\",\"username\":\"kasuki dev\",\"avat
-ar\":\"a4991f3f362705d0b151a65fed72ed00\",\"discriminator\":\"9064\",\"public_flags\":0,\"flags\":0,\"bot\":true,\"banner\":null,\"accent_color\":null,\"global_name\":null,\"avatar_decoration_data\":null,\"banner_color\":nul
-l,\"clan\":null},{\"id\":\"1139684789683761182\",\"username\":\"tirfuv_04896\",\"avatar\":\"67ddfbaff7b29a0741a3a6955748a436\",\"discriminator\":\"0\",\"public_flags\":0,\"flags\":0,\"banner\":null,\"accent_color\":null,\"gl
-obal_name\":\"tirfuv\",\"avatar_decoration_data\":null,\"banner_color\":null,\"clan\":null}],\"integrations\":[],\"webhooks\":[{\"application_id\":\"1193280664137650237\",\"avatar\":\"8120e9729eda8cfec8fcf84b7f69833f\",\"cha
-nnel_id\":\"1119268740341711008\",\"guild_id\":\"1117152661620408531\",\"id\":\"1253136165331275806\",\"name\":\"Jellyfish Can\\u2019t Swim in the Night / Yoru no Kura\",\"type\":1},{\"application_id\":null,\"avatar\":null,\
-"channel_id\":\"1117167148889026620\",\"guild_id\":\"1117152661620408531\",\"id\":\"1243890077981999175\",\"name\":\"anilist api\",\"type\":1},{\"application_id\":\"1122304053620260924\",\"avatar\":\"8120e9729eda8cfec8fcf84b
-7f69833f\",\"channel_id\":\"1119268740341711008\",\"guild_id\":\"1117152661620408531\",\"id\":\"1253136028441510109\",\"name\":\"Jellyfish Can\\u2019t Swim in the Night / Yoru no Kura\",\"type\":1}],\"guild_scheduled_events\":[],\"threads\":[],\"application_commands\":[],\"auto_moderation_rules\":[]}\n")
+{
+  "command_list": {
+    "admin general module": {
+      "user_info": {
+        "260706120086192129": {
+          "user_name": "valgul",
+          "usage": 1,
+          "hourly_usage": {
+            "15:07:2024:17": 1
+          }
+        }
+      }
+    },
+    "bot ping": {
+      "user_info": {
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 1,
+          "hourly_usage": {
+            "12:07:2024:23": 1
+          }
+        }
+      }
+    },
+    "server guild": {
+      "user_info": {
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 1,
+          "hourly_usage": {
+            "12:07:2024:23": 1
+          }
+        }
+      }
+    },
+    "user command_usage": {
+      "user_info": {
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 1,
+          "hourly_usage": {
+            "13:07:2024:00": 1
+          }
+        }
+      }
+    },
+    "steam game": {
+      "user_info": {
+        "260706120086192129": {
+          "user_name": "valgul",
+          "usage": 1,
+          "hourly_usage": {
+            "09:07:2024:18": 1
+          }
+        },
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 1,
+          "hourly_usage": {
+            "12:07:2024:23": 1
+          }
+        }
+      }
+    },
+    "user avatar": {
+      "user_info": {
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 2,
+          "hourly_usage": {
+            "12:07:2024:23": 1,
+            "13:07:2024:00": 1
+          }
+        }
+      }
+    },
+    "bot info": {
+      "user_info": {
+        "260706120086192129": {
+          "user_name": "valgul",
+          "usage": 1,
+          "hourly_usage": {
+            "15:07:2024:21": 1
+          }
+        },
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 1,
+          "hourly_usage": {
+            "12:07:2024:23": 1
+          }
+        }
+      }
+    },
+    "ai image": {
+      "user_info": {
+        "1094669305620222023": {
+          "user_name": "akko.vn",
+          "usage": 1,
+          "hourly_usage": {
+            "21:07:2024:22": 1
+          }
+        },
+        "771720163867099166": {
+          "user_name": "darshan03",
+          "usage": 1,
+          "hourly_usage": {
+            "22:07:2024:18": 1
+          }
+        },
+        "468836656078651416": {
+          "user_name": "mistereggs",
+          "usage": 2,
+          "hourly_usage": {
+            "16:07:2024:13": 2
+          }
+        },
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 3,
+          "hourly_usage": {
+            "12:07:2024:23": 1,
+            "13:07:2024:10": 2
+          }
+        },
+        "1142212800547139675": {
+          "user_name": "ssans69420",
+          "usage": 4,
+          "hourly_usage": {
+            "20:07:2024:20": 4
+          }
+        }
+      }
+    },
+    "ai question": {
+      "user_info": {
+        "1142212800547139675": {
+          "user_name": "ssans69420",
+          "usage": 2,
+          "hourly_usage": {
+            "20:07:2024:20": 2
+          }
+        }
+      }
+    },
+    "user profile": {
+      "user_info": {
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 1,
+          "hourly_usage": {
+            "12:07:2024:23": 1
+          }
+        },
+        "260706120086192129": {
+          "user_name": "valgul",
+          "usage": 1,
+          "hourly_usage": {
+            "03:07:2024:16": 1
+          }
+        }
+      }
+    },
+    "vn character": {
+      "user_info": {
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 1,
+          "hourly_usage": {
+            "13:07:2024:00": 1
+          }
+        }
+      }
+    },
+    "anime random_image": {
+      "user_info": {
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 1,
+          "hourly_usage": {
+            "12:07:2024:23": 1
+          }
+        }
+      }
+    },
+    "bot credit": {
+      "user_info": {
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 1,
+          "hourly_usage": {
+            "12:07:2024:23": 1
+          }
+        }
+      }
+    },
+    "user banner": {
+      "user_info": {
+        "1014524859532980255": {
+          "user_name": "fabseman",
+          "usage": 1,
+          "hourly_usage": {
+            "13:07:2024:00": 1
+          }
+        }
+      }
+    }
+  }
+}

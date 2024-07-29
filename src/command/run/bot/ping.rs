@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{
@@ -6,7 +7,7 @@ use serenity::all::{
 
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::struct_shard_manager::ShardManagerContainer;
 use crate::structure::message::bot::ping::load_localization_ping;
 
@@ -27,7 +28,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -43,11 +44,9 @@ pub async fn run(
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
         None => {
-            return Err(AppError::new(
-                String::from("Could not get the shard manager from the data"),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            ));
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Could not get the shard manager from the context data",
+            ))));
         }
     }
     .runners
@@ -63,11 +62,9 @@ pub async fn run(
     let shard_runner_info = match shard_manager.get(&shard_id) {
         Some(data) => data,
         None => {
-            return Err(AppError::new(
-                String::from("Could not get the shard info from the shard manager"),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            ));
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Could not get the shard runner info from the shard manager",
+            ))));
         }
     };
 
@@ -101,11 +98,6 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }

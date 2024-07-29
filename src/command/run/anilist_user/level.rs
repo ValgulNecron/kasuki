@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -12,7 +13,7 @@ use crate::config::Config;
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
@@ -35,7 +36,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the username from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
@@ -51,11 +52,9 @@ pub async fn run(
             let user_id = &command_interaction.user.id.to_string();
             // Check if the user is registered
             let row: Option<RegisteredUser> = get_registered_user(user_id, db_type.clone()).await?;
-            let user = row.ok_or(AppError::new(
-                String::from("There is no user selected"),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            ))?;
+            let user = row.ok_or(ResponseError::Option(String::from(
+                "No user specified or linked to this discord account",
+            )))?;
 
             // Fetch the user data and send an embed
             let data: User = get_user(&user.anilist_id, anilist_cache).await?;
@@ -82,7 +81,7 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     user: User,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -161,13 +160,9 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+
+    Ok(())
 }
 
 pub static LEVELS: Lazy<[(u32, f64, f64); 102]> = Lazy::new(|| {

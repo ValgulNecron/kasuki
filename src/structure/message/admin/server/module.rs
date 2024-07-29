@@ -1,8 +1,9 @@
 // Importing necessary libraries and modules
 
+use std::error::Error;
+
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// `ModuleLocalised` is a struct that represents a module's localized data.
@@ -36,7 +37,7 @@ pub struct ModuleLocalised {
 pub async fn load_localization_module_activation(
     guild_id: String,
     db_type: String,
-) -> Result<ModuleLocalised, AppError> {
+) -> Result<ModuleLocalised, Box<dyn Error>> {
     let path = "json/message/admin/server/module.json";
     load_localization(guild_id, path, db_type).await
 }

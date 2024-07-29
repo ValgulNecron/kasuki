@@ -1,0 +1,93 @@
+{
+  "guild_id": 1117152661620408531,
+  "name": "give_premium_sub",
+  "desc": "Give a user a premium subscription",
+  "nsfw": false,
+  "permissions": [
+    {
+      "permission": "Administrator"
+    }
+  ],
+  "args": [
+    {
+      "name": "user",
+      "desc": "The user you want to give a premium subscription to.",
+      "required": true,
+      "autocomplete": false,
+      "arg_type": "User",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "user",
+          "desc": "The user you want to give a premium subscription to."
+        },
+        {
+          "code": "fr",
+          "name": "utilisateur",
+          "desc": "L'utilisateur dont vous voulez donner une souscription premium."
+        },
+        {
+          "code": "de",
+          "name": "Benutzer",
+          "desc": "Der Benutzer, dem Sie eine Premium-Abonnement geben können."
+        },
+        {
+          "code": "ja",
+          "name": "ユーザー",
+          "desc": "プレミアムサブスクリプションを与えるユーザー"
+        }
+      ]
+    },
+    {
+      "name": "subscription",
+      "desc": "The subscription you want to give the user.",
+      "required": true,
+      "autocomplete": true,
+      "arg_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "subscription",
+          "desc": "The subscription you want to give the user."
+        },
+        {
+          "code": "fr",
+          "name": "abonné",
+          "desc": "La souscription que vous souhaitez donner à l'utilisateur."
+        },
+        {
+          "code": "de",
+          "name": "Abonnement",
+          "desc": "Das Abonnement, das Sie dem Benutzer geben können."
+        },
+        {
+          "code": "ja",
+          "name": "サブスクリプション",
+          "desc": "ユーザーに与えるサブスクリプション"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "give_premium_sub",
+      "desc": "Give a user a premium subscription"
+    },
+    {
+      "code": "fr",
+      "name": "give_premium_sub",
+      "desc": "Donner un utilisateur une souscription premium"
+    },
+    {
+      "code": "de",
+      "name": "give_premium_sub",
+      "desc": "Geben Sie einem Benutzer eine Premium-Abonnement"
+    },
+    {
+      "code": "ja",
+      "name": "give_premium_sub",
+      "desc": "ユーザーにプレミアムサブスクリプションを与える"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
+use std::fmt::Display;
+
 use serenity::all::audit_log::Action;
 use serenity::all::{MemberAction, MembershipState, TeamMemberRole};
-use std::fmt::Display;
 
 pub enum InternalTeamMemberRole {
     Admin,
@@ -65,7 +66,6 @@ pub enum InternalAction {
     Other,
 }
 #[derive(Debug, Clone)]
-
 pub enum InternalMemberAction {
     BanAdd,
     Kick,

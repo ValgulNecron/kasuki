@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
@@ -12,7 +13,7 @@ use tracing::trace;
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 
 /// This asynchronous function runs the command interaction for asking a question to the AI.
@@ -34,7 +35,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let map = get_option_map_string_subcommand(command_interaction);
     let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -42,13 +43,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
     let api_key = config
         .ai
@@ -78,13 +73,7 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Option,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Option(format!("{:#?}", e)))?;
 
     Ok(())
 }
@@ -109,16 +98,10 @@ async fn question(
     api_key: String,
     api_base_url: String,
     model: String,
-) -> Result<String, AppError> {
+) -> Result<String, Box<dyn Error>> {
     let api_url = api_base_url.to_string();
     // check the last 3 characters of the url if it v1/ or v1 or something else
-    let api_url = if api_url.ends_with("v1/") {
-        format!("{}chat/completions", api_url)
-    } else if api_url.ends_with("v1") {
-        format!("{}/chat/completions", api_url)
-    } else {
-        format!("{}/v1/chat/completions", api_url)
-    };
+    let api_url = question_api_url(api_url);
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -139,22 +122,10 @@ async fn question(
         .json(&data)
         .send()
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("error during the request to the api. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Followup,
-            )
-        })?
+        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?
         .json()
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("error getting the response. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?;
     trace!("{:?}", res);
     let content = res["choices"][0]["message"]["content"].to_string();
 
@@ -162,4 +133,14 @@ async fn question(
     let content = content[1..content.len() - 1].to_string();
 
     Ok(content.replace("\\n", " \n "))
+}
+
+pub fn question_api_url(api_url: String) -> String {
+    if api_url.ends_with("v1/") {
+        format!("{}chat/completions", api_url)
+    } else if api_url.ends_with("v1") {
+        format!("{}/chat/completions", api_url)
+    } else {
+        format!("{}/v1/chat/completions", api_url)
+    }
 }

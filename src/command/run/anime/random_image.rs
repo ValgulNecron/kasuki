@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::CreateInteractionResponse::Defer;
@@ -9,7 +10,7 @@ use uuid::Uuid;
 
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime::random_image::load_localization_random_image;
 
@@ -30,15 +31,15 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the type of image to fetch from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
-    let image_type = map.get(&String::from("image_type")).ok_or(AppError::new(
-        String::from("There is no option"),
-        ErrorType::Option,
-        ErrorResponseType::Followup,
-    ))?;
+    let image_type = map
+        .get(&String::from("image_type"))
+        .ok_or(ResponseError::Option(String::from(
+            "No image type specified",
+        )))?;
 
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -55,13 +56,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
     // Send the random image as a response to the command interaction
     send_embed(
         ctx,
@@ -95,54 +90,34 @@ pub async fn send_embed(
     image_type: &String,
     title: String,
     endpoint: &str,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Construct the URL to fetch the image from
     let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
     // Fetch the image from the URL
-    let resp = reqwest::get(&url).await.map_err(|e| {
-        AppError::new(
-            format!("Error while getting the response from the server. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let resp = reqwest::get(&url)
+        .await
+        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
     // Parse the response as JSON
-    let json: serde_json::Value = resp.json().await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get the json from the server response. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let json: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?;
     // Retrieve the URL of the image from the JSON
     let image_url = json["url"]
         .as_str()
         .ok_or("No image found")
-        .map_err(|e| {
-            AppError::new(
-                format!("Failed to get data from url. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Followup,
-            )
-        })?
+        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?
         .to_string();
 
     // Fetch the image from the image URL
-    let response = reqwest::get(image_url).await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get data from url. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let response = reqwest::get(image_url)
+        .await
+        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
     // Retrieve the bytes of the image from the response
-    let bytes = response.bytes().await.map_err(|e| {
-        AppError::new(
-            format!("Failed to get bytes data from response. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Followup,
-        )
-    })?;
+    let bytes = response
+        .bytes()
+        .await
+        .map_err(|e| FollowupError::Byte(format!("{:#?}", e)))?;
 
     // Generate a UUID for the filename of the image
     let uuid_name = Uuid::new_v4();
@@ -165,13 +140,7 @@ pub async fn send_embed(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
 
     Ok(())
 }

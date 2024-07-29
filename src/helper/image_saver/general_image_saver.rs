@@ -1,5 +1,6 @@
+use std::error::Error;
+
 // Importing necessary libraries and modules
-use crate::helper::error_management::error_enum::AppError;
 use crate::helper::image_saver::catbox_image_saver::upload_image_catbox;
 use crate::helper::image_saver::local_image_saver::local_image_save;
 
@@ -28,7 +29,7 @@ pub async fn image_saver(
     saver_server: String,
     token: String,
     save_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // If the saver type is local, save the image locally
     if save_type == *"local" {
         local_image_save(guild_id, filename, image_data).await
@@ -62,7 +63,7 @@ pub async fn remote_saver(
     image_data: Vec<u8>,
     saver_server: String,
     token: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // If the server is catbox, upload the image to catbox
 
     match saver_server.as_str() {

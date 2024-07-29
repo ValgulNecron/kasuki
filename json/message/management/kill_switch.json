@@ -1,0 +1,18 @@
+{
+  "en": {
+    "on": "The module has been activated for everyone.",
+    "off": "The module has been deactivated for everyone."
+  },
+  "fr": {
+    "on": "Le module a été activé pour tout le monde.",
+    "off": "Le module a été désactivé pour tout le monde."
+  },
+  "jp": {
+    "on": "モジュールが全員に有効化されました。",
+    "off": "モジュールが全員に無効化されました。"
+  },
+  "de": {
+    "on": "Das Modul wurde für alle aktiviert.",
+    "off": "Das Modul wurde für alle deaktiviert."
+  }
+}

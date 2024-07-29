@@ -7,7 +7,8 @@
     "bot": "Is a bot",
     "nitro": "Nitro Type",
     "system": "Is system",
-    "public_flag": "Public Flag"
+    "public_flag": "Public Flag",
+    "premium": "Premium"
   },
   "fr": {
     "title": "Voici le profil de $user$",
@@ -17,7 +18,8 @@
     "bot": "Est un bot",
     "nitro": "Type de Nitro",
     "system": "Est un système",
-    "public_flag": "Drapeau public"
+    "public_flag": "Drapeau public",
+    "premium": "Premium"
   },
   "jp": {
     "title": "$user$のプロフィールです",
@@ -27,7 +29,8 @@
     "bot": "ボットです",
     "nitro": "Nitroの種類",
     "system": "システムです",
-    "public_flag": "公開フラグ"
+    "public_flag": "公開フラグ",
+    "premium": "プレミアム"
   },
   "de": {
     "title": "Hier ist das Profil von $user$",
@@ -37,6 +40,7 @@
     "bot": "Ist ein Bot",
     "nitro": "Nitro Typ",
     "system": "Ist ein System",
-    "public_flag": "Öffentliche Flagge"
+    "public_flag": "Öffentliche Flagge",
+    "premium": "Premium"
   }
 }

@@ -1,13 +1,14 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{
     CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Member, Timestamp, User,
+    CreateInteractionResponseMessage, EntitlementKind, Member, Timestamp, User,
 };
 
 use crate::config::Config;
 use crate::constant::COLOR;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::helper::get_user_data::get_user_data;
 use crate::structure::message::user::profile::load_localization_profile;
@@ -29,7 +30,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the user's name from the command interaction
     let map = get_option_map_user_subcommand(command_interaction);
@@ -64,7 +65,7 @@ async fn profile_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
     // Display the user's profile
@@ -89,7 +90,7 @@ pub async fn profile_with_user(
     command_interaction: &CommandInteraction,
     user: &User,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the avatar URL of the specified user
     let avatar_url = user.face();
     // Send an embed with the user's profile
@@ -120,7 +121,7 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     user: &User,
     db_type: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -169,7 +170,48 @@ pub async fn send_embed(
             fields.push((profile_localised.public_flag, user_flags.join(" / "), false));
         }
     }
+    let skus = ctx.http.get_skus().await;
+    let user_premium = ctx
+        .http
+        .get_entitlements(Some(user.id), None, None, None, None, None, Some(true))
+        .await;
+    if user_premium.is_ok() && skus.is_ok() {
+        let skus = skus.unwrap().clone();
+        let data = user_premium.unwrap();
+        if !data.is_empty() {
+            let string = data.iter().map(|e| {
+                let sku_id = e.sku_id;
+                let sku = skus.iter().find(|e2| e2.id == sku_id);
+                let e_type = e.kind.clone();
+                let type_name = match e_type {
+                    EntitlementKind::ApplicationSubscription => {
+                        String::from("APPLICATION_SUBSCRIPTION")
+                    }
+                    EntitlementKind::Unknown(1) => String::from("PURCHASE"),
+                    EntitlementKind::Unknown(2) => String::from("PREMIUM_SUBSCRIPTION"),
+                    EntitlementKind::Unknown(3) => String::from("DEVELOPER_GIFT"),
+                    EntitlementKind::Unknown(4) => String::from("TEST_MODE_PURCHASE"),
+                    EntitlementKind::Unknown(5) => String::from("FREE_PURCHASE"),
+                    EntitlementKind::Unknown(6) => String::from("USER_GIFT"),
+                    EntitlementKind::Unknown(7) => String::from("PREMIUM_PURCHASE"),
+                    _ => String::from("Unknown"),
+                };
 
+                let sku_name = match sku {
+                    Some(sku) => sku.name.clone(),
+                    None => String::from("Unknown"),
+                };
+                format!(
+                    "{}: {}/{} \n {}",
+                    sku_name,
+                    e.starts_at.unwrap_or_default(),
+                    e.ends_at.unwrap_or_default(),
+                    type_name
+                )
+            });
+            fields.push((profile_localised.premium, string.collect::<String>(), true));
+        }
+    }
     // Create an embed with the user's profile information
     let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -196,11 +238,6 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }

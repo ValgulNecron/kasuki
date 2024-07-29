@@ -1,6 +1,7 @@
+use std::error::Error;
+
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// Represents the localized banner data.
@@ -35,7 +36,7 @@ pub struct BannerLocalised {
 pub async fn load_localization_banner(
     guild_id: String,
     db_type: String,
-) -> Result<BannerLocalised, AppError> {
+) -> Result<BannerLocalised, Box<dyn Error>> {
     let path = "json/message/user/banner.json";
     load_localization(guild_id, path, db_type).await
 }

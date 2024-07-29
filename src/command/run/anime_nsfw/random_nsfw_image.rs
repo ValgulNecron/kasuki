@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::CreateInteractionResponse::Defer;
@@ -5,7 +6,7 @@ use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessag
 
 use crate::command::run::anime::random_image::send_embed;
 use crate::config::Config;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
 
@@ -26,15 +27,15 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the type of image to fetch from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
-    let image_type = map.get(&String::from("image_type")).ok_or(AppError::new(
-        String::from("There is no option"),
-        ErrorType::Option,
-        ErrorResponseType::Followup,
-    ))?;
+    let image_type = map
+        .get(&String::from("image_type"))
+        .ok_or(ResponseError::Option(String::from(
+            "No image type specified",
+        )))?;
 
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -53,13 +54,7 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
     // Send the random NSFW image as a response to the command interaction
     send_embed(

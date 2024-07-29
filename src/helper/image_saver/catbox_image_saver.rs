@@ -1,8 +1,10 @@
-// Importing necessary libraries and modules
+use std::error::Error;
+
 use reqwest::multipart;
 use tracing::debug;
 
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+// Importing necessary libraries and modules
+use crate::helper::error_management::error_enum::UnknownResponseError;
 
 /// `upload_image_catbox` is an asynchronous function that uploads an image to catbox.moe.
 /// It takes a `filename` and `image_data` as parameters.
@@ -25,7 +27,7 @@ pub async fn upload_image_catbox(
     filename: String,
     image_data: Vec<u8>,
     token: String,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let form = multipart::Form::new()
         .text("reqtype", "fileupload")
         .text("userhash", token)
@@ -38,13 +40,12 @@ pub async fn upload_image_catbox(
 
     // Send the request
     let client = reqwest::Client::new();
-    let response = client.post(url).multipart(form).send().await.map_err(|e| {
-        AppError::new(
-            format!("Failed to upload image. {}", e),
-            ErrorType::WebRequest,
-            ErrorResponseType::Unknown,
-        )
-    })?;
+    let response = client
+        .post(url)
+        .multipart(form)
+        .send()
+        .await
+        .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
 
     debug!("Response status: {}", response.status());
     debug!("Response text: {:#?}", response.text().await);

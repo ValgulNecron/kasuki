@@ -10,7 +10,6 @@ use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::constant::DEFAULT_STRING;
-use crate::helper::error_management::error_enum::AppError;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::character::{
@@ -53,18 +52,29 @@ pub async fn autocomplete(
         search: Some(character_search.as_str()),
     };
     let operation = CharacterAutocomplete::build(var);
-    let data: Result<GraphQlResponse<CharacterAutocomplete>, AppError> =
-        make_request_anilist(operation, false, anilist_cache).await;
-    let data = match data {
-        Ok(data) => data,
-        Err(e) => {
-            tracing::error!(?e);
+    let data: GraphQlResponse<CharacterAutocomplete> =
+        match make_request_anilist(operation, false, anilist_cache).await {
+            Ok(data) => data,
+            Err(e) => {
+                tracing::debug!(?e);
+                return;
+            }
+        };
+    trace!(?data);
+    let mut choices = Vec::new();
+    let characters = match data.data {
+        Some(data) => match data.page {
+            Some(page) => match page.characters {
+                Some(characters) => characters,
+                None => return,
+            },
+            None => return,
+        },
+        None => {
+            tracing::debug!(?data.errors);
             return;
         }
     };
-    trace!(?data);
-    let mut choices = Vec::new();
-    let characters = data.data.unwrap().page.unwrap().characters.unwrap();
 
     for character in characters {
         let data = character.unwrap();

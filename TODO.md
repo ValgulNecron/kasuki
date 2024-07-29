@@ -32,17 +32,17 @@
     - [ ] get game info from different platform (ubi (api not found), steam, epic(api not found), ea(api not found),
       etc…)
       Get the currency and language from the server language setting.
-      - [X] Steam
-      - [ ] Epic
-      - [ ] Ubisoft
-      - [ ] EA
-      - [ ] GOG
-      - [ ] Xbox
-      - [ ] Playstation
+        - [X] Steam
+        - [ ] Epic
+        - [ ] Ubisoft
+        - [ ] EA
+        - [ ] GOG
+        - [ ] Xbox
+        - [ ] Playstation
     - [ ] get player stat
     - [ ] get free promotion notification
-      - [ ] Steam
-      - [ ] Epic
+        - [ ] Steam
+        - [ ] Epic
     - [ ] get game release notification
     - [ ] get game update notification
 
@@ -52,12 +52,8 @@
     - [X] Video translation.
     - [X] Ask a question and reply the response.
 
-- Music module: (Not sure if I will do this one. since it broke tos)
-    - [ ] Play music from YouTube.
+- Audio module: (Not sure if I will do this one. since it broke tos (in some case))
     - [ ] Play music from file upload.
-    - [ ] Play music from a link.
-    - [ ] Play music from a playlist.
-    - [ ] Play music from a search.
 
 - General module:
     - [X] Command to change the bot response language.
@@ -84,16 +80,16 @@
         - [x] Add a sqlite database.
         - [X] Add postgres database choices.
         - [ ] Rework the database to be more efficient.
-    - [X] Cache 
-      - [ ] Add redis for cache.
-      - [X] In memory cache.
+    - [X] Cache
+        - [ ] Add redis for cache.
+        - [X] In memory cache.
     - [X] Create a parser because some description uses html and not markdown.
-        - [ ] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases
+        - [X] Check [https://anilist.co/forum/thread/6125](https://anilist.co/forum/thread/6125) to be sure all cases
           are
-          supported
+          supported open issue here for markdown (https://github.com/ValgulNecron/markdown_converter)
     - [X] Figure out the necessary deps to work. Once found, change the dockerfile to use a debian base image to reduce
       size.
-    - [ ] Better error handling.
+    - [X] Better error handling.
     - [X] Doing something with error else than logging it.
     - [ ] Rename function and variable for better clarity.
     - [ ] Add docs to every public function.
@@ -102,16 +98,17 @@
     - [X] Updating to serenity 0.12.
     - [X] Support for command in dm.
     - [X] Make an anilist forum post.
-    - [ ] Rework the command registration to support all type of command.
+    - [X] Rework the command registration to support all type of command.
         - [X] Command
+        - [X] Guild Command
         - [X] Subcommand
         - [X] Subcommand group
         - [X] User command
-        - [ ] Message command
+        - [X] Message command (none exist but registration exist)
         - [X] User installed app.
 
 - Optimisation needed:
     - [ ] anilist_server list_user
 
 - Fix needed:
-  - [ ] steam game search
+    - [ ] steam game search

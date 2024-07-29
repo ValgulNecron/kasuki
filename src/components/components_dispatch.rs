@@ -1,11 +1,12 @@
+use std::error::Error;
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serenity::all::{ComponentInteraction, Context};
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::components::anilist::{list_all_activity, list_register_user};
-use crate::helper::error_management::error_enum::AppError;
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// Dispatches component interactions based on their custom ID.
 ///
@@ -30,7 +31,7 @@ pub async fn components_dispatching(
     component_interaction: ComponentInteraction,
     db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     match component_interaction.data.custom_id.as_str() {
         s if s.starts_with("user_") => {
             let user_id = s.split_at("_".len()).1;

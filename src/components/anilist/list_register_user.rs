@@ -1,15 +1,17 @@
+use std::error::Error;
+use std::sync::Arc;
+
+use moka::future::Cache;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, UserId,
 };
+use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::command::run::anilist_server::list_register_user::get_the_list;
 use crate::constant::MEMBER_LIST_LIMIT;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::UnknownResponseError;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
-use moka::future::Cache;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// Updates the user list in the server.
 ///
@@ -36,7 +38,7 @@ pub async fn update(
     prev_id: &str,
     db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     // Retrieve the guild ID from the component interaction
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -47,29 +49,26 @@ pub async fn update(
     let list_user_localised = load_localization_list_user(guild_id, db_type.clone()).await?;
 
     // Retrieve the guild ID from the component interaction
-    let guild_id = component_interaction.guild_id.ok_or(AppError::new(
-        String::from("There is no guild id"),
-        ErrorType::Option,
-        ErrorResponseType::None,
-    ))?;
+    let guild_id = component_interaction
+        .guild_id
+        .ok_or(UnknownResponseError::Option(String::from(
+            "Guild ID not found",
+        )))?;
 
     // Retrieve the guild with counts
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("There is no guild. {}", e),
-                ErrorType::Option,
-                ErrorResponseType::None,
-            )
-        })?;
+        .map_err(|e| UnknownResponseError::UserOrGuild(format!("{:#?}", e)))?;
 
     // Parse the user ID
     let id = if user_id == "0" {
         None
     } else {
-        Some(user_id.parse().unwrap())
+        match user_id.parse() {
+            Ok(id) => Some(id),
+            Err(_) => None,
+        }
     };
 
     // Get the list of users
@@ -97,11 +96,6 @@ pub async fn update(
     // Edit the message with the response
     let a = message.edit(&ctx.http, response).await;
     trace!("{:?}", a);
-    a.map_err(|e| {
-        AppError::new(
-            format!("Error while sending the component {}", e),
-            ErrorType::Component,
-            ErrorResponseType::None,
-        )
-    })
+    a.map_err(|e| UnknownResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }

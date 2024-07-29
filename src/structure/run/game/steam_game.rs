@@ -1,14 +1,16 @@
+use std::collections::HashMap;
+use std::error::Error;
+use std::sync::Arc;
+
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use std::collections::HashMap;
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::constant::LANG_MAP;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::UnknownResponseError;
 use crate::helper::get_guild_lang::get_guild_language;
 
 #[serde_as]
@@ -109,16 +111,15 @@ impl SteamGameWrapper {
         appid: u128,
         guild_id: String,
         db_type: String,
-    ) -> Result<SteamGameWrapper, AppError> {
+    ) -> Result<SteamGameWrapper, Box<dyn Error>> {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
             .build()
             .map_err(|e| {
-                AppError::new(
-                    format!("Failed to build the client. {}", e),
-                    ErrorType::WebRequest,
-                    ErrorResponseType::Unknown,
-                )
+                UnknownResponseError::WebRequest(format!(
+                    "Error when building the client. {:#?}",
+                    e.to_string()
+                ))
             })?;
         let lang = get_guild_language(guild_id, db_type).await;
         let local_lang = LANG_MAP.clone();
@@ -132,22 +133,25 @@ impl SteamGameWrapper {
 
         trace!("{}", url);
 
-        let response = client.get(&url).send().await.map_err(|e| {
-            AppError::new(
-                format!("Error when making the request. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Unknown,
-            )
-        })?;
-        let mut text = response.text().await.map_err(|e| {
-            AppError::new(
-                format!("Failed to get the text data. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Unknown,
-            )
-        })?;
+        let response = client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
+        let mut text = response
+            .text()
+            .await
+            .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
 
-        let re = Regex::new(r#""required_age":"(\d+)""#).unwrap();
+        let re = match Regex::new(r#""required_age":"(\d+)""#) {
+            Ok(r) => r,
+            Err(e) => {
+                return Err(Box::new(UnknownResponseError::WebRequest(format!(
+                    "{:#?}",
+                    e
+                ))));
+            }
+        };
 
         if let Some(cap) = re.captures(&text) {
             if let Some(number) = cap.get(1) {
@@ -160,14 +164,9 @@ impl SteamGameWrapper {
             }
         }
 
-        let game_wrapper: HashMap<String, SteamGameWrapper> = serde_json::from_str(text.as_str())
-            .map_err(|e| {
-            AppError::new(
-                format!("Failed to parse as json. {}", e),
-                ErrorType::WebRequest,
-                ErrorResponseType::Unknown,
-            )
-        })?;
+        let game_wrapper: HashMap<String, SteamGameWrapper> =
+            serde_json::from_str(text.as_str())
+                .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
 
         Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
     }
@@ -194,7 +193,7 @@ impl SteamGameWrapper {
         guild_id: String,
         db_type: String,
         apps: Arc<RwLock<HashMap<String, u128>>>,
-    ) -> Result<SteamGameWrapper, AppError> {
+    ) -> Result<SteamGameWrapper, Box<dyn Error>> {
         let guard = apps.read().await;
         let choices: Vec<(&String, &u128)> = guard.iter().collect();
 
@@ -203,11 +202,9 @@ impl SteamGameWrapper {
 
         let mut appid = &0u128;
         if results.is_empty() {
-            return Err(AppError::new(
-                "Game not found.".to_string(),
-                ErrorType::WebRequest,
-                ErrorResponseType::Unknown,
-            ));
+            return Err(Box::new(UnknownResponseError::Option(
+                "No game found".to_string(),
+            )));
         }
         for (name, _) in results {
             if appid == &0u128 {

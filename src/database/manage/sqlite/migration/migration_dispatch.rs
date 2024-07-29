@@ -1,6 +1,8 @@
+use std::error::Error;
+
 use crate::constant::SQLITE_DB_PATH;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum;
 
 /// Migrates the SQLite database.
 ///
@@ -15,7 +17,7 @@ use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, E
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
-pub async fn migrate_sqlite() -> Result<(), AppError> {
+pub async fn migrate_sqlite() -> Result<(), Box<dyn Error>> {
     add_image_to_activity_data().await?;
     add_new_member_to_module_activation().await?;
     add_new_member_to_global_kill_switch().await?;
@@ -23,6 +25,38 @@ pub async fn migrate_sqlite() -> Result<(), AppError> {
     add_anime_to_module_activation().await?;
     add_vn_to_global_kill_switch().await?;
     add_vn_to_module_activation().await?;
+    update_name_of_id_in_global_kill_switch().await?;
+    update_name_of_id_in_module_activation().await?;
+    Ok(())
+}
+
+async fn update_name_of_id_in_global_kill_switch() -> Result<(), Box<dyn Error>> {
+    // change the name of the row id to guild_id
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
+    sqlx::query("ALTER TABLE global_kill_switch RENAME COLUMN id TO guild_id")
+        .execute(&pool)
+        .await
+        .map_err(|e| {
+            error_enum::Error::Database(format!(
+                "Failed to update the name of the row id to guild_id. {:#?}",
+                e
+            ))
+        })?;
+    Ok(())
+}
+
+async fn update_name_of_id_in_module_activation() -> Result<(), Box<dyn Error>> {
+    // change the name of the row id to guild_id
+    let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
+    sqlx::query("ALTER TABLE module_activation RENAME COLUMN id TO guild_id")
+        .execute(&pool)
+        .await
+        .map_err(|e| {
+            error_enum::Error::Database(format!(
+                "Failed to update the name of the row id to guild_id. {:#?}",
+                e
+            ))
+        })?;
     Ok(())
 }
 
@@ -37,7 +71,7 @@ pub async fn migrate_sqlite() -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
-pub async fn add_image_to_activity_data() -> Result<(), AppError> {
+pub async fn add_image_to_activity_data() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "image" column exists in the "activity_data" table
@@ -47,11 +81,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
     .fetch_one(&pool)
     .await
     .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
+        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
     })?;
 
     // If the "image" column doesn't exist, add it
@@ -59,13 +89,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
         sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT")
             .execute(&pool)
             .await
-            .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
-            })?;
+            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
     }
 
     pool.close().await;
@@ -83,7 +107,7 @@ pub async fn add_image_to_activity_data() -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
-pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
+pub async fn add_new_member_to_module_activation() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "new_member" column exists in the "module_activation" table
@@ -93,11 +117,7 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
     .fetch_one(&pool)
     .await
     .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
+        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
     })?;
 
     // If the "new_member" column doesn't exist, add it
@@ -105,13 +125,7 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
         sqlx::query("ALTER TABLE module_activation ADD COLUMN new_member INTEGER")
             .execute(&pool)
             .await
-            .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
-            })?;
+            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
     }
 
     pool.close().await;
@@ -129,7 +143,7 @@ pub async fn add_new_member_to_module_activation() -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
-pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
+pub async fn add_new_member_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "new_member" column exists in the "global_kill_switch" table
@@ -139,11 +153,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
     .fetch_one(&pool)
     .await
     .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
+        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
     })?;
 
     // If the "new_member" column doesn't exist, add it
@@ -151,13 +161,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
         sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN new_member INTEGER")
             .execute(&pool)
             .await
-            .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
-            })?;
+            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
     }
 
     pool.close().await;
@@ -175,7 +179,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
-pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
+pub async fn add_anime_to_module_activation() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "anime" column exists in the "module_activation" table
@@ -185,11 +189,7 @@ pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
     .fetch_one(&pool)
     .await
     .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
+        error_enum::Error::Database(format!("Failed to check if the column exists. {:#?}", e))
     })?;
 
     // If the "anime" column doesn't exist, add it
@@ -198,11 +198,7 @@ pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
             .execute(&pool)
             .await
             .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
+                error_enum::Error::Database(format!("Failed to add the column. {:#?}", e))
             })?;
     }
 
@@ -221,7 +217,7 @@ pub async fn add_anime_to_module_activation() -> Result<(), AppError> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
-pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
+pub async fn add_anime_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "anime" column exists in the "global_kill_switch" table
@@ -231,11 +227,7 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
     .fetch_one(&pool)
     .await
     .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
+        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
     })?;
 
     // If the "anime" column doesn't exist, add it
@@ -243,20 +235,14 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), AppError> {
         sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN anime INTEGER")
             .execute(&pool)
             .await
-            .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
-            })?;
+            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
     }
 
     pool.close().await;
     Ok(())
 }
 
-pub async fn add_vn_to_global_kill_switch() -> Result<(), AppError> {
+pub async fn add_vn_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "vn" column exists in the "global_kill_switch" table
@@ -266,11 +252,7 @@ pub async fn add_vn_to_global_kill_switch() -> Result<(), AppError> {
     .fetch_one(&pool)
     .await
     .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
+        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
     })?;
 
     // If the "vn" column doesn't exist, add it
@@ -278,20 +260,14 @@ pub async fn add_vn_to_global_kill_switch() -> Result<(), AppError> {
         sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN vn INTEGER")
             .execute(&pool)
             .await
-            .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
-            })?;
+            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
     }
 
     pool.close().await;
     Ok(())
 }
 
-pub async fn add_vn_to_module_activation() -> Result<(), AppError> {
+pub async fn add_vn_to_module_activation() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
     // Check if the "vn" column exists in the "module_activation" table
@@ -301,11 +277,7 @@ pub async fn add_vn_to_module_activation() -> Result<(), AppError> {
     .fetch_one(&pool)
     .await
     .map_err(|e| {
-        AppError::new(
-            format!("Failed to check existence of column. {}", e),
-            ErrorType::Database,
-            ErrorResponseType::None,
-        )
+        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
     })?;
 
     // If the "vn" column doesn't exist, add it
@@ -313,13 +285,7 @@ pub async fn add_vn_to_module_activation() -> Result<(), AppError> {
         sqlx::query("ALTER TABLE module_activation ADD COLUMN vn INTEGER")
             .execute(&pool)
             .await
-            .map_err(|e| {
-                AppError::new(
-                    format!("Failed to add column to the table. {}", e),
-                    ErrorType::Database,
-                    ErrorResponseType::None,
-                )
-            })?;
+            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
     }
 
     pool.close().await;

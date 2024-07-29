@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{CommandType, CreateCommand, Http};
@@ -8,7 +9,6 @@ use crate::command_register::registration_function::common::{
     get_permission, get_subcommand_option, get_vec, get_vec_installation_context,
     get_vec_integration_context,
 };
-use crate::helper::error_management::error_enum::AppError;
 
 /// This asynchronous function creates subcommands in Discord by reading from a JSON file and sending them to the Discord API.
 ///
@@ -49,7 +49,7 @@ pub async fn creates_subcommands(http: &Arc<Http>) {
 /// # Returns
 ///
 /// A `Result` containing either a vector of `SubCommand` structs if the subcommands are successfully read, or an `AppError` if an error occurs.
-pub fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, AppError> {
+pub fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, Box<dyn Error>> {
     let commands: Vec<SubCommand> = get_vec(path)?;
     if commands.is_empty() {
         trace!("No commands found in the directory: {:?}", path);

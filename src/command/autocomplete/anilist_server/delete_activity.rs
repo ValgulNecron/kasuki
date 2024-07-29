@@ -50,9 +50,13 @@ pub async fn autocomplete(
         None => String::from("0"),
     };
 
-    let activities = get_data_all_activity_by_server(&guild_id, db_type)
-        .await
-        .unwrap();
+    let activities = match get_data_all_activity_by_server(&guild_id, db_type).await {
+        Ok(data) => data,
+        Err(e) => {
+            tracing::debug!(?e);
+            return;
+        }
+    };
     let activity: Vec<String> = activities
         .clone()
         .into_iter()

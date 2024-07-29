@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{
@@ -6,7 +7,7 @@ use serenity::all::{
 
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::server::guild::load_localization_guild;
 
 /// Executes the command to display the guild's information.
@@ -26,7 +27,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -38,23 +39,15 @@ pub async fn run(
     let guild_localised = load_localization_guild(guild_id, db_type).await?;
 
     // Retrieve the guild ID from the command interaction or return an error if it does not exist
-    let guild_id = command_interaction.guild_id.ok_or(AppError::new(
-        String::from("There is no option"),
-        ErrorType::Option,
-        ErrorResponseType::Message,
-    ))?;
+    let guild_id = command_interaction
+        .guild_id
+        .ok_or(ResponseError::Option(String::from("No guild ID")))?;
 
     // Retrieve the guild's information or return an error if it could not be retrieved
     let guild = guild_id
         .to_partial_guild_with_counts(&ctx.http)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Could not get the guild. {}", e),
-                ErrorType::Option,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::UserOrGuild(format!("{:#?}", e)))?;
 
     // Retrieve various details about the guild
     let channels = guild.channels(&ctx.http).await.unwrap_or_default().len();
@@ -137,11 +130,6 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    Ok(())
 }

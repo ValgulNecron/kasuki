@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{CommandType, CreateCommand, Http};
@@ -7,7 +8,6 @@ use crate::command_register::command_struct::command::Command;
 use crate::command_register::registration_function::common::{
     get_option, get_permission, get_vec, get_vec_installation_context, get_vec_integration_context,
 };
-use crate::helper::error_management::error_enum::AppError;
 
 /// This asynchronous function creates commands by reading from a JSON file and sending them to the Discord API.
 ///
@@ -48,7 +48,7 @@ pub async fn creates_commands(http: &Arc<Http>) {
 /// # Returns
 ///
 /// A `Result` containing either a vector of `Command` structs if the commands are successfully read, or an `AppError` if an error occurs.
-pub fn get_commands(path: &str) -> Result<Vec<Command>, AppError> {
+pub fn get_commands(path: &str) -> Result<Vec<Command>, Box<dyn Error>> {
     let commands: Vec<Command> = get_vec(path)?;
     if commands.is_empty() {
         trace!("No commands found in the directory: {:?}", path);

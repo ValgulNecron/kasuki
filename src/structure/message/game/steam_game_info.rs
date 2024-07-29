@@ -1,8 +1,9 @@
 // Importing necessary libraries and modules
 
+use std::error::Error;
+
 use serde::{Deserialize, Serialize};
 
-use crate::helper::error_management::error_enum::AppError;
 use crate::structure::message::common::load_localization;
 
 /// `SteamGameInfoLocalised` is a struct that represents a Steam game's localized data.
@@ -48,7 +49,7 @@ pub struct SteamGameInfoLocalised {
 pub async fn load_localization_steam_game_info(
     guild_id: String,
     db_type: String,
-) -> Result<SteamGameInfoLocalised, AppError> {
+) -> Result<SteamGameInfoLocalised, Box<dyn Error>> {
     let path = "json/message/game/steam_game_info.json";
     load_localization(guild_id, path, db_type).await
 }

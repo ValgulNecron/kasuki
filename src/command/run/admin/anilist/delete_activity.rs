@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -9,13 +10,11 @@ use serenity::all::{
 use tokio::sync::RwLock;
 use tracing::trace;
 
-use crate::command::run::admin::anilist::add_activity::{
-    get_minimal_anime_by_id, get_minimal_anime_by_search, get_name,
-};
+use crate::command::run::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
 use crate::config::Config;
 use crate::database::manage::dispatcher::data_dispatch::remove_data_activity_status;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{AppError, ErrorResponseType, ErrorType};
+use crate::helper::create_default_embed::get_anilist_anime_embed;
+use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
 
@@ -49,7 +48,7 @@ pub async fn run(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), AppError> {
+) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand_group(command_interaction);
     let anime = map
@@ -69,28 +68,17 @@ pub async fn run(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Message,
-            )
-        })?;
+        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
     trace!(anime);
-    let media = if anime.parse::<i32>().is_ok() {
-        get_minimal_anime_by_id(anime.parse::<i32>().unwrap(), anilist_cache).await?
-    } else {
-        get_minimal_anime_by_search(anime.as_str(), anilist_cache).await?
-    };
+    let media = get_minimal_anime_media(anime, anilist_cache).await?;
 
     let anime_id = media.id;
     remove_activity(guild_id.as_str(), &anime_id, db_type).await?;
 
     let title = media.title.unwrap();
     let anime_name = get_name(title);
-    let builder_embed = get_default_embed(None)
+    let builder_embed = get_anilist_anime_embed(None, media.id)
         .title(&delete_activity_localised_text.success)
-        .url(format!("https://anilist.co/anime/{}", media.id))
         .description(
             delete_activity_localised_text
                 .success_desc
@@ -102,13 +90,7 @@ pub async fn run(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await
-        .map_err(|e| {
-            AppError::new(
-                format!("Error while sending the command {}", e),
-                ErrorType::Command,
-                ErrorResponseType::Followup,
-            )
-        })?;
+        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
     Ok(())
 }
 
@@ -122,6 +104,11 @@ pub async fn run(
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
-async fn remove_activity(guild_id: &str, anime_id: &i32, db_type: String) -> Result<(), AppError> {
-    remove_data_activity_status(guild_id.to_owned(), anime_id.to_string(), db_type).await
+async fn remove_activity(
+    guild_id: &str,
+    anime_id: &i32,
+    db_type: String,
+) -> Result<(), Box<dyn Error>> {
+    remove_data_activity_status(guild_id.to_owned(), anime_id.to_string(), db_type).await?;
+    Ok(())
 }
