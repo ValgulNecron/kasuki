@@ -315,7 +315,10 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
                 }
             }
         } else {
-            let user: UserId = members_temp_out.last().unwrap().user.id;
+            let user: UserId = match members_temp_out.last() {
+                Some(member) => member.id,
+                None => break,
+            };
             match guild.members(&ctx_clone.http, Some(1000), Some(user)).await {
                 Ok(members) => members,
                 Err(e) => {

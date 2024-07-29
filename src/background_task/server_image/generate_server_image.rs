@@ -138,7 +138,9 @@ pub async fn generate_server_image(
                     Some(color) => color,
                     None => return,
                 };
-                if let Ok(mut vec_image) = vec_image_clone.lock() { vec_image.push((x, y, closest_color.image)) }
+                if let Ok(mut vec_image) = vec_image_clone.lock() {
+                    vec_image.push((x, y, closest_color.image))
+                }
             });
             handles.push(handle);
             if handles.len() >= THREAD_POOL_SIZE {

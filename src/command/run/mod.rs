@@ -12,3 +12,4 @@ pub mod server;
 pub mod steam;
 pub mod user;
 pub mod vn;
+mod audio;

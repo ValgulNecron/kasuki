@@ -30,6 +30,8 @@ mod new_member;
 mod removed_member;
 mod struct_shard_manager;
 mod structure;
+mod audio;
+
 #[tokio::main]
 /// The main function where the execution of the bot starts.
 /// It initializes the logger, the SQL database, and the bot client.

@@ -45,7 +45,9 @@ async fn admin_autocomplete(
         .first()
         .unwrap()
         .name
-        .as_str() == "anilist" {
+        .as_str()
+        == "anilist"
+    {
         anilist_admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_type).await
     }
 }
@@ -127,5 +129,9 @@ async fn steam_autocomplete(
         .first()
         .unwrap()
         .name
-        .as_str() == "game" { steam_game_info::autocomplete(ctx, autocomplete_interaction, apps).await }
+        .as_str()
+        == "game"
+    {
+        steam_game_info::autocomplete(ctx, autocomplete_interaction, apps).await
+    }
 }

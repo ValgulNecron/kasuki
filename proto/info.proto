@@ -71,6 +71,36 @@ message BotInfoData {
     BotSystemUsage usage = 2;
     BotInfo info = 3;
     OwnerInfo owner_info = 4;
+    GuildInfo guild_info = 5;
+    UserInfo user_info = 6;
+}
+
+message GuildInfo {
+    int64 guild_count = 1;
+    repeated Guild guilds = 2;
+}
+
+message Guild {
+    string id = 1;
+    string name = 2;
+    string owner_id = 3;
+    optional string icon = 4;
+    optional string banner = 5;
+    optional string description = 6;
+}
+
+message UserInfo {
+    int64 user_count = 1;
+    repeated User users = 2;
+}
+
+message User {
+    string username = 1;
+    string id = 2;
+    string profile_picture = 3;
+    bool is_bot = 4;
+    repeated string guilds = 5;
+    optional string banner = 10;
 }
 
 message SystemInfoData {

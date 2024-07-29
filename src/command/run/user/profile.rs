@@ -1,7 +1,10 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use serenity::all::{CommandInteraction, Context, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, EntitlementKind, Member, Timestamp, User};
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, EntitlementKind, Member, Timestamp, User,
+};
 
 use crate::config::Config;
 use crate::constant::COLOR;
@@ -173,7 +176,6 @@ pub async fn send_embed(
         .get_entitlements(Some(user.id), None, None, None, None, None, Some(true))
         .await;
     if user_premium.is_ok() && skus.is_ok() {
-
         let skus = skus.unwrap().clone();
         let data = user_premium.unwrap();
         if !data.is_empty() {
@@ -182,14 +184,16 @@ pub async fn send_embed(
                 let sku = skus.iter().find(|e2| e2.id == sku_id);
                 let e_type = e.kind.clone();
                 let type_name = match e_type {
-                    EntitlementKind::ApplicationSubscription => String::from("APPLICATION_SUBSCRIPTION"),
-                    EntitlementKind::Unknown(n) if n == 1 => String::from("PURCHASE"),
-                    EntitlementKind::Unknown(n) if n == 2 => String::from("PREMIUM_SUBSCRIPTION"),
-                    EntitlementKind::Unknown(n) if n == 3 => String::from("DEVELOPER_GIFT"),
-                    EntitlementKind::Unknown(n) if n == 4 => String::from("TEST_MODE_PURCHASE"),
-                    EntitlementKind::Unknown(n) if n == 5 => String::from("FREE_PURCHASE"),
-                    EntitlementKind::Unknown(n) if n == 6 => String::from("USER_GIFT"),
-                    EntitlementKind::Unknown(n) if n == 7 => String::from("PREMIUM_PURCHASE"),
+                    EntitlementKind::ApplicationSubscription => {
+                        String::from("APPLICATION_SUBSCRIPTION")
+                    }
+                    EntitlementKind::Unknown(1) => String::from("PURCHASE"),
+                    EntitlementKind::Unknown(2) => String::from("PREMIUM_SUBSCRIPTION"),
+                    EntitlementKind::Unknown(3) => String::from("DEVELOPER_GIFT"),
+                    EntitlementKind::Unknown(4) => String::from("TEST_MODE_PURCHASE"),
+                    EntitlementKind::Unknown(5) => String::from("FREE_PURCHASE"),
+                    EntitlementKind::Unknown(6) => String::from("USER_GIFT"),
+                    EntitlementKind::Unknown(7) => String::from("PREMIUM_PURCHASE"),
                     _ => String::from("Unknown"),
                 };
 
@@ -201,8 +205,8 @@ pub async fn send_embed(
                     "{}: {}/{} \n {}",
                     sku_name,
                     e.starts_at.unwrap_or_default(),
-                    e.ends_at.unwrap_or_default()
-                    , type_name
+                    e.ends_at.unwrap_or_default(),
+                    type_name
                 )
             });
             fields.push((profile_localised.premium, string.collect::<String>(), true));

@@ -181,7 +181,9 @@ async fn send_specific_activity(
         .map_err(|e| error_enum::Error::Webhook(format!("{:#?}", e)))?;
 
     tokio::spawn(async move {
-        if let Err(e) = update_info(row2, guild_id, anilist_cache.clone(), db_type).await { error!("{}", e) }
+        if let Err(e) = update_info(row2, guild_id, anilist_cache.clone(), db_type).await {
+            error!("{}", e)
+        }
     });
     Ok(())
 }

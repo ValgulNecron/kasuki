@@ -54,10 +54,14 @@ pub async fn run(
     let localization = load_localization_give_premium_sub(
         command_interaction.guild_id.unwrap().to_string(),
         config.bot.config.db_type.clone(),
-    ).await?;
+    )
+    .await?;
     let embed = get_default_embed(None).description(
-        localization.success.replace("{user}", &user.to_string())
-            .replace("{subscription}", &subscription), );
+        localization
+            .success
+            .replace("{user}", &user.to_string())
+            .replace("{subscription}", &subscription),
+    );
     let builder_message = CreateInteractionResponseMessage::new().embed(embed);
 
     let builder = CreateInteractionResponse::Message(builder_message);

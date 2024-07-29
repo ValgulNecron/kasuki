@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serenity::all::{Cache, Http, ShardManager};
+use serenity::all::{Cache, Http, Member, ShardManager};
 use sysinfo::System;
 use tokio::sync::RwLock;
 use tonic::{Request, Response, Status};
@@ -12,8 +12,8 @@ use crate::custom_serenity_impl::{InternalMembershipState, InternalTeamMemberRol
 use crate::event_handler::{BotData, RootUsage};
 use crate::grpc_server::service::info::proto::info_server::{Info, InfoServer};
 use crate::grpc_server::service::info::proto::{
-    BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, InfoRequest, InfoResponse,
-    OwnerInfo, ShardStats, SystemInfoData, TeamMember,
+    BotInfo, BotInfoData, BotProfile, BotStat, BotSystemUsage, Guild, GuildInfo, InfoRequest,
+    InfoResponse, OwnerInfo, ShardStats, SystemInfoData, TeamMember, User, UserInfo,
 };
 
 // Proto module contains the protobuf definitions for the shard service
@@ -205,12 +205,105 @@ impl Info for InfoService {
             _ => None,
         };
         trace!("Owner info: {:?}", bot_owner);
+        let guild_count = self.cache.guild_count() as i64;
+        let mut guilds = Vec::new();
+        let mut members: Vec<Member> = Vec::new();
+        for guild in self.cache.guilds() {
+            let real_guild = match guild.to_partial_guild_with_counts(&self.http).await {
+                Ok(guild) => guild,
+                _ => continue,
+            };
+
+            let id = real_guild.id.clone().to_string();
+            let name = real_guild.name.clone();
+            let owner_id = real_guild.owner_id.clone().to_string();
+            let icon = real_guild.icon_url();
+            let banner = real_guild.banner_url();
+            let description = real_guild.description.clone();
+            let mut members_temp = real_guild
+                .members(&self.http, Some(1000), None)
+                .await
+                .unwrap_or_default();
+            members.append(&mut members_temp.clone());
+            while members_temp.len() > 1000 {
+                members_temp = real_guild
+                    .members(
+                        &self.http,
+                        Some(1000),
+                        Some(members_temp.last().unwrap().user.id),
+                    )
+                    .await
+                    .unwrap_or_default();
+                members.append(&mut members_temp.clone());
+            }
+            let guild = Guild {
+                id,
+                name,
+                owner_id,
+                icon,
+                banner,
+                description,
+            };
+            guilds.push(guild);
+        }
+        let guild_info = Some(GuildInfo {
+            guild_count,
+            guilds,
+        });
+
+        // removed all duplicate members that have the same user id
+        members.sort_by(|a, b| a.user.id.cmp(&b.user.id));
+        let user_count = self.cache.user_count() as i64;
+        let mut users = Vec::new();
+        for member in members {
+            let user = match member.user.id.to_user(&self.http).await {
+                Ok(user) => user,
+                _ => continue,
+            };
+            let id = user.id.clone().to_string();
+            let username = user.name.clone();
+            let profile_picture = user.face();
+            let banner = user.banner_url();
+            let is_bot = user.bot;
+            let mut guilds = vec![member.guild_id.to_string()];
+            let mut flags = user.flags;
+            let mut user_flags = Vec::new();
+            // If there are, iterate over the flags and add them to a vector
+            for (flag, _) in flags.iter_names() {
+                user_flags.push(flag)
+            }
+            let mut user = User {
+                username,
+                id,
+                profile_picture,
+                is_bot,
+                guilds: guilds.clone(),
+                banner,
+            };
+            // check if a User with the same id already exists and if so get the index
+            let contain = users.iter().any(|u: &User| u.id == user.id);
+            if contain {
+                let index = users.iter().position(|u| u.id == user.id).unwrap();
+                let temps = users.clone();
+                let mut user2 = temps.get(index).unwrap();
+                users.remove(index);
+                user2.guilds.clone().append(&mut guilds);
+                trace!(?user);
+                trace!(?user2);
+                user = user2.clone();
+                trace!(?user);
+            }
+            users.push(user);
+        }
+        let user_info = Some(UserInfo { user_count, users });
 
         let bot_info = BotInfoData {
             stat,
             usage,
             info,
             owner_info,
+            guild_info,
+            user_info,
         };
 
         // system info
