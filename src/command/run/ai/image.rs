@@ -2,6 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use prost::bytes::Bytes;
+use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -10,7 +11,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use tracing::{info, trace};
+use tracing::{error, info, trace};
 use uuid::Uuid;
 
 use crate::config::Config;
@@ -20,6 +21,7 @@ use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand::{
     get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
+use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
 
 /// This module contains the implementation of the `run` function for handling AI image generation.
@@ -183,8 +185,13 @@ pub async fn run(
         .await
         .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?;
     trace!(?res);
-
-    let bytes = get_image_from_response(res).await?;
+    let guild_id = match command_interaction.guild_id {
+        Some(guild_id) => guild_id.to_string(),
+        None => String::from("0"),
+    };
+    let bytes = get_image_from_response(res,config.image.save_image.clone(),
+                                        config.image.save_server.clone(),
+                                        config.image.token.clone(),guild_id).await?;
 
     if n == 1 {
         image_with_n_equal_1(
@@ -193,6 +200,9 @@ pub async fn run(
             command_interaction,
             ctx,
             bytes[0].clone(),
+            config.image.save_image.clone(),
+            config.image.save_server.clone(),
+            config.image.token.clone(),
         )
         .await?
     } else {
@@ -208,11 +218,23 @@ async fn image_with_n_equal_1(
     command_interaction: &CommandInteraction,
     ctx: &Context,
     bytes: Bytes,
+    saver_server: String,
+    token: Option<String>,
+    save_type: Option<String>,
 ) -> Result<(), Box<dyn Error>> {
     let builder_embed = get_default_embed(None)
         .image(format!("attachment://{}", &filename))
         .title(image_localised.title);
-
+    let guild_id = match command_interaction.guild_id {
+        Some(guild_id) => guild_id.to_string(),
+        None => String::from("0"),
+    };
+    let token = token.unwrap_or_default();
+    let saver = save_type.unwrap_or_default();
+    match image_saver(guild_id,filename.clone(), bytes.clone().encode_to_vec(), saver_server, token, saver).await {
+        Ok(_) => (),
+        Err(e) => error!("Error saving image: {}", e),
+    }
     let attachment = CreateAttachment::bytes(bytes.clone(), &filename);
 
     let builder_message = CreateInteractionResponseFollowup::new()
@@ -253,7 +275,12 @@ async fn image_with_n_greater_than_1(
     Ok(())
 }
 
-async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, Box<dyn Error>> {
+async fn get_image_from_response(json: Value,saver_server: String,
+                                 token: Option<String>,
+                                 save_type: Option<String>,    guild_id: String,
+) -> Result<Vec<Bytes>, Box<dyn Error>> {
+    let token = token.unwrap_or_default();
+    let saver = save_type.unwrap_or_default();
     let mut bytes = Vec::new();
     let root: Root = match serde_json::from_value(json.clone()) {
         Ok(root) => root,
@@ -273,7 +300,7 @@ async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, Box<dyn Erro
     };
     let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();
     trace!("{:?}", urls);
-    for url in urls {
+    for (i,url) in urls.iter().enumerate() {
         let client = reqwest::Client::new();
         let res = client
             .get(url)
@@ -286,6 +313,11 @@ async fn get_image_from_response(json: Value) -> Result<Vec<Bytes>, Box<dyn Erro
                 return Err(Box::new(FollowupError::Byte(format!("{:#?}", e))));
             }
         };
+        let filename = format!("ai_{}_{}.png", i, Uuid::new_v4());
+        match image_saver(guild_id.clone(),filename.clone(), body.clone().encode_to_vec(), saver_server.clone(), token.clone(), saver.clone()).await {
+            Ok(_) => (),
+            Err(e) => error!("Error saving image: {}", e),
+        }
         bytes.push(body);
     }
     Ok(bytes)
