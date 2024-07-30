@@ -8,7 +8,7 @@ use tokio::sync::RwLock;
 use tracing::{error, info};
 
 use crate::config::Config;
-use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
+use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, ONE_HOUR, TIME_BETWEEN_CACHE_UPDATE};
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
@@ -138,8 +138,13 @@ async fn main() {
     // The client is built with an event handler of type `Handler`.
     // If the client creation fails, log the error and exit the process.
     let discord_token = discord_token.as_str();
+    use serenity::cache::Settings as CacheSettings;
+
+    let mut settings = CacheSettings::default();
+    settings.time_to_live = Duration::from_secs(4 * ONE_HOUR);
+
     let mut client = Client::builder(discord_token, gateway_intent)
-        .event_handler(handler)
+        .event_handler(handler).cache_settings(settings)
         .await
         .unwrap_or_else(|e| {
             error!("Error while creating client: {}", e);

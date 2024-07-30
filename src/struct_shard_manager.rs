@@ -1,6 +1,5 @@
 use std::sync::Arc;
-
-use serenity::all::ShardManager;
+use serenity::gateway::ShardManager;
 use serenity::prelude::TypeMapKey;
 
 pub struct ShardManagerContainer;

@@ -87,3 +87,10 @@ pub static BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_comm
 pub const LIBRARY: &str = "serenity";
 pub const MAX_FREE_AI_IMAGES: usize = 5;
 pub const PAID_MULTIPLIER: f64 = 4.0;
+
+pub const ONE_MINUTE: u64 = 60;
+pub const ONE_HOUR: u64 = 60 * 60;
+pub const ONE_DAY: u64 = 24 * ONE_HOUR;
+pub const ONE_WEEK: u64 = 7 * ONE_DAY;
+pub const ONE_MONTH: u64 = 30 * ONE_DAY;
+pub const ONE_YEAR: u64 = 365 * ONE_DAY;

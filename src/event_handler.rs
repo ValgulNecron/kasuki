@@ -295,7 +295,13 @@ impl EventHandler for Handler {
         // Iterates over each guild the bot is in
         for guild in ctx.cache.guilds() {
             // Retrieves partial guild information
-            let partial_guild = guild.to_partial_guild(&ctx.http).await.unwrap();
+            let partial_guild = match guild.to_partial_guild(&ctx.http).await {
+                Ok(guild) => guild,
+                Err(e) => {
+                    error!("Failed to get the guild. {}", e);
+                    continue;
+                }
+            };
             // Logs the guild name and ID
             debug!(
                 "guild name {} (guild id: {})",

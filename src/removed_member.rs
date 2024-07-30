@@ -1,5 +1,6 @@
 use image::GenericImage;
-use serenity::all::{Context, GuildId, User};
+use serenity::all::{GuildId, User};
+use serenity::client::Context;
 use text_to_png::TextRenderer;
 use tracing::error;
 
