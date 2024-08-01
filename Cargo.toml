@@ -35,7 +35,7 @@ tracing-appender = "0.2.3"
 tonic = { version = "0.12.1", features = ["tls"] }
 prost = "0.13.1"
 tonic-reflection = "0.12.1"
-sysinfo = "0.30.13"
+sysinfo = "0.31.0"
 rayon = "1.10.0"
 os_info = "3.8.2"
 rcgen = "0.13.1"
