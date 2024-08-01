@@ -1,0 +1,5 @@
+array_width = 80
+attr_fn_like_width = 80
+blank_lines_lower_bound = 1
+brace_style = "PreferSameLine"
+condense_wildcard_suffixes = true

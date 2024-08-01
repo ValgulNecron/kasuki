@@ -18,6 +18,7 @@ use crate::command::run::anilist_user::{
 };
 use crate::command::run::anime::random_image;
 use crate::command::run::anime_nsfw::random_nsfw_image;
+use crate::command::run::audio::play;
 use crate::command::run::bot::{credit, info, ping};
 use crate::command::run::management::{give_premium_sub, kill_switch, remove_test_sub};
 use crate::command::run::server::{
@@ -169,6 +170,17 @@ pub async fn command_dispatching(
         }
         "vn" => {
             vn(
+                ctx,
+                command_interaction,
+                command_name,
+                full_command_name,
+                self_handler,
+            )
+            .await?
+        }
+
+        "audio" => {
+            audio(
                 ctx,
                 command_interaction,
                 command_name,
@@ -471,6 +483,44 @@ async fn ai(
         "translation" => translation::run(ctx, command_interaction, config).await,
         "question" => question::run(ctx, command_interaction, config).await,
         // If the command name does not match any of the specified commands, return an error
+        _ => {
+            return Err(Box::new(ResponseError::Option(String::from(
+                "Unknown command",
+            ))))
+        }
+    };
+    return_data?;
+
+    self_handler
+        .increment_command_use_per_command(
+            full_command_name,
+            command_interaction.user.id.to_string(),
+            command_interaction.user.name.to_string(),
+        )
+        .await;
+    Ok(())
+}
+
+async fn audio(
+    ctx: &Context,
+    command_interaction: &CommandInteraction,
+    command_name: &str,
+    full_command_name: String,
+    self_handler: &Handler,
+) -> Result<(), Box<dyn Error>> {
+    let config = self_handler.bot_data.config.clone();
+    let db_type = config.bot.config.db_type.clone();
+    // Define the error for when the AI module is off
+    let audio_module_error = ResponseError::Option(String::from(
+        "Audio module is not activated. Please enable it first.",
+    ));
+    // Retrieve the guild ID from the command interaction
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => "0".to_string(),
+    };
+    let return_data = match command_name {
+        "play" => play::run(ctx, command_interaction, config).await,
         _ => {
             return Err(Box::new(ResponseError::Option(String::from(
                 "Unknown command",

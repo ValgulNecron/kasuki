@@ -8,8 +8,8 @@ use serenity::all::{
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
-use crate::struct_shard_manager::ShardManagerContainer;
 use crate::structure::message::bot::ping::load_localization_ping;
+use crate::type_map_key::ShardManagerContainer;
 
 /// Executes the command to display the bot's ping.
 ///

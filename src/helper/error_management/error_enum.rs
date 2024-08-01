@@ -40,6 +40,8 @@ pub enum ResponseError {
     Json(String),
     #[error("The media is adult and the channel is not adult only")]
     AdultMedia,
+    #[error("Error with audio: {0}")]
+    Audio(String),
 }
 
 #[derive(Debug, Error, PartialEq, Clone)]
@@ -64,6 +66,8 @@ pub enum FollowupError {
     Json(String),
     #[error("Error with getting a full user or guild: {0}")]
     UserOrGuild(String),
+    #[error("Error with audio: {0}")]
+    Audio(String),
 }
 
 #[derive(Debug, Error, PartialEq, Clone)]

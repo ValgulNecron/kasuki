@@ -318,10 +318,10 @@ impl Info for InfoService {
         );
         let system_total_memory = format!("{}Gb", sys.total_memory() / 1024 / 1024 / 1024);
         let system_used_memory = format!("{}Gb", sys.used_memory() / 1024 / 1024 / 1024);
-        let system_cpu_usage = format!("{}%", sys.global_cpu_info().cpu_usage());
-        let system_cpu_name = sys.global_cpu_info().name().to_string();
-        let system_cpu_brand = sys.global_cpu_info().brand().to_string();
-        let system_cpu_frequency = sys.global_cpu_info().frequency().to_string();
+        let system_cpu_usage = format!("{}%", sys.global_cpu_usage());
+        let system_cpu_name = sys.cpus()[0].name().to_string();
+        let system_cpu_brand = sys.cpus()[0].brand().to_string();
+        let system_cpu_frequency = sys.cpus()[0].frequency().to_string();
         let system_cpu_count = system_cpu_count.to_string();
         let sys_info = SystemInfoData {
             os,

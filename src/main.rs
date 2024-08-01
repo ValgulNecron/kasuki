@@ -1,19 +1,22 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use moka::future::Cache;
-use serenity::all::{GatewayIntents, ShardManager};
-use serenity::Client;
-use tokio::sync::RwLock;
-use tracing::{error, info};
-
 use crate::config::Config;
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, ONE_HOUR, TIME_BETWEEN_CACHE_UPDATE};
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
-use crate::struct_shard_manager::ShardManagerContainer;
+use crate::type_map_key::ShardManagerContainer;
+use moka::future::Cache;
+use serenity::all::{GatewayIntents, ShardManager};
+use serenity::cache::Settings as CacheSettings;
+use serenity::Client;
+use songbird::driver::DecodeMode;
+use songbird::SerenityInit;
+use tokio::sync::RwLock;
+use tracing::{error, info};
 
+mod audio;
 mod background_task;
 mod command;
 mod command_register;
@@ -28,9 +31,8 @@ mod helper;
 mod logger;
 mod new_member;
 mod removed_member;
-mod struct_shard_manager;
 mod structure;
-mod audio;
+mod type_map_key;
 
 #[tokio::main]
 /// The main function where the execution of the bot starts.
@@ -120,7 +122,8 @@ async fn main() {
     let handler = Handler { bot_data };
 
     // Get all the non-privileged intent.
-    let gateway_intent_non_privileged = GatewayIntents::non_privileged();
+    let gateway_intent_non_privileged =
+        GatewayIntents::non_privileged() | GatewayIntents::GUILD_VOICE_STATES;
     // Get the needed privileged intent.
     let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
         // | GatewayIntents::GUILD_PRESENCES
@@ -138,13 +141,15 @@ async fn main() {
     // The client is built with an event handler of type `Handler`.
     // If the client creation fails, log the error and exit the process.
     let discord_token = discord_token.as_str();
-    use serenity::cache::Settings as CacheSettings;
 
     let mut settings = CacheSettings::default();
     settings.time_to_live = Duration::from_secs(4 * ONE_HOUR);
+    let songbird_config = songbird::Config::default().decode_mode(DecodeMode::Decode);
 
     let mut client = Client::builder(discord_token, gateway_intent)
-        .event_handler(handler).cache_settings(settings)
+        .event_handler(handler)
+        .cache_settings(settings)
+        .register_songbird_from_config(songbird_config)
         .await
         .unwrap_or_else(|e| {
             error!("Error while creating client: {}", e);

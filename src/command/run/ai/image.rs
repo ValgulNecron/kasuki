@@ -189,9 +189,14 @@ pub async fn run(
         Some(guild_id) => guild_id.to_string(),
         None => String::from("0"),
     };
-    let bytes = get_image_from_response(res,config.image.save_image.clone(),
-                                        config.image.save_server.clone(),
-                                        config.image.token.clone(),guild_id).await?;
+    let bytes = get_image_from_response(
+        res,
+        config.image.save_image.clone(),
+        config.image.save_server.clone(),
+        config.image.token.clone(),
+        guild_id,
+    )
+    .await?;
 
     if n == 1 {
         image_with_n_equal_1(
@@ -231,7 +236,16 @@ async fn image_with_n_equal_1(
     };
     let token = token.unwrap_or_default();
     let saver = save_type.unwrap_or_default();
-    match image_saver(guild_id,filename.clone(), bytes.clone().encode_to_vec(), saver_server, token, saver).await {
+    match image_saver(
+        guild_id,
+        filename.clone(),
+        bytes.clone().encode_to_vec(),
+        saver_server,
+        token,
+        saver,
+    )
+    .await
+    {
         Ok(_) => (),
         Err(e) => error!("Error saving image: {}", e),
     }
@@ -275,9 +289,12 @@ async fn image_with_n_greater_than_1(
     Ok(())
 }
 
-async fn get_image_from_response(json: Value,saver_server: String,
-                                 token: Option<String>,
-                                 save_type: Option<String>,    guild_id: String,
+async fn get_image_from_response(
+    json: Value,
+    saver_server: String,
+    token: Option<String>,
+    save_type: Option<String>,
+    guild_id: String,
 ) -> Result<Vec<Bytes>, Box<dyn Error>> {
     let token = token.unwrap_or_default();
     let saver = save_type.unwrap_or_default();
@@ -300,7 +317,7 @@ async fn get_image_from_response(json: Value,saver_server: String,
     };
     let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();
     trace!("{:?}", urls);
-    for (i,url) in urls.iter().enumerate() {
+    for (i, url) in urls.iter().enumerate() {
         let client = reqwest::Client::new();
         let res = client
             .get(url)
@@ -314,7 +331,16 @@ async fn get_image_from_response(json: Value,saver_server: String,
             }
         };
         let filename = format!("ai_{}_{}.png", i, Uuid::new_v4());
-        match image_saver(guild_id.clone(),filename.clone(), body.clone().encode_to_vec(), saver_server.clone(), token.clone(), saver.clone()).await {
+        match image_saver(
+            guild_id.clone(),
+            filename.clone(),
+            body.clone().encode_to_vec(),
+            saver_server.clone(),
+            token.clone(),
+            saver.clone(),
+        )
+        .await
+        {
             Ok(_) => (),
             Err(e) => error!("Error saving image: {}", e),
         }

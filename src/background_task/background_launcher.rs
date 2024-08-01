@@ -23,8 +23,8 @@ use crate::database::data_struct::ping_history::PingHistory;
 use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
 use crate::event_handler::{BotData, RootUsage};
 use crate::grpc_server::launcher::grpc_server_launcher;
-use crate::struct_shard_manager::ShardManagerContainer;
 use crate::structure::steam_game_id_struct::get_game;
+use crate::type_map_key::ShardManagerContainer;
 
 /// This function is responsible for launching various background threads that manage the bot's activity, games, and web server.
 ///
