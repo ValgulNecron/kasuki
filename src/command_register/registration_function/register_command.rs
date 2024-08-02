@@ -73,7 +73,7 @@ pub fn get_commands(path: &str) -> Result<Vec<Command>, Box<dyn Error>> {
 /// * `command` - A reference to a `Command` struct containing the details of the command to be created.
 /// * `http` - An `Arc<Http>` instance used to send the command to the Discord API.
 async fn create_command(command: &Command, http: &Arc<Http>) {
-    let mut command_build = CreateCommand::new(&command.name)
+        let mut command_build = CreateCommand::new(&command.name)
         .nsfw(command.nsfw)
         .kind(CommandType::ChatInput)
         .contexts(get_vec_integration_context(&command.integration_context))

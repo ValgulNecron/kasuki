@@ -14,7 +14,7 @@ license-file = "LICENSE"
 regex = "1.10.5"
 reqwest = { version = "0.12.5", features = ["json", "multipart", "blocking"] }
 serde = "1.0.204"
-serde_json = "1.0.121"
+serde_json = "1.0.122"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "current", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils", "full", "unstable_discord_api", "voice","cache","http"] }
 #serenity = { path = "../serenity", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils", "full", "unstable_discord_api"] }
 tokio = { version = "1.38.2", features = ["full"] }
@@ -35,7 +35,7 @@ tracing-appender = "0.2.3"
 tonic = { version = "0.12.1", features = ["tls"] }
 prost = "0.13.1"
 tonic-reflection = "0.12.1"
-sysinfo = "0.31.0"
+sysinfo = "0.31.2"
 rayon = "1.10.0"
 os_info = "3.8.2"
 rcgen = "0.13.1"

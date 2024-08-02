@@ -63,7 +63,7 @@ WORKDIR /kasuki/
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
-    ca-certificates \
+    ca-certificates libopus-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy other necessary files
