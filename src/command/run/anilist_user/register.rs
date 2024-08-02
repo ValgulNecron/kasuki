@@ -13,6 +13,7 @@ use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::set_registered_user;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::register::load_localization_register;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
@@ -39,7 +40,7 @@ pub async fn run(
 ) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the username of the AniList account from the command interaction
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string(command_interaction);
     let value = map
         .get(&String::from("username"))
         .ok_or(ResponseError::Option(String::from("No username provided")))?;

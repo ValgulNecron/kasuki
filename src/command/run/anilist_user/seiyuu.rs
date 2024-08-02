@@ -18,6 +18,7 @@ use uuid::Uuid;
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
@@ -47,7 +48,7 @@ pub async fn run(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string(command_interaction);
     let value = map
         .get(&String::from("staff_name"))
         .ok_or(ResponseError::Option(String::from(

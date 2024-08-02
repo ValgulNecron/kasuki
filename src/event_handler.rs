@@ -7,7 +7,7 @@ use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,
-    Interaction, Member, Ready, ResumedEvent, User,
+    Interaction, Member, Ready, User,
 };
 use serenity::async_trait;
 use tokio::sync::RwLock;

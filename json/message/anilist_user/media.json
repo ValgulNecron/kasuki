@@ -1,26 +1,58 @@
 {
   "en": {
-    "field1_title": "Genre",
-    "field2_title": "Tag",
-    "desc": "**Info** \n Format: $format$ / Source: $source$ \n Start date: $start_date$ \n End date: $end_date$ \n \n **Staff** \n $staff_list$",
-    "staff_text": "Name: $name$ with the role $role$\n"
+    "genre": "Genre",
+    "tag": "Tag",
+    "staffs": "Staff with role:",
+    "characters": "Characters:",
+    "format": "Format:",
+    "source": "Source:",
+    "start_date": "Start date:",
+    "end_date": "End date:",
+    "fav": "Favorites:",
+    "duration": "Duration:",
+    "chapter": "Chapters:",
+    "minutes": "minutes"
   },
   "fr": {
-    "field1_title": "Genre",
-    "field2_title": "Tag",
-    "desc": "**Info** \n Format: $format$ / Source: $source$ \n Date de début: $start_date$ \n Date de fin: $end_date$ \n\n **Équipe** \n $staff_list$",
-    "staff_text": "Nom: $name$ avec le rôle $role$"
+    "genre": "Genre",
+    "tag": "Tag",
+    "staffs": "Staff avec le rôle:",
+    "characters": "Personnages:",
+    "format": "Format:",
+    "source": "Source:",
+    "start_date": "Date de début:",
+    "end_date": "Date de fin:",
+    "fav": "Favoris:",
+    "duration": "Durée:",
+    "chapter": "Chapitres:",
+    "minutes": "minutes"
   },
   "jp": {
-    "field1_title": "ジャンル",
-    "field2_title": "タグ",
-    "desc": "**情報** \n 形式: $format$ / 情報源: $source$ \n 開始日: $start_date$ \n 終了日: $end_date$ \n\n **スタッフ** \n $staff_list$",
-    "staff_text": "名前: $name$ の役割 $role$"
+    "genre": "ジャンル",
+    "tag": "タグ",
+    "staffs": "スタッフとロール:",
+    "characters": "キャラクター:",
+    "format": "フォーマット:",
+    "source": "ソース:",
+    "start_date": "開始日:",
+    "end_date": "終了日:",
+    "fav": "お気に入り:",
+    "duration": "期間:",
+    "chapter": "チャプター:",
+    "minutes": "分"
   },
   "de": {
-    "field1_title": "Genre",
-    "field2_title": "Tag",
-    "desc": "**Info** \n Format: $format$ / Quelle: $source$ \n Startdatum: $start_date$ \n Enddatum: $end_date$ \n\n **Personal** \n $staff_list$",
-    "staff_text": "Name: $name$ mit der Rolle $role$"
+    "genre": "Genre",
+    "tag": "Tag",
+    "staffs": "Staff with role:",
+    "characters": "Characters:",
+    "format": "Format:",
+    "source": "Source:",
+    "start_date": "Start date:",
+    "end_date": "End date:",
+    "fav": "Favorites:",
+    "duration": "Duration:",
+    "chapter": "Chapters:",
+    "minutes": "minutes"
   }
 }

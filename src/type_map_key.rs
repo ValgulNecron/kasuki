@@ -1,4 +1,3 @@
-use reqwest::Client as HttpClient;
 use serenity::gateway::ShardManager;
 use serenity::prelude::TypeMapKey;
 use std::sync::Arc;

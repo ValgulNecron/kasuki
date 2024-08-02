@@ -266,7 +266,7 @@ impl Info for InfoService {
             let banner = user.banner_url();
             let is_bot = user.bot;
             let mut guilds = vec![member.guild_id.to_string()];
-            let mut flags = user.flags;
+            let flags = user.flags;
             let mut user_flags = Vec::new();
             // If there are, iterate over the flags and add them to a vector
             for (flag, _) in flags.iter_names() {
@@ -285,7 +285,7 @@ impl Info for InfoService {
             if contain {
                 let index = users.iter().position(|u| u.id == user.id).unwrap();
                 let temps = users.clone();
-                let mut user2 = temps.get(index).unwrap();
+                let user2 = temps.get(index).unwrap();
                 users.remove(index);
                 user2.guilds.clone().append(&mut guilds);
                 trace!(?user);

@@ -10,6 +10,7 @@ use crate::config::Config;
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::user::{
@@ -39,7 +40,7 @@ pub async fn run(
 ) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the username from the command interaction
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string(command_interaction);
     let user = map.get(&String::from("username"));
 
     // If the username is provided, fetch the user's data from AniList and send it as a response

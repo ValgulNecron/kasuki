@@ -12,10 +12,16 @@ use crate::structure::message::common::load_localization;
 /// # Struct Fields
 /// `desc`: A String representing the description of the character.
 /// `date_of_birth`: A String representing the date of birth of the character.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CharacterLocalised {
-    pub desc: String,
     pub date_of_birth: String,
+
+    pub age: String,
+
+    pub gender: String,
+
+    pub fav: String,
+    pub blood_type: String,
 }
 
 /// This function loads the localization data for a character.

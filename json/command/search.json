@@ -1,0 +1,196 @@
+{
+  "name": "search",
+  "desc": "One command that regroups all search commands.",
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
+  "nsfw": false,"args": [
+    {
+      "name": "type",
+      "desc": "The type of the search you want.",
+      "required": true,
+      "autocomplete": false,
+      "arg_type": "String",
+      "choices": [
+        {
+          "option_choice": "anime"
+        },
+        {
+          "option_choice": "manga"
+        },
+        {
+          "option_choice": "ln",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "light novel"
+            }
+          ]
+        },
+        {
+          "option_choice": "studio",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "studio"
+            },
+            {
+              "code": "fr",
+              "name": "studio"
+            },
+            {
+              "code": "de",
+              "name": "studio"
+            },
+            {
+              "code": "ja",
+              "name": "studio"
+            }
+          ]
+        },
+        {
+          "option_choice": "staff",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "staff"
+            },
+            {
+              "code": "fr",
+              "name": "personnel"
+            },
+            {
+              "code": "de",
+              "name": "mitarbeiter"
+            },
+            {
+              "code": "ja",
+              "name": "スタッフ"
+            }
+          ]
+        },
+        {
+          "option_choice": "character",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "character"
+            },
+            {
+              "code": "fr",
+              "name": "personnage"
+            },
+            {
+              "code": "de",
+              "name": "zeichen"
+            },
+            {
+              "code": "ja",
+              "name": "キャラクター"
+            }
+          ]
+        },
+        {
+          "option_choice": "user",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "user"
+            },
+            {
+              "code": "fr",
+              "name": "utilisateur"
+            },
+            {
+              "code": "de",
+              "name": "benutzer"
+            },
+            {
+              "code": "ja",
+              "name": "ユーザー"
+            }
+          ]
+        }
+      ],
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "type",
+          "desc": "The type of the search you want."
+        },
+        {
+          "code": "fr",
+          "name": "type",
+          "desc": "Le type de recherche que vous souhaitez."
+        },
+        {
+          "code": "de",
+          "name": "type",
+          "desc": "Die Art der Suche, die Sie möchten."
+        },
+        {
+          "code": "ja",
+          "name": "type",
+          "desc": "検索の種類。"
+        }
+      ]
+    },
+    {
+      "name": "name",
+      "desc": "The name you want to search for.",
+      "required": true,
+      "autocomplete": true,
+      "arg_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "name",
+          "desc": "The name you want to search for."
+        },
+        {
+          "code": "fr",
+          "name": "name",
+          "desc": "Le nom que vous souhaitez rechercher."
+        },
+        {
+          "code": "de",
+          "name": "name",
+          "desc": "Der Name, den Sie suchen möchten."
+        },
+        {
+          "code": "ja",
+          "name": "name",
+          "desc": "検索したい名前。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "search",
+      "desc": "One command that regroups all search commands."
+    },
+    {
+      "code": "fr",
+      "name": "search",
+      "desc": "Une commande qui regroupe toutes les commandes de recherche."
+    },
+    {
+      "code": "de",
+      "name": "search",
+      "desc": "Ein Befehl, der alle Suchbefehle zusammenfasst."
+    },
+    {
+      "code": "ja",
+      "name": "search",
+      "desc": "すべての検索コマンドをまとめる1つのコマンド。"
+    }
+  ]
+}

@@ -6,14 +6,12 @@ use std::sync::{
 use dashmap::DashMap;
 use serenity::all::UserId;
 use serenity::async_trait;
-use songbird::packet::rtp::RtpPacket;
-use songbird::packet::Packet;
 use songbird::EventHandler;
 use songbird::{
     model::payload::{ClientDisconnect, Speaking},
     Event, EventContext,
 };
-use tracing::{debug, error, trace};
+use tracing::{debug, error};
 
 #[derive(Clone)]
 pub struct Receiver {

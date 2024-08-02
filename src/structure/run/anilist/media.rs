@@ -11,7 +11,7 @@ use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discor
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
-use crate::structure::message::anilist_user::media::{load_localization_media, MediaLocalised};
+use crate::structure::message::anilist_user::media::load_localization_media;
 
 #[cynic::schema("anilist")]
 mod schema {}
@@ -440,7 +440,21 @@ fn get_genre(genres: &[Option<String>]) -> String {
 /// * `String` - A String that represents the tags of the media.
 fn get_tag(tags: &[Option<MediaTag>]) -> String {
     tags.iter()
-        .map(|media_tag| media_tag.clone().unwrap().name)
+        .map(|media_tag| {
+            media_tag
+                .clone()
+                .unwrap_or(MediaTag {
+                    category: None,
+                    description: None,
+                    id: 0,
+                    is_adult: None,
+                    is_general_spoiler: None,
+                    is_media_spoiler: None,
+                    name: "".to_string(),
+                    rank: None,
+                })
+                .name
+        })
         .take(5)
         .collect::<Vec<String>>()
         .join("\n")
@@ -468,32 +482,6 @@ fn get_url(media: &Media) -> String {
         .unwrap_or("https://example.com".to_string())
 }
 
-/// `get_thumbnail` is a function that gets the thumbnail of the media.
-/// It takes a `data` as a parameter.
-/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
-/// It returns a String that represents the thumbnail of the media.
-///
-/// This function first gets the thumbnail from the `data`.
-/// If the thumbnail is None, it returns a default thumbnail.
-///
-/// # Arguments
-///
-/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the thumbnail of the media.
-fn get_thumbnail(media: &Media) -> String {
-    match &media.clone().cover_image {
-        Some(image) => {
-            image.extra_large.clone().unwrap_or("https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
-    bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string())
-        }
-        None => "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/\
-           bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc".to_string()
-    }
-}
-
 /// `get_banner` is a function that gets the banner of the media.
 /// It takes a `data` as a parameter.
 /// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
@@ -511,87 +499,6 @@ fn get_thumbnail(media: &Media) -> String {
 /// * `String` - A String that represents the banner of the media.
 pub fn get_banner(media: &Media) -> String {
     format!("https://img.anili.st/media/{}", media.id)
-}
-
-/// `media_info` is a function that gets the information of the media.
-/// It takes `data` and `media_localised` as parameters.
-/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
-/// `media_localised` is a reference to a `MediaLocalised` that represents the localized media.
-/// It returns a String that represents the information of the media.
-///
-/// This function first gets the description and the information of the media from the `data`.
-/// It then converts the AniList flavored markdown in the description to Discord flavored markdown.
-/// It checks if the length of the description exceeds the limit.
-/// If it does, it trims the description to fit the limit.
-///
-/// # Arguments
-///
-/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
-/// * `media_localised` - A reference to a `MediaLocalised` that represents the localized media.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the information of the media.
-fn media_info(media: &Media, media_localised: &MediaLocalised) -> String {
-    let mut desc = format!(
-        "{} \n\n\
-    {}",
-        embed_desc(media),
-        get_info(media, media_localised)
-    );
-    desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
-    let lenght_diff = 4096 - desc.len() as i32;
-    if lenght_diff <= 0 {
-        desc = trim(desc, lenght_diff)
-    }
-    desc
-}
-
-/// `get_info` is a function that gets the information of the media.
-/// It takes `data` and `media_localised` as parameters.
-/// `data` is a reference to a `Media` that represents the media.
-/// `media_localised` is a reference to a `MediaLocalised` that represents the localized media.
-/// It returns a String that represents the information of the media.
-///
-/// This function first gets the text, the format, and the source from the `media_localised`.
-/// It then replaces the placeholders in the text with the format, the source, the start date, the end date, and the staff list.
-///
-/// # Arguments
-///
-/// * `data` - A reference to a `Media` that represents the media.
-/// * `media_localised` - A reference to a `MediaLocalised` that represents the localized media.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the information of the media.
-fn get_info(media: &Media, media_localised: &MediaLocalised) -> String {
-    let text = media_localised.desc.clone();
-    let format = match media.format {
-        Some(f) => f.to_string(),
-        None => UNKNOWN.to_string(),
-    };
-    let source = match media.source {
-        Some(s) => s.to_string(),
-        None => UNKNOWN.to_string(),
-    };
-    let start_data = match media.clone().start_date {
-        Some(d) => get_date(&d),
-        None => UNKNOWN.to_string(),
-    };
-    let end_data = match media.clone().end_date {
-        Some(d) => get_date(&d),
-        None => UNKNOWN.to_string(),
-    };
-    // only take the first 5 staff
-    let staff_edges = media.staff.clone().unwrap().edges.unwrap_or_default();
-    text.replace("$format$", format.as_str())
-        .replace("$source$", source.as_str())
-        .replace("$start_date$", start_data.as_str())
-        .replace("$end_date$", end_data.as_str())
-        .replace(
-            "$staff_list$",
-            get_staff(staff_edges, &media_localised.staff_text).as_str(),
-        )
 }
 
 /// `get_date` is a function that gets the date.
@@ -667,31 +574,71 @@ fn get_date(date: &FuzzyDate) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the staff of the media.
-fn get_staff(staff: Vec<Option<StaffEdge>>, staff_string: &str) -> String {
+fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
     let mut staff_text = String::new();
     // iterate over staff with index
-    for (i, s) in staff.into_iter().enumerate() {
+    let mut i = 0;
+    for (_, s) in staff.into_iter().enumerate() {
         if i > 4 {
             break;
         }
-        let s = s.unwrap();
-        let node = s.node.clone().unwrap();
-        let text = staff_string;
-        let name = node.name.unwrap();
+        let s = match s {
+            Some(s) => s,
+            None => continue,
+        };
+        let node = match s.node.clone() {
+            Some(n) => n,
+            None => continue,
+        };
+        let name = match node.name {
+            Some(n) => n,
+            None => continue,
+        };
         let full = name.full;
         let user_pref = name.user_preferred;
         let native = name.native;
         let staff_name = user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(UNKNOWN.to_string())));
         let s_role = s.role.clone();
         let role = s_role.unwrap_or(UNKNOWN.to_string());
-        staff_text.push_str(
-            text.replace("$name$", staff_name.as_str())
-                .replace("$role$", role.as_str())
-                .as_str(),
-        )
+        staff_text.push_str(format!("{}: {}", staff_name.as_str(), role.as_str()).as_str());
+        i += 1;
     }
 
     staff_text
+}
+
+fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
+    let mut character_text = String::new();
+    // iterate over staff with index
+    let mut i = 0;
+    for (_, s) in character.into_iter().enumerate() {
+        if i > 4 {
+            break;
+        }
+        let name = match s {
+            Some(s) => {
+                let node = match s.node {
+                    Some(n) => n,
+                    None => continue,
+                };
+                let name = match node.name {
+                    Some(n) => n,
+                    None => continue,
+                };
+                let full = name.full;
+                let user_pref = name.user_preferred;
+                let native = name.native;
+                let staff_name =
+                    user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(UNKNOWN.to_string())));
+                staff_name
+            }
+            None => UNKNOWN.to_string(),
+        };
+        character_text.push_str(name.as_str());
+        i += 1;
+    }
+
+    character_text
 }
 
 /// `send_embed` is an asynchronous function that sends an embed.
@@ -735,20 +682,145 @@ pub async fn send_embed(
     };
 
     let media_localised = load_localization_media(guild_id, db_type).await?;
-
-    let title = data.title.clone().unwrap();
+    let mut fields = Vec::new();
     let genres = data.genres.clone().unwrap_or_default();
-    let tags = data.tags.clone().unwrap_or_default();
-    let builder_embed = CreateEmbed::new()
+    // take the first 5 non-optional genres
+    let genres = genres
+        .into_iter()
+        .filter_map(|g| g)
+        .take(5)
+        .collect::<Vec<String>>();
+
+    let tag = data.tags.clone().unwrap_or_default();
+    let tag = tag
+        .into_iter()
+        .filter_map(|t| if let Some(t) = t { Some(t.name) } else { None })
+        .take(5)
+        .collect::<Vec<String>>();
+
+    fields.push((media_localised.tag, tag.join(", "), true));
+
+    fields.push((media_localised.genre, genres.join(", "), true));
+
+    match data.staff.clone() {
+        Some(staff) => match staff.edges {
+            Some(edges) => {
+                let staffs = get_staff(edges);
+                fields.push((media_localised.staffs, staffs, true));
+            }
+            None => {}
+        },
+        None => {}
+    }
+
+    match data.characters.clone() {
+        Some(characters) => match characters.edges {
+            Some(edges) => {
+                let characters = get_character(edges);
+                fields.push((media_localised.characters, characters, true));
+            }
+            None => {}
+        },
+        None => {}
+    }
+
+    match data.format.clone() {
+        Some(format) => {
+            (media_localised.format, format.to_string(), true);
+        }
+        None => {}
+    }
+
+    match data.source.clone() {
+        Some(source) => {
+            (media_localised.source, source.to_string(), true);
+        }
+        None => {}
+    }
+
+    match data.start_date.clone() {
+        Some(start_date) => {
+            let mut start_date_str = String::new();
+            if let Some(day) = start_date.day {
+                start_date_str.push_str(format!("{}/", day.to_string()).as_str());
+            }
+            if let Some(month) = start_date.month {
+                start_date_str.push_str(format!("{}/", month.to_string()).as_str());
+            }
+            if let Some(year) = start_date.year {
+                start_date_str.push_str(year.to_string().as_str());
+            }
+            (media_localised.start_date, start_date_str, true);
+        }
+        None => {}
+    }
+
+    match data.end_date.clone() {
+        Some(end_date) => {
+            let mut end_date_str = String::new();
+            if let Some(day) = end_date.day {
+                end_date_str.push_str(format!("{}/", day.to_string()).as_str());
+            }
+            if let Some(month) = end_date.month {
+                end_date_str.push_str(format!("{}/", month.to_string()).as_str());
+            }
+            if let Some(year) = end_date.year {
+                end_date_str.push_str(year.to_string().as_str());
+            }
+            (media_localised.end_date, end_date_str, true);
+        }
+        None => {}
+    }
+
+    match data.favourites.clone() {
+        Some(favourites) => {
+            (media_localised.fav, favourites.to_string(), true);
+        }
+        None => {}
+    }
+
+    match data.duration.clone() {
+        Some(duration) => {
+            (
+                media_localised.duration,
+                format!("{} {}", duration, media_localised.minutes),
+                true,
+            );
+        }
+        None => match data.chapters.clone() {
+            Some(chapters) => {
+                (
+                    media_localised.duration,
+                    format!("{} {}", chapters, media_localised.chapter),
+                    true,
+                );
+            }
+            None => {}
+        },
+    }
+
+    let title = match data.title.clone() {
+        Some(t) => t,
+        None => return Err(Box::new(ResponseError::Option(String::from("No title")))),
+    };
+
+    let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
-        .description(media_info(&data, &media_localised))
         .title(embed_title(&title))
-        .url(get_url(&data))
-        .field(&media_localised.field1_title, get_genre(&genres), true)
-        .field(&media_localised.field2_title, get_tag(&tags), true)
-        .thumbnail(get_thumbnail(&data))
-        .image(get_banner(&data));
+        .url(get_url(&data.clone()))
+        .image(get_banner(&data.clone()))
+        .fields(fields);
+
+    match data.cover_image {
+        Some(image) => match image.extra_large {
+            Some(extra_large) => {
+                builder_embed = builder_embed.thumbnail(extra_large);
+            }
+            None => {}
+        },
+        None => {}
+    }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

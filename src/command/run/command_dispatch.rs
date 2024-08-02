@@ -65,6 +65,8 @@ pub async fn command_dispatching(
         .as_str();
     let full_command_name = command_interaction.data.name.as_str();
     let full_command_name = format!("{} {}", full_command_name, command_name);
+    let config = self_handler.bot_data.config.clone();
+    let anilist_cache = self_handler.bot_data.anilist_cache.clone();
     // Match the command name to the appropriate function
     match command_interaction.data.name.as_str() {
         // anilist_user module
@@ -88,27 +90,77 @@ pub async fn command_dispatching(
             )
             .await?
         }
-        "anilist_server" => {
-            anilist_server(
-                ctx,
-                command_interaction,
-                command_name,
-                full_command_name,
-                self_handler,
-            )
-            .await?
+        // anilist module server command
+        "list_user" => {
+            list_register_user::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_server(command_interaction, full_command_name, self_handler).await?;
+        }
+        "list_activity" => {
+            list_all_activity::run(ctx, command_interaction, config).await?;
+            anilist_server(command_interaction, full_command_name, self_handler).await?;
+        }
+
+        // anilist module user command
+        "anime" => {
+            let config = self_handler.bot_data.config.clone();
+            let anilist_cache = self_handler.bot_data.anilist_cache.clone();
+            anime::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "ln" => {
+            ln::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "manga" => {
+            manga::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
         }
         "anilist_user" => {
-            anilist_user(
-                ctx,
-                command_interaction,
-                command_name,
-                full_command_name,
-                self_handler,
-            )
-            .await?
+            user::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
         }
-        "anime" => {
+        "character" => {
+            character::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "waifu" => {
+            waifu::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "compare" => {
+            compare::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "random" => {
+            random::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "register" => {
+            register::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "staff" => {
+            staff::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "studio" => {
+            studio::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "search" => {
+            search::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "seiyuu" => {
+            seiyuu::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+        "level" => {
+            level::run(ctx, command_interaction, config, anilist_cache).await?;
+            anilist_user(command_interaction, full_command_name, self_handler).await?
+        }
+
+        "random_anime" => {
             anime(
                 ctx,
                 command_interaction,
@@ -118,7 +170,7 @@ pub async fn command_dispatching(
             )
             .await?
         }
-        "hanime" => {
+        "random_hanime" => {
             anime_nsfw(
                 ctx,
                 command_interaction,
@@ -612,15 +664,12 @@ async fn check_hourly_limit(
 ///
 /// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn anilist_server(
-    ctx: &Context,
     command_interaction: &CommandInteraction,
-    command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anilist module is off
-    let anilist_cache = self_handler.bot_data.anilist_cache.clone();
     let anilist_module_error = ResponseError::Option(String::from(
         "Anilist module is not activated. Please enable it first.",
     ));
@@ -633,20 +682,6 @@ async fn anilist_server(
     if !check_if_module_is_on(guild_id, "ANILIST", db_type).await? {
         return Err(Box::new(anilist_module_error));
     }
-    // Match the command name to the appropriate function
-    let return_data = match command_name {
-        "list_user" => {
-            list_register_user::run(ctx, command_interaction, config, anilist_cache).await
-        }
-        "list_activity" => list_all_activity::run(ctx, command_interaction, config).await,
-        // If the command name does not match any of the specified commands, return an error
-        _ => {
-            return Err(Box::new(ResponseError::Option(String::from(
-                "Unknown command",
-            ))))
-        }
-    };
-    return_data?;
 
     self_handler
         .increment_command_use_per_command(
@@ -674,15 +709,12 @@ async fn anilist_server(
 ///
 /// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
 async fn anilist_user(
-    ctx: &Context,
     command_interaction: &CommandInteraction,
-    command_name: &str,
     full_command_name: String,
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anilist module is off
-    let anilist_cache = self_handler.bot_data.anilist_cache.clone();
     let anilist_module_error = ResponseError::Option(String::from(
         "Anilist module is not activated. Please enable it first.",
     ));
@@ -695,30 +727,6 @@ async fn anilist_user(
     if !check_if_module_is_on(guild_id, "ANILIST", db_type).await? {
         return Err(Box::new(anilist_module_error));
     }
-    // Match the command name to the appropriate function
-    let return_data = match command_name {
-        "anime" => anime::run(ctx, command_interaction, config, anilist_cache).await,
-        "ln" => ln::run(ctx, command_interaction, config, anilist_cache).await,
-        "manga" => manga::run(ctx, command_interaction, config, anilist_cache).await,
-        "user" => user::run(ctx, command_interaction, config, anilist_cache).await,
-        "character" => character::run(ctx, command_interaction, config, anilist_cache).await,
-        "waifu" => waifu::run(ctx, command_interaction, config, anilist_cache).await,
-        "compare" => compare::run(ctx, command_interaction, config, anilist_cache).await,
-        "random" => random::run(ctx, command_interaction, config, anilist_cache).await,
-        "register" => register::run(ctx, command_interaction, config, anilist_cache).await,
-        "staff" => staff::run(ctx, command_interaction, config, anilist_cache).await,
-        "studio" => studio::run(ctx, command_interaction, config, anilist_cache).await,
-        "search" => search::run(ctx, command_interaction, config, anilist_cache).await,
-        "seiyuu" => seiyuu::run(ctx, command_interaction, config, anilist_cache).await,
-        "level" => level::run(ctx, command_interaction, config, anilist_cache).await,
-        // If the command name does not match any of the specified commands, return an error
-        _ => {
-            return Err(Box::new(ResponseError::Option(String::from(
-                "Unknown command",
-            ))))
-        }
-    };
-    return_data?;
 
     self_handler
         .increment_command_use_per_command(

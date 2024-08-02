@@ -14,6 +14,7 @@ use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
@@ -39,7 +40,7 @@ pub async fn run(
 ) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the username from the command interaction
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string(command_interaction);
     let user = map.get(&String::from("username"));
     match user {
         Some(value) => {

@@ -1,18 +1,30 @@
 {
   "en": {
-    "desc": "Age: $age$. \n Gender: $gender$. $date_of_birth$ \n Number of Favorites: $fav$. \n\n Description: \n $desc$",
-    "date_of_birth": "\n Date of Birth: $date$."
+    "date_of_birth": "Date of Birth:",
+    "age": "Age:",
+    "gender": "Gender:",
+    "fav": "Favorites:",
+    "blood_type": "Blood Type:"
   },
   "fr": {
-    "desc": "Age: $age$. \n Genre: $gender$. \n $date_of_birth$ \n Nombre de favoris: $fav$. \n\n Description: \n $desc$",
-    "date_of_birth": "Date de naissance: $date$."
+    "date_of_birth": "Date de naissance :",
+    "age": "Age :",
+    "gender": "Genre :",
+    "fav": "Favoris :",
+    "blood_type": "Type de sang :"
   },
   "de": {
-    "desc": "Alter: $age$. \n Geschlecht: $gender$. \n $date_of_birth$ \n Anzahl der Favoriten: $fav$. \n\n Beschreibung: \n $desc$",
-    "date_of_birth": "Geburtsdatum: $date$."
+    "date_of_birth": "Geburtsdatum :",
+    "age": "Alter :",
+    "gender": "Geschlecht :",
+    "fav": "Favoriten :",
+    "blood_type": "Blutgruppe :"
   },
   "jp": {
-    "desc": "せいねん: $age$. \n せいべつ: $gender$. \n $date_of_birth$ \n おきにいりすう: $fav$. \n\n せつめい: \n $desc$",
-    "date_of_birth": "しょうねんつきび: $date$."
+    "date_of_birth": "生年月日:",
+    "age": "年齢:",
+    "gender": "性別:",
+    "fav": "お気に入り:",
+    "blood_type": "血液型:"
   }
 }

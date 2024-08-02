@@ -167,8 +167,12 @@ impl SteamGameWrapper {
         let game_wrapper: HashMap<String, SteamGameWrapper> =
             serde_json::from_str(text.as_str())
                 .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
-
-        Ok(game_wrapper.get(&appid.to_string()).unwrap().clone())
+        match game_wrapper.get(&appid.to_string()) {
+            Some(game) => Ok(game.clone()),
+            None => Err(Box::new(UnknownResponseError::Json(
+                "Game not found".to_string(),
+            ))),
+        }
     }
 
     /// `new_steam_game_by_search` is an asynchronous function that creates a new `SteamGameWrapper` by searching for the given string.
@@ -208,11 +212,25 @@ impl SteamGameWrapper {
         }
         for (name, _) in results {
             if appid == &0u128 {
-                appid = guard.get(name).unwrap()
+                appid = match guard.get(name) {
+                    Some(appid) => appid,
+                    None => {
+                        return Err(Box::new(UnknownResponseError::Option(
+                            "No game found".to_string(),
+                        )));
+                    }
+                }
             }
 
             if search.to_lowercase() == name.to_lowercase() {
-                appid = guard.get(name).unwrap();
+                appid = match guard.get(name) {
+                    Some(appid) => appid,
+                    None => {
+                        return Err(Box::new(UnknownResponseError::Option(
+                            "No game found".to_string(),
+                        )));
+                    }
+                };
                 break;
             }
         }

@@ -8,6 +8,7 @@ use tokio::sync::RwLock;
 use crate::command::run::anilist_user::{anime, character, ln, manga, staff, studio, user};
 use crate::config::Config;
 use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 
 /// Executes the command to search for a specific type of AniList data.
@@ -31,7 +32,7 @@ pub async fn run(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
     // Retrieve the type of AniList data to search for from the command interaction
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string(command_interaction);
     let search_type = map
         .get(&String::from("type"))
         .ok_or(ResponseError::Option(String::from("No type specified")))?;

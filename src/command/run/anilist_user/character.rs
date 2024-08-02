@@ -8,6 +8,7 @@ use tokio::sync::RwLock;
 
 use crate::config::Config;
 use crate::helper::error_management::error_enum::UnknownResponseError;
+use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::character::{
@@ -40,7 +41,7 @@ pub async fn run(
 ) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     // Retrieve the name or ID of the character from the command interaction options
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string(command_interaction);
     let value = map
         .get(&String::from("name"))
         .cloned()

@@ -13,12 +13,31 @@ use crate::structure::message::common::load_localization;
 /// `field2_title`: A String representing the second title of the media.
 /// `desc`: A String representing the description of the media.
 /// `staff_text`: A String representing the staff text of the media.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MediaLocalised {
-    pub field1_title: String,
-    pub field2_title: String,
-    pub desc: String,
-    pub staff_text: String,
+    pub genre: String,
+
+    pub tag: String,
+
+    pub staffs: String,
+
+    pub characters: String,
+
+    pub format: String,
+
+    pub source: String,
+
+    pub start_date: String,
+
+    pub end_date: String,
+
+    pub fav: String,
+
+    pub duration: String,
+    pub chapter: String,
+
+    pub minutes: String,
 }
 
 /// This function loads the localization data for a media item.

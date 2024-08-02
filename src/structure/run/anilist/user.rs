@@ -227,12 +227,19 @@ pub async fn send_embed(
         }
     }
 
-    let builder_embed = get_default_embed(Some(get_color(user.clone())))
+    let mut builder_embed = get_default_embed(Some(get_color(user.clone())))
         .title(user.name)
         .url(get_user_url(user.id))
         .fields(field)
-        .image(get_banner(&user.id))
-        .thumbnail(user.avatar.unwrap().large.unwrap());
+        .image(get_banner(&user.id));
+
+    match user.avatar {
+        Some(avatar) => match avatar.large {
+            Some(large) => builder_embed = builder_embed.thumbnail(large),
+            None => {}
+        },
+        None => {}
+    }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

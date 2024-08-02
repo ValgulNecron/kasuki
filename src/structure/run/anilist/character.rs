@@ -8,7 +8,7 @@ use tracing::log::trace;
 
 use crate::constant::COLOR;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_enum::{ResponseError, UnknownResponseError};
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
 
@@ -121,72 +121,91 @@ pub async fn send_embed(
 
     let character_localised = load_localization_character(guild_id, db_type).await?;
 
-    let mut date_of_birth_string = String::new();
-
-    let mut has_month: bool = false;
-    let mut has_day: bool = false;
-    let date_of_birth_data = character.date_of_birth.clone().unwrap();
-
-    if let Some(m) = date_of_birth_data.month {
-        date_of_birth_string.push_str(format!("{:02}", m).as_str());
-        has_month = true
-    }
-
-    if let Some(d) = date_of_birth_data.day {
-        if has_month {
-            date_of_birth_string.push('/')
+    let date_of_birth_data = character.date_of_birth.clone();
+    let mut fields = Vec::new();
+    if let Some(date_of_birth_data) = date_of_birth_data {
+        let mut has_month: bool = false;
+        let mut has_day: bool = false;
+        let mut date_of_birth_string = String::new();
+        if let Some(m) = date_of_birth_data.month {
+            date_of_birth_string.push_str(format!("{:02}", m).as_str());
+            has_month = true
         }
-        date_of_birth_string.push_str(format!("{:02}", d).as_str());
-        has_day = true
-    }
 
-    if let Some(y) = date_of_birth_data.year {
-        if has_day {
-            date_of_birth_string.push('/')
+        if let Some(d) = date_of_birth_data.day {
+            if has_month {
+                date_of_birth_string.push('/')
+            }
+            date_of_birth_string.push_str(format!("{:02}", d).as_str());
+            has_day = true
         }
-        date_of_birth_string.push_str(format!("{:04}", y).as_str());
+
+        if let Some(y) = date_of_birth_data.year {
+            if has_day {
+                date_of_birth_string.push('/')
+            }
+            date_of_birth_string.push_str(format!("{:04}", y).as_str());
+        }
+
+        fields.push((
+            character_localised.date_of_birth,
+            date_of_birth_string,
+            true,
+        ));
     }
 
-    let mut date_of_birth = String::new();
-    if date_of_birth_string != String::new() {
-        date_of_birth = character_localised
-            .date_of_birth
-            .replace("$date$", date_of_birth_string.as_str())
+    let gender = character.gender.clone();
+    if let Some(gender) = gender {
+        fields.push((character_localised.gender, gender, true));
     }
 
-    let mut desc = character_localised
-        .desc
-        .replace("$age$", character.age.unwrap_or_default().as_str())
-        .replace("$gender$", character.gender.unwrap_or_default().as_str())
-        .replace("$date_of_birth$", date_of_birth.as_str())
-        .replace(
-            "$fav$",
-            character
-                .favourites
-                .unwrap_or_default()
-                .to_string()
-                .as_str(),
-        )
-        .replace("$desc$", character.description.unwrap_or_default().as_str());
+    let age = character.age.clone();
+    if let Some(age) = age {
+        fields.push((character_localised.age, age, true));
+    }
 
+    let favourites = character.favourites.clone();
+    if let Some(favourites) = favourites {
+        fields.push((character_localised.fav, favourites.to_string(), true));
+    }
+
+    let blood_type = character.blood_type.clone();
+    if let Some(blood_type) = blood_type {
+        fields.push((character_localised.blood_type, blood_type, true));
+    }
+    let mut desc = character.description.unwrap_or_default();
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
     let lenght_diff = 4096 - desc.len() as i32;
     if lenght_diff <= 0 {
         desc = trim(desc, lenght_diff)
     }
 
-    let name = character.name.clone().unwrap();
+    let name = match character.name.clone() {
+        Some(name) => name,
+        None => {
+            return Err(Box::new(UnknownResponseError::Option(
+                "No name found".to_string(),
+            )))
+        }
+    };
     let native = name.native.unwrap_or_default();
     let user_pref = name.user_preferred.unwrap_or_default();
     let character_name = format!("{}/{}", user_pref, native);
 
-    let builder_embed = CreateEmbed::new()
+    let mut builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
         .description(desc)
-        .thumbnail(character.image.unwrap().large.unwrap())
         .title(character_name)
-        .url(character.site_url.unwrap_or_default());
+        .url(character.site_url.unwrap_or_default())
+        .fields(fields);
+    match character.image {
+        Some(image) => match image.large {
+            Some(large) => builder_embed = builder_embed.thumbnail(large),
+            None => {}
+        },
+        None => {}
+    }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

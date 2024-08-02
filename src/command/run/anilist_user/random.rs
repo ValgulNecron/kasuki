@@ -17,6 +17,7 @@ use crate::config::Config;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
@@ -57,7 +58,7 @@ pub async fn run(
     let random_localised = load_localization_random(guild_id, db_type.clone()).await?;
 
     // Retrieve the type of media (anime or manga) from the command interaction
-    let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string(command_interaction);
     let random_type = map
         .get(&String::from("type"))
         .ok_or(ResponseError::Option(String::from("No type specified")))?;

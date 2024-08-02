@@ -25,7 +25,17 @@ pub async fn autocomplete_dispatching(
 ) {
     match autocomplete_interaction.data.name.as_str() {
         "admin" => admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_type).await,
-        "anilist_user" => anilist_autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "anime" => anime::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "ln" => ln::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "manga" => manga::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "user" => user::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "character" => character::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "compare" => compare::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "register" => user::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "staff" => staff::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "studio" => studio::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "search" => search::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
+        "seiyuu" => staff::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
         "steam" => steam_autocomplete(ctx, autocomplete_interaction, apps).await,
         "vn" => vn_autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
         "give_premium_sub" => give_premium_sub_autocomplete(ctx, autocomplete_interaction).await,
@@ -86,34 +96,6 @@ async fn anilist_admin_autocomplete(
         "delete_activity" => {
             delete_activity::autocomplete(ctx, autocomplete_interaction, db_type).await
         }
-        _ => {}
-    }
-}
-
-async fn anilist_autocomplete(
-    ctx: Context,
-    autocomplete_interaction: CommandInteraction,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) {
-    match autocomplete_interaction
-        .data
-        .options
-        .first()
-        .unwrap()
-        .name
-        .as_str()
-    {
-        "anime" => anime::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "ln" => ln::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "manga" => manga::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "user" => user::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "character" => character::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "compare" => compare::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "register" => user::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "staff" => staff::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "studio" => studio::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "search" => search::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "seiyuu" => staff::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
         _ => {}
     }
 }

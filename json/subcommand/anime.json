@@ -1,5 +1,5 @@
 {
-  "name": "anime",
+  "name": "random_anime",
   "desc": "Command from the ANIME module",
   "integration_context": {
     "bot_dm": true,
@@ -150,22 +150,22 @@
   "localised": [
     {
       "code": "en-US",
-      "name": "anime",
+      "name": "random_anime",
       "desc": "Command from the ANIME module"
     },
     {
       "code": "fr",
-      "name": "anime",
+      "name": "random_anime",
       "desc": "Commande du module ANIME"
     },
     {
       "code": "de",
-      "name": "anime",
+      "name": "random_anime",
       "desc": "Befehl aus dem ANIME-Modul"
     },
     {
       "code": "ja",
-      "name": "anime",
+      "name": "random_anime",
       "desc": "ANIME モジュールからのコマンド"
     }
   ]
