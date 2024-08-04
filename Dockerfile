@@ -64,6 +64,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
     ca-certificates libopus-dev \
+    youtube-dl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy other necessary files
