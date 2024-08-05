@@ -65,8 +65,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev libjpeg-dev \
     ca-certificates libopus-dev \
     python3-pip python3 \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
+# Create a virtual environment and activate it
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install youtube-dl in the virtual environment
 RUN pip3 install youtube-dl
 
 # Copy other necessary files
