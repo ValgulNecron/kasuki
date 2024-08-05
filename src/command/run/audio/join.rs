@@ -1,11 +1,13 @@
 use std::error::Error;
 use std::sync::Arc;
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context, CreateEmbed};
+use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
 use songbird::CoreEvent;
 use tracing::{error, trace};
 use crate::audio::receiver::Receiver;
 use crate::config::Config;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::structure::message::audio::join::load_localization_join_localised;
 
 pub async fn run(
     ctx: &Context,
@@ -45,7 +47,7 @@ pub async fn run(
         let connect_to = match channel_id {
             Some(channel) => channel,
             None => {
-                return Err(Box::new(FollowupError::Option(String::from(
+                return Err(Box::new(ResponseError::Option(String::from(
                     "Not connected to a voice channel",
                 ))))
             }
@@ -57,7 +59,7 @@ pub async fn run(
             .clone();
 
         let success = manager.join(guild_id, connect_to).await;
-
+        let localised = load_localization_join_localised(guild_id.to_string(), config.bot.config.db_type.clone()).await?;
         if let Ok(handler_lock) = success {
             let evt_receiver = Receiver::new();
             let mut handler = handler_lock.lock().await;
@@ -67,15 +69,22 @@ pub async fn run(
             handler.add_global_event(CoreEvent::RtcpPacket.into(), evt_receiver.clone());
             handler.add_global_event(CoreEvent::ClientDisconnect.into(), evt_receiver.clone());
             handler.add_global_event(CoreEvent::VoiceTick.into(), evt_receiver);
-
-            let builder_embed
+            let embed = CreateEmbed::new().title(localised.title);
+            let builder_embed = CreateInteractionResponseMessage::new().embed(embed);
+            let builder = CreateInteractionResponse::Message(builder_embed);
+            command_interaction
+                .create_response(&ctx.http, builder)
+                .await
+                .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
             return Ok(());
         } else if let Err(joining) = success {
-            return Err(Box::new(FollowupError::Audio(format!(
+            return Err(Box::new(ResponseError::Audio(format!(
                 "Failed to join voice channel: {:#?}",
                 joining
             ))));
         }
     }
+
+    return Err(Box::new(ResponseError::Audio("Failed to join voice channel".to_string())));
 }
