@@ -64,10 +64,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
     ca-certificates libopus-dev \
-    python3-pip \
+    python3-pip python3-pipx \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --upgrade youtube-dl
+RUN pipx install youtube-dl
 
 # Copy other necessary files
 # These include JSON files and server images used by the Kasuki bot.
