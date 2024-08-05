@@ -64,7 +64,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
     ca-certificates libopus-dev \
-    python3-pip python3-pipx \
+    python3-pip python3 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pipx install youtube-dl
