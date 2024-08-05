@@ -1,0 +1,18 @@
+{
+  "en" : {
+    "title" : "Joined voice channel.",
+    "already_in" : "Already in voice channel."
+  },
+  "fr" : {
+    "title" : "Vous avez rejoins le canal vocal.",
+    "already_in" : "Vous êtes dans le canal vocal."
+  },
+  "jp" : {
+    "title" : "ボイスチャンネルに参加しました。",
+    "already_in" : "ボイスチャンネルにすでに参加しています。"
+  },
+  "de" : {
+    "title" : "Du hast den Sprachkanal beigetreten.",
+    "already_in" : "Du bist bereits im Sprachkanal."
+  }
+}

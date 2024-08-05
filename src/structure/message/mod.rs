@@ -13,3 +13,4 @@ pub mod removed_member;
 pub mod server;
 pub mod user;
 pub mod vn;
+mod audio;

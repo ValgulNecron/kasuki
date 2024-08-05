@@ -1,0 +1,21 @@
+{
+  "en": {
+    "error": "Failed to play audio.",
+    "no_option": "No option for song.",
+    "now_playing": "Now playing {}"
+  },
+  "fr": {
+    "error": "Impossible de lire l'audio.",
+    "no_option": "Aucune option pour la lecture.",
+    "now_playing": "Lecture en cours de {}"
+  },
+  "jp": {
+    "error": "オーディオが再生できません。",
+    "no_option": "オーディオが再生できません。",
+    "now_playing": "再生中 {}"},
+  "de": {
+    "error": "Lied konnte nicht abgespielt werden.",
+    "no_option": "Keine Option für den Lied.",
+    "now_playing": "Lied wird abgespielt: {}"
+  }
+}

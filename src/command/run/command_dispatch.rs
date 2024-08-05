@@ -573,6 +573,7 @@ async fn audio(
     };
     let return_data = match command_name {
         "play" => play::run(ctx, command_interaction, config).await,
+        "join" => join::run(ctx, command_interaction, config).await,
         _ => {
             return Err(Box::new(ResponseError::Option(String::from(
                 "Unknown command",

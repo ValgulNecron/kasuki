@@ -68,6 +68,32 @@
           "desc": "オーディオを再生します。"
         }
       ]
+    },
+    {
+      "name": "join",
+      "desc": "Join voice channel.",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "join",
+          "desc": "Join voice channel."
+        },
+        {
+          "code": "fr",
+          "name": "rejoindre",
+          "desc": "Rejoindre le canal vocal."
+        },
+        {
+          "code": "de",
+          "name": "beitreten",
+          "desc": "Sprachkanal beitreten."
+        },
+        {
+          "code": "ja",
+          "name": "参加",
+          "desc": "ボイスチャンネルに参加します。"
+        }
+        ]
     }
   ],
   "localised": [
