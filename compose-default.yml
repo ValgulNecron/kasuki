@@ -9,6 +9,8 @@ services:
     # image: valgul/kasuki:dev # the latest dev build that compile there could be error.
     container_name: kasuki
     restart: unless-stopped
+    depends_on:
+      - db
     tty: true
     ports:
       - "443:443"

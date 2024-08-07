@@ -59,6 +59,9 @@ fn create_and_complete_dot_pgpass(db_config: BotConfigDetails) -> Result<(), Box
     let pgpass_path = home_dir.join(".pgpass");
     trace!(pgpass_path = ?pgpass_path);
     trace!(home_dir = ?home_dir);
+    if pgpass_path.exists() {
+        return Ok(());
+    }
 
     fs::create_dir_all(home_dir)?;
     let mut open = OpenOptions::new()
