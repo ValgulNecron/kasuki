@@ -49,10 +49,6 @@ fn create_and_complete_dot_pgpass(db_config: BotConfigDetails) -> Result<(), Box
     {
         home_dir = home_dir.join("AppData\\Roaming\\postgres\\")
     }
-    #[cfg(not(windows))]
-    {
-        home_dir = home_dir.join("postgres/")
-    }
     #[cfg(windows)]
     let pgpass_path = home_dir.join("pgpass.conf");
     #[cfg(not(windows))]
