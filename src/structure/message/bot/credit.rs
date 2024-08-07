@@ -1,8 +1,8 @@
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// Represents a localized line of credit.
 ///
@@ -44,7 +44,8 @@ pub struct CreditLocalised {
 pub async fn load_localization_credit(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<CreditLocalised, Box<dyn Error>> {
     let path = "json/message/bot/credit.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

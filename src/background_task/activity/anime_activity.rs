@@ -12,6 +12,7 @@ use tokio::sync::RwLock;
 use tracing::{error, trace};
 
 use crate::command::run::admin::anilist::add_activity::get_minimal_anime_by_id;
+use crate::config::BotConfigDetails;
 use crate::database::data_struct::server_activity::ServerActivityFull;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
@@ -33,8 +34,9 @@ pub async fn manage_activity(
     ctx: Context,
     db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_config: BotConfigDetails,
 ) {
-    send_activity(&ctx, db_type, anilist_cache).await;
+    send_activity(&ctx, db_type, anilist_cache, db_config).await;
 }
 
 /// `send_activity` is an asynchronous function that sends activities.
@@ -56,9 +58,10 @@ async fn send_activity(
     ctx: &Context,
     db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_config: BotConfigDetails,
 ) {
     let now = Utc::now().timestamp().to_string();
-    let rows = match get_data_activity(now.clone(), db_type.clone()).await {
+    let rows = match get_data_activity(now.clone(), db_type.clone(), db_config.clone()).await {
         Ok(rows) => rows,
         Err(e) => {
             error!("{}", e);
@@ -76,10 +79,19 @@ async fn send_activity(
         if row.delays != 0 {
             let db_type = db_type.clone();
             let anilist_cache = anilist_cache.clone();
+            let db_config = db_config.clone();
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs(row2.delays as u64)).await;
-                if let Err(e) =
-                    send_specific_activity(row, guild_id, row2, &ctx, db_type, anilist_cache).await
+                if let Err(e) = send_specific_activity(
+                    row,
+                    guild_id,
+                    row2,
+                    &ctx,
+                    db_type,
+                    anilist_cache,
+                    db_config,
+                )
+                .await
                 {
                     error!("{}", e)
                 }
@@ -87,9 +99,18 @@ async fn send_activity(
         } else {
             let db_type = db_type.clone();
             let anilist_cache = anilist_cache.clone();
+            let db_config = db_config.clone();
             tokio::spawn(async move {
-                if let Err(e) =
-                    send_specific_activity(row, guild_id, row2, &ctx, db_type, anilist_cache).await
+                if let Err(e) = send_specific_activity(
+                    row,
+                    guild_id,
+                    row2,
+                    &ctx,
+                    db_type,
+                    anilist_cache,
+                    db_config,
+                )
+                .await
                 {
                     error!("{}", e);
                 }
@@ -131,8 +152,11 @@ async fn send_specific_activity(
     ctx: &Context,
     db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let localised_text = load_localization_send_activity(guild_id.clone(), db_type.clone()).await?;
+    let localised_text =
+        load_localization_send_activity(guild_id.clone(), db_type.clone(), db_config.clone())
+            .await?;
     let webhook_url = row.webhook.clone();
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
         .await
@@ -179,9 +203,9 @@ async fn send_specific_activity(
         .execute(&ctx.http, false, builder_message)
         .await
         .map_err(|e| error_enum::Error::Webhook(format!("{:#?}", e)))?;
-
+    let db2 = db_config.clone();
     tokio::spawn(async move {
-        if let Err(e) = update_info(row2, guild_id, anilist_cache.clone(), db_type).await {
+        if let Err(e) = update_info(row2, guild_id, anilist_cache.clone(), db_type, db2).await {
             error!("{}", e)
         }
     });
@@ -213,11 +237,12 @@ async fn update_info(
     guild_id: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let media = get_minimal_anime_by_id(row.anime_id, anilist_cache).await?;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
-        None => return remove_activity(row, guild_id, db_type).await,
+        None => return remove_activity(row, guild_id, db_type, db_config).await,
     };
     let title = media
         .title
@@ -237,6 +262,7 @@ async fn update_info(
             image: row.image,
         },
         db_type,
+        db_config,
     )
     .await?;
     Ok(())
@@ -260,8 +286,9 @@ async fn remove_activity(
     row: ServerActivityFull,
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     trace!("removing {:#?} for {}", row, guild_id);
-    remove_data_activity_status(guild_id, row.anime_id.to_string(), db_type).await?;
+    remove_data_activity_status(guild_id, row.anime_id.to_string(), db_type, db_config).await?;
     Ok(())
 }

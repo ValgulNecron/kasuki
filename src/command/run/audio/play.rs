@@ -3,6 +3,7 @@ use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::structure::message::audio::play::load_localization_play_localised;
 use serenity::all::{CommandInteraction, CreateInteractionResponseFollowup};
 use serenity::builder::CreateInteractionResponse::Defer;
 use serenity::builder::CreateInteractionResponseMessage;
@@ -24,12 +25,16 @@ pub async fn run(
         .get(&String::from("song"))
         .ok_or(ResponseError::Option(String::from("No option for song")))?
         .clone();
-
     let guild_id = command_interaction
         .guild_id
         .ok_or(ResponseError::Option(String::from("No guild id")))?;
     let cache = ctx.cache.clone();
-
+    let localised = load_localization_play_localised(
+        guild_id.to_string(),
+        config.bot.config.db_type.clone(),
+        config.bot.config.clone(),
+    )
+    .await?;
     let http_client = reqwest::Client::new();
     let manager = songbird::get(ctx)
         .await
@@ -114,19 +119,23 @@ pub async fn run(
             handler.enqueue(Track::from(src.clone())),
             src.aux_metadata()
         );
+
         handler.add_global_event(TrackEvent::Error.into(), TrackErrorNotifier);
-        trace!(?track, ?meta);
+
         if let Ok(meta) = meta {
             let title = meta.title.unwrap_or("song".to_string());
+            let thumbnail = meta.thumbnail;
+            let duration = meta.duration.unwrap_or_default();
             let source_url = meta
                 .source_url
                 .unwrap_or("<https://youtube.com>".to_string());
 
-            let embed = get_default_embed(None).title("Audio").description(format!(
-                "Now playing: [{}]({})",
-                title,
-                url.clone()
-            ));
+            let mut embed = get_default_embed(None)
+                .title(localised.now_playing)
+                .description(format!("[{}]({}): {:?}", title, url.clone(), duration));
+            if let Some(thumb) = thumbnail {
+                embed = embed.thumbnail(thumb);
+            }
             let builder = CreateInteractionResponseFollowup::new().embed(embed);
             command_interaction
                 .create_followup(&ctx.http, builder)
@@ -136,9 +145,7 @@ pub async fn run(
         }
     }
 
-    let embed = get_default_embed(None)
-        .title("Audio")
-        .description("No audio is playing");
+    let embed = get_default_embed(None).title(localised.error);
     let builder = CreateInteractionResponseFollowup::new().embed(embed);
     command_interaction
         .create_followup(&ctx.http, builder)

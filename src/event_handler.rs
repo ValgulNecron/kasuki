@@ -171,9 +171,16 @@ impl EventHandler for Handler {
                 &ctx,
                 db_type.clone(),
                 user_blacklist_server_image,
+                self.bot_data.config.bot.config.clone(),
             )
             .await;
-            server_image_management(&ctx, db_type, image_config).await;
+            server_image_management(
+                &ctx,
+                db_type,
+                image_config,
+                self.bot_data.config.bot.config.clone(),
+            )
+            .await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
@@ -202,22 +209,40 @@ impl EventHandler for Handler {
             member.user.tag(),
             guild_id.clone()
         );
-        let is_module_on = check_if_module_is_on(guild_id.clone(), "NEW_MEMBER", db_type.clone())
-            .await
-            .unwrap_or_else(|e| {
-                error!("Failed to get the module status. {}", e);
-                false
-            });
-        new_member_message(&ctx, &member).await;
+        let is_module_on = check_if_module_is_on(
+            guild_id.clone(),
+            "NEW_MEMBER",
+            db_type.clone(),
+            self.bot_data.config.bot.config.clone(),
+        )
+        .await
+        .unwrap_or_else(|e| {
+            error!("Failed to get the module status. {}", e);
+            false
+        });
+        new_member_message(
+            &ctx,
+            &member,
+            db_type.clone(),
+            self.bot_data.config.bot.config.clone(),
+        )
+        .await;
         color_management(
             &ctx.cache.guilds(),
             &ctx,
             db_type.clone(),
             user_blacklist_server_image,
+            self.bot_data.config.bot.config.clone(),
         )
         .await;
         if is_module_on {
-            server_image_management(&ctx, db_type.clone(), image_config).await;
+            server_image_management(
+                &ctx,
+                db_type.clone(),
+                image_config,
+                self.bot_data.config.bot.config.clone(),
+            )
+            .await;
         }
     }
 
@@ -229,15 +254,26 @@ impl EventHandler for Handler {
         _member_data_if_available: Option<Member>,
     ) {
         let db_type = self.bot_data.config.bot.config.db_type.clone();
-        let is_module_on =
-            check_if_module_is_on(guild_id.to_string().clone(), "NEW_MEMBER", db_type.clone())
-                .await
-                .unwrap_or_else(|e| {
-                    error!("Failed to get the module status. {}", e);
-                    false
-                });
+        let is_module_on = check_if_module_is_on(
+            guild_id.to_string().clone(),
+            "NEW_MEMBER",
+            db_type.clone(),
+            self.bot_data.config.bot.config.clone(),
+        )
+        .await
+        .unwrap_or_else(|e| {
+            error!("Failed to get the module status. {}", e);
+            false
+        });
         if is_module_on {
-            removed_member_message(&ctx, guild_id, user).await
+            removed_member_message(
+                &ctx,
+                guild_id,
+                user,
+                db_type,
+                self.bot_data.config.bot.config.clone(),
+            )
+            .await
         }
     }
     /// This function is called when the bot is ready.
@@ -269,6 +305,7 @@ impl EventHandler for Handler {
             tokio::spawn(thread_management_launcher(
                 ctx.clone(),
                 self.bot_data.clone(),
+                self.bot_data.config.bot.config.clone(),
             ));
             drop(write_guard)
         }
@@ -411,14 +448,21 @@ impl EventHandler for Handler {
                 db_type,
                 vndb_cache,
                 apps,
+                self.bot_data.config.bot.config.clone(),
             )
             .await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
             let db_type = self.bot_data.config.bot.config.db_type.clone();
             let anilist_cache = self.bot_data.anilist_cache.clone();
             // Dispatch the component interaction
-            if let Err(e) =
-                components_dispatching(ctx, component_interaction, db_type, anilist_cache).await
+            if let Err(e) = components_dispatching(
+                ctx,
+                component_interaction,
+                db_type,
+                anilist_cache,
+                self.bot_data.config.bot.config.clone(),
+            )
+            .await
             {
                 // If an error occurs, log it
                 error!("{:?}", e)

@@ -11,7 +11,7 @@ use serenity::builder::CreateInteractionResponseFollowup;
 use tracing::trace;
 use uuid::Uuid;
 
-use crate::config::Config;
+use crate::config::{BotConfigDetails, Config};
 use crate::database::manage::dispatcher::data_dispatch::get_server_image;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
@@ -35,7 +35,14 @@ pub async fn run(
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
-    send_embed(ctx, command_interaction, "local", db_type).await
+    send_embed(
+        ctx,
+        command_interaction,
+        "local",
+        db_type,
+        config.bot.config.clone(),
+    )
+    .await
 }
 
 /// Sends an embed with the server's profile picture.
@@ -57,6 +64,7 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     image_type: &str,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -66,7 +74,8 @@ pub async fn send_embed(
 
     // Load the localized text for the server's profile picture image
     let pfp_server_image_localised_text =
-        load_localization_pfp_server_image(guild_id.clone(), db_type.clone()).await?;
+        load_localization_pfp_server_image(guild_id.clone(), db_type.clone(), db_config.clone())
+            .await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -78,7 +87,7 @@ pub async fn send_embed(
         .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
     // Retrieve the server's profile picture image
-    let image = get_server_image(&guild_id, &image_type.to_string(), db_type)
+    let image = get_server_image(&guild_id, &image_type.to_string(), db_type, db_config)
         .await?
         .1
         .unwrap_or_default();

@@ -79,7 +79,8 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let transcript_localised = load_localization_transcript(guild_id, db_type).await?;
+    let transcript_localised =
+        load_localization_transcript(guild_id, db_type, config.bot.config.clone()).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
         return Err(Box::new(ResponseError::File(String::from(

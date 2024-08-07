@@ -71,7 +71,8 @@ pub async fn run(
     };
 
     // Load the localized studio strings
-    let studio_localised = load_localization_studio(guild_id, db_type).await?;
+    let studio_localised =
+        load_localization_studio(guild_id, db_type, config.bot.config.clone()).await?;
 
     // Initialize a string to store the content of the response
     let mut content = String::new();

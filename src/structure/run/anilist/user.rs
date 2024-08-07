@@ -1,15 +1,15 @@
 use std::error::Error;
 use std::fmt::Display;
 
-use serenity::all::CommandInteraction;
-use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
-use serenity::model::Colour;
-use serenity::prelude::Context;
-
+use crate::config::BotConfigDetails;
 use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
+use serenity::all::CommandInteraction;
+use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
+use serenity::model::Colour;
+use serenity::prelude::Context;
 
 #[cynic::schema("anilist")]
 mod schema {}
@@ -198,13 +198,14 @@ pub async fn send_embed(
     command: &CommandInteraction,
     user: User,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match command.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
-    let user_localised = load_localization_user(guild_id, db_type).await?;
+    let user_localised = load_localization_user(guild_id, db_type, db_config).await?;
 
     let mut field = Vec::new();
     let statistics = user

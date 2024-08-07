@@ -33,9 +33,33 @@ pub async fn dispatch_user_command(
 ) -> Result<(), Box<dyn Error>> {
     let db_type = self_handler.bot_data.config.bot.config.db_type.clone();
     match command_interaction.data.name.as_str() {
-        "avatar" => avatar::run(ctx, command_interaction, db_type).await,
-        "banner" => banner::run(ctx, command_interaction, db_type).await,
-        "profile" => profile::run(ctx, command_interaction, db_type).await,
+        "avatar" => {
+            avatar::run(
+                ctx,
+                command_interaction,
+                db_type,
+                self_handler.bot_data.config.bot.config.clone(),
+            )
+            .await
+        }
+        "banner" => {
+            banner::run(
+                ctx,
+                command_interaction,
+                db_type,
+                self_handler.bot_data.config.bot.config.clone(),
+            )
+            .await
+        }
+        "profile" => {
+            profile::run(
+                ctx,
+                command_interaction,
+                db_type,
+                self_handler.bot_data.config.bot.config.clone(),
+            )
+            .await
+        }
         _ => Err(Box::new(ResponseError::Option(String::from(
             "Unknown command",
         )))),

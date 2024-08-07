@@ -69,7 +69,14 @@ pub async fn run(
     };
 
     // Send an embed containing the LN data as a response to the command interaction
-    send_embed(ctx, command_interaction, data, db_type).await?;
+    send_embed(
+        ctx,
+        command_interaction,
+        data,
+        db_type,
+        config.bot.config.clone(),
+    )
+    .await?;
 
     Ok(())
 }

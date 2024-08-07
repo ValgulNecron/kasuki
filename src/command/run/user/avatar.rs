@@ -6,7 +6,7 @@ use serenity::all::{
     CreateInteractionResponseMessage, Timestamp, User,
 };
 
-use crate::config::Config;
+use crate::config::{BotConfigDetails, Config};
 use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
@@ -42,11 +42,18 @@ pub async fn run(
         Some(user) => {
             let user = get_user_data(ctx.http.clone(), user).await?;
             // If the user exists, retrieve the user's information and display their avatar
-            avatar_with_user(ctx, command_interaction, &user, db_type).await
+            avatar_with_user(
+                ctx,
+                command_interaction,
+                &user,
+                db_type,
+                config.bot.config.clone(),
+            )
+            .await
         }
         None => {
             // If the user does not exist, display the avatar of the user who triggered the command
-            avatar_without_user(ctx, command_interaction, db_type).await
+            avatar_without_user(ctx, command_interaction, db_type, config.bot.config.clone()).await
         }
     }
 }
@@ -67,11 +74,12 @@ async fn avatar_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
     // Display the user's avatar
-    avatar_with_user(ctx, command_interaction, &user, db_type).await
+    avatar_with_user(ctx, command_interaction, &user, db_type, db_config).await
 }
 
 /// Displays the avatar of a specified user.
@@ -93,6 +101,7 @@ pub async fn avatar_with_user(
     command_interaction: &CommandInteraction,
     user: &User,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let avatar_url = user.face();
     let guild_id = command_interaction.guild_id.unwrap_or_default();
@@ -108,6 +117,7 @@ pub async fn avatar_with_user(
         user.name.clone(),
         server_avatar,
         db_type,
+        db_config,
     )
     .await
 }
@@ -135,13 +145,14 @@ pub async fn send_embed(
     username: String,
     server_avatar: Option<String>,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
-    let avatar_localised = load_localization_avatar(guild_id, db_type).await?;
+    let avatar_localised = load_localization_avatar(guild_id, db_type, db_config).await?;
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())

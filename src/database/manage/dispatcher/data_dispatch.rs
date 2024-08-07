@@ -1,5 +1,4 @@
-use std::error::Error;
-
+use crate::config::BotConfigDetails;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
@@ -32,6 +31,7 @@ use crate::database::manage::sqlite::data::{
     set_data_ping_history_sqlite, set_registered_user_sqlite, set_server_image_sqlite,
     set_user_approximated_color_sqlite,
 };
+use std::error::Error;
 
 /// Sets the ping history in the database.
 ///
@@ -50,11 +50,12 @@ use crate::database::manage::sqlite::data::{
 pub async fn set_data_ping_history(
     ping_history: PingHistory,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     if db_type == "sqlite" {
         set_data_ping_history_sqlite(ping_history).await
     } else if db_type == "postgresql" {
-        set_data_ping_history_postgresql(ping_history).await
+        set_data_ping_history_postgresql(ping_history, db_config).await
     } else {
         set_data_ping_history_sqlite(ping_history).await
     }
@@ -76,12 +77,13 @@ pub async fn set_data_ping_history(
 pub async fn get_data_guild_language(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<Option<GuildLanguage>, Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_guild_language_sqlite(guild_id).await
     } else if db_type == "postgresql" {
-        get_data_guild_language_postgresql(guild_id).await
+        get_data_guild_language_postgresql(guild_id, db_config).await
     } else {
         get_data_guild_language_sqlite(guild_id).await
     }
@@ -104,12 +106,13 @@ pub async fn get_data_guild_language(
 pub async fn set_data_guild_language(
     guild_language: GuildLanguage,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_data_guild_language_sqlite(guild_language).await
     } else if db_type == "postgresql" {
-        set_data_guild_language_postgresql(guild_language).await
+        set_data_guild_language_postgresql(guild_language, db_config).await
     } else {
         set_data_guild_language_sqlite(guild_language).await
     }
@@ -131,12 +134,13 @@ pub async fn set_data_guild_language(
 pub async fn get_data_activity(
     now: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<Vec<ServerActivityFull>, Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_activity_sqlite(now).await
     } else if db_type == "postgresql" {
-        get_data_activity_postgresql(now).await
+        get_data_activity_postgresql(now, db_config).await
     } else {
         get_data_activity_sqlite(now).await
     }
@@ -158,12 +162,13 @@ pub async fn get_data_activity(
 pub async fn set_data_activity(
     server_activity_full: ServerActivityFull,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_data_activity_sqlite(server_activity_full).await
     } else if db_type == "postgresql" {
-        set_data_activity_postgresql(server_activity_full).await
+        set_data_activity_postgresql(server_activity_full, db_config).await
     } else {
         set_data_activity_sqlite(server_activity_full).await
     }
@@ -185,12 +190,13 @@ pub async fn set_data_activity(
 pub async fn get_data_module_activation_status(
     guild_id: &String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<ActivationStatusModule, Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_module_activation_status_sqlite(guild_id).await
     } else if db_type == "postgresql" {
-        get_data_module_activation_status_postgresql(guild_id).await
+        get_data_module_activation_status_postgresql(guild_id, db_config).await
     } else {
         get_data_module_activation_status_sqlite(guild_id).await
     }
@@ -216,12 +222,13 @@ pub async fn get_data_module_activation_status(
 pub async fn set_data_module_activation_status(
     activation_status_module: ActivationStatusModule,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_data_module_activation_status_sqlite(activation_status_module).await
     } else if db_type == "postgresql" {
-        set_data_module_activation_status_postgresql(activation_status_module).await
+        set_data_module_activation_status_postgresql(activation_status_module, db_config).await
     } else {
         set_data_module_activation_status_sqlite(activation_status_module).await
     }
@@ -230,12 +237,13 @@ pub async fn set_data_module_activation_status(
 pub async fn set_data_kill_switch_activation_status(
     activation_status_module: ActivationStatusModule,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_data_module_kill_switch_status_sqlite(activation_status_module).await
     } else if db_type == "postgresql" {
-        set_data_kill_switch_activation_status_postgresql(activation_status_module).await
+        set_data_kill_switch_activation_status_postgresql(activation_status_module, db_config).await
     } else {
         set_data_module_kill_switch_status_sqlite(activation_status_module).await
     }
@@ -259,12 +267,13 @@ pub async fn get_one_activity(
     anime_id: i32,
     server_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<SmallServerActivity, Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_one_activity_sqlite(server_id, anime_id).await
     } else if db_type == "postgresql" {
-        get_one_activity_postgresql(server_id, anime_id).await
+        get_one_activity_postgresql(server_id, anime_id, db_config).await
     } else {
         get_one_activity_sqlite(server_id, anime_id).await
     }
@@ -286,12 +295,13 @@ pub async fn get_one_activity(
 pub async fn get_registered_user(
     user_id: &String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<Option<RegisteredUser>, Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_registered_user_sqlite(user_id).await
     } else if db_type == "postgresql" {
-        get_registered_user_postgresql(user_id).await
+        get_registered_user_postgresql(user_id, db_config).await
     } else {
         get_registered_user_sqlite(user_id).await
     }
@@ -314,11 +324,12 @@ pub async fn get_registered_user(
 pub async fn set_registered_user(
     registered_user: RegisteredUser,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     if db_type == "sqlite" {
         set_registered_user_sqlite(registered_user).await
     } else if db_type == "postgresql" {
-        set_registered_user_postgresql(registered_user).await
+        set_registered_user_postgresql(registered_user, db_config).await
     } else {
         set_registered_user_sqlite(registered_user).await
     }
@@ -335,12 +346,13 @@ pub async fn set_registered_user(
 /// * A Result that is either an ActivationStatusModule variant if the operation was successful, or an Err variant with an AppError.
 pub async fn get_data_module_activation_kill_switch_status(
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<ActivationStatusModule, Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_module_activation_kill_switch_status_sqlite().await
     } else if db_type == "postgresql" {
-        get_data_module_activation_kill_switch_status_postgresql().await
+        get_data_module_activation_kill_switch_status_postgresql(db_config).await
     } else {
         get_data_module_activation_kill_switch_status_sqlite().await
     }
@@ -364,12 +376,13 @@ pub async fn remove_data_activity_status(
     server_id: String,
     anime_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         remove_data_activity_status_sqlite(server_id, anime_id).await
     } else if db_type == "postgresql" {
-        remove_data_activity_status_postgresql(server_id, anime_id).await
+        remove_data_activity_status_postgresql(server_id, anime_id, db_config).await
     } else {
         remove_data_activity_status_sqlite(server_id, anime_id).await
     }
@@ -397,12 +410,13 @@ pub async fn set_user_approximated_color(
     pfp_url: &String,
     image: &String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_user_approximated_color_sqlite(user_id, color, pfp_url, image).await
     } else if db_type == "postgresql" {
-        set_user_approximated_color_postgresql(user_id, color, pfp_url, image).await
+        set_user_approximated_color_postgresql(user_id, color, pfp_url, image, db_config).await
     } else {
         set_user_approximated_color_sqlite(user_id, color, pfp_url, image).await
     }
@@ -424,12 +438,13 @@ pub async fn set_user_approximated_color(
 pub async fn get_user_approximated_color(
     user_id: &String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<UserColor, Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_user_approximated_color_sqlite(user_id).await
     } else if db_type == "postgresql" {
-        get_user_approximated_color_postgresql(user_id).await
+        get_user_approximated_color_postgresql(user_id, db_config).await
     } else {
         get_user_approximated_color_sqlite(user_id).await
     }
@@ -451,12 +466,13 @@ pub async fn get_user_approximated_color(
 pub async fn get_all_server_activity(
     server_id: &String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<Vec<ServerActivity>, Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_all_server_activity_sqlite(server_id).await
     } else if db_type == "postgresql" {
-        get_all_server_activity_postgresql(server_id).await
+        get_all_server_activity_postgresql(server_id, db_config).await
     } else {
         get_all_server_activity_sqlite(server_id).await
     }
@@ -478,12 +494,13 @@ pub async fn get_all_server_activity(
 pub async fn get_data_all_activity_by_server(
     server_id: &String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<Vec<(String, String)>, Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_data_all_activity_by_server_sqlite(server_id).await
     } else if db_type == "postgresql" {
-        get_data_all_activity_by_server_postgresql(server_id).await
+        get_data_all_activity_by_server_postgresql(server_id, db_config).await
     } else {
         get_data_all_activity_by_server_sqlite(server_id).await
     }
@@ -500,11 +517,12 @@ pub async fn get_data_all_activity_by_server(
 /// * A Result that is either a Vec variant containing UserColor if the operation was successful, or an Err variant with an AppError.
 pub async fn get_all_user_approximated_color(
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<Vec<UserColor>, Box<dyn Error>> {
     if db_type == "sqlite" {
         get_all_user_approximated_color_sqlite().await
     } else if db_type == "postgresql" {
-        get_all_user_approximated_color_postgres().await
+        get_all_user_approximated_color_postgres(db_config).await
     } else {
         get_all_user_approximated_color_sqlite().await
     }
@@ -532,12 +550,13 @@ pub async fn set_server_image(
     image: &String,
     image_url: &String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         set_server_image_sqlite(server_id, image_type, image, image_url).await
     } else if db_type == "postgresql" {
-        set_server_image_postgresql(server_id, image_type, image, image_url).await
+        set_server_image_postgresql(server_id, image_type, image, image_url, db_config).await
     } else {
         set_server_image_sqlite(server_id, image_type, image, image_url).await
     }
@@ -561,12 +580,13 @@ pub async fn get_server_image(
     server_id: &String,
     image_type: &String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(Option<String>, Option<String>), Box<dyn Error>> {
     let db_type = db_type.as_str();
     if db_type == "sqlite" {
         get_server_image_sqlite(server_id, image_type).await
     } else if db_type == "postgresql" {
-        get_server_image_postgresql(server_id, image_type).await
+        get_server_image_postgresql(server_id, image_type, db_config).await
     } else {
         get_server_image_sqlite(server_id, image_type).await
     }

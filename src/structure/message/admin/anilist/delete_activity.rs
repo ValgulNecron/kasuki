@@ -2,9 +2,9 @@
 
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// `DeleteActivityLocalised` is a struct that represents a delete activity's localized data.
 /// It contains two fields `success` and `success_desc` which are both Strings.
@@ -37,7 +37,8 @@ pub struct DeleteActivityLocalised {
 pub async fn load_localization_delete_activity(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<DeleteActivityLocalised, Box<dyn Error>> {
     let path = "json/message/admin/anilist/delete_activity.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

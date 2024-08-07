@@ -9,7 +9,6 @@ use tokio::sync::RwLock;
 use crate::config::Config;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::media::{
     send_embed, Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
@@ -109,7 +108,14 @@ pub async fn run(
     };
 
     // Send an embed with the anime information as a response to the command interaction
-    send_embed(ctx, command_interaction, data, db_type).await?;
+    send_embed(
+        ctx,
+        command_interaction,
+        data,
+        db_type,
+        config.bot.config.clone(),
+    )
+    .await?;
 
     Ok(())
 }

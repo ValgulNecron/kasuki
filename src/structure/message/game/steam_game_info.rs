@@ -2,9 +2,9 @@
 
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// `SteamGameInfoLocalised` is a struct that represents a Steam game's localized data.
 /// It contains several fields which are all Strings.
@@ -49,7 +49,8 @@ pub struct SteamGameInfoLocalised {
 pub async fn load_localization_steam_game_info(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<SteamGameInfoLocalised, Box<dyn Error>> {
     let path = "json/message/game/steam_game_info.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

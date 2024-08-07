@@ -35,6 +35,7 @@ pub async fn run(
     let localization = load_localization_remove_test_sub(
         command_interaction.guild_id.unwrap().to_string(),
         config.bot.config.db_type.clone(),
+        config.bot.config.clone(),
     )
     .await?;
     // defer the response

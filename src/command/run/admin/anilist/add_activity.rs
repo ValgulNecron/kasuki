@@ -19,7 +19,7 @@ use serenity::all::{
 use tokio::sync::RwLock;
 use tracing::{error, trace};
 
-use crate::config::Config;
+use crate::config::{BotConfigDetails, Config};
 use crate::constant::COLOR;
 use crate::database::data_struct::server_activity::{ServerActivityFull, SmallServerActivity};
 use crate::database::manage::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
@@ -82,8 +82,12 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
-    let add_activity_localised =
-        load_localization_add_activity(guild_id.clone(), db_type.clone()).await?;
+    let add_activity_localised = load_localization_add_activity(
+        guild_id.clone(),
+        db_type.clone(),
+        config.bot.config.clone(),
+    )
+    .await?;
 
     let media = get_minimal_anime_media(anime, anilist_cache).await?;
     let anime_id = media.id;
@@ -93,7 +97,14 @@ pub async fn run(
     let anime_name = get_name(title);
     let channel_id = command_interaction.channel_id;
 
-    if check_if_activity_exist(anime_id, guild_id.clone(), db_type.clone()).await {
+    if check_if_activity_exist(
+        anime_id,
+        guild_id.clone(),
+        db_type.clone(),
+        config.bot.config.clone(),
+    )
+    .await
+    {
         let builder_embed = CreateEmbed::new()
             .timestamp(Timestamp::now())
             .color(COLOR)
@@ -171,6 +182,7 @@ pub async fn run(
                 image: base64,
             },
             db_type.clone(),
+            config.bot.config.clone(),
         )
         .await?;
 
@@ -205,14 +217,20 @@ pub async fn run(
 /// # Returns
 ///
 /// A boolean indicating whether the activity exists.
-async fn check_if_activity_exist(anime_id: i32, server_id: String, db_type: String) -> bool {
-    let row: SmallServerActivity = get_one_activity(anime_id, server_id.clone(), db_type)
-        .await
-        .unwrap_or(SmallServerActivity {
-            anime_id: None,
-            timestamp: None,
-            server_id: None,
-        });
+async fn check_if_activity_exist(
+    anime_id: i32,
+    server_id: String,
+    db_type: String,
+    db_config: BotConfigDetails,
+) -> bool {
+    let row: SmallServerActivity =
+        get_one_activity(anime_id, server_id.clone(), db_type, db_config)
+            .await
+            .unwrap_or(SmallServerActivity {
+                anime_id: None,
+                timestamp: None,
+                server_id: None,
+            });
     trace!("{:?}", row);
     if row.anime_id.is_none() || row.timestamp.is_none() || row.server_id.is_none() {
         return false;

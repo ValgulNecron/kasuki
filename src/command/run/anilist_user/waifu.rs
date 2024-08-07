@@ -33,5 +33,12 @@ pub async fn run(
     let value = 156323;
     let data = get_character_by_id(value, anilist_cache).await?;
     // Send the character's data as a response to the command interaction
-    send_embed(ctx, command_interaction, data, db_type).await
+    send_embed(
+        ctx,
+        command_interaction,
+        data,
+        db_type,
+        config.bot.config.clone(),
+    )
+    .await
 }

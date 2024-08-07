@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use crate::config::BotConfigDetails;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
@@ -26,10 +27,11 @@ use crate::helper::error_management::error_enum::UnknownResponseError;
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_ping_history_postgresql(
     ping_history: PingHistory,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO DATA.ping_history (shard_id, timestamp, ping) VALUES ($1, $2, $3) ON CONFLICT (shard_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, ping = EXCLUDED.ping",
+        "INSERT INTO ping_history (shard_id, timestamp, ping) VALUES ($1, $2, $3) ON CONFLICT (shard_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, ping = EXCLUDED.ping",
     )
         .bind(ping_history.shard_id)
         .bind(ping_history.timestamp)
@@ -56,10 +58,11 @@ pub async fn set_data_ping_history_postgresql(
 /// * A Result that is either a tuple containing Option<String>, Option<String> if the operation was successful and the guild language record exists, or (None, None) if the guild language record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_guild_language_postgresql(
     guild_id: String,
+    db_config: BotConfigDetails,
 ) -> Result<Option<GuildLanguage>, Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     let row: Option<GuildLanguage> =
-        sqlx::query_as("SELECT lang, guild FROM DATA.guild_lang WHERE guild = $1")
+        sqlx::query_as("SELECT lang, guild FROM guild_lang WHERE guild = $1")
             .bind(guild_id)
             .fetch_optional(&pool)
             .await
@@ -83,10 +86,11 @@ pub async fn get_data_guild_language_postgresql(
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_guild_language_postgresql(
     guild_language: GuildLanguage,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO DATA.guild_lang (guild, lang) VALUES ($1, $2) ON CONFLICT (guild) DO UPDATE SET lang = EXCLUDED.lang",
+        "INSERT INTO guild_lang (guild, lang) VALUES ($1, $2) ON CONFLICT (guild) DO UPDATE SET lang = EXCLUDED.lang",
     )
         .bind(guild_language.guild)
         .bind(guild_language.lang)
@@ -111,10 +115,11 @@ pub async fn set_data_guild_language_postgresql(
 /// * A Result that is either a Vec<ActivityData> if the operation was successful and the activity data records exist, or an empty Vec<ActivityData> if the activity data records do not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_activity_postgresql(
     now: String,
+    db_config: BotConfigDetails,
 ) -> Result<Vec<ServerActivityFull>, Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     let rows: Vec<ServerActivityFull> = sqlx::query_as(
-        "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays, image FROM DATA.activity_data WHERE timestamp = $1",
+        "SELECT anime_id, timestamp, server_id, webhook, episode, name, delays, image FROM activity_data WHERE timestamp = $1",
     )
         .bind(now)
         .fetch_all(&pool)
@@ -137,10 +142,11 @@ pub async fn get_data_activity_postgresql(
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_activity_postgresql(
     server_activity_full: ServerActivityFull,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO DATA.activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\
+        "INSERT INTO activity_data (anime_id, timestamp, server_id, webhook, episode, name, delays, image) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\
          ON CONFLICT (anime_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, server_id = EXCLUDED.server_id, webhook = EXCLUDED.webhook, episode = EXCLUDED.episode, name = EXCLUDED.name, delays = EXCLUDED.delays",
     )
         .bind(server_activity_full.anime_id)
@@ -171,10 +177,11 @@ pub async fn set_data_activity_postgresql(
 /// * A Result that is either an ActivationStatusModule if the operation was successful and the module activation status record exists, or an ActivationStatusModule with None fields if the module activation status record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_module_activation_status_postgresql(
     guild_id: &String,
+    db_config: BotConfigDetails,
 ) -> Result<ActivationStatusModule, Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM DATA.module_activation WHERE guild = $1",
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild = $1",
     )
         .bind(guild_id)
         .fetch_one(&pool)
@@ -210,10 +217,11 @@ pub async fn get_data_module_activation_status_postgresql(
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_data_module_activation_status_postgresql(
     activation_status_module: ActivationStatusModule,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO DATA.module_activation (guild_id, anilist_module, ai_module, game_module, new_member, vn) VALUES ($1, $2, $3, $4, $5, $6) \
+        "INSERT INTO module_activation (guild_id, anilist_module, ai_module, game_module, new_member, vn) VALUES ($1, $2, $3, $4, $5, $6) \
         ON CONFLICT (guild_id) DO UPDATE SET anilist_module = EXCLUDED.anilist_module, ai_module = EXCLUDED.ai_module, game_module = EXCLUDED.game_module, new_member = EXCLUDED.new_member, vn = EXCLUDED.vn",
     )
         .bind(activation_status_module.guild_id)
@@ -230,10 +238,11 @@ pub async fn set_data_module_activation_status_postgresql(
 }
 pub async fn set_data_kill_switch_activation_status_postgresql(
     activation_status_module: ActivationStatusModule,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO DATA.global_kill_switch (guild_id, anilist_module, ai_module, game_module, new_member, vn) VALUES ($1, $2, $3, $4, $5, $6) \
+        "INSERT INTO global_kill_switch (guild_id, anilist_module, ai_module, game_module, new_member, vn) VALUES ($1, $2, $3, $4, $5, $6) \
         ON CONFLICT (guild_id) DO UPDATE SET anilist_module = EXCLUDED.anilist_module, ai_module = EXCLUDED.ai_module, game_module = EXCLUDED.game_module, new_member = EXCLUDED.new_member, vn = EXCLUDED.vn",
     )
         .bind(1)
@@ -264,9 +273,10 @@ pub async fn set_data_kill_switch_activation_status_postgresql(
 pub async fn remove_data_activity_status_postgresql(
     server_id: String,
     anime_id: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
-    sqlx::query("DELETE FROM DATA.activity_data WHERE anime_id = $1 AND server_id = $2")
+    let pool = get_postgresql_pool(db_config).await?;
+    sqlx::query("DELETE FROM activity_data WHERE anime_id = $1 AND server_id = $2")
         .bind(anime_id)
         .bind(server_id)
         .execute(&pool)
@@ -287,10 +297,11 @@ pub async fn remove_data_activity_status_postgresql(
 ///
 /// * A Result that is either an ActivationStatusModule if the operation was successful and the module activation status record exists, or an ActivationStatusModule with None fields if the module activation status record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_module_activation_kill_switch_status_postgresql(
+    db_config: BotConfigDetails,
 ) -> Result<ActivationStatusModule, Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM DATA.global_kill_switch WHERE guild = $1",
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM global_kill_switch WHERE guild = $1",
     )
         .bind(1)
         .fetch_one(&pool)
@@ -325,10 +336,11 @@ pub async fn get_data_module_activation_kill_switch_status_postgresql(
 pub async fn get_one_activity_postgresql(
     server_id: String,
     anime_id: i32,
+    db_config: BotConfigDetails,
 ) -> Result<SmallServerActivity, Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     let row: SmallServerActivity = sqlx::query_as(
-        "SELECT anime_id, timestamp, server_id FROM DATA.activity_data WHERE anime_id = $1 AND server_id = $2",
+        "SELECT anime_id, timestamp, server_id FROM activity_data WHERE anime_id = $1 AND server_id = $2",
     )
         .bind(anime_id)
         .bind(server_id)
@@ -359,10 +371,11 @@ pub async fn get_one_activity_postgresql(
 /// * A Result that is either a tuple containing Option<String>, Option<String> if the operation was successful and the registered user record exists, or (None, None) if the registered user record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_registered_user_postgresql(
     user_id: &String,
+    db_config: BotConfigDetails,
 ) -> Result<Option<RegisteredUser>, Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     let row: Option<RegisteredUser> =
-        sqlx::query_as("SELECT anilist_id, user_id FROM DATA.registered_user WHERE user_id = $1")
+        sqlx::query_as("SELECT anilist_id, user_id FROM registered_user WHERE user_id = $1")
             .bind(user_id)
             .fetch_optional(&pool)
             .await
@@ -387,10 +400,11 @@ pub async fn get_registered_user_postgresql(
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn set_registered_user_postgresql(
     registered_user: RegisteredUser,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO DATA.registered_user (user_id, anilist_id) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET anilist_id = EXCLUDED.anilist_id",
+        "INSERT INTO registered_user (user_id, anilist_id) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET anilist_id = EXCLUDED.anilist_id",
     )
         .bind(registered_user.user_id)
         .bind(registered_user.anilist_id)
@@ -422,10 +436,11 @@ pub async fn set_user_approximated_color_postgresql(
     color: &String,
     pfp_url: &String,
     image: &String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO DATA.user_color (user_id, color, pfp_url, image) VALUES ($1, $2, $3, $4) ON CONFLICT (user_id) DO UPDATE SET color = EXCLUDED.color, pfp_url = EXCLUDED.pfp_url, image = EXCLUDED.image",
+        "INSERT INTO user_color (user_id, color, pfp_url, image) VALUES ($1, $2, $3, $4) ON CONFLICT (user_id) DO UPDATE SET color = EXCLUDED.color, pfp_url = EXCLUDED.pfp_url, image = EXCLUDED.image",
     )
         .bind(user_id)
         .bind(color)
@@ -453,10 +468,11 @@ pub async fn set_user_approximated_color_postgresql(
 /// * A Result that is either a UserColor if the operation was successful and the user color record exists, or a UserColor with None fields if the user color record does not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_user_approximated_color_postgresql(
     user_id: &String,
+    db_config: BotConfigDetails,
 ) -> Result<UserColor, Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     let row: UserColor = sqlx::query_as(
-        "SELECT user_id, color, pfp_url, image FROM DATA.user_color WHERE user_id = $1",
+        "SELECT user_id, color, pfp_url, image FROM user_color WHERE user_id = $1",
     )
     .bind(user_id)
     .fetch_one(&pool)
@@ -486,8 +502,9 @@ pub async fn get_user_approximated_color_postgresql(
 /// * A Result that is either a Vec<ServerActivity> if the operation was successful and the activity data records exist, or an empty Vec<ServerActivity> if the activity data records do not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_all_server_activity_postgresql(
     server_id: &String,
+    db_config: BotConfigDetails,
 ) -> Result<Vec<ServerActivity>, Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     let rows: Vec<ServerActivity> = sqlx::query_as(
         "SELECT
        anime_id,
@@ -497,7 +514,7 @@ pub async fn get_all_server_activity_postgresql(
        episode,
        name,
        delays
-       FROM DATA.activity_data WHERE server_id = $1
+       FROM activity_data WHERE server_id = $1
    ",
     )
     .bind(server_id)
@@ -523,12 +540,13 @@ pub async fn get_all_server_activity_postgresql(
 /// * A Result that is either a Vec<(String, String)> if the operation was successful and the activity data records exist, or an empty Vec<(String, String)> if the activity data records do not exist. Returns an Err variant with an AppError if the operation failed.
 pub async fn get_data_all_activity_by_server_postgresql(
     server_id: &String,
+    db_config: BotConfigDetails,
 ) -> Result<Vec<(String, String)>, Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     let rows: Vec<(String, String)> = sqlx::query_as(
         "SELECT
        anime_id, name
-       FROM DATA.activity_data WHERE server_id = $1
+       FROM activity_data WHERE server_id = $1
    ",
     )
     .bind(server_id)
@@ -547,10 +565,12 @@ pub async fn get_data_all_activity_by_server_postgresql(
 /// # Returns
 ///
 /// * A Result that is either a Vec<UserColor> if the operation was successful and the user color records exist, or a Vec<UserColor> with None fields if the user color records do not exist. Returns an Err variant with an AppError if the operation failed.
-pub async fn get_all_user_approximated_color_postgres() -> Result<Vec<UserColor>, Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+pub async fn get_all_user_approximated_color_postgres(
+    db_config: BotConfigDetails,
+) -> Result<Vec<UserColor>, Box<dyn Error>> {
+    let pool = get_postgresql_pool(db_config).await?;
     let row: Vec<UserColor> =
-        sqlx::query_as("SELECT user_id, color, pfp_url, image FROM DATA.user_color")
+        sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color")
             .fetch_all(&pool)
             .await
             .unwrap_or(vec![UserColor {
@@ -584,10 +604,11 @@ pub async fn set_server_image_postgresql(
     image_type: &String,
     image: &String,
     image_url: &String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO DATA.server_image (server_id, image_type, image, image_url) VALUES ($1, $2, $3, $4) ON CONFLICT (server_id, image_type) DO UPDATE SET image = EXCLUDED.image",
+        "INSERT INTO server_image (server_id, image_type, image, image_url) VALUES ($1, $2, $3, $4) ON CONFLICT (server_id, image_type) DO UPDATE SET image = EXCLUDED.image",
     )
         .bind(server_id)
         .bind(image_type)
@@ -617,10 +638,11 @@ pub async fn set_server_image_postgresql(
 pub async fn get_server_image_postgresql(
     server_id: &String,
     image_type: &String,
+    db_config: BotConfigDetails,
 ) -> Result<(Option<String>, Option<String>), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+    let pool = get_postgresql_pool(db_config).await?;
     let row: (Option<String>, Option<String>) = sqlx::query_as(
-        "SELECT image_url, image FROM DATA.server_image WHERE server_id = $1 and image_type = $2",
+        "SELECT image_url, image FROM server_image WHERE server_id = $1 and image_type = $2",
     )
     .bind(server_id)
     .bind(image_type)

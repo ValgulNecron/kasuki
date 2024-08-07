@@ -69,7 +69,8 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let staff_localised = load_localization_staff(guild_id, db_type).await?;
+    let staff_localised =
+        load_localization_staff(guild_id, db_type, config.bot.config.clone()).await?;
 
     let mut date = String::new();
     let mut day = false;

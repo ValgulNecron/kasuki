@@ -53,7 +53,8 @@ pub async fn run(
     };
 
     let list_activity_localised_text =
-        load_localization_list_activity(guild_id, db_type.clone()).await?;
+        load_localization_list_activity(guild_id, db_type.clone(), config.bot.config.clone())
+            .await?;
 
     let guild_id = command_interaction
         .guild_id
@@ -67,7 +68,8 @@ pub async fn run(
         .create_response(&ctx.http, builder_message)
         .await
         .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
-    let list = get_all_server_activity(&guild_id.to_string(), db_type).await?;
+    let list =
+        get_all_server_activity(&guild_id.to_string(), db_type, config.bot.config.clone()).await?;
     let len = list.len();
     let next_page = 1;
 

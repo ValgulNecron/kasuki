@@ -55,7 +55,8 @@ pub async fn run(
     };
 
     // Load the localized random strings
-    let random_localised = load_localization_random(guild_id, db_type.clone()).await?;
+    let random_localised =
+        load_localization_random(guild_id, db_type.clone(), config.bot.config.clone()).await?;
 
     // Retrieve the type of media (anime or manga) from the command interaction
     let map = get_option_map_string(command_interaction);

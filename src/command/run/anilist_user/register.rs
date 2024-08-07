@@ -55,7 +55,8 @@ pub async fn run(
     };
 
     // Load the localized register strings
-    let register_localised = load_localization_register(guild_id, db_type.clone()).await?;
+    let register_localised =
+        load_localization_register(guild_id, db_type.clone(), config.bot.config.clone()).await?;
 
     // Retrieve the user's Discord ID and username
     let user_id = &command_interaction.user.id.to_string();
@@ -66,7 +67,7 @@ pub async fn run(
         user_id: user_id.clone(),
         anilist_id: user_data.id.to_string(),
     };
-    set_registered_user(registered_user, db_type).await?;
+    set_registered_user(registered_user, db_type, config.bot.config.clone()).await?;
 
     // Construct the description for the embed
     let desc = register_localised

@@ -47,7 +47,8 @@ pub async fn run(
         None => String::from("0"),
     };
     // Load the localized random image strings
-    let random_image_localised = load_localization_random_image(guild_id, db_type).await?;
+    let random_image_localised =
+        load_localization_random_image(guild_id, db_type, config.bot.config.clone()).await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());

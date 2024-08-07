@@ -54,6 +54,7 @@ pub async fn run(
     let localization = load_localization_give_premium_sub(
         command_interaction.guild_id.unwrap().to_string(),
         config.bot.config.db_type.clone(),
+        config.bot.config.clone(),
     )
     .await?;
     let embed = get_default_embed(None).description(

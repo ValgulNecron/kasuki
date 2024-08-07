@@ -46,17 +46,32 @@ pub async fn run(
     // If the username is provided, fetch the user's data from AniList and send it as a response
     if let Some(value) = user {
         let data: User = get_user(value, anilist_cache.clone()).await?;
-        return send_embed(ctx, command_interaction, data, db_type.clone()).await;
+        return send_embed(
+            ctx,
+            command_interaction,
+            data,
+            db_type.clone(),
+            config.bot.config.clone(),
+        )
+        .await;
     }
 
     // If the username is not provided, fetch the data of the user who triggered the command interaction
     let user_id = &command_interaction.user.id.to_string();
-    let row: Option<RegisteredUser> = get_registered_user(user_id, db_type.clone()).await?;
+    let row: Option<RegisteredUser> =
+        get_registered_user(user_id, db_type.clone(), config.bot.config.clone()).await?;
     let user = row.ok_or(ResponseError::Option(String::from("No user found")))?;
 
     // Fetch the user's data from AniList and send it as a response
     let data = get_user(&user.anilist_id, anilist_cache).await?;
-    send_embed(ctx, command_interaction, data, db_type).await
+    send_embed(
+        ctx,
+        command_interaction,
+        data,
+        db_type,
+        config.bot.config.clone(),
+    )
+    .await
 }
 /// Fetches the data of a user from AniList.
 ///

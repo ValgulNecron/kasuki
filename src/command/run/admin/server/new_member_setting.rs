@@ -99,9 +99,12 @@ pub async fn run(
     fs::write(NEW_MEMBER_PATH, serde_json::to_string(&hashmap).unwrap())
         .map_err(|e| FollowupError::File(format!("Failed to write the file: {:#?}", e)))?;
 
-    let localised =
-        load_localization_new_member_setting(guild_id.clone(), config.bot.config.db_type.clone())
-            .await?;
+    let localised = load_localization_new_member_setting(
+        guild_id.clone(),
+        config.bot.config.db_type.clone(),
+        config.bot.config.clone(),
+    )
+    .await?;
 
     let embed = get_default_embed(None)
         .title(localised.title)

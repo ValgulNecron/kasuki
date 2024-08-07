@@ -20,6 +20,10 @@ pub struct BotConfig {
 pub struct BotConfigDetails {
     pub remove_old_commands: bool,
     pub db_type: String,
+    pub host: Option<String>,
+    pub port: Option<u16>,
+    pub user: Option<String>,
+    pub password: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -86,6 +90,10 @@ impl Default for Config {
                 config: BotConfigDetails {
                     remove_old_commands: false,
                     db_type: "sqlite".to_string(),
+                    host: None,
+                    port: None,
+                    user: None,
+                    password: None,
                 },
             },
             image: ImageConfig {

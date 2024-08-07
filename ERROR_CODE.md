@@ -9,3 +9,4 @@
 | 4          | Failed to init the database. either permission error, or some internal error.          |
 | 5          | Failed to init the discord client. error with the token, internet or some other stuff. |
 | 6          | Failed to start the bot.                                                               |
+| 7          | Failed to get a required data for a pool that can't be defaulted                       |

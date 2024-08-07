@@ -1,17 +1,17 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage, User,
-};
-use tokio::sync::{RwLock, RwLockReadGuard};
-
+use crate::config::BotConfigDetails;
 use crate::event_handler::{Handler, RootUsage};
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::helper::get_user_data::get_user_data;
 use crate::structure::message::user::command_usage::load_localization_command_usage;
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage, User,
+};
+use tokio::sync::{RwLock, RwLockReadGuard};
 
 pub async fn run(
     ctx: &Context,
@@ -19,6 +19,7 @@ pub async fn run(
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
     let db_type = self_handler.bot_data.config.bot.config.db_type.clone();
+    let db_config = self_handler.bot_data.config.bot.config.clone();
     let command_usage = self_handler
         .bot_data
         .number_of_command_use_per_command
@@ -30,11 +31,20 @@ pub async fn run(
     match user {
         Some(user) => {
             let user = get_user_data(ctx.http.clone(), user).await?;
-            command_usage_with_user(ctx, command_interaction, &user, command_usage, db_type).await
+            command_usage_with_user(
+                ctx,
+                command_interaction,
+                &user,
+                command_usage,
+                db_type,
+                db_config,
+            )
+            .await
         }
         None => {
             // If the user does not exist, display the profile of the user who triggered the command
-            command_usage_without_user(ctx, command_interaction, command_usage, db_type).await
+            command_usage_without_user(ctx, command_interaction, command_usage, db_type, db_config)
+                .await
         }
     }
 }
@@ -44,11 +54,20 @@ async fn command_usage_without_user(
     command_interaction: &CommandInteraction,
     command_usage: Arc<RwLock<RootUsage>>,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
     // Display the user's profile
-    command_usage_with_user(ctx, command_interaction, &user, command_usage, db_type).await
+    command_usage_with_user(
+        ctx,
+        command_interaction,
+        &user,
+        command_usage,
+        db_type,
+        db_config,
+    )
+    .await
 }
 
 pub async fn command_usage_with_user(
@@ -57,8 +76,17 @@ pub async fn command_usage_with_user(
     user: &User,
     command_usage: Arc<RwLock<RootUsage>>,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    send_embed(ctx, command_interaction, user, command_usage, db_type).await
+    send_embed(
+        ctx,
+        command_interaction,
+        user,
+        command_usage,
+        db_type,
+        db_config,
+    )
+    .await
 }
 
 pub async fn send_embed(
@@ -67,6 +95,7 @@ pub async fn send_embed(
     user: &User,
     command_usage: Arc<RwLock<RootUsage>>,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let id = user.id.to_string();
     let username = user.name.clone();
@@ -76,7 +105,8 @@ pub async fn send_embed(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let command_usage_localised = load_localization_command_usage(guild_id, db_type).await?;
+    let command_usage_localised =
+        load_localization_command_usage(guild_id, db_type, db_config).await?;
     let embed =
         get_default_embed(None).title(command_usage_localised.title.replace("$user$", &username));
     let mut embeds = Vec::new();

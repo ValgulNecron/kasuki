@@ -2,9 +2,9 @@
 
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// `ModuleLocalised` is a struct that represents a module's localized data.
 /// It contains two fields `on` and `off` which are both Strings.
@@ -37,7 +37,8 @@ pub struct KillSwitchLocalised {
 pub async fn load_localization_kill_switch(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<KillSwitchLocalised, Box<dyn Error>> {
     let path = "json/message/management/kill_switch.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

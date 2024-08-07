@@ -1,13 +1,14 @@
-use std::error::Error;
-use std::sync::Arc;
+use crate::audio::receiver::Receiver;
+use crate::config::Config;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::structure::message::audio::join::load_localization_join_localised;
 use serenity::all::{CommandInteraction, Context, CreateEmbed};
 use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
 use songbird::CoreEvent;
+use std::error::Error;
+use std::sync::Arc;
 use tracing::{error, trace};
-use crate::audio::receiver::Receiver;
-use crate::config::Config;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
-use crate::structure::message::audio::join::load_localization_join_localised;
 
 pub async fn run(
     ctx: &Context,
@@ -25,6 +26,12 @@ pub async fn run(
     let bind = manager.get(guild_id);
     trace!(?bind);
     let cache = ctx.cache.clone();
+    let localised = load_localization_join_localised(
+        guild_id.to_string(),
+        config.bot.config.db_type.clone(),
+        config.bot.config.clone(),
+    )
+    .await?;
 
     if manager.get(guild_id).is_none() {
         let channel_id;
@@ -59,7 +66,6 @@ pub async fn run(
             .clone();
 
         let success = manager.join(guild_id, connect_to).await;
-        let localised = load_localization_join_localised(guild_id.to_string(), config.bot.config.db_type.clone()).await?;
         if let Ok(handler_lock) = success {
             let evt_receiver = Receiver::new();
             let mut handler = handler_lock.lock().await;
@@ -84,7 +90,16 @@ pub async fn run(
                 joining
             ))));
         }
-    }
+        return Ok(());
+    } else {
+        let embed = get_default_embed(None).title(localised.already_in);
+        let builder_embed = CreateInteractionResponseMessage::new().embed(embed);
+        let builder = CreateInteractionResponse::Message(builder_embed);
+        command_interaction
+            .create_response(&ctx.http, builder)
+            .await
+            .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
-    return Err(Box::new(ResponseError::Audio("Failed to join voice channel".to_string())));
+        return Ok(());
+    }
 }

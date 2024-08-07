@@ -37,7 +37,8 @@ pub async fn run(
     };
 
     // Load the localized strings for the credits
-    let credit_localised = load_localization_credit(guild_id, db_type).await?;
+    let credit_localised =
+        load_localization_credit(guild_id, db_type, config.bot.config.clone()).await?;
 
     // Construct a description by concatenating the descriptions of all credits
     let mut desc: String = "".to_string();

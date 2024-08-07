@@ -2,16 +2,16 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::config::BotConfigDetails;
+use crate::constant::LANG_MAP;
+use crate::helper::error_management::error_enum::UnknownResponseError;
+use crate::helper::get_guild_lang::get_guild_language;
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use tokio::sync::RwLock;
 use tracing::trace;
-
-use crate::constant::LANG_MAP;
-use crate::helper::error_management::error_enum::UnknownResponseError;
-use crate::helper::get_guild_lang::get_guild_language;
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
@@ -111,6 +111,7 @@ impl SteamGameWrapper {
         appid: u128,
         guild_id: String,
         db_type: String,
+        db_config: BotConfigDetails,
     ) -> Result<SteamGameWrapper, Box<dyn Error>> {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
@@ -121,7 +122,7 @@ impl SteamGameWrapper {
                     e.to_string()
                 ))
             })?;
-        let lang = get_guild_language(guild_id, db_type).await;
+        let lang = get_guild_language(guild_id, db_type, db_config).await;
         let local_lang = LANG_MAP.clone();
         let full_lang = *local_lang
             .get(lang.to_lowercase().as_str())
@@ -197,6 +198,7 @@ impl SteamGameWrapper {
         guild_id: String,
         db_type: String,
         apps: Arc<RwLock<HashMap<String, u128>>>,
+        db_config: BotConfigDetails,
     ) -> Result<SteamGameWrapper, Box<dyn Error>> {
         let guard = apps.read().await;
         let choices: Vec<(&String, &u128)> = guard.iter().collect();
@@ -235,6 +237,6 @@ impl SteamGameWrapper {
             }
         }
 
-        SteamGameWrapper::new_steam_game_by_id(*appid, guild_id, db_type).await
+        SteamGameWrapper::new_steam_game_by_id(*appid, guild_id, db_type, db_config).await
     }
 }

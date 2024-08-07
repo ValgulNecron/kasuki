@@ -2,9 +2,9 @@
 
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// ImageLocalised struct represents an image's localized data.
 /// It contains a field for title.
@@ -34,7 +34,8 @@ pub struct ImageLocalised {
 pub async fn load_localization_image(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<ImageLocalised, Box<dyn Error>> {
     let path = "json/message/ai/image.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

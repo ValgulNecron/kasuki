@@ -55,8 +55,12 @@ pub async fn run(
     };
 
     // Load the localized strings for the game's information
-    let steam_game_info_localised =
-        load_localization_steam_game_info(guild_id.clone(), db_type.clone()).await?;
+    let steam_game_info_localised = load_localization_steam_game_info(
+        guild_id.clone(),
+        db_type.clone(),
+        config.bot.config.clone(),
+    )
+    .await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -69,9 +73,22 @@ pub async fn run(
 
     // Retrieve the game's information from Steam
     let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
-        SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, db_type).await?
+        SteamGameWrapper::new_steam_game_by_id(
+            value.parse().unwrap(),
+            guild_id,
+            db_type,
+            config.bot.config.clone(),
+        )
+        .await?
     } else {
-        SteamGameWrapper::new_steam_game_by_search(value, guild_id, db_type, apps).await?
+        SteamGameWrapper::new_steam_game_by_search(
+            value,
+            guild_id,
+            db_type,
+            apps,
+            config.bot.config.clone(),
+        )
+        .await?
     };
 
     // Send an embed with the game's information

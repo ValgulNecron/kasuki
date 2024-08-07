@@ -61,8 +61,10 @@ pub async fn run(
         guild: guild_id.clone(),
         lang: lang.clone(),
     };
-    let _ = set_data_guild_language(guild_language, db_type.clone()).await;
-    let lang_localised = load_localization_lang(guild_id, db_type).await?;
+    let _ =
+        set_data_guild_language(guild_language, db_type.clone(), config.bot.config.clone()).await;
+    let lang_localised =
+        load_localization_lang(guild_id, db_type, config.bot.config.clone()).await?;
 
     let builder_embed = get_default_embed(None)
         .description(lang_localised.desc.replace("$lang$", lang.as_str()))

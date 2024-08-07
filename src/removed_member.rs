@@ -1,9 +1,4 @@
-use image::GenericImage;
-use serenity::all::{GuildId, User};
-use serenity::client::Context;
-use text_to_png::TextRenderer;
-use tracing::error;
-
+use crate::config::BotConfigDetails;
 use crate::constant::HEX_COLOR;
 use crate::custom_serenity_impl::InternalAction;
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
@@ -11,8 +6,19 @@ use crate::new_member::{
     get_channel_id, get_guild_image_bytes, get_server_image, load_guild_settings, send_member_image,
 };
 use crate::structure::message::removed_member::load_localization_removed_member;
+use image::GenericImage;
+use serenity::all::{GuildId, User};
+use serenity::client::Context;
+use text_to_png::TextRenderer;
+use tracing::error;
 
-pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User) {
+pub async fn removed_member_message(
+    ctx: &Context,
+    guild_id: GuildId,
+    user: User,
+    db_type: String,
+    db_config: BotConfigDetails,
+) {
     let ctx = ctx.clone();
     let user_name = user.name.clone();
     let partial_guild = match guild_id.to_partial_guild(&ctx.http).await {
@@ -125,11 +131,11 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             error!("Failed to overlay the image. {}", e);
         }
     }
-    let local = match load_localization_removed_member(guild_id.to_string(), "db".to_string()).await
-    {
-        Ok(local) => local.bye,
-        Err(_) => "$user$ quited the server".to_string(),
-    };
+    let local =
+        match load_localization_removed_member(guild_id.to_string(), db_type, db_config).await {
+            Ok(local) => local.bye,
+            Err(_) => "$user$ quited the server".to_string(),
+        };
     let text = local
         .replace("$user$", &user_name)
         .replace("$reason$", &reason);

@@ -11,9 +11,13 @@ bot_activity = ""
 # Whether to remove old commands on startup. Set to true to enable.
 remove_old_commands = true
 
-# The database type used by the bot. Options include sqlite or postgres.
+# The database type used by the bot. Options include sqlite or postgresql.
 db_type = "sqlite"
-
+# only for postgres
+host = "db" # default to docker hostname
+port = 5432 # default port
+user = "postgres" # change this to your username
+password = "example" # change this to your password
 # Image saving settings
 [image]
 # Determines where to save generated images. Options include local, remote, or false.

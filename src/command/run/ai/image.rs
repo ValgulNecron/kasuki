@@ -68,7 +68,8 @@ pub async fn run(
 
     trace!(prompt);
 
-    let image_localised = load_localization_image(guild_id.clone(), db_type).await?;
+    let image_localised =
+        load_localization_image(guild_id.clone(), db_type, config.bot.config.clone()).await?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 

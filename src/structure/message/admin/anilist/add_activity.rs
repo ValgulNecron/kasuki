@@ -2,9 +2,9 @@
 
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// `AddActivityLocalised` is a struct that represents an add activity's localized data.
 /// It contains four fields `success`, `fail`, `fail_desc` and `success_desc` which are all Strings.
@@ -41,7 +41,8 @@ pub struct AddActivityLocalised {
 pub async fn load_localization_add_activity(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<AddActivityLocalised, Box<dyn Error>> {
     let path = "json/message/admin/anilist/add_activity.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

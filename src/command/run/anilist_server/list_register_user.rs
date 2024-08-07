@@ -10,7 +10,7 @@ use serenity::all::{
 use tokio::sync::RwLock;
 
 use crate::command::run::anilist_user::user::get_user;
-use crate::config::Config;
+use crate::config::{BotConfigDetails, Config};
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
@@ -60,7 +60,8 @@ pub async fn run(
     };
 
     // Load the localized text for the list user command
-    let list_user_localised = load_localization_list_user(guild_id, db_type.clone()).await?;
+    let list_user_localised =
+        load_localization_list_user(guild_id, db_type.clone(), config.bot.config.clone()).await?;
 
     // Retrieve the guild from the guild ID
     let guild_id = command_interaction
@@ -90,6 +91,7 @@ pub async fn run(
         None,
         db_type,
         anilist_cache,
+        config.bot.config.clone(),
     )
     .await?;
 
@@ -143,6 +145,7 @@ pub async fn get_the_list(
     last_id: Option<UserId>,
     db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_config: BotConfigDetails,
 ) -> Result<(CreateEmbed, usize, Option<UserId>), Box<dyn Error>> {
     let mut anilist_user = Vec::new();
     let mut last_id: Option<UserId> = last_id;
@@ -161,7 +164,7 @@ pub async fn get_the_list(
             last_id = Some(member.user.id);
             let user_id = member.user.id.to_string();
             let row: Option<RegisteredUser> =
-                get_registered_user(&user_id, db_type.clone()).await?;
+                get_registered_user(&user_id, db_type.clone(), db_config.clone()).await?;
             let user_data = match row {
                 Some(a) => get_user(&a.anilist_id, anilist_cache.clone()).await?,
                 None => continue,

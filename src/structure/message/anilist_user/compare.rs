@@ -2,9 +2,9 @@
 
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// CompareLocalised struct represents a comparison's localized data.
 /// It contains fields for affinity, more_anime, same_anime, more_watch_time, same_watch_time, genre_anime, same_genre_anime, tag_anime, same_tag_anime, more_manga, same_manga, genre_manga, same_genre_manga, tag_manga, same_tag_manga, more_manga_chapter, same_manga_chapter.
@@ -66,7 +66,8 @@ pub struct CompareLocalised {
 pub async fn load_localization_compare(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<CompareLocalised, Box<dyn Error>> {
     let path = "json/message/anilist_user/compare.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

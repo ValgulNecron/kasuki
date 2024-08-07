@@ -32,7 +32,8 @@ pub async fn run(
         .ok_or(ResponseError::Option(String::from("No username provided")))?;
     let path = format!("/user?q={}&fields=lengthvotes,lengthvotes_sum", user);
     let user = get_user(path, vndb_cache).await?;
-    let user_localised: UserLocalised = load_localization_user(guild_id, db_type).await?;
+    let user_localised: UserLocalised =
+        load_localization_user(guild_id, db_type, config.bot.config.clone()).await?;
     let fields = vec![
         (user_localised.id.clone(), user.id.clone(), true),
         (

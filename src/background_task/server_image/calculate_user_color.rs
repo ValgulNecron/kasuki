@@ -3,6 +3,12 @@ use std::io::Cursor;
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::config::BotConfigDetails;
+use crate::database::data_struct::user_color::UserColor;
+use crate::database::manage::dispatcher::data_dispatch::{
+    get_user_approximated_color, set_user_approximated_color,
+};
+use crate::helper::error_management::error_enum;
 use base64::engine::general_purpose;
 use base64::Engine;
 use futures::stream::FuturesUnordered;
@@ -16,12 +22,6 @@ use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error};
-
-use crate::database::data_struct::user_color::UserColor;
-use crate::database::manage::dispatcher::data_dispatch::{
-    get_user_approximated_color, set_user_approximated_color,
-};
-use crate::helper::error_management::error_enum;
 
 /// Calculates the color for each user in a list of members.
 ///
@@ -48,6 +48,7 @@ pub async fn calculate_users_color(
     members: Vec<Member>,
     db_type: String,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let guard = user_blacklist_server_image.read().await;
     for member in members {
@@ -59,12 +60,20 @@ pub async fn calculate_users_color(
 
         let id = member.user.id.to_string();
 
-        let user_color: UserColor = get_user_approximated_color(&id, db_type.clone()).await?;
+        let user_color: UserColor =
+            get_user_approximated_color(&id, db_type.clone(), db_config.clone()).await?;
         let pfp_url_old = user_color.pfp_url.clone();
         if pfp_url != pfp_url_old.unwrap_or_default() {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
-            set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type.clone())
-                .await?
+            set_user_approximated_color(
+                &id,
+                &average_color,
+                &pfp_url,
+                &image,
+                db_type.clone(),
+                db_config.clone(),
+            )
+            .await?
         }
         sleep(Duration::from_millis(100)).await
     }
@@ -93,6 +102,7 @@ pub async fn calculate_users_color(
 pub async fn return_average_user_color(
     members: Vec<Member>,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
     let mut average_colors = Vec::new();
     for member in members {
@@ -100,7 +110,8 @@ pub async fn return_average_user_color(
             .replace("?size=1024", "?size=64");
         let id = member.user.id.to_string();
 
-        let user_color: UserColor = get_user_approximated_color(&id, db_type.clone()).await?;
+        let user_color: UserColor =
+            get_user_approximated_color(&id, db_type.clone(), db_config.clone()).await?;
         let color = user_color.color.clone();
         let pfp_url_old = user_color.pfp_url.clone();
         let image_old = user_color.image;
@@ -116,8 +127,15 @@ pub async fn return_average_user_color(
             }
             _ => {
                 let (average_color, image): (String, String) = calculate_user_color(member).await?;
-                set_user_approximated_color(&id, &average_color, &pfp_url, &image, db_type.clone())
-                    .await?;
+                set_user_approximated_color(
+                    &id,
+                    &average_color,
+                    &pfp_url,
+                    &image,
+                    db_type.clone(),
+                    db_config.clone(),
+                )
+                .await?;
                 average_colors.push((average_color, pfp_url, image));
                 continue;
             }
@@ -253,6 +271,7 @@ pub async fn color_management(
     ctx_clone: &Context,
     db_type: String,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
+    db_config: BotConfigDetails,
 ) {
     let mut futures = FuturesUnordered::new();
     for guild in guilds {
@@ -277,6 +296,7 @@ pub async fn color_management(
         members.into_iter().collect(),
         db_type,
         user_blacklist_server_image,
+        db_config,
     )
     .await
     {

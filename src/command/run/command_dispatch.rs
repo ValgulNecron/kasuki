@@ -29,6 +29,7 @@ use crate::command::run::steam::steam_game_info;
 use crate::command::run::user::{avatar, banner, command_usage, profile};
 use crate::command::run::vn;
 use crate::command::run::vn::{game, producer, stats};
+use crate::config::BotConfigDetails;
 use crate::constant::{MAX_FREE_AI_IMAGES, PAID_MULTIPLIER};
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::manage::dispatcher::data_dispatch::{
@@ -296,13 +297,14 @@ pub async fn check_if_module_is_on(
     guild_id: String,
     module: &str,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<bool, Box<dyn Error>> {
     let row: ActivationStatusModule =
-        get_data_module_activation_status(&guild_id, db_type.clone()).await?;
+        get_data_module_activation_status(&guild_id, db_type.clone(), db_config.clone()).await?;
     trace!(?row);
     let state = check_activation_status(module, row).await;
     trace!(state);
-    let state = state && check_kill_switch_status(module, db_type).await?;
+    let state = state && check_kill_switch_status(module, db_type, db_config).await?;
     trace!(state);
     Ok(state)
 }
@@ -318,9 +320,13 @@ pub async fn check_if_module_is_on(
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the kill switch is not activated, or `Err` if an error occurred.
-async fn check_kill_switch_status(module: &str, db_type: String) -> Result<bool, Box<dyn Error>> {
+async fn check_kill_switch_status(
+    module: &str,
+    db_type: String,
+    db_config: BotConfigDetails,
+) -> Result<bool, Box<dyn Error>> {
     let row: ActivationStatusModule =
-        get_data_module_activation_kill_switch_status(db_type).await?;
+        get_data_module_activation_kill_switch_status(db_type, db_config).await?;
     trace!(?row);
     Ok(check_activation_status(module, row).await)
 }
@@ -355,6 +361,7 @@ async fn admin(
     let anime_module_error = ResponseError::Option(String::from(
         "Anime module is not enabled. Please enable it first.",
     ));
+    let db_config: BotConfigDetails = config.bot.config.clone();
     trace!(command_name);
     let subcommand = get_subcommand(command_interaction).unwrap();
     let subcommand_name = subcommand.name;
@@ -372,7 +379,7 @@ async fn admin(
             .await
         }
         "anilist" => {
-            if check_if_module_is_on(guild_id, "ANIME", db_type).await? {
+            if check_if_module_is_on(guild_id, "ANIME", db_type, db_config).await? {
                 anilist_admin(
                     ctx,
                     command_interaction,
@@ -428,7 +435,6 @@ async fn anilist_admin(
         }
     };
     return_data?;
-
     self_handler
         .increment_command_use_per_command(
             full_command_name,
@@ -516,8 +522,9 @@ async fn ai(
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
+    let db_config = self_handler.bot_data.config.bot.config.clone();
     // Check if the AI module is on for the guild
-    if !check_if_module_is_on(guild_id, "AI", db_type).await? {
+    if !check_if_module_is_on(guild_id, "AI", db_type, db_config).await? {
         return Err(Box::new(ai_module_error));
     }
     // Match the command name to the appropriate function
@@ -681,7 +688,7 @@ async fn anilist_server(
         None => "0".to_string(),
     };
     // Check if the Anilist module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANILIST", db_type).await? {
+    if !check_if_module_is_on(guild_id, "ANILIST", db_type, config.bot.config.clone()).await? {
         return Err(Box::new(anilist_module_error));
     }
 
@@ -726,7 +733,7 @@ async fn anilist_user(
         None => "0".to_string(),
     };
     // Check if the Anilist module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANILIST", db_type).await? {
+    if !check_if_module_is_on(guild_id, "ANILIST", db_type, config.bot.config.clone()).await? {
         return Err(Box::new(anilist_module_error));
     }
 
@@ -773,7 +780,7 @@ async fn anime(
         None => "0".to_string(),
     };
     // Check if the Anime module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANIME", db_type).await? {
+    if !check_if_module_is_on(guild_id, "ANIME", db_type, config.bot.config.clone()).await? {
         return Err(Box::new(anime_module_error));
     }
     // Match the command name to the appropriate function
@@ -831,7 +838,7 @@ async fn anime_nsfw(
         None => "0".to_string(),
     };
     // Check if the Anime NSFW module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANIME", db_type).await? {
+    if !check_if_module_is_on(guild_id, "ANIME", db_type, config.bot.config.clone()).await? {
         return Err(Box::new(anime_module_error));
     }
     // Match the command name to the appropriate function
@@ -979,7 +986,7 @@ async fn steam(
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
-    if !check_if_module_is_on(guild_id, "GAME", db_type).await? {
+    if !check_if_module_is_on(guild_id, "GAME", db_type, config.bot.config.clone()).await? {
         return Err(Box::new(game_module_error));
     }
     let return_data = match command_name {
@@ -1062,7 +1069,7 @@ async fn vn(
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
-    if !check_if_module_is_on(guild_id, "VN", db_type).await? {
+    if !check_if_module_is_on(guild_id, "VN", db_type, config.bot.config.clone()).await? {
         return Err(Box::new(vn_module_error));
     }
     let return_data = match command_name {

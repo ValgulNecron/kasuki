@@ -24,7 +24,8 @@ pub async fn run(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let stats_localised = load_localization_stats(guild_id, db_type).await?;
+    let stats_localised =
+        load_localization_stats(guild_id, db_type, config.bot.config.clone()).await?;
 
     let stats = get_stats(vndb_cache).await?;
 

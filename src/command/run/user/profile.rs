@@ -6,7 +6,7 @@ use serenity::all::{
     CreateInteractionResponseMessage, EntitlementKind, Member, Timestamp, User,
 };
 
-use crate::config::Config;
+use crate::config::{BotConfigDetails, Config};
 use crate::constant::COLOR;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
@@ -40,11 +40,18 @@ pub async fn run(
     match user {
         Some(user) => {
             let user = get_user_data(ctx.http.clone(), user).await?;
-            profile_with_user(ctx, command_interaction, &user, db_type).await
+            profile_with_user(
+                ctx,
+                command_interaction,
+                &user,
+                db_type,
+                config.bot.config.clone(),
+            )
+            .await
         }
         None => {
             // If the user does not exist, display the profile of the user who triggered the command
-            profile_without_user(ctx, command_interaction, db_type).await
+            profile_without_user(ctx, command_interaction, db_type, config.bot.config.clone()).await
         }
     }
 }
@@ -65,11 +72,12 @@ async fn profile_without_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Retrieve the user who triggered the command
     let user = command_interaction.user.clone();
     // Display the user's profile
-    profile_with_user(ctx, command_interaction, &user, db_type).await
+    profile_with_user(ctx, command_interaction, &user, db_type, db_config).await
 }
 
 /// Displays the profile of a specified user.
@@ -90,11 +98,20 @@ pub async fn profile_with_user(
     command_interaction: &CommandInteraction,
     user: &User,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Retrieve the avatar URL of the specified user
     let avatar_url = user.face();
     // Send an embed with the user's profile
-    send_embed(avatar_url, ctx, command_interaction, user, db_type).await
+    send_embed(
+        avatar_url,
+        ctx,
+        command_interaction,
+        user,
+        db_type,
+        db_config,
+    )
+    .await
 }
 
 /// Sends an embed with a user's profile.
@@ -121,6 +138,7 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     user: &User,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -130,7 +148,7 @@ pub async fn send_embed(
     let mut fields = Vec::new();
 
     // Load the localized profile
-    let profile_localised = load_localization_profile(guild_id, db_type).await?;
+    let profile_localised = load_localization_profile(guild_id, db_type, db_config).await?;
 
     let member: Option<Member> = {
         match command_interaction.guild_id {

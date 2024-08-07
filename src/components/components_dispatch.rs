@@ -7,6 +7,7 @@ use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::components::anilist::{list_all_activity, list_register_user};
+use crate::config::BotConfigDetails;
 
 /// Dispatches component interactions based on their custom ID.
 ///
@@ -31,6 +32,7 @@ pub async fn components_dispatching(
     component_interaction: ComponentInteraction,
     db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     match component_interaction.data.custom_id.as_str() {
         s if s.starts_with("user_") => {
@@ -43,12 +45,20 @@ pub async fn components_dispatching(
                 prev_id,
                 db_type,
                 anilist_cache,
+                db_config,
             )
             .await?
         }
         s if s.starts_with("next_activity_") => {
             let page_number = s.split_at("next_activity_".len()).1;
-            list_all_activity::update(&ctx, &component_interaction, page_number, db_type).await?
+            list_all_activity::update(
+                &ctx,
+                &component_interaction,
+                page_number,
+                db_type,
+                db_config,
+            )
+            .await?
         }
         _ => trace!("does not exist."),
     }

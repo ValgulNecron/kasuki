@@ -1,20 +1,20 @@
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PlayLocalised {
-	pub error: String,
+    pub error: String,
 
-	pub no_option: String,
-
-	pub now_playing: String,
+    pub now_playing: String,
 }
 
-use std::error::Error;
-use serde::{Serialize, Deserialize};
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
 
 pub async fn load_localization_play_localised(
-	guild_id: String,
-	db_type: String,
+    guild_id: String,
+    db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<PlayLocalised, Box<dyn Error>> {
-	let path = "json/message/audio/play.json";
-	load_localization(guild_id, path, db_type).await
+    let path = "json/message/audio/play.json";
+    load_localization(guild_id, path, db_type, db_config).await
 }

@@ -114,7 +114,8 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let seiyuu_localised = load_localization_seiyuu(guild_id, db_type).await?;
+    let seiyuu_localised =
+        load_localization_seiyuu(guild_id, db_type, config.bot.config.clone()).await?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 

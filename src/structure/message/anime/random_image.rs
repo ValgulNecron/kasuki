@@ -1,8 +1,8 @@
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// Represents a random image's localized data.
 ///
@@ -34,7 +34,8 @@ pub struct RandomImageLocalised {
 pub async fn load_localization_random_image(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<RandomImageLocalised, Box<dyn Error>> {
     let path = "json/message/anime/random_image.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

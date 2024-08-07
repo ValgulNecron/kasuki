@@ -36,7 +36,8 @@ pub async fn run(
     };
 
     // Load the localized guild information
-    let guild_localised = load_localization_guild(guild_id, db_type).await?;
+    let guild_localised =
+        load_localization_guild(guild_id, db_type, config.bot.config.clone()).await?;
 
     // Retrieve the guild ID from the command interaction or return an error if it does not exist
     let guild_id = command_interaction

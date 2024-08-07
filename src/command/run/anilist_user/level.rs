@@ -9,7 +9,7 @@ use serenity::all::{
 use tokio::sync::RwLock;
 
 use crate::command::run::anilist_user::user::get_user;
-use crate::config::Config;
+use crate::config::{BotConfigDetails, Config};
 use crate::database::data_struct::registered_user::RegisteredUser;
 use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::create_default_embed::get_default_embed;
@@ -46,20 +46,35 @@ pub async fn run(
         Some(value) => {
             // If a username is provided, fetch the user data and send an embed
             let data: User = get_user(value, anilist_cache).await?;
-            send_embed(ctx, command_interaction, data, db_type).await
+            send_embed(
+                ctx,
+                command_interaction,
+                data,
+                db_type,
+                config.bot.config.clone(),
+            )
+            .await
         }
         None => {
             // If no username is provided, retrieve the ID of the user who triggered the command
             let user_id = &command_interaction.user.id.to_string();
             // Check if the user is registered
-            let row: Option<RegisteredUser> = get_registered_user(user_id, db_type.clone()).await?;
+            let row: Option<RegisteredUser> =
+                get_registered_user(user_id, db_type.clone(), config.bot.config.clone()).await?;
             let user = row.ok_or(ResponseError::Option(String::from(
                 "No user specified or linked to this discord account",
             )))?;
 
             // Fetch the user data and send an embed
             let data: User = get_user(&user.anilist_id, anilist_cache).await?;
-            send_embed(ctx, command_interaction, data, db_type).await
+            send_embed(
+                ctx,
+                command_interaction,
+                data,
+                db_type,
+                config.bot.config.clone(),
+            )
+            .await
         }
     }
 }
@@ -82,6 +97,7 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     user: User,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
@@ -90,7 +106,7 @@ pub async fn send_embed(
     };
 
     // Load the localized level strings
-    let level_localised = load_localization_level(guild_id, db_type).await?;
+    let level_localised = load_localization_level(guild_id, db_type, db_config).await?;
 
     // Clone the manga and anime statistics
     let statistics = user.statistics.clone().unwrap();

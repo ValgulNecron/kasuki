@@ -21,4 +21,23 @@ services:
       - ./config.toml:/kasuki/config.toml
       - ./images:/kasuki/images
       - /etc/localtime:/etc/localtime:ro
+    networks:
+      - kasuki
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - ./db/:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=example
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    networks:
+      - kasuki
+    ports:
+      - "10001:5432"
+
+
+networks:
+    kasuki:
+      driver: bridge
 

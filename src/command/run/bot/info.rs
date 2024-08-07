@@ -39,7 +39,8 @@ pub async fn run(
     };
 
     // Load the localized information strings
-    let info_localised = load_localization_info(guild_id, db_type).await?;
+    let info_localised =
+        load_localization_info(guild_id, db_type, config.bot.config.clone()).await?;
 
     // Retrieve various details about the bot and the server
     let shard_count = ctx.cache.shard_count();

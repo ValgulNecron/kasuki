@@ -1,11 +1,11 @@
+use crate::config::BotConfigDetails;
+use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
+use crate::database::manage::dispatcher::data_dispatch::get_data_all_activity_by_server;
+use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-
-use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
-use crate::database::manage::dispatcher::data_dispatch::get_data_all_activity_by_server;
-use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for deleting activities.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
@@ -39,6 +39,7 @@ pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     db_type: String,
+    db_config: BotConfigDetails,
 ) {
     let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
     let activity_search = map
@@ -50,7 +51,7 @@ pub async fn autocomplete(
         None => String::from("0"),
     };
 
-    let activities = match get_data_all_activity_by_server(&guild_id, db_type).await {
+    let activities = match get_data_all_activity_by_server(&guild_id, db_type, db_config).await {
         Ok(data) => data,
         Err(e) => {
             tracing::debug!(?e);

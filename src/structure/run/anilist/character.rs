@@ -1,16 +1,16 @@
 use std::error::Error;
 
-use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
-};
-use tracing::log::trace;
-
+use crate::config::BotConfigDetails;
 use crate::constant::COLOR;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::error_management::error_enum::{ResponseError, UnknownResponseError};
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
+};
+use tracing::log::trace;
 
 #[cynic::schema("anilist")]
 mod schema {}
@@ -111,6 +111,7 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     character: Character,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -119,7 +120,7 @@ pub async fn send_embed(
 
     trace!("{:#?}", guild_id);
 
-    let character_localised = load_localization_character(guild_id, db_type).await?;
+    let character_localised = load_localization_character(guild_id, db_type, db_config).await?;
 
     let date_of_birth_data = character.date_of_birth.clone();
     let mut fields = Vec::new();

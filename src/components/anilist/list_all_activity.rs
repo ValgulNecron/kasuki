@@ -1,16 +1,16 @@
 use std::error::Error;
 
-use serenity::all::{
-    ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
-};
-use tracing::trace;
-
+use crate::config::BotConfigDetails;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::data_struct::server_activity::ServerActivity;
 use crate::database::manage::dispatcher::data_dispatch::get_all_server_activity;
 use crate::helper::error_management::error_enum::UnknownResponseError;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
+use serenity::all::{
+    ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
+};
+use tracing::trace;
 
 /// Updates the activity list in the server.
 ///
@@ -34,6 +34,7 @@ pub async fn update(
     component_interaction: &ComponentInteraction,
     page_number: &str,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -41,7 +42,7 @@ pub async fn update(
     };
 
     let list_activity_localised_text =
-        load_localization_list_activity(guild_id, db_type.clone()).await?;
+        load_localization_list_activity(guild_id, db_type.clone(), db_config.clone()).await?;
 
     let guild_id = component_interaction
         .guild_id
@@ -49,7 +50,7 @@ pub async fn update(
             "Guild ID not found",
         )))?;
 
-    let list = get_all_server_activity(&guild_id.to_string(), db_type).await?;
+    let list = get_all_server_activity(&guild_id.to_string(), db_type, db_config).await?;
     let len = list.len();
     let actual_page: u64 = page_number.parse().unwrap();
     trace!("{:?}", actual_page);

@@ -83,8 +83,9 @@ async fn main() {
 
     // Initialize the SQL database.
     // If an error occurs, log the error and return.
-    if let Err(e) = init_sql_database(db_type).await {
-        error!("{:?}", e);
+    if let Err(e) = init_sql_database(db_type, config.bot.config.clone()).await {
+        let e = e.to_string().replace("\\\\n", "\n");
+        error!("{}", e);
         std::process::exit(4);
     }
 

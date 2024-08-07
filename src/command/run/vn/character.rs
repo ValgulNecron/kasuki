@@ -33,7 +33,8 @@ pub async fn run(
         .get(&String::from("name"))
         .cloned()
         .unwrap_or(String::new());
-    let character_localised = load_localization_character(guild_id, db_type).await?;
+    let character_localised =
+        load_localization_character(guild_id, db_type, config.bot.config.clone()).await?;
     let character = get_character(character.clone(), vndb_cache).await?;
     let character = character.results[0].clone();
 

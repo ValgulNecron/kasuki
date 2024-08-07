@@ -3,6 +3,7 @@ use std::error::Error;
 use serenity::all::{CommandInteraction, Context, User};
 
 use crate::command::run::user::banner::banner_with_user;
+use crate::config::BotConfigDetails;
 use crate::helper::error_management::error_enum::ResponseError;
 
 /// This function is responsible for running the banner command.
@@ -23,6 +24,7 @@ pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Get a reference to the users involved in the command interaction
     let users = &command_interaction.data.resolved.users;
@@ -48,5 +50,5 @@ pub async fn run(
         .map_err(|e| ResponseError::Option(format!("{:#?}", e)))?;
 
     // Call the banner_with_user function with the context, command interaction, and user
-    banner_with_user(ctx, command_interaction, &user, db_type).await
+    banner_with_user(ctx, command_interaction, &user, db_type, db_config).await
 }

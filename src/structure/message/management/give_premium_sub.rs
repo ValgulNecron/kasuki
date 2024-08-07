@@ -1,3 +1,4 @@
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
@@ -10,7 +11,8 @@ pub struct GivePremiumLocalised {
 pub async fn load_localization_give_premium_sub(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<GivePremiumLocalised, Box<dyn Error>> {
     let path = "json/message/management/give_premium_sub.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

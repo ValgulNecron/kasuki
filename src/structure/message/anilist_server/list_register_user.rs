@@ -2,9 +2,9 @@
 
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// ListUserLocalised struct represents a user list's localized data.
 /// It contains fields for title, next, and previous.
@@ -38,7 +38,8 @@ pub struct ListUserLocalised {
 pub async fn load_localization_list_user(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<ListUserLocalised, Box<dyn Error>> {
     let path = "json/message/anilist_server/list_register_user.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

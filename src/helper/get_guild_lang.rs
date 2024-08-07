@@ -1,3 +1,4 @@
+use crate::config::BotConfigDetails;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::manage::dispatcher::data_dispatch::get_data_guild_language;
 
@@ -15,12 +16,16 @@ use crate::database::manage::dispatcher::data_dispatch::get_data_guild_language;
 /// # Returns
 ///
 /// * A string representing the language setting for the given guild. If no language setting is found, it returns "en".
-pub async fn get_guild_language(guild_id: String, db_type: String) -> String {
+pub async fn get_guild_language(
+    guild_id: String,
+    db_type: String,
+    db_config: BotConfigDetails,
+) -> String {
     if guild_id == *"0" {
         return String::from("en");
     };
 
-    let guild_lang: Option<GuildLanguage> = get_data_guild_language(guild_id, db_type)
+    let guild_lang: Option<GuildLanguage> = get_data_guild_language(guild_id, db_type, db_config)
         .await
         .unwrap_or(None);
 

@@ -1,8 +1,8 @@
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// Represents the localized data for a server's profile picture image.
 ///
@@ -34,7 +34,8 @@ pub struct PFPServerLocalisedImage {
 pub async fn load_localization_pfp_server_image(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<PFPServerLocalisedImage, Box<dyn Error>> {
     let path = "json/message/server/generate_image_pfp_server.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

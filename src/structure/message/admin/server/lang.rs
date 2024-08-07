@@ -2,9 +2,9 @@
 
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
-
+use crate::config::BotConfigDetails;
 use crate::structure::message::common::load_localization;
+use serde::{Deserialize, Serialize};
 
 /// `LangLocalised` is a struct that represents a language's localized data.
 /// It contains two fields `title` and `desc` which are both Strings.
@@ -37,7 +37,8 @@ pub struct LangLocalised {
 pub async fn load_localization_lang(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<LangLocalised, Box<dyn Error>> {
     let path = "json/message/admin/server/lang.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }

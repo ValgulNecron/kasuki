@@ -1,3 +1,7 @@
+use crate::config::BotConfigDetails;
+use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
+use crate::helper::error_management::error_enum;
+use crate::structure::message::new_member::load_localization_new_member;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage};
 use serde::{Deserialize, Serialize};
@@ -11,11 +15,12 @@ use std::sync::Arc;
 use text_to_png::TextRenderer;
 use tracing::{error, trace};
 
-use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
-use crate::helper::error_management::error_enum;
-use crate::structure::message::new_member::load_localization_new_member;
-
-pub async fn new_member_message(ctx: &Context, member: &Member) {
+pub async fn new_member_message(
+    ctx: &Context,
+    member: &Member,
+    db_type: String,
+    db_config: BotConfigDetails,
+) {
     trace!("New member message.");
     let ctx = ctx.clone();
     let user_name = member.user.name.clone();
@@ -85,7 +90,7 @@ pub async fn new_member_message(ctx: &Context, member: &Member) {
             error!("Failed to overlay the image. {}", e);
         }
     }
-    let local = match load_localization_new_member(guild_id.to_string(), "db".to_string()).await {
+    let local = match load_localization_new_member(guild_id.to_string(), db_type, db_config).await {
         Ok(local) => local.welcome,
         Err(_) => "Welcome $user$".to_string(),
     };

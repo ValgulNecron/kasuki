@@ -1,7 +1,7 @@
-use std::error::Error;
-
+use crate::config::BotConfigDetails;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
 use crate::helper::error_management::error_enum;
+use std::error::Error;
 
 /// Migrates the PostgreSQL database.
 ///
@@ -19,33 +19,37 @@ use crate::helper::error_management::error_enum;
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn migrate_postgres() -> Result<(), Box<dyn Error>> {
+pub async fn migrate_postgres(db_config: BotConfigDetails) -> Result<(), Box<dyn Error>> {
     // used to update the database when new row are added to a table.
-    add_image_to_activity_data().await?;
-    add_new_member_to_global_kill_switch().await?;
-    add_new_member_to_module_activation().await?;
-    add_anime_to_global_kill_switch().await?;
-    add_anime_to_module_activation().await?;
-    add_vn_to_global_kill_switch().await?;
-    add_vn_to_module_activation().await?;
-    update_name_of_id_in_global_kill_switch().await?;
-    update_name_of_id_in_global_module_activation().await?;
+    add_image_to_activity_data(db_config.clone()).await?;
+    add_new_member_to_global_kill_switch(db_config.clone()).await?;
+    add_new_member_to_module_activation(db_config.clone()).await?;
+    add_anime_to_global_kill_switch(db_config.clone()).await?;
+    add_anime_to_module_activation(db_config.clone()).await?;
+    add_vn_to_global_kill_switch(db_config.clone()).await?;
+    add_vn_to_module_activation(db_config.clone()).await?;
+    update_name_of_id_in_global_kill_switch(db_config.clone()).await?;
+    update_name_of_id_in_global_module_activation(db_config).await?;
     Ok(())
 }
 
-async fn update_name_of_id_in_global_kill_switch() -> Result<(), Box<dyn Error>> {
+async fn update_name_of_id_in_global_kill_switch(
+    db_config: BotConfigDetails,
+) -> Result<(), Box<dyn Error>> {
     // change the name of the row id to guild_id
-    let pool = get_postgresql_pool().await?;
-    sqlx::query("ALTER TABLE global_kill_switch RENAME COLUMN id TO guild_id")
+    let pool = get_postgresql_pool(db_config).await?;
+    sqlx::query("ALTER TABLE kasuki.global_kill_switch RENAME COLUMN id TO guild_id")
         .execute(&pool)
         .await
         .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
     Ok(())
 }
-async fn update_name_of_id_in_global_module_activation() -> Result<(), Box<dyn Error>> {
+async fn update_name_of_id_in_global_module_activation(
+    db_config: BotConfigDetails,
+) -> Result<(), Box<dyn Error>> {
     // change the name of the row id to guild_id
-    let pool = get_postgresql_pool().await?;
-    sqlx::query("ALTER TABLE module_activation RENAME COLUMN id TO guild_id")
+    let pool = get_postgresql_pool(db_config).await?;
+    sqlx::query("ALTER TABLE kasuki.module_activation RENAME COLUMN id TO guild_id")
         .execute(&pool)
         .await
         .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
@@ -60,8 +64,8 @@ async fn update_name_of_id_in_global_module_activation() -> Result<(), Box<dyn E
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn add_image_to_activity_data() -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+pub async fn add_image_to_activity_data(db_config: BotConfigDetails) -> Result<(), Box<dyn Error>> {
+    let pool = get_postgresql_pool(db_config).await?;
 
     // Check if the "image" column exists in the "activity_data" table
     let row: (bool,) = sqlx::query_as(
@@ -79,7 +83,7 @@ pub async fn add_image_to_activity_data() -> Result<(), Box<dyn Error>> {
 
     // If the "image" column doesn't exist, add it
     if !row.0 {
-        sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT")
+        sqlx::query("ALTER TABLE kasuki.activity_data ADD COLUMN image TEXT")
             .execute(&pool)
             .await
             .map_err(|e| {
@@ -100,8 +104,10 @@ pub async fn add_image_to_activity_data() -> Result<(), Box<dyn Error>> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn add_new_member_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+pub async fn add_new_member_to_global_kill_switch(
+    db_config: BotConfigDetails,
+) -> Result<(), Box<dyn Error>> {
+    let pool = get_postgresql_pool(db_config).await?;
 
     // Check if the "new_member" column exists in the "global_kill_switch" table
     let row: (bool,) = sqlx::query_as(
@@ -119,7 +125,7 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), Box<dyn Error>
 
     // If the "new_member" column doesn't exist, add it
     if !row.0 {
-        sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN new_member BIGINT")
+        sqlx::query("ALTER TABLE kasuki.global_kill_switch ADD COLUMN new_member BIGINT")
             .execute(&pool)
             .await
             .map_err(|e| {
@@ -140,8 +146,10 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), Box<dyn Error>
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn add_new_member_to_module_activation() -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+pub async fn add_new_member_to_module_activation(
+    db_config: BotConfigDetails,
+) -> Result<(), Box<dyn Error>> {
+    let pool = get_postgresql_pool(db_config).await?;
 
     // Check if the "new_member" column exists in the "module_activation" table
     let row: (bool,) = sqlx::query_as(
@@ -159,7 +167,7 @@ pub async fn add_new_member_to_module_activation() -> Result<(), Box<dyn Error>>
 
     // If the "new_member" column doesn't exist, add it
     if !row.0 {
-        sqlx::query("ALTER TABLE module_activation ADD COLUMN new_member BIGINT")
+        sqlx::query("ALTER TABLE kasuki.module_activation ADD COLUMN new_member BIGINT")
             .execute(&pool)
             .await
             .map_err(|e| {
@@ -180,8 +188,10 @@ pub async fn add_new_member_to_module_activation() -> Result<(), Box<dyn Error>>
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn add_anime_to_module_activation() -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+pub async fn add_anime_to_module_activation(
+    db_config: BotConfigDetails,
+) -> Result<(), Box<dyn Error>> {
+    let pool = get_postgresql_pool(db_config).await?;
 
     // Check if the "anime" column exists in the "module_activation" table
     let row: (bool,) = sqlx::query_as(
@@ -199,7 +209,7 @@ pub async fn add_anime_to_module_activation() -> Result<(), Box<dyn Error>> {
 
     // If the "anime" column doesn't exist, add it
     if !row.0 {
-        sqlx::query("ALTER TABLE module_activation ADD COLUMN anime BIGINT")
+        sqlx::query("ALTER TABLE kasuki.module_activation ADD COLUMN anime BIGINT")
             .execute(&pool)
             .await
             .map_err(|e| {
@@ -220,8 +230,10 @@ pub async fn add_anime_to_module_activation() -> Result<(), Box<dyn Error>> {
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-pub async fn add_anime_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+pub async fn add_anime_to_global_kill_switch(
+    db_config: BotConfigDetails,
+) -> Result<(), Box<dyn Error>> {
+    let pool = get_postgresql_pool(db_config).await?;
 
     // Check if the "anime" column exists in the "global_kill_switch" table
     let row: (bool,) = sqlx::query_as(
@@ -239,7 +251,7 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
 
     // If the "anime" column doesn't exist, add it
     if !row.0 {
-        sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN anime BIGINT")
+        sqlx::query("ALTER TABLE kasuki.global_kill_switch ADD COLUMN anime BIGINT")
             .execute(&pool)
             .await
             .map_err(|e| {
@@ -251,8 +263,10 @@ pub async fn add_anime_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub async fn add_vn_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+pub async fn add_vn_to_global_kill_switch(
+    db_config: BotConfigDetails,
+) -> Result<(), Box<dyn Error>> {
+    let pool = get_postgresql_pool(db_config).await?;
 
     // Check if the "vn" column exists in the "global_kill_switch" table
     let row: (bool,) = sqlx::query_as(
@@ -270,7 +284,7 @@ pub async fn add_vn_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
 
     // If the "vn" column doesn't exist, add it
     if !row.0 {
-        sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN vn BIGINT")
+        sqlx::query("ALTER TABLE kasuki.global_kill_switch ADD COLUMN vn BIGINT")
             .execute(&pool)
             .await
             .map_err(|e| {
@@ -282,8 +296,10 @@ pub async fn add_vn_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub async fn add_vn_to_module_activation() -> Result<(), Box<dyn Error>> {
-    let pool = get_postgresql_pool().await?;
+pub async fn add_vn_to_module_activation(
+    db_config: BotConfigDetails,
+) -> Result<(), Box<dyn Error>> {
+    let pool = get_postgresql_pool(db_config).await?;
 
     // Check if the "vn" column exists in the "module_activation" table
     let row: (bool,) = sqlx::query_as(
@@ -301,7 +317,7 @@ pub async fn add_vn_to_module_activation() -> Result<(), Box<dyn Error>> {
 
     // If the "vn" column doesn't exist, add it
     if !row.0 {
-        sqlx::query("ALTER TABLE module_activation ADD COLUMN vn BIGINT")
+        sqlx::query("ALTER TABLE kasuki.module_activation ADD COLUMN vn BIGINT")
             .execute(&pool)
             .await
             .map_err(|e| {

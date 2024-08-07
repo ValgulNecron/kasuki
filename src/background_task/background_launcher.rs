@@ -13,7 +13,7 @@ use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::background_task::update_random_stats::update_random_stats_launcher;
-use crate::config::{Config, ImageConfig};
+use crate::config::{BotConfigDetails, Config, ImageConfig};
 use crate::constant::{
     TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_BLACKLISTED_USER_UPDATE,
     TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
@@ -33,7 +33,11 @@ use crate::type_map_key::ShardManagerContainer;
 /// * `ctx` - A `Context` instance used to access the bot's data and cache.
 /// * `bot_data` - An `Arc` wrapped `BotData` instance containing the bot's configuration and data.
 ///
-pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
+pub async fn thread_management_launcher(
+    ctx: Context,
+    bot_data: Arc<BotData>,
+    db_config: BotConfigDetails,
+) {
     // Clone the necessary data from bot_data
     let command_usage = bot_data.number_of_command_use_per_command.clone();
     let is_grpc_on = bot_data.config.grpc.grpc_is_on;
@@ -48,14 +52,20 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
         ctx.clone(),
         db_type.clone(),
         user_blacklist_server_image.clone(),
+        db_config.clone(),
     ));
     tokio::spawn(launch_activity_management_thread(
         ctx.clone(),
         db_type.clone(),
         anilist_cache.clone(),
+        db_config.clone(),
     ));
     tokio::spawn(launch_game_management_thread(apps));
-    tokio::spawn(ping_manager_thread(ctx.clone(), db_type.clone()));
+    tokio::spawn(ping_manager_thread(
+        ctx.clone(),
+        db_type.clone(),
+        db_config.clone(),
+    ));
     tokio::spawn(update_user_blacklist(user_blacklist_server_image));
     tokio::spawn(update_random_stats_launcher(anilist_cache.clone()));
     tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
@@ -77,6 +87,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
         ctx.clone(),
         db_type.clone(),
         image_config,
+        db_config.clone(),
     ));
 
     // Log a message indicating that all threads have been launched
@@ -90,7 +101,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>) {
 /// * `ctx` - A `Context` instance used to access the bot's data and cache.
 /// * `db_type` - A `String` representing the type of database.
 ///
-async fn ping_manager_thread(ctx: Context, db_type: String) {
+async fn ping_manager_thread(ctx: Context, db_type: String, db_config: BotConfigDetails) {
     // Log a message indicating that the ping thread is being launched
     info!("Launching the ping thread!");
 
@@ -128,7 +139,7 @@ async fn ping_manager_thread(ctx: Context, db_type: String) {
             };
 
             // Update the ping history in the database
-            match set_data_ping_history(ping_history, db_type.clone()).await {
+            match set_data_ping_history(ping_history, db_type.clone(), db_config.clone()).await {
                 Ok(_) => {
                     debug!("Updated ping history for shard {}.", shard_id);
                 }
@@ -204,6 +215,7 @@ async fn launch_user_color_management_thread(
     ctx: Context,
     db_type: String,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
+    db_config: BotConfigDetails,
 ) {
     // Create an interval for periodic updates
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE));
@@ -225,6 +237,7 @@ async fn launch_user_color_management_thread(
             &ctx,
             db_type.clone(),
             user_blacklist_server_image.clone(),
+            db_config.clone(),
         )
         .await;
     }
@@ -267,6 +280,7 @@ async fn launch_activity_management_thread(
     ctx: Context,
     db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_config: BotConfigDetails,
 ) {
     // Create an interval for periodic updates
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_ACTIVITY_CHECK));
@@ -284,7 +298,12 @@ async fn launch_activity_management_thread(
         let db_type = db_type.clone();
 
         // Spawn a new task to manage the bot's activity
-        tokio::spawn(manage_activity(ctx, db_type, anilist_cache.clone()));
+        tokio::spawn(manage_activity(
+            ctx,
+            db_type,
+            anilist_cache.clone(),
+            db_config.clone(),
+        ));
     }
 }
 
@@ -299,6 +318,7 @@ async fn launch_server_image_management_thread(
     ctx: Context,
     db_type: String,
     image_config: ImageConfig,
+    db_config: BotConfigDetails,
 ) {
     // Log a message indicating that the server image management thread is being launched
     info!("Launching the server image management thread!");
@@ -312,7 +332,13 @@ async fn launch_server_image_management_thread(
         interval.tick().await;
 
         // Call the server_image_management function with the provided context, database type, and image configuration
-        server_image_management(&ctx, db_type.clone(), image_config.clone()).await;
+        server_image_management(
+            &ctx,
+            db_type.clone(),
+            image_config.clone(),
+            db_config.clone(),
+        )
+        .await;
     }
 }
 

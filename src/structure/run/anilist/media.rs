@@ -1,17 +1,17 @@
 use std::error::Error;
 use std::fmt::Display;
 
-use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp,
-};
-
+use crate::config::BotConfigDetails;
 use crate::constant::{COLOR, UNKNOWN};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
+use serenity::all::{
+    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CreateInteractionResponseMessage, Timestamp,
+};
 
 #[cynic::schema("anilist")]
 mod schema {}
@@ -670,6 +670,7 @@ pub async fn send_embed(
     command_interaction: &CommandInteraction,
     data: Media,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let is_adult = data.is_adult.unwrap_or(true);
     if is_adult && !get_nsfw(command_interaction, ctx).await {
@@ -681,7 +682,7 @@ pub async fn send_embed(
         None => String::from("0"),
     };
 
-    let media_localised = load_localization_media(guild_id, db_type).await?;
+    let media_localised = load_localization_media(guild_id, db_type, db_config).await?;
     let mut fields = Vec::new();
     let genres = data.genres.clone().unwrap_or_default();
     // take the first 5 non-optional genres

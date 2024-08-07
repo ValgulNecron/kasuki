@@ -64,7 +64,8 @@ pub async fn run(
     };
 
     // Load the localized comparison strings
-    let compare_localised = load_localization_compare(guild_id, db_type).await?;
+    let compare_localised =
+        load_localization_compare(guild_id, db_type, config.bot.config.clone()).await?;
 
     // Clone the user data
     let username = user.name.clone();

@@ -60,14 +60,20 @@ pub async fn run(
     let module = map
         .get(&String::from("name"))
         .ok_or(ResponseError::Option(String::from("No option for name")))?;
-    let module_localised =
-        load_localization_module_activation(guild_id.clone(), db_type.clone()).await?;
+    let module_localised = load_localization_module_activation(
+        guild_id.clone(),
+        db_type.clone(),
+        config.bot.config.clone(),
+    )
+    .await?;
     let map = get_option_map_boolean_subcommand_group(command_interaction);
     let state = *map
         .get(&String::from("state"))
         .ok_or(ResponseError::Option(String::from("No option for state")))?;
 
-    let row = get_data_module_activation_status(&guild_id, db_type.clone()).await?;
+    let row =
+        get_data_module_activation_status(&guild_id, db_type.clone(), config.bot.config.clone())
+            .await?;
     let mut ai_value = row.ai_module.unwrap_or(true);
     let mut anilist_value = row.anilist_module.unwrap_or(true);
     let mut game_value = row.game_module.unwrap_or(true);
@@ -98,7 +104,7 @@ pub async fn run(
         vn: Some(vn_value),
     };
 
-    set_data_module_activation_status(module_status, db_type).await?;
+    set_data_module_activation_status(module_status, db_type, config.bot.config.clone()).await?;
     let desc = if state {
         &module_localised.on
     } else {

@@ -13,6 +13,7 @@ use crate::command::autocomplete::game::steam_game_info;
 use crate::command::autocomplete::management::give_premium_sub::give_premium_sub_autocomplete;
 use crate::command::autocomplete::vn;
 use crate::command::autocomplete::vn::{game, producer};
+use crate::config::BotConfigDetails;
 use crate::helper::get_option::subcommand_group::get_subcommand;
 
 pub async fn autocomplete_dispatching(
@@ -22,9 +23,19 @@ pub async fn autocomplete_dispatching(
     db_type: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
     apps: Arc<RwLock<HashMap<String, u128>>>,
+    db_config: BotConfigDetails,
 ) {
     match autocomplete_interaction.data.name.as_str() {
-        "admin" => admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_type).await,
+        "admin" => {
+            admin_autocomplete(
+                ctx,
+                autocomplete_interaction,
+                anilist_cache,
+                db_type,
+                db_config,
+            )
+            .await
+        }
         "anime" => anime::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
         "ln" => ln::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
         "manga" => manga::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
@@ -48,6 +59,7 @@ async fn admin_autocomplete(
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_type: String,
+    db_config: BotConfigDetails,
 ) {
     if autocomplete_interaction
         .data
@@ -58,7 +70,14 @@ async fn admin_autocomplete(
         .as_str()
         == "anilist"
     {
-        anilist_admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_type).await
+        anilist_admin_autocomplete(
+            ctx,
+            autocomplete_interaction,
+            anilist_cache,
+            db_type,
+            db_config,
+        )
+        .await
     }
 }
 
@@ -86,6 +105,7 @@ async fn anilist_admin_autocomplete(
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_type: String,
+    db_config: BotConfigDetails,
 ) {
     let subcommand = get_subcommand(&autocomplete_interaction).unwrap();
     let subcommand_name = subcommand.name;
@@ -94,7 +114,7 @@ async fn anilist_admin_autocomplete(
             add_anime_activity::autocomplete(ctx, autocomplete_interaction, anilist_cache).await
         }
         "delete_activity" => {
-            delete_activity::autocomplete(ctx, autocomplete_interaction, db_type).await
+            delete_activity::autocomplete(ctx, autocomplete_interaction, db_type, db_config).await
         }
         _ => {}
     }

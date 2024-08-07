@@ -11,7 +11,7 @@ use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::command::run::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
-use crate::config::Config;
+use crate::config::{BotConfigDetails, Config};
 use crate::database::manage::dispatcher::data_dispatch::remove_data_activity_status;
 use crate::helper::create_default_embed::get_anilist_anime_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
@@ -61,8 +61,12 @@ pub async fn run(
         None => String::from("0"),
     };
 
-    let delete_activity_localised_text =
-        load_localization_delete_activity(guild_id.clone(), db_type.clone()).await?;
+    let delete_activity_localised_text = load_localization_delete_activity(
+        guild_id.clone(),
+        db_type.clone(),
+        config.bot.config.clone(),
+    )
+    .await?;
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
@@ -73,7 +77,13 @@ pub async fn run(
     let media = get_minimal_anime_media(anime, anilist_cache).await?;
 
     let anime_id = media.id;
-    remove_activity(guild_id.as_str(), &anime_id, db_type).await?;
+    remove_activity(
+        guild_id.as_str(),
+        &anime_id,
+        db_type,
+        config.bot.config.clone(),
+    )
+    .await?;
 
     let title = media.title.unwrap();
     let anime_name = get_name(title);
@@ -108,7 +118,14 @@ async fn remove_activity(
     guild_id: &str,
     anime_id: &i32,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    remove_data_activity_status(guild_id.to_owned(), anime_id.to_string(), db_type).await?;
+    remove_data_activity_status(
+        guild_id.to_owned(),
+        anime_id.to_string(),
+        db_type,
+        db_config,
+    )
+    .await?;
     Ok(())
 }

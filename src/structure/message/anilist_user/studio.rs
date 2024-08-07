@@ -1,7 +1,7 @@
 use std::error::Error;
 
+use crate::config::BotConfigDetails;
 use serde::{Deserialize, Serialize};
-
 // Importing necessary libraries and modules
 use crate::structure::message::common::load_localization;
 
@@ -29,7 +29,8 @@ pub struct StudioLocalised {
 pub async fn load_localization_studio(
     guild_id: String,
     db_type: String,
+    db_config: BotConfigDetails,
 ) -> Result<StudioLocalised, Box<dyn Error>> {
     let path = "json/message/anilist_user/studio.json";
-    load_localization(guild_id, path, db_type).await
+    load_localization(guild_id, path, db_type, db_config).await
 }
