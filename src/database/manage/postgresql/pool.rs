@@ -4,8 +4,8 @@ use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::{ConnectOptions, Pool, Postgres};
 use std::error::Error;
 use std::fs::OpenOptions;
-use std::{fs, process};
 use std::io::{Cursor, Read, Write};
+use std::{fs, process};
 use tracing::{error, trace};
 
 /// Retrieves a connection pool to the PostgreSQL database.
@@ -57,7 +57,7 @@ pub async fn get_postgresql_pool(
         .port(port)
         .database(&database)
         .to_url_lossy();
-        let pool = PgPoolOptions::new()
+    let pool = PgPoolOptions::new()
         .max_connections(20)
         .connect_lazy(pg_con_op.as_str())
         .map_err(|e| {
@@ -120,4 +120,3 @@ pub async fn get_postgresql_pool_without_db(
 
     Ok(pool)
 }
-

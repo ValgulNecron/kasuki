@@ -45,7 +45,7 @@ pub async fn run(
                 db_type,
                 config.bot.config.clone(),
             )
-            .await
+                .await
         }
         None => {
             banner_without_user(ctx, command_interaction, db_type, config.bot.config.clone()).await
@@ -152,7 +152,7 @@ pub async fn banner_with_user(
                 db_type,
                 db_config.clone(),
             )
-            .await
+                .await
         }
     };
     send_embed(
@@ -163,7 +163,7 @@ pub async fn banner_with_user(
         db_type,
         db_config,
     )
-    .await
+        .await
 }
 
 /// Sends an embed with a user's banner.

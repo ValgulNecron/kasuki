@@ -98,7 +98,7 @@ pub async fn get_vn(
         json.to_string(),
         vndb_cache,
     )
-    .await?;
+        .await?;
     let response: VNRoot = serde_json::from_str(&response)
         .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
     Ok(response)

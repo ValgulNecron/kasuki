@@ -47,7 +47,7 @@ pub async fn run(
                 db_type,
                 config.bot.config.clone(),
             )
-            .await
+                .await
         }
         None => {
             // If the user does not exist, display the profile of the user who triggered the command
@@ -111,7 +111,7 @@ pub async fn profile_with_user(
         db_type,
         db_config,
     )
-    .await
+        .await
 }
 
 /// Sends an embed with a user's profile.

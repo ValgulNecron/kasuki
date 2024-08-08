@@ -197,7 +197,7 @@ pub async fn run(
         config.image.token.clone(),
         guild_id,
     )
-    .await?;
+        .await?;
 
     if n == 1 {
         image_with_n_equal_1(
@@ -210,7 +210,7 @@ pub async fn run(
             config.image.save_server.clone(),
             config.image.token.clone(),
         )
-        .await?
+            .await?
     } else {
         image_with_n_greater_than_1(image_localised, filename, command_interaction, ctx, bytes)
             .await?
@@ -245,7 +245,7 @@ async fn image_with_n_equal_1(
         token,
         saver,
     )
-    .await
+        .await
     {
         Ok(_) => (),
         Err(e) => error!("Error saving image: {}", e),
@@ -340,7 +340,7 @@ async fn get_image_from_response(
             token.clone(),
             saver.clone(),
         )
-        .await
+            .await
         {
             Ok(_) => (),
             Err(e) => error!("Error saving image: {}", e),

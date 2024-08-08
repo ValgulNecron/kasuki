@@ -77,7 +77,7 @@ pub async fn get_character(
         json.to_string(),
         vndb_cache,
     )
-    .await?;
+        .await?;
     let response: CharacterRoot = serde_json::from_str(&response)
         .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
     Ok(response)

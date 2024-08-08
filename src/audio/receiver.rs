@@ -40,11 +40,11 @@ impl EventHandler for Receiver {
         use EventContext as Ctx;
         match ctx {
             Ctx::SpeakingStateUpdate(Speaking {
-                speaking,
-                ssrc,
-                user_id,
-                ..
-            }) => {
+                                         speaking,
+                                         ssrc,
+                                         user_id,
+                                         ..
+                                     }) => {
                 // Discord voice calls use RTP, where every sender uses a randomly allocated
                 // *Synchronisation Source* (SSRC) to allow receivers to tell which audio
                 // stream a received packet belongs to. As this number is not derived from

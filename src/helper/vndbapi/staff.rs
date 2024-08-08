@@ -23,7 +23,7 @@ pub async fn get_staff(
             + r#""],
     		"fields": "id,aid,ismain,name,lang,gender,description"
 		}"#)
-        .to_string()
+            .to_string()
     } else {
         (r#"{
     		"filters": ["search", "=",""#
@@ -32,7 +32,7 @@ pub async fn get_staff(
             + r#""],
     		"fields": "id,aid,ismain,name,lang,gender,description"
 		}"#)
-        .to_string()
+            .to_string()
     };
     let path = "/staff".to_string();
     let response = crate::helper::vndbapi::common::do_request_cached_with_json(
@@ -40,7 +40,7 @@ pub async fn get_staff(
         json.to_string(),
         vndb_cache,
     )
-    .await?;
+        .await?;
     let response: StaffRoot = serde_json::from_str(&response)
         .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
     Ok(response)

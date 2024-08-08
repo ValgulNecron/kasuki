@@ -2,6 +2,7 @@ use crate::config::BotConfigDetails;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
 use crate::helper::error_management::error_enum;
 use std::error::Error;
+use tracing::warn;
 
 /// Migrates the PostgreSQL database.
 ///
@@ -38,10 +39,17 @@ async fn update_name_of_id_in_global_kill_switch(
 ) -> Result<(), Box<dyn Error>> {
     // change the name of the row id to guild_id
     let pool = get_postgresql_pool(db_config).await?;
-    sqlx::query("ALTER TABLE kasuki.global_kill_switch RENAME COLUMN id TO guild_id")
+
+    // if in kasuki.global_kill_switch the columm name is "id" rename it to "guild_id"
+    match sqlx::query("ALTER TABLE global_kill_switch RENAME COLUMN id TO guild_id")
         .execute(&pool)
         .await
-        .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
+    };
     Ok(())
 }
 async fn update_name_of_id_in_global_module_activation(
@@ -49,10 +57,15 @@ async fn update_name_of_id_in_global_module_activation(
 ) -> Result<(), Box<dyn Error>> {
     // change the name of the row id to guild_id
     let pool = get_postgresql_pool(db_config).await?;
-    sqlx::query("ALTER TABLE kasuki.module_activation RENAME COLUMN id TO guild_id")
+    match sqlx::query("ALTER TABLE module_activation RENAME COLUMN id TO guild_id")
         .execute(&pool)
         .await
-        .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
+    };
     Ok(())
 }
 /// Adds an "image" column to the "activity_data" table in the PostgreSQL database.
@@ -67,31 +80,16 @@ async fn update_name_of_id_in_global_module_activation(
 pub async fn add_image_to_activity_data(db_config: BotConfigDetails) -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
 
-    // Check if the "image" column exists in the "activity_data" table
-    let row: (bool,) = sqlx::query_as(
-        r#"
-        SELECT EXISTS (
-            SELECT 1
-            FROM information_schema.columns
-            WHERE table_name='activity_data' AND column_name='image'
-        )
-        "#,
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
-
-    // If the "image" column doesn't exist, add it
-    if !row.0 {
-        sqlx::query("ALTER TABLE kasuki.activity_data ADD COLUMN image TEXT")
-            .execute(&pool)
-            .await
-            .map_err(|e| {
-                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
-            })?;
+    match sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
 
-    pool.close().await;
     Ok(())
 }
 
@@ -109,31 +107,16 @@ pub async fn add_new_member_to_global_kill_switch(
 ) -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
 
-    // Check if the "new_member" column exists in the "global_kill_switch" table
-    let row: (bool,) = sqlx::query_as(
-        r#"
-        SELECT EXISTS (
-            SELECT  1
-            FROM information_schema.columns
-            WHERE table_name='global_kill_switch' AND column_name='new_member'
-        )
-        "#,
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
-
-    // If the "new_member" column doesn't exist, add it
-    if !row.0 {
-        sqlx::query("ALTER TABLE kasuki.global_kill_switch ADD COLUMN new_member BIGINT")
-            .execute(&pool)
-            .await
-            .map_err(|e| {
-                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
-            })?;
+    match sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN new_member BIGINT")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
 
-    pool.close().await;
     Ok(())
 }
 
@@ -151,31 +134,16 @@ pub async fn add_new_member_to_module_activation(
 ) -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
 
-    // Check if the "new_member" column exists in the "module_activation" table
-    let row: (bool,) = sqlx::query_as(
-        r#"
-        SELECT EXISTS (
-            SELECT  1
-            FROM information_schema.columns
-            WHERE table_name='module_activation' AND column_name='new_member'
-        )
-        "#,
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
-
-    // If the "new_member" column doesn't exist, add it
-    if !row.0 {
-        sqlx::query("ALTER TABLE kasuki.module_activation ADD COLUMN new_member BIGINT")
-            .execute(&pool)
-            .await
-            .map_err(|e| {
-                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
-            })?;
+    match sqlx::query("ALTER TABLE module_activation ADD COLUMN new_member BIGINT")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
 
-    pool.close().await;
     Ok(())
 }
 
@@ -193,31 +161,16 @@ pub async fn add_anime_to_module_activation(
 ) -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
 
-    // Check if the "anime" column exists in the "module_activation" table
-    let row: (bool,) = sqlx::query_as(
-        r#"
-        SELECT EXISTS (
-            SELECT  1
-            FROM information_schema.columns
-            WHERE table_name='module_activation' AND column_name='anime'
-        )
-        "#,
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
-
-    // If the "anime" column doesn't exist, add it
-    if !row.0 {
-        sqlx::query("ALTER TABLE kasuki.module_activation ADD COLUMN anime BIGINT")
-            .execute(&pool)
-            .await
-            .map_err(|e| {
-                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
-            })?;
+    match sqlx::query("ALTER TABLE module_activation ADD COLUMN anime BIGINT")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
 
-    pool.close().await;
     Ok(())
 }
 
@@ -235,31 +188,16 @@ pub async fn add_anime_to_global_kill_switch(
 ) -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
 
-    // Check if the "anime" column exists in the "global_kill_switch" table
-    let row: (bool,) = sqlx::query_as(
-        r#"
-        SELECT EXISTS (
-            SELECT  1
-            FROM information_schema.columns
-            WHERE table_name='global_kill_switch' AND column_name='anime'
-        )
-        "#,
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
-
-    // If the "anime" column doesn't exist, add it
-    if !row.0 {
-        sqlx::query("ALTER TABLE kasuki.global_kill_switch ADD COLUMN anime BIGINT")
-            .execute(&pool)
-            .await
-            .map_err(|e| {
-                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
-            })?;
+    match sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN anime BIGINT")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
 
-    pool.close().await;
     Ok(())
 }
 
@@ -268,31 +206,16 @@ pub async fn add_vn_to_global_kill_switch(
 ) -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
 
-    // Check if the "vn" column exists in the "global_kill_switch" table
-    let row: (bool,) = sqlx::query_as(
-        r#"
-        SELECT EXISTS (
-            SELECT  1
-            FROM information_schema.columns
-            WHERE table_name='global_kill_switch' AND column_name='vn'
-        )
-        "#,
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
-
-    // If the "vn" column doesn't exist, add it
-    if !row.0 {
-        sqlx::query("ALTER TABLE kasuki.global_kill_switch ADD COLUMN vn BIGINT")
-            .execute(&pool)
-            .await
-            .map_err(|e| {
-                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
-            })?;
+    match sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN vn BIGINT")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
 
-    pool.close().await;
     Ok(())
 }
 
@@ -301,30 +224,15 @@ pub async fn add_vn_to_module_activation(
 ) -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
 
-    // Check if the "vn" column exists in the "module_activation" table
-    let row: (bool,) = sqlx::query_as(
-        r#"
-        SELECT EXISTS (
-            SELECT  1
-            FROM information_schema.columns
-            WHERE table_name='module_activation' AND column_name='vn'
-        )
-        "#,
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| error_enum::Error::Database(format!("Failed to execute query. {:#?}", e)))?;
-
-    // If the "vn" column doesn't exist, add it
-    if !row.0 {
-        sqlx::query("ALTER TABLE kasuki.module_activation ADD COLUMN vn BIGINT")
-            .execute(&pool)
-            .await
-            .map_err(|e| {
-                error_enum::Error::Database(format!("Failed to execute query. {:#?}", e))
-            })?;
+    match sqlx::query("ALTER TABLE module_activation ADD COLUMN vn BIGINT")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
 
-    pool.close().await;
     Ok(())
 }

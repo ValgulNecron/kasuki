@@ -75,7 +75,7 @@ pub async fn calculate_users_color(
             )
             .await?
         }
-        sleep(Duration::from_millis(100)).await
+        sleep(Duration::from_millis(1)).await
     }
     Ok(())
 }

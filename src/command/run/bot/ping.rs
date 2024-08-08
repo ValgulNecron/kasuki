@@ -50,8 +50,8 @@ pub async fn run(
             ))));
         }
     }
-    .runners
-    .clone();
+        .runners
+        .clone();
 
     // Lock the shard manager for exclusive access
     let shard_manager = shard_manager.lock().await;

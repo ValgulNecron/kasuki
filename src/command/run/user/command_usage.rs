@@ -39,7 +39,7 @@ pub async fn run(
                 db_type,
                 db_config,
             )
-            .await
+                .await
         }
         None => {
             // If the user does not exist, display the profile of the user who triggered the command
@@ -67,7 +67,7 @@ async fn command_usage_without_user(
         db_type,
         db_config,
     )
-    .await
+        .await
 }
 
 pub async fn command_usage_with_user(
@@ -86,7 +86,7 @@ pub async fn command_usage_with_user(
         db_type,
         db_config,
     )
-    .await
+        .await
 }
 
 pub async fn send_embed(

@@ -1,5 +1,5 @@
 use std::error::Error;
-
+use tracing::warn;
 use crate::constant::SQLITE_DB_PATH;
 use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum;
@@ -33,30 +33,30 @@ pub async fn migrate_sqlite() -> Result<(), Box<dyn Error>> {
 async fn update_name_of_id_in_global_kill_switch() -> Result<(), Box<dyn Error>> {
     // change the name of the row id to guild_id
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
-    sqlx::query("ALTER TABLE global_kill_switch RENAME COLUMN id TO guild_id")
+    match sqlx::query("ALTER TABLE global_kill_switch RENAME COLUMN id TO guild_id")
         .execute(&pool)
         .await
-        .map_err(|e| {
-            error_enum::Error::Database(format!(
-                "Failed to update the name of the row id to guild_id. {:#?}",
-                e
-            ))
-        })?;
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
+    }
     Ok(())
 }
 
 async fn update_name_of_id_in_module_activation() -> Result<(), Box<dyn Error>> {
     // change the name of the row id to guild_id
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
-    sqlx::query("ALTER TABLE module_activation RENAME COLUMN id TO guild_id")
+    match sqlx::query("ALTER TABLE module_activation RENAME COLUMN id TO guild_id")
         .execute(&pool)
         .await
-        .map_err(|e| {
-            error_enum::Error::Database(format!(
-                "Failed to update the name of the row id to guild_id. {:#?}",
-                e
-            ))
-        })?;
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
+    }
     Ok(())
 }
 
@@ -74,25 +74,16 @@ async fn update_name_of_id_in_module_activation() -> Result<(), Box<dyn Error>> 
 pub async fn add_image_to_activity_data() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
-    // Check if the "image" column exists in the "activity_data" table
-    let row: u32 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM pragma_table_info('activity_data') WHERE name='image'",
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
-    })?;
 
-    // If the "image" column doesn't exist, add it
-    if row == 0 {
-        sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT")
-            .execute(&pool)
-            .await
-            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
+    match sqlx::query("ALTER TABLE activity_data ADD COLUMN image TEXT")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
-
-    pool.close().await;
     Ok(())
 }
 
@@ -110,25 +101,16 @@ pub async fn add_image_to_activity_data() -> Result<(), Box<dyn Error>> {
 pub async fn add_new_member_to_module_activation() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
-    // Check if the "new_member" column exists in the "module_activation" table
-    let row: u32 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM pragma_table_info('module_activation') WHERE name='new_member'",
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
-    })?;
 
-    // If the "new_member" column doesn't exist, add it
-    if row == 0 {
-        sqlx::query("ALTER TABLE module_activation ADD COLUMN new_member INTEGER")
-            .execute(&pool)
-            .await
-            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
+    match sqlx::query("ALTER TABLE module_activation ADD COLUMN new_member INTEGER")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
-
-    pool.close().await;
     Ok(())
 }
 
@@ -145,26 +127,16 @@ pub async fn add_new_member_to_module_activation() -> Result<(), Box<dyn Error>>
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError if the operation failed.
 pub async fn add_new_member_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
-
-    // Check if the "new_member" column exists in the "global_kill_switch" table
-    let row: u32 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM pragma_table_info('global_kill_switch') WHERE name='new_member'",
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
-    })?;
-
-    // If the "new_member" column doesn't exist, add it
-    if row == 0 {
-        sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN new_member INTEGER")
-            .execute(&pool)
-            .await
-            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
+    match
+    sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN new_member INTEGER")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
-
-    pool.close().await;
     Ok(())
 }
 
@@ -182,27 +154,16 @@ pub async fn add_new_member_to_global_kill_switch() -> Result<(), Box<dyn Error>
 pub async fn add_anime_to_module_activation() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
-    // Check if the "anime" column exists in the "module_activation" table
-    let row: u32 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM pragma_table_info('module_activation') WHERE name='anime'",
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        error_enum::Error::Database(format!("Failed to check if the column exists. {:#?}", e))
-    })?;
-
-    // If the "anime" column doesn't exist, add it
-    if row == 0 {
-        sqlx::query("ALTER TABLE module_activation ADD COLUMN anime INTEGER")
-            .execute(&pool)
-            .await
-            .map_err(|e| {
-                error_enum::Error::Database(format!("Failed to add the column. {:#?}", e))
-            })?;
+    match
+    sqlx::query("ALTER TABLE module_activation ADD COLUMN anime INTEGER")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
-
-    pool.close().await;
     Ok(())
 }
 
@@ -220,74 +181,47 @@ pub async fn add_anime_to_module_activation() -> Result<(), Box<dyn Error>> {
 pub async fn add_anime_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
-    // Check if the "anime" column exists in the "global_kill_switch" table
-    let row: u32 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM pragma_table_info('global_kill_switch') WHERE name='anime'",
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
-    })?;
 
-    // If the "anime" column doesn't exist, add it
-    if row == 0 {
-        sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN anime INTEGER")
-            .execute(&pool)
-            .await
-            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
+    match sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN anime INTEGER")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
-
-    pool.close().await;
     Ok(())
 }
 
 pub async fn add_vn_to_global_kill_switch() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
-    // Check if the "vn" column exists in the "global_kill_switch" table
-    let row: u32 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM pragma_table_info('global_kill_switch') WHERE name='vn'",
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
-    })?;
-
-    // If the "vn" column doesn't exist, add it
-    if row == 0 {
-        sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN vn INTEGER")
-            .execute(&pool)
-            .await
-            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
+    match
+    sqlx::query("ALTER TABLE global_kill_switch ADD COLUMN vn INTEGER")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
-
-    pool.close().await;
     Ok(())
 }
 
 pub async fn add_vn_to_module_activation() -> Result<(), Box<dyn Error>> {
     let pool = get_sqlite_pool(SQLITE_DB_PATH).await?;
 
-    // Check if the "vn" column exists in the "module_activation" table
-    let row: u32 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM pragma_table_info('module_activation') WHERE name='vn'",
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        error_enum::Error::Database(format!("Failed to check if the column exists. {}", e))
-    })?;
-
-    // If the "vn" column doesn't exist, add it
-    if row == 0 {
-        sqlx::query("ALTER TABLE module_activation ADD COLUMN vn INTEGER")
-            .execute(&pool)
-            .await
-            .map_err(|e| error_enum::Error::Database(format!("Failed to add the column. {}", e)))?;
+    match
+    sqlx::query("ALTER TABLE module_activation ADD COLUMN vn INTEGER")
+        .execute(&pool)
+        .await
+    {
+        Ok(_) => (),
+        Err(e) => {
+            warn!("Failed to execute query. {:#?}", e);
+        }
     }
-
-    pool.close().await;
     Ok(())
 }

@@ -23,7 +23,7 @@ pub async fn get_producer(
             + r#""],
     		"fields": "id, name, original, aliases,lang,type,description"
 		}"#)
-        .to_string()
+            .to_string()
     } else {
         (r#"{
     		"filters": ["search", "=",""#
@@ -32,7 +32,7 @@ pub async fn get_producer(
             + r#""],
     		"fields": "id, name, original, aliases,lang,type,description"
 		}"#)
-        .to_string()
+            .to_string()
     };
     let path = "/producer".to_string();
     let response = crate::helper::vndbapi::common::do_request_cached_with_json(
@@ -40,7 +40,7 @@ pub async fn get_producer(
         json.to_string(),
         vndb_cache,
     )
-    .await?;
+        .await?;
     let response: ProducerRoot = serde_json::from_str(&response)
         .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
     Ok(response)

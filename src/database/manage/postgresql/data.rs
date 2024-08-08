@@ -31,7 +31,7 @@ pub async fn set_data_ping_history_postgresql(
 ) -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO ping_history (shard_id, timestamp, ping) VALUES ($1, $2, $3) ON CONFLICT (shard_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, ping = EXCLUDED.ping",
+        "INSERT INTO ping_history (shard_id, timestamp, ping) VALUES ($1, $2, $3) ON CONFLICT (shard_id) DO UPDATE SET timestamp = EXCLUDED.timestamp, ping = EXCLUDED.ping, shard_id = EXCLUDED.shard_id",
     )
         .bind(ping_history.shard_id)
         .bind(ping_history.timestamp)
@@ -39,7 +39,7 @@ pub async fn set_data_ping_history_postgresql(
         .execute(&pool)
         .await
         .map_err(|e|
-        UnknownResponseError::Database(format!("Failed to insert into the table. {:#?}", e)))?;
+            UnknownResponseError::Database(format!("Failed to insert into the table. {:#?}", e)))?;
     pool.close().await;
     Ok(())
 }
@@ -181,7 +181,7 @@ pub async fn get_data_module_activation_status_postgresql(
 ) -> Result<ActivationStatusModule, Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
     let row: ActivationStatusModule = sqlx::query_as(
-        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn FROM module_activation WHERE guild = $1",
+        "SELECT guild_id, ai_module, anilist_module, game_module, new_member, anime, vn, audio FROM module_activation WHERE guild = $1",
     )
         .bind(guild_id)
         .fetch_one(&pool)
@@ -221,7 +221,7 @@ pub async fn set_data_module_activation_status_postgresql(
 ) -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO module_activation (guild_id, anilist_module, ai_module, game_module, new_member, vn) VALUES ($1, $2, $3, $4, $5, $6) \
+        "INSERT INTO module_activation (guild_id, anilist_module, ai_module, game_module, new_member, vn,  anime) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) \
         ON CONFLICT (guild_id) DO UPDATE SET anilist_module = EXCLUDED.anilist_module, ai_module = EXCLUDED.ai_module, game_module = EXCLUDED.game_module, new_member = EXCLUDED.new_member, vn = EXCLUDED.vn",
     )
         .bind(activation_status_module.guild_id)
@@ -230,6 +230,7 @@ pub async fn set_data_module_activation_status_postgresql(
         .bind(activation_status_module.game_module)
         .bind(activation_status_module.new_member)
         .bind(activation_status_module.vn)
+        .bind(activation_status_module.anime)
         .execute(&pool)
         .await
         .map_err(|e| UnknownResponseError::Database(format!("Failed to insert into the table. {:#?}", e)))?;
@@ -471,18 +472,17 @@ pub async fn get_user_approximated_color_postgresql(
     db_config: BotConfigDetails,
 ) -> Result<UserColor, Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
-    let row: UserColor = sqlx::query_as(
-        "SELECT user_id, color, pfp_url, image FROM user_color WHERE user_id = $1",
-    )
-    .bind(user_id)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or(UserColor {
-        user_id: None,
-        color: None,
-        pfp_url: None,
-        image: None,
-    });
+    let row: UserColor =
+        sqlx::query_as("SELECT user_id, color, pfp_url, image FROM user_color WHERE user_id = $1")
+            .bind(user_id)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or(UserColor {
+                user_id: None,
+                color: None,
+                pfp_url: None,
+                image: None,
+            });
     pool.close().await;
 
     Ok(row)
@@ -517,10 +517,10 @@ pub async fn get_all_server_activity_postgresql(
        FROM activity_data WHERE server_id = $1
    ",
     )
-    .bind(server_id)
-    .fetch_all(&pool)
-    .await
-    .unwrap_or_default();
+        .bind(server_id)
+        .fetch_all(&pool)
+        .await
+        .unwrap_or_default();
 
     pool.close().await;
     Ok(rows)
@@ -549,10 +549,10 @@ pub async fn get_data_all_activity_by_server_postgresql(
        FROM activity_data WHERE server_id = $1
    ",
     )
-    .bind(server_id)
-    .fetch_all(&pool)
-    .await
-    .unwrap_or_default();
+        .bind(server_id)
+        .fetch_all(&pool)
+        .await
+        .unwrap_or_default();
     pool.close().await;
 
     Ok(rows)
@@ -644,11 +644,11 @@ pub async fn get_server_image_postgresql(
     let row: (Option<String>, Option<String>) = sqlx::query_as(
         "SELECT image_url, image FROM server_image WHERE server_id = $1 and image_type = $2",
     )
-    .bind(server_id)
-    .bind(image_type)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((None, None));
+        .bind(server_id)
+        .bind(image_type)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or((None, None));
     pool.close().await;
     Ok(row)
 }
