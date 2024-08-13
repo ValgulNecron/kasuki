@@ -10,6 +10,10 @@ bot_activity = ""
 [bot.config]
 # Whether to remove old commands on startup. Set to true to enable.
 remove_old_commands = true
+# Whether the bot should respect the prenium status of some command invocations. the command in question are ai module (image, transcript, translation, question) because it cost money.
+# and the "graph" command that generate graph from user stats.
+# the guild image command is not impacted by this it's not costly enought to be considered.
+respect_premium = true
 
 # The database type used by the bot. Options include sqlite or postgresql.
 db_type = "postgresql"

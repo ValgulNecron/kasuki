@@ -1,0 +1,17 @@
+kasuki.example.com {
+    log stdout
+    http_port 80
+    https_port 443
+    tls email@example.com
+
+    # Redirect /api/grpc/ to the same path under HTTPS, preserving the Connection header and enabling HTTP/2
+    redir /api/grpc/ https://kasuki.example.com/api/grpc/ {
+        header Connection {>Connection}
+        transport_option h2
+    }
+
+    # Reverse proxy all other requests to https://website:443/, preserving the Connection header
+    reverse_proxy / https://website:443/ {
+        header Connection {>Connection}
+    }
+}

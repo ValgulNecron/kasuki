@@ -40,6 +40,6 @@ services:
 
 
 networks:
-    kasuki:
-      driver: bridge
+  kasuki:
+    driver: bridge
 
