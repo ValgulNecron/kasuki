@@ -18,7 +18,7 @@ use crate::command::command_trait::{
 };
 use crate::config::Config;
 use crate::constant::{
-    DEFAULT_STRING, MAX_FREE_AI_TRANSCRIPTS, MAX_FREE_AI_TRANSLATIONS, PAID_TRANSCRIPT_MULTIPLIER,
+    DEFAULT_STRING, MAX_FREE_AI_TRANSLATIONS,
     PAID_TRANSLATION_MULTIPLIER,
 };
 use crate::event_handler::Handler;
@@ -50,7 +50,7 @@ impl Command for TranslationCommand<'_> {
 impl SlashCommand for TranslationCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         if !self
-            .check_hourly_limit(self.command_name.clone(), &self.handler)
+            .check_hourly_limit(self.command_name.clone(), self.handler)
             .await?
         {
             return Ok(());

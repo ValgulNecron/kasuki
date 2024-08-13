@@ -6,7 +6,7 @@ use crate::command::command_trait::{
 };
 use crate::config::Config;
 use crate::constant::{
-    DEFAULT_STRING, MAX_FREE_AI_QUESTIONS, MAX_FREE_AI_TRANSCRIPTS, PAID_QUESTION_MULTIPLIER,
+    DEFAULT_STRING, MAX_FREE_AI_TRANSCRIPTS,
     PAID_TRANSCRIPT_MULTIPLIER,
 };
 use crate::event_handler::Handler;
@@ -48,7 +48,7 @@ impl Command for TranscriptCommand<'_> {
 impl SlashCommand for TranscriptCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         if !self
-            .check_hourly_limit(self.command_name.clone(), &self.handler)
+            .check_hourly_limit(self.command_name.clone(), self.handler)
             .await?
         {
             return Ok(());

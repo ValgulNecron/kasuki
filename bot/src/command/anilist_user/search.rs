@@ -12,7 +12,6 @@ use crate::command::anilist_user::manga::MangaCommand;
 use crate::command::anilist_user::staff::StaffCommand;
 use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
-use crate::command::anilist_user::{anime, character, ln, manga, staff, studio, user};
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::error_management::error_enum::ResponseError;

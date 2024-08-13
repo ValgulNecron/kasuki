@@ -1,19 +1,14 @@
 use crate::command::admin::anilist::add_activity::AddActivityCommand;
 use crate::command::admin::anilist::delete_activity::DeleteActivityCommand;
-use crate::command::admin::anilist::{add_activity, delete_activity};
 use crate::command::admin::server::lang::LangCommand;
-use crate::command::admin::server::module;
 use crate::command::admin::server::module::{check_activation_status, ModuleCommand};
 use crate::command::admin::server::new_member_setting::NewMemberSettingCommand;
-use crate::command::admin::server::{lang, new_member_setting};
 use crate::command::ai::image::ImageCommand;
 use crate::command::ai::question::QuestionCommand;
 use crate::command::ai::transcript::TranscriptCommand;
 use crate::command::ai::translation::TranslationCommand;
-use crate::command::ai::{image, question, transcript, translation};
 use crate::command::anilist_server::list_all_activity::ListAllActivity;
 use crate::command::anilist_server::list_register_user::ListRegisterUser;
-use crate::command::anilist_server::{list_all_activity, list_register_user};
 use crate::command::anilist_user::anime::AnimeCommand;
 use crate::command::anilist_user::character::CharacterCommand;
 use crate::command::anilist_user::compare::CompareCommand;
@@ -28,10 +23,6 @@ use crate::command::anilist_user::staff::StaffCommand;
 use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
 use crate::command::anilist_user::waifu::WaifuCommand;
-use crate::command::anilist_user::{
-    anime, character, compare, level, ln, manga, random, register, search, seiyuu, staff, studio,
-    user, waifu,
-};
 use crate::command::command_trait::SlashCommand;
 use crate::command::guess_kind::guess_command_kind;
 use crate::command::run::anime::random_image;
@@ -45,29 +36,23 @@ use crate::command::run::server::{
 };
 use crate::command::run::vn;
 use crate::command::run::vn::{game, producer, stats};
-use crate::command::steam::steam_game_info;
 use crate::command::steam::steam_game_info::SteamGameInfoCommand;
 use crate::command::user::avatar::AvatarCommand;
 use crate::command::user::banner::BannerCommand;
 use crate::command::user::command_usage::CommandUsageCommand;
 use crate::command::user::profile::ProfileCommand;
-use crate::command::user::{avatar, banner, command_usage, profile};
 use crate::config::BotConfigDetails;
-use crate::constant::{MAX_FREE_AI_IMAGES, PAID_IMAGE_MULTIPLIER};
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::manage::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
 };
 use crate::event_handler::Handler;
 use crate::helper::error_management::error_enum::ResponseError;
-use crate::helper::get_option::subcommand_group::get_subcommand;
 use serenity::all::{
-    CommandInteraction, Context, CreateButton, CreateInteractionResponseMessage, SkuFlags, SkuId,
-    SkuKind,
+    CommandInteraction, Context,
 };
 use std::error::Error;
-use std::sync::Arc;
-use tracing::{info, trace};
+use tracing::trace;
 
 /// Dispatches the command to the appropriate function based on the command name.
 ///

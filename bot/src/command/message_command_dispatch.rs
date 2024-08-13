@@ -1,4 +1,3 @@
-use crate::command::user::avatar::AvatarCommand;
 use crate::event_handler::Handler;
 use crate::helper::error_management::error_enum::ResponseError;
 use serenity::all::{CommandInteraction, Context};

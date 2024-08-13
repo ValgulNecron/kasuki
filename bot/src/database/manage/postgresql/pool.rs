@@ -3,9 +3,7 @@ use crate::helper::error_management::error_enum::UnknownResponseError;
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::{ConnectOptions, Pool, Postgres};
 use std::error::Error;
-use std::fs::OpenOptions;
-use std::io::{Cursor, Read, Write};
-use std::{fs, process};
+use std::process;
 use tracing::{error, trace};
 
 /// Retrieves a connection pool to the PostgreSQL database.
@@ -28,7 +26,7 @@ pub async fn get_postgresql_pool(
             process::exit(7)
         }
     };
-    let port = match db_config.port.clone() {
+    let port = match db_config.port {
         Some(port) => port,
         None => {
             error!("No port provided");
@@ -55,7 +53,7 @@ pub async fn get_postgresql_pool(
         .password(password.as_str())
         .username(user.as_str())
         .port(port)
-        .database(&database)
+        .database(database)
         .to_url_lossy();
     let pool = PgPoolOptions::new()
         .max_connections(20)
@@ -80,7 +78,7 @@ pub async fn get_postgresql_pool_without_db(
             process::exit(7)
         }
     };
-    let port = match db_config.port.clone() {
+    let port = match db_config.port {
         Some(port) => port,
         None => {
             error!("No port provided");

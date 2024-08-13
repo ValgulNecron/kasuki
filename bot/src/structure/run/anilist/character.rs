@@ -165,7 +165,7 @@ pub async fn send_embed(
         fields.push((character_localised.age, age, true));
     }
 
-    let favourites = character.favourites.clone();
+    let favourites = character.favourites;
     if let Some(favourites) = favourites {
         fields.push((character_localised.fav, favourites.to_string(), true));
     }
@@ -200,13 +200,7 @@ pub async fn send_embed(
         .title(character_name)
         .url(character.site_url.unwrap_or_default())
         .fields(fields);
-    match character.image {
-        Some(image) => match image.large {
-            Some(large) => builder_embed = builder_embed.thumbnail(large),
-            None => {}
-        },
-        None => {}
-    }
+    if let Some(image) = character.image { if let Some(large) = image.large { builder_embed = builder_embed.thumbnail(large) } }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

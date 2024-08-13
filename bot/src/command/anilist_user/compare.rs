@@ -15,7 +15,6 @@ use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
 use crate::structure::run::anilist::user::{
     User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,

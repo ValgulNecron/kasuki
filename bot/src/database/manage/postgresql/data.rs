@@ -1,7 +1,6 @@
 use std::error::Error;
 
 use crate::config::BotConfigDetails;
-use crate::constant::SQLITE_DB_PATH;
 use crate::database::data_struct::guild_language::GuildLanguage;
 use crate::database::data_struct::module_status::ActivationStatusModule;
 use crate::database::data_struct::ping_history::PingHistory;
@@ -11,7 +10,6 @@ use crate::database::data_struct::server_activity::{
 };
 use crate::database::data_struct::user_color::UserColor;
 use crate::database::manage::postgresql::pool::get_postgresql_pool;
-use crate::database::manage::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::UnknownResponseError;
 
 /// Inserts or updates a ping history record in the PostgreSQL database.

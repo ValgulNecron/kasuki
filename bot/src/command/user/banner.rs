@@ -4,13 +4,12 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand, UserCommand};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::config::{BotConfigDetails, Config};
-use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::user::banner::load_localization_banner;
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp, User,
+    CommandInteraction, Context, CreateInteractionResponse,
+    CreateInteractionResponseMessage, User,
 };
 
 pub struct BannerCommand {
@@ -86,7 +85,7 @@ pub async fn send_embed(
     let banner = match user.banner_url() {
         Some(url) => url,
         None => {
-            no_banner(&ctx, &command_interaction, &user.name, db_type, db_config).await?;
+            no_banner(ctx, command_interaction, &user.name, db_type, db_config).await?;
             return Ok(());
         }
     };

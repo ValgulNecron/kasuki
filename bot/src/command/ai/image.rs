@@ -6,7 +6,7 @@ use crate::command::command_trait::{
 };
 use crate::config::Config;
 use crate::constant::{
-    DEFAULT_STRING, MAX_FREE_AI_IMAGES, MAX_FREE_AI_QUESTIONS, PAID_IMAGE_MULTIPLIER,
+    DEFAULT_STRING, MAX_FREE_AI_QUESTIONS,
     PAID_QUESTION_MULTIPLIER,
 };
 use crate::event_handler::Handler;
@@ -27,8 +27,7 @@ use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use serenity::builder::CreateButton;
-use tracing::{error, info, trace};
+use tracing::{error, trace};
 use uuid::Uuid;
 
 pub struct ImageCommand<'de> {
@@ -86,7 +85,7 @@ impl PremiumCommand for ImageCommand<'_> {
 impl SlashCommand for ImageCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         if !self
-            .check_hourly_limit(self.command_name.clone(), &self.handler)
+            .check_hourly_limit(self.command_name.clone(), self.handler)
             .await?
         {
             return Ok(());

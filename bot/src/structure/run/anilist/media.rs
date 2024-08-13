@@ -628,9 +628,8 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
                 let full = name.full;
                 let user_pref = name.user_preferred;
                 let native = name.native;
-                let staff_name =
-                    user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(UNKNOWN.to_string())));
-                staff_name
+                
+                user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(UNKNOWN.to_string())))
             }
             None => UNKNOWN.to_string(),
         };
@@ -688,7 +687,7 @@ pub async fn send_embed(
     // take the first 5 non-optional genres
     let genres = genres
         .into_iter()
-        .filter_map(|g| g)
+        .flatten()
         .take(5)
         .collect::<Vec<String>>();
 
@@ -703,84 +702,57 @@ pub async fn send_embed(
 
     fields.push((media_localised.genre, genres.join(", "), true));
 
-    match data.staff.clone() {
-        Some(staff) => match staff.edges {
-            Some(edges) => {
-                let staffs = get_staff(edges);
-                fields.push((media_localised.staffs, staffs, true));
-            }
-            None => {}
-        },
-        None => {}
+    if let Some(staff) = data.staff.clone() { if let Some(edges) = staff.edges {
+        let staffs = get_staff(edges);
+        fields.push((media_localised.staffs, staffs, true));
+    } }
+
+    if let Some(characters) = data.characters.clone() { if let Some(edges) = characters.edges {
+        let characters = get_character(edges);
+        fields.push((media_localised.characters, characters, true));
+    } }
+
+    if let Some(format) = data.format {
+        media_localised.format;format.to_string();true;
     }
 
-    match data.characters.clone() {
-        Some(characters) => match characters.edges {
-            Some(edges) => {
-                let characters = get_character(edges);
-                fields.push((media_localised.characters, characters, true));
-            }
-            None => {}
-        },
-        None => {}
+    if let Some(source) = data.source {
+        media_localised.source;source.to_string();true;
     }
 
-    match data.format.clone() {
-        Some(format) => {
-            (media_localised.format, format.to_string(), true);
+    if let Some(start_date) = data.start_date.clone() {
+        let mut start_date_str = String::new();
+        if let Some(day) = start_date.day {
+            start_date_str.push_str(format!("{}/", day).as_str());
         }
-        None => {}
-    }
-
-    match data.source.clone() {
-        Some(source) => {
-            (media_localised.source, source.to_string(), true);
+        if let Some(month) = start_date.month {
+            start_date_str.push_str(format!("{}/", month).as_str());
         }
-        None => {}
-    }
-
-    match data.start_date.clone() {
-        Some(start_date) => {
-            let mut start_date_str = String::new();
-            if let Some(day) = start_date.day {
-                start_date_str.push_str(format!("{}/", day.to_string()).as_str());
-            }
-            if let Some(month) = start_date.month {
-                start_date_str.push_str(format!("{}/", month.to_string()).as_str());
-            }
-            if let Some(year) = start_date.year {
-                start_date_str.push_str(year.to_string().as_str());
-            }
-            (media_localised.start_date, start_date_str, true);
+        if let Some(year) = start_date.year {
+            start_date_str.push_str(year.to_string().as_str());
         }
-        None => {}
+        (media_localised.start_date, start_date_str, true);
     }
 
-    match data.end_date.clone() {
-        Some(end_date) => {
-            let mut end_date_str = String::new();
-            if let Some(day) = end_date.day {
-                end_date_str.push_str(format!("{}/", day.to_string()).as_str());
-            }
-            if let Some(month) = end_date.month {
-                end_date_str.push_str(format!("{}/", month.to_string()).as_str());
-            }
-            if let Some(year) = end_date.year {
-                end_date_str.push_str(year.to_string().as_str());
-            }
-            (media_localised.end_date, end_date_str, true);
+    if let Some(end_date) = data.end_date.clone() {
+        let mut end_date_str = String::new();
+        if let Some(day) = end_date.day {
+            end_date_str.push_str(format!("{}/", day).as_str());
         }
-        None => {}
-    }
-
-    match data.favourites.clone() {
-        Some(favourites) => {
-            (media_localised.fav, favourites.to_string(), true);
+        if let Some(month) = end_date.month {
+            end_date_str.push_str(format!("{}/", month).as_str());
         }
-        None => {}
+        if let Some(year) = end_date.year {
+            end_date_str.push_str(year.to_string().as_str());
+        }
+        (media_localised.end_date, end_date_str, true);
     }
 
-    match data.duration.clone() {
+    if let Some(favourites) = data.favourites {
+        media_localised.fav;favourites.to_string();true;
+    }
+
+    match data.duration {
         Some(duration) => {
             (
                 media_localised.duration,
@@ -788,15 +760,12 @@ pub async fn send_embed(
                 true,
             );
         }
-        None => match data.chapters.clone() {
-            Some(chapters) => {
-                (
-                    media_localised.duration,
-                    format!("{} {}", chapters, media_localised.chapter),
-                    true,
-                );
-            }
-            None => {}
+        None => if let Some(chapters) = data.chapters {
+            (
+                media_localised.duration,
+                format!("{} {}", chapters, media_localised.chapter),
+                true,
+            );
         },
     }
 
@@ -813,15 +782,9 @@ pub async fn send_embed(
         .image(get_banner(&data.clone()))
         .fields(fields);
 
-    match data.cover_image {
-        Some(image) => match image.extra_large {
-            Some(extra_large) => {
-                builder_embed = builder_embed.thumbnail(extra_large);
-            }
-            None => {}
-        },
-        None => {}
-    }
+    if let Some(image) = data.cover_image { if let Some(extra_large) = image.extra_large {
+        builder_embed = builder_embed.thumbnail(extra_large);
+    } }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

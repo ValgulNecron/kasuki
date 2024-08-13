@@ -19,7 +19,6 @@ use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discor
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::random::{load_localization_random, RandomLocalised};

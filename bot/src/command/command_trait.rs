@@ -6,7 +6,6 @@ use serenity::all::{
 use serenity::builder::{CreateButton, CreateEmbed, CreateInteractionResponse};
 use serenity::client::Context;
 use std::error::Error;
-use std::sync::Arc;
 
 pub trait Command {
     fn get_ctx(&self) -> &Context;

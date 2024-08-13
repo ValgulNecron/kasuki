@@ -8,17 +8,12 @@ use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::structure::message::game::steam_game_info::{
-    load_localization_steam_game_info, SteamGameInfoLocalised,
-};
+use crate::structure::message::game::steam_game_info::load_localization_steam_game_info;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
-use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, GuildId,
+    CommandInteraction, Context, CreateInteractionResponseFollowup, GuildId,
 };
 use tokio::sync::RwLock;
-use tracing::trace;
 
 pub struct SteamGameInfoCommand {
     pub ctx: Context,

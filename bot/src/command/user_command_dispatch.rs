@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::command::command_trait::{SlashCommand, UserCommand};
+use crate::command::command_trait::UserCommand;
 use crate::command::user::avatar::AvatarCommand;
 use crate::command::user::banner::BannerCommand;
 use crate::command::user::profile::ProfileCommand;

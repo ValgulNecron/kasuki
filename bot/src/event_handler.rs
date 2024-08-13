@@ -10,7 +10,7 @@ use serenity::all::{
     Interaction, Member, Ready, User,
 };
 use serenity::async_trait;
-use serenity::gateway::{ChunkGuildFilter, ShardMessenger};
+use serenity::gateway::ChunkGuildFilter;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 

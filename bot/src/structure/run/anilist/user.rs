@@ -234,13 +234,7 @@ pub async fn send_embed(
         .fields(field)
         .image(get_banner(&user.id));
 
-    match user.avatar {
-        Some(avatar) => match avatar.large {
-            Some(large) => builder_embed = builder_embed.thumbnail(large),
-            None => {}
-        },
-        None => {}
-    }
+    if let Some(avatar) = user.avatar { if let Some(large) = avatar.large { builder_embed = builder_embed.thumbnail(large) } }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

@@ -1,7 +1,7 @@
 use crate::audio::receiver::Receiver;
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::audio::join::load_localization_join_localised;
 use serenity::all::{CommandInteraction, Context, CreateEmbed};
 use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
@@ -90,7 +90,7 @@ pub async fn run(
                 joining
             ))));
         }
-        return Ok(());
+        Ok(())
     } else {
         let embed = get_default_embed(None).title(localised.already_in);
         let builder_embed = CreateInteractionResponseMessage::new().embed(embed);
@@ -100,6 +100,6 @@ pub async fn run(
             .await
             .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
-        return Ok(());
+        Ok(())
     }
 }

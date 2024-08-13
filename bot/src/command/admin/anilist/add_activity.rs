@@ -31,9 +31,8 @@ use reqwest::get;
 use serde_json::json;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    ChannelId, CommandInteraction, Context, CreateAttachment, CreateEmbed,
+    ChannelId, CommandInteraction, Context, CreateAttachment,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, GuildId,
-    Timestamp,
 };
 use tokio::sync::RwLock;
 use tracing::{error, trace};

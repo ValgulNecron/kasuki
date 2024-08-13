@@ -9,7 +9,7 @@ use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
-use tracing::{error, trace, warn};
+use tracing::{trace, warn};
 
 /// Initializes the PostgreSQL database.
 ///
@@ -40,10 +40,8 @@ pub async fn init_postgres(db_config: BotConfigDetails) -> Result<(), Box<dyn Er
     Ok(())
 }
 
-use crate::helper::error_management::error_enum::Error::Byte;
 use crate::helper::error_management::error_enum::UnknownResponseError;
 use dirs;
-use url::quirks::port;
 
 fn create_and_complete_dot_pgpass(db_config: BotConfigDetails) -> Result<(), Box<dyn Error>> {
     let mut home_dir = dirs::home_dir().ok_or(Box::new(UnknownResponseError::Option(
@@ -74,7 +72,7 @@ fn create_and_complete_dot_pgpass(db_config: BotConfigDetails) -> Result<(), Box
     let pg_path_data = format!(
         "{}:{}:kasuki:{}:{}",
         db_config.host.clone().unwrap_or_default(),
-        db_config.port.clone().unwrap_or_default(),
+        db_config.port.unwrap_or_default(),
         db_config.user.clone().unwrap_or_default(),
         db_config.password.clone().unwrap_or_default()
     );

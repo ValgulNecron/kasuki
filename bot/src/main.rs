@@ -2,14 +2,13 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::config::Config;
-use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, ONE_HOUR, TIME_BETWEEN_CACHE_UPDATE};
+use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
 use crate::type_map_key::ShardManagerContainer;
 use moka::future::Cache;
 use serenity::all::{GatewayIntents, ShardManager};
-use serenity::cache::Settings as CacheSettings;
 use serenity::Client;
 use songbird::driver::DecodeMode;
 use songbird::SerenityInit;

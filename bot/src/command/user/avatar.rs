@@ -1,13 +1,12 @@
 use crate::command::command_trait::{Command, SlashCommand, UserCommand};
 use crate::config::Config;
-use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::structure::message::user::avatar::load_localization_avatar;
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
-    CreateInteractionResponseMessage, Timestamp, User,
+    CommandInteraction, Context, CreateInteractionResponse,
+    CreateInteractionResponseMessage, User,
 };
 use std::error::Error;
 use std::sync::Arc;
@@ -56,8 +55,8 @@ pub async fn get_user_command_user(
         }
     }
     let user = user.unwrap_or(command_user);
-    let user = user.id.to_user(&ctx.http).await.unwrap_or(user);
-    user
+    
+    user.id.to_user(&ctx.http).await.unwrap_or(user)
 }
 
 pub async fn get_user_command(
@@ -68,14 +67,14 @@ pub async fn get_user_command(
     let user = user.get(&String::from("username"));
     let user = match user {
         Some(user) => {
-            let user = user.to_user(&ctx.http).await.map_err(|e| {
+            
+            user.to_user(&ctx.http).await.map_err(|e| {
                 ResponseError::Sending(format!("Failed to get user from ID: {:#?}", e))
-            })?;
-            user
+            })?
         }
         None => {
-            let user = command_interaction.user.clone();
-            user
+            
+            command_interaction.user.clone()
         }
     };
     Ok(user)
