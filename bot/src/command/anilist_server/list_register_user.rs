@@ -5,8 +5,8 @@ use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
-use crate::database::data_struct::registered_user::RegisteredUser;
-use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
+use crate::structure::database::registered_user::RegisteredUser;
+use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::structure::message::anilist_server::list_register_user::{

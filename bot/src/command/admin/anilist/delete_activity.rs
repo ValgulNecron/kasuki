@@ -13,7 +13,7 @@ use tracing::trace;
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
-use crate::database::manage::dispatcher::data_dispatch::remove_data_activity_status;
+use crate::database::dispatcher::data_dispatch::remove_data_activity_status;
 use crate::helper::create_default_embed::get_anilist_anime_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;

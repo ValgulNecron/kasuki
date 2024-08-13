@@ -4,7 +4,7 @@ use image::DynamicImage;
 use palette::color_difference::ImprovedDeltaE;
 use palette::{IntoColor, Lab, Srgb};
 
-use crate::database::data_struct::user_color::UserColor;
+use crate::structure::database::user_color::UserColor;
 
 /// `Color` is a struct that represents a color in the CIELAB color space.
 /// It contains a single field, `cielab`, which is a `Lab` object from the `palette` crate.

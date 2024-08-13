@@ -13,8 +13,8 @@ use tracing::{error, trace};
 
 use crate::command::admin::anilist::add_activity::get_minimal_anime_by_id;
 use crate::config::BotConfigDetails;
-use crate::database::data_struct::server_activity::ServerActivityFull;
-use crate::database::manage::dispatcher::data_dispatch::{
+use crate::structure::database::server_activity::ServerActivityFull;
+use crate::database::dispatcher::data_dispatch::{
     get_data_activity, remove_data_activity_status, set_data_activity,
 };
 use crate::helper::create_default_embed::get_default_embed;

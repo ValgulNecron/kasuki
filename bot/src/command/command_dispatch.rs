@@ -42,8 +42,8 @@ use crate::command::user::banner::BannerCommand;
 use crate::command::user::command_usage::CommandUsageCommand;
 use crate::command::user::profile::ProfileCommand;
 use crate::config::BotConfigDetails;
-use crate::database::data_struct::module_status::ActivationStatusModule;
-use crate::database::manage::dispatcher::data_dispatch::{
+use crate::structure::database::module_status::ActivationStatusModule;
+use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_kill_switch_status, get_data_module_activation_status,
 };
 use crate::event_handler::Handler;

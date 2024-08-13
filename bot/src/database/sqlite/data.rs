@@ -3,15 +3,15 @@ use std::error::Error;
 use tracing::{error, trace};
 
 use crate::constant::SQLITE_DB_PATH;
-use crate::database::data_struct::guild_language::GuildLanguage;
-use crate::database::data_struct::module_status::ActivationStatusModule;
-use crate::database::data_struct::ping_history::PingHistory;
-use crate::database::data_struct::registered_user::RegisteredUser;
-use crate::database::data_struct::server_activity::{
+use crate::structure::database::guild_language::GuildLanguage;
+use crate::structure::database::module_status::ActivationStatusModule;
+use crate::structure::database::ping_history::PingHistory;
+use crate::structure::database::registered_user::RegisteredUser;
+use crate::structure::database::server_activity::{
     ServerActivity, ServerActivityFull, SmallServerActivity,
 };
-use crate::database::data_struct::user_color::UserColor;
-use crate::database::manage::sqlite::pool::get_sqlite_pool;
+use crate::structure::database::user_color::UserColor;
+use crate::database::sqlite::pool::get_sqlite_pool;
 use crate::helper::error_management::error_enum::UnknownResponseError;
 
 /// Inserts or replaces a record in the `ping_history` table of a SQLite database.

@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::database::data_struct::registered_user::RegisteredUser;
-use crate::database::manage::dispatcher::data_dispatch::get_registered_user;
+use crate::structure::database::registered_user::RegisteredUser;
+use crate::database::dispatcher::data_dispatch::get_registered_user;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::get_option_map_string;
 use cynic::{GraphQlResponse, QueryBuilder};

@@ -1,5 +1,5 @@
 use crate::config::BotConfigDetails;
-use crate::database::manage::postgresql::pool::get_postgresql_pool;
+use crate::database::postgresql::pool::get_postgresql_pool;
 use std::error::Error;
 use tracing::warn;
 

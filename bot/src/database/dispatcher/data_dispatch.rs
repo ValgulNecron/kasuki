@@ -1,13 +1,13 @@
 use crate::config::BotConfigDetails;
-use crate::database::data_struct::guild_language::GuildLanguage;
-use crate::database::data_struct::module_status::ActivationStatusModule;
-use crate::database::data_struct::ping_history::PingHistory;
-use crate::database::data_struct::registered_user::RegisteredUser;
-use crate::database::data_struct::server_activity::{
+use crate::structure::database::guild_language::GuildLanguage;
+use crate::structure::database::module_status::ActivationStatusModule;
+use crate::structure::database::ping_history::PingHistory;
+use crate::structure::database::registered_user::RegisteredUser;
+use crate::structure::database::server_activity::{
     ServerActivity, ServerActivityFull, SmallServerActivity,
 };
-use crate::database::data_struct::user_color::UserColor;
-use crate::database::manage::postgresql::data::{
+use crate::structure::database::user_color::UserColor;
+use crate::database::postgresql::data::{
     get_all_server_activity_postgresql, get_all_user_approximated_color_postgres,
     get_data_activity_postgresql, get_data_all_activity_by_server_postgresql,
     get_data_guild_language_postgresql, get_data_module_activation_kill_switch_status_postgresql,
@@ -20,7 +20,7 @@ use crate::database::manage::postgresql::data::{
     set_registered_user_postgresql, set_server_image_postgresql,
     set_user_approximated_color_postgresql,
 };
-use crate::database::manage::sqlite::data::{
+use crate::database::sqlite::data::{
     get_all_server_activity_sqlite, get_all_user_approximated_color_sqlite,
     get_data_activity_sqlite, get_data_all_activity_by_server_sqlite,
     get_data_guild_language_sqlite, get_data_module_activation_kill_switch_status_sqlite,

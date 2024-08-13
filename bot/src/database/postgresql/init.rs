@@ -1,6 +1,6 @@
 use crate::config::BotConfigDetails;
-use crate::database::manage::postgresql::migration::migration_dispatch::migrate_postgres;
-use crate::database::manage::postgresql::pool::{
+use crate::database::postgresql::migration::migration_dispatch::migrate_postgres;
+use crate::database::postgresql::pool::{
     get_postgresql_pool, get_postgresql_pool_without_db,
 };
 use crate::helper::error_management::error_enum;

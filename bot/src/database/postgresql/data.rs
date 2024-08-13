@@ -1,15 +1,15 @@
 use std::error::Error;
 
 use crate::config::BotConfigDetails;
-use crate::database::data_struct::guild_language::GuildLanguage;
-use crate::database::data_struct::module_status::ActivationStatusModule;
-use crate::database::data_struct::ping_history::PingHistory;
-use crate::database::data_struct::registered_user::RegisteredUser;
-use crate::database::data_struct::server_activity::{
+use crate::structure::database::guild_language::GuildLanguage;
+use crate::structure::database::module_status::ActivationStatusModule;
+use crate::structure::database::ping_history::PingHistory;
+use crate::structure::database::registered_user::RegisteredUser;
+use crate::structure::database::server_activity::{
     ServerActivity, ServerActivityFull, SmallServerActivity,
 };
-use crate::database::data_struct::user_color::UserColor;
-use crate::database::manage::postgresql::pool::get_postgresql_pool;
+use crate::structure::database::user_color::UserColor;
+use crate::database::postgresql::pool::get_postgresql_pool;
 use crate::helper::error_management::error_enum::UnknownResponseError;
 
 /// Inserts or updates a ping history record in the PostgreSQL database.
@@ -609,7 +609,7 @@ pub async fn set_server_image_postgresql(
 ) -> Result<(), Box<dyn Error>> {
     let pool = get_postgresql_pool(db_config).await?;
     sqlx::query(
-        "INSERT INTO server_image (server_id, image_type, image, image_url) VALUES ($1, $2, $3, $4) ON CONFLICT (server_id, image_type) DO UPDATE SET image = EXCLUDED.image",
+        "INSERT INTO server_image (server_id, type, image, image_url) VALUES ($1, $2, $3, $4) ON CONFLICT (server_id, type) DO UPDATE SET image = EXCLUDED.image",
     )
         .bind(server_id)
         .bind(image_type)

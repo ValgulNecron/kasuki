@@ -8,7 +8,7 @@ use serenity::all::{
 
 use crate::config::Config;
 use crate::constant::{APP_VERSION, LIBRARY};
-use crate::database::manage::dispatcher::data_dispatch::get_user_color_count;
+use crate::database::dispatcher::data_dispatch::get_user_color_count;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::bot::info::load_localization_info;

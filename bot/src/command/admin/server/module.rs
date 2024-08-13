@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::database::data_struct::module_status::ActivationStatusModule;
-use crate::database::manage::dispatcher::data_dispatch::{
+use crate::structure::database::module_status::ActivationStatusModule;
+use crate::database::dispatcher::data_dispatch::{
     get_data_module_activation_status, set_data_module_activation_status,
 };
 use crate::helper::create_default_embed::get_default_embed;

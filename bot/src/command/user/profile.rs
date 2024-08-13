@@ -6,7 +6,7 @@ use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
-use crate::structure::message::user::profile::load_localization_profile;
+use crate::structure::message::user::profile::{load_localization_profile, ProfileLocalised};
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse,
     CreateInteractionResponseMessage, EntitlementKind, Member, User,
@@ -41,7 +41,30 @@ impl UserCommand for ProfileCommand {
     }
 }
 
-pub async fn send_embed(
+fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, String, bool)> {
+    let mut fields = vec![
+        (profile_localised.id.clone(), user.id.clone().to_string(), true),
+        (
+            profile_localised.creation_date.clone(),
+            format!("<t:{}>", user.created_at().timestamp()),
+            true,
+        ),(profile_localised.bot.clone(), user.bot.to_string(), true),(profile_localised.system.clone(), user.system.to_string(), true)
+    ];
+    if let Some(public_flag) = user.public_flags {
+        let mut user_flags = Vec::new();
+        // If there are, iterate over the flags and add them to a vector
+        for (flag, _) in public_flag.iter_names() {
+            user_flags.push(flag)
+        }
+        if !user_flags.is_empty() {
+            fields.push((profile_localised.public_flag.clone(), user_flags.join(" / "), false));
+        }
+    }
+
+    fields
+}
+
+async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: User,
@@ -49,16 +72,15 @@ pub async fn send_embed(
 ) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let db_config = config.bot.config.clone();
-    let avatar_url = user.face();
-    // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-
-    // Load the localized profile
     let profile_localised = load_localization_profile(guild_id, db_type, db_config).await?;
+    let mut fields = get_fields(&profile_localised, user.clone());
+    // Retrieve the guild ID from the command interaction
 
+    let avatar_url = user.face();
     let member: Option<Member> = {
         match command_interaction.guild_id {
             Some(guild_id) => match guild_id.member(&ctx.http, user.id).await {
@@ -68,13 +90,6 @@ pub async fn send_embed(
             None => None,
         }
     };
-    let mut fields = Vec::new();
-    fields.push((profile_localised.id, user.id.clone().to_string(), true));
-    fields.push((
-        profile_localised.creation_date,
-        format!("<t:{}>", user.created_at().timestamp()),
-        true,
-    ));
     if let Some(member) = member {
         if let Some(joined_at) = member.joined_at {
             fields.push((
@@ -85,18 +100,6 @@ pub async fn send_embed(
         }
     }
 
-    fields.push((profile_localised.bot, user.bot.to_string(), true));
-    fields.push((profile_localised.system, user.system.to_string(), true));
-    if let Some(public_flag) = user.public_flags {
-        let mut user_flags = Vec::new();
-        // If there are, iterate over the flags and add them to a vector
-        for (flag, _) in public_flag.iter_names() {
-            user_flags.push(flag)
-        }
-        if !user_flags.is_empty() {
-            fields.push((profile_localised.public_flag, user_flags.join(" / "), false));
-        }
-    }
     let skus = ctx.http.get_skus().await;
     let user_premium = ctx
         .http

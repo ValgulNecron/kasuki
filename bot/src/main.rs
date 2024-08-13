@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use crate::config::Config;
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
-use crate::database::manage::dispatcher::init_dispatch::init_sql_database;
+use database::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
 use crate::type_map_key::ShardManagerContainer;

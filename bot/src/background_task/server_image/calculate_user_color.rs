@@ -4,8 +4,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::config::BotConfigDetails;
-use crate::database::data_struct::user_color::UserColor;
-use crate::database::manage::dispatcher::data_dispatch::{
+use crate::structure::database::user_color::UserColor;
+use crate::database::dispatcher::data_dispatch::{
     get_user_approximated_color, set_user_approximated_color,
 };
 use crate::helper::error_management::error_enum;

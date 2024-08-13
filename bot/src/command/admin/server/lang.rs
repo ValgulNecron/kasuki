@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::database::data_struct::guild_language::GuildLanguage;
-use crate::database::manage::dispatcher::data_dispatch::set_data_guild_language;
+use crate::structure::database::guild_language::GuildLanguage;
+use crate::database::dispatcher::data_dispatch::set_data_guild_language;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;

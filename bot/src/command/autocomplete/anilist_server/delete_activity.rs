@@ -1,6 +1,6 @@
 use crate::config::BotConfigDetails;
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
-use crate::database::manage::dispatcher::data_dispatch::get_data_all_activity_by_server;
+use crate::database::dispatcher::data_dispatch::get_data_all_activity_by_server;
 use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,

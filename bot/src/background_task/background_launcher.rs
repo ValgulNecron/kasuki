@@ -20,8 +20,8 @@ use crate::constant::{
     TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
-use crate::database::data_struct::ping_history::PingHistory;
-use crate::database::manage::dispatcher::data_dispatch::set_data_ping_history;
+use crate::structure::database::ping_history::PingHistory;
+use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::event_handler::{BotData, RootUsage};
 use crate::structure::steam_game_id_struct::get_game;
 use crate::type_map_key::ShardManagerContainer;

@@ -22,7 +22,7 @@ use crate::background_task::server_image::common::{
 };
 use crate::config::{BotConfigDetails, ImageConfig};
 use crate::constant::THREAD_POOL_SIZE;
-use crate::database::manage::dispatcher::data_dispatch::{
+use crate::database::dispatcher::data_dispatch::{
     get_all_user_approximated_color, set_server_image,
 };
 use crate::helper::error_management::error_enum;

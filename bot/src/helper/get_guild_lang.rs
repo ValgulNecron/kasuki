@@ -1,6 +1,6 @@
 use crate::config::BotConfigDetails;
-use crate::database::data_struct::guild_language::GuildLanguage;
-use crate::database::manage::dispatcher::data_dispatch::get_data_guild_language;
+use crate::structure::database::guild_language::GuildLanguage;
+use crate::database::dispatcher::data_dispatch::get_data_guild_language;
 
 /// Retrieves the language setting for a given guild.
 ///

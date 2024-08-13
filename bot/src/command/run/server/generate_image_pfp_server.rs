@@ -12,7 +12,7 @@ use tracing::trace;
 use uuid::Uuid;
 
 use crate::config::{BotConfigDetails, Config};
-use crate::database::manage::dispatcher::data_dispatch::get_server_image;
+use crate::database::dispatcher::data_dispatch::get_server_image;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;

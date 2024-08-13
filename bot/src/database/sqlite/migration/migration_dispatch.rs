@@ -1,5 +1,5 @@
 use crate::constant::SQLITE_DB_PATH;
-use crate::database::manage::sqlite::pool::get_sqlite_pool;
+use crate::database::sqlite::pool::get_sqlite_pool;
 use std::error::Error;
 use tracing::warn;
 
