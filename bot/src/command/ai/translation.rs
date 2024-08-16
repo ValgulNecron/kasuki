@@ -17,10 +17,7 @@ use crate::command::command_trait::{
     get_user_sub, send_premium_response, Command, PremiumCommand, SlashCommand,
 };
 use crate::config::Config;
-use crate::constant::{
-    DEFAULT_STRING, MAX_FREE_AI_TRANSLATIONS,
-    PAID_TRANSLATION_MULTIPLIER,
-};
+use crate::constant::{DEFAULT_STRING, MAX_FREE_AI_TRANSLATIONS, PAID_TRANSLATION_MULTIPLIER};
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
@@ -123,7 +120,7 @@ async fn send_embed(
     };
 
     let translation_localised =
-        load_localization_translation(guild_id, db_type, config.bot.config.clone()).await?;
+        load_localization_translation(guild_id, config.bot.config.clone()).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
         return Err(Box::new(ResponseError::File(String::from(
@@ -135,12 +132,10 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm", "ogg"];
-    let parsed_url =
-        Url::parse(content.as_str()).map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
+    let parsed_url = Url::parse(content.as_str())?;
     let path_segments = parsed_url
         .path_segments()
         .ok_or(FollowupError::File(String::from(
@@ -162,13 +157,8 @@ async fn send_embed(
         ))));
     }
 
-    let response = reqwest::get(content)
-        .await
-        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?; // save the file into a buffer
-    let buffer = response
-        .bytes()
-        .await
-        .map_err(|e| FollowupError::Byte(format!("{:#?}", e)))?;
+    let response = reqwest::get(content).await?; // save the file into a buffer
+    let buffer = response.bytes().await?;
     let uuid_name = Uuid::new_v4().to_string();
 
     let client = reqwest::Client::new();
@@ -222,10 +212,10 @@ async fn send_embed(
         .multipart(form)
         .send()
         .await;
-    let response = response_result.map_err(|e| FollowupError::WebRequest(format!("1{:?}", e)))?;
+    let response = response_result?;
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
-    let res = res_result.map_err(|e| FollowupError::WebRequest(format!("2{:?}", e)))?;
+    let res = res_result?;
 
     trace!("{}", res);
     let text = res["text"].as_str().unwrap_or("");
@@ -264,8 +254,7 @@ async fn send_embed(
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:?}", e)))?;
+        .await?;
 
     Ok(())
 }
@@ -327,11 +316,9 @@ pub async fn translation(
         .headers(headers)
         .json(&data)
         .send()
-        .await
-        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?
+        .await?
         .json()
-        .await
-        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?;
+        .await?;
     let content = res["choices"][0]["message"]["content"].to_string();
     let no_quote = content.replace('"', "");
 

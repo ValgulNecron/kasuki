@@ -8,8 +8,7 @@ use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::user::banner::load_localization_banner;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse,
-    CreateInteractionResponseMessage, User,
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage, User,
 };
 
 pub struct BannerCommand {
@@ -58,7 +57,7 @@ pub async fn no_banner(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let banner_localised = load_localization_banner(guild_id, db_type, db_config).await?;
+    let banner_localised = load_localization_banner(guild_id, db_config).await?;
 
     let builder_embed = get_default_embed(None)
         .description(banner_localised.no_banner.replace("$user$", username))
@@ -94,7 +93,7 @@ pub async fn send_embed(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let banner_localised = load_localization_banner(guild_id, db_type, db_config).await?;
+    let banner_localised = load_localization_banner(guild_id, db_config).await?;
 
     let builder_embed = get_default_embed(None)
         .image(banner)

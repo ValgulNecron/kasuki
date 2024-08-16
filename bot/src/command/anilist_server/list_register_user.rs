@@ -5,14 +5,18 @@ use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
-use crate::structure::database::registered_user::RegisteredUser;
-use crate::database::dispatcher::data_dispatch::get_registered_user;
+use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::structure::database::prelude::RegisteredUser;
+use crate::structure::database::registered_user::{Column, Model};
 use crate::structure::message::anilist_server::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };
 use moka::future::Cache;
+use sea_orm::ColumnTrait;
+use sea_orm::EntityTrait;
+use sea_orm::QueryFilter;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup,
@@ -90,7 +94,6 @@ async fn send_embed(
         ctx,
         &list_user_localised,
         None,
-        db_type,
         anilist_cache,
         config.bot.config.clone(),
     )
@@ -116,8 +119,8 @@ async fn send_embed(
 
 /// Data structure for storing a Discord user and their corresponding AniList user.
 struct Data {
-    pub user: User,                                          // The Discord user.
-    pub anilist: crate::structure::run::anilist::user::User, // The corresponding AniList user.
+    pub user: User,      // The Discord user.
+    pub anilist: String, // The corresponding AniList user.
 }
 
 /// This asynchronous function retrieves a list of AniList users in a Discord guild.
@@ -144,7 +147,6 @@ pub async fn get_the_list(
     ctx: &Context,
     list_user_localised: &ListUserLocalised,
     last_id: Option<UserId>,
-    db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: BotConfigDetails,
 ) -> Result<(CreateEmbed, usize, Option<UserId>), Box<dyn Error>> {
@@ -164,15 +166,20 @@ pub async fn get_the_list(
         for member in members {
             last_id = Some(member.user.id);
             let user_id = member.user.id.to_string();
-            let row: Option<RegisteredUser> =
-                get_registered_user(&user_id, db_type.clone(), db_config.clone()).await?;
-            let user_data = match row {
-                Some(a) => get_user(&a.anilist_id, anilist_cache.clone()).await?,
-                None => continue,
-            };
+            let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+            let row = RegisteredUser::find()
+                .filter(Column::UserId.eq(user_id))
+                .one(&connection)
+                .await?
+                .unwrap_or(Model {
+                    user_id: user_id.clone(),
+                    anilist_id: "2134".to_string(),
+                    registered_at: Default::default(),
+                });
+            let user_data = row;
             let data = Data {
                 user: member.user,
-                anilist: user_data,
+                anilist: user_data.anilist_id,
             };
             anilist_user.push(data)
         }
@@ -183,7 +190,7 @@ pub async fn get_the_list(
         .map(|data| {
             format!(
                 "[{}](<https://anilist_user.co/user/{}>)",
-                data.user.name, data.anilist.id
+                data.user.name, data.anilist
             )
         })
         .collect();

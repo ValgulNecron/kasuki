@@ -8,8 +8,8 @@ use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::user::profile::{load_localization_profile, ProfileLocalised};
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse,
-    CreateInteractionResponseMessage, EntitlementKind, Member, User,
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    EntitlementKind, Member, User,
 };
 
 pub struct ProfileCommand {
@@ -43,12 +43,22 @@ impl UserCommand for ProfileCommand {
 
 fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, String, bool)> {
     let mut fields = vec![
-        (profile_localised.id.clone(), user.id.clone().to_string(), true),
+        (
+            profile_localised.id.clone(),
+            user.id.clone().to_string(),
+            true,
+        ),
         (
             profile_localised.creation_date.clone(),
             format!("<t:{}>", user.created_at().timestamp()),
             true,
-        ),(profile_localised.bot.clone(), user.bot.to_string(), true),(profile_localised.system.clone(), user.system.to_string(), true)
+        ),
+        (profile_localised.bot.clone(), user.bot.to_string(), true),
+        (
+            profile_localised.system.clone(),
+            user.system.to_string(),
+            true,
+        ),
     ];
     if let Some(public_flag) = user.public_flags {
         let mut user_flags = Vec::new();
@@ -57,7 +67,11 @@ fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, 
             user_flags.push(flag)
         }
         if !user_flags.is_empty() {
-            fields.push((profile_localised.public_flag.clone(), user_flags.join(" / "), false));
+            fields.push((
+                profile_localised.public_flag.clone(),
+                user_flags.join(" / "),
+                false,
+            ));
         }
     }
 
@@ -72,15 +86,14 @@ async fn send_embed(
 ) -> Result<(), Box<dyn Error>> {
     let db_type = config.bot.config.db_type.clone();
     let db_config = config.bot.config.clone();
-    let guild_id = match command_interaction.guild_id {
-        Some(id) => id.to_string(),
-        None => String::from("0"),
-    };
-    let profile_localised = load_localization_profile(guild_id, db_type, db_config).await?;
+    let guild_id = command_interaction
+        .guild_id
+        .map(|id| id.to_string())
+        .unwrap_or("0".to_string());
+    let profile_localised = load_localization_profile(guild_id, db_config).await?;
     let mut fields = get_fields(&profile_localised, user.clone());
-    // Retrieve the guild ID from the command interaction
-
     let avatar_url = user.face();
+
     let member: Option<Member> = {
         match command_interaction.guild_id {
             Some(guild_id) => match guild_id.member(&ctx.http, user.id).await {
@@ -142,7 +155,7 @@ async fn send_embed(
             fields.push((profile_localised.premium, string.collect::<String>(), true));
         }
     }
-    // Create an embed with the user's profile information
+
     let mut builder_embed = get_default_embed(None)
         .thumbnail(avatar_url)
         .title(
@@ -156,13 +169,9 @@ async fn send_embed(
         builder_embed = builder_embed.image(banner);
     }
 
-    // Create a message with the embed
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-    // Create a response with the message
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    // Send the response
     command_interaction
         .create_response(&ctx.http, builder)
         .await

@@ -1,21 +1,20 @@
-use std::error::Error;
-use std::sync::Arc;
-
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::structure::database::module_status::ActivationStatusModule;
-use crate::database::dispatcher::data_dispatch::{
-    get_data_module_activation_status, set_data_module_activation_status,
-};
+use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand_group::{
     get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
+use crate::structure::database::module_activation::Model;
+use crate::structure::database::prelude::ModuleActivation;
 use crate::structure::message::admin::server::module::load_localization_module_activation;
+use sea_orm::{EntityOrSelect, EntityTrait, QueryFilter};
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use std::error::Error;
+use std::sync::Arc;
 
 pub struct ModuleCommand {
     pub ctx: Context,
@@ -63,23 +62,28 @@ async fn send_embed(
     let state = *map
         .get(&String::from("state"))
         .ok_or(ResponseError::Option(String::from("No option for state")))?;
-
-    let row =
-        get_data_module_activation_status(&guild_id, db_type.clone(), config.bot.config.clone())
-            .await?;
-    let mut ai_value = row.ai_module.unwrap_or(true);
-    let mut anilist_value = row.anilist_module.unwrap_or(true);
-    let mut game_value = row.game_module.unwrap_or(true);
-    let mut new_member_value = row.new_member.unwrap_or(false);
-    let mut anime_value = row.anime.unwrap_or(true);
-    let mut vn_value = row.vn.unwrap_or(true);
+    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let mut row = ModuleActivation::find()
+        .filter(ModuleActivation::Column::GuildId.eq(guild_id.clone()))
+        .one(&connection)
+        .await?
+        .unwrap_or(Model {
+            guild_id,
+            ai_module: true,
+            anilist_module: true,
+            game_module: true,
+            new_members_module: false,
+            anime_module: true,
+            vn_module: true,
+            updated_at: Default::default(),
+        });
     match module.as_str() {
-        "ANILIST" => anilist_value = state,
-        "AI" => ai_value = state,
-        "GAME" => game_value = state,
-        "NEW_MEMBER" => new_member_value = state,
-        "ANIME" => anime_value = state,
-        "VN" => vn_value = state,
+        "ANILIST" => row.anilist_module = state,
+        "AI" => row.ai_module = state,
+        "GAME" => row.game_module = state,
+        "NEW_MEMBER" => row.new_members_module = state,
+        "ANIME" => row.anime_module = state,
+        "VN" => row.vn_module = state,
         _ => {
             return Err(Box::new(ResponseError::Option(String::from(
                 "The module specified does not exist",
@@ -87,17 +91,20 @@ async fn send_embed(
         }
     }
 
-    let module_status = ActivationStatusModule {
-        guild_id: Some(guild_id),
-        ai_module: Some(ai_value),
-        anilist_module: Some(anilist_value),
-        game_module: Some(game_value),
-        new_member: Some(new_member_value),
-        anime: Some(anime_value),
-        vn: Some(vn_value),
-    };
-
-    set_data_module_activation_status(module_status, db_type, config.bot.config.clone()).await?;
+    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let _ = ModuleActivation::insert(row)
+        .on_conflict(
+            sea_orm::sea_query::OnConflict::column(ModuleActivation::Column::GuildId)
+                .update_column(ModuleActivation::Column::AnilistModule)
+                .update_column(ModuleActivation::Column::AiModule)
+                .update_column(ModuleActivation::Column::GameModule)
+                .update_column(ModuleActivation::Column::NewMembersModule)
+                .update_column(ModuleActivation::Column::AnimeModule)
+                .update_column(ModuleActivation::Column::VnModule)
+                .to_owned(),
+        )
+        .exec(&connection)
+        .await?;
     let desc = if state {
         &module_localised.on
     } else {
@@ -112,19 +119,18 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }
 
-pub async fn check_activation_status(module: &str, row: ActivationStatusModule) -> bool {
+pub async fn check_activation_status(module: &str, row: Model) -> bool {
     match module {
-        "ANILIST" => row.anilist_module.unwrap_or(true),
-        "AI" => row.ai_module.unwrap_or(true),
-        "GAME" => row.game_module.unwrap_or(true),
-        "NEW_MEMBER" => row.new_member.unwrap_or(false),
-        "ANIME" => row.anime.unwrap_or(true),
-        "VN" => row.vn.unwrap_or(true),
+        "ANILIST" => row.anilist_module,
+        "AI" => row.ai_module,
+        "GAME" => row.game_module,
+        "NEW_MEMBER" => row.new_members_module,
+        "ANIME" => row.anime_module,
+        "VN" => row.vn_module,
         _ => false,
     }
 }

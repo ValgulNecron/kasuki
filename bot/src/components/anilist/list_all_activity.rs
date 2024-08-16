@@ -2,9 +2,9 @@ use std::error::Error;
 
 use crate::config::BotConfigDetails;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
-use crate::structure::database::server_activity::ServerActivity;
 use crate::database::dispatcher::data_dispatch::get_all_server_activity;
 use crate::helper::error_management::error_enum::UnknownResponseError;
+use crate::structure::database::server_activity::ServerActivity;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,

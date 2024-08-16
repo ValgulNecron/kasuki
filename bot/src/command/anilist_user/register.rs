@@ -2,6 +2,8 @@ use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
+use sea_orm::ActiveValue::Set;
+use sea_orm::EntityTrait;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
@@ -10,11 +12,12 @@ use tokio::sync::RwLock;
 use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::structure::database::registered_user::RegisteredUser;
-use crate::database::dispatcher::data_dispatch::set_registered_user;
+use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::get_option_map_string;
+use crate::structure::database::prelude::{RegisteredUser, ServerImage};
+use crate::structure::database::registered_user::ActiveModel;
 use crate::structure::message::anilist_user::register::load_localization_register;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 
@@ -70,18 +73,26 @@ async fn send_embed(
 
     // Load the localized register strings
     let register_localised =
-        load_localization_register(guild_id, db_type.clone(), config.bot.config.clone()).await?;
+        load_localization_register(guild_id, config.bot.config.clone()).await?;
 
     // Retrieve the user's Discord ID and username
     let user_id = &command_interaction.user.id.to_string();
     let username = &command_interaction.user.name;
 
     // Register the user's AniList account by storing the user's Discord ID and AniList ID in the database
-    let registered_user = RegisteredUser {
-        user_id: user_id.clone(),
-        anilist_id: user_data.id.to_string(),
-    };
-    set_registered_user(registered_user, db_type, config.bot.config.clone()).await?;
+    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    RegisteredUser::insert(ActiveModel {
+        user_id: Set(user_id.to_string()),
+        anilist_id: Set(user_data.id.to_string()),
+        ..Default::default()
+    })
+    .on_conflict(
+        sea_orm::sea_query::OnConflict::column(RegisteredUser::Column::AnilistId)
+            .update_column(RegisteredUser::Column::AnilistId)
+            .to_owned(),
+    )
+    .exec(&connection)
+    .await?;
 
     // Construct the description for the embed
     let desc = register_localised

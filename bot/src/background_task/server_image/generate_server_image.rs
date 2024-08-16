@@ -8,6 +8,8 @@ use image::codecs::png::PngEncoder;
 use image::imageops::FilterType;
 use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
 use palette::{IntoColor, Lab, Srgb};
+use sea_orm::ActiveValue::Set;
+use sea_orm::{EntityOrSelect, EntityTrait};
 use serenity::all::{Context, GuildId, Member};
 use tokio::task;
 use tracing::{info, warn};
@@ -22,11 +24,11 @@ use crate::background_task::server_image::common::{
 };
 use crate::config::{BotConfigDetails, ImageConfig};
 use crate::constant::THREAD_POOL_SIZE;
-use crate::database::dispatcher::data_dispatch::{
-    get_all_user_approximated_color, set_server_image,
-};
+use crate::get_url;
 use crate::helper::error_management::error_enum;
 use crate::helper::image_saver::general_image_saver::image_saver;
+use crate::structure::database::prelude::{ServerImage, UserColor};
+use crate::structure::database::server_image::Model;
 
 /// This function generates a local server image.
 ///
@@ -48,8 +50,7 @@ pub async fn generate_local_server_image(
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
-    let average_colors =
-        return_average_user_color(members, cache_type.clone(), db_config.clone()).await?;
+    let average_colors = return_average_user_color(members, db_config.clone()).await?;
     let color_vec = create_color_vector_from_tuple(average_colors.clone());
     generate_server_image(
         ctx,
@@ -82,8 +83,17 @@ pub async fn generate_global_server_image(
     image_config: ImageConfig,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let average_colors =
-        get_all_user_approximated_color(db_type.clone(), db_config.clone()).await?;
+    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+    let average_colors = UserColor::select(EntityOrSelect::Select(
+        UserColor::find()
+            .filter(UserColor::Column::GuildId.eq(guild_id.to_string()))
+            .all(&connection)
+            .await?,
+    ))
+    .one(&connection)
+    .await?
+    .unwrap_or_default();
+
     let color_vec = create_color_vector_from_user_color(average_colors.clone());
     generate_server_image(
         ctx,
@@ -107,10 +117,7 @@ pub async fn generate_server_image(
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Fetch the guild information
-    let guild = guild_id
-        .to_partial_guild(&ctx.http)
-        .await
-        .map_err(|e| error_enum::Error::GettingGuild(format!("{:#?}", e)))?;
+    let guild = guild_id.to_partial_guild(&ctx.http).await?;
 
     // Retrieve and process the guild image
     let guild_pfp = guild
@@ -163,15 +170,7 @@ pub async fn generate_server_image(
     }
 
     // Combine processed images
-    let vec_image = match vec_image.lock() {
-        Ok(vec_image) => vec_image.clone(),
-        Err(e) => {
-            return Err(Box::new(error_enum::Error::ImageProcessing(format!(
-                "{:#?}",
-                e
-            ))))
-        }
-    };
+    let vec_image = vec_image.lock()?.clone();
     for (x, y, image) in vec_image {
         match combined_image.copy_from(&image, x * 64, y * 64) {
             Ok(_) => {}
@@ -191,14 +190,12 @@ pub async fn generate_server_image(
 
     // Write the image
     let mut image_data: Vec<u8> = Vec::new();
-    PngEncoder::new(&mut image_data)
-        .write_image(
-            img.as_raw(),
-            img.width(),
-            img.height(),
-            ExtendedColorType::Rgba8,
-        )
-        .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?;
+    PngEncoder::new(&mut image_data).write_image(
+        img.as_raw(),
+        img.width(),
+        img.height(),
+        ExtendedColorType::Rgba8,
+    )?;
 
     // Encode the image to base64
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
@@ -218,16 +215,25 @@ pub async fn generate_server_image(
         save_type,
     )
     .await?;
-    // Set the server image
-    set_server_image(
-        &guild_id.to_string(),
-        &image_type,
-        &image,
-        &guild_pfp,
-        db_type.clone(),
-        db_config,
+
+    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+    ServerImage::insert(ServerImage::ActiveModel {
+        server_id: Set(guild_id.to_string()),
+        image_type: Set(image_type.clone()),
+        image: Set(image.clone()),
+        image_url: Set(guild_pfp.clone()),
+        ..Default::default()
+    })
+    .on_conflict(
+        sea_orm::sea_query::OnConflict::column(ServerImage::Column::ServerId)
+            .update_column(ServerImage::Column::Image)
+            .update_column(ServerImage::Column::ImageUrl)
+            .to_owned(),
     )
-    .await
+    .exec(&connection)
+    .await?;
+
+    Ok(())
 }
 
 /// This function manages the generation of server images for all guilds in the cache.

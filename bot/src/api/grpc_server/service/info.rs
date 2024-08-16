@@ -230,7 +230,10 @@ impl Info for InfoService {
                     .members(
                         &self.http,
                         Some(1000),
-                        Some(members_temp.last().unwrap().user.id),
+                        Some(match members_temp.last() {
+                            Some(m) => m.user.id,
+                            None => break,
+                        }),
                     )
                     .await
                     .unwrap_or_default();
@@ -283,9 +286,15 @@ impl Info for InfoService {
             // check if a User with the same id already exists and if so get the index
             let contain = users.iter().any(|u: &User| u.id == user.id);
             if contain {
-                let index = users.iter().position(|u| u.id == user.id).unwrap();
+                let index = users
+                    .iter()
+                    .position(|u| u.id == user.id)
+                    .unwrap_or_default();
                 let temps = users.clone();
-                let user2 = temps.get(index).unwrap();
+                let user2 = match temps.get(index) {
+                    Some(user) => user.clone(),
+                    None => continue,
+                };
                 users.remove(index);
                 user2.guilds.clone().append(&mut guilds);
                 trace!(?user);

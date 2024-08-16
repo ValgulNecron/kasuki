@@ -628,7 +628,7 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
                 let full = name.full;
                 let user_pref = name.user_preferred;
                 let native = name.native;
-                
+
                 user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(UNKNOWN.to_string())))
             }
             None => UNKNOWN.to_string(),
@@ -681,7 +681,7 @@ pub async fn send_embed(
         None => String::from("0"),
     };
 
-    let media_localised = load_localization_media(guild_id, db_type, db_config).await?;
+    let media_localised = load_localization_media(guild_id, db_config).await?;
     let mut fields = Vec::new();
     let genres = data.genres.clone().unwrap_or_default();
     // take the first 5 non-optional genres
@@ -702,22 +702,30 @@ pub async fn send_embed(
 
     fields.push((media_localised.genre, genres.join(", "), true));
 
-    if let Some(staff) = data.staff.clone() { if let Some(edges) = staff.edges {
-        let staffs = get_staff(edges);
-        fields.push((media_localised.staffs, staffs, true));
-    } }
+    if let Some(staff) = data.staff.clone() {
+        if let Some(edges) = staff.edges {
+            let staffs = get_staff(edges);
+            fields.push((media_localised.staffs, staffs, true));
+        }
+    }
 
-    if let Some(characters) = data.characters.clone() { if let Some(edges) = characters.edges {
-        let characters = get_character(edges);
-        fields.push((media_localised.characters, characters, true));
-    } }
+    if let Some(characters) = data.characters.clone() {
+        if let Some(edges) = characters.edges {
+            let characters = get_character(edges);
+            fields.push((media_localised.characters, characters, true));
+        }
+    }
 
     if let Some(format) = data.format {
-        media_localised.format;format.to_string();true;
+        media_localised.format;
+        format.to_string();
+        true;
     }
 
     if let Some(source) = data.source {
-        media_localised.source;source.to_string();true;
+        media_localised.source;
+        source.to_string();
+        true;
     }
 
     if let Some(start_date) = data.start_date.clone() {
@@ -749,7 +757,9 @@ pub async fn send_embed(
     }
 
     if let Some(favourites) = data.favourites {
-        media_localised.fav;favourites.to_string();true;
+        media_localised.fav;
+        favourites.to_string();
+        true;
     }
 
     match data.duration {
@@ -760,13 +770,15 @@ pub async fn send_embed(
                 true,
             );
         }
-        None => if let Some(chapters) = data.chapters {
-            (
-                media_localised.duration,
-                format!("{} {}", chapters, media_localised.chapter),
-                true,
-            );
-        },
+        None => {
+            if let Some(chapters) = data.chapters {
+                (
+                    media_localised.duration,
+                    format!("{} {}", chapters, media_localised.chapter),
+                    true,
+                );
+            }
+        }
     }
 
     let title = match data.title.clone() {
@@ -782,9 +794,11 @@ pub async fn send_embed(
         .image(get_banner(&data.clone()))
         .fields(fields);
 
-    if let Some(image) = data.cover_image { if let Some(extra_large) = image.extra_large {
-        builder_embed = builder_embed.thumbnail(extra_large);
-    } }
+    if let Some(image) = data.cover_image {
+        if let Some(extra_large) = image.extra_large {
+            builder_embed = builder_embed.thumbnail(extra_large);
+        }
+    }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

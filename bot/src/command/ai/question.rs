@@ -88,8 +88,7 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     let api_key = config
         .ai
@@ -118,8 +117,7 @@ async fn send_embed(
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| FollowupError::Option(format!("{:#?}", e)))?;
+        .await?;
 
     Ok(())
 }
@@ -152,7 +150,7 @@ async fn question(
     let mut headers = HeaderMap::new();
     headers.insert(
         AUTHORIZATION,
-        HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+        HeaderValue::from_str(&format!("Bearer {}", api_key))?,
     );
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
@@ -167,11 +165,9 @@ async fn question(
         .headers(headers)
         .json(&data)
         .send()
-        .await
-        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?
+        .await?
         .json()
-        .await
-        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?;
+        .await?;
     trace!("{:?}", res);
     let content = res["choices"][0]["message"]["content"].to_string();
 

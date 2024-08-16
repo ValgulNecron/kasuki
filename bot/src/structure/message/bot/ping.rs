@@ -34,9 +34,8 @@ pub struct PingLocalised {
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
 pub async fn load_localization_ping(
     guild_id: String,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<PingLocalised, Box<dyn Error>> {
     let path = "json/message/bot/ping.json";
-    load_localization(guild_id, path, db_type, db_config).await
+    load_localization(guild_id, path, db_config).await
 }

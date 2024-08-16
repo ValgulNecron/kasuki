@@ -23,37 +23,46 @@ use crate::command::anilist_user::staff::StaffCommand;
 use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
 use crate::command::anilist_user::waifu::WaifuCommand;
+use crate::command::anime::random_image;
+use crate::command::anime::random_image::AnimeRandomImageCommand;
+use crate::command::anime_nsfw::random_nsfw_image;
+use crate::command::audio::join;
+use crate::command::audio::join::AudioJoinCommand;
+use crate::command::audio::play;
+use crate::command::audio::play::AudioPlayCommand;
+use crate::command::bot::credit::CreditCommand;
+use crate::command::bot::info::InfoCommand;
+use crate::command::bot::ping::PingCommand;
+use crate::command::bot::{credit, info, ping};
 use crate::command::command_trait::SlashCommand;
 use crate::command::guess_kind::guess_command_kind;
-use crate::command::run::anime::random_image;
-use crate::command::run::anime_nsfw::random_nsfw_image;
-use crate::command::run::audio::join;
-use crate::command::run::audio::play;
-use crate::command::run::bot::{credit, info, ping};
-use crate::command::run::management::{give_premium_sub, kill_switch, remove_test_sub};
-use crate::command::run::server::{
-    generate_image_pfp_server, generate_image_pfp_server_global, guild,
-};
+use crate::command::management::give_premium_sub::GivePremiumSubCommand;
+use crate::command::management::kill_switch::KillSwitchCommand;
+use crate::command::management::remove_test_sub::RemoveTestSubCommand;
+use crate::command::management::{give_premium_sub, kill_switch, remove_test_sub};
 use crate::command::run::vn;
 use crate::command::run::vn::{game, producer, stats};
+use crate::command::server::generate_image_pfp_server::GenerateImagePfPCommand;
+use crate::command::server::generate_image_pfp_server_global::GenerateGlobalImagePfPCommand;
+use crate::command::server::guild::GuildCommand;
+use crate::command::server::{generate_image_pfp_server, generate_image_pfp_server_global, guild};
 use crate::command::steam::steam_game_info::SteamGameInfoCommand;
 use crate::command::user::avatar::AvatarCommand;
 use crate::command::user::banner::BannerCommand;
 use crate::command::user::command_usage::CommandUsageCommand;
 use crate::command::user::profile::ProfileCommand;
 use crate::config::BotConfigDetails;
-use crate::structure::database::module_status::ActivationStatusModule;
-use crate::database::dispatcher::data_dispatch::{
-    get_data_module_activation_kill_switch_status, get_data_module_activation_status,
-};
 use crate::event_handler::Handler;
+use crate::get_url;
 use crate::helper::error_management::error_enum::ResponseError;
-use serenity::all::{
-    CommandInteraction, Context,
-};
+use crate::structure::database;
+use crate::structure::database::module_activation::Model;
+use crate::structure::database::prelude::{KillSwitch, ModuleActivation};
+use sea_orm::ColumnTrait;
+use sea_orm::{EntityOrSelect, EntityTrait, QueryFilter, Select};
+use serenity::all::{CommandInteraction, Context};
 use std::error::Error;
 use tracing::trace;
-
 /// Dispatches the command to the appropriate function based on the command name.
 ///
 /// This function retrieves the command name from the command interaction and matches it to the appropriate function.
@@ -381,6 +390,129 @@ pub async fn dispatch_command(
             .run_slash()
             .await;
         }
+
+        "sub_random_image" => {
+            return AnimeRandomImageCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await;
+        }
+
+        "sub_random_himage" => {
+            return AnimeRandomImageCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await;
+        }
+
+        "sub_join" => {
+            return AudioJoinCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await;
+        }
+        "sub_play" => {
+            return AudioPlayCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await;
+        }
+
+        "sub_credit" => {
+            return CreditCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await;
+        }
+        "sub_info" => {
+            return InfoCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await;
+        }
+        "sub_ping" => {
+            return PingCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await;
+        }
+
+        "kill_switch" => {
+            return KillSwitchCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await
+        }
+        "give_premium_sub" => {
+            return GivePremiumSubCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await
+        }
+        "remove_test_sub" => {
+            return RemoveTestSubCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await
+        }
+
+        "sub_guild" => {
+            return GuildCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await
+        }
+        "sub_guild_image" => {
+            return GenerateImagePfPCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await
+        }
+        "sub_guild_image_g" => {
+            return GenerateGlobalImagePfPCommand {
+                ctx: ctx.clone(),
+                command_interaction: command_interaction.clone(),
+                config: self_handler.bot_data.config.clone(),
+            }
+            .run_slash()
+            .await
+        }
         _ => {}
     }
     self_handler
@@ -401,51 +533,8 @@ pub async fn dispatch_command(
         .as_str();
     let full_command_name = command_interaction.data.name.as_str();
     let full_command_name = format!("{} {}", full_command_name, command_name);
-    let config = self_handler.bot_data.config.clone();
-    let anilist_cache = self_handler.bot_data.anilist_cache.clone();
     // Match the command name to the appropriate function
     match command_interaction.data.name.as_str() {
-        // anilist module user command
-        "random_anime" => {
-            anime(
-                ctx,
-                command_interaction,
-                command_name,
-                full_command_name,
-                self_handler,
-            )
-            .await?
-        }
-        "random_hanime" => {
-            anime_nsfw(
-                ctx,
-                command_interaction,
-                command_name,
-                full_command_name,
-                self_handler,
-            )
-            .await?
-        }
-        "bot" => {
-            bot(
-                ctx,
-                command_interaction,
-                command_name,
-                full_command_name,
-                self_handler,
-            )
-            .await?
-        }
-        "server" => {
-            server(
-                ctx,
-                command_interaction,
-                command_name,
-                full_command_name,
-                self_handler,
-            )
-            .await?
-        }
         "vn" => {
             vn(
                 ctx,
@@ -453,42 +542,6 @@ pub async fn dispatch_command(
                 command_name,
                 full_command_name,
                 self_handler,
-            )
-            .await?
-        }
-
-        "audio" => {
-            audio(
-                ctx,
-                command_interaction,
-                command_name,
-                full_command_name,
-                self_handler,
-            )
-            .await?
-        }
-        // Management
-        "kill_switch" => {
-            kill_switch::run(
-                ctx,
-                command_interaction,
-                self_handler.bot_data.config.clone(),
-            )
-            .await?
-        }
-        "give_premium_sub" => {
-            give_premium_sub::run(
-                ctx,
-                command_interaction,
-                self_handler.bot_data.config.clone(),
-            )
-            .await?
-        }
-        "remove_test_sub" => {
-            remove_test_sub::run(
-                ctx,
-                command_interaction,
-                self_handler.bot_data.config.clone(),
             )
             .await?
         }
@@ -520,16 +573,25 @@ pub async fn dispatch_command(
 pub async fn check_if_module_is_on(
     guild_id: String,
     module: &str,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<bool, Box<dyn Error>> {
-    let row: ActivationStatusModule =
-        get_data_module_activation_status(&guild_id, db_type.clone(), db_config.clone()).await?;
-    trace!(?row);
+    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+    let row = ModuleActivation::find()
+        .filter(database::module_activation::Column::GuildId.eq(guild_id.clone()))
+        .one(&connection)
+        .await?
+        .unwrap_or(Model {
+            guild_id: guild_id.clone(),
+            ai_module: true,
+            anilist_module: true,
+            game_module: true,
+            new_members_module: false,
+            anime_module: true,
+            vn_module: true,
+            updated_at: Default::default(),
+        });
     let state = check_activation_status(module, row).await;
-    trace!(state);
-    let state = state && check_kill_switch_status(module, db_type, db_config).await?;
-    trace!(state);
+    let state = state && check_kill_switch_status(module, db_config, guild_id).await?;
     Ok(state)
 }
 
@@ -546,52 +608,26 @@ pub async fn check_if_module_is_on(
 /// A `Result` that is `Ok` if the kill switch is not activated, or `Err` if an error occurred.
 async fn check_kill_switch_status(
     module: &str,
-    db_type: String,
     db_config: BotConfigDetails,
+    guild_id: String,
 ) -> Result<bool, Box<dyn Error>> {
-    let row: ActivationStatusModule =
-        get_data_module_activation_kill_switch_status(db_type, db_config).await?;
+    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+    let row = ModuleActivation::find()
+        .filter(database::kill_switch::Column::GuildId.eq(guild_id.clone()))
+        .one(&connection)
+        .await?
+        .unwrap_or(Model {
+            guild_id,
+            ai_module: true,
+            anilist_module: true,
+            game_module: true,
+            new_members_module: false,
+            anime_module: true,
+            vn_module: true,
+            updated_at: Default::default(),
+        });
     trace!(?row);
     Ok(check_activation_status(module, row).await)
-}
-
-async fn audio(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    command_name: &str,
-    full_command_name: String,
-    self_handler: &Handler,
-) -> Result<(), Box<dyn Error>> {
-    let config = self_handler.bot_data.config.clone();
-    let db_type = config.bot.config.db_type.clone();
-    // Define the error for when the AI module is off
-    let audio_module_error = ResponseError::Option(String::from(
-        "Audio module is not activated. Please enable it first.",
-    ));
-    // Retrieve the guild ID from the command interaction
-    let guild_id = match command_interaction.guild_id {
-        Some(id) => id.to_string(),
-        None => "0".to_string(),
-    };
-    let return_data = match command_name {
-        "play" => play::run(ctx, command_interaction, config).await,
-        "join" => join::run(ctx, command_interaction, config).await,
-        _ => {
-            return Err(Box::new(ResponseError::Option(String::from(
-                "Unknown command",
-            ))))
-        }
-    };
-    return_data?;
-
-    self_handler
-        .increment_command_use_per_command(
-            full_command_name,
-            command_interaction.user.id.to_string(),
-            command_interaction.user.name.to_string(),
-        )
-        .await;
-    Ok(())
 }
 
 /// Executes the Anilist server command.
@@ -625,7 +661,7 @@ async fn anilist_server(
         None => "0".to_string(),
     };
     // Check if the Anilist module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANILIST", db_type, config.bot.config.clone()).await? {
+    if !check_if_module_is_on(guild_id, "ANILIST", config.bot.config.clone()).await? {
         return Err(Box::new(anilist_module_error));
     }
 
@@ -670,217 +706,10 @@ async fn anilist_user(
         None => "0".to_string(),
     };
     // Check if the Anilist module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANILIST", db_type, config.bot.config.clone()).await? {
+    if !check_if_module_is_on(guild_id, "ANILIST", config.bot.config.clone()).await? {
         return Err(Box::new(anilist_module_error));
     }
 
-    self_handler
-        .increment_command_use_per_command(
-            full_command_name,
-            command_interaction.user.id.to_string(),
-            command_interaction.user.name.to_string(),
-        )
-        .await;
-    Ok(())
-}
-
-/// Executes the Anime command.
-///
-/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
-/// If the subcommand does not match any of the specified subcommands, it returns an error.
-/// It also checks if the Anime module is activated for the guild. If not, it returns an error.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this command is being executed.
-/// * `command_interaction` - The interaction that triggered this command.
-/// * `command_name` - The name of the command.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
-async fn anime(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    command_name: &str,
-    full_command_name: String,
-    self_handler: &Handler,
-) -> Result<(), Box<dyn Error>> {
-    let config = self_handler.bot_data.config.clone();
-    let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anime module is off
-    let anime_module_error = ResponseError::Option(String::from(
-        "Anime module is not activated. Please enable it first.",
-    ));
-    // Retrieve the guild ID from the command interaction
-    let guild_id = match command_interaction.guild_id {
-        Some(id) => id.to_string(),
-        None => "0".to_string(),
-    };
-    // Check if the Anime module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANIME", db_type, config.bot.config.clone()).await? {
-        return Err(Box::new(anime_module_error));
-    }
-    // Match the command name to the appropriate function
-    let return_data = match command_name {
-        "random_image" => random_image::run(ctx, command_interaction, config).await,
-        // If the command name does not match any of the specified commands, return an error
-        _ => {
-            return Err(Box::new(ResponseError::Option(String::from(
-                "Unknown command",
-            ))))
-        }
-    };
-    return_data?;
-
-    self_handler
-        .increment_command_use_per_command(
-            full_command_name,
-            command_interaction.user.id.to_string(),
-            command_interaction.user.name.to_string(),
-        )
-        .await;
-    Ok(())
-}
-
-/// Executes the Anime NSFW command.
-///
-/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
-/// If the subcommand does not match any of the specified subcommands, it returns an error.
-/// It also checks if the Anime NSFW module is activated for the guild. If not, it returns an error.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this command is being executed.
-/// * `command_interaction` - The interaction that triggered this command.
-/// * `command_name` - The name of the command.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
-async fn anime_nsfw(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    command_name: &str,
-    full_command_name: String,
-    self_handler: &Handler,
-) -> Result<(), Box<dyn Error>> {
-    let config = self_handler.bot_data.config.clone();
-    let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anime NSFW module is off
-    let anime_module_error = ResponseError::Option(String::from(
-        "Anime module is not activated. Please enable it first.",
-    ));
-    // Retrieve the guild ID from the command interaction
-    let guild_id = match command_interaction.guild_id {
-        Some(id) => id.to_string(),
-        None => "0".to_string(),
-    };
-    // Check if the Anime NSFW module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANIME", db_type, config.bot.config.clone()).await? {
-        return Err(Box::new(anime_module_error));
-    }
-    // Match the command name to the appropriate function
-    let return_data = match command_name {
-        "random_himage" => random_nsfw_image::run(ctx, command_interaction, config).await,
-        // If the command name does not match any of the specified commands, return an error
-        _ => {
-            return Err(Box::new(ResponseError::Option(String::from(
-                "Unknown command",
-            ))))
-        }
-    };
-    return_data?;
-
-    self_handler
-        .increment_command_use_per_command(
-            full_command_name,
-            command_interaction.user.id.to_string(),
-            command_interaction.user.name.to_string(),
-        )
-        .await;
-    Ok(())
-}
-
-/// Executes the Bot command.
-///
-/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
-/// If the subcommand does not match any of the specified subcommands, it returns an error.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this command is being executed.
-/// * `command_interaction` - The interaction that triggered this command.
-/// * `command_name` - The name of the command.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
-async fn bot(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    command_name: &str,
-    full_command_name: String,
-    self_handler: &Handler,
-) -> Result<(), Box<dyn Error>> {
-    let config = self_handler.bot_data.config.clone();
-    // Match the command name to the appropriate function
-    let return_data = match command_name {
-        "credit" => credit::run(ctx, command_interaction, config).await,
-        "info" => info::run(ctx, command_interaction, config).await,
-        "ping" => ping::run(ctx, command_interaction, config).await,
-        // If the command name does not match any of the specified commands, return an error
-        _ => {
-            return Err(Box::new(ResponseError::Option(String::from(
-                "Unknown command",
-            ))))
-        }
-    };
-    return_data?;
-
-    self_handler
-        .increment_command_use_per_command(
-            full_command_name,
-            command_interaction.user.id.to_string(),
-            command_interaction.user.name.to_string(),
-        )
-        .await;
-    Ok(())
-}
-
-/// Executes the server command.
-///
-/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
-/// If the subcommand does not match any of the specified subcommands, it returns an error.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this command is being executed.
-/// * `command_interaction` - The interaction that triggered this command.
-/// * `command_name` - The name of the command.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
-async fn server(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    command_name: &str,
-    full_command_name: String,
-    self_handler: &Handler,
-) -> Result<(), Box<dyn Error>> {
-    let config = self_handler.bot_data.config.clone();
-    let return_data = match command_name {
-        "guild" => guild::run(ctx, command_interaction, config).await,
-        "guild_image" => generate_image_pfp_server::run(ctx, command_interaction, config).await,
-        "guild_image_g" => {
-            generate_image_pfp_server_global::run(ctx, command_interaction, config).await
-        }
-        _ => {
-            return Err(Box::new(ResponseError::Option(String::from(
-                "Unknown command",
-            ))))
-        }
-    };
-    return_data?;
     self_handler
         .increment_command_use_per_command(
             full_command_name,
@@ -908,7 +737,7 @@ async fn vn(
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
-    if !check_if_module_is_on(guild_id, "VN", db_type, config.bot.config.clone()).await? {
+    if !check_if_module_is_on(guild_id, "VN", config.bot.config.clone()).await? {
         return Err(Box::new(vn_module_error));
     }
     let return_data = match command_name {

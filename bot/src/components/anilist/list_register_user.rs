@@ -48,8 +48,7 @@ pub async fn update(
     };
 
     // Load the localized user list
-    let list_user_localised =
-        load_localization_list_user(guild_id, db_type.clone(), db_config.clone()).await?;
+    let list_user_localised = load_localization_list_user(guild_id, db_config.clone()).await?;
 
     // Retrieve the guild ID from the component interaction
     let guild_id = component_interaction
@@ -80,7 +79,6 @@ pub async fn update(
         ctx,
         &list_user_localised,
         id,
-        db_type,
         anilist_cache,
         db_config,
     )

@@ -120,7 +120,7 @@ pub async fn send_embed(
 
     trace!("{:#?}", guild_id);
 
-    let character_localised = load_localization_character(guild_id, db_type, db_config).await?;
+    let character_localised = load_localization_character(guild_id, db_config).await?;
 
     let date_of_birth_data = character.date_of_birth.clone();
     let mut fields = Vec::new();
@@ -200,7 +200,11 @@ pub async fn send_embed(
         .title(character_name)
         .url(character.site_url.unwrap_or_default())
         .fields(fields);
-    if let Some(image) = character.image { if let Some(large) = image.large { builder_embed = builder_embed.thumbnail(large) } }
+    if let Some(image) = character.image {
+        if let Some(large) = image.large {
+            builder_embed = builder_embed.thumbnail(large)
+        }
+    }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

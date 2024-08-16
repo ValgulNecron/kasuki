@@ -1,19 +1,21 @@
-use std::error::Error;
-use std::sync::Arc;
-
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::config::Config;
 use crate::constant::ACTIVITY_LIST_LIMIT;
-use crate::database::dispatcher::data_dispatch::get_all_server_activity;
+use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
+use prost::bytes::BufMut;
+use sea_orm::{EntityOrSelect, EntityTrait};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use std::error::Error;
+use std::sync::Arc;
 use tracing::trace;
 
 pub struct ListAllActivity {
@@ -62,10 +64,14 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
-    let list =
-        get_all_server_activity(&guild_id.to_string(), db_type, config.bot.config.clone()).await?;
+        .await?;
+
+    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let list = ActivityData::select(EntityOrSelect::Select(
+        ActivityData::find().filter(ActivityData::Column::GuildId.eq(&guild_id.to_string())),
+    ))
+    .all(connection)
+    .await?;
     let len = list.len();
     let next_page = 1;
 
@@ -89,7 +95,6 @@ async fn send_embed(
 
     let _ = command_interaction
         .create_followup(&ctx.http, response)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

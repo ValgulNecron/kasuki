@@ -27,9 +27,8 @@ pub struct StatsLocalised {
 
 pub async fn load_localization_stats(
     guild_id: String,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<StatsLocalised, Box<dyn Error>> {
     let path = "json/message/vn/stats.json";
-    load_localization(guild_id, path, db_type, db_config).await
+    load_localization(guild_id, path, db_config).await
 }

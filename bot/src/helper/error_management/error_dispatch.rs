@@ -47,7 +47,7 @@ pub async fn command_dispatching(
                 error!("{}", e);
             }
         }
-    } else if error_type == "UnknownResponseError" {
+    } else {
         match send_error(message.clone(), command_interaction, ctx, self_handler).await {
             Ok(_) => {}
             Err(_) => {

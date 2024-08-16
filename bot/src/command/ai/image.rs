@@ -5,13 +5,10 @@ use crate::command::command_trait::{
     get_user_sub, send_premium_response, Command, PremiumCommand, SlashCommand,
 };
 use crate::config::Config;
-use crate::constant::{
-    DEFAULT_STRING, MAX_FREE_AI_QUESTIONS,
-    PAID_QUESTION_MULTIPLIER,
-};
+use crate::constant::{DEFAULT_STRING, MAX_FREE_AI_QUESTIONS, PAID_QUESTION_MULTIPLIER};
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_enum::FollowupError;
 use crate::helper::get_option::subcommand::{
     get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
@@ -176,14 +173,13 @@ async fn send_embed(
     };
 
     let image_localised =
-        load_localization_image(guild_id.clone(), db_type, config.bot.config.clone()).await?;
+        load_localization_image(guild_id.clone(), config.bot.config.clone()).await?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     let uuid_name = Uuid::new_v4();
     let filename = format!("{}.png", uuid_name);
@@ -210,25 +206,13 @@ async fn send_embed(
     let mut headers = HeaderMap::new();
     headers.insert(
         AUTHORIZATION,
-        match HeaderValue::from_str(&format!("Bearer {}", token)) {
-            Ok(data) => data,
-            Err(e) => return Err(Box::new(FollowupError::WebRequest(format!("{:#?}", e)))),
-        },
+        HeaderValue::from_str(&format!("Bearer {}", token))?,
     );
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
     let url = url.as_str();
-    let res = client
-        .post(url)
-        .headers(headers)
-        .json(&data)
-        .send()
-        .await
-        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
-    let res = res
-        .json()
-        .await
-        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?;
+    let res = client.post(url).headers(headers).json(&data).send().await?;
+    let res = res.json().await?;
     trace!(?res);
     let guild_id = match command_interaction.guild_id {
         Some(guild_id) => guild_id.to_string(),
@@ -302,8 +286,7 @@ async fn image_with_n_equal_1(
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }
 
@@ -329,8 +312,7 @@ async fn image_with_n_greater_than_1(
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }
 
@@ -364,17 +346,8 @@ async fn get_image_from_response(
     trace!("{:?}", urls);
     for (i, url) in urls.iter().enumerate() {
         let client = reqwest::Client::new();
-        let res = client
-            .get(url)
-            .send()
-            .await
-            .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
-        let body = match res.bytes().await {
-            Ok(body) => body,
-            Err(e) => {
-                return Err(Box::new(FollowupError::Byte(format!("{:#?}", e))));
-            }
-        };
+        let res = client.get(url).send().await?;
+        let body = res.bytes().await?;
         let filename = format!("ai_{}_{}.png", i, Uuid::new_v4());
         match image_saver(
             guild_id.clone(),

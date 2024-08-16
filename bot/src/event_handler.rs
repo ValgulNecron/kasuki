@@ -213,7 +213,6 @@ impl EventHandler for Handler {
         let is_module_on = check_if_module_is_on(
             guild_id.clone(),
             "NEW_MEMBER",
-            db_type.clone(),
             self.bot_data.config.bot.config.clone(),
         )
         .await
@@ -221,13 +220,7 @@ impl EventHandler for Handler {
             error!("Failed to get the module status. {}", e);
             false
         });
-        new_member_message(
-            &ctx,
-            &member,
-            db_type.clone(),
-            self.bot_data.config.bot.config.clone(),
-        )
-        .await;
+        new_member_message(&ctx, &member, self.bot_data.config.bot.config.clone()).await;
         color_management(
             &ctx.cache.guilds(),
             &ctx,
@@ -258,7 +251,6 @@ impl EventHandler for Handler {
         let is_module_on = check_if_module_is_on(
             guild_id.to_string().clone(),
             "NEW_MEMBER",
-            db_type.clone(),
             self.bot_data.config.bot.config.clone(),
         )
         .await

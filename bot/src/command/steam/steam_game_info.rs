@@ -10,9 +10,7 @@ use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::game::steam_game_info::load_localization_steam_game_info;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponseFollowup, GuildId,
-};
+use serenity::all::{CommandInteraction, Context, CreateInteractionResponseFollowup, GuildId};
 use tokio::sync::RwLock;
 
 pub struct SteamGameInfoCommand {
@@ -70,7 +68,6 @@ async fn get_steam_game(
         SteamGameWrapper::new_steam_game_by_id(
             value.parse().unwrap(),
             guild_id,
-            db_type,
             config.bot.config.clone(),
         )
         .await?
@@ -100,12 +97,8 @@ async fn send_embed(
         .to_string();
     let db_type = config.bot.config.db_type.clone();
 
-    let steam_game_info_localised = load_localization_steam_game_info(
-        guild_id.clone(),
-        db_type.clone(),
-        config.bot.config.clone(),
-    )
-    .await?;
+    let steam_game_info_localised =
+        load_localization_steam_game_info(guild_id.clone(), config.bot.config.clone()).await?;
 
     let game = data.data;
 

@@ -15,12 +15,7 @@ use std::sync::Arc;
 use text_to_png::TextRenderer;
 use tracing::{error, trace};
 
-pub async fn new_member_message(
-    ctx: &Context,
-    member: &Member,
-    db_type: String,
-    db_config: BotConfigDetails,
-) {
+pub async fn new_member_message(ctx: &Context, member: &Member, db_config: BotConfigDetails) {
     trace!("New member message.");
     let ctx = ctx.clone();
     let user_name = member.user.name.clone();
@@ -90,7 +85,7 @@ pub async fn new_member_message(
             error!("Failed to overlay the image. {}", e);
         }
     }
-    let local = match load_localization_new_member(guild_id.to_string(), db_type, db_config).await {
+    let local = match load_localization_new_member(guild_id.to_string(), db_config).await {
         Ok(local) => local.welcome,
         Err(_) => "Welcome $user$".to_string(),
     };

@@ -4,15 +4,13 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
-use crate::structure::database::server_activity::{ServerActivityFull, SmallServerActivity};
-use crate::database::dispatcher::data_dispatch::{get_one_activity, set_data_activity};
+use crate::get_url;
 use crate::helper::create_default_embed::{get_anilist_anime_embed, get_default_embed};
-use crate::helper::error_management::error_enum::{
-    FollowupError, ResponseError, UnknownResponseError,
-};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
+use crate::structure::database::activity_data;
+use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::admin::anilist::add_activity::{
     load_localization_add_activity, AddActivityLocalised,
 };
@@ -23,16 +21,19 @@ use crate::structure::run::anilist::minimal_anime::{
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use base64::Engine as _;
+use chrono::NaiveDateTime;
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
 use moka::future::Cache;
 use reqwest::get;
+use sea_orm::ActiveValue::Set;
+use sea_orm::{EntityOrSelect, EntityTrait};
 use serde_json::json;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    ChannelId, CommandInteraction, Context, CreateAttachment,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, EditWebhook, GuildId,
+    ChannelId, CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage, EditWebhook, GuildId,
 };
 use tokio::sync::RwLock;
 use tracing::{error, trace};
@@ -80,8 +81,7 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     let add_activity_localised = load_localization_add_activity(
         guild_id.clone(),
         db_type.clone(),
@@ -91,13 +91,8 @@ async fn send_embed(
 
     let anime_id = media.id;
 
-    let exist = check_if_activity_exist(
-        anime_id,
-        guild_id.clone(),
-        db_type.clone(),
-        config.bot.config.clone(),
-    )
-    .await;
+    let exist =
+        check_if_activity_exist(anime_id, guild_id.clone(), config.bot.config.clone()).await;
     if exist {
         already_exist(&add_activity_localised, media, command_interaction, ctx).await
     } else {
@@ -135,8 +130,7 @@ async fn already_exist(
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| FollowupError::Sending(e.to_string()))?;
+        .await?;
 
     Ok(())
 }
@@ -148,7 +142,6 @@ async fn success(
     ctx: &Context,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
     let config = config.clone();
     let channel_id = command_interaction.channel_id;
     let title = media
@@ -167,23 +160,20 @@ async fn success(
         anime_name.clone()
     };
 
-    let anime_id = media.id;
     let guild_id = command_interaction
         .guild_id
         .unwrap_or(GuildId::from(0))
         .to_string();
 
-    let bytes = get(media.cover_image.unwrap().extra_large.
+    let bytes = get(media.cover_image.ok_or(
+        FollowupError::Option("No cover image".to_string()),
+    )?.extra_large.
         unwrap_or(
             "https://imgs.search.brave.com/ CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
                 .to_string()
         )
-    ).await.unwrap().bytes().await.unwrap();
-    let mut img = image::load(
-        Cursor::new(&bytes),
-        guess_format(&bytes).map_err(|e| FollowupError::ImageProcessing(format!("{:#?}", e)))?,
-    )
-    .map_err(|e| FollowupError::Byte(format!("{:#?}", e)))?;
+    ).await?.bytes().await?;
+    let mut img = image::load(Cursor::new(&bytes), guess_format(&bytes)?)?;
     let (width, height) = img.dimensions();
     let square_size = width.min(height);
     let crop_x = (width - square_size) / 2;
@@ -208,22 +198,31 @@ async fn success(
         }
     };
 
-    let webhook = get_webhook(ctx, channel_id, image, base64.clone(), trimed_anime_name).await?;
-
-    set_data_activity(
-        ServerActivityFull {
-            anime_id,
-            timestamp: next_airing.airing_at as i64,
-            guild_id,
-            webhook,
-            episode: next_airing.episode,
-            name: anime_name.clone(),
-            delays: delay,
-            image: base64,
-        },
-        db_type.clone(),
-        config.bot.config.clone(),
+    let webhook = get_webhook(
+        ctx,
+        channel_id,
+        image.clone(),
+        base64.clone(),
+        trimed_anime_name.clone(),
     )
+    .await?;
+
+    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let timestamp = next_airing.airing_at as i64;
+    let chrono =
+        chrono::DateTime::<NaiveDateTime>::from_timestamp(timestamp, 0).unwrap_or_default();
+    ActivityData::insert(activity_data::ActiveModel {
+        anime_id: Set(media.id),
+        timestamp: Set(chrono),
+        server_id: Set(guild_id),
+        webhook: Set(webhook),
+        episode: Set(next_airing.episode.to_string()),
+        name: Set(trimed_anime_name),
+        delay: Set(delay),
+        image: Set(image),
+        ..Default::default()
+    })
+    .exec(&connection)
     .await?;
 
     let builder_embed = get_anilist_anime_embed(None, media.id)
@@ -238,26 +237,26 @@ async fn success(
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }
 
 async fn check_if_activity_exist(
     anime_id: i32,
     server_id: String,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> bool {
-    let row: SmallServerActivity =
-        get_one_activity(anime_id, server_id.clone(), db_type, db_config)
-            .await
-            .unwrap_or(SmallServerActivity {
-                anime_id: None,
-                timestamp: None,
-                server_id: None,
-            });
-    if row.anime_id.is_none() || row.timestamp.is_none() || row.server_id.is_none() {
+    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+    let row = ActivityData::select(EntityOrSelect::Select(
+        ActivityData::find()
+            .filter(ActivityData::Column::ServerId.eq(server_id))
+            .filter(ActivityData::Column::AnimeId.eq(anime_id))
+            .all(&ActivityData)
+            .await?,
+    ))
+    .one(&connection)
+    .await?;
+    if row.is_none() {
         return false;
     };
     true
@@ -329,53 +328,40 @@ async fn get_webhook(
     let webhooks = match ctx.http.get_channel_webhooks(channel_id).await {
         Ok(vec) => vec,
         Err(_) => {
-            let webhook = ctx
-                .http
-                .create_webhook(channel_id, &map, None)
-                .await
-                .map_err(|e| FollowupError::Webhook(format!("{:#?}", e)))?;
-            webhook_return = webhook
-                .url()
-                .map_err(|e| FollowupError::Webhook(format!("{:#?}", e)))?;
+            let webhook = ctx.http.create_webhook(channel_id, &map, None).await?;
+            webhook_return = webhook.url()?;
 
             return Ok(webhook_return);
         }
     };
     if webhooks.is_empty() {
-        let webhook = ctx
-            .http
-            .create_webhook(channel_id, &map, None)
-            .await
-            .map_err(|e| FollowupError::Webhook(format!("{:#?}", e)))?;
-        webhook_return = webhook
-            .url()
-            .map_err(|e| FollowupError::Webhook(format!("{:#?}", e)))?;
+        let webhook = ctx.http.create_webhook(channel_id, &map, None).await?;
+        webhook_return = webhook.url()?;
 
         return Ok(webhook_return);
     }
     for webhook in webhooks {
         trace!("{:#?}", webhook);
-        let webhook_user_id = webhook.user.clone().unwrap().id.to_string();
+        let webhook_user_id = webhook
+            .user
+            .clone()
+            .ok_or(Box::new(FollowupError::Decoding(
+                "webhook user id not found".to_string(),
+            )))?
+            .id
+            .to_string();
         trace!(webhook_user_id);
         if webhook_user_id == bot_id {
             trace!("Getting webhook");
-            webhook_return = webhook
-                .url()
-                .map_err(|e| FollowupError::Webhook(format!("{:#?}", e)))?;
+            webhook_return = webhook.url()?;
         } else {
             trace!(webhook_return);
             let is_ok = webhook_return == String::new();
             trace!(is_ok);
             if is_ok {
                 trace!("Creating webhook");
-                let webhook = ctx
-                    .http
-                    .create_webhook(channel_id, &map, None)
-                    .await
-                    .map_err(|e| FollowupError::Webhook(format!("{:#?}", e)))?;
-                webhook_return = webhook
-                    .url()
-                    .map_err(|e| FollowupError::Webhook(format!("{:#?}", e)))?;
+                let webhook = ctx.http.create_webhook(channel_id, &map, None).await?;
+                webhook_return = webhook.url()?;
             }
         }
     }
@@ -475,7 +461,7 @@ pub async fn get_minimal_anime_media(
         .cloned()
         .unwrap_or(String::new());
     let media = if anime.parse::<i32>().is_ok() {
-        get_minimal_anime_by_id(anime.parse::<i32>().unwrap(), anilist_cache).await?
+        get_minimal_anime_by_id(anime.parse::<i32>().unwrap_or_default(), anilist_cache).await?
     } else {
         get_minimal_anime_by_search(anime.as_str(), anilist_cache).await?
     };

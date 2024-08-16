@@ -1,17 +1,19 @@
-use std::error::Error;
-use std::sync::Arc;
-
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::structure::database::guild_language::GuildLanguage;
-use crate::database::dispatcher::data_dispatch::set_data_guild_language;
+use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
+use crate::structure::database::guild_lang;
+use crate::structure::database::prelude::GuildLang;
 use crate::structure::message::admin::server::lang::load_localization_lang;
+use sea_orm::ActiveValue::Set;
+use sea_orm::EntityTrait;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use std::error::Error;
+use std::sync::Arc;
 
 pub struct LangCommand {
     pub ctx: Context,
@@ -51,14 +53,15 @@ async fn send_embed(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let guild_language = GuildLanguage {
-        guild: guild_id.clone(),
-        lang: lang.clone(),
-    };
-    let _ =
-        set_data_guild_language(guild_language, db_type.clone(), config.bot.config.clone()).await;
-    let lang_localised =
-        load_localization_lang(guild_id, db_type, config.bot.config.clone()).await?;
+    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    GuildLang::insert(guild_lang::ActiveModel {
+        guild_id: Set(guild_id.clone()),
+        lang: Set(lang.clone()),
+        ..Default::default()
+    })
+    .exec(&connection)
+    .await?;
+    let lang_localised = load_localization_lang(guild_id, config.bot.config.clone()).await?;
 
     let builder_embed = get_default_embed(None)
         .description(lang_localised.desc.replace("$lang$", lang.as_str()))
@@ -70,8 +73,7 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     Ok(())
 }

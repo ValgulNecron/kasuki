@@ -4,11 +4,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::config::BotConfigDetails;
-use crate::structure::database::user_color::UserColor;
-use crate::database::dispatcher::data_dispatch::{
-    get_user_approximated_color, set_user_approximated_color,
-};
-use crate::helper::error_management::error_enum;
+use crate::get_url;
+use crate::structure::database::prelude::UserColor;
 use base64::engine::general_purpose;
 use base64::Engine;
 use futures::stream::FuturesUnordered;
@@ -18,6 +15,9 @@ use image::ImageReader;
 use image::{DynamicImage, ExtendedColorType, ImageEncoder};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
+use sea_orm::sea_query::OnConflict;
+use sea_orm::ActiveValue::Set;
+use sea_orm::{EntityOrSelect, EntityTrait};
 use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::sync::RwLock;
 use tokio::time::sleep;
@@ -46,7 +46,6 @@ use tracing::{debug, error};
 /// calculating the user's color, or updating the user's color in the database.
 pub async fn calculate_users_color(
     members: Vec<Member>,
-    db_type: String,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
@@ -59,21 +58,36 @@ pub async fn calculate_users_color(
             .replace("?size=1024", "?size=64");
 
         let id = member.user.id.to_string();
-
-        let user_color: UserColor =
-            get_user_approximated_color(&id, db_type.clone(), db_config.clone()).await?;
-        let pfp_url_old = user_color.pfp_url.clone();
-        if pfp_url != pfp_url_old.unwrap_or_default() {
-            let (average_color, image): (String, String) = calculate_user_color(member).await?;
-            set_user_approximated_color(
-                &id,
-                &average_color,
-                &pfp_url,
-                &image,
-                db_type.clone(),
-                db_config.clone(),
-            )
+        let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+        let user_color = UserColor::find()
+            .filter(UserColor::Column::Id.eq(id.clone()))
+            .one(&connection)
             .await?
+            .unwrap_or_default();
+        let pfp_url_old = user_color.profile_picture_url.clone();
+        if pfp_url != pfp_url_old {
+            let (average_color, image): (String, String) = calculate_user_color(member).await?;
+            UserColor::insert(UserColor::ActiveModel {
+                user_id: Set(id.clone()),
+                profile_picture_url: Set(pfp_url.clone()),
+                color: Set(average_color.clone()),
+                images: Set(image.clone()),
+                ..Default::default()
+            })
+            .on_conflict(
+                OnConflict::columns([UserColor::Column::UserId])
+                    .update_column(UserColor::Column::ProfilePictureUrl)
+                    .update_column(UserColor::Column::Color)
+                    .update_column(UserColor::Column::Images)
+                    .update_column(UserColor::Column::UpdatedAt)
+                    .value(UserColor::Column::ProfilePictureUrl, Set(pfp_url.clone()))
+                    .value(UserColor::Column::Color, Set(average_color))
+                    .value(UserColor::Column::Images, Set(image))
+                    .value(UserColor::Column::UpdatedAt, Set(chrono::Utc::now()))
+                    .to_owned(),
+            )
+            .exec(&connection)
+            .await?;
         }
         sleep(Duration::from_millis(1)).await
     }
@@ -101,7 +115,6 @@ pub async fn calculate_users_color(
 /// calculating the user's color, or updating the user's color in the database.
 pub async fn return_average_user_color(
     members: Vec<Member>,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
     let mut average_colors = Vec::new();
@@ -110,16 +123,24 @@ pub async fn return_average_user_color(
             .replace("?size=1024", "?size=64");
         let id = member.user.id.to_string();
 
-        let user_color: UserColor =
-            get_user_approximated_color(&id, db_type.clone(), db_config.clone()).await?;
+        let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+        let user_color = UserColor::select(EntityOrSelect::Select(
+            UserColor::find()
+                .filter(UserColor::Column::Id.eq(id.clone()))
+                .all(&connection)
+                .await?,
+        ))
+        .one(&connection)
+        .await?
+        .unwrap_or_default();
         let color = user_color.color.clone();
-        let pfp_url_old = user_color.pfp_url.clone();
-        let image_old = user_color.image;
+        let pfp_url_old = user_color.profile_picture_url.clone();
+        let image_old = user_color.images;
         match (
             color,
             pfp_url_old.clone(),
             image_old,
-            pfp_url == pfp_url_old.unwrap_or_default(),
+            pfp_url == pfp_url_old,
         ) {
             (Some(color), Some(pfp_url_old), Some(image_old), true) => {
                 average_colors.push((color, pfp_url_old, image_old));
@@ -127,14 +148,26 @@ pub async fn return_average_user_color(
             }
             _ => {
                 let (average_color, image): (String, String) = calculate_user_color(member).await?;
-                set_user_approximated_color(
-                    &id,
-                    &average_color,
-                    &pfp_url,
-                    &image,
-                    db_type.clone(),
-                    db_config.clone(),
+                UserColor::insert(UserColor::ActiveModel {
+                    user_id: Set(id.clone()),
+                    profile_picture_url: Set(pfp_url.clone()),
+                    color: Set(average_color.clone()),
+                    images: Set(image.clone()),
+                    ..Default::default()
+                })
+                .on_conflict(
+                    OnConflict::columns([UserColor::Column::UserId])
+                        .update_column(UserColor::Column::ProfilePictureUrl)
+                        .update_column(UserColor::Column::Color)
+                        .update_column(UserColor::Column::Images)
+                        .update_column(UserColor::Column::UpdatedAt)
+                        .value(UserColor::Column::ProfilePictureUrl, Set(pfp_url.clone()))
+                        .value(UserColor::Column::Color, Set(average_color.clone()))
+                        .value(UserColor::Column::Images, Set(image.clone()))
+                        .value(UserColor::Column::UpdatedAt, Set(chrono::Utc::now()))
+                        .to_owned(),
                 )
+                .exec(&connection)
                 .await?;
                 average_colors.push((average_color, pfp_url, image));
                 continue;
@@ -195,14 +228,12 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), Box<dy
     debug!("{}", average_color);
 
     let mut image_data: Vec<u8> = Vec::new();
-    PngEncoder::new(&mut image_data)
-        .write_image(
-            img.as_raw(),
-            img.width(),
-            img.height(),
-            ExtendedColorType::Rgba8,
-        )
-        .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?;
+    PngEncoder::new(&mut image_data).write_image(
+        img.as_raw(),
+        img.width(),
+        img.height(),
+        ExtendedColorType::Rgba8,
+    )?;
 
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
     let image = format!("data:image/png;base64,{}", base64_image);
@@ -233,19 +264,12 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), Box<dy
 /// converting the response into bytes, or decoding the image data.
 pub async fn get_image_from_url(url: String) -> Result<DynamicImage, Box<dyn Error>> {
     // Fetch the image data
-    let resp = reqwest::get(&url)
-        .await
-        .map_err(|e| error_enum::Error::WebRequest(format!("{:#?}", e)))?
-        .bytes()
-        .await
-        .map_err(|e| error_enum::Error::Byte(format!("{:#?}", e)))?;
+    let resp = reqwest::get(&url).await?.bytes().await?;
 
     // Decode the image data
     let img = ImageReader::new(Cursor::new(resp))
-        .with_guessed_format()
-        .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?
-        .decode()
-        .map_err(|e| error_enum::Error::ImageProcessing(format!("{:#?}", e)))?;
+        .with_guessed_format()?
+        .decode()?;
 
     Ok(img)
 }
@@ -294,7 +318,6 @@ pub async fn color_management(
     }
     match calculate_users_color(
         members.into_iter().collect(),
-        db_type,
         user_blacklist_server_image,
         db_config,
     )

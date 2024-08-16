@@ -7,7 +7,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::constant::{NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand_group::{
     get_option_map_attachment_subcommand_group, get_option_map_boolean_subcommand_group,
     get_option_map_channel_subcommand_group,
@@ -72,8 +72,7 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     let content = fs::read_to_string(NEW_MEMBER_PATH).unwrap_or_else(|_| String::new());
     let mut hashmap: HashMap<String, NewMemberSetting> =
         serde_json::from_str(&content).unwrap_or_else(|_| HashMap::new());
@@ -83,22 +82,15 @@ async fn send_embed(
         .unwrap_or(NewMemberSetting::default());
 
     let channel_id = match channel_id {
-        Some(channel_id) => channel_id.to_string().parse::<u64>().map_err(|e| {
-            FollowupError::Option(format!("Failed to parse the channel id: {:#?}", e))
-        })?,
+        Some(channel_id) => channel_id.to_string().parse::<u64>()?,
         None => guild_specific.channel_id,
     };
     let attachment = match attachment {
         Some(attachment) => {
             // create NEW_MEMBER_IMAGE_PATH if it doesn't exist
-            fs::create_dir_all(NEW_MEMBER_IMAGE_PATH).map_err(|e| {
-                FollowupError::File(format!("Failed to create the directory: {:#?}", e))
-            })?;
-            let bytes = attachment.download().await.map_err(|e| {
-                FollowupError::Byte(format!("Failed to download the attachment: {:#?}", e))
-            })?;
-            fs::write(format!("{}{}.png", NEW_MEMBER_IMAGE_PATH, guild_id), bytes)
-                .map_err(|e| FollowupError::File(format!("Failed to write the file: {:#?}", e)))?;
+            fs::create_dir_all(NEW_MEMBER_IMAGE_PATH)?;
+            let bytes = attachment.download().await?;
+            fs::write(format!("{}{}.png", NEW_MEMBER_IMAGE_PATH, guild_id), bytes)?;
             true
         }
         None => guild_specific.custom_image,
@@ -113,15 +105,10 @@ async fn send_embed(
     // insert or update the new_member_setting to the hashmap
     hashmap.insert(guild_id.clone(), new_member_setting);
     // save the hashmap to the file
-    fs::write(NEW_MEMBER_PATH, serde_json::to_string(&hashmap).unwrap())
-        .map_err(|e| FollowupError::File(format!("Failed to write the file: {:#?}", e)))?;
+    fs::write(NEW_MEMBER_PATH, serde_json::to_string(&hashmap)?)?;
 
-    let localised = load_localization_new_member_setting(
-        guild_id.clone(),
-        config.bot.config.db_type.clone(),
-        config.bot.config.clone(),
-    )
-    .await?;
+    let localised =
+        load_localization_new_member_setting(guild_id.clone(), config.bot.config.clone()).await?;
 
     let embed = get_default_embed(None)
         .title(localised.title)
@@ -129,8 +116,7 @@ async fn send_embed(
     let builder = CreateInteractionResponseFollowup::new().embed(embed);
     command_interaction
         .create_followup(&ctx.http, builder)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     Ok(())
 }

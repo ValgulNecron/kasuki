@@ -3,6 +3,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use moka::future::Cache;
+use sea_orm::ActiveValue::Set;
+use sea_orm::EntityTrait;
 use serde_json::Value;
 use serenity::all::Context;
 use tokio::sync::RwLock;
@@ -20,9 +22,9 @@ use crate::constant::{
     TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
-use crate::structure::database::ping_history::PingHistory;
-use crate::database::dispatcher::data_dispatch::set_data_ping_history;
 use crate::event_handler::{BotData, RootUsage};
+use crate::structure::database::ping_history::ActiveModel;
+use crate::structure::database::prelude::PingHistory;
 use crate::structure::steam_game_id_struct::get_game;
 use crate::type_map_key::ShardManagerContainer;
 
@@ -61,11 +63,7 @@ pub async fn thread_management_launcher(
         db_config.clone(),
     ));
     tokio::spawn(launch_game_management_thread(apps));
-    tokio::spawn(ping_manager_thread(
-        ctx.clone(),
-        db_type.clone(),
-        db_config.clone(),
-    ));
+    tokio::spawn(ping_manager_thread(ctx.clone()));
     tokio::spawn(update_user_blacklist(user_blacklist_server_image));
     tokio::spawn(update_random_stats_launcher(anilist_cache.clone()));
     tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
@@ -101,7 +99,7 @@ pub async fn thread_management_launcher(
 /// * `ctx` - A `Context` instance used to access the bot's data and cache.
 /// * `db_type` - A `String` representing the type of database.
 ///
-async fn ping_manager_thread(ctx: Context, db_type: String, db_config: BotConfigDetails) {
+async fn ping_manager_thread(ctx: Context) {
     // Log a message indicating that the ping thread is being launched
     info!("Launching the ping thread!");
 
@@ -129,17 +127,15 @@ async fn ping_manager_thread(ctx: Context, db_type: String, db_config: BotConfig
         for (shard_id, shard) in runner.iter() {
             // Extract latency and current timestamp information
             let latency = shard.latency.unwrap_or_default().as_millis().to_string();
-            let now = chrono::Utc::now().timestamp().to_string();
-
-            // Create a PingHistory struct
-            let ping_history = PingHistory {
-                shard_id: shard_id.to_string(),
-                ping: latency.clone(),
-                timestamp: now,
-            };
-
-            // Update the ping history in the database
-            match set_data_ping_history(ping_history, db_type.clone(), db_config.clone()).await {
+            let now = chrono::Utc::now().naive_utc();
+            match PingHistory::insert(ActiveModel {
+                shard_id: Set(shard_id.to_string()),
+                latency: Set(latency),
+                timestamp: Set(now),
+                ..Default::default()
+            })
+            .await
+            {
                 Ok(_) => {
                     debug!("Updated ping history for shard {}.", shard_id);
                 }

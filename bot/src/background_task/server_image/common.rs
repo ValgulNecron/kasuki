@@ -1,10 +1,9 @@
+use crate::structure::database::user_color::Model;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use image::DynamicImage;
 use palette::color_difference::ImprovedDeltaE;
 use palette::{IntoColor, Lab, Srgb};
-
-use crate::structure::database::user_color::UserColor;
 
 /// `Color` is a struct that represents a color in the CIELAB color space.
 /// It contains a single field, `cielab`, which is a `Lab` object from the `palette` crate.
@@ -65,12 +64,12 @@ pub fn create_color_vector_from_tuple(tuples: Vec<(String, String, String)>) -> 
 /// # Arguments
 ///
 /// * `tuples` - A vector of `UserColor` objects.
-pub fn create_color_vector_from_user_color(tuples: Vec<UserColor>) -> Vec<ColorWithUrl> {
+pub fn create_color_vector_from_user_color(tuples: Vec<Model>) -> Vec<ColorWithUrl> {
     tuples
         .into_iter()
         .filter_map(|user_color| {
-            let hex = user_color.color.unwrap_or_default();
-            let image = user_color.image.unwrap_or_default();
+            let hex = user_color.color;
+            let image = user_color.images;
             let (r, g, b) = convert_hex_to_rgb(hex);
 
             let input = image.trim_start_matches("data:image/png;base64,");

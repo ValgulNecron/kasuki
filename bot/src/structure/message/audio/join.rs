@@ -12,9 +12,8 @@ use std::error::Error;
 
 pub async fn load_localization_join_localised(
     guild_id: String,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<JoinLocalised, Box<dyn Error>> {
     let path = "json/message/audio/join.json";
-    load_localization(guild_id, path, db_type, db_config).await
+    load_localization(guild_id, path, db_config).await
 }

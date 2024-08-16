@@ -28,9 +28,8 @@ pub struct StudioLocalised {
 /// * `Result<StudioLocalised, AppError>`: A Result containing StudioLocalised data or an AppError.
 pub async fn load_localization_studio(
     guild_id: String,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<StudioLocalised, Box<dyn Error>> {
     let path = "json/message/anilist_user/studio.json";
-    load_localization(guild_id, path, db_type, db_config).await
+    load_localization(guild_id, path, db_config).await
 }

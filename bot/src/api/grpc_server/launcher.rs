@@ -80,15 +80,45 @@ pub async fn grpc_server_launcher(
         let cert_path = grpc_config.tls_cert_path.clone();
         generate_key(grpc_config.clone());
         // Load the server's key and certificate
-        let key = tokio::fs::read(private_key_path).await.unwrap();
-        let cert = tokio::fs::read(cert_path).await.unwrap();
+        let key = match tokio::fs::read(private_key_path).await {
+            Ok(key) => key,
+            Err(e) => {
+                error!("Failed to read the private key: {}", e);
+                return;
+            }
+        };
+        let cert = match tokio::fs::read(cert_path).await {
+            Ok(cert) => cert,
+            Err(e) => {
+                error!("Failed to read the certificate: {}", e);
+                return;
+            }
+        };
         // Convert to a string
-        let key = String::from_utf8(key).unwrap();
-        let cert = String::from_utf8(cert).unwrap();
+        let key = match String::from_utf8(key) {
+            Ok(key) => key,
+            Err(e) => {
+                error!("Failed to convert the key to a string: {}", e);
+                return;
+            }
+        };
+        let cert = match String::from_utf8(cert) {
+            Ok(cert) => cert,
+            Err(e) => {
+                error!("Failed to convert the certificate to a string: {}", e);
+                return;
+            }
+        };
         // Build the gRPC server with TLS, add the ShardService and the reflection service, and serve the gRPC server
         let identity = tonic::transport::Identity::from_pem(cert, key);
         let tls_config = tonic::transport::ServerTlsConfig::new().identity(identity);
-        builder = builder.tls_config(tls_config).unwrap()
+        builder = match builder.tls_config(tls_config) {
+            Ok(builder) => builder,
+            Err(e) => {
+                error!("Failed to build the gRPC server with TLS: {}", e);
+                return;
+            }
+        }
     }
     let builder = builder
         .add_service(get_shard_server(shard_service))
@@ -97,7 +127,10 @@ pub async fn grpc_server_launcher(
         .add_service(reflection);
 
     // Serve the gRPC server
-    builder.serve(addr.parse().unwrap()).await.unwrap()
+    builder
+        .serve(addr.parse().expect("Failed to parse the address"))
+        .await
+        .unwrap()
 }
 
 fn generate_key(grpc_config: GrpcCfg) {

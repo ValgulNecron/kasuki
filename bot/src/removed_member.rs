@@ -131,11 +131,10 @@ pub async fn removed_member_message(
             error!("Failed to overlay the image. {}", e);
         }
     }
-    let local =
-        match load_localization_removed_member(guild_id.to_string(), db_type, db_config).await {
-            Ok(local) => local.bye,
-            Err(_) => "$user$ quited the server".to_string(),
-        };
+    let local = match load_localization_removed_member(guild_id.to_string(), db_config).await {
+        Ok(local) => local.bye,
+        Err(_) => "$user$ quited the server".to_string(),
+    };
     let text = local
         .replace("$user$", &user_name)
         .replace("$reason$", &reason);

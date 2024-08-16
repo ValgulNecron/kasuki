@@ -71,8 +71,6 @@ impl EventHandler for Receiver {
                 let last_tick_was_empty = self.inner.last_tick_was_empty.load(Ordering::SeqCst);
 
                 if speaking == 0 && !last_tick_was_empty {
-                    debug!("No speakers");
-
                     self.inner.last_tick_was_empty.store(true, Ordering::SeqCst);
                 } else if speaking != 0 {
                     self.inner

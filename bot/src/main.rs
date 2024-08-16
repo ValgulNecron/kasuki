@@ -1,9 +1,10 @@
+use std::error::Error;
+use std::process;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::config::Config;
+use crate::config::{BotConfigDetails, Config};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
-use database::dispatcher::init_dispatch::init_sql_database;
 use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
 use crate::type_map_key::ShardManagerContainer;
@@ -13,7 +14,7 @@ use serenity::Client;
 use songbird::driver::DecodeMode;
 use songbird::SerenityInit;
 use tokio::sync::RwLock;
-use tracing::{error, info};
+use tracing::{debug, error, info, trace};
 
 mod api;
 mod audio;
@@ -23,7 +24,6 @@ mod components;
 mod config;
 mod constant;
 mod custom_serenity_impl;
-mod database;
 mod event_handler;
 mod helper;
 mod logger;
@@ -82,7 +82,7 @@ async fn main() {
 
     // Initialize the SQL database.
     // If an error occurs, log the error and return.
-    if let Err(e) = init_sql_database(db_type, config.bot.config.clone()).await {
+    if let Err(e) = init_db(config.clone()).await {
         let e = e.to_string().replace("\\\\n", "\n");
         error!("{}", e);
         std::process::exit(4);
@@ -218,5 +218,69 @@ async fn main() {
         info!("Received bot shutdown signal. Shutting down bot.");
         ShardManager::shutdown_all(&shutdown).await;
         std::process::exit(0);
+    }
+}
+
+async fn init_db(config: Arc<Config>) -> Result<(), Box<dyn Error>> {
+    let db_config = config.bot.config.clone();
+    let url = get_url(db_config);
+    std::env::set_var("DATABASE_URL", url);
+    #[cfg(windows)]
+    {
+        let mut cmd = process::Command::new("migration.exe");
+        let child = cmd.spawn()?;
+        child.wait_with_output()?;
+    }
+    #[cfg(unix)]
+    {
+        let mut cmd = process::Command::new("migration");
+        let child = cmd.spawn()?;
+        child.wait_with_output()?;
+    }
+    Ok(())
+}
+
+pub fn get_url(db_config: BotConfigDetails) -> String {
+    match db_config.db_type.as_str() {
+        "postgresql" => {
+            let host = match db_config.host.clone() {
+                Some(host) => host,
+                None => {
+                    error!("No host provided");
+                    process::exit(7)
+                }
+            };
+            let port = match db_config.port {
+                Some(port) => port,
+                None => {
+                    error!("No port provided");
+                    process::exit(7)
+                }
+            };
+            let user = match db_config.user.clone() {
+                Some(user) => user,
+                None => {
+                    error!("No user provided");
+                    process::exit(7)
+                }
+            };
+            let password = match db_config.password.clone() {
+                Some(password) => password,
+                None => {
+                    error!("No password provided");
+                    process::exit(7)
+                }
+            };
+            let param = vec![("user", user.as_str()), ("password", password.as_str())];
+            let param = serde_urlencoded::to_string(&param).unwrap();
+            let url = format!("postgresql://{}:{}/kasuki?{}", host, port, param);
+            trace!(?url);
+            url
+        }
+        _ => {
+            let url = "sqlite://bot.db";
+            trace!(?url);
+            url.to_string()
+        }
     }
 }

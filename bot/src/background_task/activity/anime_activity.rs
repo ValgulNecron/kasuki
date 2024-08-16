@@ -3,23 +3,29 @@ use std::io::{Cursor, Read};
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::command::admin::anilist::add_activity::{
+    get_minimal_anime_by_id, get_minimal_anime_media,
+};
+use crate::config::BotConfigDetails;
+use crate::get_url;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_enum;
+use crate::structure::database::activity_data;
+use crate::structure::database::activity_data::{Model, PrimaryKey};
+use crate::structure::database::prelude::ActivityData;
+use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
-use chrono::Utc;
+use chrono::{DateTime, NaiveDateTime, Utc};
 use moka::future::Cache;
+use sea_orm::ActiveValue::Set;
+use sea_orm::ColumnTrait;
+use sea_orm::QueryFilter;
+use sea_orm::{EntityOrSelect, EntityTrait};
+use serenity::all::ButtonStyle::Primary;
 use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webhook};
 use tokio::sync::RwLock;
 use tracing::{error, trace};
-
-use crate::command::admin::anilist::add_activity::get_minimal_anime_by_id;
-use crate::config::BotConfigDetails;
-use crate::structure::database::server_activity::ServerActivityFull;
-use crate::database::dispatcher::data_dispatch::{
-    get_data_activity, remove_data_activity_status, set_data_activity,
-};
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum;
-use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
 
 /// `manage_activity` is an asynchronous function that manages activities.
 /// It takes a `ctx` as a parameter.
@@ -61,27 +67,35 @@ async fn send_activity(
     db_config: BotConfigDetails,
 ) {
     let now = Utc::now().timestamp().to_string();
-    let rows = match get_data_activity(now.clone(), db_type.clone(), db_config.clone()).await {
+    let connection = sea_orm::Database::connect(get_url(db_config.clone()))
+        .await
+        .unwrap();
+    let rows = match ActivityData::find()
+        .filter(<activity_data::Entity as EntityTrait>::Column::Timestamp.eq(now.clone()))
+        .all(&connection)
+        .await
+    {
         Ok(rows) => rows,
         Err(e) => {
             error!("{}", e);
             return;
         }
     };
+
     for row in rows {
         if now != row.timestamp.to_string() {
             continue;
         }
 
         let row2 = row.clone();
-        let guild_id = row.guild_id.clone();
+        let guild_id = row.server_id.clone();
         let ctx = ctx.clone();
-        if row.delays != 0 {
+        if row.delay != 0 {
             let db_type = db_type.clone();
             let anilist_cache = anilist_cache.clone();
             let db_config = db_config.clone();
             tokio::spawn(async move {
-                tokio::time::sleep(Duration::from_secs(row2.delays as u64)).await;
+                tokio::time::sleep(Duration::from_secs(row2.delay as u64)).await;
                 if let Err(e) = send_specific_activity(
                     row,
                     guild_id,
@@ -146,9 +160,9 @@ async fn send_activity(
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 async fn send_specific_activity(
-    row: ServerActivityFull,
+    row: Model,
     guild_id: String,
-    row2: ServerActivityFull,
+    row2: Model,
     ctx: &Context,
     db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
@@ -158,9 +172,7 @@ async fn send_specific_activity(
         load_localization_send_activity(guild_id.clone(), db_type.clone(), db_config.clone())
             .await?;
     let webhook_url = row.webhook.clone();
-    let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str())
-        .await
-        .map_err(|e| error_enum::Error::Webhook(format!("{:#?}", e)))?;
+    let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str()).await?;
 
     let image = row.image;
     trace!(image);
@@ -170,9 +182,7 @@ async fn send_specific_activity(
 
     // Read the decoded bytes into a Vec
     let mut decoded_bytes = Vec::new();
-    decoder
-        .read_to_end(&mut decoded_bytes)
-        .map_err(|e| error_enum::Error::Byte(format!("{:#?}", e)))?;
+    decoder.read_to_end(&mut decoded_bytes)?;
     let name = row.name.clone();
     let trimmed_name = if name.len() > 100 {
         name[..100].to_string()
@@ -181,10 +191,7 @@ async fn send_specific_activity(
     };
     let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
     let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(&attachment);
-    webhook
-        .edit(&ctx.http, edit_webhook)
-        .await
-        .map_err(|e| error_enum::Error::Webhook(format!("{:#?}", e)))?;
+    webhook.edit(&ctx.http, edit_webhook).await?;
 
     let embed = get_default_embed(None)
         .description(
@@ -199,13 +206,10 @@ async fn send_specific_activity(
 
     let builder_message = ExecuteWebhook::new().embed(embed);
 
-    webhook
-        .execute(&ctx.http, false, builder_message)
-        .await
-        .map_err(|e| error_enum::Error::Webhook(format!("{:#?}", e)))?;
+    webhook.execute(&ctx.http, false, builder_message).await?;
     let db2 = db_config.clone();
     tokio::spawn(async move {
-        if let Err(e) = update_info(row2, guild_id, anilist_cache.clone(), db_type, db2).await {
+        if let Err(e) = update_info(row2, guild_id, anilist_cache.clone(), db2).await {
             error!("{}", e)
         }
     });
@@ -233,16 +237,15 @@ async fn send_specific_activity(
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 async fn update_info(
-    row: ServerActivityFull,
+    row: Model,
     guild_id: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let media = get_minimal_anime_by_id(row.anime_id, anilist_cache).await?;
+    let media = get_minimal_anime_media(row.anime_id.clone(), anilist_cache).await?;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
-        None => return remove_activity(row, guild_id, db_type, db_config).await,
+        None => return remove_activity(row, guild_id, db_config).await,
     };
     let title = media
         .title
@@ -250,20 +253,26 @@ async fn update_info(
     let rj = title.romaji;
     let en = title.english;
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
-    set_data_activity(
-        ServerActivityFull {
-            anime_id: media.id,
-            timestamp: next_airing.airing_at as i64,
-            guild_id,
-            webhook: row.webhook,
-            episode: next_airing.episode,
-            name,
-            delays: row.delays,
-            image: row.image,
-        },
-        db_type,
-        db_config,
-    )
+    let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
+        Ok(c) => c,
+        Err(e) => return Err(Box::new(e)),
+    };
+    let timestamp = next_airing.airing_at as i64;
+    let chrono = chrono::DateTime::<Utc>::from_timestamp(timestamp, 0)
+        .unwrap_or_default()
+        .naive_utc();
+    ActivityData::insert(activity_data::ActiveModel {
+        anime_id: Set(row.anime_id),
+        timestamp: Set(chrono),
+        server_id: Set(guild_id),
+        webhook: Set(row.webhook),
+        episode: Set(next_airing.episode.to_string()),
+        name: Set(name),
+        delay: Set(row.delay),
+        image: Set(row.image),
+        ..Default::default()
+    })
+    .exec(&connection)
     .await?;
     Ok(())
 }
@@ -283,12 +292,19 @@ async fn update_info(
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 async fn remove_activity(
-    row: ServerActivityFull,
+    row: Model,
     guild_id: String,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     trace!("removing {:#?} for {}", row, guild_id);
-    remove_data_activity_status(guild_id, row.anime_id.to_string(), db_type, db_config).await?;
+    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+    let rows = ActivityData::delete(activity_data::ActiveModel {
+        anime_id: Set(row.anime_id),
+        server_id: Set(guild_id),
+        ..Default::default()
+    })
+    .exec(&connection)
+    .await?;
+    trace!("removed {:#?} for {}", rows, guild_id);
     Ok(())
 }

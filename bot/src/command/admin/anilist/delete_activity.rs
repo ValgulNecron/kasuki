@@ -2,6 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
+use sea_orm::{Condition, EntityTrait};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponseFollowup,
@@ -13,10 +14,11 @@ use tracing::trace;
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
-use crate::database::dispatcher::data_dispatch::remove_data_activity_status;
+use crate::get_url;
 use crate::helper::create_default_embed::get_anilist_anime_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
+use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
 
 pub struct DeleteActivityCommand {
@@ -78,21 +80,17 @@ pub async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     trace!(anime);
     let media = get_minimal_anime_media(anilist_cache, command_interaction).await?;
 
     let anime_id = media.id;
-    remove_activity(
-        guild_id.as_str(),
-        &anime_id,
-        db_type,
-        config.bot.config.clone(),
-    )
-    .await?;
+    remove_activity(guild_id.as_str(), &anime_id, config.bot.config.clone()).await?;
 
-    let title = media.title.unwrap();
+    let title = media.title.ok_or(ResponseError::Sending(format!(
+        "Anime with id {} not found",
+        anime_id
+    )))?;
     let anime_name = get_name(title);
     let builder_embed = get_anilist_anime_embed(None, media.id)
         .title(&delete_activity_localised_text.success)
@@ -106,8 +104,7 @@ pub async fn send_embed(
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }
 
@@ -124,15 +121,15 @@ pub async fn send_embed(
 async fn remove_activity(
     guild_id: &str,
     anime_id: &i32,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    remove_data_activity_status(
-        guild_id.to_owned(),
-        anime_id.to_string(),
-        db_type,
-        db_config,
+    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+    ActivityData::delete(
+        Condition::all()
+            .add(ActivityData::GuildId.eq(guild_id))
+            .add(ActivityData::AnimeId.eq(anime_id)),
     )
+    .exec(&connection)
     .await?;
     Ok(())
 }

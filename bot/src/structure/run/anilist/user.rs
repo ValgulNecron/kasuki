@@ -205,7 +205,7 @@ pub async fn send_embed(
         None => String::from("0"),
     };
 
-    let user_localised = load_localization_user(guild_id, db_type, db_config).await?;
+    let user_localised = load_localization_user(guild_id, db_config).await?;
 
     let mut field = Vec::new();
     let statistics = user
@@ -234,7 +234,11 @@ pub async fn send_embed(
         .fields(field)
         .image(get_banner(&user.id));
 
-    if let Some(avatar) = user.avatar { if let Some(large) = avatar.large { builder_embed = builder_embed.thumbnail(large) } }
+    if let Some(avatar) = user.avatar {
+        if let Some(large) = avatar.large {
+            builder_embed = builder_embed.thumbnail(large)
+        }
+    }
 
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 

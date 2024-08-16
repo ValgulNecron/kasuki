@@ -60,8 +60,7 @@ pub async fn send_embed(
         .guild_id
         .map(|id| id.to_string())
         .unwrap_or("0".to_string());
-    let localized_command_usage =
-        load_localization_command_usage(guild_id, db_type, db_config).await?;
+    let localized_command_usage = load_localization_command_usage(guild_id, db_config).await?;
     let embed =
         get_default_embed(None).title(localized_command_usage.title.replace("$user$", &username));
     let mut embeds = Vec::new();

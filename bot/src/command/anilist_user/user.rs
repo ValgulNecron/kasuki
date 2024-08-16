@@ -3,21 +3,23 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::structure::database::registered_user::RegisteredUser;
-use crate::database::dispatcher::data_dispatch::get_registered_user;
+use crate::get_url;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::get_option_map_string;
-use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
-use serenity::all::{CommandInteraction, Context};
-use tokio::sync::RwLock;
-
 use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::structure::database::prelude::RegisteredUser;
+use crate::structure::database::registered_user::Column;
 use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::{
     User, UserQuerryId, UserQuerryIdVariables, UserQuerrySearch, UserQuerrySearchVariables,
 };
-
+use cynic::{GraphQlResponse, QueryBuilder};
+use moka::future::Cache;
+use sea_orm::ColumnTrait;
+use sea_orm::QueryFilter;
+use sea_orm::{EntityOrSelect, EntityTrait};
+use serenity::all::{CommandInteraction, Context};
+use tokio::sync::RwLock;
 pub struct UserCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -69,8 +71,11 @@ async fn send_embed(
 
     // If the username is not provided, fetch the data of the user who triggered the command interaction
     let user_id = &command_interaction.user.id.to_string();
-    let row: Option<RegisteredUser> =
-        get_registered_user(user_id, db_type.clone(), config.bot.config.clone()).await?;
+    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let row = RegisteredUser::find()
+        .filter(Column::UserId.eq(user_id))
+        .one(&connection)
+        .await?;
     let user = row.ok_or(ResponseError::Option(String::from("No user found")))?;
 
     // Fetch the user's data from AniList and send it as a response

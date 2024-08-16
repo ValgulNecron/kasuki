@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use moka::future::Cache;
 use once_cell::sync::Lazy;
+use sea_orm::{EntityOrSelect, EntityTrait};
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
@@ -11,11 +12,12 @@ use tokio::sync::RwLock;
 use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::Command;
 use crate::config::{BotConfigDetails, Config};
-use crate::structure::database::registered_user::RegisteredUser;
-use crate::database::dispatcher::data_dispatch::get_registered_user;
+use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::get_option_map_string;
+use crate::structure::database::prelude::{ActivityData, RegisteredUser};
+use crate::structure::database::registered_user::{Column, Model};
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
 
@@ -75,8 +77,15 @@ pub async fn send_embed(
             // If no username is provided, retrieve the ID of the user who triggered the command
             let user_id = &command_interaction.user.id.to_string();
             // Check if the user is registered
-            let row: Option<RegisteredUser> =
-                get_registered_user(user_id, db_type.clone(), config.bot.config.clone()).await?;
+            let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+            let row = RegisteredUser::select(EntityOrSelect::Select(
+                RegisteredUser::find()
+                    .filter(Column::UserId.eq(user_id))
+                    .one(&connection)
+                    .await?,
+            ))
+            .one(&connection)
+            .await?;
             let user = row.ok_or(ResponseError::Option(String::from(
                 "No user specified or linked to this discord account",
             )))?;

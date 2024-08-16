@@ -1,7 +1,10 @@
 use crate::config::BotConfigDetails;
-use crate::structure::database::guild_language::GuildLanguage;
-use crate::database::dispatcher::data_dispatch::get_data_guild_language;
-
+use crate::get_url;
+use crate::structure::database::guild_lang::{Column, Model};
+use crate::structure::database::prelude::GuildLang;
+use sea_orm::ColumnTrait;
+use sea_orm::EntityTrait;
+use sea_orm::QueryFilter;
 /// Retrieves the language setting for a given guild.
 ///
 /// This function takes a guild ID as a parameter and returns the language setting for that guild.
@@ -16,16 +19,19 @@ use crate::database::dispatcher::data_dispatch::get_data_guild_language;
 /// # Returns
 ///
 /// * A string representing the language setting for the given guild. If no language setting is found, it returns "en".
-pub async fn get_guild_language(
-    guild_id: String,
-    db_type: String,
-    db_config: BotConfigDetails,
-) -> String {
+pub async fn get_guild_language(guild_id: String, db_config: BotConfigDetails) -> String {
     if guild_id == *"0" {
         return String::from("en");
     };
-
-    let guild_lang: Option<GuildLanguage> = get_data_guild_language(guild_id, db_type, db_config)
+    let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
+        Ok(conn) => conn,
+        Err(_) => {
+            return String::from("en");
+        }
+    };
+    let guild_lang: Option<Model> = GuildLang::find()
+        .filter(Column::GuildId.eq(guild_id))
+        .one(&connection)
         .await
         .unwrap_or(None);
 

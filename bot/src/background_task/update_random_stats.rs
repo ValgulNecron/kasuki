@@ -70,8 +70,7 @@ pub async fn update_random_stats(
 ) -> Result<RandomStat, Box<dyn Error>> {
     // Try to load random stats from a JSON file.
     let mut random_stats: RandomStat = match std::fs::read_to_string(RANDOM_STATS_PATH) {
-        Ok(stats) => serde_json::from_str(&stats)
-            .map_err(|e| UnknownResponseError::Parsing(format!("{:#?}", e)))?,
+        Ok(stats) => serde_json::from_str(&stats)?,
         Err(_) => RandomStat::default(),
     };
 
@@ -79,10 +78,8 @@ pub async fn update_random_stats(
     random_stats = update_random(random_stats, anilist_cache).await?;
 
     // Write the updated random statistics to a JSON file.
-    let random_stats_json = serde_json::to_string(&random_stats)
-        .map_err(|e| UnknownResponseError::Parsing(format!("{:#?}", e)))?;
-    std::fs::write(RANDOM_STATS_PATH, random_stats_json)
-        .map_err(|e| UnknownResponseError::File(format!("{:#?}", e)))?;
+    let random_stats_json = serde_json::to_string(&random_stats)?;
+    std::fs::write(RANDOM_STATS_PATH, random_stats_json)?;
 
     // Return the updated random statistics.
     Ok(random_stats)

@@ -110,7 +110,6 @@ impl SteamGameWrapper {
     pub async fn new_steam_game_by_id(
         appid: u128,
         guild_id: String,
-        db_type: String,
         db_config: BotConfigDetails,
     ) -> Result<SteamGameWrapper, Box<dyn Error>> {
         let client = reqwest::Client::builder()
@@ -122,7 +121,7 @@ impl SteamGameWrapper {
                     e.to_string()
                 ))
             })?;
-        let lang = get_guild_language(guild_id, db_type, db_config).await;
+        let lang = get_guild_language(guild_id, db_config).await;
         let local_lang = LANG_MAP.clone();
         let full_lang = *local_lang
             .get(lang.to_lowercase().as_str())
@@ -237,6 +236,6 @@ impl SteamGameWrapper {
             }
         }
 
-        SteamGameWrapper::new_steam_game_by_id(*appid, guild_id, db_type, db_config).await
+        SteamGameWrapper::new_steam_game_by_id(*appid, guild_id, db_config).await
     }
 }

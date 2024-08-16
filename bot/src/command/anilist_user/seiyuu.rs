@@ -124,8 +124,7 @@ async fn send_embed(
         None => String::from("0"),
     };
 
-    let seiyuu_localised =
-        load_localization_seiyuu(guild_id, db_type, config.bot.config.clone()).await?;
+    let seiyuu_localised = load_localization_seiyuu(guild_id, config.bot.config.clone()).await?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 

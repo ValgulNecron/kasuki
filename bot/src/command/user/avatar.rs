@@ -5,8 +5,7 @@ use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::structure::message::user::avatar::load_localization_avatar;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse,
-    CreateInteractionResponseMessage, User,
+    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage, User,
 };
 use std::error::Error;
 use std::sync::Arc;
@@ -55,7 +54,7 @@ pub async fn get_user_command_user(
         }
     }
     let user = user.unwrap_or(command_user);
-    
+
     user.id.to_user(&ctx.http).await.unwrap_or(user)
 }
 
@@ -66,16 +65,11 @@ pub async fn get_user_command(
     let user = get_option_map_user_subcommand(command_interaction);
     let user = user.get(&String::from("username"));
     let user = match user {
-        Some(user) => {
-            
-            user.to_user(&ctx.http).await.map_err(|e| {
-                ResponseError::Sending(format!("Failed to get user from ID: {:#?}", e))
-            })?
-        }
-        None => {
-            
-            command_interaction.user.clone()
-        }
+        Some(user) => user
+            .to_user(&ctx.http)
+            .await
+            .map_err(|e| ResponseError::Sending(format!("Failed to get user from ID: {:#?}", e)))?,
+        None => command_interaction.user.clone(),
     };
     Ok(user)
 }
@@ -93,12 +87,7 @@ pub async fn send_embed(
     let avatar_url = user.face();
     let username = user.name;
 
-    let avatar_localised = load_localization_avatar(
-        guild_id,
-        config.bot.config.db_type.clone(),
-        config.bot.config.clone(),
-    )
-    .await?;
+    let avatar_localised = load_localization_avatar(guild_id, config.bot.config.clone()).await?;
 
     let embed = get_default_embed(None)
         .image(avatar_url)
