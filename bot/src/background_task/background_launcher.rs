@@ -23,11 +23,11 @@ use crate::constant::{
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
 use crate::event_handler::{BotData, RootUsage};
-use crate::{api, get_url};
 use crate::structure::database::ping_history::ActiveModel;
 use crate::structure::database::prelude::PingHistory;
 use crate::structure::steam_game_id_struct::get_game;
 use crate::type_map_key::ShardManagerContainer;
+use crate::{api, get_url};
 
 /// This function is responsible for launching various background threads that manage the bot's activity, games, and web server.
 ///
@@ -77,7 +77,7 @@ pub async fn thread_management_launcher(
     ));
 
     // Wait for a certain amount of time before launching the server image management thread
-    sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
+    sleep(Duration::from_secs(1)).await;
     let image_config = bot_data.config.image.clone();
     tokio::spawn(launch_server_image_management_thread(
         ctx.clone(),
@@ -177,8 +177,9 @@ async fn launch_web_server_thread(
         info!("API is off, skipping the API server thread!");
         return;
     }
+    info!("Launching the API server thread!");
 
-    tokio::spawn(   api::graphql::server::launch(config.bot.config.clone()));
+    tokio::spawn(api::graphql::server::launch(config.bot.config.clone()));
 
     // Read the data from the context
     let data_read = ctx.data.read().await;
@@ -194,8 +195,6 @@ async fn launch_web_server_thread(
     // Clone the cache and http instances
     let cache = ctx.cache.clone();
     let http = ctx.http.clone();
-
-    info!("GRPC is on, launching the GRPC server thread!");
 
     // Launch the GRPC server
     grpc_server_launcher(

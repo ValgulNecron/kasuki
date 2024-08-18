@@ -384,7 +384,7 @@ pub async fn dispatch_command(
             .await;
         }
 
-        "sub_random_image" => {
+        "anime_random_image" => {
             return AnimeRandomImageCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
@@ -394,7 +394,7 @@ pub async fn dispatch_command(
             .await;
         }
 
-        "sub_random_himage" => {
+        "himage_random_himage" => {
             return AnimeRandomImageCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
@@ -404,7 +404,7 @@ pub async fn dispatch_command(
             .await;
         }
 
-        "sub_join" => {
+        "audio_join" => {
             return AudioJoinCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
@@ -413,7 +413,7 @@ pub async fn dispatch_command(
             .run_slash()
             .await;
         }
-        "sub_play" => {
+        "audio_play" => {
             return AudioPlayCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
@@ -423,7 +423,7 @@ pub async fn dispatch_command(
             .await;
         }
 
-        "sub_credit" => {
+        "bot_credit" => {
             return CreditCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
@@ -432,7 +432,7 @@ pub async fn dispatch_command(
             .run_slash()
             .await;
         }
-        "sub_info" => {
+        "bot_info" => {
             return InfoCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
@@ -441,7 +441,7 @@ pub async fn dispatch_command(
             .run_slash()
             .await;
         }
-        "sub_ping" => {
+        "bot_ping" => {
             return PingCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
@@ -479,7 +479,7 @@ pub async fn dispatch_command(
             .await
         }
 
-        "sub_guild" => {
+        "server_guild" => {
             return GuildCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
@@ -488,7 +488,7 @@ pub async fn dispatch_command(
             .run_slash()
             .await
         }
-        "sub_guild_image" => {
+        "server_guild_image" => {
             return GenerateImagePfPCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
@@ -497,7 +497,7 @@ pub async fn dispatch_command(
             .run_slash()
             .await
         }
-        "sub_guild_image_g" => {
+        "server_guild_image_g" => {
             return GenerateGlobalImagePfPCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),

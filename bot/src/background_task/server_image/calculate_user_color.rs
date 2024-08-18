@@ -57,7 +57,10 @@ pub async fn calculate_users_color(
     for member in members {
         trace!("Calculating user color for {}", member.user.id);
         if guard.contains(&member.user.id.to_string()) {
-            debug!("Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE", member.user.id);
+            debug!(
+                "Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE",
+                member.user.id
+            );
             continue;
         }
         let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://cdn.discordapp.com/avatars/260706120086192129/ec231a35c9a33dd29ea4819d29d06056.webp?size=64"))
@@ -103,14 +106,13 @@ pub async fn calculate_users_color(
                 ..Default::default()
             })
             .on_conflict(
-                OnConflict::column(
-                    crate::structure::database::user_data::Column::UserId,
-                )
-                .update_column(crate::structure::database::user_data::Column::Username)
-                .to_owned(),
+                OnConflict::column(crate::structure::database::user_data::Column::UserId)
+                    .update_column(crate::structure::database::user_data::Column::Username)
+                    .to_owned(),
             )
             .exec(&connection)
-            .await {
+            .await
+            {
                 Ok(_) => {}
                 Err(e) => error!("Failed to insert user data. {}", e),
             };
@@ -190,15 +192,14 @@ pub async fn return_average_user_color(
                         added_at: Set(Utc::now().naive_utc()),
                         ..Default::default()
                     })
-                        .on_conflict(
-                            OnConflict::column(
-                                crate::structure::database::user_data::Column::UserId,
-                            )
-                                .update_column(crate::structure::database::user_data::Column::Username)
-                                .to_owned(),
-                        )
-                        .exec(&connection)
-                        .await {
+                    .on_conflict(
+                        OnConflict::column(crate::structure::database::user_data::Column::UserId)
+                            .update_column(crate::structure::database::user_data::Column::Username)
+                            .to_owned(),
+                    )
+                    .exec(&connection)
+                    .await
+                    {
                         Ok(_) => {}
                         Err(e) => error!("Failed to insert user data. {}", e),
                     };
@@ -208,7 +209,8 @@ pub async fn return_average_user_color(
                 continue;
             }
             _ => {
-                let (average_color, image): (String, String) = calculate_user_color(member.clone()).await?;
+                let (average_color, image): (String, String) =
+                    calculate_user_color(member.clone()).await?;
                 average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
                 UserColor::insert(ActiveModel {
                     user_id: Set(id.clone()),
@@ -234,15 +236,14 @@ pub async fn return_average_user_color(
                     added_at: Set(Utc::now().naive_utc()),
                     ..Default::default()
                 })
-                    .on_conflict(
-                        OnConflict::column(
-                            crate::structure::database::user_data::Column::UserId,
-                        )
-                            .update_column(crate::structure::database::user_data::Column::Username)
-                            .to_owned(),
-                    )
-                    .exec(&connection)
-                    .await {
+                .on_conflict(
+                    OnConflict::column(crate::structure::database::user_data::Column::UserId)
+                        .update_column(crate::structure::database::user_data::Column::Username)
+                        .to_owned(),
+                )
+                .exec(&connection)
+                .await
+                {
                     Ok(_) => {}
                     Err(e) => error!("Failed to insert user data. {}", e),
                 };

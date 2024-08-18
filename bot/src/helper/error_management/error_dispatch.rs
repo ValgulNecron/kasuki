@@ -32,30 +32,14 @@ pub async fn command_dispatching(
     ctx: &Context,
     self_handler: &Handler,
 ) {
-    error!("{}", message);
-    if error_type == "ResponseError" {
-        match send_error(message, command_interaction, ctx, self_handler).await {
-            Ok(_) => {}
-            Err(e) => {
-                error!("{}", e);
-            }
-        }
-    } else if error_type == "FollowupError" {
-        match send_differed_error(message, command_interaction, ctx, self_handler).await {
-            Ok(_) => {}
-            Err(e) => {
-                error!("{}", e);
-            }
-        }
-    } else {
-        match send_error(message.clone(), command_interaction, ctx, self_handler).await {
-            Ok(_) => {}
-            Err(_) => {
-                match send_differed_error(message, command_interaction, ctx, self_handler).await {
-                    Ok(_) => {}
-                    Err(e) => {
-                        error!("{}", e);
-                    }
+    error!("{}", message.replace("\\n", "\n"));
+    match send_error(message.clone(), command_interaction, ctx, self_handler).await {
+        Ok(_) => {}
+        Err(_) => {
+            match send_differed_error(message, command_interaction, ctx, self_handler).await {
+                Ok(_) => {}
+                Err(e) => {
+                    error!("{}", e);
                 }
             }
         }

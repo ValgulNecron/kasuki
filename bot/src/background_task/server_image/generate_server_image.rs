@@ -4,9 +4,10 @@ use std::thread;
 
 use base64::engine::general_purpose;
 use base64::Engine;
-use image::codecs::png::PngEncoder;
+use image::codecs::png::{CompressionType, PngEncoder};
 use image::imageops::FilterType;
 use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
+use image::codecs::png;
 use palette::{IntoColor, Lab, Srgb};
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
@@ -103,6 +104,7 @@ pub async fn generate_server_image(
     image_config: ImageConfig,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
+    info!("Generating server image for {}.", guild_id);
     // Fetch the guild information
     let guild = guild_id.to_partial_guild(&ctx.http).await?;
 
@@ -182,12 +184,13 @@ pub async fn generate_server_image(
 
     // Write the image
     let mut image_data: Vec<u8> = Vec::new();
-    PngEncoder::new(&mut image_data).write_image(
+    PngEncoder::new_with_quality(&mut image_data, CompressionType::Best, png::FilterType::Adaptive).write_image(
         img.as_raw(),
         img.width(),
         img.height(),
         ExtendedColorType::Rgba8,
     )?;
+
 
     // Encode the image to base64
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
@@ -211,15 +214,18 @@ pub async fn generate_server_image(
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
     ServerImage::insert(ActiveModel {
         server_id: Set(guild_id.to_string()),
+        server_name: Set(guild.name),
         image_type: Set(image_type.clone()),
         image: Set(image.clone()),
         image_url: Set(guild_pfp.clone()),
         ..Default::default()
     })
     .on_conflict(
-        sea_orm::sea_query::OnConflict::column(Column::ServerId)
+        sea_orm::sea_query::OnConflict::columns([Column::ImageType, Column::ServerId])
             .update_column(Column::Image)
             .update_column(Column::ImageUrl)
+            .update_column(Column::GeneratedAt)
+            .update_column(Column::ServerName)
             .to_owned(),
     )
     .exec(&connection)
