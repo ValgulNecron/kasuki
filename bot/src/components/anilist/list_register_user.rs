@@ -79,7 +79,6 @@ pub async fn update(
         ctx,
         &list_user_localised,
         id,
-        anilist_cache,
         db_config,
     )
     .await?;

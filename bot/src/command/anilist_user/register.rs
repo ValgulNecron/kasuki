@@ -55,7 +55,6 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
     // Retrieve the username of the AniList account from the command interaction
     let map = get_option_map_string(command_interaction);
     let value = map

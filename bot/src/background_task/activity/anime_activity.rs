@@ -38,11 +38,10 @@ use tracing::{error, trace};
 /// * `ctx` - A Context that represents the context.
 pub async fn manage_activity(
     ctx: Context,
-    db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: BotConfigDetails,
 ) {
-    send_activity(&ctx, db_type, anilist_cache, db_config).await;
+    send_activity(&ctx, anilist_cache, db_config).await;
 }
 
 /// `send_activity` is an asynchronous function that sends activities.
@@ -62,7 +61,6 @@ pub async fn manage_activity(
 /// * `ctx` - A reference to the Context.
 async fn send_activity(
     ctx: &Context,
-    db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: BotConfigDetails,
 ) {
@@ -91,7 +89,6 @@ async fn send_activity(
         let guild_id = row.server_id.clone();
         let ctx = ctx.clone();
         if row.delay != 0 {
-            let db_type = db_type.clone();
             let anilist_cache = anilist_cache.clone();
             let db_config = db_config.clone();
             tokio::spawn(async move {
@@ -110,7 +107,6 @@ async fn send_activity(
                 }
             });
         } else {
-            let db_type = db_type.clone();
             let anilist_cache = anilist_cache.clone();
             let db_config = db_config.clone();
             tokio::spawn(async move {

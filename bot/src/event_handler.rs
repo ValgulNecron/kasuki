@@ -163,7 +163,6 @@ impl EventHandler for Handler {
     /// If the bot has just joined a new guild, it performs color management, generates a server image, and logs a debug message.
     /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
-        let db_type = self.bot_data.config.bot.config.db_type.clone();
         let image_config = self.bot_data.config.image.clone();
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
         if is_new.unwrap_or_default() {
@@ -200,7 +199,6 @@ impl EventHandler for Handler {
     /// If an error occurs during the handling of the new member, it logs the error.
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
-        let db_type = self.bot_data.config.bot.config.db_type.clone();
         let guild_id = member.guild_id.to_string();
         let image_config = self.bot_data.config.image.clone();
         debug!(

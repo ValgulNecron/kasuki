@@ -45,7 +45,6 @@ pub async fn thread_management_launcher(
     let command_usage = bot_data.number_of_command_use_per_command.clone();
     let is_grpc_on = bot_data.config.grpc.grpc_is_on;
     let config = bot_data.config.clone();
-    let db_type = config.bot.config.db_type.clone();
     let anilist_cache = bot_data.anilist_cache.clone();
     let apps = bot_data.apps.clone();
     let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
@@ -53,13 +52,11 @@ pub async fn thread_management_launcher(
     // Spawn background threads to manage the bot's activity, games, and web server
     tokio::spawn(launch_user_color_management_thread(
         ctx.clone(),
-        db_type.clone(),
         user_blacklist_server_image.clone(),
         db_config.clone(),
     ));
     tokio::spawn(launch_activity_management_thread(
         ctx.clone(),
-        db_type.clone(),
         anilist_cache.clone(),
         db_config.clone(),
     ));
@@ -84,7 +81,6 @@ pub async fn thread_management_launcher(
     let image_config = bot_data.config.image.clone();
     tokio::spawn(launch_server_image_management_thread(
         ctx.clone(),
-        db_type.clone(),
         image_config,
         db_config.clone(),
     ));
@@ -221,7 +217,6 @@ async fn launch_web_server_thread(
 ///
 async fn launch_user_color_management_thread(
     ctx: Context,
-    db_type: String,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
     db_config: BotConfigDetails,
 ) {
@@ -285,7 +280,6 @@ async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>)
 ///
 async fn launch_activity_management_thread(
     ctx: Context,
-    db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: BotConfigDetails,
 ) {
@@ -302,12 +296,10 @@ async fn launch_activity_management_thread(
 
         // Clone the context and db_type arguments
         let ctx = ctx.clone();
-        let db_type = db_type.clone();
 
         // Spawn a new task to manage the bot's activity
         tokio::spawn(manage_activity(
             ctx,
-            db_type,
             anilist_cache.clone(),
             db_config.clone(),
         ));
@@ -323,7 +315,6 @@ async fn launch_activity_management_thread(
 ///
 async fn launch_server_image_management_thread(
     ctx: Context,
-    db_type: String,
     image_config: ImageConfig,
     db_config: BotConfigDetails,
 ) {

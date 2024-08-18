@@ -93,7 +93,6 @@ async fn send_embed(
         ctx,
         &list_user_localised,
         None,
-        anilist_cache,
         config.bot.config.clone(),
     )
     .await?;
@@ -146,7 +145,6 @@ pub async fn get_the_list(
     ctx: &Context,
     list_user_localised: &ListUserLocalised,
     last_id: Option<UserId>,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: BotConfigDetails,
 ) -> Result<(CreateEmbed, usize, Option<UserId>), Box<dyn Error>> {
     let mut anilist_user = Vec::new();

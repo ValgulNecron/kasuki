@@ -74,7 +74,6 @@ async fn admin_autocomplete(
             ctx,
             autocomplete_interaction,
             anilist_cache,
-            db_type,
             db_config,
         )
         .await
@@ -104,7 +103,6 @@ async fn anilist_admin_autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_type: String,
     db_config: BotConfigDetails,
 ) {
     let subcommand = get_subcommand(&autocomplete_interaction).unwrap();
