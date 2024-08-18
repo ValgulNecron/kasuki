@@ -62,9 +62,13 @@ async fn send_activity(
     db_config: BotConfigDetails,
 ) {
     let now = Utc::now().naive_utc();
-    let connection = sea_orm::Database::connect(get_url(db_config.clone()))
-        .await
-        .unwrap();
+    let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
+        Ok(connection) => connection,
+        Err(e) => {
+            error!("{}", e);
+            return;
+        }
+    };
     let rows = match ActivityData::find()
         .filter(<activity_data::Entity as EntityTrait>::Column::Timestamp.eq(now.clone()))
         .all(&connection)

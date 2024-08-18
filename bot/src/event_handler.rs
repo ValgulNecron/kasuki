@@ -1,9 +1,8 @@
-use std::collections::HashMap;
-use std::ops::{Add, AddAssign};
-use std::sync::Arc;
-
+use chrono::Utc;
 use moka::future::Cache;
 use num_bigint::BigUint;
+use sea_orm::ActiveValue::Set;
+use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,
@@ -11,6 +10,9 @@ use serenity::all::{
 };
 use serenity::async_trait;
 use serenity::gateway::ChunkGuildFilter;
+use std::collections::HashMap;
+use std::ops::{Add, AddAssign};
+use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
@@ -23,6 +25,7 @@ use crate::command::user_command_dispatch::dispatch_user_command;
 use crate::components::components_dispatch::components_dispatching;
 use crate::config::Config;
 use crate::constant::COMMAND_USE_PATH;
+use crate::get_url;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::error_management::error_enum::{
     FollowupError, ResponseError, UnknownResponseError,
@@ -30,6 +33,7 @@ use crate::helper::error_management::error_enum::{
 use crate::new_member::new_member_message;
 use crate::register::registration_dispatcher::command_registration;
 use crate::removed_member::removed_member_message;
+use crate::structure::database::prelude::{GuildData, UserData};
 
 pub struct BotData {
     pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
@@ -179,6 +183,37 @@ impl EventHandler for Handler {
         } else {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
         }
+        let connection = match sea_orm::Database::connect(get_url(
+            self.bot_data.config.bot.config.clone(),
+        ))
+        .await
+        {
+            Ok(connection) => connection,
+            Err(e) => {
+                error!("Failed to connect to the database. {}", e);
+                return;
+            }
+        };
+        match GuildData::insert(crate::structure::database::guild_data::ActiveModel {
+            guild_id: Set(guild.id.to_string()),
+            guild_name: Set(guild.name),
+            updated_at: Set(guild.joined_at.naive_utc()),
+            ..Default::default()
+        })
+        .on_conflict(
+            sea_orm::sea_query::OnConflict::column(
+                crate::structure::database::guild_data::Column::GuildId,
+            )
+            .update_column(crate::structure::database::guild_data::Column::GuildName)
+            .update_column(crate::structure::database::guild_data::Column::UpdatedAt)
+            .to_owned(),
+        )
+        .exec(&connection)
+        .await
+        {
+            Ok(_) => {}
+            Err(e) => error!("Failed to insert guild data. {}", e),
+        };
     }
 
     /// This function is called when a new member joins a guild.
@@ -224,6 +259,36 @@ impl EventHandler for Handler {
             server_image_management(&ctx, image_config, self.bot_data.config.bot.config.clone())
                 .await;
         }
+        let connection = match sea_orm::Database::connect(get_url(
+            self.bot_data.config.bot.config.clone(),
+        ))
+        .await
+        {
+            Ok(connection) => connection,
+            Err(e) => {
+                error!("Failed to connect to the database. {}", e);
+                return;
+            }
+        };
+        match UserData::insert(crate::structure::database::user_data::ActiveModel {
+            user_id: Set(member.user.id.to_string()),
+            username: Set(member.user.name),
+            added_at: Set(Utc::now().naive_utc()),
+            ..Default::default()
+        })
+        .on_conflict(
+            sea_orm::sea_query::OnConflict::column(
+                crate::structure::database::user_data::Column::UserId,
+            )
+            .update_column(crate::structure::database::user_data::Column::Username)
+            .to_owned(),
+        )
+        .exec(&connection)
+        .await
+        {
+            Ok(_) => {}
+            Err(e) => error!("Failed to insert user data. {}", e),
+        };
     }
 
     async fn guild_member_removal(

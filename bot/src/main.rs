@@ -15,7 +15,6 @@ use songbird::driver::DecodeMode;
 use songbird::SerenityInit;
 use tokio::sync::RwLock;
 use tracing::{error, info, trace};
-
 mod api;
 mod audio;
 mod background_task;
@@ -70,14 +69,14 @@ async fn main() {
     // If an error occurs, print the error and return.
     if let Err(e) = create_log_directory() {
         eprintln!("{:?}", e);
-        std::process::exit(2);
+        process::exit(2);
     }
 
     // Initialize the logger with the specified log level.
     // If an error occurs, print the error and return.
     if let Err(e) = init_logger(log, max_log_retention_days) {
         eprintln!("{:?}", e);
-        std::process::exit(2);
+        process::exit(2);
     }
 
     // Initialize the SQL database.
