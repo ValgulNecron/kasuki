@@ -227,13 +227,13 @@ async fn init_db(config: Arc<Config>) -> Result<(), Box<dyn Error>> {
     std::env::set_var("DATABASE_URL", url);
     #[cfg(windows)]
     {
-        let mut cmd = process::Command::new("migration.exe");
+        let mut cmd = process::Command::new("./migration.exe");
         let child = cmd.spawn()?;
         child.wait_with_output()?;
     }
     #[cfg(unix)]
     {
-        let mut cmd = process::Command::new("migration");
+        let mut cmd = process::Command::new("./migration");
         let child = cmd.spawn()?;
         child.wait_with_output()?;
     }

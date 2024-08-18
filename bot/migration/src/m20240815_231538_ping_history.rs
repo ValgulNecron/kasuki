@@ -14,6 +14,7 @@ impl MigrationTrait for Migration {
                     .col(string(PingHistory::ShardId))
                     .primary_key(
                         Index::create().col(PingHistory::ShardId)
+                            .col(PingHistory::Timestamp),
                     )
                     .col(timestamp(PingHistory::Timestamp))
                     .col(string(PingHistory::Latency))

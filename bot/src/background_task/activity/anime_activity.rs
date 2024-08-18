@@ -61,7 +61,7 @@ async fn send_activity(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: BotConfigDetails,
 ) {
-    let now = Utc::now().timestamp().to_string();
+    let now = Utc::now().naive_utc();
     let connection = sea_orm::Database::connect(get_url(db_config.clone()))
         .await
         .unwrap();
@@ -78,7 +78,7 @@ async fn send_activity(
     };
 
     for row in rows {
-        if now != row.timestamp.to_string() {
+        if now != row.timestamp {
             continue;
         }
 

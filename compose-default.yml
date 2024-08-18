@@ -12,6 +12,7 @@ services:
     hostname: kasuki
     depends_on:
       - db
+      - caddy
     tty: true
     volumes:
       - ./db/:/kasuki/db
@@ -28,6 +29,8 @@ services:
     image: postgres
     restart: always
     hostname: db
+    depends_on:
+      - caddy
     volumes:
       - ./db/:/var/lib/postgresql/data
     environment:
@@ -42,7 +45,9 @@ services:
     restart: always
     hostname: caddy
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/data:/data
+      - ./caddy/config:/config
     ports:
       - "80:80"
       - "443:443"
