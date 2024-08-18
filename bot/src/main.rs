@@ -273,12 +273,10 @@ pub fn get_url(db_config: BotConfigDetails) -> String {
             let param = vec![("user", user.as_str()), ("password", password.as_str())];
             let param = serde_urlencoded::to_string(&param).unwrap();
             let url = format!("postgresql://{}:{}/kasuki?{}", host, port, param);
-            trace!(?url);
             url
         }
         _ => {
             let url = "sqlite://bot.db";
-            trace!(?url);
             url.to_string()
         }
     }

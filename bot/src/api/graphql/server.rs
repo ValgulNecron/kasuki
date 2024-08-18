@@ -7,6 +7,7 @@ use lazy_static::lazy_static;
 use poem::{get, handler, listener::TcpListener, web::Html, IntoResponse, Route, Server};
 use sea_orm::Database;
 use std::env;
+use tracing::info;
 
 lazy_static! {
     static ref URL: String = env::var("URL").unwrap_or("localhost:8000".into());
@@ -24,7 +25,7 @@ lazy_static! {
 async fn graphql_playground() -> impl IntoResponse {
     Html(playground_source(GraphQLPlaygroundConfig::new(&ENDPOINT)))
 }
-async fn launch(db_config: BotConfigDetails) {
+pub async fn launch(db_config: BotConfigDetails) {
     dotenvy::dotenv().ok();
     let database = Database::connect(get_url(db_config))
         .await
@@ -34,7 +35,7 @@ async fn launch(db_config: BotConfigDetails) {
         &*ENDPOINT,
         get(graphql_playground).post(GraphQL::new(schema)),
     );
-    println!("Visit GraphQL Playground at https://{}", *URL);
+    info!("Visit GraphQL Playground at http://{}", *URL);
     Server::new(TcpListener::bind(&*URL))
         .run(app)
         .await

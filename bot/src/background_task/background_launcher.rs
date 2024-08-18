@@ -23,7 +23,7 @@ use crate::constant::{
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
 use crate::event_handler::{BotData, RootUsage};
-use crate::get_url;
+use crate::{api, get_url};
 use crate::structure::database::ping_history::ActiveModel;
 use crate::structure::database::prelude::PingHistory;
 use crate::structure::steam_game_id_struct::get_game;
@@ -174,9 +174,11 @@ async fn launch_web_server_thread(
 ) {
     // Check if GRPC is enabled
     if !is_grpc_on {
-        info!("GRPC is off, skipping the GRPC server thread!");
+        info!("API is off, skipping the API server thread!");
         return;
     }
+
+    tokio::spawn(   api::graphql::server::launch(config.bot.config.clone()));
 
     // Read the data from the context
     let data_read = ctx.data.read().await;

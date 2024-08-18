@@ -25,7 +25,7 @@ use sea_orm::QueryFilter;
 use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::sync::RwLock;
 use tokio::time::sleep;
-use tracing::{debug, error};
+use tracing::{debug, error, trace};
 
 /// Calculates the color for each user in a list of members.
 ///
@@ -55,7 +55,9 @@ pub async fn calculate_users_color(
 ) -> Result<(), Box<dyn Error>> {
     let guard = user_blacklist_server_image.read().await;
     for member in members {
+        trace!("Calculating user color for {}", member.user.id);
         if guard.contains(&member.user.id.to_string()) {
+            debug!("Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE", member.user.id);
             continue;
         }
         let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://cdn.discordapp.com/avatars/260706120086192129/ec231a35c9a33dd29ea4819d29d06056.webp?size=64"))
@@ -69,7 +71,7 @@ pub async fn calculate_users_color(
             .await?
             .unwrap_or(Model {
                 user_id: id.clone(),
-                profile_picture_url: pfp_url.clone(),
+                profile_picture_url: String::from(""),
                 color: String::from(""),
                 images: String::from(""),
                 calculated_at: Default::default(),
@@ -94,22 +96,26 @@ pub async fn calculate_users_color(
             )
             .exec(&connection)
             .await?;
-            UserData::insert(crate::structure::database::user_data::ActiveModel {
+            match UserData::insert(crate::structure::database::user_data::ActiveModel {
                 user_id: Set(id.clone()),
                 username: Set(member.user.name),
                 added_at: Set(Utc::now().naive_utc()),
                 ..Default::default()
             })
             .on_conflict(
-                sea_orm::sea_query::OnConflict::column(
+                OnConflict::column(
                     crate::structure::database::user_data::Column::UserId,
                 )
                 .update_column(crate::structure::database::user_data::Column::Username)
                 .to_owned(),
             )
             .exec(&connection)
-            .await?;
+            .await {
+                Ok(_) => {}
+                Err(e) => error!("Failed to insert user data. {}", e),
+            };
         }
+        trace!("Done calculating user color for {}", member.user.id);
         sleep(Duration::from_millis(1)).await
     }
     Ok(())
@@ -140,6 +146,7 @@ pub async fn return_average_user_color(
 ) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
     let mut average_colors = Vec::new();
     for member in members {
+        trace!("Calculating user color for {}", member.user.id);
         let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://cdn.discordapp.com/avatars/260706120086192129/ec231a35c9a33dd29ea4819d29d06056.webp?size=64"))
             .replace("?size=1024", "?size=64");
         let id = member.user.id.to_string();
@@ -158,6 +165,7 @@ pub async fn return_average_user_color(
                 if pfp_url != pfp_url_old {
                     let (average_color, image): (String, String) =
                         calculate_user_color(member.clone()).await?;
+                    average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
                     UserColor::insert(ActiveModel {
                         user_id: Set(id.clone()),
                         profile_picture_url: Set(pfp_url.clone()),
@@ -176,22 +184,24 @@ pub async fn return_average_user_color(
                     )
                     .exec(&connection)
                     .await?;
-                    average_colors.push((average_color, pfp_url, image));
-                    UserData::insert(crate::structure::database::user_data::ActiveModel {
+                    match UserData::insert(crate::structure::database::user_data::ActiveModel {
                         user_id: Set(id.clone()),
                         username: Set(member.user.name),
                         added_at: Set(Utc::now().naive_utc()),
                         ..Default::default()
                     })
                         .on_conflict(
-                            sea_orm::sea_query::OnConflict::column(
+                            OnConflict::column(
                                 crate::structure::database::user_data::Column::UserId,
                             )
                                 .update_column(crate::structure::database::user_data::Column::Username)
                                 .to_owned(),
                         )
                         .exec(&connection)
-                        .await?;
+                        .await {
+                        Ok(_) => {}
+                        Err(e) => error!("Failed to insert user data. {}", e),
+                    };
                     continue;
                 }
                 average_colors.push((color, pfp_url_old, image_old));
@@ -199,6 +209,7 @@ pub async fn return_average_user_color(
             }
             _ => {
                 let (average_color, image): (String, String) = calculate_user_color(member.clone()).await?;
+                average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
                 UserColor::insert(ActiveModel {
                     user_id: Set(id.clone()),
                     profile_picture_url: Set(pfp_url.clone()),
@@ -217,25 +228,28 @@ pub async fn return_average_user_color(
                 )
                 .exec(&connection)
                 .await?;
-                average_colors.push((average_color, pfp_url, image));
-                UserData::insert(crate::structure::database::user_data::ActiveModel {
+                match UserData::insert(crate::structure::database::user_data::ActiveModel {
                     user_id: Set(id.clone()),
                     username: Set(member.user.name),
                     added_at: Set(Utc::now().naive_utc()),
                     ..Default::default()
                 })
                     .on_conflict(
-                        sea_orm::sea_query::OnConflict::column(
+                        OnConflict::column(
                             crate::structure::database::user_data::Column::UserId,
                         )
                             .update_column(crate::structure::database::user_data::Column::Username)
                             .to_owned(),
                     )
                     .exec(&connection)
-                    .await?;
+                    .await {
+                    Ok(_) => {}
+                    Err(e) => error!("Failed to insert user data. {}", e),
+                };
                 continue;
             }
         }
+        trace!("Done calculating user color for {}", member.user.id);
     }
 
     Ok(average_colors)
