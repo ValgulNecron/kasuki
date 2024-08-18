@@ -23,7 +23,7 @@ use crate::structure::run::anilist::minimal_anime::{
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use base64::Engine as _;
-use chrono::{NaiveDateTime, Utc};
+use chrono::Utc;
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
@@ -32,7 +32,7 @@ use reqwest::get;
 use sea_orm::ActiveValue::Set;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
-use sea_orm::{EntityOrSelect, EntityTrait};
+use sea_orm::EntityTrait;
 use serde_json::json;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{

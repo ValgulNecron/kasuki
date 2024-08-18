@@ -87,7 +87,7 @@ async fn send_embed(
         }
     }
 
-    let mut active_model = row.into_active_model();
+    let active_model = row.into_active_model();
     active_model.update(&connection).await?;
 
     let desc = if state {

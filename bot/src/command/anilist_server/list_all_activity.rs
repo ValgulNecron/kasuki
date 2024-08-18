@@ -4,14 +4,13 @@ use crate::config::Config;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::database::activity_data::Column;
 use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
-use prost::bytes::BufMut;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
-use sea_orm::{EntityOrSelect, EntityTrait};
+use sea_orm::EntityTrait;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateInteractionResponseFollowup,
@@ -68,7 +67,7 @@ async fn send_embed(
 
     let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
     let list = ActivityData::find()
-        .filter(Column::ServerId.eq(&guild_id.to_string()))
+        .filter(Column::ServerId.eq(guild_id.to_string()))
         .all(&connection)
         .await?;
     let len = list.len();

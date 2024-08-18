@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, RwLock};
 use std::thread;
 
 use base64::engine::general_purpose;
@@ -9,7 +9,7 @@ use image::imageops::FilterType;
 use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
 use palette::{IntoColor, Lab, Srgb};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{EntityOrSelect, EntityTrait};
+use sea_orm::EntityTrait;
 use serenity::all::{Context, GuildId, Member};
 use tokio::task;
 use tracing::{info, warn};
@@ -27,10 +27,8 @@ use crate::constant::THREAD_POOL_SIZE;
 use crate::get_url;
 use crate::helper::error_management::error_enum;
 use crate::helper::image_saver::general_image_saver::image_saver;
-use crate::register::command_struct::common::RemoteCommandOptionType::User;
 use crate::structure::database::prelude::{ServerImage, UserColor};
-use crate::structure::database::server_image::{ActiveModel, Column, Model};
-use sea_orm::QueryFilter;
+use crate::structure::database::server_image::{ActiveModel, Column};
 
 /// This function generates a local server image.
 ///

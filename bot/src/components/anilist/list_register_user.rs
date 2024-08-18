@@ -37,8 +37,6 @@ pub async fn update(
     component_interaction: &ComponentInteraction,
     user_id: &str,
     prev_id: &str,
-    db_type: String,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Retrieve the guild ID from the component interaction

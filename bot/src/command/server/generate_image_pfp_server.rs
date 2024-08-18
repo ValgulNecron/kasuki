@@ -2,7 +2,6 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
-use crate::command::server::generate_image_pfp_server;
 use crate::config::{BotConfigDetails, Config};
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;

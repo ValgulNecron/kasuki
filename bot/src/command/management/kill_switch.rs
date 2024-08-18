@@ -78,7 +78,7 @@ async fn send_embed(
             ))));
         }
     }
-    let mut active_model: ActiveModel = row.into_active_model();
+    let active_model: ActiveModel = row.into_active_model();
     active_model.update(&connection).await?;
     let desc = if state {
         &module_localised.on

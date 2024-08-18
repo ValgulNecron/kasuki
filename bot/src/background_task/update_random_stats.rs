@@ -10,7 +10,6 @@ use tokio::time::interval;
 use tracing::info;
 
 use crate::constant::{RANDOM_STATS_PATH, TIME_BETWEEN_RANDOM_STATS_UPDATE};
-use crate::helper::error_management::error_enum::UnknownResponseError;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::site_statistic_anime::{AnimeStat, AnimeStatVariables};
 use crate::structure::run::anilist::site_statistic_manga::{MangaStat, MangaStatVariables};

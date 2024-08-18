@@ -58,7 +58,6 @@ async fn admin_autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_type: String,
     db_config: BotConfigDetails,
 ) {
     if autocomplete_interaction

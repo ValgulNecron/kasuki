@@ -20,7 +20,7 @@ use sea_orm::sea_query::OnConflict;
 use sea_orm::ActiveValue::Set;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
-use sea_orm::{EntityOrSelect, EntityTrait};
+use sea_orm::EntityTrait;
 use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::sync::RwLock;
 use tokio::time::sleep;

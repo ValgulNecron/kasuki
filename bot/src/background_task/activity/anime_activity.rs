@@ -3,26 +3,23 @@ use std::io::{Cursor, Read};
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::command::admin::anilist::add_activity::{
-    get_minimal_anime_by_id, get_minimal_anime_media,
-};
+use crate::command::admin::anilist::add_activity::get_minimal_anime_media;
 use crate::config::BotConfigDetails;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum;
 use crate::structure::database::activity_data;
-use crate::structure::database::activity_data::{Model, PrimaryKey};
+use crate::structure::database::activity_data::Model;
 use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::Utc;
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
-use sea_orm::{EntityOrSelect, EntityTrait};
-use serenity::all::ButtonStyle::Primary;
+use sea_orm::EntityTrait;
 use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webhook};
 use tokio::sync::RwLock;
 use tracing::{error, trace};

@@ -54,9 +54,7 @@ async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
     // Retrieve the guild ID from the command interaction or use "0" if it does not exist
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
