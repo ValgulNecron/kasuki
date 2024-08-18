@@ -228,7 +228,6 @@ pub async fn dispatch_command(
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
                 config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await;
@@ -644,7 +643,6 @@ async fn anilist_server(
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
-    let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anilist module is off
     let anilist_module_error = ResponseError::Option(String::from(
         "Anilist module is not activated. Please enable it first.",
     ));
@@ -689,7 +687,6 @@ async fn anilist_user(
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
-    let db_type = config.bot.config.db_type.clone(); // Define the error for when the Anilist module is off
     let anilist_module_error = ResponseError::Option(String::from(
         "Anilist module is not activated. Please enable it first.",
     ));
@@ -721,7 +718,6 @@ async fn vn(
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
-    let db_type = config.bot.config.db_type.clone();
     let vndb_cache = self_handler.bot_data.vndb_cache.clone();
     let vn_module_error = ResponseError::Option(String::from(
         "The VN module is not activated for this guild.",

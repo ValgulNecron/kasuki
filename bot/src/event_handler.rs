@@ -173,12 +173,8 @@ impl EventHandler for Handler {
                 self.bot_data.config.bot.config.clone(),
             )
             .await;
-            server_image_management(
-                &ctx,
-                image_config,
-                self.bot_data.config.bot.config.clone(),
-            )
-            .await;
+            server_image_management(&ctx, image_config, self.bot_data.config.bot.config.clone())
+                .await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
@@ -225,12 +221,8 @@ impl EventHandler for Handler {
         )
         .await;
         if is_module_on {
-            server_image_management(
-                &ctx,
-                image_config,
-                self.bot_data.config.bot.config.clone(),
-            )
-            .await;
+            server_image_management(&ctx, image_config, self.bot_data.config.bot.config.clone())
+                .await;
         }
     }
 
@@ -434,7 +426,6 @@ impl EventHandler for Handler {
                 ctx,
                 autocomplete_interaction,
                 anilist_cache,
-                db_type,
                 vndb_cache,
                 apps,
                 self.bot_data.config.bot.config.clone(),
@@ -447,8 +438,6 @@ impl EventHandler for Handler {
             if let Err(e) = components_dispatching(
                 ctx,
                 component_interaction,
-                db_type,
-                anilist_cache,
                 self.bot_data.config.bot.config.clone(),
             )
             .await

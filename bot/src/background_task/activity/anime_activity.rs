@@ -18,8 +18,8 @@ use chrono::Utc;
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::ColumnTrait;
-use sea_orm::QueryFilter;
 use sea_orm::EntityTrait;
+use sea_orm::QueryFilter;
 use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webhook};
 use tokio::sync::RwLock;
 use tracing::{error, trace};
@@ -90,15 +90,9 @@ async fn send_activity(
             let db_config = db_config.clone();
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs(row2.delay as u64)).await;
-                if let Err(e) = send_specific_activity(
-                    row,
-                    guild_id,
-                    row2,
-                    &ctx,
-                    anilist_cache,
-                    db_config,
-                )
-                .await
+                if let Err(e) =
+                    send_specific_activity(row, guild_id, row2, &ctx, anilist_cache, db_config)
+                        .await
                 {
                     error!("{}", e)
                 }
@@ -107,15 +101,9 @@ async fn send_activity(
             let anilist_cache = anilist_cache.clone();
             let db_config = db_config.clone();
             tokio::spawn(async move {
-                if let Err(e) = send_specific_activity(
-                    row,
-                    guild_id,
-                    row2,
-                    &ctx,
-                    anilist_cache,
-                    db_config,
-                )
-                .await
+                if let Err(e) =
+                    send_specific_activity(row, guild_id, row2, &ctx, anilist_cache, db_config)
+                        .await
                 {
                     error!("{}", e);
                 }

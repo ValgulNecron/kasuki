@@ -12,7 +12,6 @@ use crate::structure::database::registered_user::{Column, Model};
 use crate::structure::message::anilist_server::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };
-use moka::future::Cache;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -21,13 +20,11 @@ use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage, PartialGuild, User, UserId,
 };
-use tokio::sync::RwLock;
 
 pub struct ListRegisterUser {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for ListRegisterUser {
@@ -41,13 +38,7 @@ impl Command for ListRegisterUser {
 
 impl SlashCommand for ListRegisterUser {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        send_embed(
-            &self.ctx,
-            &self.command_interaction,
-            self.config.clone(),
-            self.anilist_cache.clone(),
-        )
-        .await
+        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 async fn send_embed(

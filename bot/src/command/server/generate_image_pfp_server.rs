@@ -48,13 +48,7 @@ async fn init(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-    send_embed(
-        ctx,
-        command_interaction,
-        "local",
-        config.bot.config.clone(),
-    )
-    .await
+    send_embed(ctx, command_interaction, "local", config.bot.config.clone()).await
 }
 pub async fn send_embed(
     ctx: &Context,

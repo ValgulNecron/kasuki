@@ -252,13 +252,9 @@ pub async fn server_image_management(
         let image_config_a = image_config.clone();
         let db_config2 = db_config.clone();
         task::spawn(async move {
-            if let Err(e) = generate_local_server_image(
-                &ctx_clone,
-                guild_clone,
-                image_config_a,
-                db_config2,
-            )
-            .await
+            if let Err(e) =
+                generate_local_server_image(&ctx_clone, guild_clone, image_config_a, db_config2)
+                    .await
             {
                 warn!(
                     "Failed to generate local server image for guild {}. {:?}",
@@ -269,13 +265,8 @@ pub async fn server_image_management(
             }
         });
 
-        if let Err(e) = generate_global_server_image(
-            ctx,
-            guild,
-            image_config.clone(),
-            db_config.clone(),
-        )
-        .await
+        if let Err(e) =
+            generate_global_server_image(ctx, guild, image_config.clone(), db_config.clone()).await
         {
             warn!(
                 "Failed to generate global server image for guild {}. {:?}",

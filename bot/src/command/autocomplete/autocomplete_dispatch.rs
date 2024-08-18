@@ -20,21 +20,13 @@ pub async fn autocomplete_dispatching(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_type: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
     apps: Arc<RwLock<HashMap<String, u128>>>,
     db_config: BotConfigDetails,
 ) {
     match autocomplete_interaction.data.name.as_str() {
         "admin" => {
-            admin_autocomplete(
-                ctx,
-                autocomplete_interaction,
-                anilist_cache,
-                db_type,
-                db_config,
-            )
-            .await
+            admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_config).await
         }
         "anime" => anime::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
         "ln" => ln::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
@@ -69,13 +61,7 @@ async fn admin_autocomplete(
         .as_str()
         == "anilist"
     {
-        anilist_admin_autocomplete(
-            ctx,
-            autocomplete_interaction,
-            anilist_cache,
-            db_config,
-        )
-        .await
+        anilist_admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_config).await
     }
 }
 

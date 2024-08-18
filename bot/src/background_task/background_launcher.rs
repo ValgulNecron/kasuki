@@ -330,12 +330,7 @@ async fn launch_server_image_management_thread(
         interval.tick().await;
 
         // Call the server_image_management function with the provided context, database type, and image configuration
-        server_image_management(
-            &ctx,
-            image_config.clone(),
-            db_config.clone(),
-        )
-        .await;
+        server_image_management(&ctx, image_config.clone(), db_config.clone()).await;
     }
 }
 

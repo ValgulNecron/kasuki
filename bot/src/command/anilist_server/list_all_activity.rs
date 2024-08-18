@@ -9,8 +9,8 @@ use crate::structure::database::activity_data::Column;
 use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 use sea_orm::ColumnTrait;
-use sea_orm::QueryFilter;
 use sea_orm::EntityTrait;
+use sea_orm::QueryFilter;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateButton, CreateInteractionResponseFollowup,
