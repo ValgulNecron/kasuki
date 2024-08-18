@@ -32,12 +32,10 @@ pub async fn init(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
     send_embed(
         ctx,
         command_interaction,
         "global",
-        db_type,
         config.bot.config.clone(),
     )
     .await

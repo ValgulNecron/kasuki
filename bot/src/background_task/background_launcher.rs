@@ -243,7 +243,6 @@ async fn launch_user_color_management_thread(
         color_management(
             &guilds,
             &ctx,
-            db_type.clone(),
             user_blacklist_server_image.clone(),
             db_config.clone(),
         )
@@ -342,7 +341,6 @@ async fn launch_server_image_management_thread(
         // Call the server_image_management function with the provided context, database type, and image configuration
         server_image_management(
             &ctx,
-            db_type.clone(),
             image_config.clone(),
             db_config.clone(),
         )

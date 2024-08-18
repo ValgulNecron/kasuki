@@ -101,7 +101,6 @@ async fn send_activity(
                     guild_id,
                     row2,
                     &ctx,
-                    db_type,
                     anilist_cache,
                     db_config,
                 )
@@ -120,7 +119,6 @@ async fn send_activity(
                     guild_id,
                     row2,
                     &ctx,
-                    db_type,
                     anilist_cache,
                     db_config,
                 )
@@ -164,7 +162,6 @@ async fn send_specific_activity(
     guild_id: String,
     row2: Model,
     ctx: &Context,
-    db_type: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {

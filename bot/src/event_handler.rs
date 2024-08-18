@@ -170,14 +170,12 @@ impl EventHandler for Handler {
             color_management(
                 &ctx.cache.guilds(),
                 &ctx,
-                db_type.clone(),
                 user_blacklist_server_image,
                 self.bot_data.config.bot.config.clone(),
             )
             .await;
             server_image_management(
                 &ctx,
-                db_type,
                 image_config,
                 self.bot_data.config.bot.config.clone(),
             )

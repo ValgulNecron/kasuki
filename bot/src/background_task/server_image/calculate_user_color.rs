@@ -309,7 +309,6 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, Box<dyn Err
 pub async fn color_management(
     guilds: &Vec<GuildId>,
     ctx_clone: &Context,
-    db_type: String,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
     db_config: BotConfigDetails,
 ) {

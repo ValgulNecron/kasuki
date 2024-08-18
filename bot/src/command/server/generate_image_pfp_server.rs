@@ -54,7 +54,6 @@ async fn init(
         ctx,
         command_interaction,
         "local",
-        db_type,
         config.bot.config.clone(),
     )
     .await
@@ -63,7 +62,6 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     image_type: &str,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Retrieve the guild ID from the command interaction
