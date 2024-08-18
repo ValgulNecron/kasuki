@@ -1,9 +1,6 @@
 use std::error::Error;
-use std::sync::Arc;
 
-use moka::future::Cache;
 use serenity::all::{ComponentInteraction, Context};
-use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::components::anilist::{list_all_activity, list_register_user};

@@ -417,7 +417,6 @@ impl EventHandler for Handler {
                 trace!("{:?}", command_interaction)
             }
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
-            let db_type = self.bot_data.config.bot.config.db_type.clone();
             let anilist_cache = self.bot_data.anilist_cache.clone();
             let vndb_cache = self.bot_data.vndb_cache.clone();
             let apps = self.bot_data.apps.clone();
@@ -432,8 +431,6 @@ impl EventHandler for Handler {
             )
             .await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
-            let db_type = self.bot_data.config.bot.config.db_type.clone();
-            let anilist_cache = self.bot_data.anilist_cache.clone();
             // Dispatch the component interaction
             if let Err(e) = components_dispatching(
                 ctx,

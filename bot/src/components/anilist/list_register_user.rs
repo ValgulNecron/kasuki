@@ -1,11 +1,8 @@
 use std::error::Error;
-use std::sync::Arc;
 
-use moka::future::Cache;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, UserId,
 };
-use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::command::anilist_server::list_register_user::get_the_list;
