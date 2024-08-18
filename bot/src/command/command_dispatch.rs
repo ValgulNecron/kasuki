@@ -76,6 +76,7 @@ pub async fn dispatch_command(
 ) -> Result<(), Box<dyn Error>> {
     let (kind, name) = guess_command_kind(command_interaction);
     let full_command_name = format!("{} {}", kind, name);
+    trace!("Running command: {}", full_command_name);
     match name.as_str() {
         "user_avatar" => {
             return AvatarCommand {

@@ -116,7 +116,7 @@ pub async fn calculate_users_color(
             };
         }
         trace!("Done calculating user color for {}", member.user.id);
-        sleep(Duration::from_millis(1)).await
+        sleep(Duration::from_nanos(1)).await
     }
     Ok(())
 }
