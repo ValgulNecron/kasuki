@@ -16,8 +16,8 @@ use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::database::prelude::{RegisteredUser, ServerImage};
-use crate::structure::database::registered_user::ActiveModel;
+use crate::structure::database::prelude::RegisteredUser;
+use crate::structure::database::registered_user::{ActiveModel, Column};
 use crate::structure::message::anilist_user::register::load_localization_register;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 
@@ -83,12 +83,12 @@ async fn send_embed(
     let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
     RegisteredUser::insert(ActiveModel {
         user_id: Set(user_id.to_string()),
-        anilist_id: Set(user_data.id.to_string()),
+        anilist_id: Set(user_data.id),
         ..Default::default()
     })
     .on_conflict(
-        sea_orm::sea_query::OnConflict::column(RegisteredUser::Column::AnilistId)
-            .update_column(RegisteredUser::Column::AnilistId)
+        sea_orm::sea_query::OnConflict::column(Column::AnilistId)
+            .update_column(Column::AnilistId)
             .to_owned(),
     )
     .exec(&connection)

@@ -5,9 +5,12 @@ use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::structure::database::activity_data::Column;
 use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 use prost::bytes::BufMut;
+use sea_orm::ColumnTrait;
+use sea_orm::QueryFilter;
 use sea_orm::{EntityOrSelect, EntityTrait};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -17,7 +20,6 @@ use serenity::all::{
 use std::error::Error;
 use std::sync::Arc;
 use tracing::trace;
-
 pub struct ListAllActivity {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -51,8 +53,7 @@ async fn send_embed(
     };
 
     let list_activity_localised_text =
-        load_localization_list_activity(guild_id, db_type.clone(), config.bot.config.clone())
-            .await?;
+        load_localization_list_activity(guild_id, config.bot.config.clone()).await?;
 
     let guild_id = command_interaction
         .guild_id
@@ -67,11 +68,10 @@ async fn send_embed(
         .await?;
 
     let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
-    let list = ActivityData::select(EntityOrSelect::Select(
-        ActivityData::find().filter(ActivityData::Column::GuildId.eq(&guild_id.to_string())),
-    ))
-    .all(connection)
-    .await?;
+    let list = ActivityData::find()
+        .filter(Column::ServerId.eq(&guild_id.to_string()))
+        .all(&connection)
+        .await?;
     let len = list.len();
     let next_page = 1;
 

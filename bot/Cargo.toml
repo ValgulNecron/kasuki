@@ -52,10 +52,15 @@ dashmap = "6.0.1"
 url = "2.5.2"
 dirs = "5.0.1"
 sea-orm = { version = "1.1.0-rc.1", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
-sea-orm-migration = { version = "1.1.0-rc.1"}
+sea-orm-migration = { version = "1.1.0-rc.1" }
 percent-encoding = "2.3.1"
 serde_urlencoded = "0.7.1"
-
+poem = { version = "3.0.4" }
+async-graphql-poem = { version = "7.0.7" }
+async-graphql = { version = "7.0.7", features = ["decimal", "chrono", "dataloader", "dynamic-schema"] }
+dotenvy = "0.15.7"
+lazy_static = { version = "1.5.0" }
+seaography = "1.1.0-rc.1"
 
 [build-dependencies]
 tonic-build = "0.12.1"

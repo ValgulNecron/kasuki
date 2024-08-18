@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use moka::future::Cache;
 use once_cell::sync::Lazy;
-use sea_orm::{EntityOrSelect, EntityTrait};
+use sea_orm::EntityTrait;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
@@ -16,11 +16,12 @@ use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::database::prelude::{ActivityData, RegisteredUser};
-use crate::structure::database::registered_user::{Column, Model};
+use crate::structure::database::prelude::RegisteredUser;
+use crate::structure::database::registered_user::Column;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
-
+use sea_orm::ColumnTrait;
+use sea_orm::QueryFilter;
 pub struct LevelCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -56,7 +57,6 @@ pub async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
     // Retrieve the username from the command interaction
     let map = get_option_map_string(command_interaction);
     let user = map.get(&String::from("username"));
@@ -64,42 +64,24 @@ pub async fn send_embed(
         Some(value) => {
             // If a username is provided, fetch the user data and send an embed
             let data: User = get_user(value, anilist_cache).await?;
-            send_embed2(
-                ctx,
-                command_interaction,
-                data,
-                db_type,
-                config.bot.config.clone(),
-            )
-            .await
+            send_embed2(ctx, command_interaction, data, config.bot.config.clone()).await
         }
         None => {
             // If no username is provided, retrieve the ID of the user who triggered the command
             let user_id = &command_interaction.user.id.to_string();
             // Check if the user is registered
             let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
-            let row = RegisteredUser::select(EntityOrSelect::Select(
-                RegisteredUser::find()
-                    .filter(Column::UserId.eq(user_id))
-                    .one(&connection)
-                    .await?,
-            ))
-            .one(&connection)
-            .await?;
+            let row = RegisteredUser::find()
+                .filter(Column::UserId.eq(user_id))
+                .one(&connection)
+                .await?;
             let user = row.ok_or(ResponseError::Option(String::from(
                 "No user specified or linked to this discord account",
             )))?;
 
             // Fetch the user data and send an embed
-            let data: User = get_user(&user.anilist_id, anilist_cache).await?;
-            send_embed2(
-                ctx,
-                command_interaction,
-                data,
-                db_type,
-                config.bot.config.clone(),
-            )
-            .await
+            let data: User = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
+            send_embed2(ctx, command_interaction, data, config.bot.config.clone()).await
         }
     }
 }
@@ -121,7 +103,6 @@ pub async fn send_embed2(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: User,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     // Get the guild ID from the command interaction
@@ -131,7 +112,7 @@ pub async fn send_embed2(
     };
 
     // Load the localized level strings
-    let level_localised = load_localization_level(guild_id, db_type, db_config).await?;
+    let level_localised = load_localization_level(guild_id, db_config).await?;
 
     // Clone the manga and anime statistics
     let statistics = user.statistics.clone().unwrap();

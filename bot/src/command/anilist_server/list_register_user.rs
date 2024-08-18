@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
@@ -66,7 +65,7 @@ async fn send_embed(
 
     // Load the localized text for the list user command
     let list_user_localised =
-        load_localization_list_user(guild_id, db_type.clone(), config.bot.config.clone()).await?;
+        load_localization_list_user(guild_id, config.bot.config.clone()).await?;
 
     // Retrieve the guild from the guild ID
     let guild_id = command_interaction
@@ -168,18 +167,18 @@ pub async fn get_the_list(
             let user_id = member.user.id.to_string();
             let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
             let row = RegisteredUser::find()
-                .filter(Column::UserId.eq(user_id))
+                .filter(Column::UserId.eq(user_id.clone()))
                 .one(&connection)
                 .await?
                 .unwrap_or(Model {
                     user_id: user_id.clone(),
-                    anilist_id: "2134".to_string(),
+                    anilist_id: 2134,
                     registered_at: Default::default(),
                 });
             let user_data = row;
             let data = Data {
                 user: member.user,
-                anilist: user_data.anilist_id,
+                anilist: user_data.anilist_id.to_string(),
             };
             anilist_user.push(data)
         }

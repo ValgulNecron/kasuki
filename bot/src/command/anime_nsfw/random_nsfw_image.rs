@@ -4,7 +4,7 @@ use std::sync::Arc;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessage};
 
-use crate::command::anime::random_image::{send_embed, AnimeRandomImageCommand};
+use crate::command::anime::random_image::send_embed;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::error_management::error_enum::ResponseError;

@@ -13,7 +13,7 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(string(RegisteredUser::UserId))
                     .primary_key(Index::create().col(RegisteredUser::UserId))
-                    .col(string(RegisteredUser::AnilistId))
+                    .col(integer(RegisteredUser::AnilistId))
                     .col(timestamp(RegisteredUser::RegisteredAt).default(
                         Expr::current_timestamp()
                     ))

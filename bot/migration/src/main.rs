@@ -8,11 +8,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _ = match PgPool::connect(&database_url).await {
         Ok(_) => (),
         Err(_) => {
-            let database_url = database_url.replace("kasuki","");
+            let database_url = database_url.replace("kasuki", "");
             let pool = PgPool::connect(&database_url).await?;
             query("CREATE DATABASE kasuki").execute(&pool).await?;
             ()
-        },
+        }
     };
     cli::run_cli(migration::Migrator).await;
 

@@ -11,12 +11,12 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(ActivityData::Table)
                     .if_not_exists()
-                    .col(string(ActivityData::AnimeId))
+                    .col(integer(ActivityData::AnimeId))
                     .col(string(ActivityData::ServerId))
                     .primary_key(
                         Index::create().col(ActivityData::AnimeId).col(ActivityData::ServerId)
                     )
-                    .col(string(ActivityData::Episode))
+                    .col(integer(ActivityData::Episode))
                     .col(string(ActivityData::Webhook))
                     .col(string(ActivityData::Name))
                     .col(string(ActivityData::Image))
@@ -46,5 +46,5 @@ enum ActivityData {
     Episode,
     Name,
     Delay,
-    Image
+    Image,
 }

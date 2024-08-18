@@ -16,8 +16,8 @@ use crate::structure::run::anilist::user::{
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use sea_orm::ColumnTrait;
+use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
-use sea_orm::{EntityOrSelect, EntityTrait};
 use serenity::all::{CommandInteraction, Context};
 use tokio::sync::RwLock;
 pub struct UserCommand {
@@ -79,7 +79,7 @@ async fn send_embed(
     let user = row.ok_or(ResponseError::Option(String::from("No user found")))?;
 
     // Fetch the user's data from AniList and send it as a response
-    let data = get_user(&user.anilist_id, anilist_cache).await?;
+    let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
     user::send_embed(
         ctx,
         command_interaction,

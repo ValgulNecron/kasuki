@@ -114,7 +114,7 @@ async fn anilist_admin_autocomplete(
             add_anime_activity::autocomplete(ctx, autocomplete_interaction, anilist_cache).await
         }
         "delete_activity" => {
-            delete_activity::autocomplete(ctx, autocomplete_interaction, db_type, db_config).await
+            delete_activity::autocomplete(ctx, autocomplete_interaction, db_config).await
         }
         _ => {}
     }

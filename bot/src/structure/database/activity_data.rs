@@ -6,10 +6,10 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "activity_data")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub anime_id: String,
+    pub anime_id: i32,
     #[sea_orm(primary_key, auto_increment = false)]
     pub server_id: String,
-    pub episode: String,
+    pub episode: i32,
     pub webhook: String,
     pub name: String,
     pub image: String,
