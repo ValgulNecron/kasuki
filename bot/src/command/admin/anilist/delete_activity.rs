@@ -1,16 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use moka::future::Cache;
-use sea_orm::{Condition, EntityTrait};
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage,
-};
-use tokio::sync::RwLock;
-use tracing::trace;
-
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
@@ -20,6 +10,15 @@ use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
+use moka::future::Cache;
+use sea_orm::ColumnTrait;
+use sea_orm::{EntityTrait, ModelTrait, QueryFilter};
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandInteraction, Context, CreateInteractionResponseFollowup,
+    CreateInteractionResponseMessage,
+};
+use tokio::sync::RwLock;
 
 pub struct DeleteActivityCommand {
     pub ctx: Context,
@@ -58,7 +57,6 @@ pub async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
     let map = get_option_map_string_subcommand_group(command_interaction);
     let anime = map
         .get(&String::from("anime_name"))
@@ -70,19 +68,14 @@ pub async fn send_embed(
         None => String::from("0"),
     };
 
-    let delete_activity_localised_text = load_localization_delete_activity(
-        guild_id.clone(),
-        db_type.clone(),
-        config.bot.config.clone(),
-    )
-    .await?;
+    let delete_activity_localised_text =
+        load_localization_delete_activity(guild_id.clone(), config.bot.config.clone()).await?;
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await?;
-    trace!(anime);
-    let media = get_minimal_anime_media(anilist_cache, command_interaction).await?;
+    let media = get_minimal_anime_media(anime.to_string(), anilist_cache).await?;
 
     let anime_id = media.id;
     remove_activity(guild_id.as_str(), &anime_id, config.bot.config.clone()).await?;
@@ -117,19 +110,22 @@ pub async fn send_embed(
 ///
 /// # Returns
 ///
-/// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
+/// A `Result` indicating whether the function executed succes  sfully. If an error occurred, it contains an `AppError`.
 async fn remove_activity(
     guild_id: &str,
     anime_id: &i32,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-    ActivityData::delete(
-        Condition::all()
-            .add(ActivityData::GuildId.eq(guild_id))
-            .add(ActivityData::AnimeId.eq(anime_id)),
-    )
-    .exec(&connection)
-    .await?;
+    let activity = ActivityData::find()
+        .filter(crate::structure::database::activity_data::Column::ServerId.eq(guild_id))
+        .filter(crate::structure::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
+        .one(&connection)
+        .await?
+        .ok_or(ResponseError::Sending(format!(
+            "Anime with id {} not found",
+            anime_id
+        )))?;
+    activity.delete(&connection).await?;
     Ok(())
 }

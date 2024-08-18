@@ -1,12 +1,17 @@
 use crate::config::BotConfigDetails;
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
-use crate::database::dispatcher::data_dispatch::get_data_all_activity_by_server;
+use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
+use crate::structure::database::activity_data::Column;
+use crate::structure::database::prelude::ActivityData;
+use sea_orm::ColumnTrait;
+use sea_orm::EntityTrait;
+use sea_orm::QueryFilter;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-
+use tracing::error;
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for deleting activities.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
 /// `ctx` is the context in which this function is called.
@@ -38,7 +43,6 @@ use serenity::all::{
 pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    db_type: String,
     db_config: BotConfigDetails,
 ) {
     let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
@@ -51,7 +55,18 @@ pub async fn autocomplete(
         None => String::from("0"),
     };
 
-    let activities = match get_data_all_activity_by_server(&guild_id, db_type, db_config).await {
+    let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
+        Ok(conn) => conn,
+        Err(e) => {
+            error!(?e);
+            return;
+        }
+    };
+    let activities = match ActivityData::find()
+        .filter(Column::ServerId.eq(&guild_id))
+        .all(&connection)
+        .await
+    {
         Ok(data) => data,
         Err(e) => {
             tracing::debug!(?e);
@@ -61,7 +76,7 @@ pub async fn autocomplete(
     let activity: Vec<String> = activities
         .clone()
         .into_iter()
-        .map(|activity| format!("{}${}", activity.1, activity.0))
+        .map(|activity| format!("{}${}", activity.name, activity.anime_id))
         .collect();
     let activity_refs: Vec<&str> = activity.iter().map(String::as_str).collect();
 

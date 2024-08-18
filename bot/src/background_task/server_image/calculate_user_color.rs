@@ -6,6 +6,7 @@ use std::time::Duration;
 use crate::config::BotConfigDetails;
 use crate::get_url;
 use crate::structure::database::prelude::UserColor;
+use crate::structure::database::user_color::{ActiveModel, Column, Model};
 use base64::engine::general_purpose;
 use base64::Engine;
 use futures::stream::FuturesUnordered;
@@ -17,6 +18,8 @@ use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::ActiveValue::Set;
+use sea_orm::ColumnTrait;
+use sea_orm::QueryFilter;
 use sea_orm::{EntityOrSelect, EntityTrait};
 use serenity::all::{Context, GuildId, Member, UserId};
 use tokio::sync::RwLock;
@@ -60,14 +63,20 @@ pub async fn calculate_users_color(
         let id = member.user.id.to_string();
         let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
         let user_color = UserColor::find()
-            .filter(UserColor::Column::Id.eq(id.clone()))
+            .filter(Column::UserId.eq(id.clone()))
             .one(&connection)
             .await?
-            .unwrap_or_default();
+            .unwrap_or(Model {
+                user_id: id.clone(),
+                profile_picture_url: pfp_url.clone(),
+                color: String::from(""),
+                images: String::from(""),
+                calculated_at: Default::default(),
+            });
         let pfp_url_old = user_color.profile_picture_url.clone();
         if pfp_url != pfp_url_old {
             let (average_color, image): (String, String) = calculate_user_color(member).await?;
-            UserColor::insert(UserColor::ActiveModel {
+            UserColor::insert(ActiveModel {
                 user_id: Set(id.clone()),
                 profile_picture_url: Set(pfp_url.clone()),
                 color: Set(average_color.clone()),
@@ -75,15 +84,10 @@ pub async fn calculate_users_color(
                 ..Default::default()
             })
             .on_conflict(
-                OnConflict::columns([UserColor::Column::UserId])
-                    .update_column(UserColor::Column::ProfilePictureUrl)
-                    .update_column(UserColor::Column::Color)
-                    .update_column(UserColor::Column::Images)
-                    .update_column(UserColor::Column::UpdatedAt)
-                    .value(UserColor::Column::ProfilePictureUrl, Set(pfp_url.clone()))
-                    .value(UserColor::Column::Color, Set(average_color))
-                    .value(UserColor::Column::Images, Set(image))
-                    .value(UserColor::Column::UpdatedAt, Set(chrono::Utc::now()))
+                OnConflict::column(Column::UserId)
+                    .update_column(Column::Color)
+                    .update_column(Column::ProfilePictureUrl)
+                    .update_column(Column::Images)
                     .to_owned(),
             )
             .exec(&connection)
@@ -124,31 +128,46 @@ pub async fn return_average_user_color(
         let id = member.user.id.to_string();
 
         let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-        let user_color = UserColor::select(EntityOrSelect::Select(
-            UserColor::find()
-                .filter(UserColor::Column::Id.eq(id.clone()))
-                .all(&connection)
-                .await?,
-        ))
-        .one(&connection)
-        .await?
-        .unwrap_or_default();
-        let color = user_color.color.clone();
-        let pfp_url_old = user_color.profile_picture_url.clone();
-        let image_old = user_color.images;
-        match (
-            color,
-            pfp_url_old.clone(),
-            image_old,
-            pfp_url == pfp_url_old,
-        ) {
-            (Some(color), Some(pfp_url_old), Some(image_old), true) => {
+        let user_color = UserColor::find()
+            .filter(Column::UserId.eq(id.clone()))
+            .one(&connection)
+            .await?;
+
+        match user_color {
+            Some(user_color) => {
+                let color = user_color.color.clone();
+                let pfp_url_old = user_color.profile_picture_url.clone();
+                let image_old = user_color.images;
+                if pfp_url != pfp_url_old {
+                    let (average_color, image): (String, String) =
+                        calculate_user_color(member).await?;
+                    UserColor::insert(ActiveModel {
+                        user_id: Set(id.clone()),
+                        profile_picture_url: Set(pfp_url.clone()),
+                        color: Set(average_color.clone()),
+                        images: Set(image.clone()),
+                        ..Default::default()
+                    })
+                    .on_conflict(
+                        // update url, color, images and calculated_at
+                        OnConflict::column(Column::UserId)
+                            .update_column(Column::Color)
+                            .update_column(Column::ProfilePictureUrl)
+                            .update_column(Column::Images)
+                            .update_column(Column::CalculatedAt)
+                            .to_owned(),
+                    )
+                    .exec(&connection)
+                    .await?;
+                    average_colors.push((average_color, pfp_url, image));
+                    continue;
+                }
                 average_colors.push((color, pfp_url_old, image_old));
                 continue;
             }
             _ => {
                 let (average_color, image): (String, String) = calculate_user_color(member).await?;
-                UserColor::insert(UserColor::ActiveModel {
+                UserColor::insert(ActiveModel {
                     user_id: Set(id.clone()),
                     profile_picture_url: Set(pfp_url.clone()),
                     color: Set(average_color.clone()),
@@ -156,15 +175,12 @@ pub async fn return_average_user_color(
                     ..Default::default()
                 })
                 .on_conflict(
-                    OnConflict::columns([UserColor::Column::UserId])
-                        .update_column(UserColor::Column::ProfilePictureUrl)
-                        .update_column(UserColor::Column::Color)
-                        .update_column(UserColor::Column::Images)
-                        .update_column(UserColor::Column::UpdatedAt)
-                        .value(UserColor::Column::ProfilePictureUrl, Set(pfp_url.clone()))
-                        .value(UserColor::Column::Color, Set(average_color.clone()))
-                        .value(UserColor::Column::Images, Set(image.clone()))
-                        .value(UserColor::Column::UpdatedAt, Set(chrono::Utc::now()))
+                    // update url, color, images and calculated_at
+                    OnConflict::column(Column::UserId)
+                        .update_column(Column::Color)
+                        .update_column(Column::ProfilePictureUrl)
+                        .update_column(Column::Images)
+                        .update_column(Column::CalculatedAt)
                         .to_owned(),
                 )
                 .exec(&connection)

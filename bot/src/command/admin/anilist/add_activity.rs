@@ -1,3 +1,4 @@
+use crate::helper::error_management::error_enum::{FollowupError, UnknownResponseError};
 use std::error::Error;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
@@ -10,6 +11,7 @@ use crate::helper::get_option::subcommand_group::get_option_map_string_subcomman
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
 use crate::structure::database::activity_data;
+use crate::structure::database::activity_data::Column;
 use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::admin::anilist::add_activity::{
     load_localization_add_activity, AddActivityLocalised,
@@ -21,13 +23,15 @@ use crate::structure::run::anilist::minimal_anime::{
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use base64::Engine as _;
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Utc};
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
 use moka::future::Cache;
 use reqwest::get;
 use sea_orm::ActiveValue::Set;
+use sea_orm::ColumnTrait;
+use sea_orm::QueryFilter;
 use sea_orm::{EntityOrSelect, EntityTrait};
 use serde_json::json;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -37,7 +41,6 @@ use serenity::all::{
 };
 use tokio::sync::RwLock;
 use tracing::{error, trace};
-
 pub struct AddActivityCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -59,7 +62,12 @@ impl SlashCommand for AddActivityCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         let anilist_cache = self.anilist_cache.clone();
         let command_interaction = self.command_interaction.clone();
-        let anime = get_minimal_anime_media(anilist_cache, &command_interaction).await?;
+        let map = get_option_map_string_subcommand_group(&command_interaction);
+        let anime = map
+            .get(&String::from("anime_name"))
+            .cloned()
+            .unwrap_or(String::new());
+        let anime = get_minimal_anime_media(anime.to_string(), anilist_cache).await?;
         send_embed(&self.ctx, &command_interaction, self.config.clone(), anime).await
     }
 }
@@ -70,8 +78,6 @@ async fn send_embed(
     config: Arc<Config>,
     media: Media,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
-
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -82,12 +88,8 @@ async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await?;
-    let add_activity_localised = load_localization_add_activity(
-        guild_id.clone(),
-        db_type.clone(),
-        config.bot.config.clone(),
-    )
-    .await?;
+    let add_activity_localised =
+        load_localization_add_activity(guild_id.clone(), config.bot.config.clone()).await?;
 
     let anime_id = media.id;
 
@@ -209,14 +211,15 @@ async fn success(
 
     let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
     let timestamp = next_airing.airing_at as i64;
-    let chrono =
-        chrono::DateTime::<NaiveDateTime>::from_timestamp(timestamp, 0).unwrap_or_default();
+    let chrono = chrono::DateTime::<Utc>::from_timestamp(timestamp, 0)
+        .unwrap_or_default()
+        .naive_utc();
     ActivityData::insert(activity_data::ActiveModel {
         anime_id: Set(media.id),
         timestamp: Set(chrono),
         server_id: Set(guild_id),
         webhook: Set(webhook),
-        episode: Set(next_airing.episode.to_string()),
+        episode: Set(next_airing.episode),
         name: Set(trimed_anime_name),
         delay: Set(delay),
         image: Set(image),
@@ -246,16 +249,23 @@ async fn check_if_activity_exist(
     server_id: String,
     db_config: BotConfigDetails,
 ) -> bool {
-    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-    let row = ActivityData::select(EntityOrSelect::Select(
-        ActivityData::find()
-            .filter(ActivityData::Column::ServerId.eq(server_id))
-            .filter(ActivityData::Column::AnimeId.eq(anime_id))
-            .all(&ActivityData)
-            .await?,
-    ))
-    .one(&connection)
-    .await?;
+    let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
+        Ok(conn) => conn,
+        Err(_) => {
+            return false;
+        }
+    };
+    let row = match ActivityData::find()
+        .filter(Column::ServerId.eq(server_id))
+        .filter(Column::AnimeId.eq(anime_id))
+        .one(&connection)
+        .await
+    {
+        Ok(row) => row,
+        Err(_) => {
+            return false;
+        }
+    };
     if row.is_none() {
         return false;
     };
@@ -407,21 +417,12 @@ pub(crate) async fn get_minimal_anime_by_id(
     let operation = MinimalAnimeId::build(query);
     let data: GraphQlResponse<MinimalAnimeId> =
         make_request_anilist(operation, false, anilist_cache).await?;
-    Ok(match data.data {
-        Some(data) => match data.media {
-            Some(media) => media,
-            None => {
-                return Err(Box::new(UnknownResponseError::Option(
-                    "No media found".to_string(),
-                )))
-            }
-        },
-        None => {
-            return Err(Box::new(UnknownResponseError::Option(
-                "No data found".to_string(),
-            )))
-        }
-    })
+    let data = data
+        .data
+        .ok_or(UnknownResponseError::Option("No media found".to_string()))?
+        .media
+        .ok_or(UnknownResponseError::Option("No media found".to_string()))?;
+    Ok(data)
 }
 
 async fn get_minimal_anime_by_search(
@@ -452,14 +453,9 @@ async fn get_minimal_anime_by_search(
 }
 
 pub async fn get_minimal_anime_media(
+    anime: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    command_interaction: &CommandInteraction,
 ) -> Result<Media, Box<dyn Error>> {
-    let map = get_option_map_string_subcommand_group(command_interaction);
-    let anime = map
-        .get(&String::from("anime_name"))
-        .cloned()
-        .unwrap_or(String::new());
     let media = if anime.parse::<i32>().is_ok() {
         get_minimal_anime_by_id(anime.parse::<i32>().unwrap_or_default(), anilist_cache).await?
     } else {

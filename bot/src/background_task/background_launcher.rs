@@ -23,6 +23,7 @@ use crate::constant::{
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
 use crate::event_handler::{BotData, RootUsage};
+use crate::get_url;
 use crate::structure::database::ping_history::ActiveModel;
 use crate::structure::database::prelude::PingHistory;
 use crate::structure::steam_game_id_struct::get_game;
@@ -63,7 +64,7 @@ pub async fn thread_management_launcher(
         db_config.clone(),
     ));
     tokio::spawn(launch_game_management_thread(apps));
-    tokio::spawn(ping_manager_thread(ctx.clone()));
+    tokio::spawn(ping_manager_thread(ctx.clone(), db_config.clone()));
     tokio::spawn(update_user_blacklist(user_blacklist_server_image));
     tokio::spawn(update_random_stats_launcher(anilist_cache.clone()));
     tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
@@ -99,7 +100,7 @@ pub async fn thread_management_launcher(
 /// * `ctx` - A `Context` instance used to access the bot's data and cache.
 /// * `db_type` - A `String` representing the type of database.
 ///
-async fn ping_manager_thread(ctx: Context) {
+async fn ping_manager_thread(ctx: Context, db_config: BotConfigDetails) {
     // Log a message indicating that the ping thread is being launched
     info!("Launching the ping thread!");
 
@@ -118,6 +119,13 @@ async fn ping_manager_thread(ctx: Context) {
     let mut interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_PING_UPDATE));
 
     // Main loop for managing pings
+    let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
+        Ok(connection) => connection,
+        Err(e) => {
+            error!("Failed to connect to the database. {:#?}", e);
+            return;
+        }
+    };
     loop {
         // Wait for the next interval tick
         interval.tick().await;
@@ -134,6 +142,7 @@ async fn ping_manager_thread(ctx: Context) {
                 timestamp: Set(now),
                 ..Default::default()
             })
+            .exec(&connection)
             .await
             {
                 Ok(_) => {

@@ -4,12 +4,17 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::command::server::generate_image_pfp_server;
 use crate::config::{BotConfigDetails, Config};
-use crate::database::dispatcher::data_dispatch::get_server_image;
+use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::structure::database::prelude::ServerImage;
+use crate::structure::database::server_image::Column;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
+use sea_orm::ColumnTrait;
+use sea_orm::EntityTrait;
+use sea_orm::QueryFilter;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context, CreateAttachment, CreateInteractionResponseMessage,
@@ -17,7 +22,6 @@ use serenity::all::{
 use serenity::builder::CreateInteractionResponseFollowup;
 use tracing::trace;
 use uuid::Uuid;
-
 pub struct GenerateImagePfPCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -70,8 +74,7 @@ pub async fn send_embed(
 
     // Load the localized text for the server's profile picture image
     let pfp_server_image_localised_text =
-        load_localization_pfp_server_image(guild_id.clone(), db_type.clone(), db_config.clone())
-            .await?;
+        load_localization_pfp_server_image(guild_id.clone(), db_config.clone()).await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -83,10 +86,18 @@ pub async fn send_embed(
         .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
 
     // Retrieve the server's profile picture image
-    let image = get_server_image(&guild_id, &image_type.to_string(), db_type, db_config)
+    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
+    let image = ServerImage::find()
+        .filter(Column::ServerId.eq(guild_id.clone()))
+        .filter(Column::ImageType.eq(image_type.to_string()))
+        .one(&connection)
         .await?
-        .1
-        .unwrap_or_default();
+        .ok_or(ResponseError::Option(format!(
+            "Server image with type {} not found",
+            image_type
+        )))?
+        .image;
 
     // Decode the image from base64
     let input = image.trim_start_matches("data:image/png;base64,");

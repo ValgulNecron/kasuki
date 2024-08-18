@@ -51,14 +51,7 @@ pub async fn components_dispatching(
         }
         s if s.starts_with("next_activity_") => {
             let page_number = s.split_at("next_activity_".len()).1;
-            list_all_activity::update(
-                &ctx,
-                &component_interaction,
-                page_number,
-                db_type,
-                db_config,
-            )
-            .await?
+            list_all_activity::update(&ctx, &component_interaction, page_number, db_config).await?
         }
         _ => trace!("does not exist."),
     }

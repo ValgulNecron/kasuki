@@ -1,5 +1,4 @@
 pub mod autocomplete;
-pub mod cache;
 pub mod database;
 pub mod message;
 pub mod run;

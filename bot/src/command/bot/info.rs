@@ -1,17 +1,18 @@
-use std::error::Error;
-use std::sync::Arc;
-
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::constant::{APP_VERSION, LIBRARY};
-use crate::database::dispatcher::data_dispatch::get_user_color_count;
+use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_enum::ResponseError;
+use crate::structure::database::prelude::UserColor;
 use crate::structure::message::bot::info::load_localization_info;
+use sea_orm::EntityTrait;
 use serenity::all::{
     ButtonStyle, CommandInteraction, Context, CreateActionRow, CreateButton, CreateEmbedFooter,
     CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use std::error::Error;
+use std::sync::Arc;
 
 pub struct InfoCommand {
     pub ctx: Context,
@@ -47,14 +48,13 @@ async fn send_embed(
     };
 
     // Load the localized information strings
-    let info_localised =
-        load_localization_info(guild_id, db_type.clone(), config.bot.config.clone()).await?;
+    let info_localised = load_localization_info(guild_id, config.bot.config.clone()).await?;
 
     // Retrieve various details about the bot and the server
     let shard_count = ctx.cache.shard_count();
     let shard = ctx.shard_id.to_string();
-    let user_count = get_user_color_count(db_type, config.bot.config.clone()).await?;
-    let server_count = ctx.cache.guild_count();
+    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let user_count = UserColor::find().all(&connection).await?.len();
     let bot = ctx
         .http
         .get_current_application_info()
@@ -63,7 +63,15 @@ async fn send_embed(
     let bot_name = bot.name;
     let bot_id = bot.id.to_string();
     let creation_date = format!("<t:{}:F>", bot.id.created_at().unix_timestamp());
+    let server_count = ctx.cache.guild_count();
+    let app_guild_count = bot.approximate_guild_count.unwrap_or_default() as usize;
+    let guild_count = if server_count > app_guild_count {
+        server_count
+    } else {
+        app_guild_count
+    };
 
+    let app_installation_count = bot.approximate_user_install_count.unwrap_or_default() as usize;
     // Retrieve the bot's avatar
     let bot_icon = bot
         .icon
@@ -91,9 +99,14 @@ async fn send_embed(
         .field(info_localised.shard_count, shard_count.to_string(), true)
         .field(info_localised.shard, shard, true)
         .field(info_localised.user_count, user_count.to_string(), true)
-        .field(info_localised.server_count, server_count.to_string(), true)
+        .field(info_localised.server_count, guild_count.to_string(), true)
         .field(info_localised.creation_date, creation_date, true)
         .field(info_localised.library, lib, true)
+        .field(
+            info_localised.app_installation_count,
+            app_installation_count.to_string(),
+            true,
+        )
         .thumbnail(avatar)
         .title(&info_localised.title)
         .footer(CreateEmbedFooter::new(&info_localised.footer));

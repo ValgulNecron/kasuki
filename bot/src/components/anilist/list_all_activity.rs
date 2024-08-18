@@ -1,15 +1,16 @@
-use std::error::Error;
-
 use crate::config::BotConfigDetails;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
-use crate::database::dispatcher::data_dispatch::get_all_server_activity;
+use crate::get_url;
 use crate::helper::error_management::error_enum::UnknownResponseError;
-use crate::structure::database::server_activity::ServerActivity;
+use crate::structure::database::activity_data::{Column, Model};
+use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
+use std::error::Error;
 use tracing::trace;
 
 /// Updates the activity list in the server.
@@ -33,7 +34,6 @@ pub async fn update(
     ctx: &Context,
     component_interaction: &ComponentInteraction,
     page_number: &str,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match component_interaction.guild_id {
@@ -42,7 +42,7 @@ pub async fn update(
     };
 
     let list_activity_localised_text =
-        load_localization_list_activity(guild_id, db_type.clone(), db_config.clone()).await?;
+        load_localization_list_activity(guild_id, db_config.clone()).await?;
 
     let guild_id = component_interaction
         .guild_id
@@ -50,7 +50,11 @@ pub async fn update(
             "Guild ID not found",
         )))?;
 
-    let list = get_all_server_activity(&guild_id.to_string(), db_type, db_config).await?;
+    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+    let list = ActivityData::find()
+        .filter(Column::ServerId.eq(guild_id.to_string()))
+        .all(&connection)
+        .await?;
     let len = list.len();
     let actual_page: u64 = page_number.parse().unwrap();
     trace!("{:?}", actual_page);
@@ -107,16 +111,12 @@ pub async fn update(
 /// # Returns
 ///
 /// * A vector of strings where each string represents a formatted server activity.
-pub fn get_formatted_activity_list(list: Vec<ServerActivity>, actual_page: u64) -> Vec<String> {
+pub fn get_formatted_activity_list(list: Vec<Model>, actual_page: u64) -> Vec<String> {
     list.into_iter()
         .map(|activity| {
             let anime_id = activity.anime_id;
             let name = activity.name;
-            format!(
-                "[{}](https://anilist_user.co/anime/{})",
-                name.unwrap_or_default(),
-                anime_id.unwrap_or_default()
-            )
+            format!("[{}](https://anilist_user.co/anime/{})", name, anime_id)
         })
         .skip((ACTIVITY_LIST_LIMIT * actual_page) as usize)
         .take(ACTIVITY_LIST_LIMIT as usize)

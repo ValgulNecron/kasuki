@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 
 use base64::engine::general_purpose;
@@ -27,8 +27,10 @@ use crate::constant::THREAD_POOL_SIZE;
 use crate::get_url;
 use crate::helper::error_management::error_enum;
 use crate::helper::image_saver::general_image_saver::image_saver;
+use crate::register::command_struct::common::RemoteCommandOptionType::User;
 use crate::structure::database::prelude::{ServerImage, UserColor};
-use crate::structure::database::server_image::Model;
+use crate::structure::database::server_image::{ActiveModel, Column, Model};
+use sea_orm::QueryFilter;
 
 /// This function generates a local server image.
 ///
@@ -84,15 +86,7 @@ pub async fn generate_global_server_image(
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-    let average_colors = UserColor::select(EntityOrSelect::Select(
-        UserColor::find()
-            .filter(UserColor::Column::GuildId.eq(guild_id.to_string()))
-            .all(&connection)
-            .await?,
-    ))
-    .one(&connection)
-    .await?
-    .unwrap_or_default();
+    let average_colors = UserColor::find().all(&connection).await?;
 
     let color_vec = create_color_vector_from_user_color(average_colors.clone());
     generate_server_image(
@@ -131,8 +125,7 @@ pub async fn generate_server_image(
 
     let dim = 128 * 64;
     let mut combined_image = DynamicImage::new_rgba8(dim, dim);
-    let vec_image = Arc::new(Mutex::new(Vec::new()));
-
+    let vec_image: Arc<RwLock<Vec<(u32, u32, DynamicImage)>>> = Arc::new(RwLock::new(Vec::new()));
     let mut handles = Vec::new();
     // Process image pixels in parallel
     for y in 0..img.height() {
@@ -152,9 +145,11 @@ pub async fn generate_server_image(
                     Some(color) => color,
                     None => return,
                 };
-                if let Ok(mut vec_image) = vec_image_clone.lock() {
-                    vec_image.push((x, y, closest_color.image))
-                }
+                let mut guard = match vec_image_clone.write() {
+                    Ok(guard) => guard,
+                    Err(_) => return,
+                };
+                guard.push((x, y, closest_color.image))
             });
             handles.push(handle);
             if handles.len() >= THREAD_POOL_SIZE {
@@ -170,8 +165,12 @@ pub async fn generate_server_image(
     }
 
     // Combine processed images
-    let vec_image = vec_image.lock()?.clone();
-    for (x, y, image) in vec_image {
+    let vec_image = match vec_image.read() {
+        Ok(vec_image) => vec_image.clone(),
+        Err(e) => return Err(Box::new(error_enum::Error::Option(e.to_string()))),
+    };
+    let internal_vec = vec_image.clone();
+    for (x, y, image) in internal_vec {
         match combined_image.copy_from(&image, x * 64, y * 64) {
             Ok(_) => {}
             Err(_) => continue,
@@ -217,7 +216,7 @@ pub async fn generate_server_image(
     .await?;
 
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-    ServerImage::insert(ServerImage::ActiveModel {
+    ServerImage::insert(ActiveModel {
         server_id: Set(guild_id.to_string()),
         image_type: Set(image_type.clone()),
         image: Set(image.clone()),
@@ -225,9 +224,9 @@ pub async fn generate_server_image(
         ..Default::default()
     })
     .on_conflict(
-        sea_orm::sea_query::OnConflict::column(ServerImage::Column::ServerId)
-            .update_column(ServerImage::Column::Image)
-            .update_column(ServerImage::Column::ImageUrl)
+        sea_orm::sea_query::OnConflict::column(Column::ServerId)
+            .update_column(Column::Image)
+            .update_column(Column::ImageUrl)
             .to_owned(),
     )
     .exec(&connection)

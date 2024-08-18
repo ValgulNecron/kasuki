@@ -169,8 +169,7 @@ async fn send_specific_activity(
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let localised_text =
-        load_localization_send_activity(guild_id.clone(), db_type.clone(), db_config.clone())
-            .await?;
+        load_localization_send_activity(guild_id.clone(), db_config.clone()).await?;
     let webhook_url = row.webhook.clone();
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str()).await?;
 
@@ -242,7 +241,7 @@ async fn update_info(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
-    let media = get_minimal_anime_media(row.anime_id.clone(), anilist_cache).await?;
+    let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
         None => return remove_activity(row, guild_id, db_config).await,
@@ -266,7 +265,7 @@ async fn update_info(
         timestamp: Set(chrono),
         server_id: Set(guild_id),
         webhook: Set(row.webhook),
-        episode: Set(next_airing.episode.to_string()),
+        episode: Set(next_airing.episode),
         name: Set(name),
         delay: Set(row.delay),
         image: Set(row.image),
@@ -300,7 +299,7 @@ async fn remove_activity(
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
     let rows = ActivityData::delete(activity_data::ActiveModel {
         anime_id: Set(row.anime_id),
-        server_id: Set(guild_id),
+        server_id: Set(guild_id.clone()),
         ..Default::default()
     })
     .exec(&connection)

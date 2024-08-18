@@ -27,6 +27,7 @@ pub struct InfoLocalised {
     pub button_official_discord: String,
     pub button_add_the_bot: String,
     pub button_add_the_beta_bot: String,
+    pub app_installation_count: String,
 }
 
 /// Loads the localized information data.

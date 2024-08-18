@@ -9,7 +9,8 @@ use crate::helper::get_option::subcommand_group::{
 use crate::structure::database::module_activation::Model;
 use crate::structure::database::prelude::ModuleActivation;
 use crate::structure::message::admin::server::module::load_localization_module_activation;
-use sea_orm::{EntityOrSelect, EntityTrait, QueryFilter};
+use sea_orm::ColumnTrait;
+use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
@@ -43,7 +44,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -52,19 +52,15 @@ async fn send_embed(
     let module = map
         .get(&String::from("name"))
         .ok_or(ResponseError::Option(String::from("No option for name")))?;
-    let module_localised = load_localization_module_activation(
-        guild_id.clone(),
-        db_type.clone(),
-        config.bot.config.clone(),
-    )
-    .await?;
+    let module_localised =
+        load_localization_module_activation(guild_id.clone(), config.bot.config.clone()).await?;
     let map = get_option_map_boolean_subcommand_group(command_interaction);
     let state = *map
         .get(&String::from("state"))
         .ok_or(ResponseError::Option(String::from("No option for state")))?;
     let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
     let mut row = ModuleActivation::find()
-        .filter(ModuleActivation::Column::GuildId.eq(guild_id.clone()))
+        .filter(crate::structure::database::module_activation::Column::GuildId.eq(guild_id.clone()))
         .one(&connection)
         .await?
         .unwrap_or(Model {
@@ -91,20 +87,9 @@ async fn send_embed(
         }
     }
 
-    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
-    let _ = ModuleActivation::insert(row)
-        .on_conflict(
-            sea_orm::sea_query::OnConflict::column(ModuleActivation::Column::GuildId)
-                .update_column(ModuleActivation::Column::AnilistModule)
-                .update_column(ModuleActivation::Column::AiModule)
-                .update_column(ModuleActivation::Column::GameModule)
-                .update_column(ModuleActivation::Column::NewMembersModule)
-                .update_column(ModuleActivation::Column::AnimeModule)
-                .update_column(ModuleActivation::Column::VnModule)
-                .to_owned(),
-        )
-        .exec(&connection)
-        .await?;
+    let mut active_model = row.into_active_model();
+    active_model.update(&connection).await?;
+
     let desc = if state {
         &module_localised.on
     } else {

@@ -16,7 +16,8 @@
     "button_official_website": "Official website",
     "button_official_discord": "Official Discord",
     "button_add_the_bot": "Add the bot",
-    "button_add_the_beta_bot": "Add the beta bot"
+    "button_add_the_beta_bot": "Add the beta bot",
+    "app_installation_count": "App installation count:"
   },
   "fr": {
     "title": "Info",
@@ -35,7 +36,8 @@
     "button_official_website": "Site officiel",
     "button_official_discord": "Discord officiel",
     "button_add_the_bot": "Ajouter le bot",
-    "button_add_the_beta_bot": "Ajouter le bot bêta"
+    "button_add_the_beta_bot": "Ajouter le bot bêta",
+    "app_installation_count": "Nombre d'installation de l'application:"
   },
   "jp": {
     "title": "情報",
@@ -54,7 +56,8 @@
     "button_official_website": "公式ウェブサイト",
     "button_official_discord": "公式Discord",
     "button_add_the_bot": "ボットを追加",
-    "button_add_the_beta_bot": "ベータボットを追加"
+    "button_add_the_beta_bot": "ベータボットを追加",
+    "app_installation_count": "アプリのインストール数:"
   },
   "de": {
     "title": "Info",
@@ -73,6 +76,7 @@
     "button_official_website": "Offizielle Webseite",
     "button_official_discord": "Offizieller Discord",
     "button_add_the_bot": "Den Bot hinzufügen",
-    "button_add_the_beta_bot": "Den Beta-Bot hinzufügen"
+    "button_add_the_beta_bot": "Den Beta-Bot hinzufügen",
+    "app_installation_count": "Anzahl der Anwendungsinstallationen:"
   }
 }
