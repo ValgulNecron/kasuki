@@ -157,7 +157,7 @@ pub async fn return_average_user_color(
                 let image_old = user_color.images;
                 if pfp_url != pfp_url_old {
                     let (average_color, image): (String, String) =
-                        calculate_user_color(member).await?;
+                        calculate_user_color(member.clone()).await?;
                     UserColor::insert(ActiveModel {
                         user_id: Set(id.clone()),
                         profile_picture_url: Set(pfp_url.clone()),
@@ -177,13 +177,28 @@ pub async fn return_average_user_color(
                     .exec(&connection)
                     .await?;
                     average_colors.push((average_color, pfp_url, image));
+                    UserData::insert(crate::structure::database::user_data::ActiveModel {
+                        user_id: Set(id.clone()),
+                        username: Set(member.user.name),
+                        added_at: Set(Utc::now().naive_utc()),
+                        ..Default::default()
+                    })
+                        .on_conflict(
+                            sea_orm::sea_query::OnConflict::column(
+                                crate::structure::database::user_data::Column::UserId,
+                            )
+                                .update_column(crate::structure::database::user_data::Column::Username)
+                                .to_owned(),
+                        )
+                        .exec(&connection)
+                        .await?;
                     continue;
                 }
                 average_colors.push((color, pfp_url_old, image_old));
                 continue;
             }
             _ => {
-                let (average_color, image): (String, String) = calculate_user_color(member).await?;
+                let (average_color, image): (String, String) = calculate_user_color(member.clone()).await?;
                 UserColor::insert(ActiveModel {
                     user_id: Set(id.clone()),
                     profile_picture_url: Set(pfp_url.clone()),
@@ -203,6 +218,21 @@ pub async fn return_average_user_color(
                 .exec(&connection)
                 .await?;
                 average_colors.push((average_color, pfp_url, image));
+                UserData::insert(crate::structure::database::user_data::ActiveModel {
+                    user_id: Set(id.clone()),
+                    username: Set(member.user.name),
+                    added_at: Set(Utc::now().naive_utc()),
+                    ..Default::default()
+                })
+                    .on_conflict(
+                        sea_orm::sea_query::OnConflict::column(
+                            crate::structure::database::user_data::Column::UserId,
+                        )
+                            .update_column(crate::structure::database::user_data::Column::Username)
+                            .to_owned(),
+                    )
+                    .exec(&connection)
+                    .await?;
                 continue;
             }
         }
