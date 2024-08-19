@@ -4,10 +4,10 @@ use std::thread;
 
 use base64::engine::general_purpose;
 use base64::Engine;
+use image::codecs::png;
 use image::codecs::png::{CompressionType, PngEncoder};
 use image::imageops::FilterType;
 use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
-use image::codecs::png;
 use palette::{IntoColor, Lab, Srgb};
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
@@ -184,13 +184,17 @@ pub async fn generate_server_image(
 
     // Write the image
     let mut image_data: Vec<u8> = Vec::new();
-    PngEncoder::new_with_quality(&mut image_data, CompressionType::Best, png::FilterType::Adaptive).write_image(
+    PngEncoder::new_with_quality(
+        &mut image_data,
+        CompressionType::Best,
+        png::FilterType::Adaptive,
+    )
+    .write_image(
         img.as_raw(),
         img.width(),
         img.height(),
         ExtendedColorType::Rgba8,
     )?;
-
 
     // Encode the image to base64
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());

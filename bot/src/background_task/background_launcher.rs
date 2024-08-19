@@ -77,7 +77,7 @@ pub async fn thread_management_launcher(
     ));
 
     // Wait for a certain amount of time before launching the server image management thread
-    sleep(Duration::from_secs(1)).await;
+    sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
     let image_config = bot_data.config.image.clone();
     tokio::spawn(launch_server_image_management_thread(
         ctx.clone(),

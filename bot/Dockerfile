@@ -11,10 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     youtube-dl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY Cargo.toml ./Cargo.toml
-COPY proto ./proto
-COPY schemas ./schemas
-COPY build.rs ./build.rs
+COPY Cargo.toml ./bot/Cargo.toml
+COPY proto ./bot/proto
+COPY schemas ./bot/schemas
+COPY build.rs ./bot/build.rs
 
 RUN cargo build --release
 
@@ -23,21 +23,21 @@ RUN rm src/*.rs
 RUN rm target/release/deps/kasuki*
 RUN rm target/release/kasuki*
 
-COPY src ./src
+COPY src ./bot/src
 
 RUN cargo build --release
 
 FROM rust:slim-bookworm AS builder-migration
 
 RUN USER=root cargo new --bin migration
-WORKDIR /migration
+WORKDIR /
 
-COPY Cargo.toml ./Cargo.toml
+COPY Cargo.toml ./bot/migration/Cargo.toml
 RUN cargo build --release
 RUN rm target/release/deps/kasuki*
 RUN rm target/release/kasuki*
 
-COPY src ./src
+COPY src ./bot/migration/src
 
 RUN cargo build --release
 
