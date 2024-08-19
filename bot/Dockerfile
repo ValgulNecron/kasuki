@@ -34,8 +34,8 @@ WORKDIR /migration
 COPY Cargo.toml ./bot/migration/Cargo.toml
 
 RUN cargo build --release
-RUN rm target/release/deps/kasuki*
-RUN rm target/release/kasuki*
+RUN rm target/release/deps/migration*
+RUN rm target/release/migration*
 
 COPY src ./bot/migration/src
 
