@@ -35,7 +35,6 @@ RUN cargo build --release
 RUN rm target/release/deps/migration*
 RUN rm target/release/migration*
 RUN rm src/*.rs
-RUN ls /migration
 COPY src ./migration/src
 RUN cargo build --release
 
