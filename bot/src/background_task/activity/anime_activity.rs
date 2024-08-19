@@ -70,7 +70,7 @@ async fn send_activity(
         }
     };
     let rows = match ActivityData::find()
-        .filter(<activity_data::Entity as EntityTrait>::Column::Timestamp.eq(now.clone()))
+        .filter(<activity_data::Entity as EntityTrait>::Column::Timestamp.eq(now))
         .all(&connection)
         .await
     {

@@ -5,7 +5,7 @@ use serenity::all::{
 use tracing::debug;
 
 use crate::constant::DEFAULT_STRING;
-use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
+use crate::helper::get_option::command::get_option_map_string;
 
 pub async fn give_premium_sub_autocomplete(
     ctx: Context,

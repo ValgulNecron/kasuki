@@ -27,9 +27,6 @@ use crate::config::Config;
 use crate::constant::COMMAND_USE_PATH;
 use crate::get_url;
 use crate::helper::error_management::error_dispatch;
-use crate::helper::error_management::error_enum::{
-    FollowupError, ResponseError, UnknownResponseError,
-};
 use crate::new_member::new_member_message;
 use crate::register::registration_dispatcher::command_registration;
 use crate::removed_member::removed_member_message;

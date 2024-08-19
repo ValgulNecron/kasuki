@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::io::Cursor;
-use std::ptr::replace;
 use std::sync::Arc;
 use std::time::Duration;
 
