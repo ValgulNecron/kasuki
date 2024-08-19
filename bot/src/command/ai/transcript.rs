@@ -44,11 +44,13 @@ impl Command for TranscriptCommand<'_> {
 
 impl SlashCommand for TranscriptCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        if !self
+        if self
             .check_hourly_limit(self.command_name.clone(), self.handler)
             .await?
         {
-            return Ok(());
+            return Err(Box::new(FollowupError::Option(String::from(
+                "You have reached your hourly limit. Please try again later.",
+            ))));
         }
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }

@@ -17,6 +17,7 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 use tracing::trace;
+use crate::helper::error_management::error_enum::FollowupError;
 
 pub struct QuestionCommand<'de> {
     pub ctx: Context,
@@ -38,6 +39,14 @@ impl Command for QuestionCommand<'_> {
 
 impl SlashCommand for QuestionCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+        if self
+            .check_hourly_limit(self.command_name.clone(), self.handler)
+            .await?
+        {
+            return Err(Box::new(FollowupError::Option(String::from(
+                "You have reached your hourly limit. Please try again later.",
+            ))));
+        }
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }

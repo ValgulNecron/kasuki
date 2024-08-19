@@ -61,7 +61,6 @@ impl PremiumCommand for ImageCommand<'_> {
                 self.command_interaction.user.id.to_string(),
             )
             .await;
-
         let (user_sub, available_sub) = get_user_sub(&self.ctx, &self.command_interaction).await?;
         if available_sub.is_none() {
             return Ok(false);
@@ -81,11 +80,13 @@ impl PremiumCommand for ImageCommand<'_> {
 
 impl SlashCommand for ImageCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        if !self
+        if self
             .check_hourly_limit(self.command_name.clone(), self.handler)
             .await?
         {
-            return Ok(());
+            return Err(Box::new(FollowupError::Option(String::from(
+                "You have reached your hourly limit. Please try again later.",
+            ))));
         }
         let ctx = &self.ctx;
         let command_interaction = &self.command_interaction;

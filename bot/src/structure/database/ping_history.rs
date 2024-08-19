@@ -7,6 +7,7 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub shard_id: String,
+    #[sea_orm(primary_key, auto_increment = false)]
     pub timestamp: DateTime,
     pub latency: String,
 }
