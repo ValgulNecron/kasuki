@@ -72,3 +72,7 @@ debug = 2
 [profile.release]
 lto = true
 strip = "symbols"
+
+[[bin]]
+name = "kasuki"
+path = "src/main.rs"
