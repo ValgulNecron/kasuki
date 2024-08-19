@@ -38,12 +38,6 @@ impl SlashCommand for WaifuCommand {
         let value = 156323;
         let data = get_character_by_id(value, anilist_cache).await?;
         // Send the character's data as a response to the command interaction
-        send_embed(
-            ctx,
-            command_interaction,
-            data,
-            config.bot.config.clone(),
-        )
-        .await
+        send_embed(ctx, command_interaction, data, config.bot.config.clone()).await
     }
 }
