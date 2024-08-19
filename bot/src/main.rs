@@ -14,7 +14,7 @@ use serenity::Client;
 use songbird::driver::DecodeMode;
 use songbird::SerenityInit;
 use tokio::sync::RwLock;
-use tracing::{error, info, trace};
+use tracing::{error, info};
 mod api;
 mod audio;
 mod background_task;

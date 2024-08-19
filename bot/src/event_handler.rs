@@ -298,7 +298,6 @@ impl EventHandler for Handler {
         user: User,
         _member_data_if_available: Option<Member>,
     ) {
-        let db_type = self.bot_data.config.bot.config.db_type.clone();
         let is_module_on = check_if_module_is_on(
             guild_id.to_string().clone(),
             "NEW_MEMBER",
@@ -314,7 +313,6 @@ impl EventHandler for Handler {
                 &ctx,
                 guild_id,
                 user,
-                db_type,
                 self.bot_data.config.bot.config.clone(),
             )
             .await
@@ -428,56 +426,22 @@ impl EventHandler for Handler {
                     command_interaction.data.options
                 );
                 let message;
-                let error_type;
                 match dispatch_command(&ctx, &command_interaction, self).await {
                     Ok(()) => return,
                     Err(e) => {
                         message = e.to_string();
-                        error_type = if e.is::<ResponseError>() {
-                            "ResponseError"
-                        } else if e.is::<FollowupError>() {
-                            "FollowupError"
-                        } else if e.is::<UnknownResponseError>() {
-                            "UnknownResponseError"
-                        } else {
-                            "other"
-                        };
                     }
                 }
-                error_dispatch::command_dispatching(
-                    message,
-                    error_type,
-                    &command_interaction,
-                    &ctx,
-                    self,
-                )
-                .await
+                error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await
             } else if command_interaction.data.kind == CommandType::User {
                 let message;
-                let error_type;
                 match dispatch_user_command(&ctx, &command_interaction, self).await {
                     Ok(()) => return,
                     Err(e) => {
                         message = e.to_string();
-                        error_type = if e.is::<ResponseError>() {
-                            "ResponseError"
-                        } else if e.is::<FollowupError>() {
-                            "FollowupError"
-                        } else if e.is::<UnknownResponseError>() {
-                            "UnknownResponseError"
-                        } else {
-                            "other"
-                        };
                     }
                 }
-                error_dispatch::command_dispatching(
-                    message,
-                    error_type,
-                    &command_interaction,
-                    &ctx,
-                    self,
-                )
-                .await
+                error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await
             } else if command_interaction.data.kind == CommandType::Message {
                 trace!("{:?}", command_interaction)
             }

@@ -95,7 +95,6 @@ async fn send_embed(
         .guild_id
         .unwrap_or(GuildId::from(0))
         .to_string();
-    let db_type = config.bot.config.db_type.clone();
 
     let steam_game_info_localised =
         load_localization_steam_game_info(guild_id.clone(), config.bot.config.clone()).await?;

@@ -16,7 +16,6 @@ pub async fn removed_member_message(
     ctx: &Context,
     guild_id: GuildId,
     user: User,
-    db_type: String,
     db_config: BotConfigDetails,
 ) {
     let ctx = ctx.clone();

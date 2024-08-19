@@ -134,7 +134,7 @@ async fn send_embed(
         } else {
             YoutubeDl::new(http_client, url.clone())
         };
-        let (track, meta) = futures::join!(
+        let (_, meta) = futures::join!(
             handler.enqueue(Track::from(src.clone())),
             src.aux_metadata()
         );
@@ -145,9 +145,6 @@ async fn send_embed(
             let title = meta.title.unwrap_or("song".to_string());
             let thumbnail = meta.thumbnail;
             let duration = meta.duration.unwrap_or_default();
-            let source_url = meta
-                .source_url
-                .unwrap_or("<https://youtube.com>".to_string());
 
             let mut embed = get_default_embed(None)
                 .title(localised.now_playing)

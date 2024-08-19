@@ -27,7 +27,6 @@ const ERROR_MESSAGE: &str = "**There was an error while processing the command**
 /// * `ctx` - A reference to a Context that represents the context.
 pub async fn command_dispatching(
     message: String,
-    error_type: &str,
     command_interaction: &CommandInteraction,
     ctx: &Context,
     self_handler: &Handler,

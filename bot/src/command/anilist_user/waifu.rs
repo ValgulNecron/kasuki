@@ -34,7 +34,6 @@ impl SlashCommand for WaifuCommand {
         let config = self.config.clone();
         let anilist_cache = self.anilist_cache.clone();
         // Execute the corresponding search function based on the specified type
-        let db_type = config.bot.config.db_type.clone();
         // Fetch the data of the character with ID 156323 from AniList
         let value = 156323;
         let data = get_character_by_id(value, anilist_cache).await?;
@@ -43,7 +42,6 @@ impl SlashCommand for WaifuCommand {
             ctx,
             command_interaction,
             data,
-            db_type,
             config.bot.config.clone(),
         )
         .await

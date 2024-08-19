@@ -67,7 +67,7 @@ async fn send_embed(
         }
     }
 
-    let res = ctx
+    let _ = ctx
         .http
         .create_test_entitlement(sku_id, EntitlementOwner::User(user))
         .await

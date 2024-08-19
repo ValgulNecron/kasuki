@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::io::Cursor;
+use std::ptr::replace;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -9,7 +10,7 @@ use crate::structure::database::prelude::{UserColor, UserData};
 use crate::structure::database::user_color::{ActiveModel, Column, Model};
 use base64::engine::general_purpose;
 use base64::Engine;
-use chrono::{NaiveDateTime, Utc};
+use chrono::Utc;
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use image::codecs::png::PngEncoder;
@@ -148,9 +149,13 @@ pub async fn return_average_user_color(
 ) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
     let mut average_colors = Vec::new();
     for member in members {
-        trace!("Calculating user color for {}", member.user.id);
         let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://cdn.discordapp.com/avatars/260706120086192129/ec231a35c9a33dd29ea4819d29d06056.webp?size=64"))
-            .replace("?size=1024", "?size=64");
+            .replace("?size=4096", "?size=64")
+            .replace("?size=2048", "?size=64")
+            .replace("?size=1024", "?size=64")
+            .replace("?size=512", "?size=64")
+            .replace("?size=256", "?size=64")
+            .replace("?size=128", "?size=64");
         let id = member.user.id.to_string();
 
         let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
@@ -250,7 +255,6 @@ pub async fn return_average_user_color(
                 continue;
             }
         }
-        trace!("Done calculating user color for {}", member.user.id);
     }
 
     Ok(average_colors)

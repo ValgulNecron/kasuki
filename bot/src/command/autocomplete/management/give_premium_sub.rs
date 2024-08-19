@@ -12,14 +12,9 @@ pub async fn give_premium_sub_autocomplete(
     autocomplete_interaction: CommandInteraction,
 ) {
     let map = get_option_map_string(&autocomplete_interaction);
-    let subscription = map
+    let _subscription = map
         .get(&String::from("subscription"))
         .unwrap_or(DEFAULT_STRING);
-    let map = get_option_map_user(&autocomplete_interaction);
-    let user = match map.get(&String::from("user")) {
-        Some(user) => user,
-        None => return,
-    };
 
     let sku_list = ctx.http.get_skus().await.unwrap();
     let sku_list = sku_list

@@ -1,6 +1,6 @@
-use std::env;
-use sea_orm_migration::prelude::*;
 use migration::sea_orm::sqlx::{query, PgPool};
+use sea_orm_migration::prelude::*;
+use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -11,7 +11,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let database_url = database_url.replace("kasuki", "");
             let pool = PgPool::connect(&database_url).await?;
             query("CREATE DATABASE kasuki").execute(&pool).await?;
-            
         }
     };
     cli::run_cli(migration::Migrator).await;

@@ -50,7 +50,6 @@ pub async fn send_embed(
     config: &BotConfigDetails,
     command_usage: &Arc<RwLock<RootUsage>>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.db_type.clone();
     let db_config = config.clone();
     let user_id = user.id.to_string();
     let username = user.name.clone();

@@ -50,7 +50,6 @@ pub async fn no_banner(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     username: &str,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match command_interaction.guild_id {
@@ -79,12 +78,11 @@ pub async fn send_embed(
     user: User,
     config: &Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
     let db_config = config.bot.config.clone();
     let banner = match user.banner_url() {
         Some(url) => url,
         None => {
-            no_banner(ctx, command_interaction, &user.name, db_type, db_config).await?;
+            no_banner(ctx, command_interaction, &user.name, db_config).await?;
             return Ok(());
         }
     };

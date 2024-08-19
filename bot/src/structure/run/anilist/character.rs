@@ -110,7 +110,6 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     character: Character,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match command_interaction.guild_id {
