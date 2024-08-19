@@ -19,13 +19,13 @@ COPY build.rs ./bot/build.rs
 RUN cargo build --release
 
 RUN rm src/*.rs
+COPY src ./bot/src
 
 RUN rm target/release/deps/kasuki*
 RUN rm target/release/kasuki*
-
-COPY src ./bot/src
-
 RUN cargo build --release
+
+
 FROM rust:slim-bookworm AS builder-migration
 
 RUN USER=root cargo new --bin migration
@@ -36,12 +36,9 @@ COPY Cargo.toml ./bot/migration/Cargo.toml
 RUN cargo build --release
 RUN rm target/release/deps/migration*
 RUN rm target/release/migration*
-
-COPY src ./bot/migration/src
-
-RUN cargo build --release
-
 RUN rm src/*.rs
+COPY src ./bot/migration/src
+RUN cargo build --release
 FROM debian:trixie-slim AS bot
 
 LABEL maintainer="valgul"
