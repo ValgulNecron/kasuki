@@ -26,13 +26,13 @@ RUN rm target/release/kasuki*
 COPY src ./bot/src
 
 RUN cargo build --release
-
 FROM rust:slim-bookworm AS builder-migration
 
 RUN USER=root cargo new --bin migration
-WORKDIR /
+WORKDIR /migration
 
 COPY Cargo.toml ./bot/migration/Cargo.toml
+
 RUN cargo build --release
 RUN rm target/release/deps/kasuki*
 RUN rm target/release/kasuki*
