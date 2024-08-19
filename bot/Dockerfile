@@ -11,15 +11,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     youtube-dl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY Cargo.toml ./bot/Cargo.toml
-COPY proto ./bot/proto
-COPY schemas ./bot/schemas
-COPY build.rs ./bot/build.rs
+COPY Cargo.toml ./Cargo.toml
+COPY proto ./proto
+COPY schemas ./schemas
+COPY build.rs ./build.rs
 
 RUN cargo build --release
 
 RUN rm src/*.rs
-COPY src ./bot/src
+COPY src ./src
 
 RUN rm target/release/deps/kasuki*
 RUN rm target/release/kasuki*
@@ -30,15 +30,14 @@ FROM rust:slim-bookworm AS builder-migration
 
 RUN USER=root cargo new --bin migration
 WORKDIR /migration
-
-COPY Cargo.toml ./bot/migration/Cargo.toml
-
+COPY Cargo.toml ./migration/Cargo.toml
 RUN cargo build --release
 RUN rm target/release/deps/migration*
 RUN rm target/release/migration*
 RUN rm src/*.rs
-COPY src ./bot/migration/src
+COPY src ./migration/src
 RUN cargo build --release
+
 FROM debian:trixie-slim AS bot
 
 LABEL maintainer="valgul"
