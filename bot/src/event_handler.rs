@@ -4,10 +4,7 @@ use num_bigint::BigUint;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
-use serenity::all::{
-    ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,
-    Interaction, Member, Ready, User,
-};
+use serenity::all::{ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId, Interaction, Member, Presence, Ready, User};
 use serenity::async_trait;
 use serenity::gateway::ChunkGuildFilter;
 use std::collections::HashMap;
@@ -151,18 +148,6 @@ impl Handler {
 
 #[async_trait]
 impl EventHandler for Handler {
-    /// This function is called when the bot joins a new guild or when it receives information about a guild it is already a part of.
-    ///
-    /// # Arguments
-    ///
-    /// * `ctx` - A `Context` instance which provides data and functionality for the command.
-    /// * `guild` - The `Guild` that was created or updated.
-    /// * `is_new` - A boolean indicating whether the guild is new (i.e., the bot has just joined it).
-    ///
-    /// # Behavior
-    ///
-    /// If the bot has just joined a new guild, it performs color management, generates a server image, and logs a debug message.
-    /// If the bot has received information about a guild it is already a part of, it simply logs a debug message.
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
         let image_config = self.bot_data.config.image.clone();
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
@@ -213,18 +198,6 @@ impl EventHandler for Handler {
         };
     }
 
-    /// This function is called when a new member joins a guild.
-    ///
-    /// # Arguments
-    ///
-    /// * `ctx` - A `Context` instance which provides data and functionality for the command.
-    /// * `member` - The `Member` that joined the guild.
-    ///
-    /// # Behavior
-    ///
-    /// The function performs color management, generates a server image, and logs a trace message.
-    /// If the "NEW_MEMBER" module is on, it calls the `new_member` function to handle the new member.
-    /// If an error occurs during the handling of the new member, it logs the error.
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
         let guild_id = member.guild_id.to_string();
@@ -315,25 +288,7 @@ impl EventHandler for Handler {
             .await
         }
     }
-    /// This function is called when the bot is ready.
-    ///
-    /// # Arguments
-    ///
-    /// * `ctx` - A `Context` instance which provides data and functionality for the command.
-    /// * `ready` - The `Ready` event that was triggered.
-    ///
-    /// # Behavior
-    ///
-    /// The function performs the following actions:
-    /// 1. Spawns a new thread for managing various tasks.
-    /// 2. Sets the bot's activity.
-    /// 3. Logs a message indicating that the shard is connected.
-    /// 4. Logs the number of servers the bot is in.
-    /// 5. Loads environment variables from the .env file.
-    /// 6. Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive).
-    /// 7. Logs the value of the "REMOVE_OLD_COMMAND" environment variable.
-    /// 8. Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable.
-    /// 9. Iterates over each guild the bot is in, retrieves partial guild information, and logs the guild name and ID.
+
     async fn ready(&self, ctx: Context, ready: Ready) {
         // Spawns a new thread for managing various tasks
         let guard = self.bot_data.already_launched.read().await;
@@ -388,29 +343,7 @@ impl EventHandler for Handler {
             )
         }
     }
-
-    /// Handles different types of interactions.
-    ///
-    /// This function is called when an interaction is created. It checks the type of the interaction
-    /// and performs the appropriate action based on the type.
-    ///
-    /// # Arguments
-    ///
-    /// * `ctx` - A `Context` instance which provides data and functionality for the command.
-    /// * `interaction` - The `Interaction` that was created.
-    ///
-    /// # Behavior
-    ///
-    /// * `Interaction::Command` - Logs the command details and dispatches the command.
-    /// If an error occurs during dispatching, it is handled by `error_dispatch::command_dispatching`.
-    /// * `Interaction::Autocomplete` - Dispatches the autocomplete interaction.
-    /// * `Interaction::Component` - Dispatches the component interaction. If an error occurs, it is logged.
-    ///
-    /// Other types of interactions are ignored.
-    ///
-    /// # Errors
-    ///
-    /// This function does not return any errors. However, it logs errors that occur during the dispatching of commands and components.
+    
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
             if command_interaction.data.kind == CommandType::ChatInput {
@@ -469,5 +402,53 @@ impl EventHandler for Handler {
                 error!("{:?}", e)
             }
         }
+    }
+
+    async fn presence_update(&self, ctx: Context, new_data: Presence) {
+        let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
+        let user_id = new_data.user.id;
+        let username = new_data.user.name.unwrap_or_default();
+        let image_config = self.bot_data.config.image.clone();
+        debug!(
+            "Member {} updated presence",
+            user_id
+        );
+        color_management(
+            &ctx.cache.guilds(),
+            &ctx,
+            user_blacklist_server_image,
+            self.bot_data.config.bot.config.clone(),
+        )
+            .await;
+        let connection = match sea_orm::Database::connect(get_url(
+            self.bot_data.config.bot.config.clone(),
+        ))
+            .await
+        {
+            Ok(connection) => connection,
+            Err(e) => {
+                error!("Failed to connect to the database. {}", e);
+                return;
+            }
+        };
+        match UserData::insert(crate::structure::database::user_data::ActiveModel {
+            user_id: Set(user_id.to_string()),
+            username: Set(username),
+            added_at: Set(Utc::now().naive_utc()),
+            ..Default::default()
+        })
+            .on_conflict(
+                sea_orm::sea_query::OnConflict::column(
+                    crate::structure::database::user_data::Column::UserId,
+                )
+                    .update_column(crate::structure::database::user_data::Column::Username)
+                    .to_owned(),
+            )
+            .exec(&connection)
+            .await
+        {
+            Ok(_) => {}
+            Err(e) => error!("Failed to insert user data. {}", e),
+        };
     }
 }

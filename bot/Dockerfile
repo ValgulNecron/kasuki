@@ -30,12 +30,12 @@ FROM rust:slim-bookworm AS builder-migration
 
 RUN USER=root cargo new --bin migration
 WORKDIR /migration
-COPY migration/Cargo.toml Cargo.toml
+COPY migration_src/Cargo.toml Cargo.toml
 RUN cargo build --release
 RUN rm target/release/deps/migration*
 RUN rm target/release/migration*
 RUN rm src/*.rs
-COPY migration/src src
+COPY migration_src/src src
 RUN cargo build --release
 
 FROM debian:trixie-slim AS bot

@@ -7,6 +7,31 @@ use tracing::error;
 
 use crate::constant::COLOR;
 use crate::event_handler::Handler;
+use thiserror::Error;
+
+#[derive(Debug, Error, PartialEq, Clone)]
+pub enum Error {
+    #[error("Error while getting guild data: {0}")]
+    GettingGuild(String),
+    #[error("Error while getting an option: {0}")]
+    Option(String),
+    #[error("Error while processing image: {0}")]
+    ImageProcessing(String),
+    #[error("Error while doing a web request: {0}")]
+    WebRequest(String),
+    #[error("Error while getting a byte: {0}")]
+    Byte(String),
+    #[error("Error while doing a webhook request: {0}")]
+    Webhook(String),
+    #[error("Error with the database: {0}")]
+    Database(String),
+    #[error("Error while sending the response: {0}")]
+    Sending(String),
+    #[error("Error while initializing the logger: {0}")]
+    Logger(String),
+}
+
+
 
 /// ERROR_MESSAGE is a constant string that contains the default error message
 const ERROR_MESSAGE: &str = "**There was an error while processing the command**\
@@ -139,6 +164,10 @@ fn censor_url_and_token(error_message: String, self_handler: &Handler) -> String
     let config = self_handler.bot_data.config.clone();
     let mut error_message = error_message;
     let discord_token = config.bot.discord_token.clone();
+    let db_user = config.bot.config.user.clone().unwrap_or_default();
+    let db_pass = config.bot.config.password.clone().unwrap_or_default();
+    let db_port = config.bot.config.port.clone().unwrap_or_default().to_string();
+    let db_host = config.bot.config.host.clone().unwrap_or_default();
     let image_token = config.ai.image.ai_image_token.clone().unwrap_or_default();
     let transcript_token = config
         .ai
@@ -156,9 +185,14 @@ fn censor_url_and_token(error_message: String, self_handler: &Handler) -> String
         .replace(&discord_token, "[REDACTED]")
         .replace(&image_token, "[REDACTED]")
         .replace(&transcript_token, "[REDACTED]")
-        .replace(&chat_token, "[REDACTED]");
-    let re = Regex::new(r"^(https?://)[^/]+").unwrap();
-    error_message = re.replace(&error_message, "$1[REDACTED]").to_string();
+        .replace(&chat_token, "[REDACTED]")
+        .replace(&db_user, "[REDACTED]")
+        .replace(&db_pass, "[REDACTED]")
+        .replace(&db_port, "[REDACTED]")
+        .replace(&db_host, "[REDACTED]");
+    // replace url with [REDACTED]
+    let url_regex = Regex::new(r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)").unwrap();
+    error_message = url_regex.replace_all(&error_message, "[REDACTED]").to_string();
 
     error_message
 }

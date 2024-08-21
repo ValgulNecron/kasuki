@@ -1,3 +1,4 @@
+use std::any::Any;
 use crate::config::BotConfigDetails;
 use crate::constant::HEX_COLOR;
 use crate::custom_serenity_impl::InternalAction;
@@ -12,12 +13,7 @@ use serenity::client::Context;
 use text_to_png::TextRenderer;
 use tracing::error;
 
-pub async fn removed_member_message(
-    ctx: &Context,
-    guild_id: GuildId,
-    user: User,
-    db_config: BotConfigDetails,
-) {
+pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User, db_config: BotConfigDetails, ) {
     let ctx = ctx.clone();
     let user_name = user.name.clone();
     let partial_guild = match guild_id.to_partial_guild(&ctx.http).await {
@@ -83,38 +79,43 @@ pub async fn removed_member_message(
             return;
         }
     };
-    let reason;
-    if audit_log.entries.is_empty() || audit_log.entries.is_empty() {
-        reason = "User left".to_string()
-    } else {
-        let mut internal_action: InternalAction = audit_log.entries[0].action.into();
-        for entry in &audit_log.entries {
-            let target = match entry.target_id {
-                Some(target) => target,
-                None => continue,
-            };
-            if target.to_string() == user.id.to_string() {
-                internal_action = entry.action.into();
-                break;
-            }
+
+    let local = match load_localization_removed_member(guild_id.to_string(), db_config).await {
+        Ok(local) => local,
+        Err(e) => {
+            error!("Failed to load the localization. {}", e);
+            return;
         }
-        reason = if internal_action == InternalAction::Member(BanAdd) {
-            let a = audit_log.entries[0].clone().reason.unwrap_or_default();
-            if a.is_empty() {
-                "User Banned".to_string()
-            } else {
-                format!("User Banned for {}", a)
+    };
+    let reason = match audit_log.entries.is_empty() {
+        true => local.bye.replace("$user$", &user_name),
+        false => {
+            let mut text: String= String::new();
+            for entry in &audit_log.entries {
+                let target = match entry.target_id {
+                    Some(target) => target,
+                    None => continue,
+                };
+                if target.to_string() == user.id.to_string() {
+                    let reason = entry.reason.clone();
+                    match (entry.action, reason) {
+                        (BanAdd, Some(reason)) => text =local.ban_for.replace(
+                            "$user$",
+                            &user_name,
+                        ).replace("$reason$", &reason),
+                        (Kick, Some(reason)) => text =local.kick_for.replace(
+                            "$user$",
+                            &user_name,
+                        ).replace("$reason$", &reason),
+                        (BanAdd, None) => text =local.ban.replace("$user$", &user_name),
+                        (Kick, None) => text =local.kick.replace("$user$", &user_name),
+                        _ =>text = local.bye.replace("$user$", &user_name),
+                    }
+                    break;
+                }
             }
-        } else if internal_action == InternalAction::Member(Kick) {
-            let a = audit_log.entries[0].clone().reason.unwrap_or_default();
-            if a.is_empty() {
-                "User kicked".to_string()
-            } else {
-                format!("User kicked for {}", a)
-            }
-        } else {
-            "User left".to_string()
-        };
+            text
+        }
     };
 
     let guild_image_width = guild_image.width();
@@ -130,15 +131,8 @@ pub async fn removed_member_message(
             error!("Failed to overlay the image. {}", e);
         }
     }
-    let local = match load_localization_removed_member(guild_id.to_string(), db_config).await {
-        Ok(local) => local.bye,
-        Err(_) => "$user$ quited the server".to_string(),
-    };
-    let text = local
-        .replace("$user$", &user_name)
-        .replace("$reason$", &reason);
     let renderer = TextRenderer::default();
-    let text_png = match renderer.render_text_to_png_data(text, 52, HEX_COLOR) {
+    let text_png = match renderer.render_text_to_png_data(reason, 52, HEX_COLOR) {
         Ok(text_png) => text_png,
         Err(e) => {
             error!("Failed to render the text to png. {}", e);

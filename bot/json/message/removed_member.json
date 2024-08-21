@@ -1,14 +1,30 @@
 {
   "en": {
-    "bye": "$user$ quited the server with reason: $reason$"
+    "bye": "$user$ quited the server",
+    "ban": "$user$ was banned",
+    "kick": "$user$ was kicked",
+    "ban_for": "$user$ was banned for: $reason$",
+    "kick_for": "$user$ was kicked for: $reason$"
   },
   "fr": {
-    "bye": "$user$ a quitté le serveur avec la raison: $reason$"
+    "bye": "$user$ a quité le serveur",
+    "ban": "$user$ a banni",
+    "kick": "$user$ a été expulse",
+    "ban_for": "$user$ a banni pour: $reason$",
+    "kick_for": "$user$ a été expulse pour: $reason$"
   },
   "jp": {
-    "bye": "$user$ は理由: $reason$ でサーバーを退出しました"
+    "bye": "$user$ はサーバーから退出しました",
+    "ban": "$user$ は禁止されました",
+    "kick": "$user$ はキックされました",
+    "ban_for": "$user$ は $reason$ により禁止されました",
+    "kick_for": "$user$ は $reason$ によりキックされました"
   },
   "de": {
-    "bye": "$user$ hat den Server mit dem Grund verlassen: $reason$"
+    "bye": "$user$ hat den Server verlassen",
+    "ban": "$user$ wurde gebannt",
+    "kick": "$user$ wurde gekickt",
+    "ban_for": "$user$ wurde gebannt für: $reason$",
+    "kick_for": "$user$ wurde gekickt für: $reason$"
   }
 }

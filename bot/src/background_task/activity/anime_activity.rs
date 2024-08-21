@@ -7,7 +7,6 @@ use crate::command::admin::anilist::add_activity::get_minimal_anime_media;
 use crate::config::BotConfigDetails;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum;
 use crate::structure::database::activity_data;
 use crate::structure::database::activity_data::Model;
 use crate::structure::database::prelude::ActivityData;
@@ -23,6 +22,7 @@ use sea_orm::QueryFilter;
 use serenity::all::{Context, CreateAttachment, EditWebhook, ExecuteWebhook, Webhook};
 use tokio::sync::RwLock;
 use tracing::{error, trace};
+use crate::helper::error_management::error_dispatch;
 
 /// `manage_activity` is an asynchronous function that manages activities.
 /// It takes a `ctx` as a parameter.
@@ -230,7 +230,7 @@ async fn update_info(
     };
     let title = media
         .title
-        .ok_or(error_enum::Error::Option(String::from("no title")))?;
+        .ok_or(error_dispatch::Error::Option(String::from("no title")))?;
     let rj = title.romaji;
     let en = title.english;
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
