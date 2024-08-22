@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::helper::error_management::error_enum::UnknownResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::character;
@@ -90,13 +90,13 @@ pub async fn get_character_by_id(
         Some(data) => match data.character {
             Some(media) => media,
             None => {
-                return Err(Box::new(UnknownResponseError::Option(
+                return Err(Box::new(error_dispatch::Error::Option(
                     "No character found".to_string(),
                 )))
             }
         },
         None => {
-            return Err(Box::new(UnknownResponseError::Option(
+            return Err(Box::new(error_dispatch::Error::Option(
                 "No data found".to_string(),
             )))
         }

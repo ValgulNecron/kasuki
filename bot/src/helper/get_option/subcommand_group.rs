@@ -18,9 +18,9 @@ use serenity::all::{
 ///
 /// An `Option` that contains the first `ResolvedOption` of the subcommand group if it exists, or `None` if it doesn't.
 pub fn get_subcommand(interaction: &CommandInteraction) -> Option<ResolvedOption<'_>> {
-    let subcommand_group_value = interaction.data.options().first().unwrap().clone();
+    let subcommand_group_value = interaction.data.options().first()?.clone();
     if let ResolvedValue::SubCommandGroup(subcommand_group_options) = subcommand_group_value.value {
-        return Some(subcommand_group_options.first().unwrap().clone());
+        return Some(subcommand_group_options.first()?.clone());
     };
     None
 }

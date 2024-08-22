@@ -6,15 +6,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RemovedMember {
-	pub bye: String,
+    pub bye: String,
 
-	pub ban: String,
+    pub ban: String,
 
-	pub kick: String,
+    pub kick: String,
 
-	pub ban_for: String,
+    pub ban_for: String,
 
-	pub kick_for: String,
+    pub kick_for: String,
 }
 pub async fn load_localization_removed_member(
     guild_id: String,

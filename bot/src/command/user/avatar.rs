@@ -1,7 +1,6 @@
 use crate::command::command_trait::{Command, SlashCommand, UserCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::structure::message::user::avatar::load_localization_avatar;
 use serenity::all::{
@@ -65,10 +64,7 @@ pub async fn get_user_command(
     let user = get_option_map_user_subcommand(command_interaction);
     let user = user.get(&String::from("username"));
     let user = match user {
-        Some(user) => user
-            .to_user(&ctx.http)
-            .await
-            .map_err(|e| ResponseError::Sending(format!("Failed to get user from ID: {:#?}", e)))?,
+        Some(user) => user.to_user(&ctx.http).await?,
         None => command_interaction.user.clone(),
     };
     Ok(user)
@@ -118,7 +114,6 @@ pub async fn send_embed(
 
     interaction
         .create_response(&ctx.http, CreateInteractionResponse::Message(message))
-        .await
-        .map_err(|e| ResponseError::Sending(e.to_string()))?;
+        .await?;
     Ok(())
 }

@@ -83,14 +83,7 @@ pub async fn send_embed(
     };
 
     // Send an embed containing the LN data as a response to the command interaction
-    media::send_embed(
-        ctx,
-        command_interaction,
-        data,
-        db_type,
-        config.bot.config.clone(),
-    )
-    .await?;
+    media::send_embed(ctx, command_interaction, data, config.bot.config.clone()).await?;
 
     Ok(())
 }

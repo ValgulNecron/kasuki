@@ -26,23 +26,11 @@ use crate::background_task::server_image::common::{
 use crate::config::{BotConfigDetails, ImageConfig};
 use crate::constant::THREAD_POOL_SIZE;
 use crate::get_url;
-use crate::helper::error_management::error_enum;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::database::prelude::{ServerImage, UserColor};
 use crate::structure::database::server_image::{ActiveModel, Column};
 
-/// This function generates a local server image.
-///
-/// # Arguments
-///
-/// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
-/// * `guild_id` - The ID of the guild (server) for which the image is being generated.
-/// * `cache_type` - A String representing the cache type.
-/// * `image_config` - The ImageConfig struct that contains configuration options for the image.
-///
-/// # Returns
-///
-/// * `Result<(), Box<dyn Error>>` - This function returns a Result type. If the image generation is successful, it returns Ok(()), otherwise it returns an error wrapped in a Box.
 pub async fn generate_local_server_image(
     ctx: &Context,
     guild_id: GuildId,
@@ -111,10 +99,15 @@ pub async fn generate_server_image(
     // Retrieve and process the guild image
     let guild_pfp = guild
         .icon_url()
-        .ok_or(error_enum::Error::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "The guild has no icon",
         )))?
-        .replace("?size=1024", "?size=128");
+        .replace("?size=4096", "?size=64")
+        .replace("?size=2048", "?size=64")
+        .replace("?size=1024", "?size=64")
+        .replace("?size=512", "?size=64")
+        .replace("?size=256", "?size=64")
+        .replace("?size=128", "?size=64");
 
     let img = get_image_from_url(guild_pfp.clone()).await?;
 
@@ -162,7 +155,7 @@ pub async fn generate_server_image(
     // Combine processed images
     let vec_image = match vec_image.read() {
         Ok(vec_image) => vec_image.clone(),
-        Err(e) => return Err(Box::new(error_enum::Error::Option(e.to_string()))),
+        Err(e) => return Err(Box::new(error_dispatch::Error::Option(e.to_string()))),
     };
     let internal_vec = vec_image.clone();
     for (x, y, image) in internal_vec {

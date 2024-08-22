@@ -2,7 +2,7 @@ use crate::audio::receiver::{Receiver, TrackErrorNotifier};
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::audio::play::load_localization_play_localised;
 use serenity::all::{CommandInteraction, CreateInteractionResponseFollowup};
@@ -46,11 +46,13 @@ async fn send_embed(
     let map = get_option_map_string_subcommand(command_interaction);
     let mut url = map
         .get(&String::from("song"))
-        .ok_or(ResponseError::Option(String::from("No option for song")))?
+        .ok_or(error_dispatch::Error::Option(String::from(
+            "No option for song",
+        )))?
         .clone();
     let guild_id = command_interaction
         .guild_id
-        .ok_or(ResponseError::Option(String::from("No guild id")))?;
+        .ok_or(error_dispatch::Error::Option(String::from("No guild id")))?;
     let cache = ctx.cache.clone();
     let localised =
         load_localization_play_localised(guild_id.to_string(), config.bot.config.clone()).await?;
@@ -65,8 +67,7 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     let bind = manager.get(guild_id);
     trace!(?bind);
 
@@ -77,7 +78,7 @@ async fn send_embed(
                 Some(guild) => guild,
                 None => {
                     error!("Failed to get the guild.");
-                    return Err(Box::new(ResponseError::Option(
+                    return Err(Box::new(error_dispatch::Error::Option(
                         "Failed to get the guild.".to_string(),
                     )));
                 }
@@ -91,7 +92,7 @@ async fn send_embed(
         let connect_to = match channel_id {
             Some(channel) => channel,
             None => {
-                return Err(Box::new(FollowupError::Option(String::from(
+                return Err(Box::new(error_dispatch::Error::Option(String::from(
                     "Not connected to a voice channel",
                 ))))
             }
@@ -114,7 +115,7 @@ async fn send_embed(
             handler.add_global_event(CoreEvent::ClientDisconnect.into(), evt_receiver.clone());
             handler.add_global_event(CoreEvent::VoiceTick.into(), evt_receiver);
         } else if let Err(joining) = success {
-            return Err(Box::new(FollowupError::Audio(format!(
+            return Err(Box::new(error_dispatch::Error::Audio(format!(
                 "Failed to join voice channel: {:#?}",
                 joining
             ))));
@@ -155,8 +156,7 @@ async fn send_embed(
             let builder = CreateInteractionResponseFollowup::new().embed(embed);
             command_interaction
                 .create_followup(&ctx.http, builder)
-                .await
-                .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+                .await?;
             return Ok(());
         }
     }
@@ -165,7 +165,6 @@ async fn send_embed(
     let builder = CreateInteractionResponseFollowup::new().embed(embed);
     command_interaction
         .create_followup(&ctx.http, builder)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

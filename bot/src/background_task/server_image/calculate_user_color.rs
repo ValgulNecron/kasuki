@@ -280,7 +280,15 @@ pub async fn return_average_user_color(
 ///
 /// This function will return an error if there's a problem retrieving the user's profile picture, downloading the image, or calculating the color.
 async fn calculate_user_color(member: Member) -> Result<(String, String), Box<dyn Error>> {
-    let pfp_url = member.user.face().replace("?size=1024", "?size=64");
+    let pfp_url = member
+        .user
+        .face()
+        .replace("?size=4096", "?size=64")
+        .replace("?size=2048", "?size=64")
+        .replace("?size=1024", "?size=64")
+        .replace("?size=512", "?size=64")
+        .replace("?size=256", "?size=64")
+        .replace("?size=128", "?size=64");
 
     let img = get_image_from_url(pfp_url).await?;
 

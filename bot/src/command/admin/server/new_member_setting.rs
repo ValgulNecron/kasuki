@@ -7,7 +7,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::constant::{NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::{
     get_option_map_attachment_subcommand_group, get_option_map_boolean_subcommand_group,
     get_option_map_channel_subcommand_group,
@@ -57,14 +57,15 @@ async fn send_embed(
     let show_username =
         *bool_map
             .get(&String::from("show_username"))
-            .ok_or(ResponseError::Option(String::from(
+            .ok_or(error_dispatch::Error::Option(String::from(
                 "There is no option for show_username",
             )))?;
-    let show_time = *bool_map
-        .get(&String::from("show_time"))
-        .ok_or(ResponseError::Option(String::from(
-            "There is no option for show_time",
-        )))?;
+    let show_time =
+        *bool_map
+            .get(&String::from("show_time"))
+            .ok_or(error_dispatch::Error::Option(String::from(
+                "There is no option for show_time",
+            )))?;
     let channel_id = channel.get(&String::from("custom_channel"));
     let attachment = attachment.get(&String::from("custom_image"));
 

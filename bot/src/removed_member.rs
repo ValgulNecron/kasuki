@@ -1,19 +1,24 @@
-use std::any::Any;
 use crate::config::BotConfigDetails;
 use crate::constant::HEX_COLOR;
-use crate::custom_serenity_impl::InternalAction;
+use crate::custom_serenity_impl::InternalMemberAction;
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
 use crate::new_member::{
-    get_channel_id, get_guild_image_bytes, get_server_image, load_guild_settings, send_member_image,
+    encode_image, get_channel_id, get_server_image, load_guild_settings, send_image,
 };
 use crate::structure::message::removed_member::load_localization_removed_member;
 use image::GenericImage;
 use serenity::all::{GuildId, User};
 use serenity::client::Context;
+use std::any::Any;
 use text_to_png::TextRenderer;
-use tracing::error;
+use tracing::{error, trace};
 
-pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User, db_config: BotConfigDetails, ) {
+pub async fn removed_member_message(
+    ctx: &Context,
+    guild_id: GuildId,
+    user: User,
+    db_config: BotConfigDetails,
+) {
     let ctx = ctx.clone();
     let user_name = user.name.clone();
     let partial_guild = match guild_id.to_partial_guild(&ctx.http).await {
@@ -24,18 +29,23 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         }
     };
     let guild_settings = load_guild_settings(guild_id).await;
+    trace!(?guild_settings);
 
     let channel_id = if let Some(channel_id) = get_channel_id(&guild_settings, &partial_guild) {
         channel_id
     } else {
+        error!("Failed to get the channel id.");
         return;
     };
+    trace!(?channel_id);
 
     let guild_image = if let Some(img) = get_server_image(guild_id.to_string(), &guild_settings) {
         img
     } else {
+        error!("Failed to get the server image.");
         return;
     };
+
     let mut guild_image = match image::load_from_memory(&guild_image) {
         Ok(image) => image,
         Err(e) => {
@@ -43,7 +53,17 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             return;
         }
     };
-    let avatar = user.face().replace("size=1024", "size=128");
+
+    let avatar = user
+        .face()
+        .replace("?size=4096", "?size=64")
+        .replace("?size=2048", "?size=64")
+        .replace("?size=1024", "?size=64")
+        .replace("?size=512", "?size=64")
+        .replace("?size=256", "?size=64")
+        .replace("?size=128", "?size=64");
+    trace!(?avatar);
+
     let client = reqwest::Client::new();
     let res = match client.get(avatar).send().await {
         Ok(res) => res,
@@ -59,7 +79,6 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             return;
         }
     };
-
     let image = match image::load_from_memory(&body) {
         Ok(image) => image,
         Err(e) => {
@@ -68,7 +87,6 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
         }
     };
 
-    // get server audit log
     let audit_log = match guild_id
         .audit_logs(&ctx.http, None, None, None, Some(100))
         .await
@@ -90,26 +108,31 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
     let reason = match audit_log.entries.is_empty() {
         true => local.bye.replace("$user$", &user_name),
         false => {
-            let mut text: String= String::new();
+            let mut text: String = String::new();
             for entry in &audit_log.entries {
                 let target = match entry.target_id {
                     Some(target) => target,
                     None => continue,
                 };
                 if target.to_string() == user.id.to_string() {
-                    let reason = entry.reason.clone();
-                    match (entry.action, reason) {
-                        (BanAdd, Some(reason)) => text =local.ban_for.replace(
-                            "$user$",
-                            &user_name,
-                        ).replace("$reason$", &reason),
-                        (Kick, Some(reason)) => text =local.kick_for.replace(
-                            "$user$",
-                            &user_name,
-                        ).replace("$reason$", &reason),
-                        (BanAdd, None) => text =local.ban.replace("$user$", &user_name),
-                        (Kick, None) => text =local.kick.replace("$user$", &user_name),
-                        _ =>text = local.bye.replace("$user$", &user_name),
+                    let reason: Option<String> = entry.reason.clone();
+                    let action: InternalMemberAction = InternalMemberAction::from(entry.action);
+                    match (action, reason) {
+                        (BanAdd, Some(reason)) => {
+                            text = local
+                                .ban_for
+                                .replace("$user$", &user_name)
+                                .replace("$reason$", &reason)
+                        }
+                        (Kick, Some(reason)) => {
+                            text = local
+                                .kick_for
+                                .replace("$user$", &user_name)
+                                .replace("$reason$", &reason)
+                        }
+                        (BanAdd, None) => text = local.ban.replace("$user$", &user_name),
+                        (Kick, None) => text = local.kick.replace("$user$", &user_name),
+                        _ => text = local.bye.replace("$user$", &user_name),
                     }
                     break;
                 }
@@ -117,6 +140,7 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             text
         }
     };
+    trace!(reason);
 
     let guild_image_width = guild_image.width();
     let guild_image_height = guild_image.height();
@@ -185,12 +209,17 @@ pub async fn removed_member_message(ctx: &Context, guild_id: GuildId, user: User
             error!("Failed to overlay the image. {}", e);
         }
     }
-    let bytes = match get_guild_image_bytes(guild_image) {
+    let bytes = match encode_image(guild_image) {
         Ok(bytes) => bytes,
         Err(e) => {
             error!("Failed to get the bytes. {}", e);
             return;
         }
     };
-    send_member_image(channel_id, bytes, &ctx.http).await;
+    match send_image(channel_id, bytes, &ctx.http).await {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Failed to send the image. {}", e);
+        }
+    };
 }

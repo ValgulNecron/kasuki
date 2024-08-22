@@ -1,10 +1,7 @@
-use std::error::Error;
-
 use reqwest::multipart;
+use std::error::Error;
+use std::io::{Seek, Write};
 use tracing::debug;
-
-// Importing necessary libraries and modules
-use crate::helper::error_management::error_enum::UnknownResponseError;
 
 /// `upload_image_catbox` is an asynchronous function that uploads an image to catbox.moe.
 /// It takes a `filename` and `image_data` as parameters.
@@ -28,27 +25,12 @@ pub async fn upload_image_catbox(
     image_data: Vec<u8>,
     token: String,
 ) -> Result<(), Box<dyn Error>> {
-    let form = multipart::Form::new()
-        .text("reqtype", "fileupload")
-        .text("userhash", token)
-        .part(
-            "fileToUpload",
-            multipart::Part::stream(image_data).file_name(filename),
-        );
-    // Build the URL
-    let url = "https://catbox.moe/user/api.php";
-
-    // Send the request
-    let client = reqwest::Client::new();
-    let response = client
-        .post(url)
-        .multipart(form)
-        .send()
-        .await
-        .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
-
-    debug!("Response status: {}", response.status());
-    debug!("Response text: {:#?}", response.text().await);
+    let suffix = filename.split(".").last().unwrap_or_default().to_string();
+    let mut file = tempfile::Builder::new().suffix(&suffix).tempfile()?;
+    file.write_all(&image_data)?;
+    file.seek(std::io::SeekFrom::Start(0))?;
+    debug!("File path: {}", file.path().to_str().unwrap());
+    catbox::file::from_file(file.path().to_str().unwrap(), Some(&token)).await?;
 
     // Return Ok if the function executed successfully
     Ok(())

@@ -17,7 +17,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
@@ -74,7 +74,9 @@ async fn send_embed(
     let map = get_option_map_string(command_interaction);
     let random_type = map
         .get(&String::from("type"))
-        .ok_or(ResponseError::Option(String::from("No type specified")))?;
+        .ok_or(error_dispatch::Error::Option(String::from(
+            "No type specified",
+        )))?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -82,8 +84,7 @@ async fn send_embed(
     // Send the deferred response
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     let random_stats = update_random_stats(anilist_cache.clone()).await?;
     let last_page = if random_type.as_str() == "anime" {

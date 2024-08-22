@@ -3,7 +3,7 @@ use crate::config::Config;
 use crate::constant::{APP_VERSION, LIBRARY};
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::structure::database::prelude::UserColor;
 use crate::structure::message::bot::info::load_localization_info;
 use sea_orm::EntityTrait;
@@ -54,11 +54,7 @@ async fn send_embed(
     let shard = ctx.shard_id.to_string();
     let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
     let user_count = UserColor::find().all(&connection).await?.len();
-    let bot = ctx
-        .http
-        .get_current_application_info()
-        .await
-        .map_err(|e| ResponseError::WebRequest(format!("{:#?}", e)))?;
+    let bot = ctx.http.get_current_application_info().await?;
     let bot_name = bot.name;
     let bot_id = bot.id.to_string();
     let creation_date = format!("<t:{}:F>", bot.id.created_at().unix_timestamp());
@@ -74,7 +70,7 @@ async fn send_embed(
     // Retrieve the bot's avatar
     let bot_icon = bot
         .icon
-        .ok_or(ResponseError::WebRequest("No bot icon".to_string()))?;
+        .ok_or(error_dispatch::Error::WebRequest("No bot icon".to_string()))?;
     let avatar = if bot_icon.is_animated() {
         format!(
             "https://cdn.discordapp.com/icons/{}/{}.gif?size=1024",
@@ -150,8 +146,7 @@ async fn send_embed(
     // Send the response to the command interaction
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     Ok(())
 }

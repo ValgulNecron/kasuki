@@ -4,7 +4,10 @@ use num_bigint::BigUint;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
-use serenity::all::{ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId, Interaction, Member, Presence, Ready, User};
+use serenity::all::{
+    ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,
+    Interaction, Member, Presence, Ready, User,
+};
 use serenity::async_trait;
 use serenity::gateway::ChunkGuildFilter;
 use std::collections::HashMap;
@@ -289,6 +292,51 @@ impl EventHandler for Handler {
         }
     }
 
+    async fn presence_update(&self, ctx: Context, new_data: Presence) {
+        let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
+        let user_id = new_data.user.id;
+        let username = new_data.user.name.unwrap_or_default();
+        let image_config = self.bot_data.config.image.clone();
+        debug!("Member {} updated presence", user_id);
+        color_management(
+            &ctx.cache.guilds(),
+            &ctx,
+            user_blacklist_server_image,
+            self.bot_data.config.bot.config.clone(),
+        )
+        .await;
+        let connection = match sea_orm::Database::connect(get_url(
+            self.bot_data.config.bot.config.clone(),
+        ))
+        .await
+        {
+            Ok(connection) => connection,
+            Err(e) => {
+                error!("Failed to connect to the database. {}", e);
+                return;
+            }
+        };
+        match UserData::insert(crate::structure::database::user_data::ActiveModel {
+            user_id: Set(user_id.to_string()),
+            username: Set(username),
+            added_at: Set(Utc::now().naive_utc()),
+            ..Default::default()
+        })
+        .on_conflict(
+            sea_orm::sea_query::OnConflict::column(
+                crate::structure::database::user_data::Column::UserId,
+            )
+            .update_column(crate::structure::database::user_data::Column::Username)
+            .to_owned(),
+        )
+        .exec(&connection)
+        .await
+        {
+            Ok(_) => {}
+            Err(e) => error!("Failed to insert user data. {}", e),
+        };
+    }
+
     async fn ready(&self, ctx: Context, ready: Ready) {
         // Spawns a new thread for managing various tasks
         let guard = self.bot_data.already_launched.read().await;
@@ -343,7 +391,7 @@ impl EventHandler for Handler {
             )
         }
     }
-    
+
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
             if command_interaction.data.kind == CommandType::ChatInput {
@@ -402,53 +450,5 @@ impl EventHandler for Handler {
                 error!("{:?}", e)
             }
         }
-    }
-
-    async fn presence_update(&self, ctx: Context, new_data: Presence) {
-        let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
-        let user_id = new_data.user.id;
-        let username = new_data.user.name.unwrap_or_default();
-        let image_config = self.bot_data.config.image.clone();
-        debug!(
-            "Member {} updated presence",
-            user_id
-        );
-        color_management(
-            &ctx.cache.guilds(),
-            &ctx,
-            user_blacklist_server_image,
-            self.bot_data.config.bot.config.clone(),
-        )
-            .await;
-        let connection = match sea_orm::Database::connect(get_url(
-            self.bot_data.config.bot.config.clone(),
-        ))
-            .await
-        {
-            Ok(connection) => connection,
-            Err(e) => {
-                error!("Failed to connect to the database. {}", e);
-                return;
-            }
-        };
-        match UserData::insert(crate::structure::database::user_data::ActiveModel {
-            user_id: Set(user_id.to_string()),
-            username: Set(username),
-            added_at: Set(Utc::now().naive_utc()),
-            ..Default::default()
-        })
-            .on_conflict(
-                sea_orm::sea_query::OnConflict::column(
-                    crate::structure::database::user_data::Column::UserId,
-                )
-                    .update_column(crate::structure::database::user_data::Column::Username)
-                    .to_owned(),
-            )
-            .exec(&connection)
-            .await
-        {
-            Ok(_) => {}
-            Err(e) => error!("Failed to insert user data. {}", e),
-        };
     }
 }

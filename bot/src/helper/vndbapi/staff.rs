@@ -5,8 +5,6 @@ use moka::future::Cache;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
-
 pub async fn get_staff(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
@@ -41,8 +39,7 @@ pub async fn get_staff(
         vndb_cache,
     )
     .await?;
-    let response: StaffRoot = serde_json::from_str(&response)
-        .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
+    let response: StaffRoot = serde_json::from_str(&response)?;
     Ok(response)
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]

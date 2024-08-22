@@ -4,7 +4,6 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::bot::credit::load_localization_credit;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
@@ -66,7 +65,6 @@ async fn send_embed(
     // Send the response to the command interaction
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

@@ -6,7 +6,6 @@ use moka::future::Cache;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
 use crate::helper::vndbapi::common::do_request_cached;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -24,8 +23,7 @@ pub async fn get_user(
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<VnUser, Box<dyn Error>> {
     let response = do_request_cached(path.clone(), vndb_cache).await?;
-    let response: HashMap<String, VnUser> = serde_json::from_str(&response)
-        .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
+    let response: HashMap<String, VnUser> = serde_json::from_str(&response)?;
     let response = response.into_iter().next().unwrap().1;
     Ok(response)
 }

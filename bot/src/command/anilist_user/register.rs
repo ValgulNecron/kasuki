@@ -14,7 +14,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::database::prelude::RegisteredUser;
 use crate::structure::database::registered_user::{ActiveModel, Column};
@@ -59,7 +59,9 @@ async fn send_embed(
     let map = get_option_map_string(command_interaction);
     let value = map
         .get(&String::from("username"))
-        .ok_or(ResponseError::Option(String::from("No username provided")))?;
+        .ok_or(error_dispatch::Error::Option(String::from(
+            "No username provided",
+        )))?;
 
     // Fetch the user data from AniList
     let user_data: User = get_user(value, anilist_cache).await?;
@@ -116,7 +118,6 @@ async fn send_embed(
     // Send the response to the command interaction
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

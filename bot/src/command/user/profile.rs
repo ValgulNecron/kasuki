@@ -5,7 +5,6 @@ use crate::command::command_trait::{Command, SlashCommand, UserCommand};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
 use crate::structure::message::user::profile::{load_localization_profile, ProfileLocalised};
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
@@ -173,7 +172,6 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

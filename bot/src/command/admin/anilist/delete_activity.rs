@@ -6,7 +6,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
 use crate::get_url;
 use crate::helper::create_default_embed::get_anilist_anime_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
@@ -80,7 +80,7 @@ pub async fn send_embed(
     let anime_id = media.id;
     remove_activity(guild_id.as_str(), &anime_id, config.bot.config.clone()).await?;
 
-    let title = media.title.ok_or(ResponseError::Sending(format!(
+    let title = media.title.ok_or(error_dispatch::Error::Option(format!(
         "Anime with id {} not found",
         anime_id
     )))?;
@@ -122,7 +122,7 @@ async fn remove_activity(
         .filter(crate::structure::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
         .one(&connection)
         .await?
-        .ok_or(ResponseError::Sending(format!(
+        .ok_or(error_dispatch::Error::Option(format!(
             "Anime with id {} not found",
             anime_id
         )))?;

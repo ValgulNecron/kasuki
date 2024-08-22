@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use tracing::trace;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
 use crate::helper::vndbapi::common::do_request_cached;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -31,7 +30,6 @@ pub async fn get_stats(
     let path = "/stats".to_string();
     let response = do_request_cached(path.clone(), vndb_cache).await?;
     trace!("Response: {}", response);
-    let response: Stats = serde_json::from_str(&response)
-        .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
+    let response: Stats = serde_json::from_str(&response)?;
     Ok(response)
 }

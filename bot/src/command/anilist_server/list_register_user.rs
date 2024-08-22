@@ -6,7 +6,7 @@ use crate::config::{BotConfigDetails, Config};
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_dispatch;
 use crate::structure::database::prelude::RegisteredUser;
 use crate::structure::database::registered_user::{Column, Model};
 use crate::structure::message::anilist_server::list_register_user::{
@@ -59,22 +59,18 @@ async fn send_embed(
     // Retrieve the guild from the guild ID
     let guild_id = command_interaction
         .guild_id
-        .ok_or(ResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "Could not get the id of the guild",
         )))?;
 
-    let guild = guild_id
-        .to_partial_guild_with_counts(&ctx.http)
-        .await
-        .map_err(|e| ResponseError::UserOrGuild(format!("{:#?}", e)))?;
+    let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
     // Send a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     // Retrieve a list of AniList users in the guild
     let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) = get_the_list(
@@ -99,8 +95,7 @@ async fn send_embed(
     // Send a followup message with the list of AniList users
     command_interaction
         .create_followup(&ctx.http, response)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }
 
@@ -143,8 +138,7 @@ pub async fn get_the_list(
         pass += 1;
         let members = guild
             .members(&ctx.http, Some(MEMBER_LIST_LIMIT), last_id)
-            .await
-            .map_err(|e| FollowupError::UserOrGuild(format!("{:#?}", e)))?;
+            .await?;
         if members.is_empty() {
             break;
         }

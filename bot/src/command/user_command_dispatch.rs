@@ -5,7 +5,7 @@ use crate::command::user::avatar::AvatarCommand;
 use crate::command::user::banner::BannerCommand;
 use crate::command::user::profile::ProfileCommand;
 use crate::event_handler::Handler;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use serenity::all::{CommandInteraction, Context};
 
 /// Dispatches the user command received from the Discord interaction.
@@ -61,7 +61,7 @@ pub async fn dispatch_user_command(
             .run_user()
             .await
         }
-        _ => Err(Box::new(ResponseError::Option(String::from(
+        _ => Err(Box::new(error_dispatch::Error::Option(String::from(
             "Unknown command",
         )))),
     }

@@ -5,7 +5,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_dispatch;
 use crate::structure::database::prelude::ServerImage;
 use crate::structure::database::server_image::Column;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
@@ -21,6 +21,7 @@ use serenity::all::{
 use serenity::builder::CreateInteractionResponseFollowup;
 use tracing::trace;
 use uuid::Uuid;
+
 pub struct GenerateImagePfPCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -72,8 +73,7 @@ pub async fn send_embed(
     // Send the deferred response
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     // Retrieve the server's profile picture image
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
@@ -83,7 +83,7 @@ pub async fn send_embed(
         .filter(Column::ImageType.eq(image_type.to_string()))
         .one(&connection)
         .await?
-        .ok_or(ResponseError::Option(format!(
+        .ok_or(error_dispatch::Error::Option(format!(
             "Server image with type {} not found",
             image_type
         )))?
@@ -91,9 +91,7 @@ pub async fn send_embed(
 
     // Decode the image from base64
     let input = image.trim_start_matches("data:image/png;base64,");
-    let image_data: Vec<u8> = BASE64
-        .decode(input)
-        .map_err(|e| FollowupError::Decoding(format!("{:#?}", e)))?;
+    let image_data: Vec<u8> = BASE64.decode(input)?;
 
     // Generate a unique filename for the image
     let uuid = Uuid::new_v4();
@@ -115,8 +113,7 @@ pub async fn send_embed(
     // Send the follow-up response to the command interaction
     command_interaction
         .create_followup(&ctx.http, builder)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
     trace!("Done");
     Ok(())
 }

@@ -4,7 +4,7 @@ use std::fmt::Display;
 use crate::config::BotConfigDetails;
 use crate::constant::{COLOR, UNKNOWN};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
@@ -668,12 +668,11 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     data: Media,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let is_adult = data.is_adult.unwrap_or(true);
     if is_adult && !get_nsfw(command_interaction, ctx).await {
-        return Err(Box::new(ResponseError::AdultMedia));
+        return Err(Box::new(error_dispatch::Error::AdultMedia));
     }
 
     let guild_id = match command_interaction.guild_id {
@@ -783,7 +782,11 @@ pub async fn send_embed(
 
     let title = match data.title.clone() {
         Some(t) => t,
-        None => return Err(Box::new(ResponseError::Option(String::from("No title")))),
+        None => {
+            return Err(Box::new(error_dispatch::Error::Option(String::from(
+                "No title",
+            ))))
+        }
     };
 
     let mut builder_embed = CreateEmbed::new()
@@ -806,8 +809,7 @@ pub async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     Ok(())
 }

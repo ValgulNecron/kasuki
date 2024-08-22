@@ -5,8 +5,6 @@ use moka::future::Cache;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Image {
     pub sexual: f64,
@@ -78,7 +76,6 @@ pub async fn get_character(
         vndb_cache,
     )
     .await?;
-    let response: CharacterRoot = serde_json::from_str(&response)
-        .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
+    let response: CharacterRoot = serde_json::from_str(&response)?;
     Ok(response)
 }

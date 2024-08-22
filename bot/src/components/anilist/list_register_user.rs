@@ -8,7 +8,7 @@ use tracing::trace;
 use crate::command::anilist_server::list_register_user::get_the_list;
 use crate::config::BotConfigDetails;
 use crate::constant::MEMBER_LIST_LIMIT;
-use crate::helper::error_management::error_enum::UnknownResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 
 /// Updates the user list in the server.
@@ -48,15 +48,12 @@ pub async fn update(
     // Retrieve the guild ID from the component interaction
     let guild_id = component_interaction
         .guild_id
-        .ok_or(UnknownResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "Guild ID not found",
         )))?;
 
     // Retrieve the guild with counts
-    let guild = guild_id
-        .to_partial_guild_with_counts(&ctx.http)
-        .await
-        .map_err(|e| UnknownResponseError::UserOrGuild(format!("{:#?}", e)))?;
+    let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
     // Parse the user ID
     let id = if user_id == "0" {
@@ -91,8 +88,6 @@ pub async fn update(
     let mut message = component_interaction.message.clone();
 
     // Edit the message with the response
-    let a = message.edit(&ctx.http, response).await;
-    trace!("{:?}", a);
-    a.map_err(|e| UnknownResponseError::Sending(format!("{:#?}", e)))?;
+    message.edit(&ctx.http, response).await?;
     Ok(())
 }

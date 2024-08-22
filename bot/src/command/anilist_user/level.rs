@@ -14,7 +14,7 @@ use crate::command::command_trait::Command;
 use crate::config::{BotConfigDetails, Config};
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::database::prelude::RegisteredUser;
 use crate::structure::database::registered_user::Column;
@@ -22,6 +22,7 @@ use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
+
 pub struct LevelCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -75,7 +76,7 @@ pub async fn send_embed(
                 .filter(Column::UserId.eq(user_id))
                 .one(&connection)
                 .await?;
-            let user = row.ok_or(ResponseError::Option(String::from(
+            let user = row.ok_or(error_dispatch::Error::Option(String::from(
                 "No user specified or linked to this discord account",
             )))?;
 
@@ -182,8 +183,7 @@ pub async fn send_embed2(
     // Send the response
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     Ok(())
 }

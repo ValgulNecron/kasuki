@@ -4,8 +4,6 @@ use std::sync::Arc;
 use moka::future::Cache;
 use tokio::sync::RwLock;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
-
 pub async fn do_request_cached(
     path: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
@@ -28,12 +26,8 @@ pub async fn do_request(
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
         .send()
-        .await
-        .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
-    let response_text = res
-        .text()
-        .await
-        .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
+        .await?;
+    let response_text = res.text().await?;
     vndb_cache
         .write()
         .await
@@ -69,12 +63,8 @@ pub async fn do_request_with_json(
         .header("Accept", "application/json")
         .body(json)
         .send()
-        .await
-        .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
-    let response_text = res
-        .text()
-        .await
-        .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
+        .await?;
+    let response_text = res.text().await?;
     vndb_cache
         .write()
         .await

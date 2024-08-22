@@ -9,7 +9,7 @@ use tokio::sync::RwLock;
 
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::user::get_user;
 use crate::structure::message::vn::user::load_localization_user;
@@ -28,7 +28,9 @@ pub async fn run(
     let map = get_option_map_string_subcommand(command_interaction);
     let user = map
         .get(&String::from("username"))
-        .ok_or(ResponseError::Option(String::from("No username provided")))?;
+        .ok_or(error_dispatch::Error::Option(String::from(
+            "No username provided",
+        )))?;
     let path = format!("/user?q={}&fields=lengthvotes,lengthvotes_sum", user);
     let user = get_user(path, vndb_cache).await?;
     let user_localised: UserLocalised =
@@ -54,7 +56,6 @@ pub async fn run(
     let builder = CreateInteractionResponse::Message(builder_message);
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

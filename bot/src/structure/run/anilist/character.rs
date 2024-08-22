@@ -3,7 +3,7 @@ use std::error::Error;
 use crate::config::BotConfigDetails;
 use crate::constant::COLOR;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::error_management::error_enum::{ResponseError, UnknownResponseError};
+use crate::helper::error_management::error_dispatch;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
 use serenity::all::{
@@ -183,7 +183,7 @@ pub async fn send_embed(
     let name = match character.name.clone() {
         Some(name) => name,
         None => {
-            return Err(Box::new(UnknownResponseError::Option(
+            return Err(Box::new(error_dispatch::Error::Option(
                 "No name found".to_string(),
             )))
         }
@@ -211,7 +211,6 @@ pub async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

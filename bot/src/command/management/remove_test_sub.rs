@@ -1,7 +1,7 @@
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_user;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -45,16 +45,13 @@ async fn send_embed(
     let user = match user {
         Some(user) => user,
         None => {
-            return Err(ResponseError::Sending(String::from("No user provided")).into());
+            return Err(error_dispatch::Error::Sending(String::from("No user provided")).into());
         }
     };
     let entitlements = ctx
         .http
         .get_entitlements(Some(*user), None, None, None, None, None, None)
-        .await
-        .map_err(|e| {
-            ResponseError::Sending(format!("Error while sending the premium: {:#?}", e))
-        })?;
+        .await?;
     let localization = load_localization_remove_test_sub(
         command_interaction.guild_id.unwrap().to_string(),
         config.bot.config.clone(),
@@ -65,8 +62,7 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     for entitlement in entitlements {
         if let Err(e) = ctx.http.delete_test_entitlement(entitlement.id).await {
             error!("Error while deleting entitlement: {}", e);
@@ -78,8 +74,7 @@ async fn send_embed(
     let builder = CreateInteractionResponseFollowup::new().embed(embed);
     command_interaction
         .create_followup(&ctx.http, builder)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     Ok(())
 }

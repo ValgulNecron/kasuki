@@ -7,7 +7,7 @@ use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessag
 use crate::command::anime::random_image::send_embed;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
 
@@ -41,7 +41,7 @@ async fn send(
     let map = get_option_map_string_subcommand(command_interaction);
     let image_type = map
         .get(&String::from("image_type"))
-        .ok_or(ResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "No image type specified",
         )))?;
 
@@ -61,8 +61,7 @@ async fn send(
     // Send the deferred response
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     // Send the random NSFW image as a response to the command interaction
     send_embed(

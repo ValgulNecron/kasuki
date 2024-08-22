@@ -6,7 +6,7 @@ use crate::command::command_trait::SlashCommand;
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::studio::load_localization_studio;
@@ -28,12 +28,12 @@ pub struct StudioCommand {
 }
 
 impl Command for StudioCommand {
-    fn get_command_interaction(&self) -> &CommandInteraction {
-        &self.command_interaction
-    }
-
     fn get_ctx(&self) -> &Context {
         &self.ctx
+    }
+
+    fn get_command_interaction(&self) -> &CommandInteraction {
+        &self.command_interaction
     }
 }
 
@@ -56,7 +56,9 @@ async fn send_embed(
     let map = get_option_map_string(command_interaction);
     let value = map
         .get(&String::from("studio"))
-        .ok_or(ResponseError::Option(String::from("No studio specified")))?;
+        .ok_or(error_dispatch::Error::Option(String::from(
+            "No studio specified",
+        )))?;
 
     // Fetch the studio's data from AniList
     let studio = if value.parse::<i32>().is_ok() {
@@ -142,7 +144,6 @@ async fn send_embed(
     // Send the response to the command interaction
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

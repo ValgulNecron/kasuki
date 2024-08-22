@@ -5,7 +5,7 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
@@ -25,6 +25,7 @@ use serenity::all::{
 };
 use tokio::sync::RwLock;
 use uuid::Uuid;
+
 pub struct SeiyuuCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -60,7 +61,7 @@ async fn send_embed(
     let map = get_option_map_string(command_interaction);
     let value = map
         .get(&String::from("staff_name"))
-        .ok_or(ResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "No staff name specified",
         )))?;
     let total_per_row = 4u32;
@@ -92,25 +93,25 @@ async fn send_embed(
                     Some(staff) => match staff[0].clone() {
                         Some(staff) => staff,
                         None => {
-                            return Err(Box::new(ResponseError::Option(String::from(
+                            return Err(Box::new(error_dispatch::Error::Option(String::from(
                                 "No staff found",
                             ))))
                         }
                     },
                     None => {
-                        return Err(Box::new(ResponseError::Option(String::from(
+                        return Err(Box::new(error_dispatch::Error::Option(String::from(
                             "No staff list found",
                         ))))
                     }
                 },
                 None => {
-                    return Err(Box::new(ResponseError::Option(String::from(
+                    return Err(Box::new(error_dispatch::Error::Option(String::from(
                         "No page found",
                     ))))
                 }
             },
             None => {
-                return Err(Box::new(ResponseError::Option(String::from(
+                return Err(Box::new(error_dispatch::Error::Option(String::from(
                     "No data found",
                 ))))
             }
@@ -129,25 +130,19 @@ async fn send_embed(
 
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     let mut buffers: Vec<Bytes> = Vec::new();
     let staff_image = match staff.image {
         Some(image) => image,
         None => {
-            return Err(Box::new(FollowupError::Option(String::from(
+            return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "No image found",
             ))))
         }
     };
     let url = get_staff_image(staff_image);
-    let response = reqwest::get(url)
-        .await
-        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
-    let bytes = response
-        .bytes()
-        .await
-        .map_err(|e| FollowupError::Byte(format!("{:#?}", e)))?;
+    let response = reqwest::get(url).await?;
+    let bytes = response.bytes().await?;
     buffers.push(bytes);
     let character = staff.characters.unwrap();
     let characters_images_url = get_characters_image(character);
@@ -162,8 +157,7 @@ async fn send_embed(
             },
             None => continue,
         })
-        .await
-        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
+        .await?;
 
         let bytes = match response.bytes().await {
             Ok(bytes) => bytes,
@@ -175,10 +169,7 @@ async fn send_embed(
     let mut images: Vec<DynamicImage> = Vec::new();
     for bytes in &buffers {
         // Load the image from the byte vector
-        images.push(
-            image::load_from_memory(bytes)
-                .map_err(|e| FollowupError::ImageProcessing(format!("{:#?}", e)))?,
-        );
+        images.push(image::load_from_memory(bytes)?);
     }
 
     let (width, height) = images[0].dimensions();
@@ -213,9 +204,7 @@ async fn send_embed(
             FilterType::CatmullRom,
         );
         let (pos_width, pos_height) = pos_list[i];
-        combined_image
-            .copy_from(&resized_img, pos_width, pos_height)
-            .map_err(|e| FollowupError::ImageProcessing(format!("{:#?}", e)))?;
+        combined_image.copy_from(&resized_img, pos_width, pos_height)?;
     }
 
     let combined_uuid = Uuid::new_v4();
@@ -227,9 +216,7 @@ async fn send_embed(
 
     let rgba8_image = combined_image.to_rgba8();
     let mut bytes: Vec<u8> = Vec::new();
-    rgba8_image
-        .write_to(&mut Cursor::new(&mut bytes), ImageFormat::WebP)
-        .map_err(|e| FollowupError::ImageProcessing(format!("{:#?}", e)))?;
+    rgba8_image.write_to(&mut Cursor::new(&mut bytes), ImageFormat::WebP)?;
     let attachment = CreateAttachment::bytes(bytes, image_path.to_string());
 
     let builder_message = CreateInteractionResponseFollowup::new()
@@ -238,8 +225,7 @@ async fn send_embed(
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }
 

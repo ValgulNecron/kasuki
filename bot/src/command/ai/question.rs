@@ -8,7 +8,7 @@ use crate::config::Config;
 use crate::constant::{DEFAULT_STRING, MAX_FREE_AI_IMAGES, PAID_IMAGE_MULTIPLIER};
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::FollowupError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
@@ -43,7 +43,7 @@ impl SlashCommand for QuestionCommand<'_> {
             .check_hourly_limit(self.command_name.clone(), self.handler)
             .await?
         {
-            return Err(Box::new(FollowupError::Option(String::from(
+            return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "You have reached your hourly limit. Please try again later.",
             ))));
         }

@@ -6,7 +6,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::game::steam_game_info::load_localization_steam_game_info;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
@@ -61,7 +61,7 @@ async fn get_steam_game(
     let map = get_option_map_string_subcommand(&command_interaction);
     let value = map
         .get(&String::from("game_name"))
-        .ok_or(ResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "No option for game_name",
         )))?;
     let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
@@ -72,14 +72,8 @@ async fn get_steam_game(
         )
         .await?
     } else {
-        SteamGameWrapper::new_steam_game_by_search(
-            value,
-            guild_id,
-            db_type,
-            apps,
-            config.bot.config.clone(),
-        )
-        .await?
+        SteamGameWrapper::new_steam_game_by_search(value, guild_id, apps, config.bot.config.clone())
+            .await?
     };
 
     Ok(data)
@@ -249,8 +243,7 @@ async fn send_embed(
     // Send the follow-up response to the command interaction
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     Ok(())
 }

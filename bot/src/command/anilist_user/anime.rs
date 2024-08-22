@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::media;
@@ -82,13 +82,13 @@ async fn send_embed(
             Some(data) => match data.media {
                 Some(media) => media,
                 None => {
-                    return Err(Box::new(ResponseError::Option(String::from(
+                    return Err(Box::new(error_dispatch::Error::Option(String::from(
                         "Anime not found",
                     ))))
                 }
             },
             None => {
-                return Err(Box::new(ResponseError::Option(String::from(
+                return Err(Box::new(error_dispatch::Error::Option(String::from(
                     "Anime not found",
                 ))))
             }
@@ -106,13 +106,13 @@ async fn send_embed(
             Some(data) => match data.media {
                 Some(media) => media,
                 None => {
-                    return Err(Box::new(ResponseError::Option(String::from(
+                    return Err(Box::new(error_dispatch::Error::Option(String::from(
                         "Anime not found",
                     ))))
                 }
             },
             None => {
-                return Err(Box::new(ResponseError::Option(String::from(
+                return Err(Box::new(error_dispatch::Error::Option(String::from(
                     "Anime not found",
                 ))))
             }
@@ -120,14 +120,7 @@ async fn send_embed(
     };
 
     // Send an embed with the anime information as a response to the command interaction
-    media::send_embed(
-        ctx,
-        command_interaction,
-        data,
-        db_type,
-        config.bot.config.clone(),
-    )
-    .await?;
+    media::send_embed(ctx, command_interaction, data, config.bot.config.clone()).await?;
 
     Ok(())
 }

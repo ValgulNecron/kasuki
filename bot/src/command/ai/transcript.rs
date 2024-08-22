@@ -8,7 +8,7 @@ use crate::config::Config;
 use crate::constant::{DEFAULT_STRING, MAX_FREE_AI_TRANSCRIPTS, PAID_TRANSCRIPT_MULTIPLIER};
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::{
     get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
@@ -48,7 +48,7 @@ impl SlashCommand for TranscriptCommand<'_> {
             .check_hourly_limit(self.command_name.clone(), self.handler)
             .await?
         {
-            return Err(Box::new(FollowupError::Option(String::from(
+            return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "You have reached your hourly limit. Please try again later.",
             ))));
         }
@@ -105,14 +105,17 @@ async fn send_embed(
         .get(&String::from("prompt"))
         .unwrap_or(DEFAULT_STRING)
         .clone();
-    let attachment = attachment_map
-        .get(&String::from("video"))
-        .ok_or(ResponseError::Option(String::from("No option for video")))?;
+    let attachment =
+        attachment_map
+            .get(&String::from("video"))
+            .ok_or(error_dispatch::Error::Option(String::from(
+                "No option for video",
+            )))?;
 
     let content_type = attachment
         .content_type
         .clone()
-        .ok_or(ResponseError::File(String::from(
+        .ok_or(error_dispatch::Error::File(String::from(
             "Failed to get the content type",
         )))?;
     let content = attachment.proxy_url.clone();
@@ -126,7 +129,7 @@ async fn send_embed(
         load_localization_transcript(guild_id, config.bot.config.clone()).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-        return Err(Box::new(ResponseError::File(String::from(
+        return Err(Box::new(error_dispatch::Error::File(String::from(
             "Unsupported file type",
         ))));
     }
@@ -141,7 +144,7 @@ async fn send_embed(
     let parsed_url = Url::parse(content.as_str())?;
     let path_segments = parsed_url
         .path_segments()
-        .ok_or(FollowupError::File(String::from(
+        .ok_or(error_dispatch::Error::File(String::from(
             "Failed to get the path segments",
         )))?;
     let last_segment = path_segments.last().unwrap_or_default();
@@ -149,13 +152,13 @@ async fn send_embed(
     let file_extension = last_segment
         .rsplit('.')
         .next()
-        .ok_or(FollowupError::File(String::from(
+        .ok_or(error_dispatch::Error::File(String::from(
             "Failed to get the file extension",
         )))?
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
-        return Err(Box::new(FollowupError::File(String::from(
+        return Err(Box::new(error_dispatch::Error::File(String::from(
             "Unsupported file extension",
         ))));
     }

@@ -4,7 +4,7 @@ use crate::config::Config;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::structure::database::activity_data::Column;
 use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
@@ -19,6 +19,7 @@ use serenity::all::{
 use std::error::Error;
 use std::sync::Arc;
 use tracing::trace;
+
 pub struct ListAllActivity {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -55,7 +56,7 @@ async fn send_embed(
 
     let guild_id = command_interaction
         .guild_id
-        .ok_or(ResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "Could not get the id of the guild",
         )))?;
 

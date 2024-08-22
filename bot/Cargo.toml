@@ -60,6 +60,8 @@ async-graphql = { version = "7.0.7", features = ["decimal", "chrono", "dataloade
 dotenvy = "0.15.7"
 lazy_static = { version = "1.5.0" }
 seaography = "1.1.0-rc.1"
+catbox = "0.8.2"
+tempfile = "3.12.0"
 
 [build-dependencies]
 tonic-build = "0.12.1"

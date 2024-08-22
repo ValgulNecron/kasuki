@@ -2,7 +2,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::{
     get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
@@ -51,13 +51,17 @@ async fn send_embed(
     let map = get_option_map_string_subcommand_group(command_interaction);
     let module = map
         .get(&String::from("name"))
-        .ok_or(ResponseError::Option(String::from("No option for name")))?;
+        .ok_or(error_dispatch::Error::Option(String::from(
+            "No option for name",
+        )))?;
     let module_localised =
         load_localization_module_activation(guild_id.clone(), config.bot.config.clone()).await?;
     let map = get_option_map_boolean_subcommand_group(command_interaction);
     let state = *map
         .get(&String::from("state"))
-        .ok_or(ResponseError::Option(String::from("No option for state")))?;
+        .ok_or(error_dispatch::Error::Option(String::from(
+            "No option for state",
+        )))?;
     let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
     let mut row = ModuleActivation::find()
         .filter(crate::structure::database::module_activation::Column::GuildId.eq(guild_id.clone()))
@@ -81,7 +85,7 @@ async fn send_embed(
         "ANIME" => row.anime_module = state,
         "VN" => row.vn_module = state,
         _ => {
-            return Err(Box::new(ResponseError::Option(String::from(
+            return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "The module specified does not exist",
             ))));
         }

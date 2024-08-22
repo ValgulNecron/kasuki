@@ -14,7 +14,7 @@ use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 
 pub struct SearchCommand {
@@ -44,7 +44,9 @@ impl SlashCommand for SearchCommand {
         let map = get_option_map_string(command_interaction);
         let search_type = map
             .get(&String::from("type"))
-            .ok_or(ResponseError::Option(String::from("No type specified")))?;
+            .ok_or(error_dispatch::Error::Option(String::from(
+                "No type specified",
+            )))?;
 
         // Execute the corresponding search function based on the specified type
         match search_type.as_str() {
@@ -119,7 +121,7 @@ impl SlashCommand for SearchCommand {
                 .await
             }
             // Return an error if the specified type is not one of the expected types
-            _ => Err(Box::new(ResponseError::Option(String::from(
+            _ => Err(Box::new(error_dispatch::Error::Option(String::from(
                 "Type does not exist.",
             )))),
         }

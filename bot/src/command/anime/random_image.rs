@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::{FollowupError, ResponseError};
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime::random_image::load_localization_random_image;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -45,7 +45,7 @@ async fn send(
     let map = get_option_map_string_subcommand(command_interaction);
     let image_type = map
         .get(&String::from("image_type"))
-        .ok_or(ResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "No image type specified",
         )))?;
 
@@ -64,8 +64,7 @@ async fn send(
     // Send the deferred response
     command_interaction
         .create_response(&ctx.http, builder_message)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     // Send the random image as a response to the command interaction
     send_embed(
         ctx,
@@ -103,30 +102,16 @@ pub async fn send_embed(
     // Construct the URL to fetch the image from
     let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
     // Fetch the image from the URL
-    let resp = reqwest::get(&url)
-        .await
-        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
+    let resp = reqwest::get(&url).await?;
     // Parse the response as JSON
-    let json: serde_json::Value = resp
-        .json()
-        .await
-        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?;
+    let json: serde_json::Value = resp.json().await?;
     // Retrieve the URL of the image from the JSON
-    let image_url = json["url"]
-        .as_str()
-        .ok_or("No image found")
-        .map_err(|e| FollowupError::Json(format!("{:#?}", e)))?
-        .to_string();
+    let image_url = json["url"].as_str().ok_or("No image found")?.to_string();
 
     // Fetch the image from the image URL
-    let response = reqwest::get(image_url)
-        .await
-        .map_err(|e| FollowupError::WebRequest(format!("{:#?}", e)))?;
+    let response = reqwest::get(image_url).await?;
     // Retrieve the bytes of the image from the response
-    let bytes = response
-        .bytes()
-        .await
-        .map_err(|e| FollowupError::Byte(format!("{:#?}", e)))?;
+    let bytes = response.bytes().await?;
 
     // Generate a UUID for the filename of the image
     let uuid_name = Uuid::new_v4();
@@ -148,8 +133,7 @@ pub async fn send_embed(
     // Send the follow-up response
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| FollowupError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     Ok(())
 }

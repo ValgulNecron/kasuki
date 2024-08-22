@@ -4,7 +4,7 @@ use std::fmt::Display;
 use crate::config::BotConfigDetails;
 use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
 use serenity::all::CommandInteraction;
 use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
@@ -197,7 +197,6 @@ pub async fn send_embed(
     ctx: &Context,
     command: &CommandInteraction,
     user: User,
-    db_type: String,
     db_config: BotConfigDetails,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match command.guild_id {
@@ -211,7 +210,7 @@ pub async fn send_embed(
     let statistics = user
         .statistics
         .clone()
-        .ok_or(ResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "Could not get the statistics",
         )))?;
     let manga = statistics.manga.clone();
@@ -244,10 +243,7 @@ pub async fn send_embed(
 
     let builder = CreateInteractionResponse::Message(builder_message);
 
-    command
-        .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+    command.create_response(&ctx.http, builder).await?;
     Ok(())
 }
 

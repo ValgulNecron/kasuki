@@ -7,8 +7,6 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
-
 pub async fn make_request_anilist<
     'a,
     T: QueryFragment,
@@ -61,13 +59,9 @@ async fn do_request<
         .header("Accept", "application/json")
         .json(&operation)
         .send()
-        .await
-        .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
+        .await?;
 
-    let response_text = resp
-        .text()
-        .await
-        .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
+    let response_text = resp.text().await?;
     anilist_cache
         .write()
         .await
@@ -79,7 +73,6 @@ async fn do_request<
 fn get_type<U: for<'de> Deserialize<'de>>(
     value: String,
 ) -> Result<GraphQlResponse<U>, Box<dyn Error>> {
-    let data = serde_json::from_str::<GraphQlResponse<U>>(&value)
-        .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
+    let data = serde_json::from_str::<GraphQlResponse<U>>(&value)?;
     Ok(data)
 }

@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
 use crate::structure::message::management::give_premium_sub::load_localization_give_premium_sub;
 use serenity::all::{
@@ -42,23 +42,23 @@ async fn send_embed(
     let map = get_option_map_user(command_interaction);
     let user = *map
         .get(&String::from("user"))
-        .ok_or(ResponseError::Option(String::from("No option for user")))?;
+        .ok_or(error_dispatch::Error::Option(String::from(
+            "No option for user",
+        )))?;
     let map = get_option_map_string(command_interaction);
     let subscription = map
         .get(&String::from("subscription"))
-        .ok_or(ResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "No option for subscription",
         )))?
         .clone();
 
-    let skus = ctx
-        .http
-        .get_skus()
-        .await
-        .map_err(|e| ResponseError::WebRequest(format!("{:#?}", e)))?;
+    let skus = ctx.http.get_skus().await?;
     let skus_id: Vec<String> = skus.iter().map(|sku| sku.id.to_string()).collect();
     if !skus_id.contains(&subscription) {
-        Err(ResponseError::Option(String::from("Invalid sub id")))?
+        Err(error_dispatch::Error::Option(String::from(
+            "Invalid sub id",
+        )))?
     }
     let mut sku_id = Default::default();
     for sku in skus {
@@ -70,8 +70,7 @@ async fn send_embed(
     let _ = ctx
         .http
         .create_test_entitlement(sku_id, EntitlementOwner::User(user))
-        .await
-        .map_err(|e| ResponseError::WebRequest(format!("{:#?}", e)))?;
+        .await?;
 
     let localization = load_localization_give_premium_sub(
         command_interaction.guild_id.unwrap().to_string(),
@@ -89,7 +88,6 @@ async fn send_embed(
     let builder = CreateInteractionResponse::Message(builder_message);
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

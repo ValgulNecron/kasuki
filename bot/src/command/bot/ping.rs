@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::structure::message::bot::ping::load_localization_ping;
 use crate::type_map_key::ShardManagerContainer;
 use serenity::all::{
@@ -51,7 +51,7 @@ async fn send_embed(
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
         None => {
-            return Err(Box::new(ResponseError::Option(String::from(
+            return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "Could not get the shard manager from the context data",
             ))));
         }
@@ -69,7 +69,7 @@ async fn send_embed(
     let shard_runner_info = match shard_manager.get(&shard_id) {
         Some(data) => data,
         None => {
-            return Err(Box::new(ResponseError::Option(String::from(
+            return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "Could not get the shard runner info from the shard manager",
             ))));
         }
@@ -104,7 +104,6 @@ async fn send_embed(
     // Send the response to the command interaction
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

@@ -7,7 +7,6 @@ use tracing_subscriber::fmt;
 use tracing_subscriber::layer::SubscriberExt;
 
 use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, OTHER_CRATE_LEVEL};
-use crate::helper::error_management::error_enum;
 
 /// Initializes the logger for the application.
 ///
@@ -52,8 +51,7 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), Box<dyn
         .filename_suffix(log_suffix)
         .rotation(Rotation::DAILY)
         .max_log_files(max_log_retention_days as usize)
-        .build(logs_path)
-        .map_err(|e| error_enum::Error::Logger(format!("{:#?}", e)))?;
+        .build(logs_path)?;
     let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
     unsafe {
@@ -71,8 +69,7 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), Box<dyn
                 .with_ansi(false),
         );
 
-    tracing::subscriber::set_global_default(registry)
-        .map_err(|e| error_enum::Error::Logger(format!("{:#?}", e)))?;
+    tracing::subscriber::set_global_default(registry)?;
 
     Ok(())
 }
@@ -111,8 +108,7 @@ pub fn create_log_directory() -> std::io::Result<()> {
 /// The error is of type `AppError` with a message indicating the failure reason,
 /// an `ErrorType::Logging`, and an `ErrorResponseType::None`.
 fn get_directive(filter: &str) -> Result<Directive, Box<dyn Error>> {
-    let directive =
-        Directive::from_str(filter).map_err(|e| error_enum::Error::Logger(format!("{:#?}", e)))?;
+    let directive = Directive::from_str(filter)?;
 
     Ok(directive)
 }

@@ -5,8 +5,6 @@ use std::path::Path;
 
 use chrono::Local;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
-
 /// `local_image_save` is an asynchronous function that saves an image locally.
 /// It takes a `guild_id`, `filename`, and `image_data` as parameters.
 /// `guild_id` and `filename` are both Strings, and `image_data` is a Vec<u8>.
@@ -39,15 +37,13 @@ pub async fn local_image_save(
     let file_path = format!("images/{}/", guild_id);
     // Check if the directory exists, if not, create it
     if !Path::new(&file_path).exists() {
-        fs::create_dir_all(&file_path)
-            .map_err(|e| UnknownResponseError::File(format!("{:#?}", e)))?;
+        fs::create_dir_all(&file_path)?;
     }
 
     // Format the filename
     let filename = format!("{}_{}", formatted, filename);
     // Write the image data to the file
-    fs::write(format!("{}/{}", file_path, filename), image_data)
-        .map_err(|e| UnknownResponseError::File(format!("{:#?}", e)))?;
+    fs::write(format!("{}/{}", file_path, filename), image_data)?;
 
     // Return Ok if the function executed successfully
     Ok(())

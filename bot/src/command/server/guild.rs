@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
@@ -48,13 +48,10 @@ async fn send_embed(
     // Retrieve the guild ID from the command interaction or return an error if it does not exist
     let guild_id = command_interaction
         .guild_id
-        .ok_or(ResponseError::Option(String::from("No guild ID")))?;
+        .ok_or(error_dispatch::Error::Option(String::from("No guild ID")))?;
 
     // Retrieve the guild's information or return an error if it could not be retrieved
-    let guild = guild_id
-        .to_partial_guild_with_counts(&ctx.http)
-        .await
-        .map_err(|e| ResponseError::UserOrGuild(format!("{:#?}", e)))?;
+    let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
     // Retrieve various details about the guild
     let channels = guild.channels(&ctx.http).await.unwrap_or_default().len();
@@ -136,7 +133,6 @@ async fn send_embed(
     // Send the response to the command interaction
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

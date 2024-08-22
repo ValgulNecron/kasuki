@@ -2,7 +2,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::database::guild_lang;
 use crate::structure::database::prelude::GuildLang;
@@ -44,7 +44,7 @@ async fn send_embed(
     let map = get_option_map_string_subcommand_group(command_interaction);
     let lang = map
         .get(&String::from("lang_choice"))
-        .ok_or(ResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "No option for lang_choice",
         )))?;
 

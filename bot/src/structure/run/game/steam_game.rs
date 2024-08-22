@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use crate::config::BotConfigDetails;
 use crate::constant::LANG_MAP;
-use crate::helper::error_management::error_enum::UnknownResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_guild_lang::get_guild_language;
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
@@ -114,13 +114,7 @@ impl SteamGameWrapper {
     ) -> Result<SteamGameWrapper, Box<dyn Error>> {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
-            .build()
-            .map_err(|e| {
-                UnknownResponseError::WebRequest(format!(
-                    "Error when building the client. {:#?}",
-                    e.to_string()
-                ))
-            })?;
+            .build()?;
         let lang = get_guild_language(guild_id, db_config).await;
         let local_lang = LANG_MAP.clone();
         let full_lang = *local_lang
@@ -133,25 +127,10 @@ impl SteamGameWrapper {
 
         trace!("{}", url);
 
-        let response = client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
-        let mut text = response
-            .text()
-            .await
-            .map_err(|e| UnknownResponseError::WebRequest(format!("{:#?}", e)))?;
+        let response = client.get(&url).send().await?;
+        let mut text = response.text().await?;
 
-        let re = match Regex::new(r#""required_age":"(\d+)""#) {
-            Ok(r) => r,
-            Err(e) => {
-                return Err(Box::new(UnknownResponseError::WebRequest(format!(
-                    "{:#?}",
-                    e
-                ))));
-            }
-        };
+        let re = Regex::new(r#""required_age":"(\d+)""#)?;
 
         if let Some(cap) = re.captures(&text) {
             if let Some(number) = cap.get(1) {
@@ -164,15 +143,14 @@ impl SteamGameWrapper {
             }
         }
 
-        let game_wrapper: HashMap<String, SteamGameWrapper> =
-            serde_json::from_str(text.as_str())
-                .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
-        match game_wrapper.get(&appid.to_string()) {
-            Some(game) => Ok(game.clone()),
-            None => Err(Box::new(UnknownResponseError::Json(
-                "Game not found".to_string(),
-            ))),
-        }
+        let game_wrapper: HashMap<String, SteamGameWrapper> = serde_json::from_str(text.as_str())?;
+        let game = game_wrapper
+            .get(&appid.to_string())
+            .ok_or(error_dispatch::Error::Option(String::from(
+                "Game not found",
+            )))?;
+
+        Ok(game.clone())
     }
 
     /// `new_steam_game_by_search` is an asynchronous function that creates a new `SteamGameWrapper` by searching for the given string.
@@ -195,7 +173,6 @@ impl SteamGameWrapper {
     pub async fn new_steam_game_by_search(
         search: &str,
         guild_id: String,
-        db_type: String,
         apps: Arc<RwLock<HashMap<String, u128>>>,
         db_config: BotConfigDetails,
     ) -> Result<SteamGameWrapper, Box<dyn Error>> {
@@ -207,7 +184,7 @@ impl SteamGameWrapper {
 
         let mut appid = &0u128;
         if results.is_empty() {
-            return Err(Box::new(UnknownResponseError::Option(
+            return Err(Box::new(error_dispatch::Error::Option(
                 "No game found".to_string(),
             )));
         }
@@ -216,7 +193,7 @@ impl SteamGameWrapper {
                 appid = match guard.get(name) {
                     Some(appid) => appid,
                     None => {
-                        return Err(Box::new(UnknownResponseError::Option(
+                        return Err(Box::new(error_dispatch::Error::Option(
                             "No game found".to_string(),
                         )));
                     }
@@ -227,7 +204,7 @@ impl SteamGameWrapper {
                 appid = match guard.get(name) {
                     Some(appid) => appid,
                     None => {
-                        return Err(Box::new(UnknownResponseError::Option(
+                        return Err(Box::new(error_dispatch::Error::Option(
                             "No game found".to_string(),
                         )));
                     }

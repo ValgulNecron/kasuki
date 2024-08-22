@@ -1,5 +1,4 @@
 use crate::event_handler::Handler;
-use crate::helper::error_management::error_enum::ResponseError;
 use serenity::all::{
     CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId, SkuKind,
 };
@@ -45,8 +44,7 @@ async fn not_implemented(
     let builder = CreateInteractionResponse::Message(builder_message);
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
 
     Ok(())
 }
@@ -88,9 +86,7 @@ pub async fn get_user_sub(
         .iter()
         .map(|entitlement| entitlement.sku_id)
         .collect();
-    let available_skus = ctx.http.get_skus().await.map_err(|e| {
-        ResponseError::Sending(format!("Error while sending the premium: {:#?}", e))
-    })?;
+    let available_skus = ctx.http.get_skus().await?;
     let mut user_sub = None;
     let mut available_user_sku = None;
     for available_sku in available_skus {
@@ -123,7 +119,6 @@ pub async fn send_premium_response(
     let builder = CreateInteractionResponse::Message(builder);
     command_interaction
         .create_response(&ctx.http, builder)
-        .await
-        .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }

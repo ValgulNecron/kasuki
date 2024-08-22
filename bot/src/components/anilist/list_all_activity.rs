@@ -1,7 +1,7 @@
 use crate::config::BotConfigDetails;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::get_url;
-use crate::helper::error_management::error_enum::UnknownResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::structure::database::activity_data::{Column, Model};
 use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
@@ -46,7 +46,7 @@ pub async fn update(
 
     let guild_id = component_interaction
         .guild_id
-        .ok_or(UnknownResponseError::Option(String::from(
+        .ok_or(error_dispatch::Error::Option(String::from(
             "Guild ID not found",
         )))?;
 
@@ -92,8 +92,7 @@ pub async fn update(
 
     component_interaction
         .create_response(&ctx.http, response)
-        .await
-        .map_err(|e| UnknownResponseError::Sending(format!("{:#?}", e)))?;
+        .await?;
     Ok(())
 }
 

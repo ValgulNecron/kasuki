@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::get_url;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::database::prelude::RegisteredUser;
@@ -20,6 +20,7 @@ use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::{CommandInteraction, Context};
 use tokio::sync::RwLock;
+
 pub struct UserCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -59,14 +60,7 @@ async fn send_embed(
     // If the username is provided, fetch the user's data from AniList and send it as a response
     if let Some(value) = user {
         let data: User = get_user(value, anilist_cache.clone()).await?;
-        return user::send_embed(
-            ctx,
-            command_interaction,
-            data,
-            db_type.clone(),
-            config.bot.config.clone(),
-        )
-        .await;
+        return user::send_embed(ctx, command_interaction, data, config.bot.config.clone()).await;
     }
 
     // If the username is not provided, fetch the data of the user who triggered the command interaction
@@ -76,18 +70,11 @@ async fn send_embed(
         .filter(Column::UserId.eq(user_id))
         .one(&connection)
         .await?;
-    let user = row.ok_or(ResponseError::Option(String::from("No user found")))?;
+    let user = row.ok_or(error_dispatch::Error::Option(String::from("No user found")))?;
 
     // Fetch the user's data from AniList and send it as a response
     let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
-    user::send_embed(
-        ctx,
-        command_interaction,
-        data,
-        db_type,
-        config.bot.config.clone(),
-    )
-    .await
+    user::send_embed(ctx, command_interaction, data, config.bot.config.clone()).await
 }
 /// Fetches the data of a user from AniList.
 ///

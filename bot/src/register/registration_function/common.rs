@@ -7,7 +7,6 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
 use crate::helper::read_file::read_file_as_string;
 use crate::register::command_struct::common::{
     Arg, Choice, ChoiceLocalised, CommandInstallationContext, CommandIntegrationContext,
@@ -222,12 +221,10 @@ pub fn get_vec<T: serde::Deserialize<'static> + Clone>(
     path: &str,
 ) -> Result<Vec<T>, Box<dyn Error>> {
     let mut commands: Vec<T> = Vec::new();
-    let paths = fs::read_dir(path)
-        .map_err(|e| UnknownResponseError::File(format!("{:#?}......{}", e, path)))?;
+    let paths = fs::read_dir(path)?;
     for entry in paths {
         let start = std::time::Instant::now();
-        let entry =
-            entry.map_err(|e| UnknownResponseError::File(format!("{:#?}......{}", e, path)))?;
+        let entry = entry?;
         let path = entry.path();
         if path.is_file() && path.extension().unwrap_or_default() == "json" {
             // Read the file content once and store it in a variable outside the loop
@@ -235,8 +232,7 @@ pub fn get_vec<T: serde::Deserialize<'static> + Clone>(
             // Convert the String to a &'static str by cloning it into a static buffer
             let json: &'static str = Box::leak(json_content.into_boxed_str());
             // Now, `json` has a 'static lifetime and can be passed to `serde_json::from_str`
-            let command: T = serde_json::from_str(json)
-                .map_err(|e| UnknownResponseError::Json(format!("{:#?}......{:?}", e, path)))?;
+            let command: T = serde_json::from_str(json)?;
             commands.push(command);
         }
         let duration = start.elapsed();

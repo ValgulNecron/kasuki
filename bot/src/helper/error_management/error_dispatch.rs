@@ -29,9 +29,15 @@ pub enum Error {
     Sending(String),
     #[error("Error while initializing the logger: {0}")]
     Logger(String),
+    #[error("The channel is not nsfw but the media is.")]
+    AdultMedia,
+    #[error("Error with the JSON: {0}")]
+    Json(String),
+    #[error("Error with the audio: {0}")]
+    Audio(String),
+    #[error("Error with the file: {0}")]
+    File(String),
 }
-
-
 
 /// ERROR_MESSAGE is a constant string that contains the default error message
 const ERROR_MESSAGE: &str = "**There was an error while processing the command**\
@@ -166,7 +172,13 @@ fn censor_url_and_token(error_message: String, self_handler: &Handler) -> String
     let discord_token = config.bot.discord_token.clone();
     let db_user = config.bot.config.user.clone().unwrap_or_default();
     let db_pass = config.bot.config.password.clone().unwrap_or_default();
-    let db_port = config.bot.config.port.clone().unwrap_or_default().to_string();
+    let db_port = config
+        .bot
+        .config
+        .port
+        .clone()
+        .unwrap_or_default()
+        .to_string();
     let db_host = config.bot.config.host.clone().unwrap_or_default();
     let image_token = config.ai.image.ai_image_token.clone().unwrap_or_default();
     let transcript_token = config
@@ -192,7 +204,9 @@ fn censor_url_and_token(error_message: String, self_handler: &Handler) -> String
         .replace(&db_host, "[REDACTED]");
     // replace url with [REDACTED]
     let url_regex = Regex::new(r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)").unwrap();
-    error_message = url_regex.replace_all(&error_message, "[REDACTED]").to_string();
+    error_message = url_regex
+        .replace_all(&error_message, "[REDACTED]")
+        .to_string();
 
     error_message
 }

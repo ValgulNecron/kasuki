@@ -8,7 +8,7 @@ use crate::config::Config;
 use crate::constant::{DEFAULT_STRING, MAX_FREE_AI_QUESTIONS, PAID_QUESTION_MULTIPLIER};
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::FollowupError;
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::{
     get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
@@ -84,7 +84,7 @@ impl SlashCommand for ImageCommand<'_> {
             .check_hourly_limit(self.command_name.clone(), self.handler)
             .await?
         {
-            return Err(Box::new(FollowupError::Option(String::from(
+            return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "You have reached your hourly limit. Please try again later.",
             ))));
         }
@@ -329,17 +329,12 @@ async fn get_image_from_response(
     let root: Root = match serde_json::from_value(json.clone()) {
         Ok(root) => root,
         Err(e) => {
-            let root1: Result<Root1, serde_json::error::Error> = serde_json::from_value(json);
-            return match root1 {
-                Ok(root1) => Err(Box::new(FollowupError::WebRequest(format!(
-                    "{:#?}/{:#?}",
-                    root1.error, e
-                )))),
-                Err(e2) => Err(Box::new(FollowupError::WebRequest(format!(
-                    "{:#?}/{:#?}",
-                    e, e2
-                )))),
-            };
+            let root1: Root1 = serde_json::from_value(json)?;
+
+            return Err(Box::new(error_dispatch::Error::Option(format!(
+                "Error: {} ............ {:?}",
+                e, root1.error
+            ))));
         }
     };
     let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();

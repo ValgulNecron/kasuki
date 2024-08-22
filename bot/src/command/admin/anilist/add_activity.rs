@@ -1,4 +1,3 @@
-use crate::helper::error_management::error_enum::{FollowupError, UnknownResponseError};
 use std::error::Error;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
@@ -7,6 +6,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
 use crate::get_url;
 use crate::helper::create_default_embed::{get_anilist_anime_embed, get_default_embed};
+use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
@@ -41,6 +41,7 @@ use serenity::all::{
 };
 use tokio::sync::RwLock;
 use tracing::{error, trace};
+
 pub struct AddActivityCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
@@ -117,7 +118,7 @@ async fn already_exist(
 ) -> Result<(), Box<dyn Error>> {
     let title = media
         .title
-        .ok_or(FollowupError::Option("No title".to_string()))?;
+        .ok_or(error_dispatch::Error::Option("No title".to_string()))?;
     let anime_name = get_name(title);
     let builder_embed = get_default_embed(None)
         .title(&add_activity_localised.fail)
@@ -148,7 +149,7 @@ async fn success(
     let channel_id = command_interaction.channel_id;
     let title = media
         .title
-        .ok_or(FollowupError::Option("No title".to_string()))?;
+        .ok_or(error_dispatch::Error::Option("No title".to_string()))?;
     let anime_name = get_name(title);
     let map = get_option_map_string_subcommand_group(command_interaction);
     let delay = map
@@ -168,7 +169,7 @@ async fn success(
         .to_string();
 
     let bytes = get(media.cover_image.ok_or(
-        FollowupError::Option("No cover image".to_string()),
+        error_dispatch::Error::Option("No cover image".to_string()),
     )?.extra_large.
         unwrap_or(
             "https://imgs.search.brave.com/ CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
@@ -193,7 +194,7 @@ async fn success(
     let next_airing = match media.next_airing_episode.clone() {
         Some(na) => na,
         None => {
-            return Err(Box::new(FollowupError::Option(format!(
+            return Err(Box::new(error_dispatch::Error::Option(format!(
                 "No next episode found for {} on anilist",
                 anime_name
             ))));
@@ -355,7 +356,7 @@ async fn get_webhook(
         let webhook_user_id = webhook
             .user
             .clone()
-            .ok_or(Box::new(FollowupError::Decoding(
+            .ok_or(Box::new(error_dispatch::Error::Webhook(
                 "webhook user id not found".to_string(),
             )))?
             .id
@@ -382,29 +383,14 @@ async fn get_webhook(
 
     // Read the decoded bytes into a Vec
     let mut decoded_bytes = Vec::new();
-    match decoder.read_to_end(&mut decoded_bytes) {
-        Ok(_) => (),
-        Err(e) => {
-            error!("{}", e);
-            return Err(Box::new(FollowupError::Decoding(format!("{:#?}", e))));
-        }
-    }
-    let mut webhook = match ctx.http.get_webhook_from_url(webhook_return.as_str()).await {
-        Ok(webhook) => webhook,
-        Err(e) => {
-            error!("{}", e);
-            return Err(Box::new(FollowupError::Webhook(format!("{:#?}", e))));
-        }
-    };
+    decoder.read_to_end(&mut decoded_bytes)?;
+    let mut webhook = ctx
+        .http
+        .get_webhook_from_url(webhook_return.as_str())
+        .await?;
     let attachement = CreateAttachment::bytes(decoded_bytes, "avatar");
     let edit_webhook = EditWebhook::new().name(anime_name).avatar(&attachement);
-    match webhook.edit(&ctx.http, edit_webhook).await {
-        Ok(_) => (),
-        Err(e) => {
-            error!("{}", e);
-            return Err(Box::new(FollowupError::Webhook(format!("{:#?}", e))));
-        }
-    };
+    webhook.edit(&ctx.http, edit_webhook).await?;
 
     Ok(webhook_return)
 }
@@ -419,9 +405,9 @@ pub(crate) async fn get_minimal_anime_by_id(
         make_request_anilist(operation, false, anilist_cache).await?;
     let data = data
         .data
-        .ok_or(UnknownResponseError::Option("No media found".to_string()))?
+        .ok_or(error_dispatch::Error::Option("No media found".to_string()))?
         .media
-        .ok_or(UnknownResponseError::Option("No media found".to_string()))?;
+        .ok_or(error_dispatch::Error::Option("No media found".to_string()))?;
     Ok(data)
 }
 
@@ -439,13 +425,13 @@ async fn get_minimal_anime_by_search(
         Some(data) => match data.media {
             Some(media) => media,
             None => {
-                return Err(Box::new(UnknownResponseError::Option(
+                return Err(Box::new(error_dispatch::Error::Option(
                     "No media found".to_string(),
                 )))
             }
         },
         None => {
-            return Err(Box::new(UnknownResponseError::Option(
+            return Err(Box::new(error_dispatch::Error::Option(
                 "No data found".to_string(),
             )))
         }

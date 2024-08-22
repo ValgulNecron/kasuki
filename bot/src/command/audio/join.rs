@@ -2,7 +2,7 @@ use crate::audio::receiver::Receiver;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::structure::message::audio::join::load_localization_join_localised;
 use serenity::all::{CommandInteraction, Context, CreateEmbed};
 use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
@@ -39,7 +39,7 @@ async fn send_embed(
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = command_interaction
         .guild_id
-        .ok_or(ResponseError::Option(String::from("No guild id")))?;
+        .ok_or(error_dispatch::Error::Option(String::from("No guild id")))?;
 
     let manager = songbird::get(ctx)
         .await
@@ -58,7 +58,7 @@ async fn send_embed(
                 Some(guild) => guild,
                 None => {
                     error!("Failed to get the guild.");
-                    return Err(Box::new(ResponseError::Option(
+                    return Err(Box::new(error_dispatch::Error::Option(
                         "Failed to get the guild.".to_string(),
                     )));
                 }
@@ -72,7 +72,7 @@ async fn send_embed(
         let connect_to = match channel_id {
             Some(channel) => channel,
             None => {
-                return Err(Box::new(ResponseError::Option(String::from(
+                return Err(Box::new(error_dispatch::Error::Option(String::from(
                     "Not connected to a voice channel",
                 ))))
             }
@@ -98,12 +98,11 @@ async fn send_embed(
             let builder = CreateInteractionResponse::Message(builder_embed);
             command_interaction
                 .create_response(&ctx.http, builder)
-                .await
-                .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+                .await?;
 
             return Ok(());
         } else if let Err(joining) = success {
-            return Err(Box::new(ResponseError::Audio(format!(
+            return Err(Box::new(error_dispatch::Error::Audio(format!(
                 "Failed to join voice channel: {:#?}",
                 joining
             ))));
@@ -115,8 +114,7 @@ async fn send_embed(
         let builder = CreateInteractionResponse::Message(builder_embed);
         command_interaction
             .create_response(&ctx.http, builder)
-            .await
-            .map_err(|e| ResponseError::Sending(format!("{:#?}", e)))?;
+            .await?;
 
         Ok(())
     }

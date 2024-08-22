@@ -5,8 +5,6 @@ use moka::future::Cache;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::RwLock;
 
-use crate::helper::error_management::error_enum::UnknownResponseError;
-
 pub async fn get_producer(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
@@ -41,8 +39,7 @@ pub async fn get_producer(
         vndb_cache,
     )
     .await?;
-    let response: ProducerRoot = serde_json::from_str(&response)
-        .map_err(|e| UnknownResponseError::Json(format!("{:#?}", e)))?;
+    let response: ProducerRoot = serde_json::from_str(&response)?;
     Ok(response)
 }
 

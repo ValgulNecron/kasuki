@@ -43,14 +43,14 @@ async fn main() {
         Ok(config) => config,
         Err(e) => {
             eprintln!("Error while reading config.toml: {:?}", e);
-            std::process::exit(1);
+            process::exit(1);
         }
     };
     let mut config: Config = match toml::from_str(&config) {
         Ok(config) => config,
         Err(e) => {
             eprintln!("Error while parsing config.toml: {:?}", e);
-            std::process::exit(1);
+            process::exit(1);
         }
     };
     config.set_default_value_on_none();
@@ -84,7 +84,7 @@ async fn main() {
     if let Err(e) = init_db(config.clone()).await {
         let e = e.to_string().replace("\\\\n", "\n");
         error!("{}", e);
-        std::process::exit(4);
+        process::exit(4);
     }
 
     let number_of_command_use_per_command: RootUsage;

@@ -47,7 +47,7 @@ use crate::command::user::profile::ProfileCommand;
 use crate::config::BotConfigDetails;
 use crate::event_handler::Handler;
 use crate::get_url;
-use crate::helper::error_management::error_enum::ResponseError;
+use crate::helper::error_management::error_dispatch;
 use crate::structure::database;
 use crate::structure::database::module_activation::Model;
 use crate::structure::database::prelude::ModuleActivation;
@@ -56,6 +56,7 @@ use sea_orm::{EntityTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context};
 use std::error::Error;
 use tracing::trace;
+
 /// Dispatches the command to the appropriate function based on the command name.
 ///
 /// This function retrieves the command name from the command interaction and matches it to the appropriate function.
@@ -541,7 +542,7 @@ pub async fn dispatch_command(
 
         // If the command name does not match any of the specified commands, return an error
         _ => {
-            return Err(Box::new(ResponseError::Option(String::from(
+            return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "Unknown command",
             ))));
         }
@@ -644,7 +645,7 @@ async fn anilist_server(
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
-    let anilist_module_error = ResponseError::Option(String::from(
+    let anilist_module_error = error_dispatch::Error::Option(String::from(
         "Anilist module is not activated. Please enable it first.",
     ));
     // Retrieve the guild ID from the command interaction
@@ -688,7 +689,7 @@ async fn anilist_user(
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
-    let anilist_module_error = ResponseError::Option(String::from(
+    let anilist_module_error = error_dispatch::Error::Option(String::from(
         "Anilist module is not activated. Please enable it first.",
     ));
     // Retrieve the guild ID from the command interaction
@@ -720,7 +721,7 @@ async fn vn(
 ) -> Result<(), Box<dyn Error>> {
     let config = self_handler.bot_data.config.clone();
     let vndb_cache = self_handler.bot_data.vndb_cache.clone();
-    let vn_module_error = ResponseError::Option(String::from(
+    let vn_module_error = error_dispatch::Error::Option(String::from(
         "The VN module is not activated for this guild.",
     ));
     let guild_id = match command_interaction.guild_id {
@@ -738,7 +739,7 @@ async fn vn(
         "producer" => producer::run(ctx, command_interaction, config, vndb_cache).await,
         "stats" => stats::run(ctx, command_interaction, config, vndb_cache).await,
         _ => {
-            return Err(Box::new(ResponseError::Option(String::from(
+            return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "Unknown command",
             ))))
         }
