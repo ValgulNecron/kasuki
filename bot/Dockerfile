@@ -58,6 +58,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 RUN pip3 install youtube-dl
 
+ENV PATH="/opt/venv/bin:$PATH"
+
 COPY json /kasuki/json
 COPY server_image /kasuki/server_image
 
