@@ -82,6 +82,15 @@ impl PartialEq for InternalAction {
     }
 }
 
+impl Into<InternalMemberAction> for InternalAction {
+    fn into(self) -> InternalMemberAction {
+        match self {
+            InternalAction::Member(a) => a,
+            InternalAction::Other => InternalMemberAction::Other,
+        }
+    }
+}
+
 impl PartialEq for InternalMemberAction {
     fn eq(&self, other: &Self) -> bool {
         matches!(

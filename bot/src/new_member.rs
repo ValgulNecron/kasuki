@@ -242,7 +242,7 @@ pub fn encode_image(image: DynamicImage) -> Result<Vec<u8>, Box<dyn Error>> {
     let rgba8_image = image.to_rgba8();
     let mut buffer = Cursor::new(Vec::new());
     rgba8_image.write_to(&mut buffer, WebP)?;
-    Ok(buffer.clone())
+    Ok(buffer.into_inner().clone())
 }
 
 pub async fn send_image(

@@ -1,6 +1,6 @@
 use crate::config::BotConfigDetails;
 use crate::constant::HEX_COLOR;
-use crate::custom_serenity_impl::InternalMemberAction;
+use crate::custom_serenity_impl::{InternalAction, InternalMemberAction};
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
 use crate::new_member::{
     encode_image, get_channel_id, get_server_image, load_guild_settings, send_image,
@@ -116,7 +116,7 @@ pub async fn removed_member_message(
                 };
                 if target.to_string() == user.id.to_string() {
                     let reason: Option<String> = entry.reason.clone();
-                    let action: InternalMemberAction = InternalMemberAction::from(entry.action);
+                    let action: InternalMemberAction = InternalAction::from(entry.action).into();
                     match (action, reason) {
                         (BanAdd, Some(reason)) => {
                             text = local
