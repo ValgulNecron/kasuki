@@ -176,7 +176,6 @@ fn censor_url_and_token(error_message: String, self_handler: &Handler) -> String
         .bot
         .config
         .port
-        .clone()
         .unwrap_or_default()
         .to_string();
     let db_host = config.bot.config.host.clone().unwrap_or_default();

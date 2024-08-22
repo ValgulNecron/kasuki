@@ -9,7 +9,6 @@ use crate::structure::message::removed_member::load_localization_removed_member;
 use image::GenericImage;
 use serenity::all::{GuildId, User};
 use serenity::client::Context;
-use std::any::Any;
 use text_to_png::TextRenderer;
 use tracing::{error, trace};
 

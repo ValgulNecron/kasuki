@@ -54,15 +54,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
 RUN pip3 install youtube-dl
 
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY json /kasuki/json
 COPY server_image /kasuki/server_image
-
 COPY --from=builder-bot /kasuki/target/release/kasuki /kasuki/
 COPY --from=builder-migration /migration/target/release/migration /kasuki/
 

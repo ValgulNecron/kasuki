@@ -3,7 +3,6 @@ use std::error::Error;
 use serenity::all::{
     ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, UserId,
 };
-use tracing::trace;
 
 use crate::command::anilist_server::list_register_user::get_the_list;
 use crate::config::BotConfigDetails;

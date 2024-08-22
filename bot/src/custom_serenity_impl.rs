@@ -82,9 +82,9 @@ impl PartialEq for InternalAction {
     }
 }
 
-impl Into<InternalMemberAction> for InternalAction {
-    fn into(self) -> InternalMemberAction {
-        match self {
+impl From<InternalAction> for InternalMemberAction {
+    fn from(val: InternalAction) -> Self {
+        match val {
             InternalAction::Member(a) => a,
             InternalAction::Other => InternalMemberAction::Other,
         }

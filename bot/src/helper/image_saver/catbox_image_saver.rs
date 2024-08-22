@@ -1,4 +1,3 @@
-use reqwest::multipart;
 use std::error::Error;
 use std::io::{Seek, Write};
 use tracing::debug;

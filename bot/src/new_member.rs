@@ -1,6 +1,5 @@
 use crate::config::BotConfigDetails;
 use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
-use crate::helper::error_management::error_dispatch;
 use crate::structure::message::new_member::load_localization_new_member;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage};
@@ -230,11 +229,7 @@ pub fn get_channel_id(
     if guild_settings.custom_channel {
         Option::from(ChannelId::from(guild_settings.channel_id))
     } else {
-        if let Some(channel_id) = partial_guild.system_channel_id {
-            Some(channel_id)
-        } else {
-            None
-        }
+        partial_guild.system_channel_id
     }
 }
 
