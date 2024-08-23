@@ -3,32 +3,18 @@ use std::sync::{
     Arc,
 };
 
-use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::Config;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::structure::message::audio::play::load_localization_play_localised;
 use dashmap::DashMap;
-use serenity::all::{CommandInteraction, CreateInteractionResponseFollowup};
 use serenity::all::{GuildId, UserId};
 use serenity::async_trait;
-use serenity::builder::CreateInteractionResponse::Defer;
-use serenity::builder::CreateInteractionResponseMessage;
-use serenity::client::Context;
-use songbird::input::cached::{Compressed, Memory};
 use songbird::input::Compose;
-use songbird::input::{Input, YoutubeDl};
+use songbird::input::YoutubeDl;
 use songbird::tracks::Track;
 use songbird::{
     model::payload::{ClientDisconnect, Speaking},
     Event, EventContext,
 };
 use songbird::{Call, EventHandler};
-use songbird::{CoreEvent, Songbird, TrackEvent};
-use std::error::Error;
-use std::fs;
-use std::path::Path;
+use songbird::TrackEvent;
 use tokio::sync::Mutex;
 use tracing::{debug, error};
 
@@ -148,7 +134,7 @@ impl EventHandler for TrackEndNotifier {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
         let handler_mutex = self.manager.clone();
         let url = self.url.clone();
-        let mut url = self.url.clone();
+        let url = self.url.clone();
         if let EventContext::Track(track_list) = ctx {
             let handler_mutex_clone = handler_mutex.clone();
             let mut handler_lock = handler_mutex_clone.lock().await;
@@ -170,7 +156,7 @@ impl EventHandler for TrackEndNotifier {
                     TrackEndNotifier {
                         manager: handler_mutex,
                         url,
-                        guild_id: self.guild_id.clone(),
+                        guild_id: self.guild_id,
                     },
                 );
                 break;

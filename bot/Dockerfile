@@ -49,7 +49,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
     ca-certificates libopus-dev \
+    python3 python3-pip python3-venv \
     && rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/kasuki/.venv/bin:$PATH"
+RUN python3 -m venv .venv
+
+RUN pip3 install --upgrade pip
+
+RUN pip3 install youtube_dl
+
+ENV PATH="/kasuki/.venv/bin:$PATH"
 
 
 COPY json /kasuki/json

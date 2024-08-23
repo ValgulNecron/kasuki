@@ -10,12 +10,10 @@ use serenity::all::{CommandInteraction, CreateInteractionResponseFollowup};
 use serenity::builder::CreateInteractionResponse::Defer;
 use serenity::builder::CreateInteractionResponseMessage;
 use serenity::client::Context;
-use songbird::input::{Compose, YoutubeDl};
+use songbird::input::Compose;
 use songbird::tracks::Track;
-use songbird::{CoreEvent, Songbird, TrackEvent};
+use songbird::{CoreEvent, TrackEvent};
 use std::error::Error;
-use std::fs;
-use std::path::Path;
 use std::sync::Arc;
 use tracing::{error, trace};
 

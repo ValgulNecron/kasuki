@@ -34,9 +34,9 @@ impl From<UrlType> for SearchType {
     }
 }
 
-impl Into<UrlType> for SearchType {
-    fn into(self) -> UrlType {
-        match self {
+impl From<SearchType> for UrlType {
+    fn from(val: SearchType) -> Self {
+        match val {
             SearchType::Video => UrlType::Video,
             SearchType::Playlist => UrlType::Playlist,
             _ => UrlType::Video,
