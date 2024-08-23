@@ -51,7 +51,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ENV PATH="/kasuki/.venv/bin:$PATH"
 RUN python3 -m venv .venv
-RUN pip3 install --upgrade pip
 RUN pip3 install youtube_dl
 
 COPY json /kasuki/json
