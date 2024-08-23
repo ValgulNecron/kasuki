@@ -34,7 +34,6 @@ RUN cargo new --bin migration
 COPY migration_src/Cargo.toml Cargo.toml
 RUN cargo build --release
 
-RUN rm src/*.rs
 COPY migration_src/src src
 
 COPY migration_src/src src
