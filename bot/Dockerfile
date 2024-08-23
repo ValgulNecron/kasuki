@@ -1,8 +1,5 @@
 FROM rust:slim-bookworm AS builder-bot
 
-RUN USER=root cargo new --bin kasuki
-WORKDIR /kasuki
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
@@ -11,39 +8,39 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     youtube-dl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY Cargo.toml ./Cargo.toml
+USER root
+WORKDIR /kasuki
+
+RUN cargo new --bin kasuki
+COPY build.rs ./build.rs
 COPY proto ./proto
 COPY schemas ./schemas
-COPY build.rs ./build.rs
+COPY Cargo.toml ./Cargo.toml
 
 RUN cargo build --release
 
 RUN rm src/*.rs
 COPY src ./src
 
-RUN rm target/release/deps/kasuki*
-RUN rm target/release/kasuki*
 RUN cargo build --release
-
 
 FROM rust:slim-bookworm AS builder-migration
 
-RUN USER=root cargo new --bin migration
+USER root
 WORKDIR /migration
+
+RUN cargo new --bin migration
+
 COPY migration_src/Cargo.toml Cargo.toml
 RUN cargo build --release
-RUN rm target/release/deps/migration*
-RUN rm target/release/migration*
+
 RUN rm src/*.rs
+COPY migration_src/src src
+
 COPY migration_src/src src
 RUN cargo build --release
 
 FROM debian:trixie-slim AS bot
-
-LABEL maintainer="valgul"
-LABEL author="valgul"
-
-WORKDIR /kasuki/
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
@@ -54,17 +51,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ENV PATH="/kasuki/.venv/bin:$PATH"
 RUN python3 -m venv .venv
-
 RUN pip3 install --upgrade pip
-
 RUN pip3 install youtube_dl
-
-ENV PATH="/kasuki/.venv/bin:$PATH"
-
 
 COPY json /kasuki/json
 COPY server_image /kasuki/server_image
 COPY --from=builder-bot /kasuki/target/release/kasuki /kasuki/
 COPY --from=builder-migration /migration/target/release/migration /kasuki/
-
 CMD ["./kasuki"]
