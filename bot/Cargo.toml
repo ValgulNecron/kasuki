@@ -62,6 +62,10 @@ lazy_static = { version = "1.5.0" }
 seaography = "1.1.0-rc.1"
 catbox = "0.8.2"
 tempfile = "3.12.0"
+rusty_ytdl = { version = "0.7.4", features = ["rustls-tls" ] }
+either = "1.13.0"
+flame = "0.2.2"
+flamer = "0.5.0"
 
 [build-dependencies]
 tonic-build = "0.12.1"

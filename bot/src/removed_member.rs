@@ -1,7 +1,7 @@
 use crate::config::BotConfigDetails;
 use crate::constant::HEX_COLOR;
-use crate::custom_serenity_impl::{InternalAction, InternalMemberAction};
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
+use crate::custom_serenity_impl::{InternalAction, InternalMemberAction};
 use crate::new_member::{
     encode_image, get_channel_id, get_server_image, load_guild_settings, send_image,
 };

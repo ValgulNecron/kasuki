@@ -1,4 +1,5 @@
-use crate::audio::receiver::{Receiver, TrackErrorNotifier};
+use crate::audio::receiver::{Receiver, TrackEndNotifier, TrackErrorNotifier};
+use crate::audio::rusty_ytdl::RustyYoutubeSearch;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
@@ -11,8 +12,10 @@ use serenity::builder::CreateInteractionResponseMessage;
 use serenity::client::Context;
 use songbird::input::{Compose, YoutubeDl};
 use songbird::tracks::Track;
-use songbird::{CoreEvent, TrackEvent};
+use songbird::{CoreEvent, Songbird, TrackEvent};
 use std::error::Error;
+use std::fs;
+use std::path::Path;
 use std::sync::Arc;
 use tracing::{error, trace};
 
@@ -126,39 +129,53 @@ async fn send_embed(
     if url.clone().starts_with("http") && url.contains("music.") {
         url = url.replace("music.", "");
     }
-    if let Some(handler_lock) = bind {
-        let mut handler = handler_lock.lock().await;
+    if let Some(handler_mutex) = bind {
+        let handler_mutex_clone = handler_mutex.clone();
+        let mut handler_lock = handler_mutex_clone.lock().await;
 
         let do_search = !url.starts_with("http");
-        let mut src = if do_search {
-            YoutubeDl::new_search(http_client, url.clone())
+
+        let src = if do_search {
+            RustyYoutubeSearch::new_from_search(url.clone())
         } else {
-            YoutubeDl::new(http_client, url.clone())
+            RustyYoutubeSearch::new_from_url(url.clone())
         };
-        let (_, meta) = futures::join!(
-            handler.enqueue(Track::from(src.clone())),
+        let mut src = src?;
+        let (track, meta) = futures::join!(
+            handler_lock.enqueue(Track::from(src.clone())),
             src.aux_metadata()
         );
+        let url = match meta {
+            Ok(meta) => {
+                let title = meta.title.unwrap_or("song".to_string());
+                let thumbnail = meta.thumbnail;
+                let duration = meta.duration.unwrap_or_default();
 
-        handler.add_global_event(TrackEvent::Error.into(), TrackErrorNotifier);
-
-        if let Ok(meta) = meta {
-            let title = meta.title.unwrap_or("song".to_string());
-            let thumbnail = meta.thumbnail;
-            let duration = meta.duration.unwrap_or_default();
-
-            let mut embed = get_default_embed(None)
-                .title(localised.now_playing)
-                .description(format!("[{}]({}): {:?}", title, url.clone(), duration));
-            if let Some(thumb) = thumbnail {
-                embed = embed.thumbnail(thumb);
+                let mut embed = get_default_embed(None)
+                    .title(localised.now_playing)
+                    .description(format!("[{}]({}): {:?}", title, url.clone(), duration));
+                if let Some(thumb) = thumbnail {
+                    embed = embed.thumbnail(thumb);
+                }
+                let builder = CreateInteractionResponseFollowup::new().embed(embed);
+                command_interaction
+                    .create_followup(&ctx.http, builder)
+                    .await?;
+                meta.source_url.unwrap_or(url)
             }
-            let builder = CreateInteractionResponseFollowup::new().embed(embed);
-            command_interaction
-                .create_followup(&ctx.http, builder)
-                .await?;
-            return Ok(());
-        }
+            Err(_) => url,
+        };
+        handler_lock.add_global_event(TrackEvent::Error.into(), TrackErrorNotifier);
+        handler_lock.add_global_event(
+            TrackEvent::End.into(),
+            TrackEndNotifier {
+                manager: handler_mutex,
+                url,
+                guild_id,
+            },
+        );
+
+        return Ok(());
     }
 
     let embed = get_default_embed(None).title(localised.error);

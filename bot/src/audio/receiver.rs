@@ -3,14 +3,33 @@ use std::sync::{
     Arc,
 };
 
+use crate::command::command_trait::{Command, SlashCommand};
+use crate::config::Config;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::error_management::error_dispatch;
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::structure::message::audio::play::load_localization_play_localised;
 use dashmap::DashMap;
-use serenity::all::UserId;
+use serenity::all::{CommandInteraction, CreateInteractionResponseFollowup};
+use serenity::all::{GuildId, UserId};
 use serenity::async_trait;
-use songbird::EventHandler;
+use serenity::builder::CreateInteractionResponse::Defer;
+use serenity::builder::CreateInteractionResponseMessage;
+use serenity::client::Context;
+use songbird::input::cached::{Compressed, Memory};
+use songbird::input::Compose;
+use songbird::input::{Input, YoutubeDl};
+use songbird::tracks::Track;
 use songbird::{
     model::payload::{ClientDisconnect, Speaking},
     Event, EventContext,
 };
+use songbird::{Call, EventHandler};
+use songbird::{CoreEvent, Songbird, TrackEvent};
+use std::error::Error;
+use std::fs;
+use std::path::Path;
+use tokio::sync::Mutex;
 use tracing::{debug, error};
 
 #[derive(Clone)]
@@ -113,6 +132,48 @@ impl EventHandler for TrackErrorNotifier {
                     handle.uuid(),
                     state.playing
                 );
+            }
+        }
+        None
+    }
+}
+
+pub struct TrackEndNotifier {
+    pub manager: Arc<Mutex<Call>>,
+    pub url: String,
+    pub guild_id: GuildId,
+}
+#[async_trait]
+impl EventHandler for TrackEndNotifier {
+    async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
+        let handler_mutex = self.manager.clone();
+        let url = self.url.clone();
+        let mut url = self.url.clone();
+        if let EventContext::Track(track_list) = ctx {
+            let handler_mutex_clone = handler_mutex.clone();
+            let mut handler_lock = handler_mutex_clone.lock().await;
+            for (state, handle) in *track_list {
+                debug!("Track {:?} ended", handle.uuid());
+                let http_client = reqwest::Client::new();
+                let mut src = YoutubeDl::new(http_client, url.clone());
+                let (track, meta) = futures::join!(
+                    handler_lock.enqueue(Track::from(src.clone())),
+                    src.aux_metadata()
+                );
+                let url = match meta {
+                    Ok(meta) => meta.source_url.unwrap_or(url),
+                    Err(_) => url,
+                };
+                handler_lock.add_global_event(TrackEvent::Error.into(), TrackErrorNotifier);
+                handler_lock.add_global_event(
+                    TrackEvent::End.into(),
+                    TrackEndNotifier {
+                        manager: handler_mutex,
+                        url,
+                        guild_id: self.guild_id.clone(),
+                    },
+                );
+                break;
             }
         }
         None
