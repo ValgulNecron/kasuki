@@ -14,16 +14,18 @@ use crate::command::autocomplete::management::give_premium_sub::give_premium_sub
 use crate::command::autocomplete::vn;
 use crate::command::autocomplete::vn::{game, producer};
 use crate::config::BotConfigDetails;
+use crate::event_handler::Handler;
 use crate::helper::get_option::subcommand_group::get_subcommand;
 
 pub async fn autocomplete_dispatching(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    vndb_cache: Arc<RwLock<Cache<String, String>>>,
-    apps: Arc<RwLock<HashMap<String, u128>>>,
-    db_config: BotConfigDetails,
+    self_handler: &Handler,
 ) {
+    let anilist_cache = self_handler.bot_data.anilist_cache.clone();
+    let vndb_cache = self_handler.bot_data.vndb_cache.clone();
+    let apps = self_handler.bot_data.apps.clone();
+    let db_config = self_handler.bot_data.config.bot.config.clone();
     match autocomplete_interaction.data.name.as_str() {
         "admin" => {
             admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_config).await

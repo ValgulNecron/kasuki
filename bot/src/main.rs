@@ -1,8 +1,8 @@
 use std::error::Error;
+use std::fs::File;
 use std::process;
 use std::sync::Arc;
 use std::time::Duration;
-
 use crate::config::{BotConfigDetails, Config};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::event_handler::{BotData, Handler, RootUsage};
@@ -33,9 +33,6 @@ mod structure;
 mod type_map_key;
 
 #[tokio::main]
-/// The main function where the execution of the bot starts.
-/// It initializes the logger, the SQL database, and the bot client.
-/// It also spawns asynchronous tasks for managing the ping of the shards and starting the client.
 async fn main() {
     println!("Preparing bot environment please wait...");
     // read config.toml as string
@@ -195,6 +192,7 @@ async fn main() {
         }
         info!("Received bot shutdown signal. Shutting down bot.");
         ShardManager::shutdown_all(&shutdown).await;
+        flame::dump_html(File::create("flamegraph.html").unwrap()).unwrap();
         std::process::exit(0);
     }
     #[cfg(windows)]
@@ -216,7 +214,7 @@ async fn main() {
         }
         info!("Received bot shutdown signal. Shutting down bot.");
         ShardManager::shutdown_all(&shutdown).await;
-        std::process::exit(0);
+        process::exit(0);
     }
 }
 

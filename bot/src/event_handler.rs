@@ -220,7 +220,10 @@ impl EventHandler for Handler {
             error!("Failed to get the module status. {}", e);
             false
         });
-        new_member_message(&ctx, &member, self.bot_data.config.bot.config.clone()).await;
+        match new_member_message(&ctx, &member, self.bot_data.config.bot.config.clone()).await {
+            Ok(_) => {}
+            Err(e) => error!(e),
+        };
         color_management(
             &ctx.cache.guilds(),
             &ctx,
@@ -278,17 +281,21 @@ impl EventHandler for Handler {
         )
         .await
         .unwrap_or_else(|e| {
-            error!("Failed to get the module status. {}", e);
+            error!("{}", e);
             false
         });
         if is_module_on {
-            removed_member_message(
+            match removed_member_message(
                 &ctx,
                 guild_id,
                 user,
                 self.bot_data.config.bot.config.clone(),
             )
             .await
+            {
+                Ok(_) => {}
+                Err(e) => error!(e),
+            }
         }
     }
 
@@ -395,46 +402,31 @@ impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
             if command_interaction.data.kind == CommandType::ChatInput {
-                // Log the details of the command interaction
-                info!(
-                    "Received {} from {} in {} with option {:?}",
-                    command_interaction.data.name,
-                    command_interaction.user.name,
-                    command_interaction.guild_id.unwrap_or_default().to_string(),
-                    command_interaction.data.options
-                );
-                let message;
                 match dispatch_command(&ctx, &command_interaction, self).await {
                     Ok(()) => return,
                     Err(e) => {
-                        message = e.to_string();
+                        let message = e.to_string();
+                        error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await
                     }
                 }
-                error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await
             } else if command_interaction.data.kind == CommandType::User {
-                let message;
                 match dispatch_user_command(&ctx, &command_interaction, self).await {
                     Ok(()) => return,
                     Err(e) => {
-                        message = e.to_string();
+                        let message = e.to_string();
+                        error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await
                     }
                 }
-                error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await
             } else if command_interaction.data.kind == CommandType::Message {
                 trace!("{:?}", command_interaction)
             }
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
-            let anilist_cache = self.bot_data.anilist_cache.clone();
-            let vndb_cache = self.bot_data.vndb_cache.clone();
-            let apps = self.bot_data.apps.clone();
+
             // Dispatch the autocomplete interaction
             autocomplete_dispatching(
                 ctx,
                 autocomplete_interaction,
-                anilist_cache,
-                vndb_cache,
-                apps,
-                self.bot_data.config.bot.config.clone(),
+                self,
             )
             .await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {

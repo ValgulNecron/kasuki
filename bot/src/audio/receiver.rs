@@ -9,12 +9,12 @@ use serenity::async_trait;
 use songbird::input::Compose;
 use songbird::input::YoutubeDl;
 use songbird::tracks::Track;
+use songbird::TrackEvent;
 use songbird::{
     model::payload::{ClientDisconnect, Speaking},
     Event, EventContext,
 };
 use songbird::{Call, EventHandler};
-use songbird::TrackEvent;
 use tokio::sync::Mutex;
 use tracing::{debug, error};
 

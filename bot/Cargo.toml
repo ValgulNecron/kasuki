@@ -1,6 +1,6 @@
 [package]
 name = "kasuki"
-version = "2.10.6"
+version = "2.10.7"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
@@ -15,7 +15,7 @@ regex = "1.10.6"
 reqwest = { version = "0.12.5", features = ["json", "multipart", "blocking"] }
 serde = "1.0.208"
 serde_json = "1.0.125"
-serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "current", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils", "full", "unstable_discord_api", "voice", "cache", "http"] }
+serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "current", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "unstable_discord_api", "voice", "cache", "http"] }
 tokio = { version = "1.39.3", features = ["full"] }
 rand = "0.9.0-alpha.2"
 chrono = "0.4.38"
@@ -44,7 +44,6 @@ moka = { version = "0.12.8", features = ["future"] }
 toml = "0.8.19"
 num-bigint = "0.4.6"
 text-to-png = "0.2.0"
-thiserror = "1.0.63"
 songbird = { git = "https://github.com/ValgulNecron/songbird.git", branch = "next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
 symphonia = { features = ["aac", "mp3", "isomp4", "alac"], version = "0.5.4" }
 dashmap = "6.0.1"
@@ -64,8 +63,8 @@ catbox = "0.8.2"
 tempfile = "3.12.0"
 rusty_ytdl = { version = "0.7.4", features = ["rustls-tls" ] }
 either = "1.13.0"
-flame = "0.2.2"
-flamer = "0.5.0"
+anyhow = "1.0.86"
+thiserror = "1.0.63"
 
 [build-dependencies]
 tonic-build = "0.12.1"

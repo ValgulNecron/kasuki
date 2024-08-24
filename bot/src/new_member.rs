@@ -1,6 +1,7 @@
 use crate::config::BotConfigDetails;
 use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
 use crate::structure::message::new_member::load_localization_new_member;
+use anyhow::anyhow;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage};
 use serde::{Deserialize, Serialize};
@@ -14,160 +15,63 @@ use std::sync::Arc;
 use text_to_png::TextRenderer;
 use tracing::{error, trace};
 
-pub async fn new_member_message(ctx: &Context, member: &Member, db_config: BotConfigDetails) {
+pub async fn new_member_message(
+    ctx: &Context,
+    member: &Member,
+    db_config: BotConfigDetails,
+) -> Result<(), Box<dyn Error>> {
     let ctx = ctx.clone();
     let user_name = member.user.name.clone();
     let guild_id = member.guild_id;
-    let partial_guild = match guild_id.to_partial_guild(&ctx.http).await {
-        Ok(guild) => guild,
-        Err(e) => {
-            error!("Failed to get the guild. {}", e);
-            return;
-        }
-    };
+    let partial_guild = guild_id.to_partial_guild(&ctx.http).await?;
     let guild_settings = load_guild_settings(guild_id).await;
     trace!(?guild_settings);
 
-    let channel_id = if let Some(channel_id) = get_channel_id(&guild_settings, &partial_guild) {
-        channel_id
-    } else {
-        return;
-    };
+    let channel_id = get_channel_id(&guild_settings, &partial_guild)
+        .ok_or(anyhow!("Failed to get the channel id."))?;
     trace!(?channel_id);
 
-    let guild_image = if let Some(img) = get_server_image(guild_id.to_string(), &guild_settings) {
-        img
-    } else {
-        return;
-    };
+    let guild_image = get_server_image(guild_id.to_string(), &guild_settings)
+        .ok_or(anyhow!("Failed to get the server image."))?;
 
-    let mut guild_image = match image::load_from_memory(&guild_image) {
-        Ok(image) => image,
-        Err(e) => {
-            error!("Failed to load the image. {}", e);
-            return;
-        }
-    };
+    let mut guild_image = image::load_from_memory(&guild_image)?;
 
-    let avatar = member
-        .face()
-        .replace("?size=4096", "?size=64")
-        .replace("?size=2048", "?size=64")
-        .replace("?size=1024", "?size=64")
-        .replace("?size=512", "?size=64")
-        .replace("?size=256", "?size=64")
-        .replace("?size=128", "?size=64");
+    let avatar = change_to_x64_url(member.face());
     trace!(?avatar);
 
-    let client = reqwest::Client::new();
-    let res = match client.get(avatar).send().await {
-        Ok(res) => res,
-        Err(e) => {
-            error!("Failed to get the image. {}", e);
-            return;
-        }
-    };
-    let body = match res.bytes().await {
-        Ok(body) => body,
-        Err(e) => {
-            error!("Failed to get the image body. {}", e);
-            return;
-        }
-    };
-    let image = match image::load_from_memory(&body) {
-        Ok(image) => image,
-        Err(e) => {
-            error!("Failed to load the image. {}", e);
-            return;
-        }
-    };
+    let image = get_image(avatar).await?;
 
-    let guild_image_width = guild_image.width();
-    let guild_image_height = guild_image.height();
-    let image_width = image.width();
-    let image_height = image.height();
-    // overlay the image on the guild image at the center
-    let x = (guild_image_width - image_width) / 2;
-    let y = (guild_image_height - image_height) / 2;
-    match guild_image.copy_from(&image, x, y) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to overlay the image. {}", e);
-        }
-    }
+    let (mut guild_image, guild_image_width, guild_image_height, _, image_height) =
+        overlay_image(&mut guild_image, image).await?;
+
     let local = match load_localization_new_member(guild_id.to_string(), db_config).await {
         Ok(local) => local.welcome,
         Err(_) => "Welcome $user$".to_string(),
     };
     let text = local.replace("$user$", &user_name);
-    let renderer = TextRenderer::default();
-    let text_png = match renderer.render_text_to_png_data(text, 52, HEX_COLOR) {
-        Ok(text_png) => text_png,
-        Err(e) => {
-            error!("Failed to render the text to png. {}", e);
-            return;
-        }
-    };
-    let text_image = match image::load_from_memory(&text_png.data) {
-        Ok(image) => image,
-        Err(e) => {
-            error!("Failed to load the image. {}", e);
-            return;
-        }
-    };
-    let text_image_width = text_image.width();
-    let text_image_height = text_image.height();
-    let x = (guild_image_width - text_image_width) / 2;
-    // under the user pfp
-    let y = (guild_image_height - text_image_height) / 2 + image_height;
-    match guild_image.copy_from(&text_image, x, y) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to overlay the image. {}", e);
-        }
-    }
+    guild_image = add_text_under_pseudo(
+        &mut guild_image,
+        text,
+        guild_image_width,
+        guild_image_height,
+        image_height,
+    )
+    .await?;
+
     let join_data = member.joined_at.unwrap_or_default();
-    // timestamp in format mm/dd/yyyy hh:mm:ss
     let join_data = join_data.format("%m/%d/%Y %H:%M:%S").to_string();
-    let renderer = TextRenderer::default();
-    let text_png = match renderer.render_text_to_png_data(join_data, 52, HEX_COLOR) {
-        Ok(text_png) => text_png,
-        Err(e) => {
-            error!("Failed to render the text to png. {}", e);
-            return;
-        }
-    };
-    let text_image = match image::load_from_memory(&text_png.data) {
-        Ok(image) => image,
-        Err(e) => {
-            error!("Failed to load the image. {}", e);
-            return;
-        }
-    };
-    let text_image_width = text_image.width();
-    let text_image_height = text_image.height();
-    // bottom right corner
-    let x = guild_image_width - text_image_width - (guild_image_width / 100);
-    let y = guild_image_height - text_image_height;
-    match guild_image.copy_from(&text_image, x, y) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to overlay the image. {}", e);
-        }
-    }
-    let bytes = match encode_image(guild_image) {
-        Ok(bytes) => bytes,
-        Err(e) => {
-            error!("Failed to get the bytes. {}", e);
-            return;
-        }
-    };
-    match send_image(channel_id, bytes, &ctx.http).await {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Failed to send the image. {}", e);
-        }
-    };
+    guild_image = add_text_bottom_right(
+        &mut guild_image,
+        join_data,
+        guild_image_width,
+        guild_image_height,
+    )
+    .await?;
+
+    let bytes = encode_image(guild_image)?;
+    send_image(channel_id, bytes, &ctx.http).await?;
+
+    Ok(())
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -249,4 +153,76 @@ pub async fn send_image(
     let message = CreateMessage::new().add_file(attachment);
     channel_id.send_message(http, message).await?;
     Ok(())
+}
+
+pub fn change_to_x64_url(url: String) -> String {
+    url.replace("?size=4096", "?size=64")
+        .replace("?size=2048", "?size=64")
+        .replace("?size=1024", "?size=64")
+        .replace("?size=512", "?size=64")
+        .replace("?size=256", "?size=64")
+        .replace("?size=128", "?size=64")
+}
+
+pub async fn get_image(avatar: String) -> Result<DynamicImage, Box<dyn Error>> {
+    let client = reqwest::Client::new();
+    let res = client.get(avatar).send().await?;
+    let body = res.bytes().await?;
+    let image = image::load_from_memory(&body)?;
+    Ok(image)
+}
+
+pub async fn overlay_image(
+    guild_image: &mut DynamicImage,
+    image: DynamicImage,
+) -> Result<(DynamicImage, u32, u32, u32, u32), Box<dyn Error>> {
+    let guild_image_width = guild_image.width();
+    let guild_image_height = guild_image.height();
+    let image_width = image.width();
+    let image_height = image.height();
+    let x = (guild_image_width - image_width) / 2;
+    let y = (guild_image_height - image_height) / 2;
+    guild_image.copy_from(&image, x, y)?;
+    Ok((
+        guild_image.clone(),
+        guild_image_width,
+        guild_image_height,
+        image_width,
+        image_height,
+    ))
+}
+
+pub async fn add_text_under_pseudo(
+    guild_image: &mut DynamicImage,
+    text: String,
+    guild_image_width: u32,
+    guild_image_height: u32,
+    image_height: u32,
+) -> Result<DynamicImage, Box<dyn Error>> {
+    let renderer = TextRenderer::default();
+    let text_png = renderer.render_text_to_png_data(text, 52, HEX_COLOR)?;
+    let text_image = image::load_from_memory(&text_png.data)?;
+    let text_image_width = text_image.width();
+    let text_image_height = text_image.height();
+    let x = (guild_image_width - text_image_width) / 2;
+    let y = (guild_image_height - text_image_height) / 2 + image_height;
+    guild_image.copy_from(&text_image, x, y)?;
+    Ok(guild_image.clone())
+}
+
+pub async fn add_text_bottom_right(
+    guild_image: &mut DynamicImage,
+    text: String,
+    guild_image_width: u32,
+    guild_image_height: u32,
+) -> Result<DynamicImage, Box<dyn Error>> {
+    let renderer = TextRenderer::default();
+    let text_png = renderer.render_text_to_png_data(text, 52, HEX_COLOR)?;
+    let text_image = image::load_from_memory(&text_png.data)?;
+    let text_image_width = text_image.width();
+    let text_image_height = text_image.height();
+    let x = (guild_image_width - text_image_width) + 20;
+    let y = (guild_image_height - text_image_height) + 20;
+    guild_image.copy_from(&text_image, x, y)?;
+    Ok(guild_image.clone())
 }
