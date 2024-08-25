@@ -54,7 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ENV PATH="/kasuki/.venv/bin:$PATH"
 RUN python3 -m venv .venv
-RUN ./.venv/bin/pip3 install youtube_dl
+RUN ./.venv/bin/pip3 install yt-dlp
 
 COPY json /kasuki/json
 COPY server_image /kasuki/server_image
