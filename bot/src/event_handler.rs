@@ -401,25 +401,25 @@ impl EventHandler for Handler {
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command_interaction) = interaction.clone() {
+            let mut message = String::from("");
             if command_interaction.data.kind == CommandType::ChatInput {
                 match dispatch_command(&ctx, &command_interaction, self).await {
                     Ok(()) => return,
                     Err(e) => {
-                        let message = e.to_string();
-                        error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await
+                        message = e.to_string();
                     }
                 }
             } else if command_interaction.data.kind == CommandType::User {
                 match dispatch_user_command(&ctx, &command_interaction, self).await {
                     Ok(()) => return,
                     Err(e) => {
-                        let message = e.to_string();
-                        error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await
+                        message = e.to_string();
                     }
                 }
             } else if command_interaction.data.kind == CommandType::Message {
                 trace!("{:?}", command_interaction)
             }
+            error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await;
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
 
             // Dispatch the autocomplete interaction

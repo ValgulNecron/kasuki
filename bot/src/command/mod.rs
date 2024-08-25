@@ -18,3 +18,4 @@ mod message_command_dispatch;
 pub mod server;
 pub mod steam;
 pub mod user_command_dispatch;
+pub mod vn;
