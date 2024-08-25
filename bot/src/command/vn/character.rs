@@ -15,6 +15,13 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::character::get_character;
 use crate::structure::message::vn::character::load_localization_character;
 
+pub struct VnCharacterCommand {
+    pub ctx: Context,
+    pub command_interaction: CommandInteraction,
+    pub config: Arc<Config>,
+    pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
+}
+
 pub async fn run(
     ctx: &Context,
     command_interaction: &CommandInteraction,

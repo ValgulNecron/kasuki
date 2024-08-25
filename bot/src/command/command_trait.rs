@@ -2,9 +2,10 @@ use crate::event_handler::Handler;
 use serenity::all::{
     CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId, SkuKind,
 };
-use serenity::builder::{CreateButton, CreateEmbed, CreateInteractionResponse};
+use serenity::builder::{CreateButton, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseFollowup};
 use serenity::client::Context;
 use std::error::Error;
+use rusty_ytdl::Thumbnail;
 
 pub trait Command {
     fn get_ctx(&self) -> &Context;
@@ -25,6 +26,10 @@ pub trait UserCommand {
 
 pub trait AutoComplete {
     async fn autocomplete(&self) -> Result<(), Box<dyn Error>>;
+}
+
+pub trait Embed {
+    async fn run_embed(&self, fields: Vec<(String, String, bool)>, image: Option<String>, title: String, description: String, thumbnail: Option<String>, url: Option<String>, command_type: EmbedType) -> Result<(), Box<dyn Error>>;
 }
 
 pub trait PremiumCommand {
@@ -121,4 +126,51 @@ pub async fn send_premium_response(
         .create_response(&ctx.http, builder)
         .await?;
     Ok(())
+}
+
+impl<T: Command> Embed for T
+where
+    T: Fn() -> Result<(), Box<dyn Error>>,
+{
+    async fn run_embed(&self, fields: Vec<(String, String, bool)>, image: Option<String>, title: String, description: String, thumbnail: Option<String>, url: Option<String>,
+    command_type: EmbedType) -> Result<(), Box<dyn Error>> {
+        let ctx = self.get_ctx();
+        let command_interaction = self.get_command_interaction();
+        let mut builder_embed = CreateEmbed::new();
+        if let Some(image) = image {
+            builder_embed = builder_embed.image(image);
+        }
+        builder_embed = builder_embed.title(title);
+        builder_embed = builder_embed.description(description);
+        if let Some(thumbnail) = thumbnail {
+            builder_embed = builder_embed.thumbnail(thumbnail);
+        }
+        if let Some(url) = url {
+            builder_embed = builder_embed.url(url);
+        }
+        builder_embed = builder_embed.fields(fields);
+
+        match command_type {
+            EmbedType::First => {
+                let builder = CreateInteractionResponseMessage::new().embed(builder_embed);
+                let builder = CreateInteractionResponse::Message(builder);
+                command_interaction
+                    .create_response(&ctx.http, builder)
+                    .await?;
+            }
+            EmbedType::Followup => {
+                let builder = CreateInteractionResponseFollowup::new().embed(builder_embed);
+                command_interaction
+                    .create_followup(&ctx.http, builder)
+                    .await?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+pub enum EmbedType {
+    First,
+    Followup
 }

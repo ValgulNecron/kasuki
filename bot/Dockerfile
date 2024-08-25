@@ -60,4 +60,6 @@ COPY json /kasuki/json
 COPY server_image /kasuki/server_image
 COPY --from=builder-bot /kasuki/target/release/kasuki /kasuki/
 COPY --from=builder-migration /migration/target/release/migration /kasuki/
+
+WORKDIR /kasuki
 CMD ["./kasuki"]

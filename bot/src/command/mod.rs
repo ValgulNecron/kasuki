@@ -1,7 +1,6 @@
 pub mod autocomplete;
 pub mod command_trait;
 pub mod guess_kind;
-pub mod run;
 pub mod user;
 
 pub mod admin;
