@@ -18,8 +18,9 @@ COPY schemas ./schemas
 COPY Cargo.toml ./Cargo.toml
 
 RUN cargo build --release
-
 RUN rm src/*.rs
+RUN rm target/release/kasuki*
+
 COPY src ./src
 
 RUN cargo build --release
@@ -33,8 +34,9 @@ RUN cargo new --bin migration
 COPY migration_src/Cargo.toml ./Cargo.toml
 
 RUN cargo build --release
-
 RUN rm src/*.rs
+RUN rm target/release/migration*
+
 COPY migration_src/src ./src
 
 RUN cargo build --release
