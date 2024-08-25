@@ -191,7 +191,6 @@ async fn main() {
         }
         info!("Received bot shutdown signal. Shutting down bot.");
         ShardManager::shutdown_all(&shutdown).await;
-        flame::dump_html(File::create("flamegraph.html").unwrap()).unwrap();
         std::process::exit(0);
     }
     #[cfg(windows)]
