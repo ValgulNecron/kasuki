@@ -9,9 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 USER root
-WORKDIR /kasuki
 
 RUN cargo new --bin kasuki
+WORKDIR /kasuki
+
 COPY build.rs ./build.rs
 COPY proto ./proto
 COPY schemas ./schemas
@@ -28,9 +29,10 @@ RUN cargo build --release
 FROM rust:slim-bookworm AS builder-migration
 
 USER root
-WORKDIR /migration
 
 RUN cargo new --bin migration
+WORKDIR /migration
+
 COPY migration_src/Cargo.toml ./Cargo.toml
 
 RUN cargo build --release
