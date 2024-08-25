@@ -44,6 +44,7 @@ COPY migration_src/src ./src
 RUN cargo build --release
 
 FROM debian:trixie-slim AS bot
+WORKDIR /kasuki
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
@@ -55,11 +56,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV PATH="/kasuki/.venv/bin:$PATH"
 RUN python3 -m venv .venv
 RUN ./.venv/bin/pip3 install yt-dlp
+ENV PATH="/kasuki/.venv/bin:$PATH"
 
 COPY json /kasuki/json
 COPY server_image /kasuki/server_image
 COPY --from=builder-bot /kasuki/target/release/kasuki /kasuki/
 COPY --from=builder-migration /migration/target/release/migration /kasuki/
 
-WORKDIR /kasuki
 CMD ["./kasuki"]
