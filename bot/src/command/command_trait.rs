@@ -5,7 +5,6 @@ use serenity::all::{
 use serenity::builder::{CreateButton, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseFollowup};
 use serenity::client::Context;
 use std::error::Error;
-use rusty_ytdl::Thumbnail;
 
 pub trait Command {
     fn get_ctx(&self) -> &Context;

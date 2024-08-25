@@ -13,7 +13,7 @@ use std::fs;
 use std::io::Cursor;
 use std::sync::Arc;
 use text_to_png::TextRenderer;
-use tracing::{error, trace};
+use tracing::trace;
 
 pub async fn new_member_message(
     ctx: &Context,

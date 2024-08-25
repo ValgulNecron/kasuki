@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::fs::File;
 use std::process;
 use std::sync::Arc;
 use std::time::Duration;

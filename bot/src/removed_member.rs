@@ -1,5 +1,4 @@
 use crate::config::BotConfigDetails;
-use crate::constant::HEX_COLOR;
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
 use crate::custom_serenity_impl::{InternalAction, InternalMemberAction};
 use crate::new_member::{
@@ -8,12 +7,10 @@ use crate::new_member::{
 };
 use crate::structure::message::removed_member::load_localization_removed_member;
 use anyhow::anyhow;
-use image::GenericImage;
 use serenity::all::{GuildId, User};
 use serenity::client::Context;
 use std::error::Error;
-use text_to_png::TextRenderer;
-use tracing::{error, trace};
+use tracing::trace;
 
 pub async fn removed_member_message(
     ctx: &Context,
