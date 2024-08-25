@@ -1,9 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use crate::command::command_trait::{
-    get_user_sub, send_premium_response, Command, PremiumCommand, SlashCommand,
-};
+use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
 use crate::constant::{DEFAULT_STRING, MAX_FREE_AI_IMAGES, PAID_IMAGE_MULTIPLIER};
 use crate::event_handler::Handler;
@@ -40,7 +38,7 @@ impl Command for QuestionCommand<'_> {
 impl SlashCommand for QuestionCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         if self
-            .check_hourly_limit(self.command_name.clone(), self.handler)
+            .check_hourly_limit(self.command_name.clone(), self.handler, PremiumCommandType::AIQuestion)
             .await?
         {
             return Err(Box::new(error_dispatch::Error::Option(String::from(
@@ -48,40 +46,6 @@ impl SlashCommand for QuestionCommand<'_> {
             ))));
         }
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
-    }
-}
-
-impl PremiumCommand for QuestionCommand<'_> {
-    async fn check_hourly_limit(
-        &self,
-        command_name: impl Into<String> + Clone,
-        handler: &Handler,
-    ) -> Result<bool, Box<dyn Error>> {
-        if !handler.bot_data.config.bot.config.respect_premium {
-            return Ok(false);
-        }
-
-        let usage = handler
-            .get_hourly_usage(
-                command_name.into(),
-                self.command_interaction.user.id.to_string(),
-            )
-            .await;
-
-        let (user_sub, available_sub) = get_user_sub(&self.ctx, &self.command_interaction).await?;
-        if available_sub.is_none() {
-            return Ok(false);
-        }
-        if usage <= MAX_FREE_AI_IMAGES as u128 && user_sub.is_none() {
-            return Ok(false);
-        }
-        if usage <= (MAX_FREE_AI_IMAGES as f64 * PAID_IMAGE_MULTIPLIER) as u128
-            && user_sub.is_some()
-        {
-            return Ok(false);
-        }
-        send_premium_response(&self.ctx, &self.command_interaction, available_sub).await?;
-        Ok(true)
     }
 }
 

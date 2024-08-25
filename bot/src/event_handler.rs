@@ -421,14 +421,8 @@ impl EventHandler for Handler {
             }
             error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await;
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
-
             // Dispatch the autocomplete interaction
-            autocomplete_dispatching(
-                ctx,
-                autocomplete_interaction,
-                self,
-            )
-            .await
+            autocomplete_dispatching(ctx, autocomplete_interaction, self).await
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
             // Dispatch the component interaction
             if let Err(e) = components_dispatching(

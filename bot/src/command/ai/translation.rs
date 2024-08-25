@@ -13,9 +13,7 @@ use tracing::trace;
 use uuid::Uuid;
 
 use crate::command::ai::question::question_api_url;
-use crate::command::command_trait::{
-    get_user_sub, send_premium_response, Command, PremiumCommand, SlashCommand,
-};
+use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
 use crate::constant::{DEFAULT_STRING, MAX_FREE_AI_TRANSLATIONS, PAID_TRANSLATION_MULTIPLIER};
 use crate::event_handler::Handler;
@@ -47,7 +45,7 @@ impl Command for TranslationCommand<'_> {
 impl SlashCommand for TranslationCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         if self
-            .check_hourly_limit(self.command_name.clone(), self.handler)
+            .check_hourly_limit(self.command_name.clone(), self.handler, PremiumCommandType::AITranslation)
             .await?
         {
             return Err(Box::new(error_dispatch::Error::Option(String::from(
@@ -55,40 +53,6 @@ impl SlashCommand for TranslationCommand<'_> {
             ))));
         }
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
-    }
-}
-
-impl PremiumCommand for TranslationCommand<'_> {
-    async fn check_hourly_limit(
-        &self,
-        command_name: impl Into<String> + Clone,
-        handler: &Handler,
-    ) -> Result<bool, Box<dyn Error>> {
-        if !handler.bot_data.config.bot.config.respect_premium {
-            return Ok(false);
-        }
-
-        let usage = handler
-            .get_hourly_usage(
-                command_name.into(),
-                self.command_interaction.user.id.to_string(),
-            )
-            .await;
-
-        let (user_sub, available_sub) = get_user_sub(&self.ctx, &self.command_interaction).await?;
-        if available_sub.is_none() {
-            return Ok(false);
-        }
-        if usage <= MAX_FREE_AI_TRANSLATIONS as u128 && user_sub.is_none() {
-            return Ok(false);
-        }
-        if usage <= (MAX_FREE_AI_TRANSLATIONS as f64 * PAID_TRANSLATION_MULTIPLIER) as u128
-            && user_sub.is_some()
-        {
-            return Ok(false);
-        }
-        send_premium_response(&self.ctx, &self.command_interaction, available_sub).await?;
-        Ok(true)
     }
 }
 async fn send_embed(

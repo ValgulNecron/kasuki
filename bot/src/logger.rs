@@ -8,7 +8,6 @@ use tracing_subscriber::layer::SubscriberExt;
 
 use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, OTHER_CRATE_LEVEL};
 
-
 pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), Box<dyn Error>> {
     let kasuki_filter = match log {
         "warn" => "kasuki=warn",

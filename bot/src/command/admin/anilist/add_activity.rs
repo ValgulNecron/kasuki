@@ -2,10 +2,10 @@ use std::error::Error;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-use crate::command::command_trait::{Command, SlashCommand};
+use crate::command::command_trait::Embed;
+use crate::command::command_trait::{Command, EmbedType, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
 use crate::get_url;
-use crate::helper::create_default_embed::{get_anilist_anime_embed, get_default_embed};
 use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -14,7 +14,7 @@ use crate::structure::database::activity_data;
 use crate::structure::database::activity_data::Column;
 use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::admin::anilist::add_activity::{
-    load_localization_add_activity, AddActivityLocalised,
+    load_localization_add_activity
 };
 use crate::structure::run::anilist::minimal_anime::{
     Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
@@ -28,6 +28,7 @@ use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
 use moka::future::Cache;
+use prost::bytes::Bytes;
 use reqwest::get;
 use sea_orm::ActiveValue::Set;
 use sea_orm::ColumnTrait;
@@ -48,14 +49,13 @@ pub struct AddActivityCommand {
     pub config: Arc<Config>,
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
-
 impl Command for AddActivityCommand {
-    fn get_command_interaction(&self) -> &CommandInteraction {
-        &self.command_interaction
-    }
-
     fn get_ctx(&self) -> &Context {
         &self.ctx
+    }
+
+    fn get_command_interaction(&self) -> &CommandInteraction {
+        &self.command_interaction
     }
 }
 
@@ -63,186 +63,154 @@ impl SlashCommand for AddActivityCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         let anilist_cache = self.anilist_cache.clone();
         let command_interaction = self.command_interaction.clone();
+        let ctx = self.ctx.clone();
+        let config = self.config.clone();
+
         let map = get_option_map_string_subcommand_group(&command_interaction);
         let anime = map
             .get(&String::from("anime_name"))
             .cloned()
             .unwrap_or(String::new());
-        let anime = get_minimal_anime_media(anime.to_string(), anilist_cache).await?;
-        send_embed(&self.ctx, &command_interaction, self.config.clone(), anime).await
-    }
-}
+        let media = get_minimal_anime_media(anime.to_string(), anilist_cache).await?;
 
-async fn send_embed(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    config: Arc<Config>,
-    media: Media,
-) -> Result<(), Box<dyn Error>> {
-    let guild_id = match command_interaction.guild_id {
-        Some(id) => id.to_string(),
-        None => String::from("0"),
-    };
+        let guild_id = match command_interaction.guild_id {
+            Some(id) => id.to_string(),
+            None => String::from("1"),
+        };
+        trace!(?guild_id);
 
-    let builder_message = Defer(CreateInteractionResponseMessage::new());
+        let add_activity_localised =
+            load_localization_add_activity(guild_id.clone(), config.bot.config.clone()).await?;
 
-    command_interaction
-        .create_response(&ctx.http, builder_message)
-        .await?;
-    let add_activity_localised =
-        load_localization_add_activity(guild_id.clone(), config.bot.config.clone()).await?;
+        let anime_id = media.id;
 
-    let anime_id = media.id;
+        let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-    let exist =
-        check_if_activity_exist(anime_id, guild_id.clone(), config.bot.config.clone()).await;
-    if exist {
-        already_exist(&add_activity_localised, media, command_interaction, ctx).await
-    } else {
-        success(
-            &add_activity_localised,
-            media,
-            command_interaction,
-            ctx,
-            config,
-        )
-        .await
-    }
-}
+        let exist =
+            check_if_activity_exist(anime_id, guild_id.clone(), config.bot.config.clone()).await;
 
-async fn already_exist(
-    add_activity_localised: &AddActivityLocalised,
-    media: Media,
-    command_interaction: &CommandInteraction,
-    ctx: &Context,
-) -> Result<(), Box<dyn Error>> {
-    let title = media
-        .title
-        .ok_or(error_dispatch::Error::Option("No title".to_string()))?;
-    let anime_name = get_name(title);
-    let builder_embed = get_default_embed(None)
-        .title(&add_activity_localised.fail)
-        .url(format!("https://anilist.co/anime/{}", media.id))
-        .description(
-            add_activity_localised
-                .fail_desc
-                .replace("$anime$", anime_name.as_str()),
-        );
+        command_interaction
+            .create_response(&ctx.http, builder_message)
+            .await?;
+        let title = media
+            .title
+            .ok_or(error_dispatch::Error::Option("No title".to_string()))?;
+        let anime_name = get_name(title);
+        if exist {
+            let url = format!("https://anilist.co/anime/{}", media.id);
+            self.send_embed(
+                Vec::new(),
+                None,
+                add_activity_localised.fail.clone(),
+                add_activity_localised
+                    .fail_desc
+                    .replace("$anime$", anime_name.as_str()),
+                None,
+                Some(url),
+                EmbedType::Followup,
+                None,
+            )
+                .await?;
+        } else {
+            let channel_id = command_interaction.channel_id;
 
-    let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
+            let delay = map
+                .get(&String::from("delay"))
+                .unwrap_or(&String::from("0"))
+                .parse()
+                .unwrap_or(0);
 
-    command_interaction
-        .create_followup(&ctx.http, builder_message)
-        .await?;
+            let trimmed_anime_name = if anime_name.len() >= 50 {
+                trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
+            } else {
+                anime_name.clone()
+            };
 
-    Ok(())
-}
+            let bytes = get(media.cover_image.ok_or(
+                error_dispatch::Error::Option("No cover image".to_string()),
+            )?.extra_large.
+                unwrap_or(
+                    "https://imgs.search.brave.com/ CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+                        .to_string()
+                )
+            ).await?.bytes().await?;
 
-async fn success(
-    add_activity_localised: &AddActivityLocalised,
-    media: Media,
-    command_interaction: &CommandInteraction,
-    ctx: &Context,
-    config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
-    let config = config.clone();
-    let channel_id = command_interaction.channel_id;
-    let title = media
-        .title
-        .ok_or(error_dispatch::Error::Option("No title".to_string()))?;
-    let anime_name = get_name(title);
-    let map = get_option_map_string_subcommand_group(command_interaction);
-    let delay = map
-        .get(&String::from("delay"))
-        .unwrap_or(&String::from("0"))
-        .parse()
-        .unwrap_or(0);
-    let trimed_anime_name = if anime_name.len() >= 50 {
-        trim_webhook(anime_name.clone(), 50 - anime_name.len() as i32)
-    } else {
-        anime_name.clone()
-    };
+            let buf = resize_image(&bytes).await?;
+            let base64 = STANDARD.encode(buf.into_inner());
+            let image = format!("data:image/jpeg;base64,{}", base64);
 
-    let guild_id = command_interaction
-        .guild_id
-        .unwrap_or(GuildId::from(0))
-        .to_string();
+            let next_airing = match media.next_airing_episode.clone() {
+                Some(na) => na,
+                None => {
+                    return Err(Box::new(error_dispatch::Error::Option(format!(
+                        "No next episode found for {} on anilist",
+                        anime_name
+                    ))));
+                }
+            };
+            let webhook = get_webhook(
+                &ctx,
+                channel_id,
+                image.clone(),
+                base64.clone(),
+                trimmed_anime_name.clone(),
+            )
+                .await?;
+            let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+            let timestamp = next_airing.airing_at as i64;
 
-    let bytes = get(media.cover_image.ok_or(
-        error_dispatch::Error::Option("No cover image".to_string()),
-    )?.extra_large.
-        unwrap_or(
-            "https://imgs.search.brave.com/ CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
-                .to_string()
-        )
-    ).await?.bytes().await?;
-    let mut img = image::load(Cursor::new(&bytes), guess_format(&bytes)?)?;
-    let (width, height) = img.dimensions();
-    let square_size = width.min(height);
-    let crop_x = (width - square_size) / 2;
-    let crop_y = (height - square_size) / 2;
+            let chrono = chrono::DateTime::<Utc>::from_timestamp(timestamp, 0)
+                .unwrap_or_default()
+                .naive_utc();
+            ActivityData::insert(activity_data::ActiveModel {
+                anime_id: Set(media.id),
+                timestamp: Set(chrono),
+                server_id: Set(guild_id),
+                webhook: Set(webhook),
+                episode: Set(next_airing.episode),
+                name: Set(trimmed_anime_name),
+                delay: Set(delay),
+                image: Set(image),
+                ..Default::default()
+            })
+                .exec(&connection)
+                .await?;
+            let url = format!("https://anilist.co/anime/{}", media.id);
 
-    let img = img
-        .crop(crop_x, crop_y, square_size, square_size)
-        .resize_exact(128, 128, FilterType::Nearest);
-    let mut buf = Cursor::new(Vec::new());
-    img.write_to(&mut buf, ImageFormat::Jpeg)
-        .expect("Failed to encode image");
-    let base64 = STANDARD.encode(buf.into_inner());
-    let image = format!("data:image/jpeg;base64,{}", base64);
-
-    let next_airing = match media.next_airing_episode.clone() {
-        Some(na) => na,
-        None => {
-            return Err(Box::new(error_dispatch::Error::Option(format!(
-                "No next episode found for {} on anilist",
-                anime_name
-            ))));
+            self.send_embed(
+                Vec::new(),
+                None,
+                add_activity_localised.success.clone(),
+                add_activity_localised
+                    .success_desc
+                    .replace("$anime$", anime_name.as_str()),
+                None,
+                Some(url),
+                EmbedType::Followup,
+                None,
+            )
+                .await?;
         }
-    };
 
-    let webhook = get_webhook(
-        ctx,
-        channel_id,
-        image.clone(),
-        base64.clone(),
-        trimed_anime_name.clone(),
-    )
-    .await?;
+        Ok(())
+    }
+}
 
-    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
-    let timestamp = next_airing.airing_at as i64;
-    let chrono = chrono::DateTime::<Utc>::from_timestamp(timestamp, 0)
-        .unwrap_or_default()
-        .naive_utc();
-    ActivityData::insert(activity_data::ActiveModel {
-        anime_id: Set(media.id),
-        timestamp: Set(chrono),
-        server_id: Set(guild_id),
-        webhook: Set(webhook),
-        episode: Set(next_airing.episode),
-        name: Set(trimed_anime_name),
-        delay: Set(delay),
-        image: Set(image),
-        ..Default::default()
-    })
-    .exec(&connection)
-    .await?;
+async fn resize_image(image_bytes: &Bytes) -> Result<Cursor<Vec<u8>>, Box<dyn Error>> {
+    let image = image::load(Cursor::new(image_bytes), guess_format(image_bytes)?)?;
+    let (image_width, image_height) = image.dimensions();
+    let square_size = image_width.min(image_height);
+    let crop_x = (image_width - square_size) / 2;
+    let crop_y = (image_height - square_size) / 2;
 
-    let builder_embed = get_anilist_anime_embed(None, media.id)
-        .title(&add_activity_localised.success)
-        .description(
-            add_activity_localised
-                .success_desc
-                .replace("$anime$", anime_name.as_str()),
-        );
+    let resized_image = image
+        .crop_imm(crop_x, crop_y, square_size, square_size)
+        .resize_exact(128, 128, FilterType::Nearest);
 
-    let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
+    let mut buffer = Cursor::new(Vec::new());
+    resized_image.write_to(&mut buffer, ImageFormat::Jpeg)?;
 
-    command_interaction
-        .create_followup(&ctx.http, builder_message)
-        .await?;
-    Ok(())
+    Ok(buffer)
 }
 
 async fn check_if_activity_exist(
@@ -273,18 +241,6 @@ async fn check_if_activity_exist(
     true
 }
 
-/// This function gets the name of an anime from a `Title` struct.
-///
-/// It first checks if the English and Romaji titles exist. If they do, it concatenates them with a " / " separator.
-/// If only one of them exists, it returns that one. If neither exist, it returns an empty string.
-///
-/// # Arguments
-///
-/// * `title` - A `Title` struct containing the English and Romaji titles of the anime.
-///
-/// # Returns
-///
-/// A string representing the name of the anime.
 pub fn get_name(title: MediaTitle) -> String {
     let en = title.english.clone();
     let rj = title.romaji.clone();
@@ -297,22 +253,6 @@ pub fn get_name(title: MediaTitle) -> String {
     }
 }
 
-/// This asynchronous function gets or creates a webhook for a given channel.
-///
-/// It first checks if a webhook already exists for the channel. If it does, it returns the URL of the existing webhook.
-/// If a webhook does not exist, it creates a new one with the given image and name, and returns its URL.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this function is being called.
-/// * `channel_id` - The ID of the channel for which to get or create the webhook.
-/// * `image` - The image to use for the webhook.
-/// * `base64` - The base64 representation of the image.
-/// * `anime_name` - The name to use for the webhook.
-///
-/// # Returns
-///
-/// A `Result` containing either the URL of the webhook if it is successfully retrieved or created, or an `AppError` if an error occurs.
 async fn get_webhook(
     ctx: &Context,
     channel_id: ChannelId,

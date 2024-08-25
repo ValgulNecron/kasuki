@@ -21,6 +21,7 @@ COPY Cargo.toml ./Cargo.toml
 RUN cargo build --release
 RUN rm src/*.rs
 RUN rm target/release/kasuki*
+RUN rm -rf target/release/build/kasuki*
 
 COPY src ./src
 
@@ -40,7 +41,7 @@ RUN rm src/*.rs
 RUN rm target/release/migration*
 
 COPY migration_src/src ./src
-
+s
 RUN cargo build --release
 
 FROM debian:trixie-slim AS bot

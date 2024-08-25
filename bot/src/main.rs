@@ -1,7 +1,3 @@
-use std::error::Error;
-use std::process;
-use std::sync::Arc;
-use std::time::Duration;
 use crate::config::{BotConfigDetails, Config};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::event_handler::{BotData, Handler, RootUsage};
@@ -12,6 +8,10 @@ use serenity::all::{GatewayIntents, ShardManager};
 use serenity::Client;
 use songbird::driver::DecodeMode;
 use songbird::SerenityInit;
+use std::error::Error;
+use std::process;
+use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 mod api;
