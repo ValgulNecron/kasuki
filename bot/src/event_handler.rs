@@ -17,7 +17,9 @@ use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
 use crate::background_task::background_launcher::thread_management_launcher;
-use crate::background_task::server_image::calculate_user_color::{color_management, get_specific_user_color};
+use crate::background_task::server_image::calculate_user_color::{
+    color_management, get_specific_user_color,
+};
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command::command_dispatch::{check_if_module_is_on, dispatch_command};
@@ -315,7 +317,8 @@ impl EventHandler for Handler {
             user_blacklist_server_image,
             user,
             self.bot_data.config.bot.config.clone(),
-        ).await;
+        )
+        .await;
 
         let connection = match sea_orm::Database::connect(get_url(
             self.bot_data.config.bot.config.clone(),

@@ -9,15 +9,19 @@ use rusty_ytdl::{
 };
 use rusty_ytdl::{VideoError, VideoQuality, VideoSearchOptions};
 use serenity::async_trait;
-use songbird::input::core::io::MediaSource;
 use songbird::input::{AudioStream, AudioStreamError, AuxMetadata, Compose, Input};
-use std::io;
-use std::io::{Read, Seek, SeekFrom};
+use std::io::{Cursor, Read, Seek, SeekFrom};
 use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
+use std::{fs, io};
+use symphonia::core::io::{
+    MediaSource, MediaSourceStream, MediaSourceStreamOptions, ReadOnlySource,
+};
 use tokio::runtime::Runtime;
 use tokio::sync::RwLock;
+use tracing::trace;
+use uuid::Uuid;
 
 #[derive(Clone, Debug)]
 pub enum UrlType {
@@ -98,8 +102,7 @@ impl Compose for RustyYoutubeSearch {
         }
 
         let url = self.url.clone().unwrap_or_default();
-
-        Video::new_with_options(
+        let video = Video::new_with_options(
             url.clone(),
             VideoOptions {
                 quality: VideoQuality::HighestAudio,
@@ -112,19 +115,35 @@ impl Compose for RustyYoutubeSearch {
             AudioStreamError::Fail(
                 error_dispatch::Error::Audio(format!("Failed to create stream: {e:?}")).into(),
             )
-        })?
-        .stream()
-        .await
-        .map(|input| {
-            // let stream = AsyncAdapterStream::new(input, 64 * 1024);
-            let stream = Box::into_pin(input).into_media_source();
+        })?;
 
-            AudioStream {
-                input: Box::new(stream) as Box<dyn MediaSource>,
-                hint: None,
-            }
+        let tempdir = tempfile::tempdir().map_err(|e| {
+            AudioStreamError::Fail(
+                error_dispatch::Error::Audio(format!("Failed to create tempdir: {e:?}")).into(),
+            )
+        })?;
+        trace!("Downloaded video to {:?}", tempdir.path());
+        let uuid = Uuid::new_v4();
+        let path = tempdir.path().join(format!("{}.mp4", uuid));
+        video.download(&path).await.map_err(|e| {
+            AudioStreamError::Fail(
+                error_dispatch::Error::Audio(format!("Failed to download video: {e:?}")).into(),
+            )
+        })?;
+
+        let file = fs::File::open(&path).map_err(|e| {
+            AudioStreamError::Fail(
+                error_dispatch::Error::Audio(format!("Failed to open file: {e:?}")).into(),
+            )
+        })?;
+
+        let ros = ReadOnlySource::new(file);
+        let source = MediaSourceStream::new(Box::new(ros), MediaSourceStreamOptions::default());
+
+        Ok(AudioStream {
+            input: Box::new(source),
+            hint: None,
         })
-        .map_err(|e| AudioStreamError::Fail(e.into()))
     }
 
     fn should_create_async(&self) -> bool {
@@ -187,124 +206,5 @@ impl Compose for RustyYoutubeSearch {
 
         self.metadata = Some(metadata.clone());
         Ok(metadata)
-    }
-}
-
-pub trait StreamExt {
-    fn into_media_source(self: Pin<Box<Self>>) -> MediaSourceStream;
-}
-
-impl StreamExt for dyn Stream + Sync + Send {
-    fn into_media_source(self: Pin<Box<Self>>) -> MediaSourceStream
-    where
-        Self: Sync + Send + 'static,
-    {
-        MediaSourceStream {
-            stream: self,
-            buffer: Arc::new(RwLock::new(BytesMut::new())),
-            position: Arc::new(RwLock::new(0)),
-        }
-    }
-}
-
-pub struct MediaSourceStream {
-    stream: Pin<Box<dyn Stream + Sync + Send>>,
-    buffer: Arc<RwLock<BytesMut>>,
-    position: Arc<RwLock<u64>>,
-}
-
-impl MediaSourceStream {
-    async fn read_async(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let opt_bytes = if self.buffer.read().await.is_empty() {
-            either::Left(
-                self.stream
-                    .chunk()
-                    .await
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?,
-            )
-        } else {
-            either::Right(())
-        };
-
-        let chunk = match opt_bytes {
-            either::Left(Some(chunk)) => Some(chunk),
-            either::Left(None) => return Ok(0), // End of stream
-            either::Right(_) => None,
-        };
-
-        let mut buffer = self.buffer.write().await;
-        let mut position = self.position.write().await;
-
-        if let Some(chunk) = chunk {
-            buffer.extend_from_slice(&chunk);
-        }
-
-        let len = std::cmp::min(buf.len(), buffer.len());
-        buf[..len].copy_from_slice(&buffer[..len]);
-        buffer.advance(len);
-        *position += len as u64;
-
-        Ok(len)
-    }
-}
-
-impl Read for MediaSourceStream {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let rt = Runtime::new()?; // Create a new Tokio runtime
-        let fut = self.read_async(buf); // Call your async function
-
-        // Block on the future to get the result
-        rt.block_on(fut)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
-    }
-}
-
-impl Seek for MediaSourceStream {
-    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
-        match pos {
-            SeekFrom::End(offset) => {
-                let len = self.byte_len().ok_or(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "Invalid seek position",
-                ))?;
-                let new_position = len as i64 + offset;
-                if new_position < 0 {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        "Invalid seek position",
-                    ));
-                }
-                let mut position = self.position.blocking_write();
-                *position = new_position as u64;
-                Ok(*position)
-            }
-            SeekFrom::Start(offset) => {
-                let mut position = self.position.blocking_write();
-                *position = offset;
-                Ok(*position)
-            }
-            SeekFrom::Current(offset) => {
-                let mut position = self.position.blocking_write();
-                let new_position = (*position as i64) + offset;
-                if new_position < 0 {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        "Invalid seek position",
-                    ));
-                }
-                *position = new_position as u64;
-                Ok(*position)
-            }
-        }
-    }
-}
-
-impl MediaSource for MediaSourceStream {
-    fn is_seekable(&self) -> bool {
-        true
-    }
-
-    fn byte_len(&self) -> Option<u64> {
-        Some(self.stream.content_length() as u64)
     }
 }

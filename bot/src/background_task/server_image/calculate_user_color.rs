@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use crate::config::BotConfigDetails;
 use crate::get_url;
+use crate::new_member::change_to_x64_url;
 use crate::structure::database::prelude::{UserColor, UserData};
 use crate::structure::database::user_color::{ActiveModel, Column, Model};
 use base64::engine::general_purpose;
@@ -26,7 +27,6 @@ use serenity::all::{Context, GuildId, Member, User, UserId};
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, trace};
-use crate::new_member::change_to_x64_url;
 
 pub async fn calculate_users_color(
     members: Vec<Member>,
@@ -43,9 +43,7 @@ pub async fn calculate_users_color(
             );
             continue;
         }
-        let pfp_url = change_to_x64_url( member
-            .user
-            .face());
+        let pfp_url = change_to_x64_url(member.user.face());
 
         let id = member.user.id.to_string();
         let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
@@ -110,9 +108,7 @@ pub async fn return_average_user_color(
 ) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
     let mut average_colors = Vec::new();
     for member in members {
-        let pfp_url = change_to_x64_url( member
-            .user
-            .face());
+        let pfp_url = change_to_x64_url(member.user.face());
         let id = member.user.id.to_string();
 
         let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
@@ -218,8 +214,7 @@ pub async fn return_average_user_color(
 }
 
 async fn calculate_user_color(user: User) -> Result<(String, String), Box<dyn Error>> {
-    let pfp_url = change_to_x64_url(user
-        .face());
+    let pfp_url = change_to_x64_url(user.face());
 
     let img = get_image_from_url(pfp_url).await?;
 
@@ -341,18 +336,27 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
     members_temp_out
 }
 
-pub async fn get_specific_user_color(user_blacklist_server_image: Arc<RwLock<Vec<String>>>, user: User, db_config: BotConfigDetails) {
-    if user_blacklist_server_image.read().await.contains(&user.id.to_string()) {
+pub async fn get_specific_user_color(
+    user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
+    user: User,
+    db_config: BotConfigDetails,
+) {
+    if user_blacklist_server_image
+        .read()
+        .await
+        .contains(&user.id.to_string())
+    {
         debug!(
             "Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE",
             user.id
         );
         return;
     }
-    let pfp_url = change_to_x64_url(user
-        .face());
+    let pfp_url = change_to_x64_url(user.face());
     let id = user.id.to_string();
-    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await.unwrap();
+    let connection = sea_orm::Database::connect(get_url(db_config.clone()))
+        .await
+        .unwrap();
     let user_color = UserColor::find()
         .filter(Column::UserId.eq(id.clone()))
         .one(&connection)
@@ -371,7 +375,7 @@ pub async fn get_specific_user_color(user_blacklist_server_image: Arc<RwLock<Vec
         return;
     }
 
-    let (average_color, image): (String, String) = calculate_user_color(user).await.unwrap().await.unwrap();
+    let (average_color, image): (String, String) = calculate_user_color(user).await.unwrap();
     UserColor::insert(ActiveModel {
         user_id: Set(id.clone()),
         profile_picture_url: Set(pfp_url.clone()),

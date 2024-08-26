@@ -45,7 +45,7 @@ toml = "0.8.19"
 num-bigint = "0.4.6"
 text-to-png = "0.2.0"
 songbird = { git = "https://github.com/ValgulNecron/songbird.git", branch = "next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
-symphonia = { features = ["aac", "mp3", "isomp4", "alac"], version = "0.5.4" }
+symphonia = { features = ["aac", "mp3", "isomp4", "alac", "symphonia-format-isomp4"], version = "0.5.4" }
 dashmap = "6.0.1"
 url = "2.5.2"
 dirs = "5.0.1"

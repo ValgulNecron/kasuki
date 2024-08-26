@@ -139,6 +139,7 @@ impl EventHandler for TrackEndNotifier {
         if let EventContext::Track(track_list) = ctx {
             let handler_mutex_clone = handler_mutex.clone();
             let mut handler_lock = handler_mutex_clone.lock().await;
+            let client = reqwest::Client::new();
             for (state, handle) in *track_list {
                 debug!("Track {:?} ended", handle.uuid());
                 let http_client = reqwest::Client::new();
