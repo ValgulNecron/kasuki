@@ -312,7 +312,6 @@ impl EventHandler for Handler {
             }
         };
         get_specific_user_color(
-            &ctx,
             user_blacklist_server_image,
             user,
             self.bot_data.config.bot.config.clone(),

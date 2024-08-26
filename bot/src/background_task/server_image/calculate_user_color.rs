@@ -63,7 +63,7 @@ pub async fn calculate_users_color(
         let pfp_url_old = user_color.profile_picture_url.clone();
         if pfp_url != pfp_url_old {
             let (average_color, image): (String, String) =
-                calculate_user_color(member.clone()).await?;
+                calculate_user_color(member.user.clone()).await?;
             UserColor::insert(ActiveModel {
                 user_id: Set(id.clone()),
                 profile_picture_url: Set(pfp_url.clone()),
@@ -128,7 +128,7 @@ pub async fn return_average_user_color(
                 let image_old = user_color.images;
                 if pfp_url != pfp_url_old {
                     let (average_color, image): (String, String) =
-                        calculate_user_color(member.clone()).await?;
+                        calculate_user_color(member.user.clone()).await?;
                     average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
                     UserColor::insert(ActiveModel {
                         user_id: Set(id.clone()),
@@ -172,7 +172,7 @@ pub async fn return_average_user_color(
             }
             _ => {
                 let (average_color, image): (String, String) =
-                    calculate_user_color(member.clone()).await?;
+                    calculate_user_color(member.user.clone()).await?;
                 average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
                 UserColor::insert(ActiveModel {
                     user_id: Set(id.clone()),
@@ -217,11 +217,9 @@ pub async fn return_average_user_color(
     Ok(average_colors)
 }
 
-async fn calculate_user_color(member: Member) -> Result<(String, String), Box<dyn Error>> {
-    let pfp_url = change_to_x64_url( member
-        .user
-        .face())
-        ;
+async fn calculate_user_color(user: User) -> Result<(String, String), Box<dyn Error>> {
+    let pfp_url = change_to_x64_url(user
+        .face());
 
     let img = get_image_from_url(pfp_url).await?;
 
@@ -343,7 +341,7 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
     members_temp_out
 }
 
-pub async fn get_specific_user_color(ctx: &Context, user_blacklist_server_image: Arc<RwLock<Vec<String>>>, user: User, db_config: BotConfigDetails) {
+pub async fn get_specific_user_color(user_blacklist_server_image: Arc<RwLock<Vec<String>>>, user: User, db_config: BotConfigDetails) {
     if user_blacklist_server_image.read().await.contains(&user.id.to_string()) {
         debug!(
             "Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE",
@@ -373,7 +371,7 @@ pub async fn get_specific_user_color(ctx: &Context, user_blacklist_server_image:
         return;
     }
 
-    let (average_color, image): (String, String) = calculate_user_color(Member::fetch(&ctx, user.id, None).await.unwrap()).await.unwrap();
+    let (average_color, image): (String, String) = calculate_user_color(user).await.unwrap().await.unwrap();
     UserColor::insert(ActiveModel {
         user_id: Set(id.clone()),
         profile_picture_url: Set(pfp_url.clone()),
