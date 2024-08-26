@@ -3,6 +3,7 @@ use std::sync::{
     Arc,
 };
 
+use crate::audio::rusty_ytdl::RustyYoutubeSearch;
 use dashmap::DashMap;
 use serenity::all::{GuildId, UserId};
 use serenity::async_trait;
@@ -141,7 +142,13 @@ impl EventHandler for TrackEndNotifier {
             for (state, handle) in *track_list {
                 debug!("Track {:?} ended", handle.uuid());
                 let http_client = reqwest::Client::new();
-                let mut src = YoutubeDl::new(http_client, url.clone());
+                let mut src = match RustyYoutubeSearch::new_from_url(url.clone()) {
+                    Ok(src) => src,
+                    Err(e) => {
+                        error!("Failed to create source: {:?}", e);
+                        break;
+                    }
+                };
                 let (track, meta) = futures::join!(
                     handler_lock.enqueue(Track::from(src.clone())),
                     src.aux_metadata()

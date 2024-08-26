@@ -17,7 +17,7 @@ use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
 use crate::background_task::background_launcher::thread_management_launcher;
-use crate::background_task::server_image::calculate_user_color::color_management;
+use crate::background_task::server_image::calculate_user_color::{color_management, get_specific_user_color};
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command::command_dispatch::{check_if_module_is_on, dispatch_command};
@@ -303,15 +303,21 @@ impl EventHandler for Handler {
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
         let user_id = new_data.user.id;
         let username = new_data.user.name.unwrap_or_default();
-        let image_config = self.bot_data.config.image.clone();
         debug!("Member {} updated presence", user_id);
-        color_management(
-            &ctx.cache.guilds(),
+        let user = match new_data.user.id.to_user(&ctx).await {
+            Ok(user) => user,
+            Err(e) => {
+                error!("Failed to get the user. {}", e);
+                return;
+            }
+        };
+        get_specific_user_color(
             &ctx,
             user_blacklist_server_image,
+            user,
             self.bot_data.config.bot.config.clone(),
-        )
-        .await;
+        ).await;
+
         let connection = match sea_orm::Database::connect(get_url(
             self.bot_data.config.bot.config.clone(),
         ))
@@ -400,6 +406,7 @@ impl EventHandler for Handler {
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        let mut user = None;
         if let Interaction::Command(command_interaction) = interaction.clone() {
             let mut message = String::from("");
             if command_interaction.data.kind == CommandType::ChatInput {
@@ -420,11 +427,15 @@ impl EventHandler for Handler {
                 trace!("{:?}", command_interaction)
             }
             error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await;
+            user = Some(command_interaction.user.clone());
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
             // Dispatch the autocomplete interaction
-            autocomplete_dispatching(ctx, autocomplete_interaction, self).await
+            user = Some(autocomplete_interaction.user.clone());
+
+            autocomplete_dispatching(ctx, autocomplete_interaction, self).await;
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
             // Dispatch the component interaction
+            user = Some(component_interaction.user.clone());
             if let Err(e) = components_dispatching(
                 ctx,
                 component_interaction,
@@ -436,5 +447,40 @@ impl EventHandler for Handler {
                 error!("{:?}", e)
             }
         }
+
+        if user.is_none() {
+            return;
+        }
+
+        let connection = match sea_orm::Database::connect(get_url(
+            self.bot_data.config.bot.config.clone(),
+        ))
+        .await
+        {
+            Ok(conn) => conn,
+            Err(_) => {
+                return;
+            }
+        };
+
+        match UserData::insert(crate::structure::database::user_data::ActiveModel {
+            user_id: Set(user.clone().unwrap().id.to_string()),
+            username: Set(user.unwrap().name),
+            added_at: Set(Utc::now().naive_utc()),
+            ..Default::default()
+        })
+        .on_conflict(
+            sea_orm::sea_query::OnConflict::column(
+                crate::structure::database::user_data::Column::UserId,
+            )
+            .update_column(crate::structure::database::user_data::Column::Username)
+            .to_owned(),
+        )
+        .exec(&connection)
+        .await
+        {
+            Ok(_) => {}
+            Err(e) => error!("Failed to insert user data. {}", e),
+        };
     }
 }

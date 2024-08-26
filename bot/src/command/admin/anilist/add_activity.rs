@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use std::error::Error;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
@@ -6,16 +7,13 @@ use crate::command::command_trait::Embed;
 use crate::command::command_trait::{Command, EmbedType, SlashCommand};
 use crate::config::{BotConfigDetails, Config};
 use crate::get_url;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
 use crate::structure::database::activity_data;
 use crate::structure::database::activity_data::Column;
 use crate::structure::database::prelude::ActivityData;
-use crate::structure::message::admin::anilist::add_activity::{
-    load_localization_add_activity
-};
+use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
 use crate::structure::run::anilist::minimal_anime::{
     Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
     MinimalAnimeSearchVariables,
@@ -84,20 +82,17 @@ impl SlashCommand for AddActivityCommand {
 
         let anime_id = media.id;
 
-        let builder_message = Defer(CreateInteractionResponseMessage::new());
-
         let exist =
             check_if_activity_exist(anime_id, guild_id.clone(), config.bot.config.clone()).await;
 
-        command_interaction
-            .create_response(&ctx.http, builder_message)
-            .await?;
+        self.defer().await?;
+        let url = format!("https://anilist.co/anime/{}", media.id);
+
         let title = media
             .title
-            .ok_or(error_dispatch::Error::Option("No title".to_string()))?;
+            .ok_or(anyhow!("No title for the media".to_string()))?;
         let anime_name = get_name(title);
         if exist {
-            let url = format!("https://anilist.co/anime/{}", media.id);
             self.send_embed(
                 Vec::new(),
                 None,
@@ -110,7 +105,7 @@ impl SlashCommand for AddActivityCommand {
                 EmbedType::Followup,
                 None,
             )
-                .await?;
+            .await?;
         } else {
             let channel_id = command_interaction.channel_id;
 
@@ -127,7 +122,7 @@ impl SlashCommand for AddActivityCommand {
             };
 
             let bytes = get(media.cover_image.ok_or(
-                error_dispatch::Error::Option("No cover image".to_string()),
+                anyhow!("No cover image for this media".to_string()),
             )?.extra_large.
                 unwrap_or(
                     "https://imgs.search.brave.com/ CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
@@ -139,15 +134,10 @@ impl SlashCommand for AddActivityCommand {
             let base64 = STANDARD.encode(buf.into_inner());
             let image = format!("data:image/jpeg;base64,{}", base64);
 
-            let next_airing = match media.next_airing_episode.clone() {
-                Some(na) => na,
-                None => {
-                    return Err(Box::new(error_dispatch::Error::Option(format!(
-                        "No next episode found for {} on anilist",
-                        anime_name
-                    ))));
-                }
-            };
+            let next_airing = media.next_airing_episode.clone().ok_or(anyhow!(format!(
+                "No next episode found for {} on anilist",
+                anime_name
+            )))?;
             let webhook = get_webhook(
                 &ctx,
                 channel_id,
@@ -155,7 +145,7 @@ impl SlashCommand for AddActivityCommand {
                 base64.clone(),
                 trimmed_anime_name.clone(),
             )
-                .await?;
+            .await?;
             let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
             let timestamp = next_airing.airing_at as i64;
 
@@ -173,9 +163,8 @@ impl SlashCommand for AddActivityCommand {
                 image: Set(image),
                 ..Default::default()
             })
-                .exec(&connection)
-                .await?;
-            let url = format!("https://anilist.co/anime/{}", media.id);
+            .exec(&connection)
+            .await?;
 
             self.send_embed(
                 Vec::new(),
@@ -189,7 +178,7 @@ impl SlashCommand for AddActivityCommand {
                 EmbedType::Followup,
                 None,
             )
-                .await?;
+            .await?;
         }
 
         Ok(())
@@ -296,9 +285,7 @@ async fn get_webhook(
         let webhook_user_id = webhook
             .user
             .clone()
-            .ok_or(Box::new(error_dispatch::Error::Webhook(
-                "webhook user id not found".to_string(),
-            )))?
+            .ok_or(anyhow!("webhook user not found".to_string(),))?
             .id
             .to_string();
         trace!(webhook_user_id);
@@ -335,7 +322,7 @@ async fn get_webhook(
     Ok(webhook_return)
 }
 
-pub(crate) async fn get_minimal_anime_by_id(
+pub async fn get_minimal_anime_by_id(
     id: i32,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Media, Box<dyn Error>> {
@@ -345,9 +332,9 @@ pub(crate) async fn get_minimal_anime_by_id(
         make_request_anilist(operation, false, anilist_cache).await?;
     let data = data
         .data
-        .ok_or(error_dispatch::Error::Option("No media found".to_string()))?
+        .ok_or(anyhow!("Error with request".to_string()))?
         .media
-        .ok_or(error_dispatch::Error::Option("No media found".to_string()))?;
+        .ok_or(anyhow!("No media found".to_string()))?;
     Ok(data)
 }
 
@@ -361,21 +348,12 @@ async fn get_minimal_anime_by_search(
     let operation = MinimalAnimeSearch::build(query);
     let data: GraphQlResponse<MinimalAnimeSearch> =
         make_request_anilist(operation, false, anilist_cache).await?;
-    Ok(match data.data {
-        Some(data) => match data.media {
-            Some(media) => media,
-            None => {
-                return Err(Box::new(error_dispatch::Error::Option(
-                    "No media found".to_string(),
-                )))
-            }
-        },
-        None => {
-            return Err(Box::new(error_dispatch::Error::Option(
-                "No data found".to_string(),
-            )))
-        }
-    })
+    let data = data
+        .data
+        .ok_or(anyhow!("Error with request".to_string()))?
+        .media
+        .ok_or(anyhow!("No media found".to_string()))?;
+    Ok(data)
 }
 
 pub async fn get_minimal_anime_media(

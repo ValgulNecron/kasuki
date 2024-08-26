@@ -43,7 +43,11 @@ impl Command for TranscriptCommand<'_> {
 impl SlashCommand for TranscriptCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         if self
-            .check_hourly_limit(self.command_name.clone(), self.handler, PremiumCommandType::AITranscript)
+            .check_hourly_limit(
+                self.command_name.clone(),
+                self.handler,
+                PremiumCommandType::AITranscript,
+            )
             .await?
         {
             return Err(Box::new(error_dispatch::Error::Option(String::from(

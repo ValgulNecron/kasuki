@@ -45,7 +45,11 @@ impl Command for TranslationCommand<'_> {
 impl SlashCommand for TranslationCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         if self
-            .check_hourly_limit(self.command_name.clone(), self.handler, PremiumCommandType::AITranslation)
+            .check_hourly_limit(
+                self.command_name.clone(),
+                self.handler,
+                PremiumCommandType::AITranslation,
+            )
             .await?
         {
             return Err(Box::new(error_dispatch::Error::Option(String::from(

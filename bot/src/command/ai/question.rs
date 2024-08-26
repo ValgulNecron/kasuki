@@ -38,7 +38,11 @@ impl Command for QuestionCommand<'_> {
 impl SlashCommand for QuestionCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         if self
-            .check_hourly_limit(self.command_name.clone(), self.handler, PremiumCommandType::AIQuestion)
+            .check_hourly_limit(
+                self.command_name.clone(),
+                self.handler,
+                PremiumCommandType::AIQuestion,
+            )
             .await?
         {
             return Err(Box::new(error_dispatch::Error::Option(String::from(

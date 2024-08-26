@@ -1,4 +1,11 @@
+use crate::constant::{
+    MAX_FREE_AI_IMAGES, MAX_FREE_AI_QUESTIONS, MAX_FREE_AI_TRANSCRIPTS, MAX_FREE_AI_TRANSLATIONS,
+    PAID_IMAGE_MULTIPLIER, PAID_QUESTION_MULTIPLIER, PAID_TRANSCRIPT_MULTIPLIER,
+    PAID_TRANSLATION_MULTIPLIER,
+};
 use crate::event_handler::Handler;
+use crate::helper::create_default_embed::get_default_embed;
+use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId, SkuKind,
 };
@@ -6,10 +13,8 @@ use serenity::builder::{
     CreateButton, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseFollowup,
 };
 use serenity::client::Context;
-use std::error::Error;
 use serenity::model::Colour;
-use crate::constant::{MAX_FREE_AI_IMAGES, MAX_FREE_AI_QUESTIONS, MAX_FREE_AI_TRANSCRIPTS, MAX_FREE_AI_TRANSLATIONS, PAID_IMAGE_MULTIPLIER, PAID_QUESTION_MULTIPLIER, PAID_TRANSCRIPT_MULTIPLIER, PAID_TRANSLATION_MULTIPLIER};
-use crate::helper::create_default_embed::get_default_embed;
+use std::error::Error;
 
 pub trait Command {
     fn get_ctx(&self) -> &Context;
@@ -42,15 +47,18 @@ pub trait Embed {
         thumbnail: Option<String>,
         url: Option<String>,
         command_type: EmbedType,
-        colour: Option<Colour>
+        colour: Option<Colour>,
     ) -> Result<(), Box<dyn Error>>;
+
+    async fn defer(&self) -> Result<(), Box<dyn Error>>;
 }
 
 pub trait PremiumCommand {
     async fn check_hourly_limit(
         &self,
         command_name: impl Into<String> + Clone,
-        handler: &Handler, command: PremiumCommandType
+        handler: &Handler,
+        command: PremiumCommandType,
     ) -> Result<bool, Box<dyn Error>>;
 }
 
@@ -68,10 +76,7 @@ async fn not_implemented(
     Ok(())
 }
 
-
-impl<T: Command> Embed for T
-where
-{
+impl<T: Command> Embed for T {
     async fn send_embed(
         &self,
         fields: Vec<(String, String, bool)>,
@@ -81,7 +86,7 @@ where
         thumbnail: Option<String>,
         url: Option<String>,
         command_type: EmbedType,
-        colour: Option<Colour>
+        colour: Option<Colour>,
     ) -> Result<(), Box<dyn Error>> {
         let ctx = self.get_ctx();
         let command_interaction = self.get_command_interaction();
@@ -117,6 +122,16 @@ where
 
         Ok(())
     }
+
+    async fn defer(&self) -> Result<(), Box<dyn Error>> {
+        let ctx = self.get_ctx();
+        let command_interaction = self.get_command_interaction();
+        let builder_message = Defer(CreateInteractionResponseMessage::new());
+        command_interaction
+            .create_response(&ctx.http, builder_message)
+            .await?;
+        Ok(())
+    }
 }
 
 pub enum EmbedType {
@@ -124,10 +139,13 @@ pub enum EmbedType {
     Followup,
 }
 
-impl<T: Command> PremiumCommand for T
-where
-{
-    async fn check_hourly_limit(&self, command_name: impl Into<String> + Clone, handler: &Handler, command: PremiumCommandType) -> Result<bool, Box<dyn Error>> {
+impl<T: Command> PremiumCommand for T {
+    async fn check_hourly_limit(
+        &self,
+        command_name: impl Into<String> + Clone,
+        handler: &Handler,
+        command: PremiumCommandType,
+    ) -> Result<bool, Box<dyn Error>> {
         let ctx = self.get_ctx();
         let command_interaction = self.get_command_interaction();
         let free_limit = match command {
@@ -147,10 +165,7 @@ where
         }
 
         let usage = handler
-            .get_hourly_usage(
-                command_name.into(),
-                command_interaction.user.id.to_string(),
-            )
+            .get_hourly_usage(command_name.into(), command_interaction.user.id.to_string())
             .await;
 
         let user_skus: Vec<SkuId> = command_interaction
@@ -182,9 +197,7 @@ where
         if usage <= free_limit as u128 && user_sub.is_none() {
             return Ok(false);
         }
-        if usage <= (free_limit as f64 * paid_multiplier) as u128
-            && user_sub.is_some()
-        {
+        if usage <= (free_limit as f64 * paid_multiplier) as u128 && user_sub.is_some() {
             return Ok(false);
         }
 

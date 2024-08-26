@@ -100,9 +100,10 @@ grpc_is_on = false
 grpc_port = 50051
 
 # Whether to use TLS encryption for the gRPC server.
-use_tls = false
+use_tls = true
 
 # Paths to the SSL certificate and key for TLS encryption.
-tls_cert_path = ""
-tls_key_path = ""
+tls_cert_path = "cert/cert.pem"
+tls_key_path = "cert/key.pem"
+
 

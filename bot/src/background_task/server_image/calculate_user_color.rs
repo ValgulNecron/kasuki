@@ -22,32 +22,12 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
-use serenity::all::{Context, GuildId, Member, UserId};
+use serenity::all::{Context, GuildId, Member, User, UserId};
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, trace};
+use crate::new_member::change_to_x64_url;
 
-/// Calculates the color for each user in a list of members.
-///
-/// This function iterates over a list of members, skipping any members that are in the `USER_BLACKLIST_SERVER_IMAGE`.
-/// For each member, it retrieves the user's profile picture URL and the user's ID.
-/// It then retrieves the user's color from the database.
-/// If the profile picture URL has changed since the last time the color was calculated, it recalculates the color and updates the database.
-/// After processing each member, it sleeps for 100 milliseconds to avoid rate limiting.
-///
-/// # Arguments
-///
-/// * `members` - A vector of `Member` objects to calculate colors for.
-///
-/// # Returns
-///
-/// * `Result<(), AppError>` - On success, the function returns `Ok(())`.
-///   If the function fails to calculate the color for any member, it returns `Err(AppError)`.
-///
-/// # Errors
-///
-/// This function will return an error if there's a problem retrieving the user's color from the database,
-/// calculating the user's color, or updating the user's color in the database.
 pub async fn calculate_users_color(
     members: Vec<Member>,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
@@ -63,8 +43,9 @@ pub async fn calculate_users_color(
             );
             continue;
         }
-        let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://cdn.discordapp.com/avatars/260706120086192129/ec231a35c9a33dd29ea4819d29d06056.webp?size=64"))
-            .replace("?size=1024", "?size=64");
+        let pfp_url = change_to_x64_url( member
+            .user
+            .face());
 
         let id = member.user.id.to_string();
         let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
@@ -123,38 +104,15 @@ pub async fn calculate_users_color(
     Ok(())
 }
 
-/// Returns the average color for each user in a list of members.
-///
-/// This function iterates over a list of members. For each member, it retrieves the user's profile picture URL and the user's ID.
-/// It then retrieves the user's color from the database. If the profile picture URL has changed since the last time the color was calculated,
-/// it recalculates the color and updates the database. The function then pushes the average color, profile picture URL, and image into a vector.
-///
-/// # Arguments
-///
-/// * `members` - A vector of `Member` objects to calculate colors for.
-///
-/// # Returns
-///
-/// * `Result<Vec<(String, String, String)>, AppError>` - On success, the function returns `Ok(Vec<(String, String, String)>)`, where each tuple in the vector represents a user's average color, profile picture URL, and image.
-///   If the function fails to calculate the color for any member, it returns `Err(AppError)`.
-///
-/// # Errors
-///
-/// This function will return an error if there's a problem retrieving the user's color from the database,
-/// calculating the user's color, or updating the user's color in the database.
 pub async fn return_average_user_color(
     members: Vec<Member>,
     db_config: BotConfigDetails,
 ) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
     let mut average_colors = Vec::new();
     for member in members {
-        let pfp_url = member.user.avatar_url().unwrap_or(String::from("https://cdn.discordapp.com/avatars/260706120086192129/ec231a35c9a33dd29ea4819d29d06056.webp?size=64"))
-            .replace("?size=4096", "?size=64")
-            .replace("?size=2048", "?size=64")
-            .replace("?size=1024", "?size=64")
-            .replace("?size=512", "?size=64")
-            .replace("?size=256", "?size=64")
-            .replace("?size=128", "?size=64");
+        let pfp_url = change_to_x64_url( member
+            .user
+            .face());
         let id = member.user.id.to_string();
 
         let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
@@ -259,36 +217,11 @@ pub async fn return_average_user_color(
     Ok(average_colors)
 }
 
-/// Calculates the average color of a user's profile picture.
-///
-/// This function retrieves the user's profile picture URL, downloads the image, and calculates the average color.
-/// The image is converted to rgba8 format to ensure consistent color types.
-/// The function uses rayon for CPU multithreading to calculate the total red, green, and blue values in the image.
-/// The average color is then calculated by dividing the total by the number of pixels.
-/// The function also encodes the image in base64 format.
-///
-/// # Arguments
-///
-/// * `member` - A `Member` object representing the user to calculate the color for.
-///
-/// # Returns
-///
-/// * `Result<(String, String), AppError>` - On success, the function returns `Ok((String, String))`, where the first element is the average color in hexadecimal format, and the second element is the base64 encoded image.
-///   If the function fails to calculate the color, it returns `Err(AppError)`.
-///
-/// # Errors
-///
-/// This function will return an error if there's a problem retrieving the user's profile picture, downloading the image, or calculating the color.
 async fn calculate_user_color(member: Member) -> Result<(String, String), Box<dyn Error>> {
-    let pfp_url = member
+    let pfp_url = change_to_x64_url( member
         .user
-        .face()
-        .replace("?size=4096", "?size=64")
-        .replace("?size=2048", "?size=64")
-        .replace("?size=1024", "?size=64")
-        .replace("?size=512", "?size=64")
-        .replace("?size=256", "?size=64")
-        .replace("?size=128", "?size=64");
+        .face())
+        ;
 
     let img = get_image_from_url(pfp_url).await?;
 
@@ -330,27 +263,6 @@ async fn calculate_user_color(member: Member) -> Result<(String, String), Box<dy
     Ok((average_color, image))
 }
 
-/// Fetches an image from a given URL and decodes it into a `DynamicImage`.
-///
-/// This function performs the following steps:
-/// 1. Sends a GET request to the provided URL to fetch the image data.
-/// 2. Converts the response into bytes.
-/// 3. Creates a new `ImageReader` with the image data.
-/// 4. Decodes the image data into a `DynamicImage`.
-///
-/// # Arguments
-///
-/// * `url` - A string representing the URL of the image to fetch.
-///
-/// # Returns
-///
-/// * `Result<DynamicImage, AppError>` - On success, the function returns `Ok(DynamicImage)`.
-///   If the function fails to fetch or decode the image, it returns `Err(AppError)`.
-///
-/// # Errors
-///
-/// This function will return an error if there's a problem fetching the image from the URL,
-/// converting the response into bytes, or decoding the image data.
 pub async fn get_image_from_url(url: String) -> Result<DynamicImage, Box<dyn Error>> {
     // Fetch the image data
     let resp = reqwest::get(&url).await?.bytes().await?;
@@ -363,22 +275,6 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage, Box<dyn Err
     Ok(img)
 }
 
-/// Manages the color calculation for each member of the guilds.
-///
-/// This function performs the following steps:
-/// 1. Initializes an empty vector to store the members of the guilds.
-/// 2. Iterates over each guild, retrieving the members and appending them to the vector.
-/// 3. Calls the `calculate_users_color` function to calculate the color for each member.
-/// 4. If there's an error during the color calculation, it logs the error.
-///
-/// # Arguments
-///
-/// * `guilds` - A reference to a vector of `GuildId` objects representing the guilds to manage the color for.
-/// * `ctx_clone` - A reference to the `Context` object, which is used to interact with Discord's API.
-///
-/// # Errors
-///
-/// This function will log an error if there's a problem calculating the color for any member.
 pub async fn color_management(
     guilds: &Vec<GuildId>,
     ctx_clone: &Context,
@@ -416,23 +312,6 @@ pub async fn color_management(
     };
 }
 
-/// Fetches all members of a given guild.
-///
-/// This function fetches members of a guild in batches of 1000 (the maximum allowed by Discord's API).
-/// It keeps fetching until the number of members fetched is less than 1000, indicating that all members have been fetched.
-///
-/// # Arguments
-///
-/// * `ctx_clone` - A reference to the `Context` object, which is used to interact with Discord's API.
-/// * `guild` - A reference to a `GuildId` object representing the guild to fetch members from.
-///
-/// # Returns
-///
-/// * `Vec<Member>` - A vector of `Member` objects representing the members of the guild.
-///
-/// # Panics
-///
-/// This function will panic if there's a problem fetching the members from the guild.
 pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
     let mut i = 0;
     let mut members_temp_out: Vec<Member> = Vec::new();
@@ -462,4 +341,54 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
         members_temp_out.append(&mut members_temp_in);
     }
     members_temp_out
+}
+
+pub async fn get_specific_user_color(ctx: &Context, user_blacklist_server_image: Arc<RwLock<Vec<String>>>, user: User, db_config: BotConfigDetails) {
+    if user_blacklist_server_image.read().await.contains(&user.id.to_string()) {
+        debug!(
+            "Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE",
+            user.id
+        );
+        return;
+    }
+    let pfp_url = change_to_x64_url(user
+        .face());
+    let id = user.id.to_string();
+    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await.unwrap();
+    let user_color = UserColor::find()
+        .filter(Column::UserId.eq(id.clone()))
+        .one(&connection)
+        .await
+        .unwrap_or(None)
+        .unwrap_or(Model {
+            user_id: id.clone(),
+            profile_picture_url: String::from(""),
+            color: String::from(""),
+            images: String::from(""),
+            calculated_at: Default::default(),
+        });
+    let pfp_url_old = user_color.profile_picture_url.clone();
+
+    if pfp_url_old == pfp_url {
+        return;
+    }
+
+    let (average_color, image): (String, String) = calculate_user_color(Member::fetch(&ctx, user.id, None).await.unwrap()).await.unwrap();
+    UserColor::insert(ActiveModel {
+        user_id: Set(id.clone()),
+        profile_picture_url: Set(pfp_url.clone()),
+        color: Set(average_color.clone()),
+        images: Set(image.clone()),
+        ..Default::default()
+    })
+    .on_conflict(
+        OnConflict::column(Column::UserId)
+            .update_column(Column::Color)
+            .update_column(Column::ProfilePictureUrl)
+            .update_column(Column::Images)
+            .to_owned(),
+    )
+    .exec(&connection)
+    .await
+    .unwrap();
 }
