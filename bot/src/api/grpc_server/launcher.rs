@@ -1,6 +1,6 @@
-use std::sync::Arc;
-
 use serenity::all::{Cache, Http, ShardManager};
+use std::sync::Arc;
+use std::time::Duration;
 use sysinfo::System;
 use tokio::sync::RwLock;
 use tracing::{error, trace};
@@ -11,7 +11,7 @@ use crate::api::grpc_server::service::command::{get_command_server, CommandServi
 use crate::api::grpc_server::service::info::{get_info_server, InfoService};
 use crate::api::grpc_server::service::shard::{get_shard_server, ShardService};
 use crate::config::{Config, GrpcCfg};
-use crate::constant::BOT_COMMANDS;
+use crate::constant::{BOT_COMMANDS, ONE_HOUR};
 use crate::event_handler::{BotData, RootUsage};
 
 /// `grpc_server_launcher` is an asynchronous function that launches the gRPC server for the shard service.
@@ -43,10 +43,10 @@ pub async fn grpc_server_launcher(
     let shard_service = ShardService {
         shard_manager: shard_manager_arc.clone(),
     };
+
     let info_service = InfoService {
         bot_info: bot_data,
         sys: Arc::new(RwLock::new(System::new_all())),
-        os_info: Arc::new(os_info::get()),
         command_usage,
         shard_manager: shard_manager_arc.clone(),
         cache,
@@ -63,7 +63,7 @@ pub async fn grpc_server_launcher(
         .register_encoded_file_descriptor_set(service::shard::proto::SHARD_FILE_DESCRIPTOR_SET)
         .register_encoded_file_descriptor_set(service::info::proto::INFO_FILE_DESCRIPTOR_SET)
         .register_encoded_file_descriptor_set(service::command::proto::COMMAND_FILE_DESCRIPTOR_SET)
-        .build()
+        .build_v1()
     {
         Ok(reflection) => reflection,
         Err(e) => {

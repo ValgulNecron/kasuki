@@ -23,16 +23,16 @@ impl MigrationTrait for Migration {
                     .foreign_key(
                         &mut ForeignKey::create()
                             .name("FK_user_relation")
-                            .from(UserData::Table, UserData::UserId)
-                            .to(ServerUserRelation::Table, ServerUserRelation::UserId)
+                            .to(UserData::Table, UserData::UserId)
+                            .from(ServerUserRelation::Table, ServerUserRelation::UserId)
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )
                     .foreign_key(
                         &mut ForeignKey::create()
                             .name("FK_server_relation")
-                            .from(GuildData::Table, GuildData::GuildId)
-                            .to(ServerUserRelation::Table, ServerUserRelation::GuildId)
+                            .to(GuildData::Table, GuildData::GuildId)
+                            .from(ServerUserRelation::Table, ServerUserRelation::GuildId)
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )

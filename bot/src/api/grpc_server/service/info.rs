@@ -1,10 +1,10 @@
-use std::sync::Arc;
-
+use sea_orm::EntityTrait;
 use serenity::all::{Cache, Http, Member, ShardManager};
+use std::sync::Arc;
 use sysinfo::System;
 use tokio::sync::RwLock;
 use tonic::{Request, Response, Status};
-use tracing::trace;
+use tracing::{error, trace};
 
 use crate::api::grpc_server::service::info::proto::info_server::{Info, InfoServer};
 use crate::api::grpc_server::service::info::proto::{
@@ -15,6 +15,8 @@ use crate::config::Config;
 use crate::constant::APP_VERSION;
 use crate::custom_serenity_impl::{InternalMembershipState, InternalTeamMemberRole};
 use crate::event_handler::{BotData, RootUsage};
+use crate::get_url;
+use crate::structure::database::prelude::UserData;
 
 // Proto module contains the protobuf definitions for the shard service
 pub(crate) mod proto {
@@ -28,7 +30,6 @@ pub(crate) mod proto {
 pub struct InfoService {
     pub bot_info: Arc<BotData>,
     pub sys: Arc<RwLock<System>>,
-    pub os_info: Arc<os_info::Info>,
     pub command_usage: Arc<RwLock<RootUsage>>,
     pub shard_manager: Arc<ShardManager>,
     pub cache: Arc<Cache>,
@@ -48,7 +49,6 @@ impl Info for InfoService {
         let guard = bot_data.bot_info.read().await.clone();
         let bot_info_data = guard.ok_or(Status::internal("Failed to get the bot info."))?;
         let sys = self.sys.clone();
-        let os_info = self.os_info.clone();
         sys.write().await.refresh_all();
         let sys = sys.read().await;
         let processes = sys.processes();
@@ -317,13 +317,11 @@ impl Info for InfoService {
 
         // system info
         let os = format!(
-            "{}, {} {} {} {} {}",
-            os_info.os_type(),
-            os_info.bitness(),
-            os_info.version(),
-            os_info.codename().unwrap_or_default(),
-            os_info.architecture().unwrap_or_default(),
-            os_info.edition().unwrap_or_default()
+            "{}, {} {} {}",
+            System::name().unwrap_or_default(),
+            System::kernel_version().unwrap_or_default(),
+            System::os_version().unwrap_or_default(),
+            System::host_name().unwrap_or_default(),
         );
         let system_total_memory = format!("{}Gb", sys.total_memory() / 1024 / 1024 / 1024);
         let system_used_memory = format!("{}Gb", sys.used_memory() / 1024 / 1024 / 1024);

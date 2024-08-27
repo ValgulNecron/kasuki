@@ -56,7 +56,6 @@ impl Command for AddActivityCommand {
         &self.command_interaction
     }
 }
-
 impl SlashCommand for AddActivityCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         let anilist_cache = self.anilist_cache.clone();
@@ -186,11 +185,9 @@ impl SlashCommand for AddActivityCommand {
 }
 
 async fn resize_image(image_bytes: &Bytes) -> Result<Cursor<Vec<u8>>, Box<dyn Error>> {
-    let image = image::load(Cursor::new(image_bytes), guess_format(image_bytes)?)?;
-    let (image_width, image_height) = image.dimensions();
-    let square_size = image_width.min(image_height);
-    let crop_x = (image_width - square_size) / 2;
-    let crop_y = (image_height - square_size) / 2;
+    let image = image::load_from_memory_with_format(image_bytes, guess_format(image_bytes)?)?;
+    let (width, height) = image.dimensions();
+    let (crop_x, crop_y, square_size) = calculate_crop_params(width, height);
 
     let resized_image = image
         .crop_imm(crop_x, crop_y, square_size, square_size)
@@ -202,46 +199,46 @@ async fn resize_image(image_bytes: &Bytes) -> Result<Cursor<Vec<u8>>, Box<dyn Er
     Ok(buffer)
 }
 
+fn calculate_crop_params(width: u32, height: u32) -> (u32, u32, u32) {
+    let square_size = width.min(height);
+    let crop_x = (width - square_size) / 2;
+    let crop_y = (height - square_size) / 2;
+    (crop_x, crop_y, square_size)
+}
 async fn check_if_activity_exist(
     anime_id: i32,
     server_id: String,
-    db_config: BotConfigDetails,
+    config: BotConfigDetails,
 ) -> bool {
-    let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
+    let conn = match sea_orm::Database::connect(get_url(config.clone())).await {
         Ok(conn) => conn,
-        Err(_) => {
-            return false;
-        }
+        Err(_) => return false,
     };
+
     let row = match ActivityData::find()
         .filter(Column::ServerId.eq(server_id))
         .filter(Column::AnimeId.eq(anime_id))
-        .one(&connection)
+        .one(&conn)
         .await
     {
         Ok(row) => row,
-        Err(_) => {
-            return false;
-        }
+        Err(_) => return false,
     };
-    if row.is_none() {
-        return false;
-    };
-    true
+
+    row.is_some()
 }
 
 pub fn get_name(title: MediaTitle) -> String {
-    let en = title.english.clone();
-    let rj = title.romaji.clone();
+    let english_title = title.english;
+    let romaji_title = title.romaji;
 
-    match (rj, en) {
-        (Some(rj), Some(en)) => format!("{} / {}", en, rj),
-        (Some(rj), None) => rj,
-        (None, Some(en)) => en,
+    match (romaji_title, english_title) {
+        (Some(romaji), Some(english)) => format!("{} / {}", english, romaji),
+        (Some(romaji), None) => romaji,
+        (None, Some(english)) => english,
         (None, None) => String::new(),
     }
 }
-
 async fn get_webhook(
     ctx: &Context,
     channel_id: ChannelId,
@@ -249,121 +246,105 @@ async fn get_webhook(
     base64: String,
     anime_name: String,
 ) -> Result<String, Box<dyn Error>> {
-    let map = json!({
+    let webhook_info = json!({
         "avatar": image,
         "name": anime_name
     });
 
-    let bot_id = match ctx.http.get_current_application_info().await {
-        Ok(bot_info) => bot_info.id.to_string(),
-        Err(e) => {
-            error!("{}", e);
-            String::new()
-        }
-    };
+    let bot_id = ctx
+        .http
+        .get_current_application_info()
+        .await?
+        .id
+        .to_string();
 
-    trace!(bot_id);
-    let mut webhook_return = String::new();
+    let mut webhook_url = String::new();
 
-    let webhooks = match ctx.http.get_channel_webhooks(channel_id).await {
-        Ok(vec) => vec,
-        Err(_) => {
-            let webhook = ctx.http.create_webhook(channel_id, &map, None).await?;
-            webhook_return = webhook.url()?;
-
-            return Ok(webhook_return);
-        }
-    };
+    let webhooks = ctx.http.get_channel_webhooks(channel_id).await?;
     if webhooks.is_empty() {
-        let webhook = ctx.http.create_webhook(channel_id, &map, None).await?;
-        webhook_return = webhook.url()?;
-
-        return Ok(webhook_return);
-    }
-    for webhook in webhooks {
-        trace!("{:#?}", webhook);
-        let webhook_user_id = webhook
-            .user
-            .clone()
-            .ok_or(anyhow!("webhook user not found".to_string(),))?
-            .id
-            .to_string();
-        trace!(webhook_user_id);
-        if webhook_user_id == bot_id {
-            trace!("Getting webhook");
-            webhook_return = webhook.url()?;
-        } else {
-            trace!(webhook_return);
-            let is_ok = webhook_return == String::new();
-            trace!(is_ok);
-            if is_ok {
-                trace!("Creating webhook");
-                let webhook = ctx.http.create_webhook(channel_id, &map, None).await?;
-                webhook_return = webhook.url()?;
+        let webhook = ctx
+            .http
+            .create_webhook(channel_id, &webhook_info, None)
+            .await?;
+        webhook_url = webhook.url()?;
+    } else {
+        for webhook in webhooks {
+            if webhook
+                .user
+                .clone()
+                .ok_or(anyhow!("webhook user not found"))?
+                .id
+                .to_string()
+                == bot_id
+            {
+                webhook_url = webhook.url()?;
+                break;
             }
         }
+        if webhook_url.is_empty() {
+            let webhook = ctx
+                .http
+                .create_webhook(channel_id, &webhook_info, None)
+                .await?;
+            webhook_url = webhook.url()?;
+        }
     }
-    trace!("Done");
-    trace!(webhook_return);
+
     let cursor = Cursor::new(base64);
     let mut decoder = DecoderReader::new(cursor, &STANDARD);
 
-    // Read the decoded bytes into a Vec
     let mut decoded_bytes = Vec::new();
     decoder.read_to_end(&mut decoded_bytes)?;
-    let mut webhook = ctx
-        .http
-        .get_webhook_from_url(webhook_return.as_str())
-        .await?;
-    let attachement = CreateAttachment::bytes(decoded_bytes, "avatar");
-    let edit_webhook = EditWebhook::new().name(anime_name).avatar(&attachement);
+
+    let mut webhook = ctx.http.get_webhook_from_url(webhook_url.as_str()).await?;
+    let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
+    let edit_webhook = EditWebhook::new().name(anime_name).avatar(&attachment);
     webhook.edit(&ctx.http, edit_webhook).await?;
 
-    Ok(webhook_return)
+    Ok(webhook_url)
 }
-
 pub async fn get_minimal_anime_by_id(
     id: i32,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Media, Box<dyn Error>> {
     let query = MinimalAnimeIdVariables { id: Some(id) };
     let operation = MinimalAnimeId::build(query);
-    let data: GraphQlResponse<MinimalAnimeId> =
-        make_request_anilist(operation, false, anilist_cache).await?;
-    let data = data
+    let response: GraphQlResponse<MinimalAnimeId> =
+        make_request_anilist(operation, false, cache).await?;
+    let media = response
         .data
-        .ok_or(anyhow!("Error with request".to_string()))?
+        .ok_or(anyhow!("Error with request"))?
         .media
-        .ok_or(anyhow!("No media found".to_string()))?;
-    Ok(data)
+        .ok_or(anyhow!("No media found"))?;
+    Ok(media)
 }
 
 async fn get_minimal_anime_by_search(
-    value: &str,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    query: &str,
+    cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Media, Box<dyn Error>> {
-    let query = MinimalAnimeSearchVariables {
-        search: Some(value),
+    let search_query = MinimalAnimeSearchVariables {
+        search: Some(query),
     };
-    let operation = MinimalAnimeSearch::build(query);
-    let data: GraphQlResponse<MinimalAnimeSearch> =
-        make_request_anilist(operation, false, anilist_cache).await?;
-    let data = data
+    let operation = MinimalAnimeSearch::build(search_query);
+    let response: GraphQlResponse<MinimalAnimeSearch> =
+        make_request_anilist(operation, false, cache).await?;
+    let media = response
         .data
-        .ok_or(anyhow!("Error with request".to_string()))?
+        .ok_or(anyhow!("Error with request"))?
         .media
-        .ok_or(anyhow!("No media found".to_string()))?;
-    Ok(data)
+        .ok_or(anyhow!("No media found"))?;
+    Ok(media)
 }
 
 pub async fn get_minimal_anime_media(
     anime: String,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Media, Box<dyn Error>> {
-    let media = if anime.parse::<i32>().is_ok() {
-        get_minimal_anime_by_id(anime.parse::<i32>().unwrap_or_default(), anilist_cache).await?
+    let media = if let Ok(id) = anime.parse::<i32>() {
+        get_minimal_anime_by_id(id, cache).await?
     } else {
-        get_minimal_anime_by_search(anime.as_str(), anilist_cache).await?
+        get_minimal_anime_by_search(&anime, cache).await?
     };
     Ok(media)
 }

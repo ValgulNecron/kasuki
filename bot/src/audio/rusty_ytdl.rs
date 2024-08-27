@@ -121,7 +121,7 @@ impl Compose for RustyYoutubeSearch {
             let mut rng = rand::thread_rng();
             let n = rng.gen_range(0..proxy.len());
             let proxy = proxy[n];
-            let proxy = reqwest::Proxy::http(proxy).map_err(|e| {
+            let proxy = reqwest::Proxy::all(proxy).map_err(|e| {
                 AudioStreamError::Fail(
                     error_dispatch::Error::Audio(format!("Failed to create proxy: {e:?}")).into(),
                 )

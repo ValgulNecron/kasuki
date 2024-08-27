@@ -14,6 +14,8 @@ impl MigrationTrait for Migration {
                     .col(string(UserData::UserId))
                     .primary_key(Index::create().col(UserData::UserId))
                     .col(string(UserData::Username))
+                    .col(boolean(UserData::IsBot).default(false))
+                    .col(string(UserData::Banner))
                     .col(timestamp(UserData::AddedAt).default(Expr::current_timestamp()))
                     .to_owned(),
             )
@@ -32,5 +34,7 @@ pub enum UserData {
     Table,
     UserId,
     Username,
+    IsBot,
+    Banner,
     AddedAt,
 }

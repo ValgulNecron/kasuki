@@ -26,8 +26,8 @@ impl MigrationTrait for Migration {
                     .foreign_key(
                         &mut ForeignKey::create()
                             .name("FK_server_image")
-                            .from(GuildData::Table, GuildData::GuildId)
-                            .to(ServerImage::Table, ServerImage::ServerId)
+                            .to(GuildData::Table, GuildData::GuildId)
+                            .from(ServerImage::Table, ServerImage::ServerId)
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )

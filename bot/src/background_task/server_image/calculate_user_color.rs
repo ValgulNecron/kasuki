@@ -80,9 +80,10 @@ pub async fn calculate_users_color(
             .await?;
             match UserData::insert(crate::structure::database::user_data::ActiveModel {
                 user_id: Set(id.clone()),
-                username: Set(member.user.name),
+                username: Set(member.user.name.clone()),
                 added_at: Set(Utc::now().naive_utc()),
-                ..Default::default()
+                is_bot: Set(member.user.bot.clone()),
+                banner: Set(member.user.banner_url().unwrap_or_default()),
             })
             .on_conflict(
                 OnConflict::column(crate::structure::database::user_data::Column::UserId)
@@ -146,9 +147,10 @@ pub async fn return_average_user_color(
                     .await?;
                     match UserData::insert(crate::structure::database::user_data::ActiveModel {
                         user_id: Set(id.clone()),
-                        username: Set(member.user.name),
+                        username: Set(member.user.name.clone()),
                         added_at: Set(Utc::now().naive_utc()),
-                        ..Default::default()
+                        is_bot: Set(member.user.bot.clone()),
+                        banner: Set(member.user.banner_url().unwrap_or_default()),
                     })
                     .on_conflict(
                         OnConflict::column(crate::structure::database::user_data::Column::UserId)
@@ -190,9 +192,10 @@ pub async fn return_average_user_color(
                 .await?;
                 match UserData::insert(crate::structure::database::user_data::ActiveModel {
                     user_id: Set(id.clone()),
-                    username: Set(member.user.name),
+                    username: Set(member.user.name.clone()),
                     added_at: Set(Utc::now().naive_utc()),
-                    ..Default::default()
+                    is_bot: Set(member.user.bot.clone()),
+                    banner: Set(member.user.banner_url().unwrap_or_default()),
                 })
                 .on_conflict(
                     OnConflict::column(crate::structure::database::user_data::Column::UserId)
