@@ -23,6 +23,7 @@ services:
       - ./config.toml:/kasuki/config.toml
       - ./images:/kasuki/images
       - /etc/localtime:/etc/localtime:ro
+      # - ./proxy.txt:/kasuki/valid_proxy.txt # Uncomment this line if you want to use proxy you need to have a valid proxy list please check if they work before.
     networks:
       - kasuki
   db:
