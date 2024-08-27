@@ -29,8 +29,8 @@ impl MigrationTrait for Migration {
                     .foreign_key(
                         ForeignKey::create()
                             .name("FK_server_activity")
-                            .from(GuildData::Table, GuildData::GuildId)
-                            .to(ActivityData::Table, ActivityData::ServerId)
+                            .to(GuildData::Table, GuildData::GuildId)
+                            .from(ActivityData::Table, ActivityData::ServerId)
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )

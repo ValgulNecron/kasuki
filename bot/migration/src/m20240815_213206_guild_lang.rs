@@ -20,8 +20,8 @@ impl MigrationTrait for Migration {
                     .foreign_key(
                         &mut ForeignKey::create()
                             .name("FK_server_lang")
-                            .from(GuildData::Table, GuildData::GuildId)
-                            .to(GuildLang::Table, GuildLang::GuildId)
+                            .to(GuildData::Table, GuildData::GuildId)
+                            .from(GuildLang::Table, GuildLang::GuildId)
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )

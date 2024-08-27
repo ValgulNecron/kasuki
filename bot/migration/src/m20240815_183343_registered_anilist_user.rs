@@ -20,8 +20,8 @@ impl MigrationTrait for Migration {
                     .foreign_key(
                         &mut ForeignKey::create()
                             .name("FK_user_registered_user")
-                            .from(UserData::Table, UserData::UserId)
-                            .to(RegisteredUser::Table, RegisteredUser::UserId)
+                            .to(UserData::Table, UserData::UserId)
+                            .from(RegisteredUser::Table, RegisteredUser::UserId)
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )

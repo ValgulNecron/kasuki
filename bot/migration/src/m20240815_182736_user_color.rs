@@ -22,8 +22,8 @@ impl MigrationTrait for Migration {
                     .foreign_key(
                         &mut ForeignKey::create()
                             .name("FK_user_color")
-                            .from(UserData::Table, UserData::UserId)
-                            .to(UserColor::Table, UserColor::UserId)
+                            .to(UserData::Table, UserData::UserId)
+                            .from(UserColor::Table, UserColor::UserId)
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )

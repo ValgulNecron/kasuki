@@ -8,13 +8,37 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub user_id: String,
     pub username: String,
+    pub is_bot: bool,
+    pub banner: String,
     pub added_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_one = "super::registered_user::Entity")]
+    RegisteredUser,
+    #[sea_orm(has_one = "super::user_color::Entity")]
+    UserColor,
+}
+
+impl Related<super::registered_user::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::RegisteredUser.def()
+    }
+}
+
+impl Related<super::user_color::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::UserColor.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
-pub enum RelatedEntity {}
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::registered_user::Entity")]
+    RegisteredUser,
+    #[sea_orm(entity = "super::user_color::Entity")]
+    UserColor,
+}

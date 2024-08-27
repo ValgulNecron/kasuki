@@ -250,9 +250,10 @@ impl EventHandler for Handler {
         };
         match UserData::insert(crate::structure::database::user_data::ActiveModel {
             user_id: Set(member.user.id.to_string()),
-            username: Set(member.user.name),
+            username: Set(member.user.name.clone()),
             added_at: Set(Utc::now().naive_utc()),
-            ..Default::default()
+            is_bot: Set(member.user.bot.clone()),
+            banner: Set(member.user.banner_url().unwrap_or_default()),
         })
         .on_conflict(
             sea_orm::sea_query::OnConflict::column(
@@ -315,7 +316,7 @@ impl EventHandler for Handler {
         };
         get_specific_user_color(
             user_blacklist_server_image,
-            user,
+            user.clone(),
             self.bot_data.config.bot.config.clone(),
         )
         .await;
@@ -335,7 +336,8 @@ impl EventHandler for Handler {
             user_id: Set(user_id.to_string()),
             username: Set(username),
             added_at: Set(Utc::now().naive_utc()),
-            ..Default::default()
+            is_bot: Set(user.bot),
+            banner: Set(user.banner_url().unwrap_or_default()),
         })
         .on_conflict(
             sea_orm::sea_query::OnConflict::column(
@@ -467,9 +469,10 @@ impl EventHandler for Handler {
 
         match UserData::insert(crate::structure::database::user_data::ActiveModel {
             user_id: Set(user.clone().unwrap().id.to_string()),
-            username: Set(user.unwrap().name),
+            username: Set(user.clone().unwrap().name),
             added_at: Set(Utc::now().naive_utc()),
-            ..Default::default()
+            is_bot: Set(user.clone().unwrap().bot),
+            banner: Set(user.unwrap().banner_url().unwrap_or_default()),
         })
         .on_conflict(
             sea_orm::sea_query::OnConflict::column(

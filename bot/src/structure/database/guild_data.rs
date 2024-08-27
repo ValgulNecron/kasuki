@@ -12,9 +12,51 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_many = "super::activity_data::Entity")]
+    ActivityData,
+    #[sea_orm(has_one = "super::guild_lang::Entity")]
+    GuildLang,
+    #[sea_orm(has_one = "super::module_activation::Entity")]
+    ModuleActivation,
+    #[sea_orm(has_many = "super::server_image::Entity")]
+    ServerImage,
+}
+
+impl Related<super::activity_data::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ActivityData.def()
+    }
+}
+
+impl Related<super::guild_lang::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::GuildLang.def()
+    }
+}
+
+impl Related<super::module_activation::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ModuleActivation.def()
+    }
+}
+
+impl Related<super::server_image::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ServerImage.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
-pub enum RelatedEntity {}
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::activity_data::Entity")]
+    ActivityData,
+    #[sea_orm(entity = "super::guild_lang::Entity")]
+    GuildLang,
+    #[sea_orm(entity = "super::module_activation::Entity")]
+    ModuleActivation,
+    #[sea_orm(entity = "super::server_image::Entity")]
+    ServerImage,
+}
