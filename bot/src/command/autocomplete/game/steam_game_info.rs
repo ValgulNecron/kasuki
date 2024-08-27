@@ -50,7 +50,13 @@ pub async fn autocomplete(
         .unwrap_or(DEFAULT_STRING);
 
     let guard = apps.read().await;
-    let app_names: Vec<String> = guard.clone().iter().map(|app| app.0.clone()).collect();
+    let app_names: Vec<String> = guard
+        .clone()
+        .iter()
+        .map(|app| app.0.clone())
+        .filter(|a| a.contains(game_search))
+        .collect();
+
     let app_names: Vec<&str> = app_names.iter().map(|a| a.as_str()).collect();
     let result = distance_top_n(
         game_search.as_str(),

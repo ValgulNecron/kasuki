@@ -1,15 +1,18 @@
 use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
 use moka::future::Cache;
+use reqwest::{Client, Proxy};
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serde_json::Value;
 use serenity::all::Context;
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, trace};
 
 use crate::api::grpc_server::launcher::grpc_server_launcher;
 use crate::background_task::activity::anime_activity::manage_activity;
@@ -18,9 +21,9 @@ use crate::background_task::server_image::generate_server_image::server_image_ma
 use crate::background_task::update_random_stats::update_random_stats_launcher;
 use crate::config::{BotConfigDetails, Config, ImageConfig};
 use crate::constant::{
-    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_BLACKLISTED_USER_UPDATE,
-    TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
-    TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+    ONE_HOUR, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK,
+    TIME_BETWEEN_BLACKLISTED_USER_UPDATE, TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE,
+    TIME_BETWEEN_PING_UPDATE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
 use crate::event_handler::{BotData, RootUsage};
 use crate::structure::database::ping_history::ActiveModel;

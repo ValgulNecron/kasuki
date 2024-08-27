@@ -9,16 +9,12 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(GuildLang::Table)
+                    .table(GuildData::Table)
                     .if_not_exists()
-                    .col(string(GuildLang::GuildId))
-                    .primary_key(
-                        Index::create().col(GuildLang::GuildId)
-                    )
-                    .col(string(GuildLang::Lang))
-                    .col(timestamp(GuildLang::UpdatedAt).default(
-                        Expr::current_timestamp()
-                    ))
+                    .col(string(GuildData::GuildId))
+                    .primary_key(Index::create().col(GuildData::GuildId))
+                    .col(string(GuildData::GuildName))
+                    .col(timestamp(GuildData::UpdatedAt).default(Expr::current_timestamp()))
                     .to_owned(),
             )
             .await
@@ -26,15 +22,15 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(GuildLang::Table).to_owned())
+            .drop_table(Table::drop().table(GuildData::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-enum GuildLang {
+pub enum GuildData {
     Table,
     GuildId,
-    Lang,
+    GuildName,
     UpdatedAt,
 }

@@ -13,7 +13,8 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(string(PingHistory::ShardId))
                     .primary_key(
-                        Index::create().col(PingHistory::ShardId)
+                        Index::create()
+                            .col(PingHistory::ShardId)
                             .col(PingHistory::Timestamp),
                     )
                     .col(timestamp(PingHistory::Timestamp))
@@ -31,7 +32,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum PingHistory {
+pub enum PingHistory {
     Table,
     ShardId,
     Timestamp,

@@ -1,16 +1,18 @@
 use crate::helper::error_management::error_dispatch;
 use prost::bytes::{Buf, BytesMut};
+use rand::Rng;
 use rusty_ytdl::search::{SearchOptions, SearchType};
 use rusty_ytdl::stream::Stream;
-use rusty_ytdl::VideoOptions;
 use rusty_ytdl::{
     search::{SearchResult, YouTube},
     Video,
 };
+use rusty_ytdl::{RequestOptions, VideoOptions};
 use rusty_ytdl::{VideoError, VideoQuality, VideoSearchOptions};
 use serenity::async_trait;
 use songbird::input::{AudioStream, AudioStreamError, AuxMetadata, Compose, Input};
 use std::io::{Cursor, Read, Seek, SeekFrom};
+use std::path::Path;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
@@ -97,18 +99,48 @@ impl Compose for RustyYoutubeSearch {
     async fn create_async(
         &mut self,
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
+        // check if valid_proxy.txt exists
+        let proxy_path = Path::new("valid_proxy.txt");
+        let proxy = proxy_path.exists();
+
         if self.metadata.is_none() {
             self.aux_metadata().await?;
         }
 
         let url = self.url.clone().unwrap_or_default();
+
+        let request_options = if proxy {
+            trace!("Using proxy");
+            let proxy = fs::read_to_string(proxy_path).map_err(|e| {
+                AudioStreamError::Fail(
+                    error_dispatch::Error::Audio(format!("Failed to read proxy file: {e:?}"))
+                        .into(),
+                )
+            })?;
+            let proxy = proxy.split("\n").collect::<Vec<&str>>();
+            let mut rng = rand::thread_rng();
+            let n = rng.gen_range(0..proxy.len());
+            let proxy = proxy[n];
+            let proxy = reqwest::Proxy::http(proxy).map_err(|e| {
+                AudioStreamError::Fail(
+                    error_dispatch::Error::Audio(format!("Failed to create proxy: {e:?}")).into(),
+                )
+            })?;
+            RequestOptions {
+                proxy: Some(proxy),
+                ..Default::default()
+            }
+        } else {
+            Default::default()
+        };
+
         let video = Video::new_with_options(
             url.clone(),
             VideoOptions {
                 quality: VideoQuality::HighestAudio,
                 filter: VideoSearchOptions::Audio,
                 download_options: Default::default(),
-                request_options: Default::default(),
+                request_options,
             },
         )
         .map_err(|e| {

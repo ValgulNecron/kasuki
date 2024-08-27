@@ -1,3 +1,4 @@
+use crate::m20240815_181459_user_data::UserData;
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
@@ -6,22 +7,26 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Replace the sample below with your own migration_src scripts
+        // Replace the sample below with your own migration scripts
         manager
             .create_table(
                 Table::create()
                     .table(UserColor::Table)
                     .if_not_exists()
                     .col(string(UserColor::UserId))
-                    .primary_key(
-                        Index::create().col(UserColor::UserId)
-                    )
+                    .primary_key(Index::create().col(UserColor::UserId))
                     .col(string(UserColor::Color))
                     .col(string(UserColor::Images))
                     .col(string(UserColor::ProfilePictureUrl))
-                    .col(timestamp(UserColor::CalculatedAt).default(
-                        Expr::current_timestamp()
-                    ))
+                    .col(timestamp(UserColor::CalculatedAt).default(Expr::current_timestamp()))
+                    .foreign_key(
+                        &mut ForeignKey::create()
+                            .name("FK_user_color")
+                            .from(UserData::Table, UserData::UserId)
+                            .to(UserColor::Table, UserColor::UserId)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await
@@ -35,7 +40,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum UserColor {
+pub enum UserColor {
     Table,
     UserId,
     Color,

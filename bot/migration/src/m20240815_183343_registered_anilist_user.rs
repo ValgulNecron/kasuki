@@ -1,3 +1,5 @@
+use crate::m20240815_181459_user_data::UserData;
+use crate::m20240826_215627_server_user_relation::ServerUserRelation;
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
@@ -14,9 +16,15 @@ impl MigrationTrait for Migration {
                     .col(string(RegisteredUser::UserId))
                     .primary_key(Index::create().col(RegisteredUser::UserId))
                     .col(integer(RegisteredUser::AnilistId))
-                    .col(timestamp(RegisteredUser::RegisteredAt).default(
-                        Expr::current_timestamp()
-                    ))
+                    .col(timestamp(RegisteredUser::RegisteredAt).default(Expr::current_timestamp()))
+                    .foreign_key(
+                        &mut ForeignKey::create()
+                            .name("FK_user_registered_user")
+                            .from(UserData::Table, UserData::UserId)
+                            .to(RegisteredUser::Table, RegisteredUser::UserId)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await
@@ -30,7 +38,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum RegisteredUser {
+pub enum RegisteredUser {
     Table,
     UserId,
     AnilistId,

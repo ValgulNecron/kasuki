@@ -10,6 +10,7 @@ mod m20240815_231355_kill_switch;
 mod m20240815_231524_activity_data;
 mod m20240815_231531_guild_data;
 mod m20240815_231538_ping_history;
+mod m20240826_215627_server_user_relation;
 
 pub struct Migrator;
 

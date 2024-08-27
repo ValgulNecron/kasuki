@@ -12,18 +12,14 @@ impl MigrationTrait for Migration {
                     .table(KillSwitch::Table)
                     .if_not_exists()
                     .col(string(KillSwitch::GuildId))
-                    .primary_key(
-                        Index::create().col(KillSwitch::GuildId)
-                    )
+                    .primary_key(Index::create().col(KillSwitch::GuildId))
                     .col(boolean(KillSwitch::AIModule).default(true))
                     .col(boolean(KillSwitch::AnilistModule).default(true))
                     .col(boolean(KillSwitch::GameModule).default(true))
                     .col(boolean(KillSwitch::NewMembersModule).default(false))
                     .col(boolean(KillSwitch::AnimeModule).default(true))
                     .col(boolean(KillSwitch::VnModule).default(true))
-                    .col(timestamp(KillSwitch::UpdatedAt).default(
-                        Expr::current_timestamp()
-                    ))
+                    .col(timestamp(KillSwitch::UpdatedAt).default(Expr::current_timestamp()))
                     .to_owned(),
             )
             .await
@@ -37,7 +33,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum KillSwitch {
+pub enum KillSwitch {
     Table,
     GuildId,
     AIModule,

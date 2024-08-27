@@ -1,3 +1,5 @@
+use crate::m20240815_231531_guild_data::GuildData;
+use crate::m20240826_215627_server_user_relation::ServerUserRelation;
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
@@ -14,16 +16,24 @@ impl MigrationTrait for Migration {
                     .col(integer(ActivityData::AnimeId))
                     .col(string(ActivityData::ServerId))
                     .primary_key(
-                        Index::create().col(ActivityData::AnimeId).col(ActivityData::ServerId)
+                        Index::create()
+                            .col(ActivityData::AnimeId)
+                            .col(ActivityData::ServerId),
                     )
                     .col(integer(ActivityData::Episode))
                     .col(string(ActivityData::Webhook))
                     .col(string(ActivityData::Name))
                     .col(string(ActivityData::Image))
                     .col(integer(ActivityData::Delay))
-                    .col(timestamp(ActivityData::Timestamp).default(
-                        Expr::current_timestamp()
-                    ))
+                    .col(timestamp(ActivityData::Timestamp).default(Expr::current_timestamp()))
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("FK_server_activity")
+                            .from(GuildData::Table, GuildData::GuildId)
+                            .to(ActivityData::Table, ActivityData::ServerId)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await
@@ -37,7 +47,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum ActivityData {
+pub enum ActivityData {
     Table,
     AnimeId,
     ServerId,
