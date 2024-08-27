@@ -9,9 +9,11 @@ services:
     # image: valgul/kasuki:dev # the latest dev build that compile there could be error.
     container_name: kasuki
     restart: unless-stopped
+    hostname: kasuki
+    depends_on:
+      - db
+      - caddy
     tty: true
-    ports:
-      - "443:443"
     volumes:
       - ./db/:/kasuki/db
       - ./logs/:/kasuki/logs/
@@ -21,4 +23,40 @@ services:
       - ./config.toml:/kasuki/config.toml
       - ./images:/kasuki/images
       - /etc/localtime:/etc/localtime:ro
+      # - ./proxy.txt:/kasuki/valid_proxy.txt # Uncomment this line if you want to use proxy you need to have a valid proxy list please check if they work before.
+    networks:
+      - kasuki
+  db:
+    image: postgres
+    restart: always
+    hostname: db
+    depends_on:
+      - caddy
+    volumes:
+      - ./db/:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=example
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    networks:
+      - kasuki
+    ports:
+      - "10001:5432"
+  caddy:
+    image: valgul/caddy:latest
+    restart: always
+    hostname: caddy
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/data:/data
+      - ./caddy/config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - kasuki
+
+
+networks:
+  kasuki:
+    driver: bridge
 

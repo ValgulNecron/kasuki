@@ -1,0 +1,67 @@
+{
+  "name": "manga",
+  "desc": "Info of a manga.",
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
+  "nsfw": false,
+  "args": [
+    {
+      "name": "manga_name",
+      "desc": "Name of the manga you want to check.",
+      "required": true,
+      "autocomplete": true,
+      "arg_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "manga_name",
+          "desc": "Name of the manga you want to check."
+        },
+        {
+          "code": "fr",
+          "name": "nom_du_manga",
+          "desc": "Nom du manga que vous voulez vérifier."
+        },
+        {
+          "code": "de",
+          "name": "manga_name",
+          "desc": "Name des Mangas, den Sie überprüfen möchten."
+        },
+        {
+          "code": "ja",
+          "name": "manga_no_namae",
+          "desc": "チェックしたいマンガの名前。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "manga",
+      "desc": "Info of a manga."
+    },
+    {
+      "code": "fr",
+      "name": "manga",
+      "desc": "Infos d'un manga."
+    },
+    {
+      "code": "de",
+      "name": "manga",
+      "desc": "Info eines Mangas."
+    },
+    {
+      "code": "ja",
+      "name": "manga",
+      "desc": "マンガの情報。"
+    }
+  ]
+}

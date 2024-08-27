@@ -1,0 +1,67 @@
+{
+  "name": "ln",
+  "desc": "Info of a light novel.",
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
+  "nsfw": false,
+  "args": [
+    {
+      "name": "ln_name",
+      "desc": "Name of the light novel you want to check.",
+      "required": true,
+      "autocomplete": true,
+      "arg_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "ln_name",
+          "desc": "Name of the light novel you want to check."
+        },
+        {
+          "code": "fr",
+          "name": "ln_nom",
+          "desc": "Nom du roman léger que vous souhaitez vérifier."
+        },
+        {
+          "code": "de",
+          "name": "ln_name",
+          "desc": "Name des leichten Romans, den Sie überprüfen möchten."
+        },
+        {
+          "code": "ja",
+          "name": "ln_namae",
+          "desc": "チェックするライトノベルの名前。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "ln",
+      "desc": "Info of a light novel."
+    },
+    {
+      "code": "fr",
+      "name": "ln",
+      "desc": "Informations sur un roman léger."
+    },
+    {
+      "code": "de",
+      "name": "ln",
+      "desc": "Informationen zu einem leichten Roman."
+    },
+    {
+      "code": "ja",
+      "name": "ln",
+      "desc": "ライトノベルの情報。"
+    }
+  ]
+}

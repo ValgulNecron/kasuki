@@ -1,0 +1,20 @@
+[package]
+name = "migration"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sea-orm-migration = { version = "1.1.0-rc.1", features = ["runtime-tokio-rustls", "sqlx-postgres", "sqlx-sqlite"] }
+tokio = { version = "1.39.2", features = ["rt", "rt-multi-thread", "macros"] }
+
+[profile.dev]
+codegen-units = 512
+debug = 2
+
+[profile.release]
+lto = true
+strip = "symbols"
+
+[[bin]]
+name = "migration"
+path = "src/main.rs"

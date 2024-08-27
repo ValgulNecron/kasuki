@@ -1,0 +1,335 @@
+{
+  "command_list": {
+    "bot info": {
+      "user_info": {
+        "260706120086192129": {
+          "user_name": "valgul",
+          "usage": 2,
+          "hourly_usage": {
+            "11:08:2024:22": 1,
+            "11:08:2024:17": 1
+          }
+        }
+      }
+    },
+    "manga manga_name": {
+      "user_info": {
+        "1251465193603727414": {
+          "user_name": "61haunt",
+          "usage": 1,
+          "hourly_usage": {
+            "13:08:2024:20": 1
+          }
+        }
+      }
+    },
+    "random type": {
+      "user_info": {
+        "1232049911348859086": {
+          "user_name": "yuri857",
+          "usage": 1,
+          "hourly_usage": {
+            "13:08:2024:22": 1
+          }
+        },
+        "587210850771795969": {
+          "user_name": "cocona_world",
+          "usage": 1,
+          "hourly_usage": {
+            "14:08:2024:20": 1
+          }
+        }
+      }
+    },
+    "audio play": {
+      "user_info": {
+        "260706120086192129": {
+          "user_name": "valgul",
+          "usage": 2,
+          "hourly_usage": {
+            "15:08:2024:17": 1,
+            "13:08:2024:23": 1
+          }
+        }
+      }
+    },
+    "user banner": {
+      "user_info": {
+        "1040995196046946368": {
+          "user_name": "anonkisser696969",
+          "usage": 2,
+          "hourly_usage": {
+            "09:08:2024:22": 2
+          }
+        }
+      }
+    },
+    "bot credit": {
+      "user_info": {
+        "1264074496181010498": {
+          "user_name": "gojo04001",
+          "usage": 1,
+          "hourly_usage": {
+            "08:08:2024:04": 1
+          }
+        }
+      }
+    },
+    "vn user": {
+      "user_info": {
+        "1212412391732547594": {
+          "user_name": "megumin_0000",
+          "usage": 1,
+          "hourly_usage": {
+            "11:08:2024:15": 1
+          }
+        }
+      }
+    },
+    "ai question": {
+      "user_info": {
+        "1121599067835858984": {
+          "user_name": "raja0771",
+          "usage": 1,
+          "hourly_usage": {
+            "12:08:2024:21": 1
+          }
+        },
+        "702484770105589791": {
+          "user_name": "tittiegroper",
+          "usage": 1,
+          "hourly_usage": {
+            "10:08:2024:18": 1
+          }
+        },
+        "1222527144421490725": {
+          "user_name": "carvaping6",
+          "usage": 2,
+          "hourly_usage": {
+            "14:08:2024:16": 1,
+            "14:08:2024:11": 1
+          }
+        },
+        "1232049911348859086": {
+          "user_name": "yuri857",
+          "usage": 2,
+          "hourly_usage": {
+            "13:08:2024:22": 2
+          }
+        },
+        "1094358289082503179": {
+          "user_name": "eggyolksnorter",
+          "usage": 1,
+          "hourly_usage": {
+            "14:08:2024:11": 1
+          }
+        },
+        "587210850771795969": {
+          "user_name": "cocona_world",
+          "usage": 1,
+          "hourly_usage": {
+            "14:08:2024:20": 1
+          }
+        },
+        "1212777355760767021": {
+          "user_name": "invaderscourge",
+          "usage": 1,
+          "hourly_usage": {
+            "08:08:2024:13": 1
+          }
+        }
+      }
+    },
+    "ai image": {
+      "user_info": {
+        "1180432519569625141": {
+          "user_name": "fggtrr",
+          "usage": 1,
+          "hourly_usage": {
+            "13:08:2024:15": 1
+          }
+        },
+        "587210850771795969": {
+          "user_name": "cocona_world",
+          "usage": 10,
+          "hourly_usage": {
+            "15:08:2024:09": 4,
+            "14:08:2024:20": 6
+          }
+        },
+        "1207532097938661417": {
+          "user_name": "gobletcricker",
+          "usage": 1,
+          "hourly_usage": {
+            "13:08:2024:00": 1
+          }
+        },
+        "945893239733518447": {
+          "user_name": "neeves_777",
+          "usage": 1,
+          "hourly_usage": {
+            "09:08:2024:16": 1
+          }
+        },
+        "1212412391732547594": {
+          "user_name": "megumin_0000",
+          "usage": 2,
+          "hourly_usage": {
+            "11:08:2024:15": 1,
+            "11:08:2024:19": 1
+          }
+        },
+        "1213487072028135484": {
+          "user_name": "destr0yer2004",
+          "usage": 4,
+          "hourly_usage": {
+            "09:08:2024:21": 4
+          }
+        },
+        "797990134711582803": {
+          "user_name": "grenadine333",
+          "usage": 1,
+          "hourly_usage": {
+            "12:08:2024:06": 1
+          }
+        },
+        "1190627884105220156": {
+          "user_name": "smg93x_99270",
+          "usage": 1,
+          "hourly_usage": {
+            "07:08:2024:21": 1
+          }
+        },
+        "395927154052825088": {
+          "user_name": ".kcflow",
+          "usage": 8,
+          "hourly_usage": {
+            "11:08:2024:14": 8
+          }
+        },
+        "691743334141788272": {
+          "user_name": "peradoxpoke",
+          "usage": 1,
+          "hourly_usage": {
+            "11:08:2024:04": 1
+          }
+        },
+        "977113073800343634": {
+          "user_name": "von.hearte",
+          "usage": 1,
+          "hourly_usage": {
+            "12:08:2024:23": 1
+          }
+        },
+        "1121599067835858984": {
+          "user_name": "raja0771",
+          "usage": 1,
+          "hourly_usage": {
+            "12:08:2024:03": 1
+          }
+        },
+        "1072617740327727154": {
+          "user_name": "walker456.",
+          "usage": 1,
+          "hourly_usage": {
+            "14:08:2024:03": 1
+          }
+        },
+        "583985122638823432": {
+          "user_name": "epic_kun",
+          "usage": 2,
+          "hourly_usage": {
+            "10:08:2024:11": 2
+          }
+        }
+      }
+    },
+    "random_anime random_image": {
+      "user_info": {
+        "254037357701890048": {
+          "user_name": "flameburst4",
+          "usage": 1,
+          "hourly_usage": {
+            "15:08:2024:16": 1
+          }
+        }
+      }
+    },
+    "character name": {
+      "user_info": {
+        "1040995196046946368": {
+          "user_name": "anonkisser696969",
+          "usage": 2,
+          "hourly_usage": {
+            "09:08:2024:22": 2
+          }
+        },
+        "1212412391732547594": {
+          "user_name": "megumin_0000",
+          "usage": 2,
+          "hourly_usage": {
+            "11:08:2024:15": 2
+          }
+        },
+        "1232049911348859086": {
+          "user_name": "yuri857",
+          "usage": 2,
+          "hourly_usage": {
+            "13:08:2024:22": 2
+          }
+        }
+      }
+    },
+    "user profile": {
+      "user_info": {
+        "1212777355760767021": {
+          "user_name": "invaderscourge",
+          "usage": 2,
+          "hourly_usage": {
+            "08:08:2024:00": 1,
+            "09:08:2024:14": 1
+          }
+        },
+        "801898030239842354": {
+          "user_name": "gutzz77",
+          "usage": 1,
+          "hourly_usage": {
+            "10:08:2024:07": 1
+          }
+        }
+      }
+    },
+    "anime anime_name": {
+      "user_info": {
+        "1121599067835858984": {
+          "user_name": "raja0771",
+          "usage": 1,
+          "hourly_usage": {
+            "12:08:2024:21": 1
+          }
+        },
+        "1212777355760767021": {
+          "user_name": "invaderscourge",
+          "usage": 1,
+          "hourly_usage": {
+            "09:08:2024:18": 1
+          }
+        },
+        "1160178916544225341": {
+          "user_name": "yor0024",
+          "usage": 1,
+          "hourly_usage": {
+            "10:08:2024:07": 1
+          }
+        },
+        "254037357701890048": {
+          "user_name": "flameburst4",
+          "usage": 1,
+          "hourly_usage": {
+            "15:08:2024:16": 1
+          }
+        }
+      }
+    }
+  }
+}

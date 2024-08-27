@@ -1,0 +1,67 @@
+{
+  "name": "character",
+  "desc": "Get information about a character.",
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
+  "nsfw": false,
+  "args": [
+    {
+      "name": "name",
+      "desc": "The name of the character.",
+      "required": true,
+      "autocomplete": true,
+      "arg_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "name",
+          "desc": "The name of the character."
+        },
+        {
+          "code": "fr",
+          "name": "nom",
+          "desc": "Le nom du personnage."
+        },
+        {
+          "code": "de",
+          "name": "name",
+          "desc": "Der Name des Charakters."
+        },
+        {
+          "code": "ja",
+          "name": "名前",
+          "desc": "キャラクターの名前です。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "character",
+      "desc": "Get information about a character."
+    },
+    {
+      "code": "fr",
+      "name": "personnage",
+      "desc": "Obtenir des informations sur un personnage."
+    },
+    {
+      "code": "de",
+      "name": "zeichen",
+      "desc": "Erhalte Informationen über einen Charakter."
+    },
+    {
+      "code": "ja",
+      "name": "キャラクター",
+      "desc": "キャラクターに関する情報を取得します。"
+    }
+  ]
+}

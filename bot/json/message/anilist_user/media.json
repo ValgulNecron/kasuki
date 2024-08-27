@@ -1,0 +1,58 @@
+{
+  "en": {
+    "genre": "Genre",
+    "tag": "Tag",
+    "staffs": "Staff with role:",
+    "characters": "Characters:",
+    "format": "Format:",
+    "source": "Source:",
+    "start_date": "Start date:",
+    "end_date": "End date:",
+    "fav": "Favorites:",
+    "duration": "Duration:",
+    "chapter": "Chapters:",
+    "minutes": "minutes"
+  },
+  "fr": {
+    "genre": "Genre",
+    "tag": "Tag",
+    "staffs": "Staff avec le rôle:",
+    "characters": "Personnages:",
+    "format": "Format:",
+    "source": "Source:",
+    "start_date": "Date de début:",
+    "end_date": "Date de fin:",
+    "fav": "Favoris:",
+    "duration": "Durée:",
+    "chapter": "Chapitres:",
+    "minutes": "minutes"
+  },
+  "jp": {
+    "genre": "ジャンル",
+    "tag": "タグ",
+    "staffs": "スタッフとロール:",
+    "characters": "キャラクター:",
+    "format": "フォーマット:",
+    "source": "ソース:",
+    "start_date": "開始日:",
+    "end_date": "終了日:",
+    "fav": "お気に入り:",
+    "duration": "期間:",
+    "chapter": "チャプター:",
+    "minutes": "分"
+  },
+  "de": {
+    "genre": "Genre",
+    "tag": "Tag",
+    "staffs": "Staff with role:",
+    "characters": "Characters:",
+    "format": "Format:",
+    "source": "Source:",
+    "start_date": "Start date:",
+    "end_date": "End date:",
+    "fav": "Favorites:",
+    "duration": "Duration:",
+    "chapter": "Chapters:",
+    "minutes": "minutes"
+  }
+}

@@ -106,6 +106,7 @@
         - [X] User command
         - [X] Message command (none exist but registration exist)
         - [X] User installed app.
+    - [ ] Rework the bot way of working to be clearer.
 
 - Optimisation needed:
     - [ ] anilist_server list_user

@@ -108,7 +108,7 @@ fabric.properties
 
 .idea/rust-project.json
 
-./logs
+logs
 /.idea/.gitignore
 /.idea/codeStyles/codeStyleConfig.xml
 /.idea/dataSources.xml

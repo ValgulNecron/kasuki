@@ -1,0 +1,36 @@
+{
+  "name": "waifu",
+  "desc": "Give you the best waifu.",
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
+  "nsfw": false,
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "waifu",
+      "desc": "Give you the best waifu."
+    },
+    {
+      "code": "fr",
+      "name": "waifu",
+      "desc": "Donner la meilleure waifu."
+    },
+    {
+      "code": "de",
+      "name": "waifu",
+      "desc": "Die beste Waifu für dich."
+    },
+    {
+      "code": "ja",
+      "name": "ワイフ",
+      "desc": "最高のワイフを提供します。"
+    }
+  ]
+}

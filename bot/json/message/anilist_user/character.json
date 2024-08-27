@@ -1,0 +1,30 @@
+{
+  "en": {
+    "date_of_birth": "Date of Birth:",
+    "age": "Age:",
+    "gender": "Gender:",
+    "fav": "Favorites:",
+    "blood_type": "Blood Type:"
+  },
+  "fr": {
+    "date_of_birth": "Date de naissance :",
+    "age": "Age :",
+    "gender": "Genre :",
+    "fav": "Favoris :",
+    "blood_type": "Type de sang :"
+  },
+  "de": {
+    "date_of_birth": "Geburtsdatum :",
+    "age": "Alter :",
+    "gender": "Geschlecht :",
+    "fav": "Favoriten :",
+    "blood_type": "Blutgruppe :"
+  },
+  "jp": {
+    "date_of_birth": "生年月日:",
+    "age": "年齢:",
+    "gender": "性別:",
+    "fav": "お気に入り:",
+    "blood_type": "血液型:"
+  }
+}

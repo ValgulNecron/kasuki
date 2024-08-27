@@ -10,10 +10,18 @@ bot_activity = ""
 [bot.config]
 # Whether to remove old commands on startup. Set to true to enable.
 remove_old_commands = true
+# Whether the bot should respect the prenium status of some command invocations. the command in question are ai module (image, transcript, translation, question) because it cost money.
+# and the "graph" command that generate graph from user stats.
+# the guild image command is not impacted by this it's not costly enought to be considered.
+respect_premium = true
 
-# The database type used by the bot. Options include sqlite or postgres.
-db_type = "sqlite"
-
+# The database type used by the bot. Options include sqlite or postgresql.
+db_type = "postgresql"
+# only for postgres
+host = "db" # default to docker hostname
+port = 5432 # default port
+user = "postgres" # change this to your username
+password = "example" # change this to your password
 # Image saving settings
 [image]
 # Determines where to save generated images. Options include local, remote, or false.
@@ -92,9 +100,10 @@ grpc_is_on = false
 grpc_port = 50051
 
 # Whether to use TLS encryption for the gRPC server.
-use_tls = false
+use_tls = true
 
 # Paths to the SSL certificate and key for TLS encryption.
-tls_cert_path = ""
-tls_key_path = ""
+tls_cert_path = "cert/cert.pem"
+tls_key_path = "cert/key.pem"
+
 

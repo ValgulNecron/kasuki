@@ -1,0 +1,3 @@
+kasuki.example.com {
+    reverse_proxy kasuki:443
+}
