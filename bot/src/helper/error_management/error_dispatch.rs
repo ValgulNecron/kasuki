@@ -11,24 +11,12 @@ use thiserror::Error;
 
 #[derive(Debug, Error, PartialEq, Clone)]
 pub enum Error {
-    #[error("Error while getting guild data: {0}")]
-    GettingGuild(String),
     #[error("Error while getting an option: {0}")]
     Option(String),
-    #[error("Error while processing image: {0}")]
-    ImageProcessing(String),
     #[error("Error while doing a web request: {0}")]
     WebRequest(String),
-    #[error("Error while getting a byte: {0}")]
-    Byte(String),
-    #[error("Error while doing a webhook request: {0}")]
-    Webhook(String),
-    #[error("Error with the database: {0}")]
-    Database(String),
     #[error("Error while sending the response: {0}")]
     Sending(String),
-    #[error("Error while initializing the logger: {0}")]
-    Logger(String),
     #[error("The channel is not nsfw but the media is.")]
     AdultMedia,
     #[error("Error with the JSON: {0}")]

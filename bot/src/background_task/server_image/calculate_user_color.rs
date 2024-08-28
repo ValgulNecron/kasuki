@@ -82,7 +82,7 @@ pub async fn calculate_users_color(
                 user_id: Set(id.clone()),
                 username: Set(member.user.name.clone()),
                 added_at: Set(Utc::now().naive_utc()),
-                is_bot: Set(member.user.bot.clone()),
+                is_bot: Set(member.user.bot),
                 banner: Set(member.user.banner_url().unwrap_or_default()),
             })
             .on_conflict(
@@ -149,7 +149,7 @@ pub async fn return_average_user_color(
                         user_id: Set(id.clone()),
                         username: Set(member.user.name.clone()),
                         added_at: Set(Utc::now().naive_utc()),
-                        is_bot: Set(member.user.bot.clone()),
+                        is_bot: Set(member.user.bot),
                         banner: Set(member.user.banner_url().unwrap_or_default()),
                     })
                     .on_conflict(
@@ -194,7 +194,7 @@ pub async fn return_average_user_color(
                     user_id: Set(id.clone()),
                     username: Set(member.user.name.clone()),
                     added_at: Set(Utc::now().naive_utc()),
-                    is_bot: Set(member.user.bot.clone()),
+                    is_bot: Set(member.user.bot),
                     banner: Set(member.user.banner_url().unwrap_or_default()),
                 })
                 .on_conflict(

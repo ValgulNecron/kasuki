@@ -53,7 +53,6 @@ async fn main() {
     config.set_default_value_on_none();
     let log = config.logging.log_level.clone();
     let discord_token = config.bot.discord_token.clone();
-    let db_type = config.db.db_type.clone();
     let max_log_retention_days = config.logging.max_log_retention;
     let config = Arc::new(config);
 

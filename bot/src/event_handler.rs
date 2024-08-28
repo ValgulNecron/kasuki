@@ -181,7 +181,6 @@ impl EventHandler for Handler {
             guild_id: Set(guild.id.to_string()),
             guild_name: Set(guild.name),
             updated_at: Set(guild.joined_at.naive_utc()),
-            ..Default::default()
         })
         .on_conflict(
             sea_orm::sea_query::OnConflict::column(
@@ -244,7 +243,7 @@ impl EventHandler for Handler {
             user_id: Set(member.user.id.to_string()),
             username: Set(member.user.name.clone()),
             added_at: Set(Utc::now().naive_utc()),
-            is_bot: Set(member.user.bot.clone()),
+            is_bot: Set(member.user.bot),
             banner: Set(member.user.banner_url().unwrap_or_default()),
         })
         .on_conflict(

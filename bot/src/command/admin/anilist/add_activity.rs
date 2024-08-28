@@ -155,7 +155,6 @@ impl SlashCommand for AddActivityCommand {
                 name: Set(trimmed_anime_name),
                 delay: Set(delay),
                 image: Set(image),
-                ..Default::default()
             })
             .exec(&connection)
             .await?;
