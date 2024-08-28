@@ -1,4 +1,4 @@
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::read_file::read_file_as_string;
@@ -8,7 +8,7 @@ use std::error::Error;
 pub async fn load_localization<'a, T: serde::Deserialize<'a> + Clone>(
     guild_id: String,
     path: &str,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<T, Box<dyn Error>> {
     let json_content = read_file_as_string(path)?;
     let json: &'a str = Box::leak(json_content.into_boxed_str());

@@ -3,7 +3,7 @@ use std::io::Cursor;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::get_url;
 use crate::new_member::change_to_x64_url;
 use crate::structure::database::prelude::{UserColor, UserData};
@@ -31,7 +31,7 @@ use tracing::{debug, error, trace};
 pub async fn calculate_users_color(
     members: Vec<Member>,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let guard = user_blacklist_server_image.read().await;
     for member in members {
@@ -82,7 +82,7 @@ pub async fn calculate_users_color(
                 user_id: Set(id.clone()),
                 username: Set(member.user.name.clone()),
                 added_at: Set(Utc::now().naive_utc()),
-                is_bot: Set(member.user.bot.clone()),
+                is_bot: Set(member.user.bot),
                 banner: Set(member.user.banner_url().unwrap_or_default()),
             })
             .on_conflict(
@@ -105,7 +105,7 @@ pub async fn calculate_users_color(
 
 pub async fn return_average_user_color(
     members: Vec<Member>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
     let mut average_colors = Vec::new();
     for member in members {
@@ -149,7 +149,7 @@ pub async fn return_average_user_color(
                         user_id: Set(id.clone()),
                         username: Set(member.user.name.clone()),
                         added_at: Set(Utc::now().naive_utc()),
-                        is_bot: Set(member.user.bot.clone()),
+                        is_bot: Set(member.user.bot),
                         banner: Set(member.user.banner_url().unwrap_or_default()),
                     })
                     .on_conflict(
@@ -194,7 +194,7 @@ pub async fn return_average_user_color(
                     user_id: Set(id.clone()),
                     username: Set(member.user.name.clone()),
                     added_at: Set(Utc::now().naive_utc()),
-                    is_bot: Set(member.user.bot.clone()),
+                    is_bot: Set(member.user.bot),
                     banner: Set(member.user.banner_url().unwrap_or_default()),
                 })
                 .on_conflict(
@@ -275,7 +275,7 @@ pub async fn color_management(
     guilds: &Vec<GuildId>,
     ctx_clone: &Context,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     let mut futures = FuturesUnordered::new();
     for guild in guilds {
@@ -342,7 +342,7 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
 pub async fn get_specific_user_color(
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
     user: User,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     if user_blacklist_server_image
         .read()

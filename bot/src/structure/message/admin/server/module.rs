@@ -2,7 +2,7 @@
 
 use std::error::Error;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
 
@@ -36,7 +36,7 @@ pub struct ModuleLocalised {
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
 pub async fn load_localization_module_activation(
     guild_id: String,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<ModuleLocalised, Box<dyn Error>> {
     let path = "json/message/admin/server/module.json";
     load_localization(guild_id, path, db_config).await

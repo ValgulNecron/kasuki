@@ -55,7 +55,7 @@ async fn send_embed(
             "No option for name",
         )))?;
     let module_localised =
-        load_localization_kill_switch(guild_id.clone(), config.bot.config.clone()).await?;
+        load_localization_kill_switch(guild_id.clone(), config.db.clone()).await?;
     let map = get_option_map_boolean(command_interaction);
     let state = *map
         .get(&String::from("state"))
@@ -63,7 +63,7 @@ async fn send_embed(
             "No option for state",
         )))?;
 
-    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
     let mut row = KillSwitch::find()
         .filter(Column::GuildId.eq("0"))
         .one(&connection)

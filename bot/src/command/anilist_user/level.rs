@@ -11,7 +11,7 @@ use tokio::sync::RwLock;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::Command;
-use crate::config::{BotConfigDetails, Config};
+use crate::config::{Config, DbConfig};
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_dispatch;
@@ -65,13 +65,13 @@ pub async fn send_embed(
         Some(value) => {
             // If a username is provided, fetch the user data and send an embed
             let data: User = get_user(value, anilist_cache).await?;
-            send_embed2(ctx, command_interaction, data, config.bot.config.clone()).await
+            send_embed2(ctx, command_interaction, data, config.db.clone()).await
         }
         None => {
             // If no username is provided, retrieve the ID of the user who triggered the command
             let user_id = &command_interaction.user.id.to_string();
             // Check if the user is registered
-            let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+            let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
             let row = RegisteredUser::find()
                 .filter(Column::UserId.eq(user_id))
                 .one(&connection)
@@ -82,7 +82,7 @@ pub async fn send_embed(
 
             // Fetch the user data and send an embed
             let data: User = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
-            send_embed2(ctx, command_interaction, data, config.bot.config.clone()).await
+            send_embed2(ctx, command_interaction, data, config.db.clone()).await
         }
     }
 }
@@ -104,7 +104,7 @@ pub async fn send_embed2(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: User,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {

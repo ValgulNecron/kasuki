@@ -83,7 +83,7 @@ pub async fn send_embed(
     let avatar_url = user.face();
     let username = user.name;
 
-    let avatar_localised = load_localization_avatar(guild_id, config.bot.config.clone()).await?;
+    let avatar_localised = load_localization_avatar(guild_id, config.db.clone()).await?;
 
     let embed = get_default_embed(None)
         .image(avatar_url)

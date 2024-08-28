@@ -53,7 +53,7 @@ async fn send(
 
     // Load the localized random NSFW image strings
     let random_image_nsfw_localised =
-        load_localization_random_image_nsfw(guild_id, config.bot.config.clone()).await?;
+        load_localization_random_image_nsfw(guild_id, config.db.clone()).await?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());

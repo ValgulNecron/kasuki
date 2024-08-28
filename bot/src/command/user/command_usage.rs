@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::command::user::avatar::get_user_command;
-use crate::config::{BotConfigDetails, Config};
+use crate::config::{Config, DbConfig};
 use crate::event_handler::RootUsage;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::command_usage::load_localization_command_usage;
@@ -35,7 +35,7 @@ impl SlashCommand for CommandUsageCommand {
             &self.ctx,
             &self.command_interaction,
             user,
-            &self.config.bot.config.clone(),
+            &self.config.db.clone(),
             &self.command_usage,
         )
         .await
@@ -46,7 +46,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: User,
-    config: &BotConfigDetails,
+    config: &DbConfig,
     command_usage: &Arc<RwLock<RootUsage>>,
 ) -> Result<(), Box<dyn Error>> {
     let db_config = config.clone();

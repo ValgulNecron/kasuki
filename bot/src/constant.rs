@@ -39,7 +39,6 @@ pub const MEMBER_LIST_LIMIT: u64 = 10;
 /// Limit for activity list.
 pub const ACTIVITY_LIST_LIMIT: u64 = 10;
 /// Path to the data SQLite database.
-pub const SQLITE_DB_PATH: &str = "db/data.db";
 pub const COMMAND_USE_PATH: &str = "db/command_use.json";
 pub const RANDOM_STATS_PATH: &str = "db/random_stats.json";
 pub const NEW_MEMBER_PATH: &str = "db/new_member.json";

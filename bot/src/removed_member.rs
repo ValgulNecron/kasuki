@@ -1,4 +1,4 @@
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
 use crate::custom_serenity_impl::{InternalAction, InternalMemberAction};
 use crate::new_member::{
@@ -16,7 +16,7 @@ pub async fn removed_member_message(
     ctx: &Context,
     guild_id: GuildId,
     user: User,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let ctx = ctx.clone();
     let user_name = user.name.clone();

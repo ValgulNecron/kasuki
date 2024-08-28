@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::constant::LANG_MAP;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::get_guild_lang::get_guild_language;
@@ -110,7 +110,7 @@ impl SteamGameWrapper {
     pub async fn new_steam_game_by_id(
         appid: u128,
         guild_id: String,
-        db_config: BotConfigDetails,
+        db_config: DbConfig,
     ) -> Result<SteamGameWrapper, Box<dyn Error>> {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
@@ -174,7 +174,7 @@ impl SteamGameWrapper {
         search: &str,
         guild_id: String,
         apps: Arc<RwLock<HashMap<String, u128>>>,
-        db_config: BotConfigDetails,
+        db_config: DbConfig,
     ) -> Result<SteamGameWrapper, Box<dyn Error>> {
         let guard = apps.read().await;
         let choices: Vec<(&String, &u128)> = guard.iter().collect();

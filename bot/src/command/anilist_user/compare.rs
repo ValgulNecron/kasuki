@@ -77,7 +77,7 @@ async fn send_embed(
     };
 
     // Load the localized comparison strings
-    let compare_localised = load_localization_compare(guild_id, config.bot.config.clone()).await?;
+    let compare_localised = load_localization_compare(guild_id, config.db.clone()).await?;
 
     // Clone the user data
     let username = user.name.clone();

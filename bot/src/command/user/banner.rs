@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand, UserCommand};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
-use crate::config::{BotConfigDetails, Config};
+use crate::config::{Config, DbConfig};
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::banner::load_localization_banner;
 use serenity::all::{
@@ -49,7 +49,7 @@ pub async fn no_banner(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     username: &str,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -76,7 +76,7 @@ pub async fn send_embed(
     user: User,
     config: &Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_config = config.bot.config.clone();
+    let db_config = config.db.clone();
     let banner = match user.banner_url() {
         Some(url) => url,
         None => {

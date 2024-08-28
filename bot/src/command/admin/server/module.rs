@@ -55,14 +55,14 @@ async fn send_embed(
             "No option for name",
         )))?;
     let module_localised =
-        load_localization_module_activation(guild_id.clone(), config.bot.config.clone()).await?;
+        load_localization_module_activation(guild_id.clone(), config.db.clone()).await?;
     let map = get_option_map_boolean_subcommand_group(command_interaction);
     let state = *map
         .get(&String::from("state"))
         .ok_or(error_dispatch::Error::Option(String::from(
             "No option for state",
         )))?;
-    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
     let mut row = ModuleActivation::find()
         .filter(crate::structure::database::module_activation::Column::GuildId.eq(guild_id.clone()))
         .one(&connection)

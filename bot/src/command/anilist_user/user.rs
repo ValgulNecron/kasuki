@@ -52,7 +52,6 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
     // Retrieve the username from the command interaction
     let map = get_option_map_string(command_interaction);
     let user = map.get(&String::from("username"));
@@ -60,12 +59,12 @@ async fn send_embed(
     // If the username is provided, fetch the user's data from AniList and send it as a response
     if let Some(value) = user {
         let data: User = get_user(value, anilist_cache.clone()).await?;
-        return user::send_embed(ctx, command_interaction, data, config.bot.config.clone()).await;
+        return user::send_embed(ctx, command_interaction, data, config.db.clone()).await;
     }
 
     // If the username is not provided, fetch the data of the user who triggered the command interaction
     let user_id = &command_interaction.user.id.to_string();
-    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
     let row = RegisteredUser::find()
         .filter(Column::UserId.eq(user_id))
         .one(&connection)
@@ -74,7 +73,7 @@ async fn send_embed(
 
     // Fetch the user's data from AniList and send it as a response
     let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
-    user::send_embed(ctx, command_interaction, data, config.bot.config.clone()).await
+    user::send_embed(ctx, command_interaction, data, config.db.clone()).await
 }
 /// Fetches the data of a user from AniList.
 ///

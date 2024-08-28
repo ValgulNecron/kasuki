@@ -1,10 +1,9 @@
-use sea_orm::EntityTrait;
 use serenity::all::{Cache, Http, Member, ShardManager};
 use std::sync::Arc;
 use sysinfo::System;
 use tokio::sync::RwLock;
 use tonic::{Request, Response, Status};
-use tracing::{error, trace};
+use tracing::trace;
 
 use crate::api::grpc_server::service::info::proto::info_server::{Info, InfoServer};
 use crate::api::grpc_server::service::info::proto::{
@@ -15,8 +14,6 @@ use crate::config::Config;
 use crate::constant::APP_VERSION;
 use crate::custom_serenity_impl::{InternalMembershipState, InternalTeamMemberRole};
 use crate::event_handler::{BotData, RootUsage};
-use crate::get_url;
-use crate::structure::database::prelude::UserData;
 
 // Proto module contains the protobuf definitions for the shard service
 pub(crate) mod proto {

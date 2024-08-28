@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
 use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
-use crate::config::{BotConfigDetails, Config};
+use crate::config::{Config, DbConfig};
 use crate::get_url;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
@@ -37,7 +37,6 @@ impl SlashCommand for DeleteActivityCommand {
         let anilist_cache = self.anilist_cache.clone();
         let command_interaction = self.command_interaction.clone();
         let config = self.config.clone();
-        let ctx = self.ctx.clone();
         let map = get_option_map_string_subcommand_group(&command_interaction);
         let anime = map
             .get(&String::from("anime_name"))
@@ -51,12 +50,12 @@ impl SlashCommand for DeleteActivityCommand {
         self.defer().await?;
 
         let delete_activity_localised_text =
-            load_localization_delete_activity(guild_id.clone(), config.bot.config.clone()).await?;
+            load_localization_delete_activity(guild_id.clone(), config.db.clone()).await?;
 
         let media = get_minimal_anime_media(anime.to_string(), anilist_cache).await?;
 
         let anime_id = media.id;
-        remove_activity(guild_id.as_str(), &anime_id, config.bot.config.clone()).await?;
+        remove_activity(guild_id.as_str(), &anime_id, config.db.clone()).await?;
 
         let title = media.title.ok_or(error_dispatch::Error::Option(format!(
             "Anime with id {} not found",
@@ -86,7 +85,7 @@ impl SlashCommand for DeleteActivityCommand {
 async fn remove_activity(
     guild_id: &str,
     anime_id: &i32,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
     let activity = ActivityData::find()

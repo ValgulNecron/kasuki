@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt::Display;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::constant::{COLOR, UNKNOWN};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::error_management::error_dispatch;
@@ -578,7 +578,7 @@ fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
     let mut staff_text = String::new();
     // iterate over staff with index
     let mut i = 0;
-    for (_, s) in staff.into_iter().enumerate() {
+    for s in staff.into_iter() {
         if i > 4 {
             break;
         }
@@ -611,7 +611,7 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
     let mut character_text = String::new();
     // iterate over staff with index
     let mut i = 0;
-    for (_, s) in character.into_iter().enumerate() {
+    for s in character.into_iter() {
         if i > 4 {
             break;
         }
@@ -668,7 +668,7 @@ pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     data: Media,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let is_adult = data.is_adult.unwrap_or(true);
     if is_adult && !get_nsfw(command_interaction, ctx).await {
@@ -716,15 +716,16 @@ pub async fn send_embed(
     }
 
     if let Some(format) = data.format {
-        media_localised.format;
-        format.to_string();
-        true;
+        fields.push((
+        media_localised.format,
+        format.to_string(),
+        true,))
     }
 
     if let Some(source) = data.source {
-        media_localised.source;
-        source.to_string();
-        true;
+        fields.push((media_localised.source,
+        source.to_string(),
+        true,))
     }
 
     if let Some(start_date) = data.start_date.clone() {
@@ -738,7 +739,7 @@ pub async fn send_embed(
         if let Some(year) = start_date.year {
             start_date_str.push_str(year.to_string().as_str());
         }
-        (media_localised.start_date, start_date_str, true);
+        fields.push((media_localised.start_date, start_date_str, true));
     }
 
     if let Some(end_date) = data.end_date.clone() {
@@ -752,30 +753,30 @@ pub async fn send_embed(
         if let Some(year) = end_date.year {
             end_date_str.push_str(year.to_string().as_str());
         }
-        (media_localised.end_date, end_date_str, true);
+        fields.push((media_localised.end_date, end_date_str, true));
     }
 
     if let Some(favourites) = data.favourites {
-        media_localised.fav;
-        favourites.to_string();
-        true;
+        fields.push(( media_localised.fav,
+        favourites.to_string(),
+        true,))
     }
 
     match data.duration {
         Some(duration) => {
-            (
+            fields.push((
                 media_localised.duration,
                 format!("{} {}", duration, media_localised.minutes),
                 true,
-            );
+            ));
         }
         None => {
             if let Some(chapters) = data.chapters {
-                (
+                fields.push((
                     media_localised.duration,
                     format!("{} {}", chapters, media_localised.chapter),
                     true,
-                );
+                ));
             }
         }
     }

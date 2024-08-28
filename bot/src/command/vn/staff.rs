@@ -31,7 +31,7 @@ pub async fn run(
         .get(&String::from("name"))
         .cloned()
         .unwrap_or(String::new());
-    let staff_localised = load_localization_staff(guild_id, config.bot.config.clone()).await?;
+    let staff_localised = load_localization_staff(guild_id, config.db.clone()).await?;
 
     let staff = get_staff(staff.clone(), vndb_cache).await?;
     let staff = staff.results[0].clone();

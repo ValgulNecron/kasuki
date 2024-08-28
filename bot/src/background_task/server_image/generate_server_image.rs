@@ -23,7 +23,7 @@ use crate::background_task::server_image::common::{
     create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
     ColorWithUrl,
 };
-use crate::config::{BotConfigDetails, ImageConfig};
+use crate::config::{DbConfig, ImageConfig};
 use crate::constant::THREAD_POOL_SIZE;
 use crate::get_url;
 use crate::helper::error_management::error_dispatch;
@@ -35,7 +35,7 @@ pub async fn generate_local_server_image(
     ctx: &Context,
     guild_id: GuildId,
     image_config: ImageConfig,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
     let average_colors = return_average_user_color(members, db_config.clone()).await?;
@@ -67,7 +67,7 @@ pub async fn generate_global_server_image(
     ctx: &Context,
     guild_id: GuildId,
     image_config: ImageConfig,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
     let average_colors = UserColor::find().all(&connection).await?;
@@ -90,7 +90,7 @@ pub async fn generate_server_image(
     average_colors: Vec<ColorWithUrl>,
     image_type: String,
     image_config: ImageConfig,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     info!("Generating server image for {}.", guild_id);
     // Fetch the guild information
@@ -247,7 +247,7 @@ pub async fn generate_server_image(
 pub async fn server_image_management(
     ctx: &Context,
     image_config: ImageConfig,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     for guild in ctx.cache.guilds() {
         let ctx_clone = ctx.clone();

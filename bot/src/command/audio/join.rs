@@ -49,7 +49,7 @@ async fn send_embed(
     trace!(?bind);
     let cache = ctx.cache.clone();
     let localised =
-        load_localization_join_localised(guild_id.to_string(), config.bot.config.clone()).await?;
+        load_localization_join_localised(guild_id.to_string(), config.db.clone()).await?;
 
     if manager.get(guild_id).is_none() {
         let channel_id;

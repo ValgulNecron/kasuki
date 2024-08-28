@@ -82,6 +82,6 @@ async fn send_embed(
     };
 
     // Send an embed containing the manga data as a response to the command interaction
-    media::send_embed(ctx, command_interaction, data, config.bot.config.clone()).await?;
+    media::send_embed(ctx, command_interaction, data, config.db.clone()).await?;
     Ok(())
 }

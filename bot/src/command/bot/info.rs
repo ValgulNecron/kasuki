@@ -47,12 +47,12 @@ async fn send_embed(
     };
 
     // Load the localized information strings
-    let info_localised = load_localization_info(guild_id, config.bot.config.clone()).await?;
+    let info_localised = load_localization_info(guild_id, config.db.clone()).await?;
 
     // Retrieve various details about the bot and the server
     let shard_count = ctx.cache.shard_count();
     let shard = ctx.shard_id.to_string();
-    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
     let user_count = UserColor::find().all(&connection).await?.len();
     let bot = ctx.http.get_current_application_info().await?;
     let bot_name = bot.name;

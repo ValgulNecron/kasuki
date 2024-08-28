@@ -1,4 +1,4 @@
-use crate::config::{BotConfigDetails, Config};
+use crate::config::{Config, DbConfig};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
@@ -16,6 +16,7 @@ use tokio::sync::RwLock;
 use tracing::{error, info};
 mod api;
 mod audio;
+pub mod autocomplete;
 mod background_task;
 mod command;
 mod components;
@@ -52,8 +53,6 @@ async fn main() {
     config.set_default_value_on_none();
     let log = config.logging.log_level.clone();
     let discord_token = config.bot.discord_token.clone();
-    let db_type = config.bot.config.db_type.clone();
-    let db_type = db_type.as_str();
     let max_log_retention_days = config.logging.max_log_retention;
     let config = Arc::new(config);
 
@@ -217,7 +216,7 @@ async fn main() {
 }
 
 async fn init_db(config: Arc<Config>) -> Result<(), Box<dyn Error>> {
-    let db_config = config.bot.config.clone();
+    let db_config = config.db.clone();
     let url = get_url(db_config);
     std::env::set_var("DATABASE_URL", url);
     #[cfg(windows)]
@@ -235,7 +234,7 @@ async fn init_db(config: Arc<Config>) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn get_url(db_config: BotConfigDetails) -> String {
+pub fn get_url(db_config: DbConfig) -> String {
     match db_config.db_type.as_str() {
         "postgresql" => {
             let host = match db_config.host.clone() {
@@ -266,14 +265,15 @@ pub fn get_url(db_config: BotConfigDetails) -> String {
                     process::exit(7)
                 }
             };
+
+            let db_name = db_config.database.unwrap_or(String::from("kasuki"));
             let param = vec![("user", user.as_str()), ("password", password.as_str())];
             let param = serde_urlencoded::to_string(&param).unwrap();
-            let url = format!("postgresql://{}:{}/kasuki?{}", host, port, param);
+            let url = format!("postgresql://{}:{}/{}?{}", host, port, db_name, param);
             url
         }
         _ => {
-            let url = "sqlite://bot.db";
-            url.to_string()
+            panic!("Unsupported database type");
         }
     }
 }

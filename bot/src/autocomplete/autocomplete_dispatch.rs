@@ -5,15 +5,15 @@ use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
 use tokio::sync::RwLock;
 
-use crate::command::autocomplete::anilist_server::{add_anime_activity, delete_activity};
-use crate::command::autocomplete::anilist_user::{
+use crate::autocomplete::anilist_server::{add_anime_activity, delete_activity};
+use crate::autocomplete::anilist_user::{
     anime, character, compare, ln, manga, search, staff, studio, user,
 };
-use crate::command::autocomplete::game::steam_game_info;
-use crate::command::autocomplete::management::give_premium_sub::give_premium_sub_autocomplete;
-use crate::command::autocomplete::vn;
-use crate::command::autocomplete::vn::{game, producer};
-use crate::config::BotConfigDetails;
+use crate::autocomplete::game::steam_game_info;
+use crate::autocomplete::management::give_premium_sub::give_premium_sub_autocomplete;
+use crate::autocomplete::vn;
+use crate::autocomplete::vn::{game, producer};
+use crate::config::DbConfig;
 use crate::event_handler::Handler;
 use crate::helper::get_option::subcommand_group::get_subcommand;
 
@@ -25,7 +25,7 @@ pub async fn autocomplete_dispatching(
     let anilist_cache = self_handler.bot_data.anilist_cache.clone();
     let vndb_cache = self_handler.bot_data.vndb_cache.clone();
     let apps = self_handler.bot_data.apps.clone();
-    let db_config = self_handler.bot_data.config.bot.config.clone();
+    let db_config = self_handler.bot_data.config.db.clone();
     match autocomplete_interaction.data.name.as_str() {
         "admin" => {
             admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_config).await
@@ -52,7 +52,7 @@ async fn admin_autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     if autocomplete_interaction
         .data
@@ -90,7 +90,7 @@ async fn anilist_admin_autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     let subcommand = get_subcommand(&autocomplete_interaction).unwrap();
     let subcommand_name = subcommand.name;

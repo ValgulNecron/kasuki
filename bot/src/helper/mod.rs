@@ -5,7 +5,6 @@ pub mod fuzzy_search;
 pub mod general_channel_info;
 pub mod get_guild_lang;
 pub mod get_option;
-pub mod get_user_data;
 pub mod image_saver;
 pub mod make_graphql_cached;
 pub mod read_file;

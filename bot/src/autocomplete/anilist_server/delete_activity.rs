@@ -1,4 +1,4 @@
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
@@ -43,7 +43,7 @@ use tracing::error;
 pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
     let activity_search = map

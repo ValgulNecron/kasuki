@@ -1,4 +1,4 @@
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::get_url;
 use crate::helper::error_management::error_dispatch;
@@ -34,7 +34,7 @@ pub async fn update(
     ctx: &Context,
     component_interaction: &ComponentInteraction,
     page_number: &str,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),

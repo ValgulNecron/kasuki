@@ -26,7 +26,7 @@ pub fn guess_command_kind(command_interaction: &CommandInteraction) -> (CommandK
 
     let option = &options[0];
     let value = &option.value;
-    if let ResolvedValue::SubCommand(op) = value {
+    if let ResolvedValue::SubCommand(_) = value {
         let command_name = format!("{}_{}", command_interaction.data.name.clone(), option.name);
         return (CommandKind::Subcommand, command_name);
     }

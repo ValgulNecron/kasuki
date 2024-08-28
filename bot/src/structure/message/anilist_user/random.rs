@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use serde::{Deserialize, Serialize};
 // Importing necessary libraries and modules
 use crate::structure::message::common::load_localization;
@@ -32,7 +32,7 @@ pub struct RandomLocalised {
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
 pub async fn load_localization_random(
     guild_id: String,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<RandomLocalised, Box<dyn Error>> {
     let path = "json/message/anilist_user/random.json";
     load_localization(guild_id, path, db_config).await

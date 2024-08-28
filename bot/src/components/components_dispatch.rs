@@ -4,7 +4,7 @@ use serenity::all::{ComponentInteraction, Context};
 use tracing::trace;
 
 use crate::components::anilist::{list_all_activity, list_register_user};
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 
 /// Dispatches component interactions based on their custom ID.
 ///
@@ -27,7 +27,7 @@ use crate::config::BotConfigDetails;
 pub async fn components_dispatching(
     ctx: Context,
     component_interaction: ComponentInteraction,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     match component_interaction.data.custom_id.as_str() {
         s if s.starts_with("user_") => {

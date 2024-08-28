@@ -1,29 +1,26 @@
 use std::collections::HashMap;
-use std::fs;
-use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
 use moka::future::Cache;
-use reqwest::{Client, Proxy};
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serde_json::Value;
 use serenity::all::Context;
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info};
 
 use crate::api::grpc_server::launcher::grpc_server_launcher;
 use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::background_task::update_random_stats::update_random_stats_launcher;
-use crate::config::{BotConfigDetails, Config, ImageConfig};
+use crate::config::{Config, DbConfig, ImageConfig};
 use crate::constant::{
-    ONE_HOUR, TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK,
-    TIME_BETWEEN_BLACKLISTED_USER_UPDATE, TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE,
-    TIME_BETWEEN_PING_UPDATE, TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+    TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_BLACKLISTED_USER_UPDATE,
+    TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
+    TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
 use crate::event_handler::{BotData, RootUsage};
 use crate::structure::database::ping_history::ActiveModel;
@@ -39,11 +36,7 @@ use crate::{api, get_url};
 /// * `ctx` - A `Context` instance used to access the bot's data and cache.
 /// * `bot_data` - An `Arc` wrapped `BotData` instance containing the bot's configuration and data.
 ///
-pub async fn thread_management_launcher(
-    ctx: Context,
-    bot_data: Arc<BotData>,
-    db_config: BotConfigDetails,
-) {
+pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db_config: DbConfig) {
     // Clone the necessary data from bot_data
     let command_usage = bot_data.number_of_command_use_per_command.clone();
     let is_grpc_on = bot_data.config.grpc.grpc_is_on;
@@ -99,7 +92,7 @@ pub async fn thread_management_launcher(
 /// * `ctx` - A `Context` instance used to access the bot's data and cache.
 /// * `db_type` - A `String` representing the type of database.
 ///
-async fn ping_manager_thread(ctx: Context, db_config: BotConfigDetails) {
+async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
     // Log a message indicating that the ping thread is being launched
     info!("Launching the ping thread!");
 
@@ -182,7 +175,7 @@ async fn launch_web_server_thread(
     }
     info!("Launching the API server thread!");
 
-    tokio::spawn(api::graphql::server::launch(config.bot.config.clone()));
+    tokio::spawn(api::graphql::server::launch(config.db.clone()));
 
     // Read the data from the context
     let data_read = ctx.data.read().await;
@@ -222,7 +215,7 @@ async fn launch_web_server_thread(
 async fn launch_user_color_management_thread(
     ctx: Context,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     // Create an interval for periodic updates
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE));
@@ -285,7 +278,7 @@ async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>)
 async fn launch_activity_management_thread(
     ctx: Context,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     // Create an interval for periodic updates
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_ACTIVITY_CHECK));
@@ -320,7 +313,7 @@ async fn launch_activity_management_thread(
 async fn launch_server_image_management_thread(
     ctx: Context,
     image_config: ImageConfig,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     // Log a message indicating that the server image management thread is being launched
     info!("Launching the server image management thread!");

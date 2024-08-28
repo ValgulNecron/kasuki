@@ -52,7 +52,7 @@ async fn send_embed(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
-    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
     GuildLang::insert(guild_lang::ActiveModel {
         guild_id: Set(guild_id.clone()),
         lang: Set(lang.clone()),
@@ -60,7 +60,7 @@ async fn send_embed(
     })
     .exec(&connection)
     .await?;
-    let lang_localised = load_localization_lang(guild_id, config.bot.config.clone()).await?;
+    let lang_localised = load_localization_lang(guild_id, config.db.clone()).await?;
 
     let builder_embed = get_default_embed(None)
         .description(lang_localised.desc.replace("$lang$", lang.as_str()))
