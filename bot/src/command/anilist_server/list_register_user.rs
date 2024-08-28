@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::{BotConfigDetails, Config};
+use crate::config::{Config, DbConfig};
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
@@ -53,8 +53,7 @@ async fn send_embed(
     };
 
     // Load the localized text for the list user command
-    let list_user_localised =
-        load_localization_list_user(guild_id, config.bot.config.clone()).await?;
+    let list_user_localised = load_localization_list_user(guild_id, config.db.clone()).await?;
 
     // Retrieve the guild from the guild ID
     let guild_id = command_interaction
@@ -73,14 +72,8 @@ async fn send_embed(
         .await?;
 
     // Retrieve a list of AniList users in the guild
-    let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) = get_the_list(
-        guild,
-        ctx,
-        &list_user_localised,
-        None,
-        config.bot.config.clone(),
-    )
-    .await?;
+    let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) =
+        get_the_list(guild, ctx, &list_user_localised, None, config.db.clone()).await?;
 
     // Check if the number of AniList users is greater than the limit
     let mut response = CreateInteractionResponseFollowup::new().embed(builder_message);
@@ -129,7 +122,7 @@ pub async fn get_the_list(
     ctx: &Context,
     list_user_localised: &ListUserLocalised,
     last_id: Option<UserId>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(CreateEmbed, usize, Option<UserId>), Box<dyn Error>> {
     let mut anilist_user = Vec::new();
     let mut last_id: Option<UserId> = last_id;

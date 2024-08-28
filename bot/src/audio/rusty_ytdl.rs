@@ -1,8 +1,6 @@
 use crate::helper::error_management::error_dispatch;
-use prost::bytes::{Buf, BytesMut};
 use rand::Rng;
 use rusty_ytdl::search::{SearchOptions, SearchType};
-use rusty_ytdl::stream::Stream;
 use rusty_ytdl::{
     search::{SearchResult, YouTube},
     Video,
@@ -11,17 +9,12 @@ use rusty_ytdl::{RequestOptions, VideoOptions};
 use rusty_ytdl::{VideoError, VideoQuality, VideoSearchOptions};
 use serenity::async_trait;
 use songbird::input::{AudioStream, AudioStreamError, AuxMetadata, Compose, Input};
-use std::io::{Cursor, Read, Seek, SeekFrom};
+use std::fs;
 use std::path::Path;
-use std::pin::Pin;
-use std::sync::Arc;
 use std::time::Duration;
-use std::{fs, io};
 use symphonia::core::io::{
     MediaSource, MediaSourceStream, MediaSourceStreamOptions, ReadOnlySource,
 };
-use tokio::runtime::Runtime;
-use tokio::sync::RwLock;
 use tracing::trace;
 use uuid::Uuid;
 

@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt::Display;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_dispatch;
@@ -197,7 +197,7 @@ pub async fn send_embed(
     ctx: &Context,
     command: &CommandInteraction,
     user: User,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let guild_id = match command.guild_id {
         Some(id) => id.to_string(),

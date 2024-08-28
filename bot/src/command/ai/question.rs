@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
-use crate::constant::{DEFAULT_STRING, MAX_FREE_AI_IMAGES, PAID_IMAGE_MULTIPLIER};
+use crate::constant::DEFAULT_STRING;
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_dispatch;

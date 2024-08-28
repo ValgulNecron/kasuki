@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
-use crate::constant::{DEFAULT_STRING, MAX_FREE_AI_TRANSCRIPTS, PAID_TRANSCRIPT_MULTIPLIER};
+use crate::constant::DEFAULT_STRING;
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_dispatch;
@@ -93,8 +93,7 @@ async fn send_embed(
         None => String::from("0"),
     };
 
-    let transcript_localised =
-        load_localization_transcript(guild_id, config.bot.config.clone()).await?;
+    let transcript_localised = load_localization_transcript(guild_id, config.db.clone()).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
         return Err(Box::new(error_dispatch::Error::File(String::from(

@@ -3,6 +3,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub bot: BotConfig,
+    pub db: DbConfig,
     pub image: ImageConfig,
     pub logging: LoggingConfig,
     pub ai: AICfg,
@@ -13,18 +14,18 @@ pub struct Config {
 pub struct BotConfig {
     pub discord_token: String,
     pub bot_activity: String,
-    pub config: BotConfigDetails,
+    pub remove_old_commands: bool,
+    pub respect_premium: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct BotConfigDetails {
-    pub remove_old_commands: bool,
-    pub respect_premium: bool,
+pub struct DbConfig {
     pub db_type: String,
     pub host: Option<String>,
     pub port: Option<u16>,
     pub user: Option<String>,
     pub password: Option<String>,
+    pub database: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -88,15 +89,16 @@ impl Default for Config {
             bot: BotConfig {
                 discord_token: "".to_string(),
                 bot_activity: "".to_string(),
-                config: BotConfigDetails {
-                    remove_old_commands: false,
-                    respect_premium: false,
-                    db_type: "sqlite".to_string(),
-                    host: None,
-                    port: None,
-                    user: None,
-                    password: None,
-                },
+                remove_old_commands: false,
+                respect_premium: false,
+            },
+            db: DbConfig {
+                db_type: "sqlite".to_string(),
+                host: None,
+                port: None,
+                user: None,
+                password: None,
+                database: Some("kasuki".to_string()),
             },
             image: ImageConfig {
                 save_image: "local".to_string(),

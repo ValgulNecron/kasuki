@@ -73,15 +73,14 @@ async fn send_embed(
     };
 
     // Load the localized register strings
-    let register_localised =
-        load_localization_register(guild_id, config.bot.config.clone()).await?;
+    let register_localised = load_localization_register(guild_id, config.db.clone()).await?;
 
     // Retrieve the user's Discord ID and username
     let user_id = &command_interaction.user.id.to_string();
     let username = &command_interaction.user.name;
 
     // Register the user's AniList account by storing the user's Discord ID and AniList ID in the database
-    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
     RegisteredUser::insert(ActiveModel {
         user_id: Set(user_id.to_string()),
         anilist_id: Set(user_data.id),

@@ -73,7 +73,7 @@ async fn send_embed(
     };
 
     // Send an embed with the character information as a response to the command interaction
-    character::send_embed(ctx, command_interaction, data, config.bot.config.clone()).await?;
+    character::send_embed(ctx, command_interaction, data, config.db.clone()).await?;
 
     Ok(())
 }

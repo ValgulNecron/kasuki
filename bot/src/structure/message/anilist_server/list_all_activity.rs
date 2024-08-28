@@ -2,7 +2,7 @@
 
 use std::error::Error;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
 
@@ -37,7 +37,7 @@ pub struct ListActivityLocalised {
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
 pub async fn load_localization_list_activity(
     guild_id: String,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<ListActivityLocalised, Box<dyn Error>> {
     let path = "json/message/anilist_server/list_all_activity.json";
     load_localization(guild_id, path, db_config).await

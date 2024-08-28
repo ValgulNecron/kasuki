@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
-use crate::constant::{DEFAULT_STRING, MAX_FREE_AI_QUESTIONS, PAID_QUESTION_MULTIPLIER};
+use crate::constant::DEFAULT_STRING;
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_dispatch;
@@ -140,8 +140,7 @@ async fn send_embed(
         None => String::from("0"),
     };
 
-    let image_localised =
-        load_localization_image(guild_id.clone(), config.bot.config.clone()).await?;
+    let image_localised = load_localization_image(guild_id.clone(), config.db.clone()).await?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 

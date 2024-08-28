@@ -1,4 +1,4 @@
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::get_url;
 use crate::structure::database::guild_lang::{Column, Model};
 use crate::structure::database::prelude::GuildLang;
@@ -19,7 +19,7 @@ use sea_orm::QueryFilter;
 /// # Returns
 ///
 /// * A string representing the language setting for the given guild. If no language setting is found, it returns "en".
-pub async fn get_guild_language(guild_id: String, db_config: BotConfigDetails) -> String {
+pub async fn get_guild_language(guild_id: String, db_config: DbConfig) -> String {
     if guild_id == *"0" {
         return String::from("en");
     };

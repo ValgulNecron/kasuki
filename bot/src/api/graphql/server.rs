@@ -1,5 +1,5 @@
 use crate::api::graphql::query_root;
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::get_url;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql_poem::GraphQL;
@@ -25,7 +25,7 @@ lazy_static! {
 async fn graphql_playground() -> impl IntoResponse {
     Html(playground_source(GraphQLPlaygroundConfig::new(&ENDPOINT)))
 }
-pub async fn launch(db_config: BotConfigDetails) {
+pub async fn launch(db_config: DbConfig) {
     dotenvy::dotenv().ok();
     let database = Database::connect(get_url(db_config))
         .await

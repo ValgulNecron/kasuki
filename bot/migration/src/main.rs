@@ -5,12 +5,13 @@ use std::env;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let db_name = database_url.split("/").last().unwrap_or_default().split("?")[0];
     match PgPool::connect(&database_url).await {
         Ok(_) => (),
         Err(_) => {
-            let database_url = database_url.replace("kasuki", "");
+            let database_url = database_url.replace(db_name, "");
             let pool = PgPool::connect(&database_url).await?;
-            query("CREATE DATABASE kasuki").execute(&pool).await?;
+            query(&format!("CREATE DATABASE {}", db_name)).execute(&pool).await?;
         }
     };
     cli::run_cli(migration::Migrator).await;

@@ -84,7 +84,7 @@ async fn send_embed(
     };
 
     // Load the localized studio strings
-    let studio_localised = load_localization_studio(guild_id, config.bot.config.clone()).await?;
+    let studio_localised = load_localization_studio(guild_id, config.db.clone()).await?;
 
     // Initialize a string to store the content of the response
     let mut content = String::new();

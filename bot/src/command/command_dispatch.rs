@@ -44,7 +44,7 @@ use crate::command::user::command_usage::CommandUsageCommand;
 use crate::command::user::profile::ProfileCommand;
 use crate::command::vn;
 use crate::command::vn::{game, producer, stats};
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::event_handler::Handler;
 use crate::get_url;
 use crate::helper::error_management::error_dispatch;
@@ -551,23 +551,10 @@ pub async fn dispatch_command(
     Ok(())
 }
 
-/// Checks if a module is activated.
-///
-/// This function retrieves the activation status of a module for a specific guild.
-/// It checks both the activation status and the kill switch status of the module.
-///
-/// # Arguments
-///
-/// * `guild_id` - The ID of the guild.
-/// * `module` - The name of the module.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the module is activated, or `Err` if an error occurred.
 pub async fn check_if_module_is_on(
     guild_id: String,
     module: &str,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<bool, Box<dyn Error>> {
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
     let row = ModuleActivation::find()
@@ -589,20 +576,9 @@ pub async fn check_if_module_is_on(
     Ok(state)
 }
 
-/// Checks the kill switch status of a module.
-///
-/// This function retrieves the kill switch status of a module.
-///
-/// # Arguments
-///
-/// * `module` - The name of the module.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the kill switch is not activated, or `Err` if an error occurred.
 async fn check_kill_switch_status(
     module: &str,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
     guild_id: String,
 ) -> Result<bool, Box<dyn Error>> {
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
@@ -624,94 +600,6 @@ async fn check_kill_switch_status(
     Ok(check_activation_status(module, row).await)
 }
 
-/// Executes the Anilist server command.
-///
-/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
-/// If the subcommand does not match any of the specified subcommands, it returns an error.
-/// It also checks if the Anilist module is activated for the guild. If not, it returns an error.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this command is being executed.
-/// * `command_interaction` - The interaction that triggered this command.
-/// * `command_name` - The name of the command.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
-async fn anilist_server(
-    command_interaction: &CommandInteraction,
-    full_command_name: String,
-    self_handler: &Handler,
-) -> Result<(), Box<dyn Error>> {
-    let config = self_handler.bot_data.config.clone();
-    let anilist_module_error = error_dispatch::Error::Option(String::from(
-        "Anilist module is not activated. Please enable it first.",
-    ));
-    // Retrieve the guild ID from the command interaction
-    let guild_id = match command_interaction.guild_id {
-        Some(id) => id.to_string(),
-        None => "0".to_string(),
-    };
-    // Check if the Anilist module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANILIST", config.bot.config.clone()).await? {
-        return Err(Box::new(anilist_module_error));
-    }
-
-    self_handler
-        .increment_command_use_per_command(
-            full_command_name,
-            command_interaction.user.id.to_string(),
-            command_interaction.user.name.to_string(),
-        )
-        .await;
-    Ok(())
-}
-
-/// Executes the Anilist user command.
-///
-/// This function retrieves the subcommand from the command interaction and matches it to the appropriate function.
-/// If the subcommand does not match any of the specified subcommands, it returns an error.
-/// It also checks if the Anilist module is activated for the guild. If not, it returns an error.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this command is being executed.
-/// * `command_interaction` - The interaction that triggered this command.
-/// * `command_name` - The name of the command.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the command was dispatched successfully, or `Err` if an error occurred.
-async fn anilist_user(
-    command_interaction: &CommandInteraction,
-    full_command_name: String,
-    self_handler: &Handler,
-) -> Result<(), Box<dyn Error>> {
-    let config = self_handler.bot_data.config.clone();
-    let anilist_module_error = error_dispatch::Error::Option(String::from(
-        "Anilist module is not activated. Please enable it first.",
-    ));
-    // Retrieve the guild ID from the command interaction
-    let guild_id = match command_interaction.guild_id {
-        Some(id) => id.to_string(),
-        None => "0".to_string(),
-    };
-    // Check if the Anilist module is on for the guild
-    if !check_if_module_is_on(guild_id, "ANILIST", config.bot.config.clone()).await? {
-        return Err(Box::new(anilist_module_error));
-    }
-
-    self_handler
-        .increment_command_use_per_command(
-            full_command_name,
-            command_interaction.user.id.to_string(),
-            command_interaction.user.name.to_string(),
-        )
-        .await;
-    Ok(())
-}
-
 async fn vn(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -728,7 +616,7 @@ async fn vn(
         Some(id) => id.to_string(),
         None => "0".to_string(),
     };
-    if !check_if_module_is_on(guild_id, "VN", config.bot.config.clone()).await? {
+    if !check_if_module_is_on(guild_id, "VN", config.db.clone()).await? {
         return Err(Box::new(vn_module_error));
     }
     let return_data = match command_name {

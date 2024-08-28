@@ -5,7 +5,7 @@ use serenity::all::{
 };
 
 use crate::command::anilist_server::list_register_user::get_the_list;
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::helper::error_management::error_dispatch;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
@@ -33,7 +33,7 @@ pub async fn update(
     component_interaction: &ComponentInteraction,
     user_id: &str,
     prev_id: &str,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     // Retrieve the guild ID from the component interaction
     let guild_id = match component_interaction.guild_id {

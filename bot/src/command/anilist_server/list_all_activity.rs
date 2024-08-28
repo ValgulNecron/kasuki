@@ -52,7 +52,7 @@ async fn send_embed(
     };
 
     let list_activity_localised_text =
-        load_localization_list_activity(guild_id, config.bot.config.clone()).await?;
+        load_localization_list_activity(guild_id, config.db.clone()).await?;
 
     let guild_id = command_interaction
         .guild_id
@@ -66,7 +66,7 @@ async fn send_embed(
         .create_response(&ctx.http, builder_message)
         .await?;
 
-    let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+    let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
     let list = ActivityData::find()
         .filter(Column::ServerId.eq(guild_id.to_string()))
         .all(&connection)

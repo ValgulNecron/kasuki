@@ -170,10 +170,10 @@ fn censor_url_and_token(error_message: String, self_handler: &Handler) -> String
     let config = self_handler.bot_data.config.clone();
     let mut error_message = error_message;
     let discord_token = config.bot.discord_token.clone();
-    let db_user = config.bot.config.user.clone().unwrap_or_default();
-    let db_pass = config.bot.config.password.clone().unwrap_or_default();
-    let db_port = config.bot.config.port.unwrap_or_default().to_string();
-    let db_host = config.bot.config.host.clone().unwrap_or_default();
+    let db_user = config.db.user.clone().unwrap_or_default();
+    let db_pass = config.db.password.clone().unwrap_or_default();
+    let db_port = config.db.port.unwrap_or_default().to_string();
+    let db_host = config.db.host.clone().unwrap_or_default();
     let image_token = config.ai.image.ai_image_token.clone().unwrap_or_default();
     let transcript_token = config
         .ai

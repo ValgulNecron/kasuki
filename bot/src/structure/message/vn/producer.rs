@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
 
@@ -14,7 +14,7 @@ pub struct ProducerLocalised {
 
 pub async fn load_localization_producer(
     guild_id: String,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<ProducerLocalised, Box<dyn Error>> {
     let path = "json/message/vn/producer.json";
     load_localization(guild_id, path, db_config).await

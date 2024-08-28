@@ -10,7 +10,7 @@ use serenity::all::{
     CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId, SkuKind,
 };
 use serenity::builder::{
-    CreateButton, CreateEmbed, CreateInteractionResponse, CreateInteractionResponseFollowup,
+    CreateButton, CreateInteractionResponse, CreateInteractionResponseFollowup,
 };
 use serenity::client::Context;
 use serenity::model::Colour;
@@ -31,10 +31,6 @@ pub trait SlashCommand {
 
 pub trait UserCommand {
     async fn run_user(&self) -> Result<(), Box<dyn Error>>;
-}
-
-pub trait AutoComplete {
-    async fn autocomplete(&self) -> Result<(), Box<dyn Error>>;
 }
 
 pub trait Embed {
@@ -60,20 +56,6 @@ pub trait PremiumCommand {
         handler: &Handler,
         command: PremiumCommandType,
     ) -> Result<bool, Box<dyn Error>>;
-}
-
-async fn not_implemented(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-) -> Result<(), Box<dyn Error>> {
-    let builder_embed = CreateEmbed::new().title("Not Implemented");
-    let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-    let builder = CreateInteractionResponse::Message(builder_message);
-    command_interaction
-        .create_response(&ctx.http, builder)
-        .await?;
-
-    Ok(())
 }
 
 impl<T: Command> Embed for T {
@@ -160,7 +142,7 @@ impl<T: Command> PremiumCommand for T {
             PremiumCommandType::AITranscript => PAID_TRANSCRIPT_MULTIPLIER,
             PremiumCommandType::AITranslation => PAID_TRANSLATION_MULTIPLIER,
         };
-        if !handler.bot_data.config.bot.config.respect_premium {
+        if !handler.bot_data.config.bot.respect_premium {
             return Ok(false);
         }
 

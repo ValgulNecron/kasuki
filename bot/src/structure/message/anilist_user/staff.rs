@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use serde::{Deserialize, Serialize};
 // Importing necessary libraries and modules
 use crate::structure::message::common::load_localization;
@@ -36,7 +36,7 @@ pub struct StaffLocalised {
 /// * `Result<StaffLocalised, AppError>`: A Result containing StaffLocalised data or an AppError.
 pub async fn load_localization_staff(
     guild_id: String,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<StaffLocalised, Box<dyn Error>> {
     let path = "json/message/anilist_user/staff.json";
     load_localization(guild_id, path, db_config).await

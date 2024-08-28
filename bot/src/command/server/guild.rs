@@ -43,7 +43,7 @@ async fn send_embed(
     };
 
     // Load the localized guild information
-    let guild_localised = load_localization_guild(guild_id, config.bot.config.clone()).await?;
+    let guild_localised = load_localization_guild(guild_id, config.db.clone()).await?;
 
     // Retrieve the guild ID from the command interaction or return an error if it does not exist
     let guild_id = command_interaction

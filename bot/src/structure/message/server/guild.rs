@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
 
@@ -45,7 +45,7 @@ pub struct GuildLocalised {
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
 pub async fn load_localization_guild(
     guild_id: String,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<GuildLocalised, Box<dyn Error>> {
     let path = "json/message/server/guild.json";
     load_localization(guild_id, path, db_config).await

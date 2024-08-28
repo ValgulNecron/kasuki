@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::Embed;
 use crate::command::command_trait::{Command, EmbedType, SlashCommand};
-use crate::config::{BotConfigDetails, Config};
+use crate::config::{Config, DbConfig};
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -33,13 +33,9 @@ use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serde_json::json;
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    ChannelId, CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage, EditWebhook, GuildId,
-};
+use serenity::all::{ChannelId, CommandInteraction, Context, CreateAttachment, EditWebhook};
 use tokio::sync::RwLock;
-use tracing::{error, trace};
+use tracing::trace;
 
 pub struct AddActivityCommand {
     pub ctx: Context,
@@ -77,12 +73,11 @@ impl SlashCommand for AddActivityCommand {
         trace!(?guild_id);
 
         let add_activity_localised =
-            load_localization_add_activity(guild_id.clone(), config.bot.config.clone()).await?;
+            load_localization_add_activity(guild_id.clone(), config.db.clone()).await?;
 
         let anime_id = media.id;
 
-        let exist =
-            check_if_activity_exist(anime_id, guild_id.clone(), config.bot.config.clone()).await;
+        let exist = check_if_activity_exist(anime_id, guild_id.clone(), config.db.clone()).await;
 
         self.defer().await?;
         let url = format!("https://anilist.co/anime/{}", media.id);
@@ -145,7 +140,7 @@ impl SlashCommand for AddActivityCommand {
                 trimmed_anime_name.clone(),
             )
             .await?;
-            let connection = sea_orm::Database::connect(get_url(config.bot.config.clone())).await?;
+            let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
             let timestamp = next_airing.airing_at as i64;
 
             let chrono = chrono::DateTime::<Utc>::from_timestamp(timestamp, 0)
@@ -205,11 +200,7 @@ fn calculate_crop_params(width: u32, height: u32) -> (u32, u32, u32) {
     let crop_y = (height - square_size) / 2;
     (crop_x, crop_y, square_size)
 }
-async fn check_if_activity_exist(
-    anime_id: i32,
-    server_id: String,
-    config: BotConfigDetails,
-) -> bool {
+async fn check_if_activity_exist(anime_id: i32, server_id: String, config: DbConfig) -> bool {
     let conn = match sea_orm::Database::connect(get_url(config.clone())).await {
         Ok(conn) => conn,
         Err(_) => return false,
@@ -224,6 +215,7 @@ async fn check_if_activity_exist(
         Ok(row) => row,
         Err(_) => return false,
     };
+    trace!(?row);
 
     row.is_some()
 }
@@ -232,12 +224,14 @@ pub fn get_name(title: MediaTitle) -> String {
     let english_title = title.english;
     let romaji_title = title.romaji;
 
-    match (romaji_title, english_title) {
+    let title = match (romaji_title, english_title) {
         (Some(romaji), Some(english)) => format!("{} / {}", english, romaji),
         (Some(romaji), None) => romaji,
         (None, Some(english)) => english,
         (None, None) => String::new(),
-    }
+    };
+    trace!(?title);
+    title
 }
 async fn get_webhook(
     ctx: &Context,
@@ -246,6 +240,8 @@ async fn get_webhook(
     base64: String,
     anime_name: String,
 ) -> Result<String, Box<dyn Error>> {
+    trace!(?image);
+    trace!(?anime_name);
     let webhook_info = json!({
         "avatar": image,
         "name": anime_name
@@ -257,6 +253,7 @@ async fn get_webhook(
         .await?
         .id
         .to_string();
+    trace!(?bot_id);
 
     let mut webhook_url = String::new();
 
@@ -289,6 +286,7 @@ async fn get_webhook(
             webhook_url = webhook.url()?;
         }
     }
+    trace!(?webhook_url);
 
     let cursor = Cursor::new(base64);
     let mut decoder = DecoderReader::new(cursor, &STANDARD);
@@ -307,6 +305,7 @@ pub async fn get_minimal_anime_by_id(
     id: i32,
     cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Media, Box<dyn Error>> {
+    trace!(?id);
     let query = MinimalAnimeIdVariables { id: Some(id) };
     let operation = MinimalAnimeId::build(query);
     let response: GraphQlResponse<MinimalAnimeId> =
@@ -323,6 +322,7 @@ async fn get_minimal_anime_by_search(
     query: &str,
     cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Media, Box<dyn Error>> {
+    trace!(?query);
     let search_query = MinimalAnimeSearchVariables {
         search: Some(query),
     };
@@ -346,5 +346,6 @@ pub async fn get_minimal_anime_media(
     } else {
         get_minimal_anime_by_search(&anime, cache).await?
     };
+    trace!(?media);
     Ok(media)
 }

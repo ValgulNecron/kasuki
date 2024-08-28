@@ -8,7 +8,6 @@ use dashmap::DashMap;
 use serenity::all::{GuildId, UserId};
 use serenity::async_trait;
 use songbird::input::Compose;
-use songbird::input::YoutubeDl;
 use songbird::tracks::Track;
 use songbird::TrackEvent;
 use songbird::{
@@ -135,14 +134,11 @@ impl EventHandler for TrackEndNotifier {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
         let handler_mutex = self.manager.clone();
         let url = self.url.clone();
-        let url = self.url.clone();
         if let EventContext::Track(track_list) = ctx {
             let handler_mutex_clone = handler_mutex.clone();
             let mut handler_lock = handler_mutex_clone.lock().await;
-            let client = reqwest::Client::new();
-            for (state, handle) in *track_list {
+            for (_, handle) in *track_list {
                 debug!("Track {:?} ended", handle.uuid());
-                let http_client = reqwest::Client::new();
                 let mut src = match RustyYoutubeSearch::new_from_url(url.clone()) {
                     Ok(src) => src,
                     Err(e) => {
@@ -150,7 +146,7 @@ impl EventHandler for TrackEndNotifier {
                         break;
                     }
                 };
-                let (track, meta) = futures::join!(
+                let (_, meta) = futures::join!(
                     handler_lock.enqueue(Track::from(src.clone())),
                     src.aux_metadata()
                 );

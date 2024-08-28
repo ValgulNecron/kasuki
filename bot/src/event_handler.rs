@@ -16,12 +16,12 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
+use crate::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::background_task::background_launcher::thread_management_launcher;
 use crate::background_task::server_image::calculate_user_color::{
     color_management, get_specific_user_color,
 };
 use crate::background_task::server_image::generate_server_image::server_image_management;
-use crate::command::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
 use crate::command::command_dispatch::{check_if_module_is_on, dispatch_command};
 use crate::command::user_command_dispatch::dispatch_user_command;
 use crate::components::components_dispatch::components_dispatching;
@@ -161,26 +161,22 @@ impl EventHandler for Handler {
                 &ctx.cache.guilds(),
                 &ctx,
                 user_blacklist_server_image,
-                self.bot_data.config.bot.config.clone(),
+                self.bot_data.config.db.clone(),
             )
             .await;
-            server_image_management(&ctx, image_config, self.bot_data.config.bot.config.clone())
-                .await;
+            server_image_management(&ctx, image_config, self.bot_data.config.db.clone()).await;
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
         }
-        let connection = match sea_orm::Database::connect(get_url(
-            self.bot_data.config.bot.config.clone(),
-        ))
-        .await
-        {
-            Ok(connection) => connection,
-            Err(e) => {
-                error!("Failed to connect to the database. {}", e);
-                return;
-            }
-        };
+        let connection =
+            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
+                Ok(connection) => connection,
+                Err(e) => {
+                    error!("Failed to connect to the database. {}", e);
+                    return;
+                }
+            };
         match GuildData::insert(crate::structure::database::guild_data::ActiveModel {
             guild_id: Set(guild.id.to_string()),
             guild_name: Set(guild.name),
@@ -215,14 +211,14 @@ impl EventHandler for Handler {
         let is_module_on = check_if_module_is_on(
             guild_id.clone(),
             "NEW_MEMBER",
-            self.bot_data.config.bot.config.clone(),
+            self.bot_data.config.db.clone(),
         )
         .await
         .unwrap_or_else(|e| {
             error!("Failed to get the module status. {}", e);
             false
         });
-        match new_member_message(&ctx, &member, self.bot_data.config.bot.config.clone()).await {
+        match new_member_message(&ctx, &member, self.bot_data.config.db.clone()).await {
             Ok(_) => {}
             Err(e) => error!(e),
         };
@@ -230,24 +226,20 @@ impl EventHandler for Handler {
             &ctx.cache.guilds(),
             &ctx,
             user_blacklist_server_image,
-            self.bot_data.config.bot.config.clone(),
+            self.bot_data.config.db.clone(),
         )
         .await;
         if is_module_on {
-            server_image_management(&ctx, image_config, self.bot_data.config.bot.config.clone())
-                .await;
+            server_image_management(&ctx, image_config, self.bot_data.config.db.clone()).await;
         }
-        let connection = match sea_orm::Database::connect(get_url(
-            self.bot_data.config.bot.config.clone(),
-        ))
-        .await
-        {
-            Ok(connection) => connection,
-            Err(e) => {
-                error!("Failed to connect to the database. {}", e);
-                return;
-            }
-        };
+        let connection =
+            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
+                Ok(connection) => connection,
+                Err(e) => {
+                    error!("Failed to connect to the database. {}", e);
+                    return;
+                }
+            };
         match UserData::insert(crate::structure::database::user_data::ActiveModel {
             user_id: Set(member.user.id.to_string()),
             username: Set(member.user.name.clone()),
@@ -280,7 +272,7 @@ impl EventHandler for Handler {
         let is_module_on = check_if_module_is_on(
             guild_id.to_string().clone(),
             "NEW_MEMBER",
-            self.bot_data.config.bot.config.clone(),
+            self.bot_data.config.db.clone(),
         )
         .await
         .unwrap_or_else(|e| {
@@ -288,13 +280,8 @@ impl EventHandler for Handler {
             false
         });
         if is_module_on {
-            match removed_member_message(
-                &ctx,
-                guild_id,
-                user,
-                self.bot_data.config.bot.config.clone(),
-            )
-            .await
+            match removed_member_message(&ctx, guild_id, user, self.bot_data.config.db.clone())
+                .await
             {
                 Ok(_) => {}
                 Err(e) => error!(e),
@@ -317,21 +304,18 @@ impl EventHandler for Handler {
         get_specific_user_color(
             user_blacklist_server_image,
             user.clone(),
-            self.bot_data.config.bot.config.clone(),
+            self.bot_data.config.db.clone(),
         )
         .await;
 
-        let connection = match sea_orm::Database::connect(get_url(
-            self.bot_data.config.bot.config.clone(),
-        ))
-        .await
-        {
-            Ok(connection) => connection,
-            Err(e) => {
-                error!("Failed to connect to the database. {}", e);
-                return;
-            }
-        };
+        let connection =
+            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
+                Ok(connection) => connection,
+                Err(e) => {
+                    error!("Failed to connect to the database. {}", e);
+                    return;
+                }
+            };
         match UserData::insert(crate::structure::database::user_data::ActiveModel {
             user_id: Set(user_id.to_string()),
             username: Set(username),
@@ -364,7 +348,7 @@ impl EventHandler for Handler {
             tokio::spawn(thread_management_launcher(
                 ctx.clone(),
                 self.bot_data.clone(),
-                self.bot_data.config.bot.config.clone(),
+                self.bot_data.config.db.clone(),
             ));
             drop(write_guard)
         }
@@ -384,7 +368,7 @@ impl EventHandler for Handler {
         info!(server_number);
 
         // Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
-        let remove_old_command = self.bot_data.config.bot.config.remove_old_commands;
+        let remove_old_command = self.bot_data.config.bot.remove_old_commands;
 
         // Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
         command_registration(&ctx.http, remove_old_command).await;
@@ -440,12 +424,9 @@ impl EventHandler for Handler {
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
             // Dispatch the component interaction
             user = Some(component_interaction.user.clone());
-            if let Err(e) = components_dispatching(
-                ctx,
-                component_interaction,
-                self.bot_data.config.bot.config.clone(),
-            )
-            .await
+            if let Err(e) =
+                components_dispatching(ctx, component_interaction, self.bot_data.config.db.clone())
+                    .await
             {
                 // If an error occurs, log it
                 error!("{:?}", e)
@@ -456,16 +437,13 @@ impl EventHandler for Handler {
             return;
         }
 
-        let connection = match sea_orm::Database::connect(get_url(
-            self.bot_data.config.bot.config.clone(),
-        ))
-        .await
-        {
-            Ok(conn) => conn,
-            Err(_) => {
-                return;
-            }
-        };
+        let connection =
+            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
+                Ok(conn) => conn,
+                Err(_) => {
+                    return;
+                }
+            };
 
         match UserData::insert(crate::structure::database::user_data::ActiveModel {
             user_id: Set(user.clone().unwrap().id.to_string()),

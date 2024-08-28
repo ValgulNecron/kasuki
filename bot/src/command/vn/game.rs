@@ -31,7 +31,7 @@ pub async fn run(
         .get(&String::from("title"))
         .cloned()
         .unwrap_or(String::new());
-    let game_localised = load_localization_game(guild_id, config.bot.config.clone()).await?;
+    let game_localised = load_localization_game(guild_id, config.db.clone()).await?;
 
     let vn = get_vn(game.clone(), vndb_cache).await?;
     let vn = vn.results[0].clone();

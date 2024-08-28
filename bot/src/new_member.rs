@@ -1,4 +1,4 @@
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
 use crate::structure::message::new_member::load_localization_new_member;
 use anyhow::anyhow;
@@ -18,7 +18,7 @@ use tracing::trace;
 pub async fn new_member_message(
     ctx: &Context,
     member: &Member,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let ctx = ctx.clone();
     let user_name = member.user.name.clone();

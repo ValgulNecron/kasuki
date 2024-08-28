@@ -2,7 +2,7 @@
 
 use std::error::Error;
 
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
 
@@ -65,7 +65,7 @@ pub struct CompareLocalised {
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
 pub async fn load_localization_compare(
     guild_id: String,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<CompareLocalised, Box<dyn Error>> {
     let path = "json/message/anilist_user/compare.json";
     load_localization(guild_id, path, db_config).await

@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::command::admin::anilist::add_activity::get_minimal_anime_media;
-use crate::config::BotConfigDetails;
+use crate::config::DbConfig;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::error_management::error_dispatch;
@@ -36,7 +36,7 @@ use tracing::{error, trace};
 pub async fn manage_activity(
     ctx: Context,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     send_activity(&ctx, anilist_cache, db_config).await;
 }
@@ -59,7 +59,7 @@ pub async fn manage_activity(
 async fn send_activity(
     ctx: &Context,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) {
     let now = Utc::now().naive_utc();
     let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
@@ -148,7 +148,7 @@ async fn send_specific_activity(
     row2: Model,
     ctx: &Context,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let localised_text =
         load_localization_send_activity(guild_id.clone(), db_config.clone()).await?;
@@ -221,7 +221,7 @@ async fn update_info(
     row: Model,
     guild_id: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
     let next_airing = match media.next_airing_episode {
@@ -275,7 +275,7 @@ async fn update_info(
 async fn remove_activity(
     row: Model,
     guild_id: String,
-    db_config: BotConfigDetails,
+    db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
     trace!("removing {:#?} for {}", row, guild_id);
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;

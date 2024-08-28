@@ -53,7 +53,6 @@ async fn get_steam_game(
     command_interaction: CommandInteraction,
     config: Arc<Config>,
 ) -> Result<SteamGameWrapper, Box<dyn Error>> {
-    let db_type = config.bot.config.db_type.clone();
     let guild_id = command_interaction
         .guild_id
         .unwrap_or(GuildId::from(0))
@@ -65,15 +64,10 @@ async fn get_steam_game(
             "No option for game_name",
         )))?;
     let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
-        SteamGameWrapper::new_steam_game_by_id(
-            value.parse().unwrap(),
-            guild_id,
-            config.bot.config.clone(),
-        )
-        .await?
-    } else {
-        SteamGameWrapper::new_steam_game_by_search(value, guild_id, apps, config.bot.config.clone())
+        SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, config.db.clone())
             .await?
+    } else {
+        SteamGameWrapper::new_steam_game_by_search(value, guild_id, apps, config.db.clone()).await?
     };
 
     Ok(data)
@@ -91,7 +85,7 @@ async fn send_embed(
         .to_string();
 
     let steam_game_info_localised =
-        load_localization_steam_game_info(guild_id.clone(), config.bot.config.clone()).await?;
+        load_localization_steam_game_info(guild_id.clone(), config.db.clone()).await?;
 
     let game = data.data;
 

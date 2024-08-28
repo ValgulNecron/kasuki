@@ -43,7 +43,7 @@ async fn send_embed(
     };
 
     // Load the localized strings for the credits
-    let credit_localised = load_localization_credit(guild_id, config.bot.config.clone()).await?;
+    let credit_localised = load_localization_credit(guild_id, config.db.clone()).await?;
 
     // Construct a description by concatenating the descriptions of all credits
     let mut desc: String = "".to_string();

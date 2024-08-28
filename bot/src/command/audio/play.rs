@@ -56,8 +56,7 @@ async fn send_embed(
         .ok_or(error_dispatch::Error::Option(String::from("No guild id")))?;
     let cache = ctx.cache.clone();
     let localised =
-        load_localization_play_localised(guild_id.to_string(), config.bot.config.clone()).await?;
-    let http_client = reqwest::Client::new();
+        load_localization_play_localised(guild_id.to_string(), config.db.clone()).await?;
     let manager = songbird::get(ctx)
         .await
         .expect("Songbird Voice client placed in at initialisation.")
@@ -139,7 +138,7 @@ async fn send_embed(
             RustyYoutubeSearch::new_from_url(url.clone())
         };
         let mut src = src?;
-        let (track, meta) = futures::join!(
+        let (_, meta) = futures::join!(
             handler_lock.enqueue(Track::from(src.clone())),
             src.aux_metadata()
         );

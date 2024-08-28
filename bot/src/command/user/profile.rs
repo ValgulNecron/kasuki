@@ -83,7 +83,7 @@ async fn send_embed(
     user: User,
     config: &Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-    let db_config = config.bot.config.clone();
+    let db_config = config.db.clone();
     let guild_id = command_interaction
         .guild_id
         .map(|id| id.to_string())

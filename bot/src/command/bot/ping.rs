@@ -44,7 +44,7 @@ async fn send_embed(
     };
 
     // Load the localized ping strings
-    let ping_localised = load_localization_ping(guild_id, config.bot.config.clone()).await?;
+    let ping_localised = load_localization_ping(guild_id, config.db.clone()).await?;
 
     // Retrieve the shard manager from the context data
     let data_read = ctx.data.read().await;

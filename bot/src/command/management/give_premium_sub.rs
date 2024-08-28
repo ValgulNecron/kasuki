@@ -74,7 +74,7 @@ async fn send_embed(
 
     let localization = load_localization_give_premium_sub(
         command_interaction.guild_id.unwrap().to_string(),
-        config.bot.config.clone(),
+        config.db.clone(),
     )
     .await?;
     let embed = get_default_embed(None).description(

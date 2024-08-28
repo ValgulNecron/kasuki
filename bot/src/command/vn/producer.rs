@@ -31,8 +31,7 @@ pub async fn run(
         .get(&String::from("name"))
         .cloned()
         .unwrap_or(String::new());
-    let producer_localised =
-        load_localization_producer(guild_id, config.bot.config.clone()).await?;
+    let producer_localised = load_localization_producer(guild_id, config.db.clone()).await?;
 
     let producer = get_producer(producer.clone(), vndb_cache).await?;
     let producer = producer.results[0].clone();

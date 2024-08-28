@@ -54,7 +54,7 @@ async fn send_embed(
         .await?;
     let localization = load_localization_remove_test_sub(
         command_interaction.guild_id.unwrap().to_string(),
-        config.bot.config.clone(),
+        config.db.clone(),
     )
     .await?;
     // defer the response

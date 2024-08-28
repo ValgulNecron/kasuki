@@ -109,7 +109,7 @@ async fn send_embed(
     fs::write(NEW_MEMBER_PATH, serde_json::to_string(&hashmap)?)?;
 
     let localised =
-        load_localization_new_member_setting(guild_id.clone(), config.bot.config.clone()).await?;
+        load_localization_new_member_setting(guild_id.clone(), config.db.clone()).await?;
 
     let embed = get_default_embed(None)
         .title(localised.title)

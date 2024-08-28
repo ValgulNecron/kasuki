@@ -4,9 +4,7 @@ use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
 use tokio::sync::RwLock;
 
-use crate::command::autocomplete::anilist_user::{
-    anime, character, ln, manga, staff, studio, user,
-};
+use crate::autocomplete::anilist_user::{anime, character, ln, manga, staff, studio, user};
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 
