@@ -392,14 +392,12 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn guild_members_chunk(&self, ctx: Context, chunk: GuildMembersChunkEvent) {
-        let image_config = self.bot_data.config.image.clone();
-        let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
+    async fn guild_members_chunk(&self, _: Context, chunk: GuildMembersChunkEvent) {
         let members = chunk.members;
         if members.is_empty() {
             return;
         }
-        let members: Vec<Member> = members.iter().map(|member| member.1).collect();
+        let members: Vec<Member> = members.iter().map(|member| member.1.clone()).collect();
         let connection =
             match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
                 Ok(connection) => connection,
