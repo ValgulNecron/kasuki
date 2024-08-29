@@ -147,7 +147,7 @@ impl Compose for RustyYoutubeSearch {
                 error_dispatch::Error::Audio(format!("Failed to create tempdir: {e:?}")).into(),
             )
         })?;
-        trace!("Downloaded video to {:?}", tempdir.path());
+        trace!("Downloading video to {:?}", tempdir.path());
         let uuid = Uuid::new_v4();
         let path = tempdir.path().join(format!("{}.mp4", uuid));
         video.download(&path).await.map_err(|e| {
@@ -155,6 +155,7 @@ impl Compose for RustyYoutubeSearch {
                 error_dispatch::Error::Audio(format!("Failed to download video: {e:?}")).into(),
             )
         })?;
+        trace!("Downloaded video");
 
         let file = fs::File::open(&path).map_err(|e| {
             AudioStreamError::Fail(

@@ -6,6 +6,7 @@ use std::env;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let db_name = database_url.split("/").last().unwrap_or_default().split("?").collect::<Vec<&str>>()[0];
+    println!("db_name: {}", db_name);
     match PgPool::connect(&database_url).await {
         Ok(_) => (),
         Err(_) => {

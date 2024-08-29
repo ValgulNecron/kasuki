@@ -12,7 +12,7 @@ services:
     hostname: kasuki
     depends_on:
       - db
-      - caddy
+      - reverse-proxy
     tty: true
     volumes:
       - ./db/:/kasuki/db
@@ -25,38 +25,58 @@ services:
       - /etc/localtime:/etc/localtime:ro
       # - ./proxy.txt:/kasuki/valid_proxy.txt # Uncomment this line if you want to use proxy you need to have a valid proxy list please check if they work before.
     networks:
-      - kasuki
+      kasuki:
+        ipv4_address: 172.65.0.4
   db:
     image: postgres
     restart: always
     hostname: db
     depends_on:
-      - caddy
+      - reverse-proxy
     volumes:
       - ./db/:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=example
       - PGDATA=/var/lib/postgresql/data/pgdata
     networks:
-      - kasuki
+      kasuki:
+        ipv4_address: 172.65.0.3
     ports:
       - "10001:5432"
-  caddy:
-    image: valgul/caddy:latest
-    restart: always
-    hostname: caddy
-    volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-      - ./caddy/data:/data
-      - ./caddy/config:/config
+  reverse-proxy:
+    image: traefik:v3.1
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=your_email@example.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--api.dashboard=true"
+      - "--ping=false"
     ports:
       - "80:80"
+      - "8080:8080"
       - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./acme.json:/letsencrypt/acme.json
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.example.com`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.service=api@internal"
     networks:
-      - kasuki
+      kasuki:
+        ipv4_address: 172.65.0.2
 
 
 networks:
   kasuki:
     driver: bridge
-
+    ipam:
+      config:
+        - subnet: 172.65.0.0/24
