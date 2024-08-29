@@ -716,16 +716,11 @@ pub async fn send_embed(
     }
 
     if let Some(format) = data.format {
-        fields.push((
-        media_localised.format,
-        format.to_string(),
-        true,))
+        fields.push((media_localised.format, format.to_string(), true))
     }
 
     if let Some(source) = data.source {
-        fields.push((media_localised.source,
-        source.to_string(),
-        true,))
+        fields.push((media_localised.source, source.to_string(), true))
     }
 
     if let Some(start_date) = data.start_date.clone() {
@@ -757,9 +752,7 @@ pub async fn send_embed(
     }
 
     if let Some(favourites) = data.favourites {
-        fields.push(( media_localised.fav,
-        favourites.to_string(),
-        true,))
+        fields.push((media_localised.fav, favourites.to_string(), true))
     }
 
     match data.duration {

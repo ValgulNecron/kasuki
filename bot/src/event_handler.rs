@@ -6,7 +6,7 @@ use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,
-    Interaction, Member, Presence, Ready, User,
+    GuildMembersChunkEvent, Interaction, Member, Presence, Ready, User,
 };
 use serenity::async_trait;
 use serenity::gateway::ChunkGuildFilter;
@@ -389,6 +389,46 @@ impl EventHandler for Handler {
                 &partial_guild.name,
                 &partial_guild.id.to_string()
             )
+        }
+    }
+
+    async fn guild_members_chunk(&self, ctx: Context, chunk: GuildMembersChunkEvent) {
+        let image_config = self.bot_data.config.image.clone();
+        let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
+        let members = chunk.members;
+        if members.is_empty() {
+            return;
+        }
+        let members: Vec<Member> = members.iter().map(|member| member.1).collect();
+        let connection =
+            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
+                Ok(connection) => connection,
+                Err(e) => {
+                    error!("Failed to connect to the database. {}", e);
+                    return;
+                }
+            };
+        for member in members {
+            match UserData::insert(crate::structure::database::user_data::ActiveModel {
+                user_id: Set(member.user.id.to_string()),
+                username: Set(member.user.name.clone()),
+                added_at: Set(Utc::now().naive_utc()),
+                is_bot: Set(member.user.bot),
+                banner: Set(member.user.banner_url().unwrap_or_default()),
+            })
+            .on_conflict(
+                sea_orm::sea_query::OnConflict::column(
+                    crate::structure::database::user_data::Column::UserId,
+                )
+                .update_column(crate::structure::database::user_data::Column::Username)
+                .to_owned(),
+            )
+            .exec(&connection)
+            .await
+            {
+                Ok(_) => {}
+                Err(e) => error!("Failed to insert user data. {}", e),
+            };
         }
     }
 
