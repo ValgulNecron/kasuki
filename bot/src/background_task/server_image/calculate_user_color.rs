@@ -66,13 +66,13 @@ pub async fn calculate_users_color(
             is_bot: Set(member.user.bot),
             banner: Set(member.user.banner_url().unwrap_or_default()),
         })
-            .on_conflict(
-                OnConflict::column(crate::structure::database::user_data::Column::UserId)
-                    .update_column(crate::structure::database::user_data::Column::Username)
-                    .to_owned(),
-            )
-            .exec(&connection)
-            .await
+        .on_conflict(
+            OnConflict::column(crate::structure::database::user_data::Column::UserId)
+                .update_column(crate::structure::database::user_data::Column::Username)
+                .to_owned(),
+        )
+        .exec(&connection)
+        .await
         {
             Ok(_) => {}
             Err(e) => error!("Failed to insert user data. {}", e),
@@ -124,13 +124,13 @@ pub async fn return_average_user_color(
             is_bot: Set(member.user.bot),
             banner: Set(member.user.banner_url().unwrap_or_default()),
         })
-            .on_conflict(
-                OnConflict::column(crate::structure::database::user_data::Column::UserId)
-                    .update_column(crate::structure::database::user_data::Column::Username)
-                    .to_owned(),
-            )
-            .exec(&connection)
-            .await
+        .on_conflict(
+            OnConflict::column(crate::structure::database::user_data::Column::UserId)
+                .update_column(crate::structure::database::user_data::Column::Username)
+                .to_owned(),
+        )
+        .exec(&connection)
+        .await
         {
             Ok(_) => {}
             Err(e) => error!("Failed to insert user data. {}", e),
@@ -360,7 +360,8 @@ pub async fn get_specific_user_color(
         return;
     }
 
-    let (average_color, image): (String, String) = calculate_user_color(user.clone()).await.unwrap();
+    let (average_color, image): (String, String) =
+        calculate_user_color(user.clone()).await.unwrap();
     match UserData::insert(crate::structure::database::user_data::ActiveModel {
         user_id: Set(id.clone()),
         username: Set(user.name.clone()),
@@ -368,13 +369,13 @@ pub async fn get_specific_user_color(
         is_bot: Set(user.bot),
         banner: Set(user.banner_url().unwrap_or_default()),
     })
-        .on_conflict(
-            OnConflict::column(crate::structure::database::user_data::Column::UserId)
-                .update_column(crate::structure::database::user_data::Column::Username)
-                .to_owned(),
-        )
-        .exec(&connection)
-        .await
+    .on_conflict(
+        OnConflict::column(crate::structure::database::user_data::Column::UserId)
+            .update_column(crate::structure::database::user_data::Column::Username)
+            .to_owned(),
+    )
+    .exec(&connection)
+    .await
     {
         Ok(_) => {}
         Err(e) => error!("Failed to insert user data. {}", e),
