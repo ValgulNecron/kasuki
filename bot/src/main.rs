@@ -103,6 +103,14 @@ async fn main() {
         .max_capacity(CACHE_MAX_CAPACITY)
         .build();
     let vndb_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
+
+    let connection = match sea_orm::Database::connect(get_url(config.db.clone())).await {
+        Ok(connection) => connection,
+        Err(e) => {
+            error!("Failed to connect to the database. {}", e);
+            return;
+        }
+    };
     let bot_data: Arc<BotData> = Arc::new(BotData {
         number_of_command_use_per_command,
         config,
@@ -112,6 +120,7 @@ async fn main() {
         already_launched: false.into(),
         apps: Arc::new(Default::default()),
         user_blacklist_server_image: Arc::new(Default::default()),
+        db_connection: Arc::new(connection),
     });
     let handler = Handler { bot_data };
 

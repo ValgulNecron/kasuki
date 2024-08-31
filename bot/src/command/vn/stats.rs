@@ -1,18 +1,47 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::command::command_trait::{Command, SlashCommand};
+use crate::config::Config;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::vndbapi::stats::get_stats;
+use crate::structure::message::vn::stats::load_localization_stats;
 use moka::future::Cache;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
 use tokio::sync::RwLock;
 
-use crate::config::Config;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::vndbapi::stats::get_stats;
-use crate::structure::message::vn::stats::load_localization_stats;
+pub struct VnStatsCommand {
+    pub ctx: Context,
+    pub command_interaction: CommandInteraction,
+    pub config: Arc<Config>,
+    pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
+}
 
-pub async fn run(
+impl Command for VnStatsCommand {
+    fn get_ctx(&self) -> &Context {
+        &self.ctx
+    }
+
+    fn get_command_interaction(&self) -> &CommandInteraction {
+        &self.command_interaction
+    }
+}
+
+impl SlashCommand for VnStatsCommand {
+    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            self.config.clone(),
+            self.vndb_cache.clone(),
+        )
+        .await
+    }
+}
+
+async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,

@@ -46,11 +46,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
     let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
 
     // Spawn background threads to manage the bot's activity, games, and web server
-    tokio::spawn(launch_user_color_management_thread(
-        ctx.clone(),
-        user_blacklist_server_image.clone(),
-        db_config.clone(),
-    ));
+
     tokio::spawn(launch_activity_management_thread(
         ctx.clone(),
         anilist_cache.clone(),
@@ -58,7 +54,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
     ));
     tokio::spawn(launch_game_management_thread(apps));
     tokio::spawn(ping_manager_thread(ctx.clone(), db_config.clone()));
-    tokio::spawn(update_user_blacklist(user_blacklist_server_image));
+    tokio::spawn(update_user_blacklist(user_blacklist_server_image.clone()));
     tokio::spawn(update_random_stats_launcher(anilist_cache.clone()));
     tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
 
@@ -73,6 +69,12 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
     ));
 
     // Wait for a certain amount of time before launching the server image management thread
+    sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
+    tokio::spawn(launch_user_color_management_thread(
+        ctx.clone(),
+        user_blacklist_server_image.clone(),
+        db_config.clone(),
+    ));
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
     let image_config = bot_data.config.image.clone();
     tokio::spawn(launch_server_image_management_thread(

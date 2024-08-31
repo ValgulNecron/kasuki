@@ -1,4 +1,4 @@
-use crate::m20240815_181459_user_data::UserData;
+use crate::m20240815_180001_user_data::UserData;
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]

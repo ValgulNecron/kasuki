@@ -16,7 +16,6 @@ use tracing::trace;
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
 pub struct SteamGameWrapper {
-    pub success: bool,
     pub data: Data,
 }
 

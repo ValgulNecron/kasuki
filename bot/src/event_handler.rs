@@ -2,11 +2,11 @@ use chrono::Utc;
 use moka::future::Cache;
 use num_bigint::BigUint;
 use sea_orm::ActiveValue::Set;
-use sea_orm::EntityTrait;
+use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 use serenity::all::{
-    ActivityData, CommandType, Context, CurrentApplicationInfo, EventHandler, Guild, GuildId,
-    GuildMembersChunkEvent, Interaction, Member, Presence, Ready, User,
+    ActivityData, CommandType, Context, CurrentApplicationInfo, Entitlement, EventHandler, Guild,
+    GuildId, GuildMembersChunkEvent, Interaction, Member, Presence, Ready, User,
 };
 use serenity::async_trait;
 use serenity::gateway::ChunkGuildFilter;
@@ -32,7 +32,9 @@ use crate::helper::error_management::error_dispatch;
 use crate::new_member::new_member_message;
 use crate::register::registration_dispatcher::command_registration;
 use crate::removed_member::removed_member_message;
-use crate::structure::database::prelude::{GuildData, UserData};
+use crate::structure::database::prelude::{
+    GuildData, GuildSubscription, ServerUserRelation, UserData, UserSubscription,
+};
 
 pub struct BotData {
     pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
@@ -43,6 +45,7 @@ pub struct BotData {
     pub already_launched: RwLock<bool>,
     pub apps: Arc<RwLock<HashMap<String, u128>>>,
     pub user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
+    pub db_connection: Arc<DatabaseConnection>,
 }
 
 pub struct Handler {
@@ -239,18 +242,27 @@ impl EventHandler for Handler {
                     return;
                 }
             };
+        let user = match member.user.id.to_user(&ctx.http).await {
+            Ok(user) => user,
+            Err(e) => {
+                error!("Failed to get user. {}", e);
+                return;
+            }
+        };
         match UserData::insert(crate::structure::database::user_data::ActiveModel {
-            user_id: Set(member.user.id.to_string()),
-            username: Set(member.user.name.clone()),
+            user_id: Set(user.id.to_string()),
+            username: Set(user.name.clone()),
             added_at: Set(Utc::now().naive_utc()),
-            is_bot: Set(member.user.bot),
-            banner: Set(member.user.banner_url().unwrap_or_default()),
+            is_bot: Set(user.bot),
+            banner: Set(user.banner_url().unwrap_or_default()),
         })
         .on_conflict(
             sea_orm::sea_query::OnConflict::column(
                 crate::structure::database::user_data::Column::UserId,
             )
             .update_column(crate::structure::database::user_data::Column::Username)
+            .update_column(crate::structure::database::user_data::Column::Banner)
+            .update_column(crate::structure::database::user_data::Column::IsBot)
             .to_owned(),
         )
         .exec(&connection)
@@ -327,6 +339,8 @@ impl EventHandler for Handler {
                 crate::structure::database::user_data::Column::UserId,
             )
             .update_column(crate::structure::database::user_data::Column::Username)
+            .update_column(crate::structure::database::user_data::Column::Banner)
+            .update_column(crate::structure::database::user_data::Column::IsBot)
             .to_owned(),
         )
         .exec(&connection)
@@ -392,7 +406,7 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn guild_members_chunk(&self, _: Context, chunk: GuildMembersChunkEvent) {
+    async fn guild_members_chunk(&self, ctx: Context, chunk: GuildMembersChunkEvent) {
         let members = chunk.members;
         if members.is_empty() {
             return;
@@ -407,18 +421,31 @@ impl EventHandler for Handler {
                 }
             };
         for member in members {
+            let user = match member.user.id.to_user(&ctx.http).await {
+                Ok(user) => user,
+                Err(e) => {
+                    error!("Failed to get user. {}", e);
+                    return;
+                }
+            };
+            if user.name == "kasuki beta".to_string() {
+                trace!("{:#?}", user.banner_url())
+            }
+
             match UserData::insert(crate::structure::database::user_data::ActiveModel {
-                user_id: Set(member.user.id.to_string()),
-                username: Set(member.user.name.clone()),
+                user_id: Set(user.id.to_string()),
+                username: Set(user.name.clone()),
                 added_at: Set(Utc::now().naive_utc()),
-                is_bot: Set(member.user.bot),
-                banner: Set(member.user.banner_url().unwrap_or_default()),
+                is_bot: Set(user.bot),
+                banner: Set(user.banner_url().unwrap_or_default()),
             })
             .on_conflict(
                 sea_orm::sea_query::OnConflict::column(
                     crate::structure::database::user_data::Column::UserId,
                 )
                 .update_column(crate::structure::database::user_data::Column::Username)
+                .update_column(crate::structure::database::user_data::Column::Banner)
+                .update_column(crate::structure::database::user_data::Column::IsBot)
                 .to_owned(),
             )
             .exec(&connection)
@@ -426,6 +453,19 @@ impl EventHandler for Handler {
             {
                 Ok(_) => {}
                 Err(e) => error!("Failed to insert user data. {}", e),
+            };
+
+            match ServerUserRelation::insert(
+                crate::structure::database::server_user_relation::ActiveModel {
+                    guild_id: Set(chunk.guild_id.to_string()),
+                    user_id: Set(user.id.to_string()),
+                },
+            )
+            .exec(&connection)
+            .await
+            {
+                Ok(_) => {}
+                Err(e) => error!("Failed to insert server user relation. {}", e),
             };
         }
     }
@@ -494,6 +534,8 @@ impl EventHandler for Handler {
                 crate::structure::database::user_data::Column::UserId,
             )
             .update_column(crate::structure::database::user_data::Column::Username)
+            .update_column(crate::structure::database::user_data::Column::Banner)
+            .update_column(crate::structure::database::user_data::Column::IsBot)
             .to_owned(),
         )
         .exec(&connection)
@@ -502,5 +544,176 @@ impl EventHandler for Handler {
             Ok(_) => {}
             Err(e) => error!("Failed to insert user data. {}", e),
         };
+    }
+
+    async fn entitlement_create(&self, _: Context, entitlement: Entitlement) {
+        let connection = self.bot_data.db_connection.clone();
+        match (entitlement.guild_id, entitlement.user_id) {
+            (Some(guild_id), None) => {
+                let guild_id = guild_id.to_string();
+                match GuildSubscription::insert(
+                    crate::structure::database::guild_subscription::ActiveModel {
+                        guild_id: Set(guild_id),
+                        entitlement_id: Set(entitlement.id.to_string()),
+                        sku_id: Set(entitlement.sku_id.to_string()),
+                        created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
+                        updated_at: Default::default(),
+                        expires_at: Default::default(),
+                    },
+                )
+                .on_conflict(
+                    sea_orm::sea_query::OnConflict::columns([
+                        crate::structure::database::guild_subscription::Column::GuildId,
+                        crate::structure::database::guild_subscription::Column::SkuId,
+                    ])
+                    .update_column(
+                        crate::structure::database::guild_subscription::Column::EntitlementId,
+                    )
+                    .update_column(
+                        crate::structure::database::guild_subscription::Column::ExpiresAt,
+                    )
+                    .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
+                    .to_owned(),
+                )
+                .exec(&*connection.clone())
+                .await
+                {
+                    Ok(_) => {}
+                    Err(e) => error!("Failed to insert guild subscription. {}", e),
+                };
+            }
+            (None, Some(user_id)) => {
+                let user_id = user_id.to_string();
+                match UserSubscription::insert(
+                    crate::structure::database::user_subscription::ActiveModel {
+                        user_id: Set(user_id),
+                        entitlement_id: Set(entitlement.id.to_string()),
+                        sku_id: Set(entitlement.sku_id.to_string()),
+                        created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
+                        updated_at: Set(Utc::now().naive_utc()),
+                        expires_at: Default::default(),
+                    },
+                )
+                .on_conflict(
+                    sea_orm::sea_query::OnConflict::columns([
+                        crate::structure::database::user_subscription::Column::UserId,
+                        crate::structure::database::user_subscription::Column::SkuId,
+                    ])
+                    .update_column(
+                        crate::structure::database::user_subscription::Column::EntitlementId,
+                    )
+                    .update_column(crate::structure::database::user_subscription::Column::ExpiresAt)
+                    .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
+                    .to_owned(),
+                )
+                .exec(&*connection.clone())
+                .await
+                {
+                    Ok(_) => {}
+                    Err(e) => error!("Failed to insert user subscription. {}", e),
+                };
+            }
+            _ => {}
+        }
+    }
+
+    async fn entitlement_update(&self, _: Context, entitlement: Entitlement) {
+        let connection = self.bot_data.db_connection.clone();
+        match (entitlement.guild_id, entitlement.user_id) {
+            (Some(guild_id), None) => {
+                let guild_id = guild_id.to_string();
+                match GuildSubscription::insert(
+                    crate::structure::database::guild_subscription::ActiveModel {
+                        guild_id: Set(guild_id),
+                        entitlement_id: Set(entitlement.id.to_string()),
+                        sku_id: Set(entitlement.sku_id.to_string()),
+                        created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
+                        updated_at: Default::default(),
+                        expires_at: Default::default(),
+                    },
+                )
+                .on_conflict(
+                    sea_orm::sea_query::OnConflict::columns([
+                        crate::structure::database::guild_subscription::Column::GuildId,
+                        crate::structure::database::guild_subscription::Column::SkuId,
+                    ])
+                    .update_column(
+                        crate::structure::database::guild_subscription::Column::EntitlementId,
+                    )
+                    .update_column(
+                        crate::structure::database::guild_subscription::Column::ExpiresAt,
+                    )
+                    .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
+                    .to_owned(),
+                )
+                .exec(&*connection.clone())
+                .await
+                {
+                    Ok(_) => {}
+                    Err(e) => error!("Failed to insert guild subscription. {}", e),
+                };
+            }
+            (None, Some(user_id)) => {
+                let user_id = user_id.to_string();
+                match UserSubscription::insert(
+                    crate::structure::database::user_subscription::ActiveModel {
+                        user_id: Set(user_id),
+                        entitlement_id: Set(entitlement.id.to_string()),
+                        sku_id: Set(entitlement.sku_id.to_string()),
+                        created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
+                        updated_at: Default::default(),
+                        expires_at: Default::default(),
+                    },
+                )
+                .on_conflict(
+                    sea_orm::sea_query::OnConflict::columns([
+                        crate::structure::database::user_subscription::Column::UserId,
+                        crate::structure::database::user_subscription::Column::SkuId,
+                    ])
+                    .update_column(
+                        crate::structure::database::user_subscription::Column::EntitlementId,
+                    )
+                    .update_column(crate::structure::database::user_subscription::Column::ExpiresAt)
+                    .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
+                    .to_owned(),
+                )
+                .exec(&*connection.clone())
+                .await
+                {
+                    Ok(_) => {}
+                    Err(e) => error!("Failed to insert user subscription. {}", e),
+                };
+            }
+            _ => {}
+        }
+    }
+
+    async fn entitlement_delete(&self, _: Context, entitlement: Entitlement) {
+        let connection = self.bot_data.db_connection.clone();
+        match (entitlement.guild_id, entitlement.user_id) {
+            (Some(guild_id), None) => {
+                let guild_id = guild_id.to_string();
+                let sku_id = entitlement.sku_id.to_string();
+                match GuildSubscription::delete_by_id((guild_id, sku_id))
+                    .exec(&*connection.clone())
+                    .await
+                {
+                    Ok(_) => {}
+                    Err(e) => error!("Failed to delete guild subscription. {}", e),
+                };
+            }
+            (None, Some(user_id)) => {
+                let user_id = user_id.to_string();
+                let sku_id = entitlement.sku_id.to_string();
+                match UserSubscription::delete_by_id((user_id, sku_id))
+                    .exec(&*connection.clone())
+                    .await
+                {
+                    Ok(_) => {}
+                    Err(e) => error!("Failed to delete user subscription. {}", e),
+                };
+            }
+            _ => {}
+        }
     }
 }

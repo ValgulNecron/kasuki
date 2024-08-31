@@ -17,13 +17,16 @@ pub fn schema(
             activity_data,
             guild_data,
             guild_lang,
+            guild_subscription,
             kill_switch,
             module_activation,
             ping_history,
             registered_user,
             server_image,
+            server_user_relation,
             user_color,
             user_data,
+            user_subscription
         ]
     );
     let schema = builder.schema_builder();

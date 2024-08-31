@@ -6,7 +6,7 @@ use std::time::Duration;
 use crate::config::DbConfig;
 use crate::get_url;
 use crate::new_member::change_to_x64_url;
-use crate::structure::database::prelude::{UserColor, UserData};
+use crate::structure::database::prelude::UserColor;
 use crate::structure::database::user_color::{ActiveModel, Column, Model};
 use base64::engine::general_purpose;
 use base64::Engine;
@@ -59,24 +59,6 @@ pub async fn calculate_users_color(
                 calculated_at: Default::default(),
             });
         let pfp_url_old = user_color.profile_picture_url.clone();
-        match UserData::insert(crate::structure::database::user_data::ActiveModel {
-            user_id: Set(id.clone()),
-            username: Set(member.user.name.clone()),
-            added_at: Set(Utc::now().naive_utc()),
-            is_bot: Set(member.user.bot),
-            banner: Set(member.user.banner_url().unwrap_or_default()),
-        })
-        .on_conflict(
-            OnConflict::column(crate::structure::database::user_data::Column::UserId)
-                .update_column(crate::structure::database::user_data::Column::Username)
-                .to_owned(),
-        )
-        .exec(&connection)
-        .await
-        {
-            Ok(_) => {}
-            Err(e) => error!("Failed to insert user data. {}", e),
-        };
         if pfp_url != pfp_url_old {
             let (average_color, image): (String, String) =
                 calculate_user_color(member.user.clone()).await?;
@@ -117,24 +99,6 @@ pub async fn return_average_user_color(
             .filter(Column::UserId.eq(id.clone()))
             .one(&connection)
             .await?;
-        match UserData::insert(crate::structure::database::user_data::ActiveModel {
-            user_id: Set(id.clone()),
-            username: Set(member.user.name.clone()),
-            added_at: Set(Utc::now().naive_utc()),
-            is_bot: Set(member.user.bot),
-            banner: Set(member.user.banner_url().unwrap_or_default()),
-        })
-        .on_conflict(
-            OnConflict::column(crate::structure::database::user_data::Column::UserId)
-                .update_column(crate::structure::database::user_data::Column::Username)
-                .to_owned(),
-        )
-        .exec(&connection)
-        .await
-        {
-            Ok(_) => {}
-            Err(e) => error!("Failed to insert user data. {}", e),
-        };
         match user_color {
             Some(user_color) => {
                 let color = user_color.color.clone();
@@ -362,24 +326,6 @@ pub async fn get_specific_user_color(
 
     let (average_color, image): (String, String) =
         calculate_user_color(user.clone()).await.unwrap();
-    match UserData::insert(crate::structure::database::user_data::ActiveModel {
-        user_id: Set(id.clone()),
-        username: Set(user.name.clone()),
-        added_at: Set(Utc::now().naive_utc()),
-        is_bot: Set(user.bot),
-        banner: Set(user.banner_url().unwrap_or_default()),
-    })
-    .on_conflict(
-        OnConflict::column(crate::structure::database::user_data::Column::UserId)
-            .update_column(crate::structure::database::user_data::Column::Username)
-            .to_owned(),
-    )
-    .exec(&connection)
-    .await
-    {
-        Ok(_) => {}
-        Err(e) => error!("Failed to insert user data. {}", e),
-    };
     UserColor::insert(ActiveModel {
         user_id: Set(id.clone()),
         profile_picture_url: Set(pfp_url.clone()),

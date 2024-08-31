@@ -1,6 +1,12 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::command::command_trait::{Command, SlashCommand};
+use crate::config::Config;
+use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::helper::vndbapi::staff::get_staff;
+use crate::structure::message::vn::staff::load_localization_staff;
 use markdown_converter::vndb::convert_vndb_markdown;
 use moka::future::Cache;
 use serenity::all::{
@@ -9,13 +15,36 @@ use serenity::all::{
 use tokio::sync::RwLock;
 use tracing::trace;
 
-use crate::config::Config;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::helper::vndbapi::staff::get_staff;
-use crate::structure::message::vn::staff::load_localization_staff;
+pub struct VnStaffCommand {
+    pub ctx: Context,
+    pub command_interaction: CommandInteraction,
+    pub config: Arc<Config>,
+    pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
+}
 
-pub async fn run(
+impl Command for VnStaffCommand {
+    fn get_ctx(&self) -> &Context {
+        &self.ctx
+    }
+
+    fn get_command_interaction(&self) -> &CommandInteraction {
+        &self.command_interaction
+    }
+}
+
+impl SlashCommand for VnStaffCommand {
+    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            self.config.clone(),
+            self.vndb_cache.clone(),
+        )
+        .await
+    }
+}
+
+async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,

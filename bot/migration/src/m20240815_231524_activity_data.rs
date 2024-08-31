@@ -1,4 +1,4 @@
-use crate::m20240815_231531_guild_data::GuildData;
+use crate::m20240815_180000_guild_data::GuildData;
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
