@@ -1,4 +1,4 @@
-FROM rust:1.79-slim-bookworm AS builder-bot
+FROM rust:slim-bookworm AS builder-bot
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
@@ -26,7 +26,7 @@ RUN rm -rf target/release/build/kasuki*
 COPY src ./src
 RUN cargo build --release
 
-FROM rust:1.79-slim-bookworm AS builder-migration
+FROM rust:slim-bookworm AS builder-migration
 
 USER root
 
