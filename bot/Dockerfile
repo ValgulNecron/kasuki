@@ -1,4 +1,4 @@
-FROM rust:slim-bookworm AS builder-bot
+FROM rust:1.80-slim-bookworm AS builder-bot
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
