@@ -95,7 +95,7 @@ pub fn create_color_vector_from_user_color(tuples: Vec<Model>) -> Vec<ColorWithU
 ///
 /// # Returns
 ///
-/// * `Option<ColorWithUrl>` - Returns an optional `ColorWithUrl`. If a closest color is found, it returns `Some(ColorWithUrl)`. If the colors list is empty, it returns `None`.
+/// * `Option<ColorWithUrl>` - Returns an optional `ColorWithUrl`. If the closest color is found, it returns `Some(ColorWithUrl)`. If the colors list is empty, it returns `None`.
 pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<ColorWithUrl> {
     colors
         .iter()

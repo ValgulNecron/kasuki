@@ -24,12 +24,12 @@ pub struct AudioPlayCommand {
 }
 
 impl Command for AudioPlayCommand {
-    fn get_command_interaction(&self) -> &CommandInteraction {
-        &self.command_interaction
-    }
-
     fn get_ctx(&self) -> &Context {
         &self.ctx
+    }
+
+    fn get_command_interaction(&self) -> &CommandInteraction {
+        &self.command_interaction
     }
 }
 

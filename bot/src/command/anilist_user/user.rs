@@ -11,7 +11,7 @@ use crate::structure::database::prelude::RegisteredUser;
 use crate::structure::database::registered_user::Column;
 use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::{
-    User, UserQuerryId, UserQuerryIdVariables, UserQuerrySearch, UserQuerrySearchVariables,
+    User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
 };
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
@@ -94,18 +94,18 @@ pub async fn get_user(
     // If the value is a valid user ID, fetch the user's data by ID
     let user = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();
-        let var = UserQuerryIdVariables { id: Some(id) };
-        let operation = UserQuerryId::build(var);
-        let data: GraphQlResponse<UserQuerryId> =
+        let var = UserQueryIdVariables { id: Some(id) };
+        let operation = UserQueryId::build(var);
+        let data: GraphQlResponse<UserQueryId> =
             make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().user.unwrap()
     } else {
         // If the value is not a valid user ID, fetch the user's data by username
-        let var = UserQuerrySearchVariables {
+        let var = UserQuerySearchVariables {
             search: Some(value),
         };
-        let operation = UserQuerrySearch::build(var);
-        let data: GraphQlResponse<UserQuerrySearch> =
+        let operation = UserQuerySearch::build(var);
+        let data: GraphQlResponse<UserQuerySearch> =
             make_request_anilist(operation, false, anilist_cache).await?;
         data.data.unwrap().user.unwrap()
     };

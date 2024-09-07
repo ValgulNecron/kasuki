@@ -103,7 +103,7 @@ struct Data {
 /// It retrieves the members of the guild and checks if they are registered AniList users.
 /// If they are, it adds them to a list.
 ///
-/// It continues retrieving members and checking if they are registered AniList users until it has retrieved a certain number of AniList users or it has checked a certain number of members.
+/// It continues retrieving members and checking if they are registered AniList users until it has retrieved a certain number of AniList users, or it has checked a certain number of members.
 ///
 /// It then formats the list of AniList users into a string and returns it along with the number of AniList users and the ID of the last member checked.
 ///
@@ -111,7 +111,7 @@ struct Data {
 ///
 /// * `guild` - The Discord guild to retrieve the AniList users from.
 /// * `ctx` - The context in which this function is being called.
-/// * `list_user_localised` - The localized text for the list user command.
+/// * `list_user_localised` - The localised text for the list user command.
 /// * `last_id` - The ID of the last member to start retrieving members from.
 ///
 /// # Returns

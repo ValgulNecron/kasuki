@@ -120,7 +120,7 @@ async fn send_embed(
 /// * `random_type` - The type of media to fetch ("anime" or "manga").
 /// * `ctx` - The context in which this command is being executed.
 /// * `command_interaction` - The interaction that triggered this command.
-/// * `random_localised` - The localized strings for the random command.
+/// * `random_localised` - The localised strings for the random command.
 ///
 /// # Returns
 ///
@@ -182,7 +182,7 @@ async fn embed(
 /// * `command_interaction` - The interaction that triggered this command.
 /// * `data` - The data for the media item to include in the embed.
 /// * `url` - The URL to the media item on AniList.
-/// * `random_localised` - The localized strings for the random command.
+/// * `random_localised` - The localised strings for the random command.
 ///
 /// # Returns
 ///

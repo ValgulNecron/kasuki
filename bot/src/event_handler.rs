@@ -300,6 +300,70 @@ impl EventHandler for Handler {
         }
     }
 
+    async fn guild_members_chunk(&self, ctx: Context, chunk: GuildMembersChunkEvent) {
+        let members = chunk.members;
+        if members.is_empty() {
+            return;
+        }
+        let members: Vec<Member> = members.iter().map(|member| member.1.clone()).collect();
+        let connection =
+            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
+                Ok(connection) => connection,
+                Err(e) => {
+                    error!("Failed to connect to the database. {}", e);
+                    return;
+                }
+            };
+        for member in members {
+            let user = match member.user.id.to_user(&ctx.http).await {
+                Ok(user) => user,
+                Err(e) => {
+                    error!("Failed to get user. {}", e);
+                    return;
+                }
+            };
+            if user.name == "kasuki beta".to_string() {
+                trace!("{:#?}", user.banner_url())
+            }
+
+            match UserData::insert(crate::structure::database::user_data::ActiveModel {
+                user_id: Set(user.id.to_string()),
+                username: Set(user.name.clone()),
+                added_at: Set(Utc::now().naive_utc()),
+                is_bot: Set(user.bot),
+                banner: Set(user.banner_url().unwrap_or_default()),
+            })
+            .on_conflict(
+                sea_orm::sea_query::OnConflict::column(
+                    crate::structure::database::user_data::Column::UserId,
+                )
+                .update_column(crate::structure::database::user_data::Column::Username)
+                .update_column(crate::structure::database::user_data::Column::Banner)
+                .update_column(crate::structure::database::user_data::Column::IsBot)
+                .to_owned(),
+            )
+            .exec(&connection)
+            .await
+            {
+                Ok(_) => {}
+                Err(e) => error!("Failed to insert user data. {}", e),
+            };
+
+            match ServerUserRelation::insert(
+                crate::structure::database::server_user_relation::ActiveModel {
+                    guild_id: Set(chunk.guild_id.to_string()),
+                    user_id: Set(user.id.to_string()),
+                },
+            )
+            .exec(&connection)
+            .await
+            {
+                Ok(_) => {}
+                Err(e) => error!("Failed to insert server user relation. {}", e),
+            };
+        }
+    }
+
     async fn presence_update(&self, ctx: Context, new_data: Presence) {
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
         let user_id = new_data.user.id;
@@ -406,70 +470,6 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn guild_members_chunk(&self, ctx: Context, chunk: GuildMembersChunkEvent) {
-        let members = chunk.members;
-        if members.is_empty() {
-            return;
-        }
-        let members: Vec<Member> = members.iter().map(|member| member.1.clone()).collect();
-        let connection =
-            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
-                Ok(connection) => connection,
-                Err(e) => {
-                    error!("Failed to connect to the database. {}", e);
-                    return;
-                }
-            };
-        for member in members {
-            let user = match member.user.id.to_user(&ctx.http).await {
-                Ok(user) => user,
-                Err(e) => {
-                    error!("Failed to get user. {}", e);
-                    return;
-                }
-            };
-            if user.name == "kasuki beta".to_string() {
-                trace!("{:#?}", user.banner_url())
-            }
-
-            match UserData::insert(crate::structure::database::user_data::ActiveModel {
-                user_id: Set(user.id.to_string()),
-                username: Set(user.name.clone()),
-                added_at: Set(Utc::now().naive_utc()),
-                is_bot: Set(user.bot),
-                banner: Set(user.banner_url().unwrap_or_default()),
-            })
-            .on_conflict(
-                sea_orm::sea_query::OnConflict::column(
-                    crate::structure::database::user_data::Column::UserId,
-                )
-                .update_column(crate::structure::database::user_data::Column::Username)
-                .update_column(crate::structure::database::user_data::Column::Banner)
-                .update_column(crate::structure::database::user_data::Column::IsBot)
-                .to_owned(),
-            )
-            .exec(&connection)
-            .await
-            {
-                Ok(_) => {}
-                Err(e) => error!("Failed to insert user data. {}", e),
-            };
-
-            match ServerUserRelation::insert(
-                crate::structure::database::server_user_relation::ActiveModel {
-                    guild_id: Set(chunk.guild_id.to_string()),
-                    user_id: Set(user.id.to_string()),
-                },
-            )
-            .exec(&connection)
-            .await
-            {
-                Ok(_) => {}
-                Err(e) => error!("Failed to insert server user relation. {}", e),
-            };
-        }
-    }
-
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         let mut user = None;
         if let Interaction::Command(command_interaction) = interaction.clone() {
@@ -558,7 +558,7 @@ impl EventHandler for Handler {
                         sku_id: Set(entitlement.sku_id.to_string()),
                         created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
                         updated_at: Default::default(),
-                        expires_at: Default::default(),
+                        expired_at: Default::default(),
                     },
                 )
                 .on_conflict(
@@ -570,7 +570,7 @@ impl EventHandler for Handler {
                         crate::structure::database::guild_subscription::Column::EntitlementId,
                     )
                     .update_column(
-                        crate::structure::database::guild_subscription::Column::ExpiresAt,
+                        crate::structure::database::guild_subscription::Column::ExpiredAt,
                     )
                     .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
                     .to_owned(),
@@ -591,7 +591,7 @@ impl EventHandler for Handler {
                         sku_id: Set(entitlement.sku_id.to_string()),
                         created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
                         updated_at: Set(Utc::now().naive_utc()),
-                        expires_at: Default::default(),
+                        expired_at: Default::default(),
                     },
                 )
                 .on_conflict(
@@ -602,7 +602,7 @@ impl EventHandler for Handler {
                     .update_column(
                         crate::structure::database::user_subscription::Column::EntitlementId,
                     )
-                    .update_column(crate::structure::database::user_subscription::Column::ExpiresAt)
+                    .update_column(crate::structure::database::user_subscription::Column::ExpiredAt)
                     .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
                     .to_owned(),
                 )
@@ -629,7 +629,7 @@ impl EventHandler for Handler {
                         sku_id: Set(entitlement.sku_id.to_string()),
                         created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
                         updated_at: Default::default(),
-                        expires_at: Default::default(),
+                        expired_at: Default::default(),
                     },
                 )
                 .on_conflict(
@@ -641,7 +641,7 @@ impl EventHandler for Handler {
                         crate::structure::database::guild_subscription::Column::EntitlementId,
                     )
                     .update_column(
-                        crate::structure::database::guild_subscription::Column::ExpiresAt,
+                        crate::structure::database::guild_subscription::Column::ExpiredAt,
                     )
                     .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
                     .to_owned(),
@@ -662,7 +662,7 @@ impl EventHandler for Handler {
                         sku_id: Set(entitlement.sku_id.to_string()),
                         created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
                         updated_at: Default::default(),
-                        expires_at: Default::default(),
+                        expired_at: Default::default(),
                     },
                 )
                 .on_conflict(
@@ -673,7 +673,7 @@ impl EventHandler for Handler {
                     .update_column(
                         crate::structure::database::user_subscription::Column::EntitlementId,
                     )
-                    .update_column(crate::structure::database::user_subscription::Column::ExpiresAt)
+                    .update_column(crate::structure::database::user_subscription::Column::ExpiredAt)
                     .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
                     .to_owned(),
                 )

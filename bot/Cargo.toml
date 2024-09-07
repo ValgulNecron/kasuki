@@ -13,10 +13,10 @@ license-file = "../LICENSE"
 [dependencies]
 regex = "1.10.6"
 reqwest = { version = "0.12.7", features = ["json", "multipart", "blocking"] }
-serde = "1.0.209"
-serde_json = "1.0.127"
+serde = "1.0.210"
+serde_json = "1.0.128"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "current", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "unstable_discord_api", "voice", "cache", "http"] }
-tokio = { version = "1.39.3", features = ["full"] }
+tokio = { version = "1.40.0", features = ["full"] }
 rand = "0.9.0-alpha.2"
 chrono = "0.4.38"
 uuid = { version = "1.10.0", features = ["v4"] }
@@ -30,23 +30,23 @@ rust-fuzzy-search = "0.1.1"
 palette = "0.7.6"
 tracing-appender = "0.2.3"
 tonic = { version = "0.12.2", features = ["tls"] }
-prost = "0.13.1"
+prost = "0.13.2"
 tonic-reflection = "0.12.2"
-sysinfo = "0.31.3"
+sysinfo = "0.31.0"
 rayon = "1.10.0"
 os_info = "3.8.2"
 rcgen = "0.13.1"
 markdown_converter = "0.3.4"
 futures = "0.3.30"
 rapidfuzz = "0.5.0"
-cynic = { version = "3.7.3", features = ["reqwest", "http-reqwest", "serde_json"] }
+cynic = { version = "3.8.0", features = ["reqwest", "http-reqwest", "serde_json"] }
 moka = { version = "0.12.8", features = ["future"] }
 toml = "0.8.19"
 num-bigint = "0.4.6"
 text-to-png = "0.2.0"
 songbird = { git = "https://github.com/ValgulNecron/songbird.git", branch = "next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
 symphonia = { features = ["aac", "mp3", "isomp4", "alac", "symphonia-format-isomp4"], version = "0.5.4" }
-dashmap = "6.0.1"
+dashmap = "6.1.0"
 url = "2.5.2"
 dirs = "5.0.1"
 sea-orm = { version = "1.1.0-rc.1", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
@@ -54,8 +54,8 @@ sea-orm-migration = { version = "1.1.0-rc.1" }
 percent-encoding = "2.3.1"
 serde_urlencoded = "0.7.1"
 poem = { version = "3.0.4" }
-async-graphql-poem = { version = "7.0.7" }
-async-graphql = { version = "7.0.7", features = ["decimal", "chrono", "dataloader", "dynamic-schema"] }
+async-graphql-poem = { version = "7.0.9" }
+async-graphql = { version = "7.0.9", features = ["decimal", "chrono", "dataloader", "dynamic-schema"] }
 dotenvy = "0.15.7"
 lazy_static = { version = "1.5.0" }
 seaography = "1.1.0-rc.1"
@@ -63,12 +63,12 @@ catbox = "0.8.2"
 tempfile = "3.12.0"
 rusty_ytdl = { version = "0.7.4", features = ["rustls-tls"] }
 either = "1.13.0"
-anyhow = "1.0.86"
+anyhow = "1.0.87"
 thiserror = "1.0.63"
 
 [build-dependencies]
-tonic-build = "0.12.1"
-cynic-codegen = { version = "3.7.3" }
+tonic-build = "0.12.2"
+cynic-codegen = { version = "3.8.0" }
 
 [profile.dev]
 codegen-units = 512

@@ -90,7 +90,7 @@ pub struct DefaultPermission {
     pub permission: RemotePermissionType,
 }
 
-/// The `RemoteCommandOptionType` enum represents the type of an argument.
+/// The `RemoteCommandOptionType` enum represents the type of argument.
 /// It is derived from `Debug`, `Serialize`, `Deserialize`, `Clone`, `Copy`, and `PartialEq` traits.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub enum RemoteCommandOptionType {
@@ -168,7 +168,7 @@ impl From<CommandOptionType> for RemoteCommandOptionType {
     }
 }
 
-/// The `RemotePermissionType` enum represents the type of a permission.
+/// The `RemotePermissionType` enum represents the type of permission.
 /// It is derived from `Debug`, `Serialize`, `Deserialize`, `Clone`, `Copy`, and `PartialEq` traits.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub enum RemotePermissionType {

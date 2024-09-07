@@ -91,7 +91,7 @@ pub struct ReleaseDate {
 impl SteamGameWrapper {
     /// `new_steam_game_by_id` is an asynchronous function that creates a new `SteamGameWrapper` by the given app id.
     /// It takes an `appid` and `guild_id` as parameters.
-    /// `appid` is a u128, and `guild_id` is a String.
+    /// `appid` is an u128, and `guild_id` is a String.
     /// It returns a Result which is either a `SteamGameWrapper` or an `AppError`.
     ///
     /// # Arguments

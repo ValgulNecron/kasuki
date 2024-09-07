@@ -153,7 +153,7 @@ async fn main() {
         .await
         .unwrap_or_else(|e| {
             error!("Error while creating client: {}", e);
-            std::process::exit(5);
+            process::exit(5);
         });
     let shard_manager = client.shard_manager.clone();
     client
@@ -171,7 +171,7 @@ async fn main() {
     tokio::spawn(async move {
         if let Err(why) = client.start_autosharded().await {
             error!("Client error: {:?}", why);
-            std::process::exit(6);
+            process::exit(6);
         }
     });
 

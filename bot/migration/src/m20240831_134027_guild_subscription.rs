@@ -1,5 +1,5 @@
-use sea_orm_migration::{prelude::*, schema::*};
 use crate::m20240815_180001_user_data::UserData;
+use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -7,7 +7,6 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-
         manager
             .create_table(
                 Table::create()
@@ -23,7 +22,7 @@ impl MigrationTrait for Migration {
                     .col(string(GuildSubscription::SkuId))
                     .col(timestamp(GuildSubscription::CreatedAt))
                     .col(timestamp(GuildSubscription::UpdatedAt))
-                    .col(timestamp(GuildSubscription::ExpiredAt).null())
+                    .col(timestamp(GuildSubscription::ExpiredAt))
                     .foreign_key(
                         &mut ForeignKey::create()
                             .name("FK_guild_subscription")

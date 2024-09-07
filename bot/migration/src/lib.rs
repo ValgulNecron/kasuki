@@ -21,7 +21,7 @@ impl MigratorTrait for Migrator {
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
         vec![
             Box::new(m20240815_180000_guild_data::Migration),
-            Box::new(m20240815_180001_user_data::Migration),            Box::new(m20240815_180308_server_image::Migration),
+            Box::new(m20240815_180001_user_data::Migration), Box::new(m20240815_180308_server_image::Migration),
             Box::new(m20240815_182736_user_color::Migration),
             Box::new(m20240815_183343_registered_anilist_user::Migration),
             Box::new(m20240815_190656_module_activation::Migration),

@@ -1,5 +1,5 @@
-use sea_orm_migration::{prelude::*, schema::*};
 use crate::m20240815_180001_user_data::UserData;
+use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -22,7 +22,7 @@ impl MigrationTrait for Migration {
                     .col(string(UserSubscription::SkuId))
                     .col(timestamp(UserSubscription::CreatedAt))
                     .col(timestamp(UserSubscription::UpdatedAt))
-                    .col(timestamp(UserSubscription::ExpiredAt).null())
+                    .col(timestamp(UserSubscription::ExpiredAt))
                     .foreign_key(
                         &mut ForeignKey::create()
                             .name("FK_user_subscription")

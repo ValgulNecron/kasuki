@@ -26,12 +26,12 @@ pub struct StaffCommand {
 }
 
 impl Command for StaffCommand {
-    fn get_command_interaction(&self) -> &CommandInteraction {
-        &self.command_interaction
-    }
-
     fn get_ctx(&self) -> &Context {
         &self.ctx
+    }
+
+    fn get_command_interaction(&self) -> &CommandInteraction {
+        &self.command_interaction
     }
 }
 

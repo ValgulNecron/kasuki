@@ -15,26 +15,26 @@ use serenity::prelude::Context;
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct UserQuerryIdVariables {
+pub struct UserQueryIdVariables {
     pub id: Option<i32>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "UserQuerryIdVariables")]
-pub struct UserQuerryId {
+#[cynic(graphql_type = "Query", variables = "UserQueryIdVariables")]
+pub struct UserQueryId {
     #[arguments(id: $ id)]
     #[cynic(rename = "User")]
     pub user: Option<User>,
 }
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
-pub struct UserQuerrySearchVariables<'a> {
+pub struct UserQuerySearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "UserQuerrySearchVariables")]
-pub struct UserQuerrySearch {
+#[cynic(graphql_type = "Query", variables = "UserQuerySearchVariables")]
+pub struct UserQuerySearch {
     #[arguments(search: $ search)]
     #[cynic(rename = "User")]
     pub user: Option<User>,
@@ -314,14 +314,14 @@ fn get_user_anime_url(user_id: i32) -> String {
 /// `get_manga_field` is a function that gets the manga field for a user.
 /// It takes a `user_id`, a `UserLocalised`, and a `Manga` as parameters.
 /// `user_id` is a 32-bit integer that represents the ID of the user.
-/// `localised` is a `UserLocalised` that represents the localized user data.
+/// `localised` is a `UserLocalised` that represents the localised user data.
 /// `manga` is a `Manga` that represents the manga statistics of the user.
 /// It returns a tuple that contains a `String`, a `String`, and a `bool`.
 ///
 /// # Arguments
 ///
 /// * `user_id` - A 32-bit integer that represents the ID of the user.
-/// * `localised` - A `UserLocalised` that represents the localized user data.
+/// * `localised` - A `UserLocalised` that represents the localised user data.
 /// * `manga` - A `Manga` that represents the manga statistics of the user.
 ///
 /// # Returns
@@ -342,14 +342,14 @@ fn get_manga_field(
 /// `get_anime_field` is a function that gets the anime field for a user.
 /// It takes a `user_id`, a `UserLocalised`, and an `Anime` as parameters.
 /// `user_id` is a 32-bit integer that represents the ID of the user.
-/// `localised` is a `UserLocalised` that represents the localized user data.
+/// `localised` is a `UserLocalised` that represents the localised user data.
 /// `anime` is an `Anime` that represents the anime statistics of the user.
 /// It returns a tuple that contains a `String`, a `String`, and a `bool`.
 ///
 /// # Arguments
 ///
 /// * `user_id` - A 32-bit integer that represents the ID of the user.
-/// * `localised` - A `UserLocalised` that represents the localized user data.
+/// * `localised` - A `UserLocalised` that represents the localised user data.
 /// * `anime` - An `Anime` that represents the anime statistics of the user.
 ///
 /// # Returns
@@ -370,14 +370,14 @@ fn get_anime_field(
 /// `get_manga_desc` is a function that gets the manga description for a user.
 /// It takes a `Manga`, a `UserLocalised`, and a `user_id` as parameters.
 /// `manga` is a `Manga` that represents the manga statistics of the user.
-/// `localised` is a `UserLocalised` that represents the localized user data.
+/// `localised` is a `UserLocalised` that represents the localised user data.
 /// `user_id` is a 32-bit integer that represents the ID of the user.
 /// It returns a `String` that represents the manga description of the user.
 ///
 /// # Arguments
 ///
 /// * `manga` - A `Manga` that represents the manga statistics of the user.
-/// * `localised` - A `UserLocalised` that represents the localized user data.
+/// * `localised` - A `UserLocalised` that represents the localised user data.
 /// * `user_id` - A 32-bit integer that represents the ID of the user.
 ///
 /// # Returns
@@ -476,14 +476,14 @@ pub fn get_completed(statuses: Vec<Option<UserStatusStatistic>>) -> i32 {
 /// `get_anime_desc` is a function that gets the anime description for a user.
 /// It takes an `Anime`, a `UserLocalised`, and a `user_id` as parameters.
 /// `anime` is an `Anime` that represents the anime statistics of the user.
-/// `localised` is a `UserLocalised` that represents the localized user data.
+/// `localised` is a `UserLocalised` that represents the localised user data.
 /// `user_id` is a 32-bit integer that represents the ID of the user.
 /// It returns a `String` that represents the anime description of the user.
 ///
 /// # Arguments
 ///
 /// * `anime` - An `Anime` that represents the anime statistics of the user.
-/// * `localised` - A `UserLocalised` that represents the localized user data.
+/// * `localised` - A `UserLocalised` that represents the localised user data.
 /// * `user_id` - A 32-bit integer that represents the ID of the user.
 ///
 /// # Returns
