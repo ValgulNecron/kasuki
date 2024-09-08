@@ -17,6 +17,7 @@ use crate::structure::autocomplete::anilist::character::{
 };
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for character search.
+///
 /// It takes a `Context` and a `CommandInteraction` as parameters.
 /// `ctx` is the context in which this function is called.
 /// `autocomplete_interaction` is the command interaction that triggered this function.

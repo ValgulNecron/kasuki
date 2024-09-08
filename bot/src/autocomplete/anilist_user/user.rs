@@ -14,6 +14,7 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for user search.
+///
 /// It takes a `Context` and a `CommandInteraction` as parameters.
 /// `ctx` is the context in which this function is called.
 /// `autocomplete_interaction` is the command interaction that triggered this function.

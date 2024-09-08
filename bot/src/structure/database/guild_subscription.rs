@@ -4,6 +4,7 @@ use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "guild_subscription")]
+
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub guild_id: String,
@@ -16,6 +17,7 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+
 pub enum Relation {
     #[sea_orm(
         belongs_to = "super::user_data::Entity",
@@ -29,6 +31,7 @@ pub enum Relation {
 
 impl Related<super::user_data::Entity> for Entity {
     fn to() -> RelationDef {
+
         Relation::UserData.def()
     }
 }
@@ -36,6 +39,7 @@ impl Related<super::user_data::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {}
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::user_data::Entity")]
     UserData,

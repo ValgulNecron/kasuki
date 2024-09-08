@@ -14,6 +14,7 @@ use serenity::all::{
 use tracing::error;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for deleting activities.
+///
 /// It takes a `Context` and a `CommandInteraction` as parameters.
 /// `ctx` is the context in which this function is called.
 /// `autocomplete_interaction` is the command interaction that triggered this function.

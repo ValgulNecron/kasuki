@@ -11,6 +11,7 @@ use crate::helper::get_option::subcommand_group::get_option_map_string_autocompl
 use crate::structure::autocomplete::anilist::media::send_auto_complete;
 
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for anime group search.
+///
 /// It takes a `Context` and a `CommandInteraction` as parameters.
 /// `ctx` is the context in which this function is called.
 /// `autocomplete_interaction` is the command interaction that triggered this function.

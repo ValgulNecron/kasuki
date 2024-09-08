@@ -54,16 +54,13 @@ async fn create_command(command: &GuildCommand, http: &Arc<Http>) {
         None => command_build,
     };
 
-    match &command.localised {
-        Some(locale) => {
-            for locale in locale {
+    if let Some(locale) = &command.localised {
+        for locale in locale {
 
-                command_build = command_build
-                    .name_localized(&locale.code, &locale.name)
-                    .description_localized(&locale.code, &locale.desc);
-            }
+            command_build = command_build
+                .name_localized(&locale.code, &locale.name)
+                .description_localized(&locale.code, &locale.desc);
         }
-        None => {}
     }
 
     let guild_id = GuildId::from(command.guild_id);

@@ -10,7 +10,6 @@ use crate::structure::database::prelude::UserColor;
 use crate::structure::database::user_color::{ActiveModel, Column, Model};
 use base64::engine::general_purpose;
 use base64::Engine;
-use chrono::Utc;
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use image::codecs::png::PngEncoder;

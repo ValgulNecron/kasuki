@@ -4,6 +4,7 @@ use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "ping_history")]
+
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub shard_id: String,
@@ -13,9 +14,11 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+
 pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+
 pub enum RelatedEntity {}

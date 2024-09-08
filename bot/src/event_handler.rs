@@ -397,7 +397,7 @@ impl EventHandler for Handler {
                 }
             };
 
-            if user.name == "kasuki beta".to_string() {
+            if user.name == *"kasuki beta" {
 
                 trace!("{:#?}", user.banner_url())
             }

@@ -4,6 +4,7 @@ use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "guild_data")]
+
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub guild_id: String,
@@ -12,6 +13,7 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+
 pub enum Relation {
     #[sea_orm(has_many = "super::activity_data::Entity")]
     ActivityData,
@@ -27,39 +29,47 @@ pub enum Relation {
 
 impl Related<super::activity_data::Entity> for Entity {
     fn to() -> RelationDef {
+
         Relation::ActivityData.def()
     }
 }
 
 impl Related<super::guild_lang::Entity> for Entity {
     fn to() -> RelationDef {
+
         Relation::GuildLang.def()
     }
 }
 
 impl Related<super::module_activation::Entity> for Entity {
     fn to() -> RelationDef {
+
         Relation::ModuleActivation.def()
     }
 }
 
 impl Related<super::server_image::Entity> for Entity {
     fn to() -> RelationDef {
+
         Relation::ServerImage.def()
     }
 }
 
 impl Related<super::server_user_relation::Entity> for Entity {
     fn to() -> RelationDef {
+
         Relation::ServerUserRelation.def()
     }
 }
 
 impl Related<super::user_data::Entity> for Entity {
     fn to() -> RelationDef {
+
         super::server_user_relation::Relation::UserData.def()
     }
+
     fn via() -> Option<RelationDef> {
+
         Some(super::server_user_relation::Relation::GuildData.def().rev())
     }
 }
@@ -67,6 +77,7 @@ impl Related<super::user_data::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {}
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::activity_data::Entity")]
     ActivityData,
