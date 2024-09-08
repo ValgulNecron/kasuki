@@ -348,17 +348,6 @@ impl EventHandler for Handler {
 
         let members: Vec<Member> = members.iter().map(|member| member.1.clone()).collect();
 
-        let connection =
-            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
-                Ok(connection) => connection,
-                Err(e) => {
-
-                    error!("Failed to connect to the database. {}", e);
-
-                    return;
-                }
-            };
-
         for member in members {
 
             let user = match member.user.id.to_user(&ctx.http).await {
@@ -388,7 +377,7 @@ impl EventHandler for Handler {
                     user_id: Set(user.id.to_string()),
                 },
             )
-            .exec(&connection)
+            .exec(&*self.bot_data.db_connection.clone())
             .await
             {
                 Ok(_) => {}
