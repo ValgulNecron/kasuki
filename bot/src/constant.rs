@@ -13,7 +13,7 @@ pub const TIME_BETWEEN_PING_UPDATE: u64 = 600;
 
 /// Time before a server image is updated.
 
-pub const TIME_BEFORE_SERVER_IMAGE: u64 = 600;
+pub const TIME_BEFORE_SERVER_IMAGE: u64 = 1_800;
 
 /// Time between server image updates.
 

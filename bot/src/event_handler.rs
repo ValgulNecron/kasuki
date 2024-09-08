@@ -2,7 +2,7 @@ use chrono::Utc;
 use moka::future::Cache;
 use num_bigint::BigUint;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{DatabaseConnection, EntityTrait};
+use sea_orm::{ DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, CurrentApplicationInfo, Entitlement, EventHandler, Guild,
@@ -11,6 +11,7 @@ use serenity::all::{
 use serenity::async_trait;
 use serenity::gateway::ChunkGuildFilter;
 use std::collections::HashMap;
+use std::error::Error;
 use std::ops::{Add, AddAssign};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -286,16 +287,6 @@ impl EventHandler for Handler {
             server_image_management(&ctx, image_config, self.bot_data.config.db.clone()).await;
         }
 
-        let connection =
-            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
-                Ok(connection) => connection,
-                Err(e) => {
-
-                    error!("Failed to connect to the database. {}", e);
-
-                    return;
-                }
-            };
 
         let user = match member.user.id.to_user(&ctx.http).await {
             Ok(user) => user,
@@ -307,24 +298,7 @@ impl EventHandler for Handler {
             }
         };
 
-        match UserData::insert(crate::structure::database::user_data::ActiveModel {
-            user_id: Set(user.id.to_string()),
-            username: Set(user.name.clone()),
-            added_at: Set(Utc::now().naive_utc()),
-            is_bot: Set(user.bot),
-            banner: Set(user.banner_url().unwrap_or_default()),
-        })
-        .on_conflict(
-            sea_orm::sea_query::OnConflict::column(
-                crate::structure::database::user_data::Column::UserId,
-            )
-            .update_column(crate::structure::database::user_data::Column::Username)
-            .update_column(crate::structure::database::user_data::Column::Banner)
-            .update_column(crate::structure::database::user_data::Column::IsBot)
-            .to_owned(),
-        )
-        .exec(&connection)
-        .await
+        match add_user_data_to_db(user, self.bot_data.db_connection.clone()).await
         {
             Ok(_) => {}
             Err(e) => error!("Failed to insert user data. {}", e),
@@ -402,24 +376,7 @@ impl EventHandler for Handler {
                 trace!("{:#?}", user.banner_url())
             }
 
-            match UserData::insert(crate::structure::database::user_data::ActiveModel {
-                user_id: Set(user.id.to_string()),
-                username: Set(user.name.clone()),
-                added_at: Set(Utc::now().naive_utc()),
-                is_bot: Set(user.bot),
-                banner: Set(user.banner_url().unwrap_or_default()),
-            })
-            .on_conflict(
-                sea_orm::sea_query::OnConflict::column(
-                    crate::structure::database::user_data::Column::UserId,
-                )
-                .update_column(crate::structure::database::user_data::Column::Username)
-                .update_column(crate::structure::database::user_data::Column::Banner)
-                .update_column(crate::structure::database::user_data::Column::IsBot)
-                .to_owned(),
-            )
-            .exec(&connection)
-            .await
+            match add_user_data_to_db(user.clone(), self.bot_data.db_connection.clone()).await
             {
                 Ok(_) => {}
                 Err(e) => error!("Failed to insert user data. {}", e),
@@ -446,8 +403,6 @@ impl EventHandler for Handler {
 
         let user_id = new_data.user.id;
 
-        let username = new_data.user.name.unwrap_or_default();
-
         debug!("Member {} updated presence", user_id);
 
         let user = match new_data.user.id.to_user(&ctx).await {
@@ -467,35 +422,7 @@ impl EventHandler for Handler {
         )
         .await;
 
-        let connection =
-            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
-                Ok(connection) => connection,
-                Err(e) => {
-
-                    error!("Failed to connect to the database. {}", e);
-
-                    return;
-                }
-            };
-
-        match UserData::insert(crate::structure::database::user_data::ActiveModel {
-            user_id: Set(user_id.to_string()),
-            username: Set(username),
-            added_at: Set(Utc::now().naive_utc()),
-            is_bot: Set(user.bot),
-            banner: Set(user.banner_url().unwrap_or_default()),
-        })
-        .on_conflict(
-            sea_orm::sea_query::OnConflict::column(
-                crate::structure::database::user_data::Column::UserId,
-            )
-            .update_column(crate::structure::database::user_data::Column::Username)
-            .update_column(crate::structure::database::user_data::Column::Banner)
-            .update_column(crate::structure::database::user_data::Column::IsBot)
-            .to_owned(),
-        )
-        .exec(&connection)
-        .await
+        match add_user_data_to_db(user, self.bot_data.db_connection.clone()).await
         {
             Ok(_) => {}
             Err(e) => error!("Failed to insert user data. {}", e),
@@ -629,37 +556,10 @@ impl EventHandler for Handler {
         }
 
         if user.is_none() {
-
             return;
         }
 
-        let connection =
-            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
-                Ok(conn) => conn,
-                Err(_) => {
-
-                    return;
-                }
-            };
-
-        match UserData::insert(crate::structure::database::user_data::ActiveModel {
-            user_id: Set(user.clone().unwrap().id.to_string()),
-            username: Set(user.clone().unwrap().name),
-            added_at: Set(Utc::now().naive_utc()),
-            is_bot: Set(user.clone().unwrap().bot),
-            banner: Set(user.unwrap().banner_url().unwrap_or_default()),
-        })
-        .on_conflict(
-            sea_orm::sea_query::OnConflict::column(
-                crate::structure::database::user_data::Column::UserId,
-            )
-            .update_column(crate::structure::database::user_data::Column::Username)
-            .update_column(crate::structure::database::user_data::Column::Banner)
-            .update_column(crate::structure::database::user_data::Column::IsBot)
-            .to_owned(),
-        )
-        .exec(&connection)
-        .await
+        match add_user_data_to_db(user.unwrap(), self.bot_data.db_connection.clone()).await
         {
             Ok(_) => {}
             Err(e) => error!("Failed to insert user data. {}", e),
@@ -856,4 +756,26 @@ impl EventHandler for Handler {
             _ => {}
         }
     }
+}
+
+pub async fn add_user_data_to_db(user: User, connection: Arc<DatabaseConnection>) -> Result<(), Box<dyn Error>> {
+    UserData::insert(crate::structure::database::user_data::ActiveModel {
+        user_id: Set(user.id.to_string()),
+        username: Set(user.name.clone()),
+        added_at: Set(Utc::now().naive_utc()),
+        is_bot: Set(user.bot),
+        banner: Set(user.banner_url().unwrap_or_default()),
+    })
+        .on_conflict(
+            sea_orm::sea_query::OnConflict::column(
+                crate::structure::database::user_data::Column::UserId,
+            )
+                .update_column(crate::structure::database::user_data::Column::Username)
+                .update_column(crate::structure::database::user_data::Column::Banner)
+                .update_column(crate::structure::database::user_data::Column::IsBot)
+                .to_owned(),
+        )
+        .exec(&*connection)
+        .await?;
+    Ok(())
 }

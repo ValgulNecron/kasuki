@@ -26,6 +26,7 @@ use serenity::all::{Context, GuildId, Member, User, UserId};
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, trace};
+use crate::event_handler::add_user_data_to_db;
 
 pub async fn calculate_users_color(
     members: Vec<Member>,
