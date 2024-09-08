@@ -27,16 +27,19 @@ pub struct QuestionCommand<'de> {
 
 impl Command for QuestionCommand<'_> {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for QuestionCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
@@ -45,10 +48,12 @@ impl SlashCommand for QuestionCommand<'_> {
             )
             .await?
         {
+
             return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "You have reached your hourly limit. Please try again later.",
             ))));
         }
+
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -58,8 +63,11 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
+
     let map = get_option_map_string_subcommand(command_interaction);
+
     let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
+
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 
     command_interaction
@@ -72,12 +80,14 @@ async fn send_embed(
         .ai_question_token
         .clone()
         .unwrap_or_default();
+
     let api_base_url = config
         .ai
         .question
         .ai_question_base_url
         .clone()
         .unwrap_or_default();
+
     let model = config
         .ai
         .question
@@ -113,27 +123,35 @@ async fn send_embed(
 /// # Returns
 ///
 /// A `Result` containing the AI's response. If an error occurred, it contains an `AppError`.
+
 async fn question(
     text: &String,
     api_key: String,
     api_base_url: String,
     model: String,
 ) -> Result<String, Box<dyn Error>> {
+
     let api_url = api_base_url.to_string();
+
     // check the last 3 characters of the url if it v1/ or v1 or something else
     let api_url = question_api_url(api_url);
+
     let client = reqwest::Client::new();
+
     let mut headers = HeaderMap::new();
+
     headers.insert(
         AUTHORIZATION,
         HeaderValue::from_str(&format!("Bearer {}", api_key))?,
     );
+
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
     let data = json!({
          "model": model,
          "messages": [{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": text}]
     });
+
     trace!("{:?}", data);
 
     let res: Value = client
@@ -144,7 +162,9 @@ async fn question(
         .await?
         .json()
         .await?;
+
     trace!("{:?}", res);
+
     let content = res["choices"][0]["message"]["content"].to_string();
 
     // replace the first and last " in the string
@@ -154,11 +174,15 @@ async fn question(
 }
 
 pub fn question_api_url(api_url: String) -> String {
+
     if api_url.ends_with("v1/") {
+
         format!("{}chat/completions", api_url)
     } else if api_url.ends_with("v1") {
+
         format!("{}/chat/completions", api_url)
     } else {
+
         format!("{}/v1/chat/completions", api_url)
     }
 }

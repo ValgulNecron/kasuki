@@ -14,9 +14,11 @@ use serenity::all::{
 };
 
 #[cynic::schema("anilist")]
+
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct MediaQuerryIdVariables {
     pub format_in: Option<Vec<Option<MediaFormat>>>,
     pub id: Option<i32>,
@@ -25,6 +27,7 @@ pub struct MediaQuerryIdVariables {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "MediaQuerryIdVariables")]
+
 pub struct MediaQuerryId {
     #[arguments(type: $ media_type, id: $ id, format_in: $ format_in)]
     #[cynic(rename = "Media")]
@@ -32,6 +35,7 @@ pub struct MediaQuerryId {
 }
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct MediaQuerrySearchVariables<'a> {
     pub format_in: Option<Vec<Option<MediaFormat>>>,
     pub media_type: Option<MediaType>,
@@ -40,6 +44,7 @@ pub struct MediaQuerrySearchVariables<'a> {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "MediaQuerrySearchVariables")]
+
 pub struct MediaQuerrySearch {
     #[arguments(search: $ search, type: $ media_type, format_in: $ format_in)]
     #[cynic(rename = "Media")]
@@ -47,6 +52,7 @@ pub struct MediaQuerrySearch {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct Media {
     pub id: i32,
     pub cover_image: Option<MediaCoverImage>,
@@ -88,23 +94,27 @@ pub struct Media {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct StaffConnection {
     pub edges: Option<Vec<Option<StaffEdge>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct StaffEdge {
     pub role: Option<String>,
     pub node: Option<Staff>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct Staff {
     pub id: i32,
     pub name: Option<StaffName>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct StaffName {
     pub user_preferred: Option<String>,
     pub native: Option<String>,
@@ -112,6 +122,7 @@ pub struct StaffName {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct MediaTag {
     pub category: Option<String>,
     pub description: Option<String>,
@@ -124,6 +135,7 @@ pub struct MediaTag {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct MediaTitle {
     pub english: Option<String>,
     pub native: Option<String>,
@@ -132,6 +144,7 @@ pub struct MediaTitle {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct MediaCoverImage {
     pub extra_large: Option<String>,
     pub medium: Option<String>,
@@ -140,6 +153,7 @@ pub struct MediaCoverImage {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct FuzzyDate {
     pub year: Option<i32>,
     pub month: Option<i32>,
@@ -147,23 +161,27 @@ pub struct FuzzyDate {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterConnection {
     pub edges: Option<Vec<Option<CharacterEdge>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterEdge {
     pub role: Option<CharacterRole>,
     pub node: Option<Character>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct Character {
     pub id: i32,
     pub name: Option<CharacterName>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterName {
     pub user_preferred: Option<String>,
     pub native: Option<String>,
@@ -171,6 +189,7 @@ pub struct CharacterName {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum CharacterRole {
     Main,
     Supporting,
@@ -178,6 +197,7 @@ pub enum CharacterRole {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum MediaFormat {
     Tv,
     TvShort,
@@ -192,6 +212,7 @@ pub enum MediaFormat {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum MediaSeason {
     Winter,
     Spring,
@@ -200,6 +221,7 @@ pub enum MediaSeason {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum MediaSource {
     Original,
     Manga,
@@ -219,6 +241,7 @@ pub enum MediaSource {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum MediaStatus {
     Finished,
     Releasing,
@@ -228,22 +251,26 @@ pub enum MediaStatus {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum MediaType {
     Anime,
     Manga,
 }
 
 #[derive(cynic::Scalar, Debug, Clone)]
+
 pub struct CountryCode(pub String);
 
 impl Display for CountryCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
         write!(f, "{}", self.0.clone())
     }
 }
 
 impl Display for MediaType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
         match self {
             MediaType::Anime => write!(f, "Anime"),
             MediaType::Manga => write!(f, "Manga"),
@@ -253,6 +280,7 @@ impl Display for MediaType {
 
 impl Display for MediaStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
         match self {
             MediaStatus::Finished => write!(f, "Finished"),
             MediaStatus::Releasing => write!(f, "Releasing"),
@@ -265,6 +293,7 @@ impl Display for MediaStatus {
 
 impl Display for MediaSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
         match self {
             MediaSource::Original => write!(f, "Original"),
             MediaSource::Manga => write!(f, "Manga"),
@@ -287,6 +316,7 @@ impl Display for MediaSource {
 
 impl Display for MediaFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
         match self {
             MediaFormat::Tv => write!(f, "TV"),
             MediaFormat::TvShort => write!(f, "TV Short"),
@@ -304,6 +334,7 @@ impl Display for MediaFormat {
 
 impl Display for MediaSeason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
         match self {
             MediaSeason::Winter => write!(f, "Winter"),
             MediaSeason::Spring => write!(f, "Spring"),
@@ -315,6 +346,7 @@ impl Display for MediaSeason {
 
 impl Display for CharacterRole {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
         match self {
             CharacterRole::Main => write!(f, "Main"),
             CharacterRole::Supporting => write!(f, "Supporting"),
@@ -340,17 +372,27 @@ impl Display for CharacterRole {
 /// # Returns
 ///
 /// * `String` - A String that represents the title of the embed.
+
 fn embed_title(title: &MediaTitle) -> String {
+
     let en = title.english.clone();
+
     let rj = title.romaji.clone();
+
     let en = en.unwrap_or_default();
+
     let rj = rj.unwrap_or_default();
+
     let mut title = String::new();
+
     let mut has_en_title = false;
+
     match en.as_str() {
         "" => {}
         _ => {
+
             has_en_title = true;
+
             title.push_str(en.as_str())
         }
     }
@@ -359,9 +401,12 @@ fn embed_title(title: &MediaTitle) -> String {
         "" => {}
         _ => {
             if has_en_title {
+
                 title.push_str(" / ");
+
                 title.push_str(rj.as_str())
             } else {
+
                 title.push_str(rj.as_str())
             }
         }
@@ -387,13 +432,20 @@ fn embed_title(title: &MediaTitle) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the description of the embed.
+
 fn embed_desc(media: &Media) -> String {
+
     let mut desc = media.description.clone().unwrap_or_default();
+
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
+
     let length_diff = 4096 - desc.len() as i32;
+
     if length_diff <= 0 {
+
         desc = trim(desc, length_diff)
     }
+
     desc
 }
 
@@ -413,7 +465,9 @@ fn embed_desc(media: &Media) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the genres of the media.
+
 fn get_genre(genres: &[Option<String>]) -> String {
+
     genres
         .iter()
         .map(|string| string.clone().unwrap_or_default())
@@ -438,9 +492,12 @@ fn get_genre(genres: &[Option<String>]) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the tags of the media.
+
 fn get_tag(tags: &[Option<MediaTag>]) -> String {
+
     tags.iter()
         .map(|media_tag| {
+
             media_tag
                 .clone()
                 .unwrap_or(MediaTag {
@@ -475,7 +532,9 @@ fn get_tag(tags: &[Option<MediaTag>]) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the URL of the media.
+
 fn get_url(media: &Media) -> String {
+
     media
         .site_url
         .clone()
@@ -497,7 +556,9 @@ fn get_url(media: &Media) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the banner of the media.
+
 pub fn get_banner(media: &Media) -> String {
+
     format!("https://img.anili.st/media/{}", media.id)
 }
 
@@ -517,35 +578,52 @@ pub fn get_banner(media: &Media) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the date.
+
 fn get_date(date: &FuzzyDate) -> String {
+
     let date_y = date.year.unwrap_or(0);
+
     let date_d = date.day.unwrap_or(0);
+
     let date_m = date.month.unwrap_or(0);
+
     if date_y == 0 && date_d == 0 && date_m == 0 {
+
         UNKNOWN.to_string()
     } else {
+
         let mut date_of_birth_string = String::new();
 
         let mut has_month: bool = false;
+
         let mut has_day: bool = false;
 
         if let Some(m) = date.month {
+
             date_of_birth_string.push_str(format!("{:02}", m).as_str());
+
             has_month = true
         }
 
         if let Some(d) = date.day {
+
             if has_month {
+
                 date_of_birth_string.push('/')
             }
+
             date_of_birth_string.push_str(format!("{:02}", d).as_str());
+
             has_day = true
         }
 
         if let Some(y) = date.year {
+
             if has_day {
+
                 date_of_birth_string.push('/')
             }
+
             date_of_birth_string.push_str(format!("{:04}", y).as_str());
         }
 
@@ -574,33 +652,50 @@ fn get_date(date: &FuzzyDate) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the staff of the media.
+
 fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
+
     let mut staff_text = String::new();
+
     // iterate over staff with index
     let mut i = 0;
+
     for s in staff.into_iter() {
+
         if i > 4 {
+
             break;
         }
+
         let s = match s {
             Some(s) => s,
             None => continue,
         };
+
         let node = match s.node.clone() {
             Some(n) => n,
             None => continue,
         };
+
         let name = match node.name {
             Some(n) => n,
             None => continue,
         };
+
         let full = name.full;
+
         let user_pref = name.user_preferred;
+
         let native = name.native;
+
         let staff_name = user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(UNKNOWN.to_string())));
+
         let s_role = s.role.clone();
+
         let role = s_role.unwrap_or(UNKNOWN.to_string());
+
         staff_text.push_str(format!("{}: {}", staff_name.as_str(), role.as_str()).as_str());
+
         i += 1;
     }
 
@@ -608,32 +703,45 @@ fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 }
 
 fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
+
     let mut character_text = String::new();
+
     // iterate over staff with index
     let mut i = 0;
+
     for s in character.into_iter() {
+
         if i > 4 {
+
             break;
         }
+
         let name = match s {
             Some(s) => {
+
                 let node = match s.node {
                     Some(n) => n,
                     None => continue,
                 };
+
                 let name = match node.name {
                     Some(n) => n,
                     None => continue,
                 };
+
                 let full = name.full;
+
                 let user_pref = name.user_preferred;
+
                 let native = name.native;
 
                 user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(UNKNOWN.to_string())))
             }
             None => UNKNOWN.to_string(),
         };
+
         character_text.push_str(name.as_str());
+
         i += 1;
     }
 
@@ -664,14 +772,18 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result that represents the result of the function. It returns an empty Ok if the function is successful, otherwise it returns an Err with an AppError.
+
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     data: Media,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     let is_adult = data.is_adult.unwrap_or(true);
+
     if is_adult && !get_nsfw(command_interaction, ctx).await {
+
         return Err(Box::new(error_dispatch::Error::AdultMedia));
     }
 
@@ -681,8 +793,11 @@ pub async fn send_embed(
     };
 
     let media_localised = load_localization_media(guild_id, db_config).await?;
+
     let mut fields = Vec::new();
+
     let genres = data.genres.clone().unwrap_or_default();
+
     // take the first 5 non-optional genres
     let genres = genres
         .into_iter()
@@ -691,9 +806,18 @@ pub async fn send_embed(
         .collect::<Vec<String>>();
 
     let tag = data.tags.clone().unwrap_or_default();
+
     let tag = tag
         .into_iter()
-        .filter_map(|t| if let Some(t) = t { Some(t.name) } else { None })
+        .filter_map(|t| {
+            if let Some(t) = t {
+
+                Some(t.name)
+            } else {
+
+                None
+            }
+        })
         .take(5)
         .collect::<Vec<String>>();
 
@@ -702,61 +826,87 @@ pub async fn send_embed(
     fields.push((media_localised.genre, genres.join(", "), true));
 
     if let Some(staff) = data.staff.clone() {
+
         if let Some(edges) = staff.edges {
+
             let staffs = get_staff(edges);
+
             fields.push((media_localised.staffs, staffs, true));
         }
     }
 
     if let Some(characters) = data.characters.clone() {
+
         if let Some(edges) = characters.edges {
+
             let characters = get_character(edges);
+
             fields.push((media_localised.characters, characters, true));
         }
     }
 
     if let Some(format) = data.format {
+
         fields.push((media_localised.format, format.to_string(), true))
     }
 
     if let Some(source) = data.source {
+
         fields.push((media_localised.source, source.to_string(), true))
     }
 
     if let Some(start_date) = data.start_date.clone() {
+
         let mut start_date_str = String::new();
+
         if let Some(day) = start_date.day {
+
             start_date_str.push_str(format!("{}/", day).as_str());
         }
+
         if let Some(month) = start_date.month {
+
             start_date_str.push_str(format!("{}/", month).as_str());
         }
+
         if let Some(year) = start_date.year {
+
             start_date_str.push_str(year.to_string().as_str());
         }
+
         fields.push((media_localised.start_date, start_date_str, true));
     }
 
     if let Some(end_date) = data.end_date.clone() {
+
         let mut end_date_str = String::new();
+
         if let Some(day) = end_date.day {
+
             end_date_str.push_str(format!("{}/", day).as_str());
         }
+
         if let Some(month) = end_date.month {
+
             end_date_str.push_str(format!("{}/", month).as_str());
         }
+
         if let Some(year) = end_date.year {
+
             end_date_str.push_str(year.to_string().as_str());
         }
+
         fields.push((media_localised.end_date, end_date_str, true));
     }
 
     if let Some(favourites) = data.favourites {
+
         fields.push((media_localised.fav, favourites.to_string(), true))
     }
 
     match data.duration {
         Some(duration) => {
+
             fields.push((
                 media_localised.duration,
                 format!("{} {}", duration, media_localised.minutes),
@@ -765,6 +915,7 @@ pub async fn send_embed(
         }
         None => {
             if let Some(chapters) = data.chapters {
+
                 fields.push((
                     media_localised.duration,
                     format!("{} {}", chapters, media_localised.chapter),
@@ -792,7 +943,9 @@ pub async fn send_embed(
         .fields(fields);
 
     if let Some(image) = data.cover_image {
+
         if let Some(extra_large) = image.extra_large {
+
             builder_embed = builder_embed.thumbnail(extra_large);
         }
     }

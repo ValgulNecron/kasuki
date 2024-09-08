@@ -33,11 +33,13 @@ use tracing::{error, trace};
 /// # Arguments
 ///
 /// * `ctx` - A Context that represents the context.
+
 pub async fn manage_activity(
     ctx: Context,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) {
+
     send_activity(&ctx, anilist_cache, db_config).await;
 }
 
@@ -56,19 +58,25 @@ pub async fn manage_activity(
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context.
+
 async fn send_activity(
     ctx: &Context,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) {
+
     let now = Utc::now().naive_utc();
+
     let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
         Ok(connection) => connection,
         Err(e) => {
+
             error!("{}", e);
+
             return;
         }
     };
+
     let rows = match ActivityData::find()
         .filter(<activity_data::Entity as EntityTrait>::Column::Timestamp.eq(now))
         .all(&connection)
@@ -76,39 +84,57 @@ async fn send_activity(
     {
         Ok(rows) => rows,
         Err(e) => {
+
             error!("{}", e);
+
             return;
         }
     };
 
     for row in rows {
+
         if now != row.timestamp {
+
             continue;
         }
 
         let row2 = row.clone();
+
         let guild_id = row.server_id.clone();
+
         let ctx = ctx.clone();
+
         if row.delay != 0 {
+
             let anilist_cache = anilist_cache.clone();
+
             let db_config = db_config.clone();
+
             tokio::spawn(async move {
+
                 tokio::time::sleep(Duration::from_secs(row2.delay as u64)).await;
+
                 if let Err(e) =
                     send_specific_activity(row, guild_id, row2, &ctx, anilist_cache, db_config)
                         .await
                 {
+
                     error!("{}", e)
                 }
             });
         } else {
+
             let anilist_cache = anilist_cache.clone();
+
             let db_config = db_config.clone();
+
             tokio::spawn(async move {
+
                 if let Err(e) =
                     send_specific_activity(row, guild_id, row2, &ctx, anilist_cache, db_config)
                         .await
                 {
+
                     error!("{}", e);
                 }
             });
@@ -142,6 +168,7 @@ async fn send_activity(
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
+
 async fn send_specific_activity(
     row: Model,
     guild_id: String,
@@ -150,28 +177,41 @@ async fn send_specific_activity(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     let localised_text =
         load_localization_send_activity(guild_id.clone(), db_config.clone()).await?;
+
     let webhook_url = row.webhook.clone();
+
     let mut webhook = Webhook::from_url(&ctx.http, webhook_url.as_str()).await?;
 
     let image = row.image;
+
     trace!(image);
 
     let cursor = Cursor::new(image);
+
     let mut decoder = DecoderReader::new(cursor, &STANDARD);
 
     // Read the decoded bytes into a Vec
     let mut decoded_bytes = Vec::new();
+
     decoder.read_to_end(&mut decoded_bytes)?;
+
     let name = row.name.clone();
+
     let trimmed_name = if name.len() > 100 {
+
         name[..100].to_string()
     } else {
+
         name
     };
+
     let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
+
     let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(&attachment);
+
     webhook.edit(&ctx.http, edit_webhook).await?;
 
     let embed = get_default_embed(None)
@@ -188,12 +228,17 @@ async fn send_specific_activity(
     let builder_message = ExecuteWebhook::new().embed(embed);
 
     webhook.execute(&ctx.http, false, builder_message).await?;
+
     let db2 = db_config.clone();
+
     tokio::spawn(async move {
+
         if let Err(e) = update_info(row2, guild_id, anilist_cache.clone(), db2).await {
+
             error!("{}", e)
         }
     });
+
     Ok(())
 }
 
@@ -217,31 +262,42 @@ async fn send_specific_activity(
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
+
 async fn update_info(
     row: Model,
     guild_id: String,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
+
     let next_airing = match media.next_airing_episode {
         Some(na) => na,
         None => return remove_activity(row, guild_id, db_config).await,
     };
+
     let title = media
         .title
         .ok_or(error_dispatch::Error::Option(String::from("no title")))?;
+
     let rj = title.romaji;
+
     let en = title.english;
+
     let name = en.unwrap_or(rj.unwrap_or(String::from("nothing")));
+
     let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
         Ok(c) => c,
         Err(e) => return Err(Box::new(e)),
     };
+
     let timestamp = next_airing.airing_at as i64;
+
     let chrono = chrono::DateTime::<Utc>::from_timestamp(timestamp, 0)
         .unwrap_or_default()
         .naive_utc();
+
     ActivityData::insert(activity_data::ActiveModel {
         anime_id: Set(row.anime_id),
         timestamp: Set(chrono),
@@ -255,6 +311,7 @@ async fn update_info(
     })
     .exec(&connection)
     .await?;
+
     Ok(())
 }
 
@@ -272,13 +329,17 @@ async fn update_info(
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
+
 async fn remove_activity(
     row: Model,
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     trace!("removing {:#?} for {}", row, guild_id);
+
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
     let rows = ActivityData::delete(activity_data::ActiveModel {
         anime_id: Set(row.anime_id),
         server_id: Set(guild_id.clone()),
@@ -286,6 +347,8 @@ async fn remove_activity(
     })
     .exec(&connection)
     .await?;
+
     trace!("removed {:#?} for {}", rows, guild_id);
+
     Ok(())
 }

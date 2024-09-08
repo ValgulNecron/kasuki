@@ -29,16 +29,19 @@ pub struct CompareCommand {
 
 impl Command for CompareCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for CompareCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -55,12 +58,15 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the usernames from the command interaction
     let map = get_option_map_string(command_interaction);
+
     let value = map
         .get(&String::from("username"))
         .cloned()
         .unwrap_or(String::new());
+
     let value2 = map
         .get(&String::from("username2"))
         .cloned()
@@ -68,6 +74,7 @@ async fn send_embed(
 
     // Fetch the user data for both users
     let user: User = get_user(&value, anilist_cache.clone()).await?;
+
     let user2: User = get_user(&value2, anilist_cache).await?;
 
     // Get the guild ID from the command interaction
@@ -81,6 +88,7 @@ async fn send_embed(
 
     // Clone the user data
     let username = user.name.clone();
+
     let username2 = user2.name.clone();
 
     // Initialize the description string
@@ -103,14 +111,19 @@ async fn send_embed(
     );
 
     let statistics = user.statistics.unwrap();
+
     let statistics2 = user2.statistics.unwrap();
+
     let anime = statistics.anime.unwrap();
+
     let anime2 = statistics2.anime.unwrap();
 
     let minutes_watched = anime.minutes_watched;
+
     let minutes_watched2 = anime2.minutes_watched;
 
     let count = anime.count;
+
     let count2 = anime2.count;
 
     // Compare the count of anime watched by the two users and add the result to the description string
@@ -165,6 +178,7 @@ async fn send_embed(
 
     // Get the tags of the anime watched by the two users and add the comparison to the description string
     let tag = get_tag(&anime.tags.unwrap());
+
     let tag2 = get_tag(&anime2.tags.unwrap());
 
     desc.push_str(
@@ -181,6 +195,7 @@ async fn send_embed(
 
     // Get the genres of the anime watched by the two users and add the comparison to the description string
     let genre = get_genre(&anime.genres.unwrap());
+
     let genre2 = get_genre(&anime2.genres.unwrap());
 
     desc.push_str(
@@ -196,16 +211,21 @@ async fn send_embed(
     );
 
     let manga = statistics.manga.unwrap();
+
     let manga2 = statistics2.manga.unwrap();
 
     let count = manga.count;
+
     let count2 = manga2.count;
 
     let chapters_read = manga.chapters_read;
+
     let chapters_read2 = manga2.chapters_read;
+
     // Compare the count of manga read by the two users and add the result to the description string
     match count.cmp(&count2) {
         std::cmp::Ordering::Greater => {
+
             desc.push_str(
                 compare_localised
                     .more_manga
@@ -215,6 +235,7 @@ async fn send_embed(
             );
         }
         std::cmp::Ordering::Less => {
+
             desc.push_str(
                 compare_localised
                     .more_manga
@@ -224,6 +245,7 @@ async fn send_embed(
             );
         }
         std::cmp::Ordering::Equal => {
+
             desc.push_str(
                 compare_localised
                     .same_manga
@@ -237,6 +259,7 @@ async fn send_embed(
     // Compare the chapters read by the two users and add the result to the description string
     match chapters_read.cmp(&chapters_read2) {
         std::cmp::Ordering::Greater => {
+
             desc.push_str(
                 compare_localised
                     .more_manga_chapter
@@ -246,6 +269,7 @@ async fn send_embed(
             );
         }
         std::cmp::Ordering::Less => {
+
             desc.push_str(
                 compare_localised
                     .more_manga_chapter
@@ -255,6 +279,7 @@ async fn send_embed(
             );
         }
         std::cmp::Ordering::Equal => {
+
             desc.push_str(
                 compare_localised
                     .same_manga_chapter
@@ -267,6 +292,7 @@ async fn send_embed(
 
     // Get the tags of the manga read by the two users and add the comparison to the description string
     let tag = get_tag(&manga.tags.unwrap());
+
     let tag2 = get_tag(&manga2.tags.unwrap());
 
     desc.push_str(
@@ -283,6 +309,7 @@ async fn send_embed(
 
     // Get the genres of the manga read by the two users and add the comparison to the description string
     let genre = get_genre(&manga.genres.unwrap());
+
     let genre2 = get_genre(&manga2.genres.unwrap());
 
     desc.push_str(
@@ -332,12 +359,16 @@ async fn send_embed(
 /// # Returns
 ///
 /// A `f64` representing the affinity between the two users.
+
 fn get_affinity(s1: UserStatisticTypes, s2: UserStatisticTypes) -> f64 {
+
     // Initialize the affinity
     let mut affinity: f64;
 
     let anime = s1.anime.clone().unwrap();
+
     let anime2 = s2.anime.clone().unwrap();
+
     // Calculate the Jaccard index of the tags of the anime watched by the users
     affinity = jaccard_index(
         &tag_string(&anime.tags.clone().unwrap()),
@@ -351,11 +382,14 @@ fn get_affinity(s1: UserStatisticTypes, s2: UserStatisticTypes) -> f64 {
     );
 
     let manga = s1.manga.clone().unwrap();
+
     let manga2 = s2.manga.clone().unwrap();
+
     let mut affinity2 = jaccard_index(
         &tag_string(&manga.tags.clone().unwrap()),
         &tag_string(&manga2.tags.clone().unwrap()),
     );
+
     affinity2 += jaccard_index(
         &genre_string(&manga.genres.clone().unwrap()),
         &genre_string(&manga2.genres.clone().unwrap()),
@@ -391,10 +425,13 @@ fn get_affinity(s1: UserStatisticTypes, s2: UserStatisticTypes) -> f64 {
 /// # Returns
 ///
 /// A `f64` representing the affinity between the two anime.
+
 fn other_affinity_anime(anime: UserStatistics, anime0: UserStatistics) -> f64 {
+
     // Retrieve the number of anime in each status category for both anime
     let (current, planning, completed, dropped, paused, repeating) =
         get_number_by_status(anime.statuses.unwrap());
+
     let (current0, planning0, completed0, dropped0, paused0, repeating0) =
         get_number_by_status(anime0.statuses.unwrap());
 
@@ -403,41 +440,56 @@ fn other_affinity_anime(anime: UserStatistics, anime0: UserStatistics) -> f64 {
 
     // Increase the affinity by 1 for each matching status category
     if current == current0 {
+
         affinity += 1f64
     }
+
     if planning == planning0 {
+
         affinity += 1f64
     }
+
     if completed == completed0 {
+
         affinity += 1f64
     }
+
     if dropped == dropped0 {
+
         affinity += 1f64
     }
+
     if paused == paused0 {
+
         affinity += 1f64
     }
+
     if repeating == repeating0 {
+
         affinity += 1f64
     }
 
     // Increase the affinity by 1 if the count of the anime is the same
     if anime.count == anime0.count {
+
         affinity += 1f64
     }
 
     // Increase the affinity by 1 if the minutes watched is the same
     if anime.minutes_watched == anime0.minutes_watched {
+
         affinity += 1f64
     }
 
     // Increase the affinity by 1 if the standard deviation of the scores is the same
     if anime.standard_deviation == anime0.standard_deviation {
+
         affinity += 1f64
     }
 
     // Increase the affinity by 1 if the mean score is the same
     if anime.mean_score == anime0.mean_score {
+
         affinity += 1f64
     }
 
@@ -465,10 +517,13 @@ fn other_affinity_anime(anime: UserStatistics, anime0: UserStatistics) -> f64 {
 /// # Returns
 ///
 /// A `f64` representing the affinity between the two manga.
+
 fn other_affinity_manga(manga: UserStatistics2, manga0: UserStatistics2) -> f64 {
+
     // Retrieve the number of manga in each status category for both manga
     let (current, planning, completed, dropped, paused, repeating) =
         get_number_by_status(manga.statuses.unwrap());
+
     let (current0, planning0, completed0, dropped0, paused0, repeating0) =
         get_number_by_status(manga0.statuses.unwrap());
 
@@ -477,41 +532,56 @@ fn other_affinity_manga(manga: UserStatistics2, manga0: UserStatistics2) -> f64 
 
     // Increase the affinity by 1 for each matching status category
     if current == current0 {
+
         affinity += 1f64
     }
+
     if planning == planning0 {
+
         affinity += 1f64
     }
+
     if completed == completed0 {
+
         affinity += 1f64
     }
+
     if dropped == dropped0 {
+
         affinity += 1f64
     }
+
     if paused == paused0 {
+
         affinity += 1f64
     }
+
     if repeating == repeating0 {
+
         affinity += 1f64
     }
 
     // Increase the affinity by 1 if the count of the manga is the same
     if manga.count == manga0.count {
+
         affinity += 1f64
     }
 
     // Increase the affinity by 1 if the number of chapters read is the same
     if manga.chapters_read == manga0.chapters_read {
+
         affinity += 1f64
     }
 
     // Increase the affinity by 1 if the standard deviation of the scores is the same
     if manga.standard_deviation == manga0.standard_deviation {
+
         affinity += 1f64
     }
 
     // Increase the affinity by 1 if the mean score is the same
     if manga.mean_score == manga0.mean_score {
+
         affinity += 1f64
     }
 
@@ -532,11 +602,15 @@ fn other_affinity_manga(manga: UserStatistics2, manga0: UserStatistics2) -> f64 
 /// # Returns
 ///
 /// A `f64` representing the Jaccard index between the two sets.
+
 fn jaccard_index(a: &[String], b: &[String]) -> f64 {
+
     let set_a: HashSet<_> = a.iter().collect();
+
     let set_b: HashSet<_> = b.iter().collect();
 
     let intersection = set_a.intersection(&set_b).count();
+
     let union = set_a.union(&set_b).count();
 
     intersection as f64 / union as f64
@@ -553,16 +627,27 @@ fn jaccard_index(a: &[String], b: &[String]) -> f64 {
 /// # Returns
 ///
 /// A tuple of six `i32` values, each representing the count of anime/manga in the corresponding status category.
+
 fn get_number_by_status(s: Vec<Option<UserStatusStatistic>>) -> (i32, i32, i32, i32, i32, i32) {
+
     let mut current = 0;
+
     let mut planning = 0;
+
     let mut completed = 0;
+
     let mut dropped = 0;
+
     let mut paused = 0;
+
     let mut repeating = 0;
+
     for statuses in s {
+
         let statuses = statuses.unwrap();
+
         let status = statuses.status.unwrap();
+
         match status.to_string().as_str() {
             "CURRENT" => current = statuses.count,
             "PLANNING" => planning = statuses.count,
@@ -573,6 +658,7 @@ fn get_number_by_status(s: Vec<Option<UserStatusStatistic>>) -> (i32, i32, i32, 
             _ => {}
         }
     }
+
     (current, planning, completed, dropped, paused, repeating)
 }
 
@@ -588,10 +674,14 @@ fn get_number_by_status(s: Vec<Option<UserStatusStatistic>>) -> (i32, i32, i32, 
 /// # Returns
 ///
 /// A `Vec<String>` containing the names of the `Tag`s.
+
 fn tag_string(vec: &[Option<UserTagStatistic>]) -> Vec<String> {
+
     vec.iter()
         .map(|tag| {
+
             let tag = tag.clone().unwrap();
+
             tag.tag.unwrap().name.clone()
         })
         .collect()
@@ -609,10 +699,14 @@ fn tag_string(vec: &[Option<UserTagStatistic>]) -> Vec<String> {
 /// # Returns
 ///
 /// A `Vec<String>` containing the genres of the `Genre`s.
+
 fn genre_string(vec: &[Option<UserGenreStatistic>]) -> Vec<String> {
+
     vec.iter()
         .map(|genre| {
+
             let genre = genre.clone().unwrap();
+
             genre.genre.unwrap().clone()
         })
         .collect()
@@ -630,10 +724,14 @@ fn genre_string(vec: &[Option<UserGenreStatistic>]) -> Vec<String> {
 /// # Returns
 ///
 /// A `String` containing the name of the first `Tag` or an empty `String`.
+
 fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
+
     if tags.len() > 1 {
+
         tags[0].clone().unwrap().tag.unwrap().name.clone()
     } else {
+
         String::new()
     }
 }
@@ -650,10 +748,14 @@ fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
 /// # Returns
 ///
 /// A `String` containing the genre of the first `Genre` or an empty `String`.
+
 fn get_genre(genres: &[Option<UserGenreStatistic>]) -> String {
+
     if genres.len() > 1 {
+
         genres[0].clone().unwrap().genre.clone().unwrap_or_default()
     } else {
+
         String::new()
     }
 }
@@ -676,6 +778,7 @@ fn get_genre(genres: &[Option<UserGenreStatistic>]) -> String {
 /// # Returns
 ///
 /// A `String` containing the formatted `diff_text` or `same` based on the equality of the input strings.
+
 fn diff(
     a1: &str,
     a2: &str,
@@ -684,19 +787,24 @@ fn diff(
     username: &str,
     username2: &str,
 ) -> String {
+
     let diff = a1 != a2;
 
     let info = if diff {
+
         diff_text
             .replace("$1$", username)
             .replace("$2$", username2)
             .replace("$1a$", a1)
             .replace("$2a$", a2)
     } else {
+
         same.replace("$1$", username)
             .replace("$2$", username2)
             .replace("$1a$", a1)
     };
+
     trace!(info);
+
     info
 }

@@ -19,6 +19,7 @@ use crate::register::command_struct::subcommand::Command;
 /// * `permissions` - An `Option` containing a `Vec` of `DefaultPermission` which represents the permissions required to execute the subcommand group.
 /// * `localised` - An `Option` containing a `Vec` of `Localised` which represents the localised versions of the subcommand group.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct SubCommandGroup {
     pub name: String,
     pub desc: String,
@@ -42,6 +43,7 @@ pub struct SubCommandGroup {
 /// * `localised` - An `Option` containing a `Vec` of `Localised` which represents the localised versions of the subcommand.
 /// * `command` - An `Option` containing a `Vec` of `Command` which represents the commands that the subcommand can execute.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct SubCommand {
     pub name: String,
     pub desc: String,

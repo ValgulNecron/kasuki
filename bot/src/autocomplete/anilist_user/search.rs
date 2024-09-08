@@ -27,12 +27,15 @@ use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_su
 /// # Async
 ///
 /// This function is asynchronous. It awaits the execution of the corresponding autocomplete function.
+
 pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
+
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+
     let search_type = map.get(&String::from("type")).unwrap_or(DEFAULT_STRING);
 
     match search_type.as_str() {

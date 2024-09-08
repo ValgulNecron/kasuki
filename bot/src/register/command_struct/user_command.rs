@@ -11,6 +11,7 @@ use crate::register::command_struct::common::{CommandInstallationContext, Defaul
 /// * `localised` - An `Option` containing a `Vec` of `Localised` which represents the localised versions of the user command.
 /// * `permissions` - An `Option` containing a `Vec` of `DefaultPermission` which represents the permissions required to execute the user command.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct UserCommand {
     pub name: String,
     pub localised: Option<Vec<Localised>>,
@@ -26,6 +27,7 @@ pub struct UserCommand {
 /// * `code` - The language code as a `String`.
 /// * `name` - The name in the localised language as a `String`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct Localised {
     pub code: String,
     pub name: String,

@@ -25,16 +25,19 @@ pub struct AnimeCommand {
 
 impl Command for AnimeCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for AnimeCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -44,18 +47,22 @@ impl SlashCommand for AnimeCommand {
         .await
     }
 }
+
 async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the name or ID of the anime from the command interaction options
     let map = get_option_map_string(command_interaction);
+
     let value = map
         .get(&String::from("anime_name"))
         .cloned()
         .unwrap_or(String::new());
+
     let format_in = Some(vec![
         Some(MediaFormat::Tv),
         Some(MediaFormat::TvShort),
@@ -65,18 +72,24 @@ async fn send_embed(
         Some(MediaFormat::Ona),
         Some(MediaFormat::Music),
     ]);
+
     // If the value is an integer, treat it as an ID and retrieve the anime with that ID
     // If the value is not an integer, treat it as a name and retrieve the anime with that name
     let data: Media = if value.parse::<i32>().is_ok() {
+
         let id = value.parse::<i32>().unwrap();
+
         let var = MediaQuerryIdVariables {
             format_in,
             id: Some(id),
             media_type: Some(MediaType::Anime),
         };
+
         let operation = MediaQuerryId::build(var);
+
         let data: GraphQlResponse<MediaQuerryId> =
             make_request_anilist(operation, false, anilist_cache).await?;
+
         match data.data {
             Some(data) => match data.media {
                 Some(media) => media,
@@ -93,14 +106,18 @@ async fn send_embed(
             }
         }
     } else {
+
         let var = MediaQuerrySearchVariables {
             format_in,
             search: Some(&*value),
             media_type: Some(MediaType::Anime),
         };
+
         let operation = MediaQuerrySearch::build(var);
+
         let data: GraphQlResponse<MediaQuerrySearch> =
             make_request_anilist(operation, false, anilist_cache).await?;
+
         match data.data {
             Some(data) => match data.media {
                 Some(media) => media,

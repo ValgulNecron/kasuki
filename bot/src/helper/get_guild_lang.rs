@@ -5,6 +5,7 @@ use crate::structure::database::prelude::GuildLang;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
+
 /// Retrieves the language setting for a given guild.
 ///
 /// This function takes a guild ID as a parameter and returns the language setting for that guild.
@@ -19,16 +20,22 @@ use sea_orm::QueryFilter;
 /// # Returns
 ///
 /// * A string representing the language setting for the given guild. If no language setting is found, it returns "en".
+
 pub async fn get_guild_language(guild_id: String, db_config: DbConfig) -> String {
+
     if guild_id == *"0" {
+
         return String::from("en");
     };
+
     let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
         Ok(conn) => conn,
         Err(_) => {
+
             return String::from("en");
         }
     };
+
     let guild_lang: Option<Model> = GuildLang::find()
         .filter(Column::GuildId.eq(guild_id))
         .one(&connection)

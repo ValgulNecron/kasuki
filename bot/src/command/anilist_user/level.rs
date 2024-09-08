@@ -32,16 +32,19 @@ pub struct LevelCommand {
 
 impl Command for LevelCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl LevelCommand {
     pub async fn run_slash(self) -> Result<(), Box<dyn Error>> {
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -58,30 +61,40 @@ pub async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the username from the command interaction
     let map = get_option_map_string(command_interaction);
+
     let user = map.get(&String::from("username"));
+
     match user {
         Some(value) => {
+
             // If a username is provided, fetch the user data and send an embed
             let data: User = get_user(value, anilist_cache).await?;
+
             send_embed2(ctx, command_interaction, data, config.db.clone()).await
         }
         None => {
+
             // If no username is provided, retrieve the ID of the user who triggered the command
             let user_id = &command_interaction.user.id.to_string();
+
             // Check if the user is registered
             let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+
             let row = RegisteredUser::find()
                 .filter(Column::UserId.eq(user_id))
                 .one(&connection)
                 .await?;
+
             let user = row.ok_or(error_dispatch::Error::Option(String::from(
                 "No user specified or linked to this discord account",
             )))?;
 
             // Fetch the user data and send an embed
             let data: User = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
+
             send_embed2(ctx, command_interaction, data, config.db.clone()).await
         }
     }
@@ -100,12 +113,14 @@ pub async fn send_embed(
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
+
 pub async fn send_embed2(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     user: User,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -117,29 +132,42 @@ pub async fn send_embed2(
 
     // Clone the manga and anime statistics
     let statistics = user.statistics.clone().unwrap();
+
     let manga = statistics.manga.clone();
+
     let anime = statistics.anime.clone();
 
     // Calculate the number of manga and anime completed
     let manga_completed = if let Some(manga) = manga.clone() {
+
         get_completed(manga.statuses.unwrap())
     } else {
+
         0
     };
+
     let anime_completed = if let Some(anime) = anime.clone() {
+
         get_completed(anime.statuses.unwrap())
     } else {
+
         0
     };
+
     // Get the number of chapters read and minutes watched
     let chap_read = if let Some(manga) = manga.clone() {
+
         manga.chapters_read
     } else {
+
         0
     };
+
     let tw = if let Some(anime) = anime.clone() {
+
         anime.minutes_watched
     } else {
+
         0
     };
 
@@ -189,6 +217,7 @@ pub async fn send_embed2(
 }
 
 pub static LEVELS: Lazy<[(u32, f64, f64); 102]> = Lazy::new(|| {
+
     [
         (0, 0.0, xp_required_for_level(1)),
         (1, xp_required_for_level(1), xp_required_for_level(2)),
@@ -308,14 +337,21 @@ pub static LEVELS: Lazy<[(u32, f64, f64); 102]> = Lazy::new(|| {
 /// # Returns
 ///
 /// A tuple containing the level as a `u32`, the progress within that level as a `f64`, and the total progress required to reach the next level as a `f64`.
+
 fn get_level(xp: f64) -> (u32, f64, f64) {
+
     for &(level, required_xp, next_level_required_xp) in LEVELS.iter().rev() {
+
         if xp >= required_xp {
+
             let level_progress = xp - required_xp;
+
             let level_progress_total = next_level_required_xp - required_xp;
+
             return (level, level_progress, level_progress_total);
         }
     }
+
     (0, 0.0, 20.0)
 }
 
@@ -341,7 +377,9 @@ fn get_level(xp: f64) -> (u32, f64, f64) {
 /// # Returns
 ///
 /// The experience points required to reach the given level as a `f64`.
+
 fn xp_required_for_level(level: u32) -> f64 {
+
     match level {
         0..=9 => (level as f64).powf(3f64),
         10..=29 => (level as f64).powf(4f64),

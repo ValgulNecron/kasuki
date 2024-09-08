@@ -24,16 +24,19 @@ pub struct VnProducerCommand {
 
 impl Command for VnProducerCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for VnProducerCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -50,33 +53,47 @@ async fn send_embed(
     config: Arc<Config>,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+
     let map = get_option_map_string_subcommand(command_interaction);
+
     trace!("{:?}", map);
+
     let producer = map
         .get(&String::from("name"))
         .cloned()
         .unwrap_or(String::new());
+
     let producer_localised = load_localization_producer(guild_id, config.db.clone()).await?;
 
     let producer = get_producer(producer.clone(), vndb_cache).await?;
+
     let producer = producer.results[0].clone();
+
     let mut fields = vec![];
+
     if let Some(lang) = producer.lang {
+
         fields.push((producer_localised.lang.clone(), lang, true));
     }
+
     if let Some(aliases) = producer.aliases {
+
         let aliases = aliases
             .into_iter()
             .take(10)
             .collect::<Vec<String>>()
             .join(", ");
+
         fields.push((producer_localised.aliases.clone(), aliases, true));
     }
+
     if let Some(results_type) = producer.results_type {
+
         fields.push((
             producer_localised.prod_type.clone(),
             results_type.to_string(),
@@ -91,10 +108,14 @@ async fn send_embed(
         .fields(fields)
         .title(producer.name.clone())
         .url(format!("https://vndb.org/{}", producer.id));
+
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
+
     let builder = CreateInteractionResponse::Message(builder_message);
+
     command_interaction
         .create_response(&ctx.http, builder)
         .await?;
+
     Ok(())
 }

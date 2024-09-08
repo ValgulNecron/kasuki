@@ -12,6 +12,7 @@ use serenity::all::{
     CreateInteractionResponse,
 };
 use tracing::error;
+
 /// `autocomplete` is an asynchronous function that handles the autocomplete feature for deleting activities.
 /// It takes a `Context` and a `CommandInteraction` as parameters.
 /// `ctx` is the context in which this function is called.
@@ -40,12 +41,15 @@ use tracing::error;
 /// # Async
 ///
 /// This function is asynchronous. It awaits the getting of all activities by the server, the fuzzy search, and the sending of the response.
+
 pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     db_config: DbConfig,
 ) {
+
     let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
+
     let activity_search = map
         .get(&String::from("anime_name"))
         .unwrap_or(DEFAULT_STRING);
@@ -58,10 +62,13 @@ pub async fn autocomplete(
     let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
         Ok(conn) => conn,
         Err(e) => {
+
             error!(?e);
+
             return;
         }
     };
+
     let activities = match ActivityData::find()
         .filter(Column::ServerId.eq(&guild_id))
         .all(&connection)
@@ -69,15 +76,19 @@ pub async fn autocomplete(
     {
         Ok(data) => data,
         Err(e) => {
+
             tracing::debug!(?e);
+
             return;
         }
     };
+
     let activity: Vec<String> = activities
         .clone()
         .into_iter()
         .map(|activity| format!("{}${}", activity.name, activity.anime_id))
         .collect();
+
     let activity_refs: Vec<&str> = activity.iter().map(String::as_str).collect();
 
     // Use rust-fuzzy-search to find the top 5 matches
@@ -88,13 +99,20 @@ pub async fn autocomplete(
     );
 
     let mut choices = Vec::new();
+
     for (activity, _) in matches {
+
         let parts: Vec<&str> = activity.split('$').collect();
+
         let id = parts[1].to_string();
+
         let name = parts[0].to_string();
+
         choices.push(AutocompleteChoice::new(name, id))
     }
+
     let data = CreateAutocompleteResponse::new().set_choices(choices);
+
     let builder = CreateInteractionResponse::Autocomplete(data);
 
     let _ = autocomplete_interaction

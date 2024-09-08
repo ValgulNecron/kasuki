@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 /// # Struct Fields
 /// `title`: A String representing the title of the transcript.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct TranscriptLocalised {
     pub title: String,
 }
@@ -31,10 +32,13 @@ pub struct TranscriptLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
+
 pub async fn load_localization_transcript(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<TranscriptLocalised, Box<dyn Error>> {
+
     let path = "json/message/ai/transcript.json";
+
     load_localization(guild_id, path, db_config).await
 }

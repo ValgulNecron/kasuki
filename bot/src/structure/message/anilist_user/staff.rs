@@ -2,6 +2,7 @@ use std::error::Error;
 
 use crate::config::DbConfig;
 use serde::{Deserialize, Serialize};
+
 // Importing necessary libraries and modules
 use crate::structure::message::common::load_localization;
 
@@ -15,6 +16,7 @@ use crate::structure::message::common::load_localization;
 /// * `date_of_birth`: A string representing the date of birth related data.
 /// * `date_of_death`: A string representing the date of death related data.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct StaffLocalised {
     pub field1_title: String,
     pub field2_title: String,
@@ -34,10 +36,13 @@ pub struct StaffLocalised {
 /// # Returns
 ///
 /// * `Result<StaffLocalised, AppError>`: A Result containing StaffLocalised data or an AppError.
+
 pub async fn load_localization_staff(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<StaffLocalised, Box<dyn Error>> {
+
     let path = "json/message/anilist_user/staff.json";
+
     load_localization(guild_id, path, db_config).await
 }

@@ -18,16 +18,21 @@ use crate::register::registration_function::common::{
 /// # Arguments
 ///
 /// * `http` - An `Arc<Http>` instance used to send the commands to the Discord API.
+
 pub async fn creates_commands(http: &Arc<Http>) {
+
     let commands = match get_commands("./json/command") {
         Err(e) => {
+
             error!("{:?}", e);
+
             return;
         }
         Ok(c) => c,
     };
 
     for command in commands {
+
         create_command(&command, http).await;
     }
 }
@@ -48,11 +53,16 @@ pub async fn creates_commands(http: &Arc<Http>) {
 /// # Returns
 ///
 /// A `Result` containing either a vector of `Command` structs if the commands are successfully read, or an `AppError` if an error occurs.
+
 pub fn get_commands(path: &str) -> Result<Vec<Command>, Box<dyn Error>> {
+
     let commands: Vec<Command> = get_vec(path)?;
+
     if commands.is_empty() {
+
         trace!("No commands found in the directory: {:?}", path);
     }
+
     Ok(commands)
 }
 
@@ -72,7 +82,9 @@ pub fn get_commands(path: &str) -> Result<Vec<Command>, Box<dyn Error>> {
 ///
 /// * `command` - A reference to a `Command` struct containing the details of the command to be created.
 /// * `http` - An `Arc<Http>` instance used to send the command to the Discord API.
+
 async fn create_command(command: &Command, http: &Arc<Http>) {
+
     let mut command_build = CreateCommand::new(&command.name)
         .nsfw(command.nsfw)
         .kind(CommandType::ChatInput)
@@ -84,14 +96,18 @@ async fn create_command(command: &Command, http: &Arc<Http>) {
 
     command_build = match &command.args {
         Some(args) => {
+
             let options = get_option(args);
+
             command_build.set_options(options)
         }
         None => command_build,
     };
+
     match &command.localised {
         Some(locale) => {
             for locale in locale {
+
                 command_build = command_build
                     .name_localized(&locale.code, &locale.name)
                     .description_localized(&locale.code, &locale.desc);
@@ -101,9 +117,11 @@ async fn create_command(command: &Command, http: &Arc<Http>) {
     }
 
     let e = http.create_global_command(&command_build).await;
+
     match e {
         Ok(_) => (),
         Err(e) => {
+
             error!("Failed to create command: {:?}", e);
         }
     }

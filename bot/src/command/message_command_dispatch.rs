@@ -8,6 +8,7 @@ pub async fn dispatch_message_command(
     command_interaction: &CommandInteraction,
     _self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
+
     match command_interaction.data.name.as_str() {
         _ => Err(Box::new(error_dispatch::Error::Option(String::from(
             "Unknown command",

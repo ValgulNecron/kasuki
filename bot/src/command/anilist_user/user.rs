@@ -30,51 +30,69 @@ pub struct UserCommand {
 
 impl Command for UserCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
+
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for UserCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         let ctx = &self.ctx;
+
         let command_interaction = &self.command_interaction;
+
         let config = self.config.clone();
+
         let anilist_cache = self.anilist_cache.clone();
+
         send_embed(ctx, command_interaction, config, anilist_cache).await
     }
 }
+
 async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the username from the command interaction
     let map = get_option_map_string(command_interaction);
+
     let user = map.get(&String::from("username"));
 
     // If the username is provided, fetch the user's data from AniList and send it as a response
     if let Some(value) = user {
+
         let data: User = get_user(value, anilist_cache.clone()).await?;
+
         return user::send_embed(ctx, command_interaction, data, config.db.clone()).await;
     }
 
     // If the username is not provided, fetch the data of the user who triggered the command interaction
     let user_id = &command_interaction.user.id.to_string();
+
     let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+
     let row = RegisteredUser::find()
         .filter(Column::UserId.eq(user_id))
         .one(&connection)
         .await?;
+
     let user = row.ok_or(error_dispatch::Error::Option(String::from("No user found")))?;
 
     // Fetch the user's data from AniList and send it as a response
     let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
+
     user::send_embed(ctx, command_interaction, data, config.db.clone()).await
 }
+
 /// Fetches the data of a user from AniList.
 ///
 /// This function takes a username or user ID and fetches the user's data from AniList.
@@ -87,27 +105,39 @@ async fn send_embed(
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the user's data was fetched successfully, or `Err` if an error occurred.
+
 pub async fn get_user(
     value: &str,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<User, Box<dyn Error>> {
+
     // If the value is a valid user ID, fetch the user's data by ID
     let user = if value.parse::<i32>().is_ok() {
+
         let id = value.parse::<i32>().unwrap();
+
         let var = UserQueryIdVariables { id: Some(id) };
+
         let operation = UserQueryId::build(var);
+
         let data: GraphQlResponse<UserQueryId> =
             make_request_anilist(operation, false, anilist_cache).await?;
+
         data.data.unwrap().user.unwrap()
     } else {
+
         // If the value is not a valid user ID, fetch the user's data by username
         let var = UserQuerySearchVariables {
             search: Some(value),
         };
+
         let operation = UserQuerySearch::build(var);
+
         let data: GraphQlResponse<UserQuerySearch> =
             make_request_anilist(operation, false, anilist_cache).await?;
+
         data.data.unwrap().user.unwrap()
     };
+
     Ok(user)
 }

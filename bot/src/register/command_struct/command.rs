@@ -17,6 +17,7 @@ use crate::register::command_struct::common::{
 /// * `args` - An `Option` containing a `Vec` of `Arg` which represents the arguments that the command accepts.
 /// * `localised` - An `Option` containing a `Vec` of `Localised` which represents the localised versions of the command.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct Command {
     pub name: String,
     pub desc: String,

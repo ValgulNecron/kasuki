@@ -1,7 +1,9 @@
 #[cynic::schema("anilist")]
+
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct SeiyuuIdVariables {
     pub id: Option<i32>,
     pub per_page: Option<i32>,
@@ -9,6 +11,7 @@ pub struct SeiyuuIdVariables {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "SeiyuuIdVariables")]
+
 pub struct SeiyuuId {
     #[cynic(rename = "Page")]
     pub page: Option<Page>,
@@ -16,6 +19,7 @@ pub struct SeiyuuId {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(variables = "SeiyuuIdVariables")]
+
 pub struct Page {
     #[arguments(id: $ id)]
     pub staff: Option<Vec<Option<Staff>>>,
@@ -23,6 +27,7 @@ pub struct Page {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(variables = "SeiyuuIdVariables")]
+
 pub struct Staff {
     pub site_url: Option<String>,
     pub image: Option<StaffImage>,
@@ -32,6 +37,7 @@ pub struct Staff {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct StaffName {
     pub user_preferred: Option<String>,
     pub native: Option<String>,
@@ -39,22 +45,26 @@ pub struct StaffName {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct StaffImage {
     pub large: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterConnection {
     pub nodes: Option<Vec<Option<Character>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct Character {
     pub image: Option<CharacterImage>,
     pub name: Option<CharacterName>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterName {
     pub full: Option<String>,
     pub native: Option<String>,
@@ -62,11 +72,13 @@ pub struct CharacterName {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterImage {
     pub large: Option<String>,
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum CharacterSort {
     Id,
     IdDesc,

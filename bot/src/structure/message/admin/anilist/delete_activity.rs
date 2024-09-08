@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 /// `success`: A String representing the success message of the delete activity.
 /// `success_desc`: A String representing the success description of the delete activity.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct DeleteActivityLocalised {
     pub success: String,
     pub success_desc: String,
@@ -34,10 +35,13 @@ pub struct DeleteActivityLocalised {
 ///
 /// This function will return an `AppError` if it encounters any issues while reading or parsing the JSON file.
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
+
 pub async fn load_localization_delete_activity(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<DeleteActivityLocalised, Box<dyn Error>> {
+
     let path = "json/message/admin/anilist/delete_activity.json";
+
     load_localization(guild_id, path, db_config).await
 }

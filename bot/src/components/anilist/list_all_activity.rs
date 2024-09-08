@@ -30,12 +30,14 @@ use tracing::trace;
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
+
 pub async fn update(
     ctx: &Context,
     component_interaction: &ComponentInteraction,
     page_number: &str,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -51,14 +53,20 @@ pub async fn update(
         )))?;
 
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
     let list = ActivityData::find()
         .filter(Column::ServerId.eq(guild_id.to_string()))
         .all(&connection)
         .await?;
+
     let len = list.len();
+
     let actual_page: u64 = page_number.parse().unwrap();
+
     trace!("{:?}", actual_page);
+
     let next_page: u64 = actual_page + 1;
+
     let previous_page: u64 = if actual_page > 0 { actual_page - 1 } else { 0 };
 
     let activity: Vec<String> = get_formatted_activity_list(list, actual_page);
@@ -70,29 +78,37 @@ pub async fn update(
         .color(COLOR)
         .title(list_activity_localised_text.title)
         .description(join_activity);
+
     let mut message_rep = CreateInteractionResponseMessage::new().embed(builder_message);
 
     if page_number != "0" {
+
         message_rep = message_rep.button(
             CreateButton::new(format!("next_activity_{}", previous_page))
                 .label(&list_activity_localised_text.previous),
         );
     }
+
     trace!("{:?}", len);
+
     trace!("{:?}", ACTIVITY_LIST_LIMIT);
+
     if len > ACTIVITY_LIST_LIMIT as usize
         && (len > (ACTIVITY_LIST_LIMIT * (actual_page + 1)) as usize)
     {
+
         message_rep = message_rep.button(
             CreateButton::new(format!("next_activity_{}", next_page))
                 .label(&list_activity_localised_text.next),
         )
     }
+
     let response = CreateInteractionResponse::UpdateMessage(message_rep);
 
     component_interaction
         .create_response(&ctx.http, response)
         .await?;
+
     Ok(())
 }
 
@@ -110,11 +126,16 @@ pub async fn update(
 /// # Returns
 ///
 /// * A vector of strings where each string represents a formatted server activity.
+
 pub fn get_formatted_activity_list(list: Vec<Model>, actual_page: u64) -> Vec<String> {
+
     list.into_iter()
         .map(|activity| {
+
             let anime_id = activity.anime_id;
+
             let name = activity.name;
+
             format!("[{}](https://anilist_user.co/anime/{})", name, anime_id)
         })
         .skip((ACTIVITY_LIST_LIMIT * actual_page) as usize)

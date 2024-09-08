@@ -28,6 +28,7 @@ use crate::structure::message::anilist_server::list_register_user::load_localiza
 /// # Returns
 ///
 /// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
+
 pub async fn update(
     ctx: &Context,
     component_interaction: &ComponentInteraction,
@@ -35,6 +36,7 @@ pub async fn update(
     prev_id: &str,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the guild ID from the component interaction
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -56,8 +58,10 @@ pub async fn update(
 
     // Parse the user ID
     let id = if user_id == "0" {
+
         None
     } else {
+
         match user_id.parse() {
             Ok(id) => Some(id),
             Err(_) => None,
@@ -70,13 +74,17 @@ pub async fn update(
 
     // Create the response message
     let mut response = EditMessage::new().embed(builder_message);
+
     if user_id != "0" {
+
         response = response.button(
             CreateButton::new(format!("user_{}_{}", user_id, prev_id))
                 .label(&list_user_localised.previous),
         );
     }
+
     if len > MEMBER_LIST_LIMIT as usize {
+
         response = response.button(
             CreateButton::new(format!("user_{}_{}", last_id.unwrap(), user_id))
                 .label(list_user_localised.next),
@@ -88,5 +96,6 @@ pub async fn update(
 
     // Edit the message with the response
     message.edit(&ctx.http, response).await?;
+
     Ok(())
 }

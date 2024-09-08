@@ -66,6 +66,9 @@ either = "1.13.0"
 anyhow = "1.0.87"
 thiserror = "1.0.63"
 
+[patch.crates-io]
+intrusive-collections = { git = "https://github.com/Amanieu/intrusive-rs.git", rev = "48ee32f" }
+
 [build-dependencies]
 tonic-build = "0.12.2"
 cynic-codegen = { version = "3.8.0" }

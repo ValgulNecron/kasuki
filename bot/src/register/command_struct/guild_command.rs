@@ -15,6 +15,7 @@ use crate::register::command_struct::common::{Arg, DefaultPermission, Localised}
 /// * `args` - An `Option` containing a `Vec` of `Arg` which represents the arguments that the command accepts.
 /// * `localised` - An `Option` containing a `Vec` of `Localised` which represents the localised versions of the command.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct GuildCommand {
     pub guild_id: u64,
     pub name: String,

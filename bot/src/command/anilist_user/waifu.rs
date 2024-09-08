@@ -19,24 +19,33 @@ pub struct WaifuCommand {
 
 impl Command for WaifuCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for WaifuCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         let ctx = &self.ctx;
+
         let command_interaction = &self.command_interaction;
+
         let config = self.config.clone();
+
         let anilist_cache = self.anilist_cache.clone();
+
         // Execute the corresponding search function based on the specified type
         // Fetch the data of the character with ID 156323 from AniList
         let value = 156323;
+
         let data = get_character_by_id(value, anilist_cache).await?;
+
         // Send the character's data as a response to the command interaction
         send_embed(ctx, command_interaction, data, config.db.clone()).await
     }

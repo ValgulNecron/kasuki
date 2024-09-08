@@ -22,10 +22,15 @@ pub async fn autocomplete_dispatching(
     autocomplete_interaction: CommandInteraction,
     self_handler: &Handler,
 ) {
+
     let anilist_cache = self_handler.bot_data.anilist_cache.clone();
+
     let vndb_cache = self_handler.bot_data.vndb_cache.clone();
+
     let apps = self_handler.bot_data.apps.clone();
+
     let db_config = self_handler.bot_data.config.db.clone();
+
     match autocomplete_interaction.data.name.as_str() {
         "admin" => {
             admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_config).await
@@ -54,6 +59,7 @@ async fn admin_autocomplete(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) {
+
     if autocomplete_interaction
         .data
         .options
@@ -63,6 +69,7 @@ async fn admin_autocomplete(
         .as_str()
         == "anilist"
     {
+
         anilist_admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_config).await
     }
 }
@@ -72,6 +79,7 @@ async fn vn_autocomplete(
     autocomplete_interaction: CommandInteraction,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
+
     match autocomplete_interaction
         .data
         .options
@@ -86,14 +94,18 @@ async fn vn_autocomplete(
         _ => {}
     }
 }
+
 async fn anilist_admin_autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) {
+
     let subcommand = get_subcommand(&autocomplete_interaction).unwrap();
+
     let subcommand_name = subcommand.name;
+
     match subcommand_name {
         "add_anime_activity" => {
             add_anime_activity::autocomplete(ctx, autocomplete_interaction, anilist_cache).await
@@ -110,6 +122,7 @@ async fn steam_autocomplete(
     autocomplete_interaction: CommandInteraction,
     apps: Arc<RwLock<HashMap<String, u128>>>,
 ) {
+
     if autocomplete_interaction
         .data
         .options
@@ -119,6 +132,7 @@ async fn steam_autocomplete(
         .as_str()
         == "game"
     {
+
         steam_game_info::autocomplete(ctx, autocomplete_interaction, apps).await
     }
 }

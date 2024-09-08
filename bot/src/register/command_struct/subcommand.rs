@@ -17,6 +17,7 @@ use crate::register::command_struct::common::{
 /// * `command` - An `Option` containing a `Vec` of `Command` which represents the commands that the subcommand can execute.
 /// * `localised` - An `Option` containing a `Vec` of `Localised` which represents the localised versions of the subcommand.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct SubCommand {
     pub name: String,
     pub desc: String,
@@ -39,6 +40,7 @@ pub struct SubCommand {
 /// * `args` - An `Option` containing a `Vec` of `Arg` which represents the arguments that the command accepts.
 /// * `localised` - An `Option` containing a `Vec` of `Localised` which represents the localised versions of the command.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct Command {
     pub name: String,
     pub desc: String,

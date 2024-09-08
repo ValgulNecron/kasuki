@@ -68,9 +68,13 @@ pub async fn dispatch_command(
     command_interaction: &CommandInteraction,
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
+
     let (kind, name) = guess_command_kind(command_interaction);
+
     let full_command_name = format!("{} {}", kind, name);
+
     trace!("Running command: {}", full_command_name);
+
     match name.as_str() {
         "user_avatar" => {
             AvatarCommand {
@@ -562,6 +566,7 @@ pub async fn dispatch_command(
             .await?
         }
         _ => {
+
             Err(anyhow::anyhow!("Command not found"))?;
         }
     };
@@ -582,7 +587,9 @@ pub async fn check_if_module_is_on(
     module: &str,
     db_config: DbConfig,
 ) -> Result<bool, Box<dyn Error>> {
+
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
     let row = ModuleActivation::find()
         .filter(database::module_activation::Column::GuildId.eq(guild_id.clone()))
         .one(&connection)
@@ -597,8 +604,11 @@ pub async fn check_if_module_is_on(
             vn_module: true,
             updated_at: Default::default(),
         });
+
     let state = check_activation_status(module, row).await;
+
     let state = state && check_kill_switch_status(module, db_config, guild_id).await?;
+
     Ok(state)
 }
 
@@ -607,7 +617,9 @@ async fn check_kill_switch_status(
     db_config: DbConfig,
     guild_id: String,
 ) -> Result<bool, Box<dyn Error>> {
+
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
     let row = ModuleActivation::find()
         .filter(database::kill_switch::Column::GuildId.eq(guild_id.clone()))
         .one(&connection)
@@ -622,6 +634,8 @@ async fn check_kill_switch_status(
             vn_module: true,
             updated_at: Default::default(),
         });
+
     trace!(?row);
+
     Ok(check_activation_status(module, row).await)
 }

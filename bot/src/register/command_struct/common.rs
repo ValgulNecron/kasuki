@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use serenity::all::{CommandOptionType, Permissions};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct CommandIntegrationContext {
     pub bot_dm: bool,
     pub private_channel: bool,
@@ -9,6 +10,7 @@ pub struct CommandIntegrationContext {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct CommandInstallationContext {
     pub user: bool,
     pub guild: bool,
@@ -27,6 +29,7 @@ pub struct CommandInstallationContext {
 /// * `choices` - An `Option` containing a `Vec` of `Choice` which represents the choices that the argument can accept.
 /// * `localised` - An `Option` containing a `Vec` of `Localised` which represents the localised versions of the argument.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct Arg {
     pub name: String,
     pub desc: String,
@@ -46,6 +49,7 @@ pub struct Arg {
 /// * `name` - The name in the localised language as a `String`.
 /// * `desc` - The description in the localised language as a `String`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct Localised {
     pub code: String,
     pub name: String,
@@ -60,6 +64,7 @@ pub struct Localised {
 /// * `option_choice` - The choice as a `String`.
 /// * `option_choice_localised` - An `Option` containing a `Vec` of `ChoiceLocalised` which represents the localised versions of the choice.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct Choice {
     pub option_choice: String,
     pub option_choice_localised: Option<Vec<ChoiceLocalised>>,
@@ -73,6 +78,7 @@ pub struct Choice {
 /// * `code` - The language code as a `String`.
 /// * `name` - The choice in the localised language as a `String`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct ChoiceLocalised {
     pub code: String,
     pub name: String,
@@ -85,6 +91,7 @@ pub struct ChoiceLocalised {
 ///
 /// * `permission` - The permission as a `RemotePermissionType`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct DefaultPermission {
     #[serde(with = "RemotePermissionType")]
     pub permission: RemotePermissionType,
@@ -93,6 +100,7 @@ pub struct DefaultPermission {
 /// The `RemoteCommandOptionType` enum represents the type of argument.
 /// It is derived from `Debug`, `Serialize`, `Deserialize`, `Clone`, `Copy`, and `PartialEq` traits.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+
 pub enum RemoteCommandOptionType {
     SubCommand,
     SubCommandGroup,
@@ -118,8 +126,10 @@ pub enum RemoteCommandOptionType {
 /// # Returns
 ///
 /// A `CommandOptionType` that corresponds to the given `RemoteCommandOptionType`.
+
 impl From<RemoteCommandOptionType> for CommandOptionType {
     fn from(remote: RemoteCommandOptionType) -> Self {
+
         match remote {
             RemoteCommandOptionType::SubCommand => CommandOptionType::SubCommand,
             RemoteCommandOptionType::SubCommandGroup => CommandOptionType::SubCommandGroup,
@@ -148,8 +158,10 @@ impl From<RemoteCommandOptionType> for CommandOptionType {
 ///
 /// A `RemoteCommandOptionType` that corresponds to the given `CommandOptionType`.
 /// If the `CommandOptionType` does not have a corresponding `RemoteCommandOptionType`, it defaults to `RemoteCommandOptionType::String`.
+
 impl From<CommandOptionType> for RemoteCommandOptionType {
     fn from(original: CommandOptionType) -> Self {
+
         match original {
             CommandOptionType::SubCommand => RemoteCommandOptionType::SubCommand,
             CommandOptionType::SubCommandGroup => RemoteCommandOptionType::SubCommandGroup,
@@ -171,6 +183,7 @@ impl From<CommandOptionType> for RemoteCommandOptionType {
 /// The `RemotePermissionType` enum represents the type of permission.
 /// It is derived from `Debug`, `Serialize`, `Deserialize`, `Clone`, `Copy`, and `PartialEq` traits.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+
 pub enum RemotePermissionType {
     CreateInstantInvite,
     KickMembers,
@@ -235,8 +248,10 @@ pub enum RemotePermissionType {
 /// A `Permissions` that corresponds to the given `RemotePermissionType`.
 /// The conversion is done by matching each variant of `RemotePermissionType` to its corresponding variant in `Permissions`.
 /// If the `RemotePermissionType` is `Unknown`, it returns an empty `Permissions`.
+
 impl From<RemotePermissionType> for Permissions {
     fn from(remote: RemotePermissionType) -> Self {
+
         match remote {
             RemotePermissionType::CreateInstantInvite => Permissions::CREATE_INSTANT_INVITE,
             RemotePermissionType::KickMembers => Permissions::KICK_MEMBERS,

@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 /// `next`: A String representing the next user in the list.
 /// `previous`: A String representing the previous user in the list.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct ListUserLocalised {
     pub title: String,
     pub next: String,
@@ -35,10 +36,13 @@ pub struct ListUserLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
+
 pub async fn load_localization_list_user(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<ListUserLocalised, Box<dyn Error>> {
+
     let path = "json/message/anilist_server/list_register_user.json";
+
     load_localization(guild_id, path, db_config).await
 }

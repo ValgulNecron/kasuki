@@ -32,16 +32,19 @@ pub struct TranscriptCommand<'de> {
 
 impl Command for TranscriptCommand<'_> {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for TranscriptCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
@@ -50,10 +53,12 @@ impl SlashCommand for TranscriptCommand<'_> {
             )
             .await?
         {
+
             return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "You have reached your hourly limit. Please try again later.",
             ))));
         }
+
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -63,16 +68,21 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
+
     let map = get_option_map_string_subcommand(command_interaction);
+
     let attachment_map = get_option_map_attachment_subcommand(command_interaction);
+
     let prompt = map
         .get(&String::from("lang"))
         .unwrap_or(DEFAULT_STRING)
         .clone();
+
     let lang = map
         .get(&String::from("prompt"))
         .unwrap_or(DEFAULT_STRING)
         .clone();
+
     let attachment =
         attachment_map
             .get(&String::from("video"))
@@ -86,6 +96,7 @@ async fn send_embed(
         .ok_or(error_dispatch::Error::File(String::from(
             "Failed to get the content type",
         )))?;
+
     let content = attachment.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
@@ -96,6 +107,7 @@ async fn send_embed(
     let transcript_localised = load_localization_transcript(guild_id, config.db.clone()).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
+
         return Err(Box::new(error_dispatch::Error::File(String::from(
             "Unsupported file type",
         ))));
@@ -108,12 +120,15 @@ async fn send_embed(
         .await?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm", "ogg"];
+
     let parsed_url = Url::parse(content.as_str())?;
+
     let path_segments = parsed_url
         .path_segments()
         .ok_or(error_dispatch::Error::File(String::from(
             "Failed to get the path segments",
         )))?;
+
     let last_segment = path_segments.last().unwrap_or_default();
 
     let file_extension = last_segment
@@ -125,14 +140,17 @@ async fn send_embed(
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
+
         return Err(Box::new(error_dispatch::Error::File(String::from(
             "Unsupported file extension",
         ))));
     }
 
     let response = reqwest::get(content).await?;
+
     // save the file into a buffer
     let buffer = response.bytes().await?;
+
     let uuid_name = Uuid::new_v4().to_string();
 
     let token = config
@@ -141,28 +159,37 @@ async fn send_embed(
         .ai_transcription_token
         .clone()
         .unwrap_or_default();
+
     let model = config
         .ai
         .transcription
         .ai_transcription_model
         .clone()
         .unwrap_or_default();
+
     let api_base_url = config
         .ai
         .transcription
         .ai_transcription_base_url
         .clone()
         .unwrap_or_default();
+
     // check the last 3 characters of the url if it v1/ or v1 or something else
     let url = if api_base_url.ends_with("v1/") {
+
         format!("{}audio/transcriptions/", api_base_url)
     } else if api_base_url.ends_with("v1") {
+
         format!("{}/audio/transcriptions/", api_base_url)
     } else {
+
         format!("{}/v1/audio/transcriptions/", api_base_url)
     };
+
     let client = reqwest::Client::new();
+
     let mut headers = HeaderMap::new();
+
     headers.insert(
         AUTHORIZATION,
         HeaderValue::from_str(&format!("Bearer {}", token))?,
@@ -171,6 +198,7 @@ async fn send_embed(
     let part = multipart::Part::bytes(buffer.to_vec())
         .file_name(uuid_name)
         .mime_str(content_type.as_str())?;
+
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", model)
@@ -184,8 +212,11 @@ async fn send_embed(
         .multipart(form)
         .send()
         .await;
+
     let response = response_result?;
+
     trace!("{:?}", response);
+
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
     let res = res_result?;

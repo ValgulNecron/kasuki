@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 /// `next`: A String representing the next activity in the list.
 /// `previous`: A String representing the previous activity in the list.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct ListActivityLocalised {
     pub title: String,
     pub next: String,
@@ -35,10 +36,13 @@ pub struct ListActivityLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
+
 pub async fn load_localization_list_activity(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<ListActivityLocalised, Box<dyn Error>> {
+
     let path = "json/message/anilist_server/list_all_activity.json";
+
     load_localization(guild_id, path, db_config).await
 }

@@ -37,9 +37,13 @@ pub async fn generate_local_server_image(
     image_config: ImageConfig,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
+
     let average_colors = return_average_user_color(members, db_config.clone()).await?;
+
     let color_vec = create_color_vector_from_tuple(average_colors.clone());
+
     generate_server_image(
         ctx,
         guild_id,
@@ -63,16 +67,20 @@ pub async fn generate_local_server_image(
 /// # Returns
 ///
 /// * `Result<(), Box<dyn Error>>` - This function returns a Result type. If the image generation is successful, it returns Ok(()), otherwise it returns an error wrapped in a Box.
+
 pub async fn generate_global_server_image(
     ctx: &Context,
     guild_id: GuildId,
     image_config: ImageConfig,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
     let average_colors = UserColor::find().all(&connection).await?;
 
     let color_vec = create_color_vector_from_user_color(average_colors.clone());
+
     generate_server_image(
         ctx,
         guild_id,
@@ -92,7 +100,9 @@ pub async fn generate_server_image(
     image_config: ImageConfig,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     info!("Generating server image for {}.", guild_id);
+
     // Fetch the guild information
     let guild = guild_id.to_partial_guild(&ctx.http).await?;
 
@@ -112,41 +122,63 @@ pub async fn generate_server_image(
     let img = get_image_from_url(guild_pfp.clone()).await?;
 
     let dim = 128 * 64;
+
     let mut combined_image = DynamicImage::new_rgba8(dim, dim);
+
     let vec_image: Arc<RwLock<Vec<(u32, u32, DynamicImage)>>> = Arc::new(RwLock::new(Vec::new()));
+
     let mut handles = Vec::new();
+
     // Process image pixels in parallel
     for y in 0..img.height() {
+
         for x in 0..img.width() {
+
             let pixel = img.get_pixel(x, y);
+
             let color_vec_moved = average_colors.clone();
+
             let vec_image_clone = Arc::clone(&vec_image);
 
             let handle = thread::spawn(move || {
+
                 let r = pixel[0] as f32 / 255.0;
+
                 let g = pixel[1] as f32 / 255.0;
+
                 let b = pixel[2] as f32 / 255.0;
+
                 let rgb_color = Srgb::new(r, g, b);
+
                 let lab_color: Lab = <palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color);
+
                 let color_target = Color { cielab: lab_color };
+
                 let closest_color = match find_closest_color(&color_vec_moved, &color_target) {
                     Some(color) => color,
                     None => return,
                 };
+
                 let mut guard = match vec_image_clone.write() {
                     Ok(guard) => guard,
                     Err(_) => return,
                 };
+
                 guard.push((x, y, closest_color.image))
             });
+
             handles.push(handle);
+
             if handles.len() >= THREAD_POOL_SIZE {
+
                 for handle in handles {
+
                     match handle.join() {
                         Ok(_) => {}
                         Err(_) => continue,
                     }
                 }
+
                 handles = Vec::new();
             }
         }
@@ -157,8 +189,11 @@ pub async fn generate_server_image(
         Ok(vec_image) => vec_image.clone(),
         Err(e) => return Err(Box::new(error_dispatch::Error::Option(e.to_string()))),
     };
+
     let internal_vec = vec_image.clone();
+
     for (x, y, image) in internal_vec {
+
         match combined_image.copy_from(&image, x * 64, y * 64) {
             Ok(_) => {}
             Err(_) => continue,
@@ -177,6 +212,7 @@ pub async fn generate_server_image(
 
     // Write the image
     let mut image_data: Vec<u8> = Vec::new();
+
     PngEncoder::new_with_quality(
         &mut image_data,
         CompressionType::Best,
@@ -191,13 +227,18 @@ pub async fn generate_server_image(
 
     // Encode the image to base64
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
+
     let image = format!("data:image/png;base64,{}", base64_image);
+
     let uuid = Uuid::new_v4();
 
     // Save the image
     let token = image_config.token.clone().unwrap_or_default();
+
     let saver = image_config.save_server.clone().unwrap_or_default();
+
     let save_type = image_config.save_image.clone();
+
     image_saver(
         guild_id.to_string(),
         format!("{}.png", uuid),
@@ -209,6 +250,7 @@ pub async fn generate_server_image(
     .await?;
 
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
     ServerImage::insert(ActiveModel {
         server_id: Set(guild_id.to_string()),
         server_name: Set(guild.name),
@@ -244,26 +286,36 @@ pub async fn generate_server_image(
 /// # Arguments
 ///
 /// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
+
 pub async fn server_image_management(
     ctx: &Context,
     image_config: ImageConfig,
     db_config: DbConfig,
 ) {
+
     for guild in ctx.cache.guilds() {
+
         let ctx_clone = ctx.clone();
+
         let guild_clone = guild;
+
         let image_config_a = image_config.clone();
+
         let db_config2 = db_config.clone();
+
         task::spawn(async move {
+
             if let Err(e) =
                 generate_local_server_image(&ctx_clone, guild_clone, image_config_a, db_config2)
                     .await
             {
+
                 warn!(
                     "Failed to generate local server image for guild {}. {:?}",
                     guild, e
                 );
             } else {
+
                 info!("Generated local server image for guild {}", guild);
             }
         });
@@ -271,11 +323,13 @@ pub async fn server_image_management(
         if let Err(e) =
             generate_global_server_image(ctx, guild, image_config.clone(), db_config.clone()).await
         {
+
             warn!(
                 "Failed to generate global server image for guild {}. {:?}",
                 guild, e
             );
         } else {
+
             info!("Generated global server image for guild {}", guild);
         }
     }

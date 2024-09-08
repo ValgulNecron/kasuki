@@ -36,22 +36,31 @@ use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutoco
 /// # Async
 ///
 /// This function is asynchronous. It awaits the getting of the choices and the sending of the response.
+
 pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
+
     let mut choice = Vec::new();
+
     trace!("{:?}", &autocomplete_interaction.data.options);
+
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+
     let user1 = map.get(&String::from("username")).unwrap_or(DEFAULT_STRING);
+
     choice.extend(get_choices(user1, anilist_cache.clone()).await);
+
     let user2 = map
         .get(&String::from("username2"))
         .unwrap_or(DEFAULT_STRING);
+
     choice.extend(get_choices(user2, anilist_cache).await);
 
     let data = CreateAutocompleteResponse::new().set_choices(choice);
+
     let builder = CreateInteractionResponse::Autocomplete(data);
 
     let _ = autocomplete_interaction
@@ -80,24 +89,33 @@ pub async fn autocomplete(
 /// # Async
 ///
 /// This function is asynchronous. It awaits the creation of the `UserPageWrapper`.
+
 async fn get_choices(
     search: &str,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Vec<AutocompleteChoice> {
+
     trace!("{:?}", search);
+
     let var = UserAutocompleteVariables {
         search: Some(search),
     };
+
     let operation = UserAutocomplete::build(var);
+
     let data: Result<GraphQlResponse<UserAutocomplete>, Box<dyn Error>> =
         make_request_anilist(operation, false, anilist_cache).await;
+
     let data = match data {
         Ok(data) => data,
         Err(e) => {
+
             tracing::error!(?e);
+
             return Vec::new();
         }
     };
+
     let users = match data.data {
         Some(data) => match data.page {
             Some(page) => match page.users {
@@ -107,16 +125,23 @@ async fn get_choices(
             None => return Vec::new(),
         },
         None => {
+
             tracing::error!(?data.errors);
+
             return Vec::new();
         }
     };
+
     let mut choices = Vec::new();
 
     for user in users {
+
         let data = user.unwrap();
+
         let user = data.name;
+
         choices.push(AutocompleteChoice::new(user, data.id.to_string()))
     }
+
     choices
 }

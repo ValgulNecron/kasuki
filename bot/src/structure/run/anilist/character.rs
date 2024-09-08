@@ -13,15 +13,18 @@ use serenity::all::{
 use tracing::log::trace;
 
 #[cynic::schema("anilist")]
+
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct CharacterQuerryIdVariables {
     pub id: Option<i32>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "CharacterQuerryIdVariables")]
+
 pub struct CharacterQuerryId {
     #[arguments(id: $ id)]
     #[cynic(rename = "Character")]
@@ -29,12 +32,14 @@ pub struct CharacterQuerryId {
 }
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct CharacterQuerrySearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "CharacterQuerrySearchVariables")]
+
 pub struct CharacterQuerrySearch {
     #[arguments(search: $ search)]
     #[cynic(rename = "Character")]
@@ -42,6 +47,7 @@ pub struct CharacterQuerrySearch {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct Character {
     pub age: Option<String>,
     pub blood_type: Option<String>,
@@ -58,6 +64,7 @@ pub struct Character {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterName {
     pub user_preferred: Option<String>,
     pub native: Option<String>,
@@ -65,12 +72,14 @@ pub struct CharacterName {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterImage {
     pub medium: Option<String>,
     pub large: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct FuzzyDate {
     pub month: Option<i32>,
     pub year: Option<i32>,
@@ -106,12 +115,14 @@ pub struct FuzzyDate {
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result that represents the result of the function. It returns an empty Ok if the function is successful, otherwise it returns an Err with an AppError.
+
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     character: Character,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -122,28 +133,43 @@ pub async fn send_embed(
     let character_localised = load_localization_character(guild_id, db_config).await?;
 
     let date_of_birth_data = character.date_of_birth.clone();
+
     let mut fields = Vec::new();
+
     if let Some(date_of_birth_data) = date_of_birth_data {
+
         let mut has_month: bool = false;
+
         let mut has_day: bool = false;
+
         let mut date_of_birth_string = String::new();
+
         if let Some(m) = date_of_birth_data.month {
+
             date_of_birth_string.push_str(format!("{:02}", m).as_str());
+
             has_month = true
         }
 
         if let Some(d) = date_of_birth_data.day {
+
             if has_month {
+
                 date_of_birth_string.push('/')
             }
+
             date_of_birth_string.push_str(format!("{:02}", d).as_str());
+
             has_day = true
         }
 
         if let Some(y) = date_of_birth_data.year {
+
             if has_day {
+
                 date_of_birth_string.push('/')
             }
+
             date_of_birth_string.push_str(format!("{:04}", y).as_str());
         }
 
@@ -155,29 +181,42 @@ pub async fn send_embed(
     }
 
     let gender = character.gender.clone();
+
     if let Some(gender) = gender {
+
         fields.push((character_localised.gender, gender, true));
     }
 
     let age = character.age.clone();
+
     if let Some(age) = age {
+
         fields.push((character_localised.age, age, true));
     }
 
     let favourites = character.favourites;
+
     if let Some(favourites) = favourites {
+
         fields.push((character_localised.fav, favourites.to_string(), true));
     }
 
     let blood_type = character.blood_type.clone();
+
     if let Some(blood_type) = blood_type {
+
         fields.push((character_localised.blood_type, blood_type, true));
     }
+
     let mut desc = character.description.unwrap_or_default();
+
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
-    let lenght_diff = 4096 - desc.len() as i32;
-    if lenght_diff <= 0 {
-        desc = trim(desc, lenght_diff)
+
+    let length_diff = 4096 - desc.len() as i32;
+
+    if length_diff <= 0 {
+
+        desc = trim(desc, length_diff)
     }
 
     let name = match character.name.clone() {
@@ -188,8 +227,11 @@ pub async fn send_embed(
             )))
         }
     };
+
     let native = name.native.unwrap_or_default();
+
     let user_pref = name.user_preferred.unwrap_or_default();
+
     let character_name = format!("{}/{}", user_pref, native);
 
     let mut builder_embed = CreateEmbed::new()
@@ -199,8 +241,11 @@ pub async fn send_embed(
         .title(character_name)
         .url(character.site_url.unwrap_or_default())
         .fields(fields);
+
     if let Some(image) = character.image {
+
         if let Some(large) = image.large {
+
             builder_embed = builder_embed.thumbnail(large)
         }
     }
@@ -212,5 +257,6 @@ pub async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await?;
+
     Ok(())
 }

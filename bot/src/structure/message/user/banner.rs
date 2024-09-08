@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 /// This struct is used to deserialize the JSON data from the localization file.
 /// It contains three fields `title`, `no_banner` and `no_banner_title` which are all Strings.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct BannerLocalised {
     pub title: String,
     pub no_banner: String,
@@ -33,10 +34,13 @@ pub struct BannerLocalised {
 ///
 /// This function will return an `AppError` if it encounters any issues while reading or parsing the JSON file.
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
+
 pub async fn load_localization_banner(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<BannerLocalised, Box<dyn Error>> {
+
     let path = "json/message/user/banner.json";
+
     load_localization(guild_id, path, db_config).await
 }

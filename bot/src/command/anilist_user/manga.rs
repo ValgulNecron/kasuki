@@ -24,16 +24,19 @@ pub struct MangaCommand {
 
 impl Command for MangaCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for MangaCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -43,14 +46,17 @@ impl SlashCommand for MangaCommand {
         .await
     }
 }
+
 async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the name or ID of the manga from the command interaction
     let map = get_option_map_string(command_interaction);
+
     let value = map
         .get(&String::from("manga_name"))
         .cloned()
@@ -58,7 +64,9 @@ async fn send_embed(
 
     // Fetch the manga data by ID if the value can be parsed as an `i32`, or by search otherwise
     let data: Media = if value.parse::<i32>().is_ok() {
+
         let id = value.parse::<i32>().unwrap();
+
         let var = MediaQuerryIdVariables {
             format_in: Some(vec![Some(MediaFormat::OneShot), Some(MediaFormat::Manga)]),
             id: Some(id),
@@ -66,22 +74,29 @@ async fn send_embed(
         };
 
         let operation = MediaQuerryId::build(var);
+
         let data: GraphQlResponse<MediaQuerryId> =
             make_request_anilist(operation, false, anilist_cache).await?;
+
         data.data.unwrap().media.unwrap()
     } else {
+
         let var = MediaQuerrySearchVariables {
             format_in: Some(vec![Some(MediaFormat::OneShot), Some(MediaFormat::Manga)]),
             search: Some(&*value),
             media_type: Some(MediaType::Manga),
         };
+
         let operation = MediaQuerrySearch::build(var);
+
         let data: GraphQlResponse<MediaQuerrySearch> =
             make_request_anilist(operation, false, anilist_cache).await?;
+
         data.data.unwrap().media.unwrap()
     };
 
     // Send an embed containing the manga data as a response to the command interaction
     media::send_embed(ctx, command_interaction, data, config.db.clone()).await?;
+
     Ok(())
 }

@@ -14,23 +14,28 @@ pub struct GenerateGlobalImagePfPCommand {
 
 impl Command for GenerateGlobalImagePfPCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for GenerateGlobalImagePfPCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         init(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
+
 pub async fn init(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
+
     send_embed(ctx, command_interaction, "global", config.db.clone()).await
 }

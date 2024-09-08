@@ -22,6 +22,7 @@ use crate::helper::image_saver::local_image_saver::local_image_save;
 /// # Errors
 ///
 /// This function will return an `AppError` if it encounters any issues while saving the image.
+
 pub async fn image_saver(
     guild_id: String,
     filename: String,
@@ -30,13 +31,17 @@ pub async fn image_saver(
     token: String,
     save_type: String,
 ) -> Result<(), Box<dyn Error>> {
+
     // If the saver type is local, save the image locally
     if save_type == *"local" {
+
         local_image_save(guild_id, filename, image_data).await
         // If the saver type is remote, save the image remotely
     } else if save_type == *"remote" {
+
         remote_saver(filename, image_data, saver_server, token).await
     } else {
+
         Ok(())
     }
 }
@@ -58,12 +63,14 @@ pub async fn image_saver(
 /// # Errors
 ///
 /// This function will return an `AppError` if it encounters any issues while saving the image remotely.
+
 pub async fn remote_saver(
     filename: String,
     image_data: Vec<u8>,
     saver_server: String,
     token: String,
 ) -> Result<(), Box<dyn Error>> {
+
     // If the server is catbox, upload the image to catbox
 
     match saver_server.as_str() {

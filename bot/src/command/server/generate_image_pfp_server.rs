@@ -30,16 +30,19 @@ pub struct GenerateImagePfPCommand {
 
 impl Command for GenerateImagePfPCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for GenerateImagePfPCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         init(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -49,14 +52,17 @@ async fn init(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
+
     send_embed(ctx, command_interaction, "local", config.db.clone()).await
 }
+
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     image_type: &str,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -91,10 +97,12 @@ pub async fn send_embed(
 
     // Decode the image from base64
     let input = image.trim_start_matches("data:image/png;base64,");
+
     let image_data: Vec<u8> = BASE64.decode(input)?;
 
     // Generate a unique filename for the image
     let uuid = Uuid::new_v4();
+
     let image_path = format!("{}.png", uuid);
 
     // Construct the embed for the response
@@ -114,6 +122,8 @@ pub async fn send_embed(
     command_interaction
         .create_followup(&ctx.http, builder)
         .await?;
+
     trace!("Done");
+
     Ok(())
 }

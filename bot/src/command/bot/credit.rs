@@ -17,16 +17,19 @@ pub struct CreditCommand {
 
 impl Command for CreditCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for CreditCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -36,6 +39,7 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the guild ID from the command interaction or use "0" if it does not exist
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -47,7 +51,9 @@ async fn send_embed(
 
     // Construct a description by concatenating the descriptions of all credits
     let mut desc: String = "".to_string();
+
     for x in credit_localised.credits {
+
         desc += x.desc.as_str()
     }
 
@@ -66,5 +72,6 @@ async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await?;
+
     Ok(())
 }

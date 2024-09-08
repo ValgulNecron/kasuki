@@ -2,6 +2,7 @@ use std::error::Error;
 
 use crate::config::DbConfig;
 use serde::{Deserialize, Serialize};
+
 // Importing necessary libraries and modules
 use crate::structure::message::common::load_localization;
 
@@ -20,6 +21,7 @@ use crate::structure::message::common::load_localization;
 /// * `hours`: A string representing the hours related data.
 /// * `minutes`: A string representing the minutes related data.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct UserLocalised {
     pub manga: String,
     pub anime: String,
@@ -44,10 +46,13 @@ pub struct UserLocalised {
 /// # Returns
 ///
 /// * `Result<UserLocalised, AppError>`: A Result containing UserLocalised data or an AppError.
+
 pub async fn load_localization_user(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<UserLocalised, Box<dyn Error>> {
+
     let path = "json/message/anilist_user/user.json";
+
     load_localization(guild_id, path, db_config).await
 }

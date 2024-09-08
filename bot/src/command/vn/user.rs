@@ -24,16 +24,19 @@ pub struct VnUserCommand {
 
 impl Command for VnUserCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for VnUserCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -50,19 +53,26 @@ async fn send_embed(
     config: Arc<Config>,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+
     let map = get_option_map_string_subcommand(command_interaction);
+
     let user = map
         .get(&String::from("username"))
         .ok_or(error_dispatch::Error::Option(String::from(
             "No username provided",
         )))?;
+
     let path = format!("/user?q={}&fields=lengthvotes,lengthvotes_sum", user);
+
     let user = get_user(path, vndb_cache).await?;
+
     let user_localised: UserLocalised = load_localization_user(guild_id, config.db.clone()).await?;
+
     let fields = vec![
         (user_localised.id.clone(), user.id.clone(), true),
         (
@@ -77,13 +87,18 @@ async fn send_embed(
         ),
         (user_localised.name.clone(), user.username.clone(), true),
     ];
+
     let builder_embed = get_default_embed(None)
         .title(user_localised.title)
         .fields(fields);
+
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
+
     let builder = CreateInteractionResponse::Message(builder_message);
+
     command_interaction
         .create_response(&ctx.http, builder)
         .await?;
+
     Ok(())
 }

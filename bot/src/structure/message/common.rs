@@ -10,8 +10,11 @@ pub async fn load_localization<'a, T: serde::Deserialize<'a> + Clone>(
     path: &str,
     db_config: DbConfig,
 ) -> Result<T, Box<dyn Error>> {
+
     let json_content = read_file_as_string(path)?;
+
     let json: &'a str = Box::leak(json_content.into_boxed_str());
+
     // Parse the JSON data into a HashMap and handle any potential errors
     let json_data: HashMap<String, T> = serde_json::from_str(json)?;
 

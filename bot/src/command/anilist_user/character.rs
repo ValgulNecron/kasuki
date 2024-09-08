@@ -25,16 +25,19 @@ pub struct CharacterCommand {
 
 impl Command for CharacterCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for CharacterCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -51,8 +54,10 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the name or ID of the character from the command interaction options
     let map = get_option_map_string(command_interaction);
+
     let value = map
         .get(&String::from("name"))
         .cloned()
@@ -61,14 +66,19 @@ async fn send_embed(
     // If the value is an integer, treat it as an ID and retrieve the character with that ID
     // If the value is not an integer, treat it as a name and retrieve the character with that name
     let data: Character = if value.parse::<i32>().is_ok() {
+
         get_character_by_id(value.parse::<i32>().unwrap(), anilist_cache).await?
     } else {
+
         let var = CharacterQuerrySearchVariables {
             search: Some(&*value),
         };
+
         let operation = CharacterQuerrySearch::build(var);
+
         let data: GraphQlResponse<CharacterQuerrySearch> =
             make_request_anilist(operation, false, anilist_cache).await?;
+
         data.data.unwrap().character.unwrap()
     };
 
@@ -82,10 +92,14 @@ pub async fn get_character_by_id(
     value: i32,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Character, Box<dyn Error>> {
+
     let var = CharacterQuerryIdVariables { id: Some(value) };
+
     let operation = CharacterQuerryId::build(var);
+
     let data: GraphQlResponse<CharacterQuerryId> =
         make_request_anilist(operation, false, anilist_cache).await?;
+
     Ok(match data.data {
         Some(data) => match data.character {
             Some(media) => media,

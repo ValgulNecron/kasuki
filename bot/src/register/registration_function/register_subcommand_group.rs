@@ -19,16 +19,21 @@ use crate::register::registration_function::common::{
 /// # Arguments
 ///
 /// * `http` - An `Arc<Http>` instance used to send the subcommand groups to the Discord API.
+
 pub async fn creates_subcommands_group(http: &Arc<Http>) {
+
     let commands = match get_subcommands_group("./json/subcommand_group") {
         Err(e) => {
+
             error!("{:?}", e);
+
             return;
         }
         Ok(c) => c,
     };
 
     for command in commands {
+
         create_command(&command, http).await;
     }
 }
@@ -49,11 +54,16 @@ pub async fn creates_subcommands_group(http: &Arc<Http>) {
 /// # Returns
 ///
 /// A `Result` containing either a vector of `SubCommandGroup` structs if the subcommand groups are successfully read, or an `AppError` if an error occurs.
+
 pub fn get_subcommands_group(path: &str) -> Result<Vec<SubCommandGroup>, Box<dyn Error>> {
+
     let commands: Vec<SubCommandGroup> = get_vec(path)?;
+
     if commands.is_empty() {
+
         trace!("No commands found in the directory: {:?}", path);
     }
+
     Ok(commands)
 }
 
@@ -73,7 +83,9 @@ pub fn get_subcommands_group(path: &str) -> Result<Vec<SubCommandGroup>, Box<dyn
 ///
 /// * `command` - A reference to a `SubCommandGroup` struct containing the details of the subcommand group to be created.
 /// * `http` - An `Arc<Http>` instance used to send the subcommand group to the Discord API.
+
 async fn create_command(command: &SubCommandGroup, http: &Arc<Http>) {
+
     let mut command_build = CreateCommand::new(&command.name)
         .nsfw(command.nsfw)
         .kind(CommandType::ChatInput)
@@ -85,7 +97,9 @@ async fn create_command(command: &SubCommandGroup, http: &Arc<Http>) {
 
     command_build = match &command.command {
         Some(command) => {
+
             let options = get_subcommand_option(command);
+
             command_build.set_options(options)
         }
         None => command_build,
@@ -93,16 +107,20 @@ async fn create_command(command: &SubCommandGroup, http: &Arc<Http>) {
 
     command_build = match &command.subcommands {
         Some(subcommand) => {
+
             let options = get_subcommand_group_option(subcommand);
+
             command_build.set_options(options)
         }
         None => command_build,
     };
 
     let e = http.create_global_command(&command_build).await;
+
     match e {
         Ok(_) => (),
         Err(e) => {
+
             error!("Failed to create command: {:?}", e);
         }
     }

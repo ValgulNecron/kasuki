@@ -30,16 +30,19 @@ pub struct RegisterCommand {
 
 impl Command for RegisterCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for RegisterCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -49,14 +52,17 @@ impl SlashCommand for RegisterCommand {
         .await
     }
 }
+
 async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the username of the AniList account from the command interaction
     let map = get_option_map_string(command_interaction);
+
     let value = map
         .get(&String::from("username"))
         .ok_or(error_dispatch::Error::Option(String::from(
@@ -77,10 +83,12 @@ async fn send_embed(
 
     // Retrieve the user's Discord ID and username
     let user_id = &command_interaction.user.id.to_string();
+
     let username = &command_interaction.user.name;
 
     // Register the user's AniList account by storing the user's Discord ID and AniList ID in the database
     let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+
     RegisteredUser::insert(ActiveModel {
         user_id: Set(user_id.to_string()),
         anilist_id: Set(user_data.id),
@@ -118,5 +126,6 @@ async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await?;
+
     Ok(())
 }

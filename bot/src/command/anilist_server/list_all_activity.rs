@@ -28,15 +28,19 @@ pub struct ListAllActivity {
 
 impl Command for ListAllActivity {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
+
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for ListAllActivity {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -46,6 +50,7 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
+
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -67,11 +72,14 @@ async fn send_embed(
         .await?;
 
     let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+
     let list = ActivityData::find()
         .filter(Column::ServerId.eq(guild_id.to_string()))
         .all(&connection)
         .await?;
+
     let len = list.len();
+
     let next_page = 1;
 
     let activity: Vec<String> = get_formatted_activity_list(list, 0);
@@ -83,9 +91,13 @@ async fn send_embed(
         .description(join_activity);
 
     let mut response = CreateInteractionResponseFollowup::new().embed(builder_message);
+
     trace!("{:?}", len);
+
     trace!("{:?}", ACTIVITY_LIST_LIMIT);
+
     if len > ACTIVITY_LIST_LIMIT as usize {
+
         response = response.button(
             CreateButton::new(format!("next_activity_{}", next_page))
                 .label(&list_activity_localised_text.next),
@@ -95,5 +107,6 @@ async fn send_embed(
     let _ = command_interaction
         .create_followup(&ctx.http, response)
         .await?;
+
     Ok(())
 }

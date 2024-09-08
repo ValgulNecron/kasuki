@@ -19,26 +19,32 @@ pub struct AnimeRandomNsfwImageCommand {
 
 impl Command for AnimeRandomNsfwImageCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for AnimeRandomNsfwImageCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
+
 async fn send(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the type of image to fetch from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
+
     let image_type = map
         .get(&String::from("image_type"))
         .ok_or(error_dispatch::Error::Option(String::from(

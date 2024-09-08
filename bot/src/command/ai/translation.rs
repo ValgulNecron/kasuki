@@ -34,16 +34,19 @@ pub struct TranslationCommand<'de> {
 
 impl Command for TranslationCommand<'_> {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for TranslationCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
@@ -52,20 +55,26 @@ impl SlashCommand for TranslationCommand<'_> {
             )
             .await?
         {
+
             return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "You have reached your hourly limit. Please try again later.",
             ))));
         }
+
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
+
 async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
+
     let map = get_option_map_string_subcommand(command_interaction);
+
     let attachment_map = get_option_map_attachment_subcommand(command_interaction);
+
     let lang = map
         .get(&String::from("lang"))
         .unwrap_or(DEFAULT_STRING)
@@ -84,6 +93,7 @@ async fn send_embed(
         .ok_or(error_dispatch::Error::File(String::from(
             "Failed to get the content type",
         )))?;
+
     let content = attachment.proxy_url.clone();
 
     let guild_id = match command_interaction.guild_id {
@@ -94,6 +104,7 @@ async fn send_embed(
     let translation_localised = load_localization_translation(guild_id, config.db.clone()).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
+
         return Err(Box::new(error_dispatch::Error::File(String::from(
             "Unsupported file type",
         ))));
@@ -106,12 +117,15 @@ async fn send_embed(
         .await?;
 
     let allowed_extensions = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm", "ogg"];
+
     let parsed_url = Url::parse(content.as_str())?;
+
     let path_segments = parsed_url
         .path_segments()
         .ok_or(error_dispatch::Error::File(String::from(
             "Failed to get the path segments",
         )))?;
+
     let last_segment = path_segments.last().unwrap_or_default();
 
     let file_extension = last_segment
@@ -123,6 +137,7 @@ async fn send_embed(
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
+
         return Err(Box::new(error_dispatch::Error::File(String::from(
             "Unsupported file extension",
         ))));
@@ -130,38 +145,50 @@ async fn send_embed(
 
     let response = reqwest::get(content).await?; // save the file into a buffer
     let buffer = response.bytes().await?;
+
     let uuid_name = Uuid::new_v4().to_string();
 
     let client = reqwest::Client::new();
+
     let mut headers = HeaderMap::new();
+
     let token = config
         .ai
         .transcription
         .ai_transcription_token
         .clone()
         .unwrap_or_default();
+
     let model = config
         .ai
         .transcription
         .ai_transcription_model
         .clone()
         .unwrap_or_default();
+
     trace!("{} {}", token, model);
+
     let api_base_url = config
         .ai
         .transcription
         .ai_transcription_base_url
         .clone()
         .unwrap_or_default();
+
     // check the last 3 characters of the url if it v1/ or v1 or something else
     let api_base_url = if api_base_url.ends_with("v1/") {
+
         format!("{}audio/translations/", api_base_url)
     } else if api_base_url.ends_with("v1") {
+
         format!("{}/audio/translations/", api_base_url)
     } else {
+
         format!("{}/v1/audio/translations/", api_base_url)
     };
+
     trace!("{}", api_base_url);
+
     headers.insert(
         AUTHORIZATION,
         HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
@@ -171,6 +198,7 @@ async fn send_embed(
         .file_name(uuid_name)
         .mime_str(content_type.as_str())
         .unwrap();
+
     let form = multipart::Form::new()
         .part("file", part)
         .text("model", model)
@@ -183,37 +211,47 @@ async fn send_embed(
         .multipart(form)
         .send()
         .await;
+
     let response = response_result?;
+
     let res_result: Result<Value, reqwest::Error> = response.json().await;
 
     let res = res_result?;
 
     trace!("{}", res);
+
     let text = res["text"].as_str().unwrap_or("");
+
     trace!("{}", text);
 
     let text = if lang != "en" {
+
         let api_key = config
             .ai
             .question
             .ai_question_token
             .clone()
             .unwrap_or_default();
+
         let api_base_url = config
             .ai
             .question
             .ai_question_base_url
             .clone()
             .unwrap_or_default();
+
         let api_base_url = question_api_url(api_base_url);
+
         let model = config
             .ai
             .question
             .ai_question_model
             .clone()
             .unwrap_or_default();
+
         translation(lang, text.to_string(), api_key, api_base_url, model).await?
     } else {
+
         String::from(text)
     };
 
@@ -255,6 +293,7 @@ async fn send_embed(
 /// # Returns
 ///
 /// A `Result` indicating whether the function executed successfully. If an error occurred, it contains an `AppError`.
+
 pub async fn translation(
     lang: String,
     text: String,
@@ -262,6 +301,7 @@ pub async fn translation(
     api_url: String,
     model: String,
 ) -> Result<String, Box<dyn Error>> {
+
     let prompt_gpt = format!("
             i will give you a text and a ISO-639-1 code and you will translate it in the corresponding language
             iso code: {}
@@ -270,11 +310,14 @@ pub async fn translation(
             ", lang, text);
 
     let client = reqwest::Client::new();
+
     let mut headers = HeaderMap::new();
+
     headers.insert(
         AUTHORIZATION,
         HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
     );
+
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
     let data = json!({
@@ -290,7 +333,9 @@ pub async fn translation(
         .await?
         .json()
         .await?;
+
     let content = res["choices"][0]["message"]["content"].to_string();
+
     let no_quote = content.replace('"', "");
 
     Ok(no_quote.replace("\\n", " \n "))

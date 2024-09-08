@@ -36,25 +36,34 @@ use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutoco
 /// # Async
 ///
 /// This function is asynchronous. It awaits the creation of the `UserPageWrapper` and the sending of the response.
+
 pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
+
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+
     let user_search = map.get(&String::from("username")).unwrap_or(DEFAULT_STRING);
+
     let var = UserAutocompleteVariables {
         search: Some(user_search),
     };
+
     let operation = UserAutocomplete::build(var);
+
     let data: GraphQlResponse<UserAutocomplete> =
         match make_request_anilist(operation, false, anilist_cache).await {
             Ok(data) => data,
             Err(e) => {
+
                 tracing::error!(?e);
+
                 return;
             }
         };
+
     let users = match data.data {
         Some(data) => match data.page {
             Some(page) => match page.users {
@@ -64,19 +73,26 @@ pub async fn autocomplete(
             None => return,
         },
         None => {
+
             tracing::debug!(?data.errors);
+
             return;
         }
     };
+
     let mut choices = Vec::new();
 
     for user in users {
+
         let data = user.unwrap();
+
         let user = data.name;
+
         choices.push(AutocompleteChoice::new(user, data.id.to_string()))
     }
 
     let data = CreateAutocompleteResponse::new().set_choices(choices);
+
     let builder = CreateInteractionResponse::Autocomplete(data);
 
     let _ = autocomplete_interaction

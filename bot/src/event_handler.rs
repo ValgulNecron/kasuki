@@ -53,6 +53,7 @@ pub struct Handler {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+
 pub struct UserUsage {
     pub user_name: String,
     pub usage: u128,
@@ -60,26 +61,35 @@ pub struct UserUsage {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+
 pub struct UserInfo {
     pub user_info: HashMap<String, UserUsage>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+
 pub struct RootUsage {
     pub command_list: HashMap<String, UserInfo>,
 }
 
 impl RootUsage {
     pub fn new() -> Self {
+
         RootUsage {
             command_list: HashMap::new(),
         }
     }
+
     pub fn get_total_command_use(&self) -> String {
+
         let mut total = BigUint::ZERO;
+
         let command_usage = self.clone();
+
         for (_, user_info) in command_usage.command_list.iter() {
+
             for (_, user_usage) in user_info.user_info.iter() {
+
                 total.add_assign(user_usage.usage)
             }
         }
@@ -90,9 +100,13 @@ impl RootUsage {
 
 impl Handler {
     pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {
+
         let bot_data = self.bot_data.clone();
+
         let number_of_command_use_per_command = bot_data.number_of_command_use_per_command.clone();
+
         let guard = number_of_command_use_per_command.read().await;
+
         let user_map = guard
             .command_list
             .get(&command_name)
@@ -102,11 +116,13 @@ impl Handler {
             .get(&user_id)
             .cloned()
             .unwrap_or_default();
+
         *user_map
             .hourly_usage
             .get(&chrono::Local::now().format("%H").to_string())
             .unwrap_or(&(0u128))
     }
+
     // thread safe way to increment the number of command use per command
     pub async fn increment_command_use_per_command(
         &self,
@@ -114,15 +130,20 @@ impl Handler {
         user_id: String,
         user_name: String,
     ) {
+
         let bot_data = self.bot_data.clone();
+
         let number_of_command_use_per_command = bot_data.number_of_command_use_per_command.clone();
+
         let mut guard = number_of_command_use_per_command.write().await;
+
         let command_map = guard
             .command_list
             .entry(command_name)
             .or_insert_with(|| UserInfo {
                 user_info: HashMap::new(),
             });
+
         let user_map = command_map
             .user_info
             .entry(user_id)
@@ -131,21 +152,28 @@ impl Handler {
                 usage: 0,
                 hourly_usage: Default::default(),
             });
+
         user_map.usage = user_map.usage.add(1);
+
         // create a timestamp in format dd:mm:aaaa:hh
         let timestamp = chrono::Local::now().format("%d:%m:%Y:%H").to_string();
+
         // insert or update the hourly usage
         let hourly_usage = user_map.hourly_usage.entry(timestamp).or_insert(0);
+
         *hourly_usage += 1;
 
         // drop the guard
         drop(guard);
+
         // save the content as a json
         match serde_json::to_string(&*self.bot_data.number_of_command_use_per_command.read().await)
         {
             Ok(content) => {
+
                 // save the content to the file
                 if let Err(e) = std::fs::write(COMMAND_USE_PATH, content) {
+
                     error!("Failed to write to file: {}", e);
                 }
             }
@@ -155,11 +183,16 @@ impl Handler {
 }
 
 #[async_trait]
+
 impl EventHandler for Handler {
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
+
         let image_config = self.bot_data.config.image.clone();
+
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
+
         if is_new.unwrap_or_default() {
+
             color_management(
                 &ctx.cache.guilds(),
                 &ctx,
@@ -167,19 +200,26 @@ impl EventHandler for Handler {
                 self.bot_data.config.db.clone(),
             )
             .await;
+
             server_image_management(&ctx, image_config, self.bot_data.config.db.clone()).await;
+
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
+
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
         }
+
         let connection =
             match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
                 Ok(connection) => connection,
                 Err(e) => {
+
                     error!("Failed to connect to the database. {}", e);
+
                     return;
                 }
             };
+
         match GuildData::insert(crate::structure::database::guild_data::ActiveModel {
             guild_id: Set(guild.id.to_string()),
             guild_name: Set(guild.name),
@@ -202,14 +242,19 @@ impl EventHandler for Handler {
     }
 
     async fn guild_member_addition(&self, ctx: Context, member: Member) {
+
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
+
         let guild_id = member.guild_id.to_string();
+
         let image_config = self.bot_data.config.image.clone();
+
         debug!(
             "Member {} joined guild {}",
             member.user.tag(),
             guild_id.clone()
         );
+
         let is_module_on = check_if_module_is_on(
             guild_id.clone(),
             "NEW_MEMBER",
@@ -217,13 +262,17 @@ impl EventHandler for Handler {
         )
         .await
         .unwrap_or_else(|e| {
+
             error!("Failed to get the module status. {}", e);
+
             false
         });
+
         match new_member_message(&ctx, &member, self.bot_data.config.db.clone()).await {
             Ok(_) => {}
             Err(e) => error!(e),
         };
+
         color_management(
             &ctx.cache.guilds(),
             &ctx,
@@ -231,24 +280,33 @@ impl EventHandler for Handler {
             self.bot_data.config.db.clone(),
         )
         .await;
+
         if is_module_on {
+
             server_image_management(&ctx, image_config, self.bot_data.config.db.clone()).await;
         }
+
         let connection =
             match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
                 Ok(connection) => connection,
                 Err(e) => {
+
                     error!("Failed to connect to the database. {}", e);
+
                     return;
                 }
             };
+
         let user = match member.user.id.to_user(&ctx.http).await {
             Ok(user) => user,
             Err(e) => {
+
                 error!("Failed to get user. {}", e);
+
                 return;
             }
         };
+
         match UserData::insert(crate::structure::database::user_data::ActiveModel {
             user_id: Set(user.id.to_string()),
             username: Set(user.name.clone()),
@@ -280,6 +338,7 @@ impl EventHandler for Handler {
         user: User,
         _member_data_if_available: Option<Member>,
     ) {
+
         let is_module_on = check_if_module_is_on(
             guild_id.to_string().clone(),
             "NEW_MEMBER",
@@ -287,10 +346,14 @@ impl EventHandler for Handler {
         )
         .await
         .unwrap_or_else(|e| {
+
             error!("{}", e);
+
             false
         });
+
         if is_module_on {
+
             match removed_member_message(&ctx, guild_id, user, self.bot_data.config.db.clone())
                 .await
             {
@@ -301,28 +364,41 @@ impl EventHandler for Handler {
     }
 
     async fn guild_members_chunk(&self, ctx: Context, chunk: GuildMembersChunkEvent) {
+
         let members = chunk.members;
+
         if members.is_empty() {
+
             return;
         }
+
         let members: Vec<Member> = members.iter().map(|member| member.1.clone()).collect();
+
         let connection =
             match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
                 Ok(connection) => connection,
                 Err(e) => {
+
                     error!("Failed to connect to the database. {}", e);
+
                     return;
                 }
             };
+
         for member in members {
+
             let user = match member.user.id.to_user(&ctx.http).await {
                 Ok(user) => user,
                 Err(e) => {
+
                     error!("Failed to get user. {}", e);
+
                     return;
                 }
             };
+
             if user.name == "kasuki beta".to_string() {
+
                 trace!("{:#?}", user.banner_url())
             }
 
@@ -365,17 +441,25 @@ impl EventHandler for Handler {
     }
 
     async fn presence_update(&self, ctx: Context, new_data: Presence) {
+
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
+
         let user_id = new_data.user.id;
+
         let username = new_data.user.name.unwrap_or_default();
+
         debug!("Member {} updated presence", user_id);
+
         let user = match new_data.user.id.to_user(&ctx).await {
             Ok(user) => user,
             Err(e) => {
+
                 error!("Failed to get the user. {}", e);
+
                 return;
             }
         };
+
         get_specific_user_color(
             user_blacklist_server_image,
             user.clone(),
@@ -387,10 +471,13 @@ impl EventHandler for Handler {
             match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
                 Ok(connection) => connection,
                 Err(e) => {
+
                     error!("Failed to connect to the database. {}", e);
+
                     return;
                 }
             };
+
         match UserData::insert(crate::structure::database::user_data::ActiveModel {
             user_id: Set(user_id.to_string()),
             username: Set(username),
@@ -416,19 +503,27 @@ impl EventHandler for Handler {
     }
 
     async fn ready(&self, ctx: Context, ready: Ready) {
+
         // Spawns a new thread for managing various tasks
         let guard = self.bot_data.already_launched.read().await;
+
         if !(*guard) {
+
             drop(guard);
+
             let mut write_guard = self.bot_data.already_launched.write().await;
+
             *write_guard = true;
+
             tokio::spawn(thread_management_launcher(
                 ctx.clone(),
                 self.bot_data.clone(),
                 self.bot_data.config.db.clone(),
             ));
+
             drop(write_guard)
         }
+
         // Sets the bot's activity
         ctx.set_activity(Some(ActivityData::custom(
             self.bot_data.config.bot.bot_activity.clone(),
@@ -442,6 +537,7 @@ impl EventHandler for Handler {
 
         // Logs the number of servers the bot is in
         let server_number = ctx.cache.guilds().len();
+
         info!(server_number);
 
         // Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
@@ -449,19 +545,26 @@ impl EventHandler for Handler {
 
         // Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
         command_registration(&ctx.http, remove_old_command).await;
+
         // Iterates over each guild the bot is in
         let shard = ctx.shard.clone();
+
         for guild in ctx.cache.guilds() {
+
             // Retrieves partial guild information
             let partial_guild = match guild.to_partial_guild(&ctx.http).await {
                 Ok(guild) => guild,
                 Err(e) => {
+
                     error!("Failed to get the guild. {}", e);
+
                     continue;
                 }
             };
+
             // Logs the guild name and ID
             shard.chunk_guild(partial_guild.id, None, true, ChunkGuildFilter::None, None);
+
             debug!(
                 "guild name {} (guild id: {})",
                 &partial_guild.name,
@@ -471,46 +574,62 @@ impl EventHandler for Handler {
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+
         let mut user = None;
+
         if let Interaction::Command(command_interaction) = interaction.clone() {
+
             let mut message = String::from("");
+
             if command_interaction.data.kind == CommandType::ChatInput {
+
                 match dispatch_command(&ctx, &command_interaction, self).await {
                     Ok(()) => return,
                     Err(e) => {
+
                         message = e.to_string();
                     }
                 }
             } else if command_interaction.data.kind == CommandType::User {
+
                 match dispatch_user_command(&ctx, &command_interaction, self).await {
                     Ok(()) => return,
                     Err(e) => {
+
                         message = e.to_string();
                     }
                 }
             } else if command_interaction.data.kind == CommandType::Message {
+
                 trace!("{:?}", command_interaction)
             }
+
             error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await;
+
             user = Some(command_interaction.user.clone());
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
+
             // Dispatch the autocomplete interaction
             user = Some(autocomplete_interaction.user.clone());
 
             autocomplete_dispatching(ctx, autocomplete_interaction, self).await;
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
+
             // Dispatch the component interaction
             user = Some(component_interaction.user.clone());
+
             if let Err(e) =
                 components_dispatching(ctx, component_interaction, self.bot_data.config.db.clone())
                     .await
             {
+
                 // If an error occurs, log it
                 error!("{:?}", e)
             }
         }
 
         if user.is_none() {
+
             return;
         }
 
@@ -518,6 +637,7 @@ impl EventHandler for Handler {
             match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
                 Ok(conn) => conn,
                 Err(_) => {
+
                     return;
                 }
             };
@@ -547,10 +667,14 @@ impl EventHandler for Handler {
     }
 
     async fn entitlement_create(&self, _: Context, entitlement: Entitlement) {
+
         let connection = self.bot_data.db_connection.clone();
+
         match (entitlement.guild_id, entitlement.user_id) {
             (Some(guild_id), None) => {
+
                 let guild_id = guild_id.to_string();
+
                 match GuildSubscription::insert(
                     crate::structure::database::guild_subscription::ActiveModel {
                         guild_id: Set(guild_id),
@@ -583,7 +707,9 @@ impl EventHandler for Handler {
                 };
             }
             (None, Some(user_id)) => {
+
                 let user_id = user_id.to_string();
+
                 match UserSubscription::insert(
                     crate::structure::database::user_subscription::ActiveModel {
                         user_id: Set(user_id),
@@ -618,10 +744,14 @@ impl EventHandler for Handler {
     }
 
     async fn entitlement_update(&self, _: Context, entitlement: Entitlement) {
+
         let connection = self.bot_data.db_connection.clone();
+
         match (entitlement.guild_id, entitlement.user_id) {
             (Some(guild_id), None) => {
+
                 let guild_id = guild_id.to_string();
+
                 match GuildSubscription::insert(
                     crate::structure::database::guild_subscription::ActiveModel {
                         guild_id: Set(guild_id),
@@ -654,7 +784,9 @@ impl EventHandler for Handler {
                 };
             }
             (None, Some(user_id)) => {
+
                 let user_id = user_id.to_string();
+
                 match UserSubscription::insert(
                     crate::structure::database::user_subscription::ActiveModel {
                         user_id: Set(user_id),
@@ -689,11 +821,16 @@ impl EventHandler for Handler {
     }
 
     async fn entitlement_delete(&self, _: Context, entitlement: Entitlement) {
+
         let connection = self.bot_data.db_connection.clone();
+
         match (entitlement.guild_id, entitlement.user_id) {
             (Some(guild_id), None) => {
+
                 let guild_id = guild_id.to_string();
+
                 let sku_id = entitlement.sku_id.to_string();
+
                 match GuildSubscription::delete_by_id((guild_id, sku_id))
                     .exec(&*connection.clone())
                     .await
@@ -703,8 +840,11 @@ impl EventHandler for Handler {
                 };
             }
             (None, Some(user_id)) => {
+
                 let user_id = user_id.to_string();
+
                 let sku_id = entitlement.sku_id.to_string();
+
                 match UserSubscription::delete_by_id((user_id, sku_id))
                     .exec(&*connection.clone())
                     .await

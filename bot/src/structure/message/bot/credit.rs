@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 /// This struct is used to deserialize the JSON data from the localization file.
 /// It contains a single field `desc` which is a String.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct CreditLocalisedLine {
     pub desc: String,
 }
@@ -18,6 +19,7 @@ pub struct CreditLocalisedLine {
 /// This struct is used to deserialize the JSON data from the localization file.
 /// It contains two fields `title` and `credits` which are a String and a Vector of `CreditLocalisedLine` respectively.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct CreditLocalised {
     pub title: String,
     pub credits: Vec<CreditLocalisedLine>,
@@ -41,10 +43,13 @@ pub struct CreditLocalised {
 ///
 /// This function will return an `AppError` if it encounters any issues while reading or parsing the JSON file.
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
+
 pub async fn load_localization_credit(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<CreditLocalised, Box<dyn Error>> {
+
     let path = "json/message/bot/credit.json";
+
     load_localization(guild_id, path, db_config).await
 }

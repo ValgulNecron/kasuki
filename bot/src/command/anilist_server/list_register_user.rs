@@ -29,23 +29,29 @@ pub struct ListRegisterUser {
 
 impl Command for ListRegisterUser {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
+
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for ListRegisterUser {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
+
 async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the guild ID from the command interaction or use "0" if it does not exist
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -77,7 +83,9 @@ async fn send_embed(
 
     // Check if the number of AniList users is greater than the limit
     let mut response = CreateInteractionResponseFollowup::new().embed(builder_message);
+
     if len >= (MEMBER_LIST_LIMIT + 1) as usize {
+
         // If the number of AniList users is greater than the limit, add a "next" button to the response
         response = response.button(
             CreateButton::new(format!("user_{}_0", last_id.unwrap()))
@@ -89,10 +97,12 @@ async fn send_embed(
     command_interaction
         .create_followup(&ctx.http, response)
         .await?;
+
     Ok(())
 }
 
 /// Data structure for storing a Discord user and their corresponding AniList user.
+
 struct Data {
     pub user: User,      // The Discord user.
     pub anilist: String, // The corresponding AniList user.
@@ -117,6 +127,7 @@ struct Data {
 /// # Returns
 ///
 /// A `Result` containing a tuple with the formatted list of AniList users, the number of AniList users, and the ID of the last member checked. If an error occurred, it contains an `AppError`.
+
 pub async fn get_the_list(
     guild: PartialGuild,
     ctx: &Context,
@@ -124,22 +135,34 @@ pub async fn get_the_list(
     last_id: Option<UserId>,
     db_config: DbConfig,
 ) -> Result<(CreateEmbed, usize, Option<UserId>), Box<dyn Error>> {
+
     let mut anilist_user = Vec::new();
+
     let mut last_id: Option<UserId> = last_id;
+
     let mut pass = 0;
+
     while anilist_user.len() < MEMBER_LIST_LIMIT as usize && pass < PASS_LIMIT {
+
         pass += 1;
+
         let members = guild
             .members(&ctx.http, Some(MEMBER_LIST_LIMIT), last_id)
             .await?;
+
         if members.is_empty() {
+
             break;
         }
 
         for member in members {
+
             last_id = Some(member.user.id);
+
             let user_id = member.user.id.to_string();
+
             let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
             let row = RegisteredUser::find()
                 .filter(Column::UserId.eq(user_id.clone()))
                 .one(&connection)
@@ -149,11 +172,14 @@ pub async fn get_the_list(
                     anilist_id: 2134,
                     registered_at: Default::default(),
                 });
+
             let user_data = row;
+
             let data = Data {
                 user: member.user,
                 anilist: user_data.anilist_id.to_string(),
             };
+
             anilist_user.push(data)
         }
     }
@@ -161,12 +187,14 @@ pub async fn get_the_list(
     let user_links: Vec<String> = anilist_user
         .iter()
         .map(|data| {
+
             format!(
                 "[{}](<https://anilist_user.co/user/{}>)",
                 data.user.name, data.anilist
             )
         })
         .collect();
+
     let joined_string = user_links.join("\n\n");
 
     Ok((

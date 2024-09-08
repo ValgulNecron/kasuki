@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 /// `fail_desc`: A String representing the failure description of the add activity.
 /// `success_desc`: A String representing the success description of the add activity.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct AddActivityLocalised {
     pub success: String,
     pub fail: String,
@@ -38,10 +39,13 @@ pub struct AddActivityLocalised {
 ///
 /// This function will return an `AppError` if it encounters any issues while reading or parsing the JSON file.
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
+
 pub async fn load_localization_add_activity(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<AddActivityLocalised, Box<dyn Error>> {
+
     let path = "json/message/admin/anilist/add_activity.json";
+
     load_localization(guild_id, path, db_config).await
 }

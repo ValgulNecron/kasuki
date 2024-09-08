@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 /// # Struct Fields
 /// `field1` to `field7`, `free`, `coming_soon`, `tba`: Strings representing different pieces of information about the Steam game.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct SteamGameInfoLocalised {
     pub field1: String,
     pub field2: String,
@@ -46,10 +47,13 @@ pub struct SteamGameInfoLocalised {
 ///
 /// This function will return an `AppError` if it encounters any issues while reading or parsing the JSON file.
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
+
 pub async fn load_localization_steam_game_info(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<SteamGameInfoLocalised, Box<dyn Error>> {
+
     let path = "json/message/game/steam_game_info.json";
+
     load_localization(guild_id, path, db_config).await
 }

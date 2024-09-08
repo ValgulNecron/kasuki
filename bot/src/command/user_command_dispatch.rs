@@ -13,6 +13,7 @@ pub async fn dispatch_user_command(
     command_interaction: &CommandInteraction,
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
+
     match command_interaction.data.name.as_str() {
         "avatar" => {
             AvatarCommand {

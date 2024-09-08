@@ -10,6 +10,7 @@ use crate::event_handler::Handler;
 use thiserror::Error;
 
 #[derive(Debug, Error, PartialEq, Clone)]
+
 pub enum Error {
     #[error("Error while getting an option: {0}")]
     Option(String),
@@ -28,6 +29,7 @@ pub enum Error {
 }
 
 /// ERROR_MESSAGE is a constant string that contains the default error message
+
 const ERROR_MESSAGE: &str = "**There was an error while processing the command**\
     \n**This error is most likely an input error** \
     **like searching for non existent anime, requesting nsfw image to the ai, etc.**\n \
@@ -44,19 +46,23 @@ const ERROR_MESSAGE: &str = "**There was an error while processing the command**
 /// * `error` - An AppError that represents the error.
 /// * `command_interaction` - A reference to a CommandInteraction that represents the command interaction.
 /// * `ctx` - A reference to a Context that represents the context.
+
 pub async fn command_dispatching(
     message: String,
     command_interaction: &CommandInteraction,
     ctx: &Context,
     self_handler: &Handler,
 ) {
+
     error!("{}", message.replace("\\n", "\n"));
+
     match send_error(message.clone(), command_interaction, ctx, self_handler).await {
         Ok(_) => {}
         Err(_) => {
             match send_differed_error(message, command_interaction, ctx, self_handler).await {
                 Ok(_) => {}
                 Err(e) => {
+
                     error!("{}", e);
                 }
             }
@@ -78,20 +84,25 @@ pub async fn command_dispatching(
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
+
 async fn send_error(
     e: String,
     command_interaction: &CommandInteraction,
     ctx: &Context,
     self_handler: &Handler,
 ) -> Result<(), String> {
+
     let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
+
     // censor url and token in the error message
     let error_message = censor_url_and_token(error_message, self_handler);
+
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
         .description(error_message)
         .title("There was an error while processing the command");
+
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
 
     let builder = CreateInteractionResponse::Message(builder_message);
@@ -100,6 +111,7 @@ async fn send_error(
         .create_response(&ctx.http, builder)
         .await
         .map_err(|e| format!("{:#?}", e))?;
+
     Ok(())
 }
 
@@ -117,15 +129,19 @@ async fn send_error(
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
+
 async fn send_differed_error(
     e: String,
     command_interaction: &CommandInteraction,
     ctx: &Context,
     self_handler: &Handler,
 ) -> Result<(), String> {
+
     let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
+
     // censor url and token in the error message
     let error_message = censor_url_and_token(error_message, self_handler);
+
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
         .color(COLOR)
@@ -154,27 +170,39 @@ async fn send_differed_error(
 /// # Returns
 ///
 /// * `String` - A String which is the censored error message.
+
 fn censor_url_and_token(error_message: String, self_handler: &Handler) -> String {
+
     let config = self_handler.bot_data.config.clone();
+
     let mut error_message = error_message;
+
     let discord_token = config.bot.discord_token.clone();
+
     let db_user = config.db.user.clone().unwrap_or_default();
+
     let db_pass = config.db.password.clone().unwrap_or_default();
+
     let db_port = config.db.port.unwrap_or_default().to_string();
+
     let db_host = config.db.host.clone().unwrap_or_default();
+
     let image_token = config.ai.image.ai_image_token.clone().unwrap_or_default();
+
     let transcript_token = config
         .ai
         .transcription
         .ai_transcription_token
         .clone()
         .unwrap_or_default();
+
     let chat_token = config
         .ai
         .question
         .ai_question_token
         .clone()
         .unwrap_or_default();
+
     error_message = error_message
         .replace(&discord_token, "[REDACTED]")
         .replace(&image_token, "[REDACTED]")
@@ -184,8 +212,10 @@ fn censor_url_and_token(error_message: String, self_handler: &Handler) -> String
         .replace(&db_pass, "[REDACTED]")
         .replace(&db_port, "[REDACTED]")
         .replace(&db_host, "[REDACTED]");
+
     // replace url with [REDACTED]
     let url_regex = Regex::new(r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)").unwrap();
+
     error_message = url_regex
         .replace_all(&error_message, "[REDACTED]")
         .to_string();

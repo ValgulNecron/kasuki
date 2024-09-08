@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::register::command_struct::common::{CommandInstallationContext, DefaultPermission};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct MessageCommand {
     pub name: String,
     pub localised: Option<Vec<Localised>>,
@@ -19,6 +20,7 @@ pub struct MessageCommand {
 /// * `code` - The language code as a `String`.
 /// * `name` - The name in the localised language as a `String`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
 pub struct Localised {
     pub code: String,
     pub name: String,

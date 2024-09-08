@@ -2,6 +2,7 @@ use std::error::Error;
 
 use crate::config::DbConfig;
 use serde::{Deserialize, Serialize};
+
 // Importing necessary libraries and modules
 use crate::structure::message::common::load_localization;
 
@@ -11,6 +12,7 @@ use crate::structure::message::common::load_localization;
 /// # Struct Fields
 /// `desc`: A String representing the description of the register.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct RegisterLocalised {
     pub desc: String,
 }
@@ -30,10 +32,13 @@ pub struct RegisterLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
+
 pub async fn load_localization_register(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<RegisterLocalised, Box<dyn Error>> {
+
     let path = "json/message/anilist_user/register.json";
+
     load_localization(guild_id, path, db_config).await
 }

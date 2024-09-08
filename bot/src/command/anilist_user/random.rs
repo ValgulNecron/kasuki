@@ -35,16 +35,19 @@ pub struct RandomCommand {
 
 impl Command for RandomCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for RandomCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -61,6 +64,7 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -72,6 +76,7 @@ async fn send_embed(
 
     // Retrieve the type of media (anime or manga) from the command interaction
     let map = get_option_map_string(command_interaction);
+
     let random_type = map
         .get(&String::from("type"))
         .ok_or(error_dispatch::Error::Option(String::from(
@@ -87,14 +92,20 @@ async fn send_embed(
         .await?;
 
     let random_stats = update_random_stats(anilist_cache.clone()).await?;
+
     let last_page = if random_type.as_str() == "anime" {
+
         random_stats.anime_last_page
     } else if random_type.as_str() == "manga" {
+
         random_stats.manga_last_page
     } else {
+
         0
     };
+
     trace!(last_page);
+
     embed(
         last_page,
         random_type.to_string(),
@@ -125,6 +136,7 @@ async fn send_embed(
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
+
 async fn embed(
     last_page: i32,
     random_type: String,
@@ -133,30 +145,43 @@ async fn embed(
     random_localised: RandomLocalised,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     let number = thread_rng().gen_range(1..=last_page);
+
     let mut var = RandomPageMediaVariables {
         media_type: None,
         page: Some(number),
     };
 
     if random_type == "manga" {
+
         var.media_type = Some(MediaType::Manga)
     } else {
+
         var.media_type = Some(MediaType::Anime);
     }
 
     let operation = RandomPageMedia::build(var);
+
     let data: Result<GraphQlResponse<RandomPageMedia>, Box<dyn Error>> =
         make_request_anilist(operation, false, anilist_cache).await;
+
     let data = data?;
+
     let data = data.data.unwrap();
+
     let inside_media = data.page.unwrap().media.unwrap()[0].clone().unwrap();
+
     let id = inside_media.id;
+
     let url = if random_type == "manga" {
+
         format!("https://anilist.co/manga/{}", id)
     } else {
+
         format!("https://anilist.co/anime/{}", id)
     };
+
     follow_up_message(
         ctx,
         command_interaction,
@@ -187,6 +212,7 @@ async fn embed(
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
+
 async fn follow_up_message(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -194,7 +220,9 @@ async fn follow_up_message(
     url: String,
     random_localised: RandomLocalised,
 ) -> Result<(), Box<dyn Error>> {
+
     let format = media.format.unwrap();
+
     let genres = media
         .genres
         .unwrap()
@@ -202,6 +230,7 @@ async fn follow_up_message(
         .map(|genre| genre.unwrap().clone())
         .collect::<Vec<String>>()
         .join("/");
+
     let tags = media
         .tags
         .unwrap()
@@ -209,15 +238,24 @@ async fn follow_up_message(
         .map(|tag| tag.unwrap().name.clone())
         .collect::<Vec<String>>()
         .join("/");
+
     let mut desc = media.description.unwrap();
+
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
+
     let length_diff = 4096 - desc.len() as i32;
+
     if length_diff <= 0 {
+
         desc = trim(desc.clone(), length_diff);
     }
+
     let title = media.title.clone().unwrap();
+
     let rj = title.native.unwrap_or_default();
+
     let user_pref = title.user_preferred.unwrap_or_default();
+
     let title = format!("{}/{}", user_pref, rj);
 
     let full_desc = random_localised
@@ -238,5 +276,6 @@ async fn follow_up_message(
         .create_followup(&ctx.http, builder_message)
         .await
         .map_err(|e| format!("{:#?}", e))?;
+
     Ok(())
 }

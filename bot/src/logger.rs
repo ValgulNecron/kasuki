@@ -9,6 +9,7 @@ use tracing_subscriber::layer::SubscriberExt;
 use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, OTHER_CRATE_LEVEL};
 
 pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), Box<dyn Error>> {
+
     let kasuki_filter = match log {
         "warn" => "kasuki=warn",
         "error" => "kasuki=error",
@@ -18,6 +19,7 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), Box<dyn
     };
 
     let crate_log = get_directive(OTHER_CRATE_LEVEL)?;
+
     let kasuki_log = get_directive(kasuki_filter)?;
 
     let filter = EnvFilter::from_default_env()
@@ -25,7 +27,9 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), Box<dyn
         .add_directive(kasuki_log);
 
     let log_prefix = LOGS_PREFIX;
+
     let log_suffix = LOGS_SUFFIX;
+
     let logs_path = LOGS_PATH;
 
     let file_appender = tracing_appender::rolling::Builder::new()
@@ -34,9 +38,11 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), Box<dyn
         .rotation(Rotation::DAILY)
         .max_log_files(max_log_retention_days as usize)
         .build(logs_path)?;
+
     let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
     unsafe {
+
         GUARD = Some(guard);
     }
 
@@ -57,10 +63,12 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<(), Box<dyn
 }
 
 pub fn create_log_directory() -> std::io::Result<()> {
+
     fs::create_dir_all("../logs")
 }
 
 fn get_directive(filter: &str) -> Result<Directive, Box<dyn Error>> {
+
     let directive = Directive::from_str(filter)?;
 
     Ok(directive)

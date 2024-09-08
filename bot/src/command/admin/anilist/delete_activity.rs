@@ -24,20 +24,27 @@ pub struct DeleteActivityCommand {
 
 impl Command for DeleteActivityCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for DeleteActivityCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         let anilist_cache = self.anilist_cache.clone();
+
         let command_interaction = self.command_interaction.clone();
+
         let config = self.config.clone();
+
         let map = get_option_map_string_subcommand_group(&command_interaction);
+
         let anime = map
             .get(&String::from("anime_name"))
             .cloned()
@@ -47,6 +54,7 @@ impl SlashCommand for DeleteActivityCommand {
             Some(id) => id.to_string(),
             None => String::from("1"),
         };
+
         self.defer().await?;
 
         let delete_activity_localised_text =
@@ -55,12 +63,14 @@ impl SlashCommand for DeleteActivityCommand {
         let media = get_minimal_anime_media(anime.to_string(), anilist_cache).await?;
 
         let anime_id = media.id;
+
         remove_activity(guild_id.as_str(), &anime_id, config.db.clone()).await?;
 
         let title = media.title.ok_or(error_dispatch::Error::Option(format!(
             "Anime with id {} not found",
             anime_id
         )))?;
+
         let anime_name = get_name(title);
 
         let url = format!("https://anilist.co/anime/{}", media.id);
@@ -78,6 +88,7 @@ impl SlashCommand for DeleteActivityCommand {
             None,
         )
         .await?;
+
         Ok(())
     }
 }
@@ -87,7 +98,9 @@ async fn remove_activity(
     anime_id: &i32,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
     let activity = ActivityData::find()
         .filter(crate::structure::database::activity_data::Column::ServerId.eq(guild_id))
         .filter(crate::structure::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
@@ -97,6 +110,8 @@ async fn remove_activity(
             "Anime with id {} not found",
             anime_id
         )))?;
+
     activity.delete(&connection).await?;
+
     Ok(())
 }

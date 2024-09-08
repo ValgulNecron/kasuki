@@ -12,15 +12,18 @@ use serenity::model::Colour;
 use serenity::prelude::Context;
 
 #[cynic::schema("anilist")]
+
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct UserQueryIdVariables {
     pub id: Option<i32>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "UserQueryIdVariables")]
+
 pub struct UserQueryId {
     #[arguments(id: $ id)]
     #[cynic(rename = "User")]
@@ -28,12 +31,14 @@ pub struct UserQueryId {
 }
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct UserQuerySearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "UserQuerySearchVariables")]
+
 pub struct UserQuerySearch {
     #[arguments(search: $ search)]
     #[cynic(rename = "User")]
@@ -41,6 +46,7 @@ pub struct UserQuerySearch {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct User {
     pub id: i32,
     pub name: String,
@@ -51,11 +57,13 @@ pub struct User {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct UserOptions {
     pub profile_color: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct UserStatisticTypes {
     pub anime: Option<UserStatistics>,
     pub manga: Option<UserStatistics2>,
@@ -63,6 +71,7 @@ pub struct UserStatisticTypes {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "UserStatistics")]
+
 pub struct UserStatistics2 {
     pub count: i32,
     pub mean_score: f64,
@@ -77,6 +86,7 @@ pub struct UserStatistics2 {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct UserStatistics {
     pub count: i32,
     pub mean_score: f64,
@@ -91,32 +101,38 @@ pub struct UserStatistics {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct UserStatusStatistic {
     pub count: i32,
     pub status: Option<MediaListStatus>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct UserGenreStatistic {
     pub genre: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct UserTagStatistic {
     pub tag: Option<MediaTag>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct UserAvatar {
     pub large: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct MediaTag {
     pub name: String,
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum MediaListStatus {
     Current,
     Planning,
@@ -127,6 +143,7 @@ pub enum MediaListStatus {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum UserStatisticsSort {
     Id,
     IdDesc,
@@ -140,6 +157,7 @@ pub enum UserStatisticsSort {
 
 impl Display for MediaListStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
         match self {
             MediaListStatus::Current => write!(f, "CURRENT"),
             MediaListStatus::Planning => write!(f, "PLANNING"),
@@ -153,6 +171,7 @@ impl Display for MediaListStatus {
 
 impl Display for UserStatisticsSort {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
         match self {
             UserStatisticsSort::Id => write!(f, "ID"),
             UserStatisticsSort::IdDesc => write!(f, "ID_DESC"),
@@ -193,12 +212,14 @@ impl Display for UserStatisticsSort {
 /// # Returns
 ///
 /// * `Result<(), AppError>` - A Result that contains an empty tuple or an `AppError`.
+
 pub async fn send_embed(
     ctx: &Context,
     command: &CommandInteraction,
     user: User,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
+
     let guild_id = match command.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -207,22 +228,30 @@ pub async fn send_embed(
     let user_localised = load_localization_user(guild_id, db_config).await?;
 
     let mut field = Vec::new();
+
     let statistics = user
         .statistics
         .clone()
         .ok_or(error_dispatch::Error::Option(String::from(
             "Could not get the statistics",
         )))?;
+
     let manga = statistics.manga.clone();
+
     let anime = statistics.anime.clone();
 
     if let Some(m) = &manga {
+
         if m.count > 0 {
+
             field.push(get_manga_field(user.id, user_localised.clone(), m.clone()))
         }
     }
+
     if let Some(a) = &anime {
+
         if a.count > 0 {
+
             field.push(get_anime_field(user.id, user_localised.clone(), a.clone()))
         }
     }
@@ -234,7 +263,9 @@ pub async fn send_embed(
         .image(get_banner(&user.id));
 
     if let Some(avatar) = user.avatar {
+
         if let Some(large) = avatar.large {
+
             builder_embed = builder_embed.thumbnail(large)
         }
     }
@@ -244,6 +275,7 @@ pub async fn send_embed(
     let builder = CreateInteractionResponse::Message(builder_message);
 
     command.create_response(&ctx.http, builder).await?;
+
     Ok(())
 }
 
@@ -259,7 +291,9 @@ pub async fn send_embed(
 /// # Returns
 ///
 /// * `String` - A String that represents the URL of the user's AniList profile.
+
 pub fn get_user_url(user_id: i32) -> String {
+
     format!("https://anilist.co/user/{}", user_id)
 }
 
@@ -275,7 +309,9 @@ pub fn get_user_url(user_id: i32) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the banner image URL of the user.
+
 pub fn get_banner(user_id: &i32) -> String {
+
     format!("https://img.anili.st/user/{}", user_id)
 }
 
@@ -291,7 +327,9 @@ pub fn get_banner(user_id: &i32) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the URL of the user's manga list on AniList.
+
 fn get_user_manga_url(user_id: i32) -> String {
+
     format!("https://anilist.co/user/{}/mangalist", user_id)
 }
 
@@ -307,7 +345,9 @@ fn get_user_manga_url(user_id: i32) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the URL of the user's anime list on AniList.
+
 fn get_user_anime_url(user_id: i32) -> String {
+
     format!("https://anilist.co/user/{}/animelist", user_id)
 }
 
@@ -327,11 +367,13 @@ fn get_user_anime_url(user_id: i32) -> String {
 /// # Returns
 ///
 /// * `(String, String, bool)` - A tuple that contains a `String`, a `String`, and a `bool`.
+
 fn get_manga_field(
     user_id: i32,
     localised: UserLocalised,
     manga: UserStatistics2,
 ) -> (String, String, bool) {
+
     (
         String::new(),
         get_manga_desc(manga, localised, user_id),
@@ -355,11 +397,13 @@ fn get_manga_field(
 /// # Returns
 ///
 /// * `(String, String, bool)` - A tuple that contains a `String`, a `String`, and a `bool`.
+
 fn get_anime_field(
     user_id: i32,
     localised: UserLocalised,
     anime: UserStatistics,
 ) -> (String, String, bool) {
+
     (
         String::new(),
         get_anime_desc(anime, localised, user_id),
@@ -383,7 +427,9 @@ fn get_anime_field(
 /// # Returns
 ///
 /// * `String` - A String that represents the manga description of the user.
+
 fn get_manga_desc(manga: UserStatistics2, localised: UserLocalised, user_id: i32) -> String {
+
     localised
         .manga
         .replace("$url$", get_user_manga_url(user_id).as_str())
@@ -419,12 +465,16 @@ fn get_manga_desc(manga: UserStatistics2, localised: UserLocalised, user_id: i32
 /// # Returns
 ///
 /// * `String` - A String that represents the tag list of the user.
+
 fn get_tag_list(vec: Vec<Option<UserTagStatistic>>) -> String {
+
     let vec = vec
         .iter()
         .map(|tag| tag.clone().unwrap().tag.clone().unwrap().name.clone())
         .collect::<Vec<_>>();
+
     let vec = vec.into_iter().take(5).collect::<Vec<_>>();
+
     vec.join("/")
 }
 
@@ -440,12 +490,16 @@ fn get_tag_list(vec: Vec<Option<UserTagStatistic>>) -> String {
 /// # Returns
 ///
 /// * `String` - A String that represents the genre list of the user.
+
 fn get_genre_list(vec: Vec<Option<UserGenreStatistic>>) -> String {
+
     let vec = vec
         .iter()
         .map(|genre| genre.clone().unwrap().genre.as_ref().unwrap().clone())
         .collect::<Vec<_>>();
+
     let vec = vec.into_iter().take(5).collect::<Vec<_>>();
+
     vec.join("/")
 }
 
@@ -461,15 +515,23 @@ fn get_genre_list(vec: Vec<Option<UserGenreStatistic>>) -> String {
 /// # Returns
 ///
 /// * `i32` - A 32-bit integer that represents the number of completed anime or manga.
+
 pub fn get_completed(statuses: Vec<Option<UserStatusStatistic>>) -> i32 {
+
     let anime_statuses = statuses;
+
     let mut anime_completed = 0;
+
     for i in anime_statuses {
+
         let i = i.unwrap();
+
         if i.status.unwrap().to_string() == *"COMPLETED" {
+
             anime_completed = i.count;
         }
     }
+
     anime_completed
 }
 
@@ -489,7 +551,9 @@ pub fn get_completed(statuses: Vec<Option<UserStatusStatistic>>) -> i32 {
 /// # Returns
 ///
 /// * `String` - A String that represents the anime description of the user.
+
 fn get_anime_desc(anime: UserStatistics, localised: UserLocalised, user_id: i32) -> String {
+
     localised
         .anime
         .replace("$url$", get_user_anime_url(user_id).as_str())
@@ -530,24 +594,35 @@ fn get_anime_desc(anime: UserStatistics, localised: UserLocalised, user_id: i32)
 /// # Returns
 ///
 /// * `String` - A String that represents the time watched for the user's anime.
+
 fn get_anime_time_watch(i: i32, localised1: UserLocalised) -> String {
+
     let mut min = i;
+
     let mut hour = 0;
+
     let mut days = 0;
+
     let mut week = 0;
 
     if min >= 60 {
+
         hour = min / 60;
+
         min %= 60;
     }
 
     if hour >= 24 {
+
         days = hour / 24;
+
         hour %= 24;
     }
 
     if days >= 7 {
+
         week = days / 7;
+
         days %= 7;
     }
 
@@ -557,24 +632,28 @@ fn get_anime_time_watch(i: i32, localised1: UserLocalised) -> String {
         1 => format!("{} {}", localised1.week, week),
         _ => format!("{} {}", localised1.weeks, week),
     };
+
     tw.push_str(weeks.as_str());
 
     let days = match days {
         1 => format!("{} {}", localised1.day, days),
         _ => format!("{} {}", localised1.days, days),
     };
+
     tw.push_str(days.as_str());
 
     let hours = match hour {
         1 => format!("{} {}", localised1.hour, hour),
         _ => format!("{} {}", localised1.hours, hour),
     };
+
     tw.push_str(hours.as_str());
 
     let mins = match min {
         1 => format!("{} {}", localised1.minute, min),
         _ => format!("{} {}", localised1.minutes, min),
     };
+
     tw.push_str(mins.as_str());
 
     tw
@@ -597,7 +676,9 @@ fn get_anime_time_watch(i: i32, localised1: UserLocalised) -> String {
 /// # Returns
 ///
 /// * `Colour` - A `Colour` that represents the color of the user's profile.
+
 pub fn get_color(user: User) -> Colour {
+
     let color = match user
         .options
         .unwrap()
@@ -615,5 +696,6 @@ pub fn get_color(user: User) -> Colour {
         "gray" => Colour::LIGHT_GREY,
         _ => COLOR,
     };
+
     color
 }

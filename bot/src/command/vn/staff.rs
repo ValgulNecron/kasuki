@@ -24,16 +24,19 @@ pub struct VnStaffCommand {
 
 impl Command for VnStaffCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for VnStaffCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -50,20 +53,27 @@ async fn send_embed(
     config: Arc<Config>,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
+
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+
     let map = get_option_map_string_subcommand(command_interaction);
+
     trace!("{:?}", map);
+
     let staff = map
         .get(&String::from("name"))
         .cloned()
         .unwrap_or(String::new());
+
     let staff_localised = load_localization_staff(guild_id, config.db.clone()).await?;
 
     let staff = get_staff(staff.clone(), vndb_cache).await?;
+
     let staff = staff.results[0].clone();
+
     let fields = vec![
         (staff_localised.lang.clone(), staff.lang, true),
         (staff_localised.aid.clone(), staff.aid.to_string(), true),
@@ -76,10 +86,14 @@ async fn send_embed(
         .fields(fields)
         .title(staff.name.clone())
         .url(format!("https://vndb.org/{}", staff.id));
+
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
+
     let builder = CreateInteractionResponse::Message(builder_message);
+
     command_interaction
         .create_response(&ctx.http, builder)
         .await?;
+
     Ok(())
 }

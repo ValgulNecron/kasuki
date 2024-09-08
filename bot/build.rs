@@ -14,8 +14,11 @@ use std::{env, path::PathBuf};
 /// This function returns a `Result` with an empty tuple as the `Ok` variant and a `Box<dyn Error>` as the `Err` variant.
 /// If the function executes successfully, it will return `Ok(())`.
 /// If an error occurs during the execution, it will return `Err(e)` where `e` is the error that occurred.
+
 fn main() -> Result<(), Box<dyn Error>> {
+
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+
     tonic_build::configure()
         .protoc_arg("--experimental_allow_proto3_optional")
         .file_descriptor_set_path(out_dir.join("shard_descriptor.bin"))

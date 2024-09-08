@@ -22,16 +22,19 @@ pub struct AnimeRandomImageCommand {
 
 impl Command for AnimeRandomImageCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for AnimeRandomImageCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         send(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -41,8 +44,10 @@ async fn send(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
+
     // Retrieve the type of image to fetch from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
+
     let image_type = map
         .get(&String::from("image_type"))
         .ok_or(error_dispatch::Error::Option(String::from(
@@ -54,6 +59,7 @@ async fn send(
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
+
     // Load the localized random image strings
     let random_image_localised =
         load_localization_random_image(guild_id, config.db.clone()).await?;
@@ -65,6 +71,7 @@ async fn send(
     command_interaction
         .create_response(&ctx.http, builder_message)
         .await?;
+
     // Send the random image as a response to the command interaction
     send_embed(
         ctx,
@@ -92,6 +99,7 @@ async fn send(
 /// # Returns
 ///
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
+
 pub async fn send_embed(
     ctx: &Context,
     command_interaction: &CommandInteraction,
@@ -99,22 +107,28 @@ pub async fn send_embed(
     title: String,
     endpoint: &str,
 ) -> Result<(), Box<dyn Error>> {
+
     // Construct the URL to fetch the image from
     let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
+
     // Fetch the image from the URL
     let resp = reqwest::get(&url).await?;
+
     // Parse the response as JSON
     let json: serde_json::Value = resp.json().await?;
+
     // Retrieve the URL of the image from the JSON
     let image_url = json["url"].as_str().ok_or("No image found")?.to_string();
 
     // Fetch the image from the image URL
     let response = reqwest::get(image_url).await?;
+
     // Retrieve the bytes of the image from the response
     let bytes = response.bytes().await?;
 
     // Generate a UUID for the filename of the image
     let uuid_name = Uuid::new_v4();
+
     let filename = format!("{}.gif", uuid_name);
 
     // Construct the embed for the response

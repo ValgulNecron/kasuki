@@ -19,15 +19,19 @@ use tokio::sync::Mutex;
 use tracing::{debug, error};
 
 #[derive(Clone)]
+
 pub struct Receiver {
     inner: Arc<InnerReceiver>,
 }
+
 struct InnerReceiver {
     last_tick_was_empty: AtomicBool,
     known_ssrcs: DashMap<u32, UserId>,
 }
+
 impl Receiver {
     pub fn new() -> Self {
+
         // You can manage state here, such as a buffer of audio packet bytes so
         // you can later store them in intervals.
         Self {
@@ -38,11 +42,16 @@ impl Receiver {
         }
     }
 }
+
 #[async_trait]
+
 impl EventHandler for Receiver {
     #[allow(unused_variables)]
+
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
+
         use EventContext as Ctx;
+
         match ctx {
             Ctx::SpeakingStateUpdate(Speaking {
                 speaking,
@@ -50,6 +59,7 @@ impl EventHandler for Receiver {
                 user_id,
                 ..
             }) => {
+
                 // Discord voice calls use RTP, where every sender uses a randomly allocated
                 // *Synchronisation Source* (SSRC) to allow receivers to tell which audio
                 // stream a received packet belongs to. As this number is not derived from
@@ -67,23 +77,30 @@ impl EventHandler for Receiver {
                 );
 
                 if let Some(user) = user_id {
+
                     self.inner.known_ssrcs.insert(*ssrc, UserId::from(user.0));
                 }
             }
             Ctx::VoiceTick(tick) => {
+
                 let speaking = tick.speaking.len();
+
                 let total_participants = speaking + tick.silent.len();
+
                 let last_tick_was_empty = self.inner.last_tick_was_empty.load(Ordering::SeqCst);
 
                 if speaking == 0 && !last_tick_was_empty {
+
                     self.inner.last_tick_was_empty.store(true, Ordering::SeqCst);
                 } else if speaking != 0 {
+
                     self.inner
                         .last_tick_was_empty
                         .store(false, Ordering::SeqCst);
                 }
             }
             Ctx::ClientDisconnect(ClientDisconnect { user_id, .. }) => {
+
                 // You can implement your own logic here to handle a user who has left the
                 // voice channel e.g., finalise processing of statistics etc.
                 // You will typically need to map the User ID to their SSRC; observed when
@@ -93,6 +110,7 @@ impl EventHandler for Receiver {
             }
             Ctx::Track(track_list) => {
                 for (state, handle) in *track_list {
+
                     error!(
                         "Track {:?} encountered an error: {:?}",
                         handle.uuid(),
@@ -108,11 +126,16 @@ impl EventHandler for Receiver {
 }
 
 pub struct TrackErrorNotifier;
+
 #[async_trait]
+
 impl EventHandler for TrackErrorNotifier {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
+
         if let EventContext::Track(track_list) = ctx {
+
             for (state, handle) in *track_list {
+
                 error!(
                     "Track {:?} encountered an error: {:?}",
                     handle.uuid(),
@@ -120,6 +143,7 @@ impl EventHandler for TrackErrorNotifier {
                 );
             }
         }
+
         None
     }
 }
@@ -129,32 +153,48 @@ pub struct TrackEndNotifier {
     pub url: String,
     pub guild_id: GuildId,
 }
+
 #[async_trait]
+
 impl EventHandler for TrackEndNotifier {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
+
         let handler_mutex = self.manager.clone();
+
         let url = self.url.clone();
+
         if let EventContext::Track(track_list) = ctx {
+
             let handler_mutex_clone = handler_mutex.clone();
+
             let mut handler_lock = handler_mutex_clone.lock().await;
+
             for (_, handle) in *track_list {
+
                 debug!("Track {:?} ended", handle.uuid());
+
                 let mut src = match RustyYoutubeSearch::new_from_url(url.clone()) {
                     Ok(src) => src,
                     Err(e) => {
+
                         error!("Failed to create source: {:?}", e);
+
                         break;
                     }
                 };
+
                 let (_, meta) = futures::join!(
                     handler_lock.enqueue(Track::from(src.clone())),
                     src.aux_metadata()
                 );
+
                 let url = match meta {
                     Ok(meta) => meta.source_url.unwrap_or(url),
                     Err(_) => url,
                 };
+
                 handler_lock.add_global_event(TrackEvent::Error.into(), TrackErrorNotifier);
+
                 handler_lock.add_global_event(
                     TrackEvent::End.into(),
                     TrackEndNotifier {
@@ -163,9 +203,11 @@ impl EventHandler for TrackEndNotifier {
                         guild_id: self.guild_id,
                     },
                 );
+
                 break;
             }
         }
+
         None
     }
 }

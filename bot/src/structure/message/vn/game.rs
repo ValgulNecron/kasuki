@@ -5,6 +5,7 @@ use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+
 pub struct GameLocalised {
     pub released: String,
 
@@ -25,6 +26,8 @@ pub async fn load_localization_game(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<GameLocalised, Box<dyn Error>> {
+
     let path = "json/message/vn/game.json";
+
     load_localization(guild_id, path, db_config).await
 }

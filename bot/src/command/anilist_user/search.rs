@@ -26,22 +26,30 @@ pub struct SearchCommand {
 
 impl Command for SearchCommand {
     fn get_ctx(&self) -> &Context {
+
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
+
         &self.command_interaction
     }
 }
 
 impl SlashCommand for SearchCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
         let ctx = &self.ctx;
+
         let command_interaction = &self.command_interaction;
+
         let config = &self.config;
+
         let anilist_cache = &self.anilist_cache;
+
         // Retrieve the type of AniList data to search for from the command interaction
         let map = get_option_map_string(command_interaction);
+
         let search_type = map
             .get(&String::from("type"))
             .ok_or(error_dispatch::Error::Option(String::from(

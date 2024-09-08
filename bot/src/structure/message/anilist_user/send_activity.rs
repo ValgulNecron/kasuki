@@ -2,6 +2,7 @@ use std::error::Error;
 
 use crate::config::DbConfig;
 use serde::{Deserialize, Serialize};
+
 // Importing necessary libraries and modules
 use crate::structure::message::common::load_localization;
 
@@ -12,6 +13,7 @@ use crate::structure::message::common::load_localization;
 /// * `title`: A string representing the title related data.
 /// * `desc`: A string representing the description related data.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct SendActivityLocalised {
     pub title: String,
     pub desc: String,
@@ -28,10 +30,13 @@ pub struct SendActivityLocalised {
 /// # Returns
 ///
 /// * `Result<SendActivityLocalised, AppError>`: A Result containing SendActivityLocalised data or an AppError.
+
 pub async fn load_localization_send_activity(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<SendActivityLocalised, Box<dyn Error>> {
+
     let path = "json/message/anilist_user/send_activity.json";
+
     load_localization(guild_id, path, db_config).await
 }

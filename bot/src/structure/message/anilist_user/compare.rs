@@ -28,6 +28,7 @@ use serde::{Deserialize, Serialize};
 /// `more_manga_chapter`: A String representing the more_manga_chapter of the comparison.
 /// `same_manga_chapter`: A String representing the same_manga_chapter of the comparison.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+
 pub struct CompareLocalised {
     pub affinity: String,
     pub more_anime: String,
@@ -63,10 +64,13 @@ pub struct CompareLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
+
 pub async fn load_localization_compare(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<CompareLocalised, Box<dyn Error>> {
+
     let path = "json/message/anilist_user/compare.json";
+
     load_localization(guild_id, path, db_config).await
 }
