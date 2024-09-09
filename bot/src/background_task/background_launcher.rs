@@ -87,7 +87,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
     tokio::spawn(launch_user_color_management_thread(
         ctx.clone(),
         user_blacklist_server_image.clone(),
-        db_config.clone(),
+        bot_data.clone(),
     ));
 
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
@@ -255,7 +255,7 @@ async fn launch_web_server_thread(
 async fn launch_user_color_management_thread(
     ctx: Context,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-    db_config: DbConfig,
+    bot_data: Arc<BotData>,
 ) {
 
     // Create an interval for periodic updates
@@ -278,7 +278,7 @@ async fn launch_user_color_management_thread(
             &guilds,
             &ctx,
             user_blacklist_server_image.clone(),
-            db_config.clone(),
+            bot_data.clone(),
         )
         .await;
     }

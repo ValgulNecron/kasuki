@@ -198,7 +198,7 @@ impl EventHandler for Handler {
                 &ctx.cache.guilds(),
                 &ctx,
                 user_blacklist_server_image,
-                self.bot_data.config.db.clone(),
+                self.bot_data.clone(),
             )
             .await;
 
@@ -278,7 +278,7 @@ impl EventHandler for Handler {
             &ctx.cache.guilds(),
             &ctx,
             user_blacklist_server_image,
-            self.bot_data.config.db.clone(),
+            self.bot_data.clone(),
         )
         .await;
 
@@ -377,6 +377,14 @@ impl EventHandler for Handler {
                     user_id: Set(user.id.to_string()),
                 },
             )
+                .on_conflict(
+                    sea_orm::sea_query::OnConflict::columns([
+                        crate::structure::database::server_user_relation::Column::GuildId,
+                        crate::structure::database::server_user_relation::Column::UserId,
+                    ])
+                        .do_nothing()
+                    .to_owned(),
+                )
             .exec(&*self.bot_data.db_connection.clone())
             .await
             {

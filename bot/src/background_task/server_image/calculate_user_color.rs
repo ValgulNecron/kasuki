@@ -26,12 +26,12 @@ use serenity::all::{Context, GuildId, Member, User, UserId};
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, trace};
-use crate::event_handler::add_user_data_to_db;
+use crate::event_handler::{add_user_data_to_db, BotData};
 
 pub async fn calculate_users_color(
     members: Vec<Member>,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-    db_config: DbConfig,
+    bot_data: Arc<BotData>,
 ) -> Result<(), Box<dyn Error>> {
 
     let guard = user_blacklist_server_image.read().await;
@@ -54,11 +54,11 @@ pub async fn calculate_users_color(
 
         let id = member.user.id.to_string();
 
-        let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+        let connection = bot_data.db_connection.clone();
 
         let user_color = UserColor::find()
             .filter(Column::UserId.eq(id.clone()))
-            .one(&connection)
+            .one(&*connection)
             .await?
             .unwrap_or(Model {
                 user_id: id.clone(),
@@ -74,7 +74,7 @@ pub async fn calculate_users_color(
 
             let (average_color, image): (String, String) =
                 calculate_user_color(member.user.clone()).await?;
-
+            add_user_data_to_db(member.user.clone(), connection.clone()).await?;
             UserColor::insert(ActiveModel {
                 user_id: Set(id.clone()),
                 profile_picture_url: Set(pfp_url.clone()),
@@ -89,7 +89,7 @@ pub async fn calculate_users_color(
                     .update_column(Column::Images)
                     .to_owned(),
             )
-            .exec(&connection)
+            .exec(&*connection)
             .await?;
         }
 
@@ -265,7 +265,7 @@ pub async fn color_management(
     guilds: &Vec<GuildId>,
     ctx_clone: &Context,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-    db_config: DbConfig,
+    bot_data: Arc<BotData>,
 ) {
 
     let mut futures = FuturesUnordered::new();
@@ -302,7 +302,7 @@ pub async fn color_management(
     match calculate_users_color(
         members.into_iter().collect(),
         user_blacklist_server_image,
-        db_config,
+        bot_data,
     )
     .await
     {
