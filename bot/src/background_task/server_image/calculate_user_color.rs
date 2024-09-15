@@ -6,7 +6,7 @@ use std::time::Duration;
 use crate::config::DbConfig;
 use crate::event_handler::{add_user_data_to_db, BotData};
 use crate::get_url;
-use crate::new_member::change_to_x64_url;
+use crate::new_member::change_to_x256_url;
 use crate::structure::database::prelude::UserColor;
 use crate::structure::database::user_color::{ActiveModel, Column, Model};
 use base64::engine::general_purpose;
@@ -50,7 +50,7 @@ pub async fn calculate_users_color(
             continue;
         }
 
-        let pfp_url = change_to_x64_url(member.user.face());
+        let pfp_url = change_to_x256_url(member.user.face());
 
         let id = member.user.id.to_string();
 
@@ -112,7 +112,7 @@ pub async fn return_average_user_color(
 
     for member in members {
 
-        let pfp_url = change_to_x64_url(member.user.face());
+        let pfp_url = change_to_x256_url(member.user.face());
 
         let id = member.user.id.to_string();
 
@@ -201,7 +201,7 @@ pub async fn return_average_user_color(
 
 async fn calculate_user_color(user: User) -> Result<(String, String), Box<dyn Error>> {
 
-    let pfp_url = change_to_x64_url(user.face());
+    let pfp_url = change_to_x256_url(user.face());
 
     let img = get_image_from_url(pfp_url).await?;
 
@@ -378,7 +378,7 @@ pub async fn get_specific_user_color(
         return;
     }
 
-    let pfp_url = change_to_x64_url(user.face());
+    let pfp_url = change_to_x256_url(user.face());
 
     let id = user.id.to_string();
 

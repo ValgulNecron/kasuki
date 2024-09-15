@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::error::Error;
 use std::sync::Arc;
 
 use crate::config::DbConfig;
@@ -97,34 +96,19 @@ pub struct ReleaseDate {
     pub date: Option<String>,
 }
 
-impl SteamGameWrapper {
-    /// `new_steam_game_by_id` is an asynchronous function that creates a new `SteamGameWrapper` by the given app id.
-    /// It takes an `appid` and `guild_id` as parameters.
-    /// `appid` is an u128, and `guild_id` is a String.
-    /// It returns a Result which is either a `SteamGameWrapper` or an `AppError`.
-    ///
-    /// # Arguments
-    ///
-    /// * `appid` - A u128 that represents the app id.
-    /// * `guild_id` - A String that represents the guild id.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<SteamGameWrapper, AppError>` - A Result type which is either a `SteamGameWrapper` or an `AppError`.
-    ///
-    /// # Errors
-    ///
-    /// This function will return an `AppError` if it encounters any issues while building the client, making the HTTP request, getting the text data, or parsing the JSON.
+use anyhow::{Context, Error, Result};
 
+impl SteamGameWrapper {
     pub async fn new_steam_game_by_id(
         appid: u128,
         guild_id: String,
         db_config: DbConfig,
-    ) -> Result<SteamGameWrapper, Box<dyn Error>> {
+    ) -> Result<SteamGameWrapper> {
 
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
-            .build()?;
+            .build()
+            .context("Failed to build reqwest client")?;
 
         let lang = get_guild_language(guild_id, db_config).await;
 
@@ -141,11 +125,18 @@ impl SteamGameWrapper {
 
         trace!("{}", url);
 
-        let response = client.get(&url).send().await?;
+        let response = client
+            .get(&url)
+            .send()
+            .await
+            .context("Failed to send request")?;
 
-        let mut text = response.text().await?;
+        let mut text = response
+            .text()
+            .await
+            .context("Failed to get response text")?;
 
-        let re = Regex::new(r#""required_age":"(\d+)""#)?;
+        let re = Regex::new(r#""required_age":"(\d+)""#).expect("Failed to create regex");
 
         if let Some(cap) = re.captures(&text) {
 
@@ -161,45 +152,29 @@ impl SteamGameWrapper {
 
                 text = text.replace(&base, &new);
 
-                trace!("{}", number) // Output: 18
+                trace!("{}", number)
             }
         }
 
-        let game_wrapper: HashMap<String, SteamGameWrapper> = serde_json::from_str(text.as_str())?;
+        let game_wrapper: HashMap<String, SteamGameWrapper> =
+            serde_json::from_str(text.as_str()).context("Failed to parse response text")?;
 
         let game = game_wrapper
             .get(&appid.to_string())
             .ok_or(error_dispatch::Error::Option(String::from(
                 "Game not found",
-            )))?;
+            )))
+            .context("Failed to get game")?;
 
         Ok(game.clone())
     }
-
-    /// `new_steam_game_by_search` is an asynchronous function that creates a new `SteamGameWrapper` by searching for the given string.
-    /// It takes a `search` and `guild_id` as parameters.
-    /// `search` is a reference to a str, and `guild_id` is a String.
-    /// It returns a Result which is either a `SteamGameWrapper` or an `AppError`.
-    ///
-    /// # Arguments
-    ///
-    /// * `search` - A reference to a str that represents the search string.
-    /// * `guild_id` - A String that represents the guild id.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<SteamGameWrapper, AppError>` - A Result type which is either a `SteamGameWrapper` or an `AppError`.
-    ///
-    /// # Errors
-    ///
-    /// This function will return an `AppError` if it encounters any issues while searching for the game.
 
     pub async fn new_steam_game_by_search(
         search: &str,
         guild_id: String,
         apps: Arc<RwLock<HashMap<String, u128>>>,
         db_config: DbConfig,
-    ) -> Result<SteamGameWrapper, Box<dyn Error>> {
+    ) -> Result<SteamGameWrapper> {
 
         let guard = apps.read().await;
 
@@ -213,7 +188,7 @@ impl SteamGameWrapper {
 
         if results.is_empty() {
 
-            return Err(Box::new(error_dispatch::Error::Option(
+            return Err(Error::from(error_dispatch::Error::Option(
                 "No game found".to_string(),
             )));
         }
@@ -226,7 +201,7 @@ impl SteamGameWrapper {
                     Some(appid) => appid,
                     None => {
 
-                        return Err(Box::new(error_dispatch::Error::Option(
+                        return Err(Error::from(error_dispatch::Error::Option(
                             "No game found".to_string(),
                         )));
                     }
@@ -239,7 +214,7 @@ impl SteamGameWrapper {
                     Some(appid) => appid,
                     None => {
 
-                        return Err(Box::new(error_dispatch::Error::Option(
+                        return Err(Error::from(error_dispatch::Error::Option(
                             "No game found".to_string(),
                         )));
                     }

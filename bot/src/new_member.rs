@@ -4,7 +4,9 @@ use crate::structure::message::new_member::load_localization_new_member;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage};
 use serde::{Deserialize, Serialize};
-use serenity::all::{ChannelId, Context, CreateMessage, GuildId, Http, Member, PartialGuild};
+use serenity::all::{
+    ChannelId, Context as SerenityContext, CreateMessage, GuildId, Http, Member, PartialGuild,
+};
 use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
 use std::error::Error;
@@ -14,21 +16,20 @@ use std::sync::Arc;
 use text_to_png::TextRenderer;
 use tracing::{debug, info, trace};
 
-use anyhow::{Context as AnyhowContext, Result};
-use serenity::prelude::*;
+use anyhow::{Context, Result};
 use serenity::prelude::*;
 
 // Enums
 #[derive(Debug)]
 
-enum XAlignment {
+pub enum XAlignment {
     Center,
     Right,
 }
 
 #[derive(Debug)]
 
-enum YAlignment {
+pub enum YAlignment {
     Center,
     Bottom,
 }
@@ -58,7 +59,7 @@ impl Default for NewMemberSetting {
 }
 
 // Helper functions
-async fn load_guild_settings(guild_id: GuildId) -> NewMemberSetting {
+pub async fn load_guild_settings(guild_id: GuildId) -> NewMemberSetting {
 
     debug!("Loading guild settings for guild: {}", guild_id);
 
@@ -73,7 +74,7 @@ async fn load_guild_settings(guild_id: GuildId) -> NewMemberSetting {
         .clone()
 }
 
-fn load_new_member_image(guild_id: String) -> Option<Vec<u8>> {
+pub fn load_new_member_image(guild_id: String) -> Option<Vec<u8>> {
 
     debug!("Loading new member image for guild: {}", guild_id);
 
@@ -82,7 +83,7 @@ fn load_new_member_image(guild_id: String) -> Option<Vec<u8>> {
     fs::read(image_path).ok()
 }
 
-fn create_default_new_member_image() -> Result<Vec<u8>> {
+pub fn create_default_new_member_image() -> Result<Vec<u8>> {
 
     debug!("Creating default new member image");
 
@@ -99,7 +100,7 @@ fn create_default_new_member_image() -> Result<Vec<u8>> {
     Ok(bytes)
 }
 
-fn get_server_image(guild_id: String, guild_settings: &NewMemberSetting) -> Option<Vec<u8>> {
+pub fn get_server_image(guild_id: String, guild_settings: &NewMemberSetting) -> Option<Vec<u8>> {
 
     debug!("Getting server image for guild: {}", guild_id);
 
@@ -112,7 +113,7 @@ fn get_server_image(guild_id: String, guild_settings: &NewMemberSetting) -> Opti
     }
 }
 
-fn get_channel_id(
+pub fn get_channel_id(
     guild_settings: &NewMemberSetting,
     partial_guild: &PartialGuild,
 ) -> Option<ChannelId> {
@@ -128,7 +129,7 @@ fn get_channel_id(
     }
 }
 
-async fn get_image(avatar_url: String) -> Result<DynamicImage> {
+pub async fn get_image(avatar_url: String) -> Result<DynamicImage> {
 
     debug!("Fetching image from URL: {}", avatar_url);
 
@@ -141,19 +142,24 @@ async fn get_image(avatar_url: String) -> Result<DynamicImage> {
     image::load_from_memory(&body).context("Failed to load image from memory")
 }
 
-fn change_to_x64_url(url: String) -> String {
+pub fn change_to_x256_url(url: String) -> String {
 
     debug!("Changing URL size to 64x64: {}", url);
 
-    url.replace("?size=4096", "?size=64")
-        .replace("?size=2048", "?size=64")
-        .replace("?size=1024", "?size=64")
-        .replace("?size=512", "?size=64")
-        .replace("?size=256", "?size=64")
-        .replace("?size=128", "?size=64")
+    url.replace("?size=4096", "?size=256")
+        .replace("?size=2048", "?size=256")
+        .replace("?size=1024", "?size=256")
+        .replace("?size=512", "?size=256")
+        .replace("?size=256", "?size=256")
+        .replace("?size=128", "?size=256")
+        .replace("?size=64", "?size=256")
 }
 
-async fn send_image(channel_id: ChannelId, image_bytes: Vec<u8>, http: &Arc<Http>) -> Result<()> {
+pub async fn send_image(
+    channel_id: ChannelId,
+    image_bytes: Vec<u8>,
+    http: &Arc<Http>,
+) -> Result<()> {
 
     debug!("Sending image to channel: {}", channel_id);
 
@@ -169,7 +175,7 @@ async fn send_image(channel_id: ChannelId, image_bytes: Vec<u8>, http: &Arc<Http
     Ok(())
 }
 
-fn encode_image(image: DynamicImage) -> Result<Vec<u8>> {
+pub fn encode_image(image: DynamicImage) -> Result<Vec<u8>> {
 
     debug!("Encoding image");
 
@@ -184,7 +190,7 @@ fn encode_image(image: DynamicImage) -> Result<Vec<u8>> {
     Ok(buffer.into_inner())
 }
 
-async fn overlay_image(
+pub async fn overlay_image(
     background_image: &mut DynamicImage,
     foreground_image: DynamicImage,
 ) -> Result<(DynamicImage, u32, u32, u32, u32)> {
@@ -215,7 +221,7 @@ async fn overlay_image(
     ))
 }
 
-async fn add_text(
+pub async fn add_text(
     image: &mut DynamicImage,
     text: String,
     x_alignment: XAlignment,
@@ -256,7 +262,11 @@ async fn add_text(
 }
 
 // Main function
-pub async fn new_member_message(ctx: &Context, member: &Member, db_config: DbConfig) -> Result<()> {
+pub async fn new_member_message(
+    ctx: &SerenityContext,
+    member: &Member,
+    db_config: DbConfig,
+) -> Result<()> {
 
     info!(
         "Processing new member message for guild: {}",
@@ -278,7 +288,7 @@ pub async fn new_member_message(ctx: &Context, member: &Member, db_config: DbCon
 
     let mut guild_image = image::load_from_memory(&guild_image_data)?;
 
-    let avatar_url = change_to_x64_url(member.face());
+    let avatar_url = change_to_x256_url(member.face());
 
     let avatar_image = get_image(avatar_url).await?;
 

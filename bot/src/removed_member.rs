@@ -2,22 +2,22 @@ use crate::config::DbConfig;
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
 use crate::custom_serenity_impl::{InternalAction, InternalMemberAction};
 use crate::new_member::{
-    add_text, change_to_x64_url, encode_image, get_channel_id, get_image, get_server_image,
+    add_text, change_to_x256_url, encode_image, get_channel_id, get_image, get_server_image,
     load_guild_settings, overlay_image, send_image, XAlignment, YAlignment,
 };
 use crate::structure::message::removed_member::{load_localization_removed_member, RemovedMember};
 use anyhow::anyhow;
 use serenity::all::{AuditLogs, GuildId, User};
-use serenity::client::Context;
+use serenity::client::Context as SerenityContext;
 use std::error::Error;
 use tracing::{debug, info, trace};
 
-use anyhow::{Context as AnyhowContext, Result};
+use anyhow::{Context, Result};
 use chrono::Utc;
 use serenity::{model::id::ChannelId, prelude::*};
 
 pub async fn removed_member_message(
-    ctx: &Context,
+    ctx: &SerenityContext,
     guild_id: GuildId,
     user: User,
     db_config: DbConfig,
@@ -49,7 +49,7 @@ pub async fn removed_member_message(
         .context("Failed to load guild image from memory")?;
 
     // Process user avatar
-    let avatar_url = change_to_x64_url(user.face());
+    let avatar_url = change_to_x256_url(user.face());
 
     debug!(?avatar_url, "Changed avatar URL to x64 size");
 

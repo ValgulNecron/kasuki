@@ -287,7 +287,9 @@ async fn main() {
     }
 }
 
-async fn init_db(config: Arc<Config>) -> Result<(), Box<dyn Error>> {
+use anyhow::{Context, Result};
+
+async fn init_db(config: Arc<Config>) -> Result<()> {
 
     let db_config = config.db.clone();
 
@@ -300,9 +302,11 @@ async fn init_db(config: Arc<Config>) -> Result<(), Box<dyn Error>> {
 
         let mut cmd = process::Command::new("./migration.exe");
 
-        let child = cmd.spawn()?;
+        let child = cmd.spawn().context("Failed to run migration")?;
 
-        child.wait_with_output()?;
+        child
+            .wait_with_output()
+            .context("Failed to wait for migration")?;
     }
 
     #[cfg(unix)]
@@ -310,9 +314,11 @@ async fn init_db(config: Arc<Config>) -> Result<(), Box<dyn Error>> {
 
         let mut cmd = process::Command::new("./migration");
 
-        let child = cmd.spawn()?;
+        let child = cmd.spawn().context("Failed to run migration")?;
 
-        child.wait_with_output()?;
+        child
+            .wait_with_output()
+            .context("Failed to wait for migration")?;
     }
 
     Ok(())

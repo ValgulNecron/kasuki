@@ -210,16 +210,7 @@ impl EventHandler for Handler {
             debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
         }
 
-        let connection =
-            match sea_orm::Database::connect(get_url(self.bot_data.config.db.clone())).await {
-                Ok(connection) => connection,
-                Err(e) => {
-
-                    error!("Failed to connect to the database. {}", e);
-
-                    return;
-                }
-            };
+        let connection = self.bot_data.db_connection.clone();
 
         match GuildData::insert(crate::structure::database::guild_data::ActiveModel {
             guild_id: Set(guild.id.to_string()),
@@ -234,7 +225,7 @@ impl EventHandler for Handler {
             .update_column(crate::structure::database::guild_data::Column::UpdatedAt)
             .to_owned(),
         )
-        .exec(&connection)
+        .exec(&*connection)
         .await
         {
             Ok(_) => {}
@@ -346,6 +337,8 @@ impl EventHandler for Handler {
 
         let members: Vec<Member> = members.iter().map(|member| member.1.clone()).collect();
 
+        let connection = self.bot_data.db_connection.clone();
+
         for member in members {
 
             let user = match member.user.id.to_user(&ctx.http).await {
@@ -363,7 +356,7 @@ impl EventHandler for Handler {
                 trace!("{:#?}", user.banner_url())
             }
 
-            match add_user_data_to_db(user.clone(), self.bot_data.db_connection.clone()).await {
+            match add_user_data_to_db(user.clone(), connection.clone()).await {
                 Ok(_) => {}
                 Err(e) => error!("Failed to insert user data. {}", e),
             };
@@ -382,7 +375,7 @@ impl EventHandler for Handler {
                 .do_nothing()
                 .to_owned(),
             )
-            .exec(&*self.bot_data.db_connection.clone())
+            .exec(&*connection.clone())
             .await
             {
                 Ok(_) => {}
@@ -423,6 +416,32 @@ impl EventHandler for Handler {
     }
 
     async fn ready(&self, ctx: Context, ready: Ready) {
+
+        // Iterates over each guild the bot is in
+        let shard = ctx.shard.clone();
+
+        for guild in ctx.cache.guilds() {
+
+            // Retrieves partial guild information
+            let partial_guild = match guild.to_partial_guild(&ctx.http).await {
+                Ok(guild) => guild,
+                Err(e) => {
+
+                    error!("Failed to get the guild. {}", e);
+
+                    continue;
+                }
+            };
+
+            // Logs the guild name and ID
+            shard.chunk_guild(partial_guild.id, None, true, ChunkGuildFilter::None, None);
+
+            debug!(
+                "guild name {} (guild id: {})",
+                &partial_guild.name,
+                &partial_guild.id.to_string()
+            )
+        }
 
         // Spawns a new thread for managing various tasks
         let guard = self.bot_data.already_launched.read().await;
@@ -465,32 +484,6 @@ impl EventHandler for Handler {
 
         // Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
         command_registration(&ctx.http, remove_old_command).await;
-
-        // Iterates over each guild the bot is in
-        let shard = ctx.shard.clone();
-
-        for guild in ctx.cache.guilds() {
-
-            // Retrieves partial guild information
-            let partial_guild = match guild.to_partial_guild(&ctx.http).await {
-                Ok(guild) => guild,
-                Err(e) => {
-
-                    error!("Failed to get the guild. {}", e);
-
-                    continue;
-                }
-            };
-
-            // Logs the guild name and ID
-            shard.chunk_guild(partial_guild.id, None, true, ChunkGuildFilter::None, None);
-
-            debug!(
-                "guild name {} (guild id: {})",
-                &partial_guild.name,
-                &partial_guild.id.to_string()
-            )
-        }
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
