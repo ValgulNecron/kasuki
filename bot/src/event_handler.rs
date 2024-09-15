@@ -2,7 +2,7 @@ use chrono::Utc;
 use moka::future::Cache;
 use num_bigint::BigUint;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ DatabaseConnection, EntityTrait};
+use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 use serenity::all::{
     ActivityData, CommandType, Context, CurrentApplicationInfo, Entitlement, EventHandler, Guild,
@@ -271,7 +271,7 @@ impl EventHandler for Handler {
 
         match new_member_message(&ctx, &member, self.bot_data.config.db.clone()).await {
             Ok(_) => {}
-            Err(e) => error!(e),
+            Err(e) => error!(?e),
         };
 
         color_management(
@@ -287,7 +287,6 @@ impl EventHandler for Handler {
             server_image_management(&ctx, image_config, self.bot_data.config.db.clone()).await;
         }
 
-
         let user = match member.user.id.to_user(&ctx.http).await {
             Ok(user) => user,
             Err(e) => {
@@ -298,8 +297,7 @@ impl EventHandler for Handler {
             }
         };
 
-        match add_user_data_to_db(user, self.bot_data.db_connection.clone()).await
-        {
+        match add_user_data_to_db(user, self.bot_data.db_connection.clone()).await {
             Ok(_) => {}
             Err(e) => error!("Failed to insert user data. {}", e),
         };
@@ -365,8 +363,7 @@ impl EventHandler for Handler {
                 trace!("{:#?}", user.banner_url())
             }
 
-            match add_user_data_to_db(user.clone(), self.bot_data.db_connection.clone()).await
-            {
+            match add_user_data_to_db(user.clone(), self.bot_data.db_connection.clone()).await {
                 Ok(_) => {}
                 Err(e) => error!("Failed to insert user data. {}", e),
             };
@@ -377,14 +374,14 @@ impl EventHandler for Handler {
                     user_id: Set(user.id.to_string()),
                 },
             )
-                .on_conflict(
-                    sea_orm::sea_query::OnConflict::columns([
-                        crate::structure::database::server_user_relation::Column::GuildId,
-                        crate::structure::database::server_user_relation::Column::UserId,
-                    ])
-                        .do_nothing()
-                    .to_owned(),
-                )
+            .on_conflict(
+                sea_orm::sea_query::OnConflict::columns([
+                    crate::structure::database::server_user_relation::Column::GuildId,
+                    crate::structure::database::server_user_relation::Column::UserId,
+                ])
+                .do_nothing()
+                .to_owned(),
+            )
             .exec(&*self.bot_data.db_connection.clone())
             .await
             {
@@ -419,8 +416,7 @@ impl EventHandler for Handler {
         )
         .await;
 
-        match add_user_data_to_db(user, self.bot_data.db_connection.clone()).await
-        {
+        match add_user_data_to_db(user, self.bot_data.db_connection.clone()).await {
             Ok(_) => {}
             Err(e) => error!("Failed to insert user data. {}", e),
         };
@@ -553,11 +549,11 @@ impl EventHandler for Handler {
         }
 
         if user.is_none() {
+
             return;
         }
 
-        match add_user_data_to_db(user.unwrap(), self.bot_data.db_connection.clone()).await
-        {
+        match add_user_data_to_db(user.unwrap(), self.bot_data.db_connection.clone()).await {
             Ok(_) => {}
             Err(e) => error!("Failed to insert user data. {}", e),
         };
@@ -755,7 +751,11 @@ impl EventHandler for Handler {
     }
 }
 
-pub async fn add_user_data_to_db(user: User, connection: Arc<DatabaseConnection>) -> Result<(), Box<dyn Error>> {
+pub async fn add_user_data_to_db(
+    user: User,
+    connection: Arc<DatabaseConnection>,
+) -> Result<(), Box<dyn Error>> {
+
     UserData::insert(crate::structure::database::user_data::ActiveModel {
         user_id: Set(user.id.to_string()),
         username: Set(user.name.clone()),
@@ -763,16 +763,17 @@ pub async fn add_user_data_to_db(user: User, connection: Arc<DatabaseConnection>
         is_bot: Set(user.bot),
         banner: Set(user.banner_url().unwrap_or_default()),
     })
-        .on_conflict(
-            sea_orm::sea_query::OnConflict::column(
-                crate::structure::database::user_data::Column::UserId,
-            )
-                .update_column(crate::structure::database::user_data::Column::Username)
-                .update_column(crate::structure::database::user_data::Column::Banner)
-                .update_column(crate::structure::database::user_data::Column::IsBot)
-                .to_owned(),
+    .on_conflict(
+        sea_orm::sea_query::OnConflict::column(
+            crate::structure::database::user_data::Column::UserId,
         )
-        .exec(&*connection)
-        .await?;
+        .update_column(crate::structure::database::user_data::Column::Username)
+        .update_column(crate::structure::database::user_data::Column::Banner)
+        .update_column(crate::structure::database::user_data::Column::IsBot)
+        .to_owned(),
+    )
+    .exec(&*connection)
+    .await?;
+
     Ok(())
 }

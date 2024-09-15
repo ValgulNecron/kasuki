@@ -10,67 +10,77 @@ use anyhow::anyhow;
 use serenity::all::{AuditLogs, GuildId, User};
 use serenity::client::Context;
 use std::error::Error;
-use tracing::trace;
+use tracing::{debug, info, trace};
+
+use anyhow::{Context as AnyhowContext, Result};
+use chrono::Utc;
+use serenity::{model::id::ChannelId, prelude::*};
 
 pub async fn removed_member_message(
     ctx: &Context,
     guild_id: GuildId,
     user: User,
     db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
 
-    trace!("Starting removed_member_message function");
+    info!("Processing removed member message for guild: {}", guild_id);
 
-    let ctx = ctx.clone();
-
-    let user_name = user.name.clone();
-
-    let partial_guild = guild_id.to_partial_guild(&ctx.http).await?;
-
+    // Load guild settings
     let guild_settings = load_guild_settings(guild_id).await;
 
-    trace!(?guild_settings, "Loaded guild settings");
+    debug!(?guild_settings, "Loaded guild settings");
+
+    // Get channel ID
+    let partial_guild = guild_id
+        .to_partial_guild(&ctx.http)
+        .await
+        .context("Failed to get partial guild")?;
 
     let channel_id = get_channel_id(&guild_settings, &partial_guild)
-        .ok_or(anyhow!("Failed to get the channel id."))?;
+        .ok_or_else(|| anyhow!("Failed to get the channel id"))?;
 
-    trace!(?channel_id, "Obtained channel id");
+    debug!(?channel_id, "Obtained channel id");
 
-    let guild_image = get_server_image(guild_id.to_string(), &guild_settings)
-        .ok_or(anyhow!("Failed to get the server image."))?;
+    // Get server image
+    let guild_image_data = get_server_image(guild_id.to_string(), &guild_settings)
+        .ok_or_else(|| anyhow!("Failed to get the server image"))?;
 
-    trace!("Obtained server image");
+    let mut guild_image = image::load_from_memory(&guild_image_data)
+        .context("Failed to load guild image from memory")?;
 
-    let mut guild_image = image::load_from_memory(&guild_image)?;
+    // Process user avatar
+    let avatar_url = change_to_x64_url(user.face());
 
-    trace!("Loaded guild image from memory");
+    debug!(?avatar_url, "Changed avatar URL to x64 size");
 
-    let avatar = change_to_x64_url(user.face());
+    let avatar_image = get_image(avatar_url)
+        .await
+        .context("Failed to download user avatar image")?;
 
-    trace!(?avatar, "Changed avatar URL to x64 size");
-
-    let image = get_image(avatar).await?;
-
-    trace!("Downloaded user avatar image");
-
+    // Fetch audit logs
     let audit_log = guild_id
         .audit_logs(&ctx.http, None, None, None, Some(100))
-        .await?;
+        .await
+        .context("Failed to fetch audit logs")?;
 
-    trace!("Fetched audit logs");
+    // Load localization
+    let local = load_localization_removed_member(guild_id.to_string(), db_config)
+        .await
+        .context("Failed to load localization for removed member")?;
 
-    let local = load_localization_removed_member(guild_id.to_string(), db_config).await?;
-
-    trace!("Loaded localization for removed member");
+    // Determine reason for removal
+    let user_name = user.name.clone();
 
     let reason = determine_reason(&audit_log, &user, &local, &user_name);
 
-    trace!(?reason, "Determined reason for removal");
+    debug!(?reason, "Determined reason for removal");
 
-    let (mut guild_image, _, _, _, image_height) = overlay_image(&mut guild_image, image).await?;
+    // Overlay user avatar on guild image
+    let (mut guild_image, _, _, _, image_height) = overlay_image(&mut guild_image, avatar_image)
+        .await
+        .context("Failed to overlay user avatar on guild image")?;
 
-    trace!("Overlayed user avatar on guild image");
-
+    // Add reason text to image
     guild_image = add_text(
         &mut guild_image,
         reason,
@@ -78,11 +88,11 @@ pub async fn removed_member_message(
         YAlignment::Center,
         image_height,
     )
-    .await?;
+    .await
+    .context("Failed to add reason text to image")?;
 
-    trace!("Added reason text to image");
-
-    let now = chrono::Utc::now();
+    // Add timestamp to image
+    let now = Utc::now();
 
     let join_data = now.format("%m/%d/%Y %H:%M:%S").to_string();
 
@@ -93,19 +103,18 @@ pub async fn removed_member_message(
         YAlignment::Bottom,
         0,
     )
-    .await?;
+    .await
+    .context("Failed to add timestamp to image")?;
 
-    trace!("Added timestamp to image");
+    // Encode final image
+    let bytes = encode_image(guild_image).context("Failed to encode final image to bytes")?;
 
-    let bytes = encode_image(guild_image)?;
+    // Send image to channel
+    send_image(channel_id, bytes, &ctx.http)
+        .await
+        .context("Failed to send image to channel")?;
 
-    trace!("Encoded final image to bytes");
-
-    send_image(channel_id, bytes, &ctx.http).await?;
-
-    trace!("Sent image to channel");
-
-    trace!(
+    info!(
         "Successfully sent removed member message for user: {}",
         user_name
     );

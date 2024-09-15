@@ -105,6 +105,7 @@ async fn create_command(command: &Command, http: &Arc<Http>) {
     };
 
     if let Some(locale) = &command.localised {
+
         for locale in locale {
 
             command_build = command_build

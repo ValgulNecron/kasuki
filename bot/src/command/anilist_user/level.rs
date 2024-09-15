@@ -197,7 +197,10 @@ pub async fn send_embed2(
         );
 
     // Add the user's banner image to the embed if it exists
-    if let Some(banner_image) = &user.banner_image { builder_embed = builder_embed.image(banner_image) }
+    if let Some(banner_image) = &user.banner_image {
+
+        builder_embed = builder_embed.image(banner_image)
+    }
 
     // Create the message for the response
     let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);

@@ -4,6 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::config::DbConfig;
+use crate::event_handler::{add_user_data_to_db, BotData};
 use crate::get_url;
 use crate::new_member::change_to_x64_url;
 use crate::structure::database::prelude::UserColor;
@@ -26,7 +27,6 @@ use serenity::all::{Context, GuildId, Member, User, UserId};
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, trace};
-use crate::event_handler::{add_user_data_to_db, BotData};
 
 pub async fn calculate_users_color(
     members: Vec<Member>,
@@ -74,7 +74,9 @@ pub async fn calculate_users_color(
 
             let (average_color, image): (String, String) =
                 calculate_user_color(member.user.clone()).await?;
+
             add_user_data_to_db(member.user.clone(), connection.clone()).await?;
+
             UserColor::insert(ActiveModel {
                 user_id: Set(id.clone()),
                 profile_picture_url: Set(pfp_url.clone()),
