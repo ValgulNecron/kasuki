@@ -28,7 +28,6 @@ use crate::command::user_command_dispatch::dispatch_user_command;
 use crate::components::components_dispatch::components_dispatching;
 use crate::config::Config;
 use crate::constant::COMMAND_USE_PATH;
-use crate::get_url;
 use crate::helper::error_management::error_dispatch;
 use crate::new_member::new_member_message;
 use crate::register::registration_dispatcher::command_registration;
@@ -202,7 +201,7 @@ impl EventHandler for Handler {
             )
             .await;
 
-            server_image_management(&ctx, image_config, self.bot_data.config.db.clone()).await;
+            server_image_management(&ctx, image_config, self.bot_data.db_connection.clone()).await;
 
             debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
         } else {
@@ -275,7 +274,7 @@ impl EventHandler for Handler {
 
         if is_module_on {
 
-            server_image_management(&ctx, image_config, self.bot_data.config.db.clone()).await;
+            server_image_management(&ctx, image_config, self.bot_data.db_connection.clone()).await;
         }
 
         let user = match member.user.id.to_user(&ctx.http).await {

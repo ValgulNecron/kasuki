@@ -4,7 +4,6 @@ use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::read_file::read_file_as_string;
 use anyhow::{Context, Result};
 use std::collections::HashMap;
-use std::error::Error;
 
 pub async fn load_localization<'a, T: serde::Deserialize<'a> + Clone>(
     guild_id: String,

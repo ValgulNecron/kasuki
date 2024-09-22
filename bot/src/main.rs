@@ -8,7 +8,6 @@ use serenity::all::{GatewayIntents, ShardManager};
 use serenity::Client;
 use songbird::driver::DecodeMode;
 use songbird::SerenityInit;
-use std::error::Error;
 use std::process;
 use std::sync::Arc;
 use std::time::Duration;

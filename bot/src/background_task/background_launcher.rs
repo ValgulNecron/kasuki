@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
-use sea_orm::EntityTrait;
+use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
 use serenity::all::Context;
 use tokio::sync::RwLock;
@@ -29,17 +29,8 @@ use crate::structure::steam_game_id_struct::get_game;
 use crate::type_map_key::ShardManagerContainer;
 use crate::{api, get_url};
 
-/// This function is responsible for launching various background threads that manage the bot's activity, games, and web server.
-///
-/// # Arguments
-///
-/// * `ctx` - A `Context` instance used to access the bot's data and cache.
-/// * `bot_data` - An `Arc` wrapped `BotData` instance containing the bot's configuration and data.
-///
-
 pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db_config: DbConfig) {
 
-    // Clone the necessary data from bot_data
     let command_usage = bot_data.number_of_command_use_per_command.clone();
 
     let is_grpc_on = bot_data.config.grpc.grpc_is_on;
@@ -52,7 +43,7 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
 
     let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
 
-    // Spawn background threads to manage the bot's activity, games, and web server
+    let connection = bot_data.db_connection.clone();
 
     tokio::spawn(launch_activity_management_thread(
         ctx.clone(),
@@ -70,7 +61,6 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
 
     tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
 
-    // Wait for 1 second before launching the web server thread
     sleep(Duration::from_secs(1)).await;
 
     tokio::spawn(launch_web_server_thread(
@@ -81,7 +71,6 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
         bot_data.clone(),
     ));
 
-    // Wait for a certain amount of time before launching the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
 
     tokio::spawn(launch_user_color_management_thread(
@@ -97,20 +86,11 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
     tokio::spawn(launch_server_image_management_thread(
         ctx.clone(),
         image_config,
-        db_config.clone(),
+        connection,
     ));
 
-    // Log a message indicating that all threads have been launched
     info!("Done spawning thread manager.");
 }
-
-/// Asynchronously manages the ping thread.
-///
-/// # Arguments
-///
-/// * `ctx` - A `Context` instance used to access the bot's data and cache.
-/// * `db_type` - A `String` representing the type of database.
-///
 
 async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
 
@@ -180,19 +160,10 @@ async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
                 }
             }
         }
+
+        drop(runner);
     }
 }
-
-/// Asynchronously launches the web server thread.
-///
-/// # Arguments
-///
-/// * `ctx` - A `Context` instance used to access the bot's data and cache.
-/// * `command_usage` - An `Arc` wrapped `RwLock` containing the root command usage.
-/// * `is_grpc_on` - A boolean indicating if GRPC is enabled.
-/// * `config` - An `Arc` wrapped `Config` instance.
-/// * `bot_data` - An `Arc` wrapped `BotData` instance.
-///
 
 async fn launch_web_server_thread(
     ctx: Context,
@@ -362,7 +333,7 @@ async fn launch_activity_management_thread(
 async fn launch_server_image_management_thread(
     ctx: Context,
     image_config: ImageConfig,
-    db_config: DbConfig,
+    connection: Arc<DatabaseConnection>,
 ) {
 
     // Log a message indicating that the server image management thread is being launched
@@ -378,7 +349,7 @@ async fn launch_server_image_management_thread(
         interval.tick().await;
 
         // Call the server_image_management function with the provided context, database type, and image configuration
-        server_image_management(&ctx, image_config.clone(), db_config.clone()).await;
+        server_image_management(&ctx, image_config.clone(), connection.clone()).await;
     }
 }
 

@@ -1,7 +1,5 @@
 // Importing necessary libraries and modules
 
-use std::error::Error;
-
 use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
@@ -64,7 +62,7 @@ pub struct CompareLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub async fn load_localization_compare(
     guild_id: String,

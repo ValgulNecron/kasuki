@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use crate::config::DbConfig;
 use serde::{Deserialize, Serialize};
 
@@ -28,7 +26,7 @@ pub struct StudioLocalised {
 /// # Returns
 ///
 /// * `Result<StudioLocalised, AppError>`: A Result containing StudioLocalised data or an AppError.
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub async fn load_localization_studio(
     guild_id: String,

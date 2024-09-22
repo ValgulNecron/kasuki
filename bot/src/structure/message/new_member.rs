@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
@@ -10,7 +8,7 @@ pub struct NewMember {
     pub welcome: String,
 }
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub async fn load_localization_new_member(
     guild_id: String,

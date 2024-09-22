@@ -1,7 +1,6 @@
 use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
@@ -9,7 +8,7 @@ pub struct GivePremiumLocalised {
     pub success: String,
 }
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub async fn load_localization_give_premium_sub(
     guild_id: String,

@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use crate::config::DbConfig;
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +17,7 @@ pub struct SendActivityLocalised {
     pub desc: String,
 }
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub async fn load_localization_send_activity(
     guild_id: String,

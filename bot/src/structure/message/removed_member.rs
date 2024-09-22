@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};

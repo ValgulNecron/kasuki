@@ -10,7 +10,7 @@ use image::imageops::FilterType;
 use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
 use palette::{IntoColor, Lab, Srgb};
 use sea_orm::ActiveValue::Set;
-use sea_orm::EntityTrait;
+use sea_orm::{DatabaseConnection, EntityTrait};
 use serenity::all::{Context, GuildId, Member};
 use tokio::task;
 use tracing::{info, warn};
@@ -23,9 +23,8 @@ use crate::background_task::server_image::common::{
     create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
     ColorWithUrl,
 };
-use crate::config::{DbConfig, ImageConfig};
+use crate::config::ImageConfig;
 use crate::constant::THREAD_POOL_SIZE;
-use crate::get_url;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::database::prelude::{ServerImage, UserColor};
@@ -35,12 +34,12 @@ pub async fn generate_local_server_image(
     ctx: &Context,
     guild_id: GuildId,
     image_config: ImageConfig,
-    db_config: DbConfig,
+    connection: Arc<DatabaseConnection>,
 ) -> Result<(), Box<dyn Error>> {
 
     let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
 
-    let average_colors = return_average_user_color(members, db_config.clone()).await?;
+    let average_colors = return_average_user_color(members, connection.clone()).await?;
 
     let color_vec = create_color_vector_from_tuple(average_colors.clone());
 
@@ -50,7 +49,7 @@ pub async fn generate_local_server_image(
         color_vec,
         String::from("local"),
         image_config,
-        db_config,
+        connection,
     )
     .await
 }
@@ -72,12 +71,10 @@ pub async fn generate_global_server_image(
     ctx: &Context,
     guild_id: GuildId,
     image_config: ImageConfig,
-    db_config: DbConfig,
+    connection: Arc<DatabaseConnection>,
 ) -> Result<(), Box<dyn Error>> {
 
-    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-
-    let average_colors = UserColor::find().all(&connection).await?;
+    let average_colors = UserColor::find().all(&*connection).await?;
 
     let color_vec = create_color_vector_from_user_color(average_colors.clone());
 
@@ -87,7 +84,7 @@ pub async fn generate_global_server_image(
         color_vec,
         String::from("global"),
         image_config,
-        db_config,
+        connection,
     )
     .await
 }
@@ -98,7 +95,7 @@ pub async fn generate_server_image(
     average_colors: Vec<ColorWithUrl>,
     image_type: String,
     image_config: ImageConfig,
-    db_config: DbConfig,
+    connection: Arc<DatabaseConnection>,
 ) -> Result<(), Box<dyn Error>> {
 
     info!("Generating server image for {}.", guild_id);
@@ -129,7 +126,6 @@ pub async fn generate_server_image(
 
     let mut handles = Vec::new();
 
-    // Process image pixels in parallel
     for y in 0..img.height() {
 
         for x in 0..img.width() {
@@ -184,7 +180,6 @@ pub async fn generate_server_image(
         }
     }
 
-    // Combine processed images
     let vec_image = match vec_image.read() {
         Ok(vec_image) => vec_image.clone(),
         Err(e) => return Err(Box::new(error_dispatch::Error::Option(e.to_string()))),
@@ -200,7 +195,6 @@ pub async fn generate_server_image(
         }
     }
 
-    // Resize the final image
     let image = image::imageops::resize(
         &combined_image,
         (4096.0 * 0.6) as u32,
@@ -210,7 +204,6 @@ pub async fn generate_server_image(
 
     let img = image;
 
-    // Write the image
     let mut image_data: Vec<u8> = Vec::new();
 
     PngEncoder::new_with_quality(
@@ -249,8 +242,6 @@ pub async fn generate_server_image(
     )
     .await?;
 
-    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-
     ServerImage::insert(ActiveModel {
         server_id: Set(guild_id.to_string()),
         server_name: Set(guild.name),
@@ -267,7 +258,7 @@ pub async fn generate_server_image(
             .update_column(Column::ServerName)
             .to_owned(),
     )
-    .exec(&connection)
+    .exec(&*connection)
     .await?;
 
     Ok(())
@@ -290,7 +281,7 @@ pub async fn generate_server_image(
 pub async fn server_image_management(
     ctx: &Context,
     image_config: ImageConfig,
-    db_config: DbConfig,
+    connection: Arc<DatabaseConnection>,
 ) {
 
     for guild in ctx.cache.guilds() {
@@ -301,12 +292,12 @@ pub async fn server_image_management(
 
         let image_config_a = image_config.clone();
 
-        let db_config2 = db_config.clone();
+        let connection_a = connection.clone();
 
         task::spawn(async move {
 
             if let Err(e) =
-                generate_local_server_image(&ctx_clone, guild_clone, image_config_a, db_config2)
+                generate_local_server_image(&ctx_clone, guild_clone, image_config_a, connection_a)
                     .await
             {
 
@@ -321,7 +312,7 @@ pub async fn server_image_management(
         });
 
         if let Err(e) =
-            generate_global_server_image(ctx, guild, image_config.clone(), db_config.clone()).await
+            generate_global_server_image(ctx, guild, image_config.clone(), connection.clone()).await
         {
 
             warn!(

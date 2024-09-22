@@ -1,7 +1,5 @@
 // Importing necessary libraries and modules
-use anyhow::{Context, Result};
-
-use std::error::Error;
+use anyhow::Result;
 
 use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;

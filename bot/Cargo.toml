@@ -23,7 +23,7 @@ uuid = { version = "1.10.0", features = ["v4"] }
 image = "0.25.2"
 base64 = "0.22.1"
 tracing = { version = "0.1.40" }
-once_cell = "1.19.0"
+once_cell = "1.19.0 "
 tracing-subscriber = { version = "0.3.18", features = ["default", "env-filter"] }
 serde_with = { version = "3.9.0", features = ["macros"] }
 rust-fuzzy-search = "0.1.1"

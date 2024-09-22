@@ -210,9 +210,9 @@ async fn update_page(
         if update_anime {
 
             random_stats.anime_last_page += 1;
-        } else {
 
             random_stats.manga_last_page += 1;
+        } else {
         }
     }
 

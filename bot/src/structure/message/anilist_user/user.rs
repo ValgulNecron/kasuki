@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use crate::config::DbConfig;
 use serde::{Deserialize, Serialize};
 
@@ -46,7 +44,7 @@ pub struct UserLocalised {
 /// # Returns
 ///
 /// * `Result<UserLocalised, AppError>`: A Result containing UserLocalised data or an AppError.
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub async fn load_localization_user(
     guild_id: String,

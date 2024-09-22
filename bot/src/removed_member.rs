@@ -9,12 +9,10 @@ use crate::structure::message::removed_member::{load_localization_removed_member
 use anyhow::anyhow;
 use serenity::all::{AuditLogs, GuildId, User};
 use serenity::client::Context as SerenityContext;
-use std::error::Error;
-use tracing::{debug, info, trace};
+use tracing::{debug, info};
 
 use anyhow::{Context, Result};
 use chrono::Utc;
-use serenity::{model::id::ChannelId, prelude::*};
 
 pub async fn removed_member_message(
     ctx: &SerenityContext,

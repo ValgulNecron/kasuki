@@ -20,9 +20,9 @@ use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::ActiveValue::Set;
-use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
+use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{Context, GuildId, Member, User, UserId};
 use tokio::sync::RwLock;
 use tokio::time::sleep;
@@ -35,6 +35,8 @@ pub async fn calculate_users_color(
 ) -> Result<(), Box<dyn Error>> {
 
     let guard = user_blacklist_server_image.read().await;
+
+    let connection = bot_data.db_connection.clone();
 
     for member in members {
 
@@ -53,8 +55,6 @@ pub async fn calculate_users_color(
         let pfp_url = change_to_x256_url(member.user.face());
 
         let id = member.user.id.to_string();
-
-        let connection = bot_data.db_connection.clone();
 
         let user_color = UserColor::find()
             .filter(Column::UserId.eq(id.clone()))
@@ -105,10 +105,10 @@ pub async fn calculate_users_color(
 
 pub async fn return_average_user_color(
     members: Vec<Member>,
-    db_config: DbConfig,
+    connection: Arc<DatabaseConnection>,
 ) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
 
-    let mut average_colors = Vec::new();
+    let mut average_colors = Vec::with_capacity(members.len());
 
     for member in members {
 
@@ -116,26 +116,23 @@ pub async fn return_average_user_color(
 
         let id = member.user.id.to_string();
 
-        let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-
         let user_color = UserColor::find()
             .filter(Column::UserId.eq(id.clone()))
-            .one(&connection)
+            .one(&*connection)
             .await?;
 
         match user_color {
             Some(user_color) => {
 
-                let color = user_color.color.clone();
-
-                let pfp_url_old = user_color.profile_picture_url.clone();
-
-                let image_old = user_color.images;
+                let (color, pfp_url_old, image_old) = (
+                    user_color.color,
+                    user_color.profile_picture_url,
+                    user_color.images,
+                );
 
                 if pfp_url != pfp_url_old {
 
-                    let (average_color, image): (String, String) =
-                        calculate_user_color(member.user.clone()).await?;
+                    let (average_color, image) = calculate_user_color(member.user.clone()).await?;
 
                     average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
 
@@ -147,7 +144,6 @@ pub async fn return_average_user_color(
                         ..Default::default()
                     })
                     .on_conflict(
-                        // update url, color, images and calculated_at
                         OnConflict::column(Column::UserId)
                             .update_column(Column::Color)
                             .update_column(Column::ProfilePictureUrl)
@@ -155,20 +151,17 @@ pub async fn return_average_user_color(
                             .update_column(Column::CalculatedAt)
                             .to_owned(),
                     )
-                    .exec(&connection)
+                    .exec(&*connection)
                     .await?;
 
                     continue;
                 }
 
                 average_colors.push((color, pfp_url_old, image_old));
-
-                continue;
             }
-            _ => {
+            None => {
 
-                let (average_color, image): (String, String) =
-                    calculate_user_color(member.user.clone()).await?;
+                let (average_color, image) = calculate_user_color(member.user.clone()).await?;
 
                 average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
 
@@ -180,7 +173,6 @@ pub async fn return_average_user_color(
                     ..Default::default()
                 })
                 .on_conflict(
-                    // update url, color, images and calculated_at
                     OnConflict::column(Column::UserId)
                         .update_column(Column::Color)
                         .update_column(Column::ProfilePictureUrl)
@@ -188,10 +180,8 @@ pub async fn return_average_user_color(
                         .update_column(Column::CalculatedAt)
                         .to_owned(),
                 )
-                .exec(&connection)
+                .exec(&*connection)
                 .await?;
-
-                continue;
             }
         }
     }

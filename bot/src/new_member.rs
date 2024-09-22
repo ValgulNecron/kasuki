@@ -9,15 +9,13 @@ use serenity::all::{
 };
 use serenity::builder::CreateAttachment;
 use std::collections::HashMap;
-use std::error::Error;
 use std::fs;
 use std::io::Cursor;
 use std::sync::Arc;
 use text_to_png::TextRenderer;
-use tracing::{debug, info, trace};
+use tracing::{debug, info};
 
 use anyhow::{Context, Result};
-use serenity::prelude::*;
 
 // Enums
 #[derive(Debug)]

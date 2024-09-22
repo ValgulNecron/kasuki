@@ -85,7 +85,6 @@ pub enum Type {
     Company,
     Individual,
     AmateurGroup,
-    Unknown,
 }
 
 impl Serialize for Type {
@@ -97,7 +96,6 @@ impl Serialize for Type {
             Self::Company => "co",
             Self::Individual => "in",
             Self::AmateurGroup => "ng",
-            Self::Unknown => "unknown", // Placeholder for unknown
         };
 
         value.serialize(serializer)
@@ -127,7 +125,6 @@ impl std::fmt::Display for Type {
             Self::Company => "Company",
             Self::Individual => "Individual",
             Self::AmateurGroup => "Amateur Group",
-            Self::Unknown => "Unknown",
         };
 
         write!(f, "{}", value)

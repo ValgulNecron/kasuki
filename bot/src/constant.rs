@@ -154,14 +154,6 @@ pub const MAX_FREE_AI_TRANSCRIPTS: usize = 5;
 
 pub const PAID_TRANSCRIPT_MULTIPLIER: f64 = 5.0;
 
-pub const ONE_MINUTE: u64 = 60;
-
 pub const ONE_HOUR: u64 = 60 * 60;
 
 pub const ONE_DAY: u64 = 24 * ONE_HOUR;
-
-pub const ONE_WEEK: u64 = 7 * ONE_DAY;
-
-pub const ONE_MONTH: u64 = 30 * ONE_DAY;
-
-pub const ONE_YEAR: u64 = 365 * ONE_DAY;

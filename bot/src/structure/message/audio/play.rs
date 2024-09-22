@@ -8,9 +8,8 @@ pub struct PlayLocalised {
 
 use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 
 pub async fn load_localization_play_localised(
     guild_id: String,
