@@ -22,10 +22,12 @@ pub struct GameLocalised {
     pub characters: String,
 }
 
+use anyhow::{Context, Result};
+
 pub async fn load_localization_game(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<GameLocalised, Box<dyn Error>> {
+) -> Result<GameLocalised> {
 
     let path = "json/message/vn/game.json";
 

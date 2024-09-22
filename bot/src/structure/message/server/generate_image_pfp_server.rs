@@ -32,11 +32,12 @@ pub struct PFPServerLocalisedImage {
 ///
 /// This function will return an `AppError` if it encounters any issues while reading or parsing the JSON file.
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
+use anyhow::{Context, Result};
 
 pub async fn load_localization_pfp_server_image(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<PFPServerLocalisedImage, Box<dyn Error>> {
+) -> Result<PFPServerLocalisedImage> {
 
     let path = "json/message/server/generate_image_pfp_server.json";
 

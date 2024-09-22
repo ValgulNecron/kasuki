@@ -32,11 +32,12 @@ pub struct ImageLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
+use anyhow::{Context, Result};
 
 pub async fn load_localization_image(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<ImageLocalised, Box<dyn Error>> {
+) -> Result<ImageLocalised> {
 
     let path = "json/message/ai/image.json";
 

@@ -1,4 +1,5 @@
 // Importing necessary libraries and modules
+use anyhow::{Context, Result};
 
 use std::error::Error;
 
@@ -43,7 +44,7 @@ pub struct AddActivityLocalised {
 pub async fn load_localization_add_activity(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<AddActivityLocalised, Box<dyn Error>> {
+) -> Result<AddActivityLocalised> {
 
     let path = "json/message/admin/anilist/add_activity.json";
 

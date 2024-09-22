@@ -32,11 +32,12 @@ pub struct RandomImageLocalised {
 ///
 /// This function will return an `AppError` if it encounters any issues while reading or parsing the JSON file.
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
+use anyhow::{Context, Result};
 
 pub async fn load_localization_random_image(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<RandomImageLocalised, Box<dyn Error>> {
+) -> Result<RandomImageLocalised> {
 
     let path = "json/message/anime/random_image.json";
 

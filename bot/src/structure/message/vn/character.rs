@@ -32,10 +32,12 @@ pub struct CharacterLocalised {
     pub traits: String,
 }
 
+use anyhow::{Context, Result};
+
 pub async fn load_localization_character(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<CharacterLocalised, Box<dyn Error>> {
+) -> Result<CharacterLocalised> {
 
     let path = "json/message/vn/character.json";
 

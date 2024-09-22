@@ -64,11 +64,12 @@ pub struct CompareLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
+use anyhow::{Context, Result};
 
 pub async fn load_localization_compare(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<CompareLocalised, Box<dyn Error>> {
+) -> Result<CompareLocalised> {
 
     let path = "json/message/anilist_user/compare.json";
 

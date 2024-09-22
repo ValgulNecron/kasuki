@@ -35,11 +35,12 @@ pub struct KillSwitchLocalised {
 ///
 /// This function will return an `AppError` if it encounters any issues while reading or parsing the JSON file.
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
+use anyhow::{Context, Result};
 
 pub async fn load_localization_kill_switch(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<KillSwitchLocalised, Box<dyn Error>> {
+) -> Result<KillSwitchLocalised> {
 
     let path = "json/message/management/kill_switch.json";
 

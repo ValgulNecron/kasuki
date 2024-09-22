@@ -9,10 +9,12 @@ pub struct RemoveTestLocalised {
     pub success: String,
 }
 
+use anyhow::{Context, Result};
+
 pub async fn load_localization_remove_test_sub(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<RemoveTestLocalised, Box<dyn Error>> {
+) -> Result<RemoveTestLocalised> {
 
     let path = "json/message/management/remove_test_sub.json";
 

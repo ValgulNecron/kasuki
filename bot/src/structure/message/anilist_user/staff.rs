@@ -36,11 +36,12 @@ pub struct StaffLocalised {
 /// # Returns
 ///
 /// * `Result<StaffLocalised, AppError>`: A Result containing StaffLocalised data or an AppError.
+use anyhow::{Context, Result};
 
 pub async fn load_localization_staff(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<StaffLocalised, Box<dyn Error>> {
+) -> Result<StaffLocalised> {
 
     let path = "json/message/anilist_user/staff.json";
 

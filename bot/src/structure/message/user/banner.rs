@@ -34,11 +34,12 @@ pub struct BannerLocalised {
 ///
 /// This function will return an `AppError` if it encounters any issues while reading or parsing the JSON file.
 /// It will also return an `AppError` if the language specified by the `guild_id` is not found in the JSON data.
+use anyhow::{Context, Result};
 
 pub async fn load_localization_banner(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<BannerLocalised, Box<dyn Error>> {
+) -> Result<BannerLocalised> {
 
     let path = "json/message/user/banner.json";
 

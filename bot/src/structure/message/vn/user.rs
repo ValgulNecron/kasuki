@@ -18,10 +18,12 @@ pub struct UserLocalised {
     pub playtime: String,
 }
 
+use anyhow::{Context, Result};
+
 pub async fn load_localization_user(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<UserLocalised, Box<dyn Error>> {
+) -> Result<UserLocalised> {
 
     let path = "json/message/vn/user.json";
 

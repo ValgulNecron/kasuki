@@ -13,10 +13,12 @@ pub struct ProducerLocalised {
     pub aliases: String,
 }
 
+use anyhow::{Context, Result};
+
 pub async fn load_localization_producer(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<ProducerLocalised, Box<dyn Error>> {
+) -> Result<ProducerLocalised> {
 
     let path = "json/message/vn/producer.json";
 

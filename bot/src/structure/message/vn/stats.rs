@@ -26,10 +26,12 @@ pub struct StatsLocalised {
     pub api: String,
 }
 
+use anyhow::{Context, Result};
+
 pub async fn load_localization_stats(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<StatsLocalised, Box<dyn Error>> {
+) -> Result<StatsLocalised> {
 
     let path = "json/message/vn/stats.json";
 

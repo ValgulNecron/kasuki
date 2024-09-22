@@ -32,11 +32,12 @@ pub struct RandomLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
+use anyhow::{Context, Result};
 
 pub async fn load_localization_random(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<RandomLocalised, Box<dyn Error>> {
+) -> Result<RandomLocalised> {
 
     let path = "json/message/anilist_user/random.json";
 

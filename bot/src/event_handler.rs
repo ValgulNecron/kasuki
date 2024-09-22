@@ -321,7 +321,7 @@ impl EventHandler for Handler {
                 .await
             {
                 Ok(_) => {}
-                Err(e) => error!(e),
+                Err(e) => error!(?e),
             }
         }
     }

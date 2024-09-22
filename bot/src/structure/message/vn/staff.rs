@@ -16,10 +16,12 @@ pub struct StaffLocalised {
     pub lang: String,
 }
 
+use anyhow::{Context, Result};
+
 pub async fn load_localization_staff(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<StaffLocalised, Box<dyn Error>> {
+) -> Result<StaffLocalised> {
 
     let path = "json/message/vn/staff.json";
 

@@ -10,10 +10,12 @@ pub struct NewMember {
     pub welcome: String,
 }
 
+use anyhow::{Context, Result};
+
 pub async fn load_localization_new_member(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<NewMember, Box<dyn Error>> {
+) -> Result<NewMember> {
 
     let path = "json/message/new_member.json";
 

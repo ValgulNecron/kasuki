@@ -36,11 +36,12 @@ pub struct ListActivityLocalised {
 /// # Errors
 ///
 /// This function will return an error if the JSON file cannot be read, the JSON cannot be parsed, or the language is not found.
+use anyhow::{Context, Result};
 
 pub async fn load_localization_list_activity(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<ListActivityLocalised, Box<dyn Error>> {
+) -> Result<ListActivityLocalised> {
 
     let path = "json/message/anilist_server/list_all_activity.json";
 

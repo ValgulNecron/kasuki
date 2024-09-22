@@ -19,22 +19,12 @@ pub struct SendActivityLocalised {
     pub desc: String,
 }
 
-/// This function loads the localization data for a send activity.
-/// It takes a guild_id as input and returns a Result containing SendActivityLocalised data or an AppError.
-/// The function reads a JSON file, parses it into a HashMap, and then retrieves the data based on the guild's language.
-///
-/// # Arguments
-///
-/// * `guild_id`: A string representing the guild id.
-///
-/// # Returns
-///
-/// * `Result<SendActivityLocalised, AppError>`: A Result containing SendActivityLocalised data or an AppError.
+use anyhow::{Context, Result};
 
 pub async fn load_localization_send_activity(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<SendActivityLocalised, Box<dyn Error>> {
+) -> Result<SendActivityLocalised> {
 
     let path = "json/message/anilist_user/send_activity.json";
 
