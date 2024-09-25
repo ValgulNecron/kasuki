@@ -114,7 +114,7 @@ pub async fn generate_server_image(
 
     let mut combined_image = DynamicImage::new_rgba8(dim, dim);
 
-    let vec_image: Arc<RwLock<Vec<(u32, u32, DynamicImage)>>> = Arc::new(RwLock::new(Vec::new()));
+    let vec_image_rw: Arc<RwLock<Vec<(u32, u32, DynamicImage)>>> = Arc::new(RwLock::new(Vec::new()));
 
     let mut handles = Vec::new();
 
@@ -126,7 +126,7 @@ pub async fn generate_server_image(
 
             let color_vec_moved = average_colors.clone();
 
-            let vec_image_clone = Arc::clone(&vec_image);
+            let vec_image_clone = Arc::clone(&vec_image_rw);
 
             let handle = thread::spawn(move || {
 
@@ -172,7 +172,10 @@ pub async fn generate_server_image(
         }
     }
 
-    let vec_image = vec_image.read().context("Failed to read vec image")?;
+    let vec_image = vec_image_rw.read().map_err(
+        |e| anyhow!("Failed to read from RwLock<Vec<(u32, u32, DynamicImage)>>. {:?}", e),
+    )?.clone();
+    drop(vec_image_rw);
 
     let internal_vec = vec_image.clone();
 
@@ -228,7 +231,10 @@ pub async fn generate_server_image(
         token,
         save_type,
     )
-    .await?;
+    .await
+        .map_err(
+            |e| anyhow!("Failed to save server image for guild {}. {:?}", guild_id, e),
+        )?;
 
     ServerImage::insert(ActiveModel {
         server_id: Set(guild_id.to_string()),
@@ -247,7 +253,10 @@ pub async fn generate_server_image(
             .to_owned(),
     )
     .exec(&*connection)
-    .await?;
+    .await
+        .context(
+            "Failed to insert or update server image into database.",
+        )?;
 
     Ok(())
 }
