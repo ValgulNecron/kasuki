@@ -97,7 +97,9 @@ pub async fn send_embed(
 
     // Decode the image from base64
     let input = image.trim_start_matches("data:image/png;base64,");
+
     let image_data: Vec<u8> = BASE64.decode(input)?;
+
     drop(image);
 
     // Generate a unique filename for the image
@@ -112,10 +114,12 @@ pub async fn send_embed(
 
     // Create an attachment with the image
     let attachment = CreateAttachment::bytes(image_data, image_path);
+
     // Construct the follow-up response with the embed and the attachment
     let builder = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
         .files(vec![attachment]);
+
     // Send the follow-up response to the command interaction
     command_interaction
         .create_followup(&ctx.http, builder)

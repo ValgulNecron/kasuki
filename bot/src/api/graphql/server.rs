@@ -7,10 +7,10 @@ use lazy_static::lazy_static;
 use poem::{get, handler, listener::TcpListener, web::Html, IntoResponse, Route, Server};
 use sea_orm::Database;
 use std::env;
-use tracing::info;
+use tracing::{error, info};
 
 lazy_static! {
-    static ref URL: String = env::var("URL").unwrap_or("localhost:8000".into());
+    static ref URL: String = env::var("URL").unwrap_or("localhost:22540".into());
     static ref ENDPOINT: String = env::var("ENDPOINT").unwrap_or("/".into());
     static ref DEPTH_LIMIT: Option<usize> = env::var("DEPTH_LIMIT").map_or(None, |data| Some(
         data.parse().expect("DEPTH_LIMIT is not a number")
@@ -33,11 +33,25 @@ pub async fn launch(db_config: DbConfig) {
 
     dotenvy::dotenv().ok();
 
-    let database = Database::connect(get_url(db_config))
-        .await
-        .expect("Fail to initialize database connection");
+    let database = match Database::connect(get_url(db_config)).await {
+        Ok(database) => database,
+        Err(e) => {
 
-    let schema = query_root::schema(database, *DEPTH_LIMIT, *COMPLEXITY_LIMIT).unwrap();
+            error!("Failed to connect to database: {:?}", e);
+
+            return;
+        }
+    };
+
+    let schema = match query_root::schema(database, *DEPTH_LIMIT, *COMPLEXITY_LIMIT) {
+        Ok(schema) => schema,
+        Err(e) => {
+
+            error!("Failed to connect to database: {:?}", e);
+
+            return;
+        }
+    };
 
     let app = Route::new().at(
         &*ENDPOINT,
@@ -46,8 +60,13 @@ pub async fn launch(db_config: DbConfig) {
 
     info!("Visit GraphQL Playground at http://{}", *URL);
 
-    Server::new(TcpListener::bind(&*URL))
-        .run(app)
-        .await
-        .expect("Fail to start web server");
+    match Server::new(TcpListener::bind(&*URL)).run(app).await {
+        Ok(server) => server,
+        Err(e) => {
+
+            error!("Failed to connect to database: {:?}", e);
+
+            return;
+        }
+    };
 }

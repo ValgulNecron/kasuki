@@ -9,6 +9,7 @@ use crate::get_url;
 use crate::new_member::change_to_x256_url;
 use crate::structure::database::prelude::UserColor;
 use crate::structure::database::user_color::{ActiveModel, Column, Model};
+use anyhow::{Context, Result};
 use base64::engine::general_purpose;
 use base64::Engine;
 use futures::stream::FuturesUnordered;
@@ -23,7 +24,8 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
-use serenity::all::{Context, GuildId, Member, User, UserId};
+use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
+
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, trace};
@@ -240,22 +242,29 @@ async fn calculate_user_color(user: User) -> Result<(String, String), Box<dyn Er
     Ok((average_color, image))
 }
 
-pub async fn get_image_from_url(url: String) -> Result<DynamicImage, Box<dyn Error>> {
+pub async fn get_image_from_url(url: String) -> Result<DynamicImage> {
 
     // Fetch the image data
-    let resp = reqwest::get(&url).await?.bytes().await?;
+    let resp = reqwest::get(&url)
+        .await
+        .context(format!("Failed to fetch image from URL: {}", url))?
+        .bytes()
+        .await
+        .context(format!("Failed to get image bytes from URL: {}", url))?;
 
     // Decode the image data
     let img = ImageReader::new(Cursor::new(resp))
-        .with_guessed_format()?
-        .decode()?;
+        .with_guessed_format()
+        .context(format!("Failed to guess image format from URL: {}", url))?
+        .decode()
+        .context(format!("Failed to decode image from URL: {}", url))?;
 
     Ok(img)
 }
 
 pub async fn color_management(
     guilds: &Vec<GuildId>,
-    ctx_clone: &Context,
+    ctx_clone: &SerenityContext,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
     bot_data: Arc<BotData>,
 ) {
@@ -303,7 +312,7 @@ pub async fn color_management(
     };
 }
 
-pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
+pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Member> {
 
     let mut i = 0;
 

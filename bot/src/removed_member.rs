@@ -23,12 +23,10 @@ pub async fn removed_member_message(
 
     info!("Processing removed member message for guild: {}", guild_id);
 
-    // Load guild settings
     let guild_settings = load_guild_settings(guild_id).await;
 
     debug!(?guild_settings, "Loaded guild settings");
 
-    // Get channel ID
     let partial_guild = guild_id
         .to_partial_guild(&ctx.http)
         .await
@@ -39,14 +37,12 @@ pub async fn removed_member_message(
 
     debug!(?channel_id, "Obtained channel id");
 
-    // Get server image
     let guild_image_data = get_server_image(guild_id.to_string(), &guild_settings)
         .ok_or_else(|| anyhow!("Failed to get the server image"))?;
 
     let mut guild_image = image::load_from_memory(&guild_image_data)
         .context("Failed to load guild image from memory")?;
 
-    // Process user avatar
     let avatar_url = change_to_x256_url(user.face());
 
     debug!(?avatar_url, "Changed avatar URL to x64 size");
@@ -55,30 +51,25 @@ pub async fn removed_member_message(
         .await
         .context("Failed to download user avatar image")?;
 
-    // Fetch audit logs
     let audit_log = guild_id
         .audit_logs(&ctx.http, None, None, None, Some(100))
         .await
         .context("Failed to fetch audit logs")?;
 
-    // Load localization
     let local = load_localization_removed_member(guild_id.to_string(), db_config)
         .await
         .context("Failed to load localization for removed member")?;
 
-    // Determine reason for removal
     let user_name = user.name.clone();
 
     let reason = determine_reason(&audit_log, &user, &local, &user_name);
 
     debug!(?reason, "Determined reason for removal");
 
-    // Overlay user avatar on guild image
     let (mut guild_image, _, _, _, image_height) = overlay_image(&mut guild_image, avatar_image)
         .await
         .context("Failed to overlay user avatar on guild image")?;
 
-    // Add reason text to image
     guild_image = add_text(
         &mut guild_image,
         reason,
@@ -89,7 +80,6 @@ pub async fn removed_member_message(
     .await
     .context("Failed to add reason text to image")?;
 
-    // Add timestamp to image
     let now = Utc::now();
 
     let join_data = now.format("%m/%d/%Y %H:%M:%S").to_string();
@@ -104,10 +94,8 @@ pub async fn removed_member_message(
     .await
     .context("Failed to add timestamp to image")?;
 
-    // Encode final image
     let bytes = encode_image(guild_image).context("Failed to encode final image to bytes")?;
 
-    // Send image to channel
     send_image(channel_id, bytes, &ctx.http)
         .await
         .context("Failed to send image to channel")?;

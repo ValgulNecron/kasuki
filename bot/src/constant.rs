@@ -17,7 +17,7 @@ pub const TIME_BEFORE_SERVER_IMAGE: u64 = 1_800;
 
 /// Time between server image updates.
 
-pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 1_800;
+pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 21_600;
 
 /// Time between user color updates.
 

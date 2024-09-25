@@ -2,6 +2,7 @@ use std::error::Error;
 use std::sync::{Arc, RwLock};
 use std::thread;
 
+use anyhow::{anyhow, Context, Result};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::codecs::png;
@@ -11,7 +12,7 @@ use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, Ima
 use palette::{IntoColor, Lab, Srgb};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
-use serenity::all::{Context, GuildId, Member};
+use serenity::all::{Context as SerenityContext, GuildId, Member};
 use tokio::task;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -27,19 +28,28 @@ use crate::config::ImageConfig;
 use crate::constant::THREAD_POOL_SIZE;
 use crate::helper::error_management::error_dispatch;
 use crate::helper::image_saver::general_image_saver::image_saver;
+use crate::new_member::change_to_x256_url;
 use crate::structure::database::prelude::{ServerImage, UserColor};
 use crate::structure::database::server_image::{ActiveModel, Column};
 
 pub async fn generate_local_server_image(
-    ctx: &Context,
+    ctx: &SerenityContext,
     guild_id: GuildId,
     image_config: ImageConfig,
     connection: Arc<DatabaseConnection>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
 
     let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
 
-    let average_colors = return_average_user_color(members, connection.clone()).await?;
+    let average_colors = return_average_user_color(members, connection.clone())
+        .await
+        .map_err(|e| {
+            anyhow!(
+                "Failed to return average user color for guild {}. {:?}",
+                guild_id,
+                e
+            )
+        })?;
 
     let color_vec = create_color_vector_from_tuple(average_colors.clone());
 
@@ -54,25 +64,12 @@ pub async fn generate_local_server_image(
     .await
 }
 
-/// This function generates a global server image.
-///
-/// # Arguments
-///
-/// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
-/// * `guild_id` - The ID of the guild (server) for which the image is being generated.
-/// * `db_type` - A String representing the database type.
-/// * `image_config` - The ImageConfig struct that contains configuration options for the image.
-///
-/// # Returns
-///
-/// * `Result<(), Box<dyn Error>>` - This function returns a Result type. If the image generation is successful, it returns Ok(()), otherwise it returns an error wrapped in a Box.
-
 pub async fn generate_global_server_image(
-    ctx: &Context,
+    ctx: &SerenityContext,
     guild_id: GuildId,
     image_config: ImageConfig,
     connection: Arc<DatabaseConnection>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
 
     let average_colors = UserColor::find().all(&*connection).await?;
 
@@ -90,31 +87,26 @@ pub async fn generate_global_server_image(
 }
 
 pub async fn generate_server_image(
-    ctx: &Context,
+    ctx: &SerenityContext,
     guild_id: GuildId,
     average_colors: Vec<ColorWithUrl>,
     image_type: String,
     image_config: ImageConfig,
     connection: Arc<DatabaseConnection>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
 
     info!("Generating server image for {}.", guild_id);
 
-    // Fetch the guild information
-    let guild = guild_id.to_partial_guild(&ctx.http).await?;
+    let guild = guild_id
+        .to_partial_guild(&ctx.http)
+        .await
+        .context("Failed to get partial guild")?;
 
-    // Retrieve and process the guild image
-    let guild_pfp = guild
-        .icon_url()
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "The guild has no icon",
-        )))?
-        .replace("?size=4096", "?size=64")
-        .replace("?size=2048", "?size=64")
-        .replace("?size=1024", "?size=64")
-        .replace("?size=512", "?size=64")
-        .replace("?size=256", "?size=64")
-        .replace("?size=128", "?size=64");
+    let guild_pfp = change_to_x256_url(
+        guild
+            .icon_url()
+            .ok_or(anyhow!("Failed to get guild icon URL"))?,
+    );
 
     let img = get_image_from_url(guild_pfp.clone()).await?;
 
@@ -180,10 +172,7 @@ pub async fn generate_server_image(
         }
     }
 
-    let vec_image = match vec_image.read() {
-        Ok(vec_image) => vec_image.clone(),
-        Err(e) => return Err(Box::new(error_dispatch::Error::Option(e.to_string()))),
-    };
+    let vec_image = vec_image.read().context("Failed to read vec image")?;
 
     let internal_vec = vec_image.clone();
 
@@ -218,7 +207,6 @@ pub async fn generate_server_image(
         ExtendedColorType::Rgba8,
     )?;
 
-    // Encode the image to base64
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
 
     let image = format!("data:image/png;base64,{}", base64_image);
@@ -264,22 +252,8 @@ pub async fn generate_server_image(
     Ok(())
 }
 
-/// This function manages the generation of server images for all guilds in the cache.
-///
-/// It iterates over all guilds in the cache and spawns a new task for each guild to generate a local server image.
-/// If the generation of the local server image fails, it logs an error message.
-/// If the generation of the local server image is successful, it logs a success message.
-///
-/// After the local server image generation, it attempts to generate a global server image for the guild.
-/// If the generation of the global server image fails, it logs an error message.
-/// If the generation of the global server image is successful, it logs a success message.
-///
-/// # Arguments
-///
-/// * `ctx` - A reference to the Context struct provided by the serenity crate. This is used to interact with Discord's API.
-
 pub async fn server_image_management(
-    ctx: &Context,
+    ctx: &SerenityContext,
     image_config: ImageConfig,
     connection: Arc<DatabaseConnection>,
 ) {
