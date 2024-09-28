@@ -59,6 +59,7 @@ use sea_orm::{EntityTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context};
 use std::error::Error;
 use tracing::trace;
+use crate::command::anime_nsfw::random_nsfw_image::AnimeRandomNsfwImageCommand;
 
 pub async fn dispatch_command(
     ctx: &Context,
@@ -390,7 +391,7 @@ pub async fn dispatch_command(
         }
 
         "random_hanime_random_himage" => {
-            AnimeRandomImageCommand {
+            AnimeRandomNsfwImageCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
                 config: self_handler.bot_data.config.clone(),

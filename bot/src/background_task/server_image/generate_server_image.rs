@@ -175,6 +175,7 @@ pub async fn generate_server_image(
     let vec_image = vec_image_rw
         .read()
         .map_err(|e| {
+
             anyhow!(
                 "Failed to read from RwLock<Vec<(u32, u32, DynamicImage)>>. {:?}",
                 e
@@ -240,6 +241,7 @@ pub async fn generate_server_image(
     )
     .await
     .map_err(|e| {
+
         anyhow!(
             "Failed to save server image for guild {}. {:?}",
             guild_id,

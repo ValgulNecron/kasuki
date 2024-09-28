@@ -5,8 +5,9 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 use serenity::all::{
-    ActivityData, CommandType, Context as SerenityContext, CurrentApplicationInfo, Entitlement, EventHandler, Guild,
-    GuildId, GuildMembersChunkEvent, Interaction, Member, Presence, Ready, User,
+    ActivityData, CommandType, Context as SerenityContext, CurrentApplicationInfo, Entitlement,
+    EventHandler, Guild, GuildId, GuildMembersChunkEvent, Interaction, Member, Presence, Ready,
+    User,
 };
 use serenity::async_trait;
 use serenity::gateway::ChunkGuildFilter;
@@ -604,6 +605,7 @@ impl EventHandler for Handler {
 }
 
 async fn insert_subscription(entitlement: Entitlement, connection: Arc<DatabaseConnection>) {
+
     match (entitlement.guild_id, entitlement.user_id) {
         (Some(guild_id), None) => {
 
@@ -621,7 +623,12 @@ async fn insert_subscription(entitlement: Entitlement, connection: Arc<DatabaseC
     }
 }
 
-async fn insert_guild_subscription(entitlement: Entitlement, guild_id: String, connection: Arc<DatabaseConnection>) {
+async fn insert_guild_subscription(
+    entitlement: Entitlement,
+    guild_id: String,
+    connection: Arc<DatabaseConnection>,
+) {
+
     match GuildSubscription::insert(
         crate::structure::database::guild_subscription::ActiveModel {
             guild_id: Set(guild_id),
@@ -632,53 +639,50 @@ async fn insert_guild_subscription(entitlement: Entitlement, guild_id: String, c
             expired_at: Default::default(),
         },
     )
-        .on_conflict(
-            sea_orm::sea_query::OnConflict::columns([
-                crate::structure::database::guild_subscription::Column::GuildId,
-                crate::structure::database::guild_subscription::Column::SkuId,
-            ])
-                .update_column(
-                    crate::structure::database::guild_subscription::Column::EntitlementId,
-                )
-                .update_column(
-                    crate::structure::database::guild_subscription::Column::ExpiredAt,
-                )
-                .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
-                .to_owned(),
-        )
-        .exec(&*connection.clone())
-        .await
+    .on_conflict(
+        sea_orm::sea_query::OnConflict::columns([
+            crate::structure::database::guild_subscription::Column::GuildId,
+            crate::structure::database::guild_subscription::Column::SkuId,
+        ])
+        .update_column(crate::structure::database::guild_subscription::Column::EntitlementId)
+        .update_column(crate::structure::database::guild_subscription::Column::ExpiredAt)
+        .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
+        .to_owned(),
+    )
+    .exec(&*connection.clone())
+    .await
     {
         Ok(_) => {}
         Err(e) => error!("Failed to insert guild subscription. {}", e),
     };
 }
 
-async fn insert_user_subscription(entitlement: Entitlement, user_id: String, connection: Arc<DatabaseConnection>) {
-    match UserSubscription::insert(
-        crate::structure::database::user_subscription::ActiveModel {
-            user_id: Set(user_id),
-            entitlement_id: Set(entitlement.id.to_string()),
-            sku_id: Set(entitlement.sku_id.to_string()),
-            created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
-            updated_at: Default::default(),
-            expired_at: Default::default(),
-        },
+async fn insert_user_subscription(
+    entitlement: Entitlement,
+    user_id: String,
+    connection: Arc<DatabaseConnection>,
+) {
+
+    match UserSubscription::insert(crate::structure::database::user_subscription::ActiveModel {
+        user_id: Set(user_id),
+        entitlement_id: Set(entitlement.id.to_string()),
+        sku_id: Set(entitlement.sku_id.to_string()),
+        created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
+        updated_at: Default::default(),
+        expired_at: Default::default(),
+    })
+    .on_conflict(
+        sea_orm::sea_query::OnConflict::columns([
+            crate::structure::database::user_subscription::Column::UserId,
+            crate::structure::database::user_subscription::Column::SkuId,
+        ])
+        .update_column(crate::structure::database::user_subscription::Column::EntitlementId)
+        .update_column(crate::structure::database::user_subscription::Column::ExpiredAt)
+        .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
+        .to_owned(),
     )
-        .on_conflict(
-            sea_orm::sea_query::OnConflict::columns([
-                crate::structure::database::user_subscription::Column::UserId,
-                crate::structure::database::user_subscription::Column::SkuId,
-            ])
-                .update_column(
-                    crate::structure::database::user_subscription::Column::EntitlementId,
-                )
-                .update_column(crate::structure::database::user_subscription::Column::ExpiredAt)
-                .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
-                .to_owned(),
-        )
-        .exec(&*connection.clone())
-        .await
+    .exec(&*connection.clone())
+    .await
     {
         Ok(_) => {}
         Err(e) => error!("Failed to insert user subscription. {}", e),
