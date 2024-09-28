@@ -29,9 +29,9 @@ serde_with = { version = "3.9.0", features = ["macros"] }
 rust-fuzzy-search = "0.1.1"
 palette = "0.7.6"
 tracing-appender = "0.2.3"
-tonic = { version = "0.12.2", features = ["tls"] }
+tonic = { version = "0.12.3", features = ["tls"] }
 prost = "0.13.3"
-tonic-reflection = "0.12.2"
+tonic-reflection = "0.12.3"
 sysinfo = "0.31.4"
 rayon = "1.10.0"
 os_info = "3.8.2"
@@ -55,19 +55,19 @@ percent-encoding = "2.3.1"
 serde_urlencoded = "0.7.1"
 poem = { version = "3.1.0" }
 async-graphql-poem = { version = "7.0.9" }
-async-graphql = { version = "7.0.9", features = ["decimal", "chrono", "dataloader", "dynamic-schema"] }
+async-graphql = { version = "7.0.11", features = ["decimal", "chrono", "dataloader", "dynamic-schema"] }
 dotenvy = "0.15.7"
 lazy_static = { version = "1.5.0" }
 seaography = "1.1.0-rc.1"
 catbox = "0.8.2"
-tempfile = "3.12.0"
+tempfile = "3.13.0"
 rusty_ytdl = { version = "0.7.4", features = ["rustls-tls"] }
 either = "1.13.0"
 anyhow = "1.0.89"
-thiserror = "1.0.63"
+thiserror = "1.0.64"
 
 [build-dependencies]
-tonic-build = "0.12.2"
+tonic-build = "0.12.3"
 cynic-codegen = { version = "3.8.0" }
 
 [profile.dev]
