@@ -1,5 +1,6 @@
 mod config_structure;
 mod event_handler;
+mod command;
 
 use anyhow::{Context, Result};
 
