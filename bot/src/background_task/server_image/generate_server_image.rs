@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::sync::{Arc, RwLock};
 use std::thread;
 
@@ -26,7 +25,6 @@ use crate::background_task::server_image::common::{
 };
 use crate::config::ImageConfig;
 use crate::constant::THREAD_POOL_SIZE;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::new_member::change_to_x256_url;
 use crate::structure::database::prelude::{ServerImage, UserColor};
@@ -44,6 +42,7 @@ pub async fn generate_local_server_image(
     let average_colors = return_average_user_color(members, connection.clone())
         .await
         .map_err(|e| {
+
             anyhow!(
                 "Failed to return average user color for guild {}. {:?}",
                 guild_id,
@@ -114,7 +113,8 @@ pub async fn generate_server_image(
 
     let mut combined_image = DynamicImage::new_rgba8(dim, dim);
 
-    let vec_image_rw: Arc<RwLock<Vec<(u32, u32, DynamicImage)>>> = Arc::new(RwLock::new(Vec::new()));
+    let vec_image_rw: Arc<RwLock<Vec<(u32, u32, DynamicImage)>>> =
+        Arc::new(RwLock::new(Vec::new()));
 
     let mut handles = Vec::new();
 
@@ -172,9 +172,16 @@ pub async fn generate_server_image(
         }
     }
 
-    let vec_image = vec_image_rw.read().map_err(
-        |e| anyhow!("Failed to read from RwLock<Vec<(u32, u32, DynamicImage)>>. {:?}", e),
-    )?.clone();
+    let vec_image = vec_image_rw
+        .read()
+        .map_err(|e| {
+            anyhow!(
+                "Failed to read from RwLock<Vec<(u32, u32, DynamicImage)>>. {:?}",
+                e
+            )
+        })?
+        .clone();
+
     drop(vec_image_rw);
 
     let internal_vec = vec_image.clone();
@@ -232,9 +239,13 @@ pub async fn generate_server_image(
         save_type,
     )
     .await
-        .map_err(
-            |e| anyhow!("Failed to save server image for guild {}. {:?}", guild_id, e),
-        )?;
+    .map_err(|e| {
+        anyhow!(
+            "Failed to save server image for guild {}. {:?}",
+            guild_id,
+            e
+        )
+    })?;
 
     ServerImage::insert(ActiveModel {
         server_id: Set(guild_id.to_string()),
@@ -254,9 +265,7 @@ pub async fn generate_server_image(
     )
     .exec(&*connection)
     .await
-        .context(
-            "Failed to insert or update server image into database.",
-        )?;
+    .context("Failed to insert or update server image into database.")?;
 
     Ok(())
 }

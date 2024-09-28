@@ -5,7 +5,7 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 use serenity::all::{
-    ActivityData, CommandType, Context, CurrentApplicationInfo, Entitlement, EventHandler, Guild,
+    ActivityData, CommandType, Context as SerenityContext, CurrentApplicationInfo, Entitlement, EventHandler, Guild,
     GuildId, GuildMembersChunkEvent, Interaction, Member, Presence, Ready, User,
 };
 use serenity::async_trait;
@@ -185,7 +185,7 @@ impl Handler {
 #[async_trait]
 
 impl EventHandler for Handler {
-    async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
+    async fn guild_create(&self, ctx: SerenityContext, guild: Guild, is_new: Option<bool>) {
 
         let image_config = self.bot_data.config.image.clone();
 
@@ -232,7 +232,7 @@ impl EventHandler for Handler {
         };
     }
 
-    async fn guild_member_addition(&self, ctx: Context, member: Member) {
+    async fn guild_member_addition(&self, ctx: SerenityContext, member: Member) {
 
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
 
@@ -295,7 +295,7 @@ impl EventHandler for Handler {
 
     async fn guild_member_removal(
         &self,
-        ctx: Context,
+        ctx: SerenityContext,
         guild_id: GuildId,
         user: User,
         _member_data_if_available: Option<Member>,
@@ -325,7 +325,7 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn guild_members_chunk(&self, ctx: Context, chunk: GuildMembersChunkEvent) {
+    async fn guild_members_chunk(&self, ctx: SerenityContext, chunk: GuildMembersChunkEvent) {
 
         let members = chunk.members;
 
@@ -383,7 +383,7 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn presence_update(&self, ctx: Context, new_data: Presence) {
+    async fn presence_update(&self, ctx: SerenityContext, new_data: Presence) {
 
         let user_blacklist_server_image = self.bot_data.user_blacklist_server_image.clone();
 
@@ -414,7 +414,7 @@ impl EventHandler for Handler {
         };
     }
 
-    async fn ready(&self, ctx: Context, ready: Ready) {
+    async fn ready(&self, ctx: SerenityContext, ready: Ready) {
 
         // Iterates over each guild the bot is in
         let shard = ctx.shard.clone();
@@ -485,7 +485,7 @@ impl EventHandler for Handler {
         command_registration(&ctx.http, remove_old_command).await;
     }
 
-    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+    async fn interaction_create(&self, ctx: SerenityContext, interaction: Interaction) {
 
         let mut user = None;
 
@@ -551,161 +551,21 @@ impl EventHandler for Handler {
         };
     }
 
-    async fn entitlement_create(&self, _: Context, entitlement: Entitlement) {
+    async fn entitlement_create(&self, _: SerenityContext, entitlement: Entitlement) {
 
         let connection = self.bot_data.db_connection.clone();
 
-        match (entitlement.guild_id, entitlement.user_id) {
-            (Some(guild_id), None) => {
-
-                let guild_id = guild_id.to_string();
-
-                match GuildSubscription::insert(
-                    crate::structure::database::guild_subscription::ActiveModel {
-                        guild_id: Set(guild_id),
-                        entitlement_id: Set(entitlement.id.to_string()),
-                        sku_id: Set(entitlement.sku_id.to_string()),
-                        created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
-                        updated_at: Default::default(),
-                        expired_at: Default::default(),
-                    },
-                )
-                .on_conflict(
-                    sea_orm::sea_query::OnConflict::columns([
-                        crate::structure::database::guild_subscription::Column::GuildId,
-                        crate::structure::database::guild_subscription::Column::SkuId,
-                    ])
-                    .update_column(
-                        crate::structure::database::guild_subscription::Column::EntitlementId,
-                    )
-                    .update_column(
-                        crate::structure::database::guild_subscription::Column::ExpiredAt,
-                    )
-                    .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
-                    .to_owned(),
-                )
-                .exec(&*connection.clone())
-                .await
-                {
-                    Ok(_) => {}
-                    Err(e) => error!("Failed to insert guild subscription. {}", e),
-                };
-            }
-            (None, Some(user_id)) => {
-
-                let user_id = user_id.to_string();
-
-                match UserSubscription::insert(
-                    crate::structure::database::user_subscription::ActiveModel {
-                        user_id: Set(user_id),
-                        entitlement_id: Set(entitlement.id.to_string()),
-                        sku_id: Set(entitlement.sku_id.to_string()),
-                        created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
-                        updated_at: Set(Utc::now().naive_utc()),
-                        expired_at: Default::default(),
-                    },
-                )
-                .on_conflict(
-                    sea_orm::sea_query::OnConflict::columns([
-                        crate::structure::database::user_subscription::Column::UserId,
-                        crate::structure::database::user_subscription::Column::SkuId,
-                    ])
-                    .update_column(
-                        crate::structure::database::user_subscription::Column::EntitlementId,
-                    )
-                    .update_column(crate::structure::database::user_subscription::Column::ExpiredAt)
-                    .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
-                    .to_owned(),
-                )
-                .exec(&*connection.clone())
-                .await
-                {
-                    Ok(_) => {}
-                    Err(e) => error!("Failed to insert user subscription. {}", e),
-                };
-            }
-            _ => {}
-        }
+        insert_subscription(entitlement, connection).await;
     }
 
-    async fn entitlement_update(&self, _: Context, entitlement: Entitlement) {
+    async fn entitlement_update(&self, _: SerenityContext, entitlement: Entitlement) {
 
         let connection = self.bot_data.db_connection.clone();
 
-        match (entitlement.guild_id, entitlement.user_id) {
-            (Some(guild_id), None) => {
-
-                let guild_id = guild_id.to_string();
-
-                match GuildSubscription::insert(
-                    crate::structure::database::guild_subscription::ActiveModel {
-                        guild_id: Set(guild_id),
-                        entitlement_id: Set(entitlement.id.to_string()),
-                        sku_id: Set(entitlement.sku_id.to_string()),
-                        created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
-                        updated_at: Default::default(),
-                        expired_at: Default::default(),
-                    },
-                )
-                .on_conflict(
-                    sea_orm::sea_query::OnConflict::columns([
-                        crate::structure::database::guild_subscription::Column::GuildId,
-                        crate::structure::database::guild_subscription::Column::SkuId,
-                    ])
-                    .update_column(
-                        crate::structure::database::guild_subscription::Column::EntitlementId,
-                    )
-                    .update_column(
-                        crate::structure::database::guild_subscription::Column::ExpiredAt,
-                    )
-                    .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
-                    .to_owned(),
-                )
-                .exec(&*connection.clone())
-                .await
-                {
-                    Ok(_) => {}
-                    Err(e) => error!("Failed to insert guild subscription. {}", e),
-                };
-            }
-            (None, Some(user_id)) => {
-
-                let user_id = user_id.to_string();
-
-                match UserSubscription::insert(
-                    crate::structure::database::user_subscription::ActiveModel {
-                        user_id: Set(user_id),
-                        entitlement_id: Set(entitlement.id.to_string()),
-                        sku_id: Set(entitlement.sku_id.to_string()),
-                        created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
-                        updated_at: Default::default(),
-                        expired_at: Default::default(),
-                    },
-                )
-                .on_conflict(
-                    sea_orm::sea_query::OnConflict::columns([
-                        crate::structure::database::user_subscription::Column::UserId,
-                        crate::structure::database::user_subscription::Column::SkuId,
-                    ])
-                    .update_column(
-                        crate::structure::database::user_subscription::Column::EntitlementId,
-                    )
-                    .update_column(crate::structure::database::user_subscription::Column::ExpiredAt)
-                    .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
-                    .to_owned(),
-                )
-                .exec(&*connection.clone())
-                .await
-                {
-                    Ok(_) => {}
-                    Err(e) => error!("Failed to insert user subscription. {}", e),
-                };
-            }
-            _ => {}
-        }
+        insert_subscription(entitlement, connection).await;
     }
 
-    async fn entitlement_delete(&self, _: Context, entitlement: Entitlement) {
+    async fn entitlement_delete(&self, _: SerenityContext, entitlement: Entitlement) {
 
         let connection = self.bot_data.db_connection.clone();
 
@@ -741,6 +601,88 @@ impl EventHandler for Handler {
             _ => {}
         }
     }
+}
+
+async fn insert_subscription(entitlement: Entitlement, connection: Arc<DatabaseConnection>) {
+    match (entitlement.guild_id, entitlement.user_id) {
+        (Some(guild_id), None) => {
+
+            let guild_id = guild_id.to_string();
+
+            insert_guild_subscription(entitlement, guild_id, connection.clone()).await;
+        }
+        (None, Some(user_id)) => {
+
+            let user_id = user_id.to_string();
+
+            insert_user_subscription(entitlement, user_id, connection.clone()).await;
+        }
+        _ => {}
+    }
+}
+
+async fn insert_guild_subscription(entitlement: Entitlement, guild_id: String, connection: Arc<DatabaseConnection>) {
+    match GuildSubscription::insert(
+        crate::structure::database::guild_subscription::ActiveModel {
+            guild_id: Set(guild_id),
+            entitlement_id: Set(entitlement.id.to_string()),
+            sku_id: Set(entitlement.sku_id.to_string()),
+            created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
+            updated_at: Default::default(),
+            expired_at: Default::default(),
+        },
+    )
+        .on_conflict(
+            sea_orm::sea_query::OnConflict::columns([
+                crate::structure::database::guild_subscription::Column::GuildId,
+                crate::structure::database::guild_subscription::Column::SkuId,
+            ])
+                .update_column(
+                    crate::structure::database::guild_subscription::Column::EntitlementId,
+                )
+                .update_column(
+                    crate::structure::database::guild_subscription::Column::ExpiredAt,
+                )
+                .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
+                .to_owned(),
+        )
+        .exec(&*connection.clone())
+        .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("Failed to insert guild subscription. {}", e),
+    };
+}
+
+async fn insert_user_subscription(entitlement: Entitlement, user_id: String, connection: Arc<DatabaseConnection>) {
+    match UserSubscription::insert(
+        crate::structure::database::user_subscription::ActiveModel {
+            user_id: Set(user_id),
+            entitlement_id: Set(entitlement.id.to_string()),
+            sku_id: Set(entitlement.sku_id.to_string()),
+            created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
+            updated_at: Default::default(),
+            expired_at: Default::default(),
+        },
+    )
+        .on_conflict(
+            sea_orm::sea_query::OnConflict::columns([
+                crate::structure::database::user_subscription::Column::UserId,
+                crate::structure::database::user_subscription::Column::SkuId,
+            ])
+                .update_column(
+                    crate::structure::database::user_subscription::Column::EntitlementId,
+                )
+                .update_column(crate::structure::database::user_subscription::Column::ExpiredAt)
+                .update_column(crate::structure::database::user_subscription::Column::UpdatedAt)
+                .to_owned(),
+        )
+        .exec(&*connection.clone())
+        .await
+    {
+        Ok(_) => {}
+        Err(e) => error!("Failed to insert user subscription. {}", e),
+    };
 }
 
 pub async fn add_user_data_to_db(

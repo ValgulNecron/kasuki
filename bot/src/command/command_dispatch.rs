@@ -379,7 +379,7 @@ pub async fn dispatch_command(
             .await?
         }
 
-        "anime_random_image" => {
+        "random_anime_random_image" => {
             AnimeRandomImageCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
@@ -389,7 +389,7 @@ pub async fn dispatch_command(
             .await?
         }
 
-        "himage_random_himage" => {
+        "random_hanime_random_himage" => {
             AnimeRandomImageCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),

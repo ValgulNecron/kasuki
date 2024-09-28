@@ -20,8 +20,6 @@ pub enum Error {
     Sending(String),
     #[error("The channel is not nsfw but the media is.")]
     AdultMedia,
-    #[error("Error with the JSON: {0}")]
-    Json(String),
     #[error("Error with the audio: {0}")]
     Audio(String),
     #[error("Error with the file: {0}")]

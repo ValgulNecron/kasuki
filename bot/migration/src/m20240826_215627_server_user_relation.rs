@@ -1,5 +1,5 @@
 use crate::m20240815_180000_guild_data::GuildData;
-use crate::m20240815_180001_user_data::UserData;
+use crate::m20240815_180201_user_data::UserData;
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
