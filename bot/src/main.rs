@@ -1,6 +1,7 @@
 mod config_structure;
 mod event_handler;
 mod command;
+mod register_command;
 
 use anyhow::{Context, Result};
 use serenity::gateway::ActivityData;

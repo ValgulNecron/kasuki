@@ -1,7 +1,3 @@
-pub trait RegisterTrait {
-
-}
-
 pub trait CommandTrait {
 
 }
