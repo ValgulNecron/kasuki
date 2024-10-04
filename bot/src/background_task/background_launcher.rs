@@ -183,8 +183,6 @@ async fn launch_web_server_thread(
 
     info!("Launching the API server thread!");
 
-    tokio::spawn(api::graphql::server::launch(config.db.clone()));
-
     // Read the data from the context
     let data_read = ctx.data.read().await;
 
