@@ -4,10 +4,9 @@ use crate::structure::message::new_member::load_localization_new_member;
 use image::ImageFormat::WebP;
 use image::{DynamicImage, GenericImage};
 use serde::{Deserialize, Serialize};
-use serenity::all::{
-    ChannelId, Context as SerenityContext, CreateMessage, GuildId, Http, Member, PartialGuild,
-};
+use serenity::all::{ChannelId, CreateMessage, GuildId, Http, Member, PartialGuild};
 use serenity::builder::CreateAttachment;
+use serenity::prelude::Context as SerenityContext;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Cursor;
@@ -45,7 +44,6 @@ pub struct NewMemberSetting {
 
 impl Default for NewMemberSetting {
     fn default() -> Self {
-
         NewMemberSetting {
             custom_channel: false,
             channel_id: 0,
@@ -58,7 +56,6 @@ impl Default for NewMemberSetting {
 
 // Helper functions
 pub async fn load_guild_settings(guild_id: GuildId) -> NewMemberSetting {
-
     debug!("Loading guild settings for guild: {}", guild_id);
 
     let content = fs::read_to_string(NEW_MEMBER_PATH).unwrap_or_default();
@@ -73,7 +70,6 @@ pub async fn load_guild_settings(guild_id: GuildId) -> NewMemberSetting {
 }
 
 pub fn load_new_member_image(guild_id: String) -> Option<Vec<u8>> {
-
     debug!("Loading new member image for guild: {}", guild_id);
 
     let image_path = format!("{}{}.png", NEW_MEMBER_IMAGE_PATH, guild_id);
@@ -82,7 +78,6 @@ pub fn load_new_member_image(guild_id: String) -> Option<Vec<u8>> {
 }
 
 pub fn create_default_new_member_image() -> Result<Vec<u8>> {
-
     debug!("Creating default new member image");
 
     let width = 2000;
@@ -99,14 +94,11 @@ pub fn create_default_new_member_image() -> Result<Vec<u8>> {
 }
 
 pub fn get_server_image(guild_id: String, guild_settings: &NewMemberSetting) -> Option<Vec<u8>> {
-
     debug!("Getting server image for guild: {}", guild_id);
 
     if guild_settings.custom_image {
-
         load_new_member_image(guild_id)
     } else {
-
         create_default_new_member_image().ok()
     }
 }
@@ -115,20 +107,16 @@ pub fn get_channel_id(
     guild_settings: &NewMemberSetting,
     partial_guild: &PartialGuild,
 ) -> Option<ChannelId> {
-
     debug!("Getting channel ID for guild");
 
     if guild_settings.custom_channel {
-
         Some(ChannelId::from(guild_settings.channel_id))
     } else {
-
         partial_guild.system_channel_id
     }
 }
 
 pub async fn get_image(avatar_url: String) -> Result<DynamicImage> {
-
     debug!("Fetching image from URL: {}", avatar_url);
 
     let client = reqwest::Client::new();
@@ -141,16 +129,22 @@ pub async fn get_image(avatar_url: String) -> Result<DynamicImage> {
 }
 
 pub fn change_to_x256_url(url: String) -> String {
-
     debug!("Changing URL size to 64x64: {}", url);
 
-    url.replace("?size=4096", "?size=256")
+    let mut url = url
+        .replace("?size=4096", "?size=256")
         .replace("?size=2048", "?size=256")
         .replace("?size=1024", "?size=256")
         .replace("?size=512", "?size=256")
         .replace("?size=256", "?size=256")
         .replace("?size=128", "?size=256")
-        .replace("?size=64", "?size=256")
+        .replace("?size=64", "?size=256");
+
+    if !url.ends_with("?size=256") {
+        url = format!("{}?size=256", url)
+    }
+
+    url
 }
 
 pub async fn send_image(
@@ -158,7 +152,6 @@ pub async fn send_image(
     image_bytes: Vec<u8>,
     http: &Arc<Http>,
 ) -> Result<()> {
-
     debug!("Sending image to channel: {}", channel_id);
 
     let attachment = CreateAttachment::bytes(image_bytes, "new_member.webp");
@@ -174,7 +167,6 @@ pub async fn send_image(
 }
 
 pub fn encode_image(image: DynamicImage) -> Result<Vec<u8>> {
-
     debug!("Encoding image");
 
     let rgba8_image = image.to_rgba8();
@@ -192,7 +184,6 @@ pub async fn overlay_image(
     background_image: &mut DynamicImage,
     foreground_image: DynamicImage,
 ) -> Result<(DynamicImage, u32, u32, u32, u32)> {
-
     debug!("Overlaying foreground image onto background image");
 
     let (background_width, background_height) =
@@ -226,7 +217,6 @@ pub async fn add_text(
     y_alignment: YAlignment,
     offset: u32,
 ) -> Result<DynamicImage> {
-
     debug!("Adding text to image: {}", text);
 
     let renderer = TextRenderer::default();
@@ -265,7 +255,6 @@ pub async fn new_member_message(
     member: &Member,
     db_config: DbConfig,
 ) -> Result<()> {
-
     info!(
         "Processing new member message for guild: {}",
         member.guild_id
@@ -299,7 +288,6 @@ pub async fn new_member_message(
         .replace("$user$", &member.user.name);
 
     if guild_settings.show_username {
-
         guild_image = add_text(
             &mut guild_image,
             welcome_text,
@@ -311,7 +299,6 @@ pub async fn new_member_message(
     }
 
     if guild_settings.show_time_join {
-
         let join_date = member
             .joined_at
             .unwrap_or_default()

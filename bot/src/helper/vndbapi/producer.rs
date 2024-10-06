@@ -9,7 +9,6 @@ pub async fn get_producer(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<ProducerRoot, Box<dyn Error>> {
-
     let value = value.to_lowercase();
 
     let value = value.trim();
@@ -19,7 +18,6 @@ pub async fn get_producer(
     let is_number = value.chars().skip(1).all(|c| c.is_numeric());
 
     let json = if start_with_v && is_number {
-
         (r#"{
     		"filters": ["id", "=",""#
             .to_owned()
@@ -29,7 +27,6 @@ pub async fn get_producer(
 		}"#)
         .to_string()
     } else {
-
         (r#"{
     		"filters": ["search", "=",""#
             .to_owned()
@@ -91,7 +88,6 @@ impl Serialize for Type {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer, {
-
         let value = match self {
             Self::Company => "co",
             Self::Individual => "in",
@@ -106,7 +102,6 @@ impl<'de> Deserialize<'de> for Type {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-
         let value = String::deserialize(deserializer)?;
 
         match value.as_str() {
@@ -120,7 +115,6 @@ impl<'de> Deserialize<'de> for Type {
 
 impl std::fmt::Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         let value = match self {
             Self::Company => "Company",
             Self::Individual => "Individual",

@@ -83,7 +83,6 @@ pub async fn get_vn(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<VNRoot, Box<dyn Error>> {
-
     let value = value.to_lowercase();
 
     let value = value.trim();
@@ -93,13 +92,11 @@ pub async fn get_vn(
     let is_number = value.chars().skip(1).all(|c| c.is_numeric());
 
     let json = if start_with_v && is_number {
-
         (r#"{
     		"filters": ["id", "=",""#.to_owned() + value + r#""],
     		"fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role,va.character.name"
 		}"#).to_string()
     } else {
-
         (r#"{
     		"filters": ["search", "=",""#.to_owned() + value + r#""],
     		"fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role,va.character.name"
@@ -147,7 +144,6 @@ impl Serialize for DevStatus {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer, {
-
         let value = match self {
             Self::Finished => 0,
             Self::Development => 1,
@@ -163,7 +159,6 @@ impl<'de> Deserialize<'de> for DevStatus {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-
         let value = i8::deserialize(deserializer)?;
 
         match value {
@@ -177,7 +172,6 @@ impl<'de> Deserialize<'de> for DevStatus {
 
 impl Display for DevStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         let value = match self {
             Self::Finished => "Finished",
             Self::Development => "Development",

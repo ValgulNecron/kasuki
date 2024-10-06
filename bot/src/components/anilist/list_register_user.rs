@@ -7,7 +7,7 @@ use serenity::all::{
 use crate::command::anilist_server::list_register_user::get_the_list;
 use crate::config::DbConfig;
 use crate::constant::MEMBER_LIST_LIMIT;
-use crate::helper::error_management::error_dispatch;
+use crate::error_management::error_dispatch;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 
 /// Updates the user list in the server.
@@ -36,7 +36,6 @@ pub async fn update(
     prev_id: &str,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the guild ID from the component interaction
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -58,10 +57,8 @@ pub async fn update(
 
     // Parse the user ID
     let id = if user_id == "0" {
-
         None
     } else {
-
         match user_id.parse() {
             Ok(id) => Some(id),
             Err(_) => None,
@@ -76,7 +73,6 @@ pub async fn update(
     let mut response = EditMessage::new().embed(builder_message);
 
     if user_id != "0" {
-
         response = response.button(
             CreateButton::new(format!("user_{}_{}", user_id, prev_id))
                 .label(&list_user_localised.previous),
@@ -84,7 +80,6 @@ pub async fn update(
     }
 
     if len > MEMBER_LIST_LIMIT as usize {
-
         response = response.button(
             CreateButton::new(format!("user_{}_{}", last_id.unwrap(), user_id))
                 .label(list_user_localised.next),

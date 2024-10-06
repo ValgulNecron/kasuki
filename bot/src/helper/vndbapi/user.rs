@@ -24,7 +24,6 @@ pub async fn get_user(
     path: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<VnUser, Box<dyn Error>> {
-
     let response = do_request_cached(path.clone(), vndb_cache).await?;
 
     let response: HashMap<String, VnUser> = serde_json::from_str(&response)?;

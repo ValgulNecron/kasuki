@@ -26,7 +26,6 @@ pub struct App {
 /// This function will log an error and return early if it encounters any issues while making the HTTP request, parsing the response body, or deserializing the JSON.
 
 pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) {
-
     // Log the start of the process
     debug!("Started the process");
 
@@ -36,7 +35,6 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) {
     // Make the HTTP request
     let response = match reqwest::get(url).await {
         Err(e) => {
-
             // Log the error and return early if the HTTP request fails
             error!("Error: {}", e);
 
@@ -48,7 +46,6 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) {
     // Get the response body
     let body = match response.text().await {
         Err(e) => {
-
             // Log the error and return early if getting the response body fails
             error!("Error: {}", e);
 
@@ -60,7 +57,6 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) {
     // Parse the response body as JSON
     let json: Value = match serde_json::from_str(&body) {
         Err(e) => {
-
             // Log the error and return early if parsing the JSON fails
             error!("Error: {}", e);
 
@@ -72,7 +68,6 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) {
     // Deserialize the JSON into a vector of App structs
     let apps: Vec<App> = match serde_json::from_value(json["applist"]["apps"].clone()) {
         Err(e) => {
-
             // Log the error and return early if deserializing the JSON fails
             error!("Error: {}", e);
 

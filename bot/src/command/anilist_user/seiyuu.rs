@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
@@ -35,19 +35,16 @@ pub struct SeiyuuCommand {
 
 impl Command for SeiyuuCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for SeiyuuCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         let ctx = &self.ctx;
 
         let command_interaction = &self.command_interaction;
@@ -66,7 +63,6 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     let map = get_option_map_string(command_interaction);
 
     let value = map
@@ -80,7 +76,6 @@ async fn send_embed(
     let per_page = (total_per_row * total_per_row) as i32;
 
     let staff: Staff = if value.parse::<i32>().is_ok() {
-
         let id = value.parse::<i32>().unwrap();
 
         let var = SeiyuuIdVariables {
@@ -97,7 +92,6 @@ async fn send_embed(
             .clone()
             .unwrap()
     } else {
-
         let var = SeiyuuSearchVariables {
             per_page: Some(per_page),
             search: Some(value),
@@ -178,7 +172,6 @@ async fn send_embed(
     let characters_images_url = get_characters_image(character);
 
     for character_image in characters_images_url {
-
         let response = reqwest::get(match &character_image {
             Some(char) => match char.clone().image {
                 Some(image) => match image.large {
@@ -202,7 +195,6 @@ async fn send_embed(
     let mut images: Vec<DynamicImage> = Vec::new();
 
     for bytes in &buffers {
-
         // Load the image from the byte vector
         images.push(image::load_from_memory(bytes)?);
     }
@@ -233,9 +225,7 @@ async fn send_embed(
     let mut pos_list = Vec::new();
 
     for x in 0..total_per_row {
-
         for y in 0..total_per_row {
-
             pos_list.push((new_width + (smaller_width * y), smaller_height * x))
         }
     }
@@ -243,7 +233,6 @@ async fn send_embed(
     images.remove(0);
 
     for (i, img) in images.iter().enumerate() {
-
         let (width, height) = img.dimensions();
 
         let sub_image = img.to_owned().crop(0, 0, width, height);
@@ -301,7 +290,6 @@ async fn send_embed(
 /// A `Vec<StaffImageNodes>` that contains the characters associated with the staff member.
 
 fn get_characters_image(character: CharacterConnection) -> Vec<Option<Character>> {
-
     character.nodes.unwrap()
 }
 
@@ -319,6 +307,5 @@ fn get_characters_image(character: CharacterConnection) -> Vec<Option<Character>
 /// A `String` that represents the URL of the staff member's image.
 
 fn get_staff_image(staff: StaffImage) -> String {
-
     staff.large.unwrap()
 }

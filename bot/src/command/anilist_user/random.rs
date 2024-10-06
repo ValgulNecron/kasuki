@@ -15,9 +15,9 @@ use tracing::trace;
 use crate::background_task::update_random_stats::update_random_stats;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::error_management::error_dispatch;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
@@ -35,19 +35,16 @@ pub struct RandomCommand {
 
 impl Command for RandomCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for RandomCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -64,7 +61,6 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -94,13 +90,10 @@ async fn send_embed(
     let random_stats = update_random_stats(anilist_cache.clone()).await?;
 
     let last_page = if random_type.as_str() == "anime" {
-
         random_stats.anime_last_page
     } else if random_type.as_str() == "manga" {
-
         random_stats.manga_last_page
     } else {
-
         0
     };
 
@@ -145,7 +138,6 @@ async fn embed(
     random_localised: RandomLocalised,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     let number = thread_rng().gen_range(1..=last_page);
 
     let mut var = RandomPageMediaVariables {
@@ -154,10 +146,8 @@ async fn embed(
     };
 
     if random_type == "manga" {
-
         var.media_type = Some(MediaType::Manga)
     } else {
-
         var.media_type = Some(MediaType::Anime);
     }
 
@@ -175,10 +165,8 @@ async fn embed(
     let id = inside_media.id;
 
     let url = if random_type == "manga" {
-
         format!("https://anilist.co/manga/{}", id)
     } else {
-
         format!("https://anilist.co/anime/{}", id)
     };
 
@@ -220,7 +208,6 @@ async fn follow_up_message(
     url: String,
     random_localised: RandomLocalised,
 ) -> Result<(), Box<dyn Error>> {
-
     let format = media.format.unwrap();
 
     let genres = media
@@ -246,7 +233,6 @@ async fn follow_up_message(
     let length_diff = 4096 - desc.len() as i32;
 
     if length_diff <= 0 {
-
         desc = trim(desc.clone(), length_diff);
     }
 

@@ -1,9 +1,9 @@
 use crate::config::DbConfig;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
+use crate::database::activity_data::{Column, Model};
+use crate::database::prelude::ActivityData;
+use crate::error_management::error_dispatch;
 use crate::get_url;
-use crate::helper::error_management::error_dispatch;
-use crate::structure::database::activity_data::{Column, Model};
-use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serenity::all::{
@@ -37,7 +37,6 @@ pub async fn update(
     page_number: &str,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
-
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -82,7 +81,6 @@ pub async fn update(
     let mut message_rep = CreateInteractionResponseMessage::new().embed(builder_message);
 
     if page_number != "0" {
-
         message_rep = message_rep.button(
             CreateButton::new(format!("next_activity_{}", previous_page))
                 .label(&list_activity_localised_text.previous),
@@ -96,7 +94,6 @@ pub async fn update(
     if len > ACTIVITY_LIST_LIMIT as usize
         && (len > (ACTIVITY_LIST_LIMIT * (actual_page + 1)) as usize)
     {
-
         message_rep = message_rep.button(
             CreateButton::new(format!("next_activity_{}", next_page))
                 .label(&list_activity_localised_text.next),
@@ -128,10 +125,8 @@ pub async fn update(
 /// * A vector of strings where each string represents a formatted server activity.
 
 pub fn get_formatted_activity_list(list: Vec<Model>, actual_page: u64) -> Vec<String> {
-
     list.into_iter()
         .map(|activity| {
-
             let anime_id = activity.anime_id;
 
             let name = activity.name;

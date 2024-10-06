@@ -26,7 +26,6 @@ pub async fn load_localization_game(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<GameLocalised> {
-
     let path = "json/message/vn/game.json";
 
     load_localization(guild_id, path, db_config).await

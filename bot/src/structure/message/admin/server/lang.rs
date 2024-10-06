@@ -39,7 +39,6 @@ pub async fn load_localization_lang(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<LangLocalised> {
-
     let path = "json/message/admin/server/lang.json";
 
     load_localization(guild_id, path, db_config).await

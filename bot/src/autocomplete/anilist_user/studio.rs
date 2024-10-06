@@ -45,7 +45,6 @@ pub async fn autocomplete(
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
-
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 
     let studio_search = map.get(&String::from("studio")).unwrap_or(DEFAULT_STRING);
@@ -60,7 +59,6 @@ pub async fn autocomplete(
         match make_request_anilist(operation, false, anilist_cache).await {
             Ok(data) => data,
             Err(e) => {
-
                 tracing::error!(?e);
 
                 return;
@@ -76,7 +74,6 @@ pub async fn autocomplete(
             None => return,
         },
         None => {
-
             tracing::debug!(?data.errors);
 
             return;
@@ -86,7 +83,6 @@ pub async fn autocomplete(
     let mut choices = Vec::new();
 
     for studio in studios {
-
         let data = studio.unwrap();
 
         let user = data.name;

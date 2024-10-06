@@ -46,7 +46,6 @@ pub async fn autocomplete(
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
-
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 
     let staff_search = map
@@ -63,7 +62,6 @@ pub async fn autocomplete(
         match make_request_anilist(operation, false, anilist_cache).await {
             Ok(data) => data,
             Err(e) => {
-
                 tracing::error!(?e);
 
                 return;
@@ -77,12 +75,10 @@ pub async fn autocomplete(
             Some(page) => match page.staff {
                 Some(staff) => staff,
                 None => {
-
                     return;
                 }
             },
             None => {
-
                 return;
             }
         },
@@ -90,7 +86,6 @@ pub async fn autocomplete(
     };
 
     for staff in staffs {
-
         let data = staff.unwrap();
 
         let name = data.name.unwrap();

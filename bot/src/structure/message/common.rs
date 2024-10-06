@@ -1,5 +1,5 @@
 use crate::config::DbConfig;
-use crate::helper::error_management::error_dispatch;
+use crate::error_management::error_dispatch;
 use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::read_file::read_file_as_string;
 use anyhow::{Context, Result};
@@ -10,7 +10,6 @@ pub async fn load_localization<'a, T: serde::Deserialize<'a> + Clone>(
     path: &str,
     db_config: DbConfig,
 ) -> Result<T> {
-
     let json_content = read_file_as_string(path)?;
 
     let json: &'a str = Box::leak(json_content.into_boxed_str());

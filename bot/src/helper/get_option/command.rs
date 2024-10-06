@@ -16,11 +16,9 @@ use serenity::all::{AttachmentId, ChannelId, CommandInteraction, RoleId, UserId}
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<String, String> {
-
     let mut map = HashMap::new();
 
     for option in &interaction.data.options {
-
         let name = option.name.clone();
 
         let value = match option.value.as_str() {
@@ -48,11 +46,9 @@ pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<String
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_integer(interaction: &CommandInteraction) -> HashMap<String, i64> {
-
     let mut map = HashMap::new();
 
     for option in &interaction.data.options {
-
         let name = option.name.clone();
 
         let value = match option.value.as_i64() {
@@ -80,11 +76,9 @@ pub fn get_option_map_integer(interaction: &CommandInteraction) -> HashMap<Strin
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_boolean(interaction: &CommandInteraction) -> HashMap<String, bool> {
-
     let mut map = HashMap::new();
 
     for option in &interaction.data.options {
-
         let name = option.name.clone();
 
         let value = match option.value.as_bool() {
@@ -112,11 +106,9 @@ pub fn get_option_map_boolean(interaction: &CommandInteraction) -> HashMap<Strin
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_user(interaction: &CommandInteraction) -> HashMap<String, UserId> {
-
     let mut map = HashMap::new();
 
     for option in &interaction.data.options {
-
         let name = option.name.clone();
 
         let value = match option.value.as_user_id() {
@@ -144,11 +136,9 @@ pub fn get_option_map_user(interaction: &CommandInteraction) -> HashMap<String, 
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_channel(interaction: &CommandInteraction) -> HashMap<String, ChannelId> {
-
     let mut map = HashMap::new();
 
     for option in &interaction.data.options {
-
         let name = option.name.clone();
 
         let value = match option.value.as_channel_id() {
@@ -176,11 +166,9 @@ pub fn get_option_map_channel(interaction: &CommandInteraction) -> HashMap<Strin
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_role(interaction: &CommandInteraction) -> HashMap<String, RoleId> {
-
     let mut map = HashMap::new();
 
     for option in &interaction.data.options {
-
         let name = option.name.clone();
 
         let value = match option.value.as_role_id() {
@@ -208,11 +196,9 @@ pub fn get_option_map_role(interaction: &CommandInteraction) -> HashMap<String, 
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_number(interaction: &CommandInteraction) -> HashMap<String, f64> {
-
     let mut map = HashMap::new();
 
     for option in &interaction.data.options {
-
         let name = option.name.clone();
 
         let value = match option.value.as_f64() {
@@ -242,11 +228,9 @@ pub fn get_option_map_number(interaction: &CommandInteraction) -> HashMap<String
 pub fn get_option_map_attachment(
     interaction: &CommandInteraction,
 ) -> HashMap<String, AttachmentId> {
-
     let mut map = HashMap::new();
 
     for option in &interaction.data.options {
-
         let name = option.name.clone();
 
         let value = match option.value.as_attachment_id() {

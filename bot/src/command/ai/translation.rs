@@ -16,9 +16,9 @@ use crate::command::ai::question::question_api_url;
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
+use crate::error_management::error_dispatch;
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::{
     get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
@@ -34,19 +34,16 @@ pub struct TranslationCommand<'de> {
 
 impl Command for TranslationCommand<'_> {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for TranslationCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
@@ -55,7 +52,6 @@ impl SlashCommand for TranslationCommand<'_> {
             )
             .await?
         {
-
             return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "You have reached your hourly limit. Please try again later.",
             ))));
@@ -70,7 +66,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     let map = get_option_map_string_subcommand(command_interaction);
 
     let attachment_map = get_option_map_attachment_subcommand(command_interaction);
@@ -104,7 +99,6 @@ async fn send_embed(
     let translation_localised = load_localization_translation(guild_id, config.db.clone()).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-
         return Err(Box::new(error_dispatch::Error::File(String::from(
             "Unsupported file type",
         ))));
@@ -137,7 +131,6 @@ async fn send_embed(
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
-
         return Err(Box::new(error_dispatch::Error::File(String::from(
             "Unsupported file extension",
         ))));
@@ -177,13 +170,10 @@ async fn send_embed(
 
     // check the last 3 characters of the url if it v1/ or v1 or something else
     let api_base_url = if api_base_url.ends_with("v1/") {
-
         format!("{}audio/translations/", api_base_url)
     } else if api_base_url.ends_with("v1") {
-
         format!("{}/audio/translations/", api_base_url)
     } else {
-
         format!("{}/v1/audio/translations/", api_base_url)
     };
 
@@ -225,7 +215,6 @@ async fn send_embed(
     trace!("{}", text);
 
     let text = if lang != "en" {
-
         let api_key = config
             .ai
             .question
@@ -251,7 +240,6 @@ async fn send_embed(
 
         translation(lang, text.to_string(), api_key, api_base_url, model).await?
     } else {
-
         String::from(text)
     };
 
@@ -301,7 +289,6 @@ pub async fn translation(
     api_url: String,
     model: String,
 ) -> Result<String, Box<dyn Error>> {
-
     let prompt_gpt = format!("
             i will give you a text and a ISO-639-1 code and you will translate it in the corresponding language
             iso code: {}

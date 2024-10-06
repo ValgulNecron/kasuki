@@ -24,19 +24,16 @@ pub struct VnCharacterCommand {
 
 impl Command for VnCharacterCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for VnCharacterCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -53,7 +50,6 @@ async fn send_embed(
     config: Arc<Config>,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -77,52 +73,44 @@ async fn send_embed(
     let mut fields = vec![];
 
     if let Some(blood_type) = character.blood_type {
-
         fields.push((character_localised.blood_type.clone(), blood_type, true));
     }
 
     if let Some(height) = character.height {
-
         let cm = format!("{}cm", height);
 
         fields.push((character_localised.height.clone(), cm, true));
     }
 
     if let Some(weight) = character.weight {
-
         let weight = format!("{}kg", weight);
 
         fields.push((character_localised.weight.clone(), weight, true));
     }
 
     if let Some(age) = character.age {
-
         fields.push((character_localised.age.clone(), age.to_string(), true));
     }
 
     if let Some(bust) = character.bust {
-
         let bust = format!("{}cm", bust);
 
         fields.push((character_localised.bust.clone(), bust, true));
     }
 
     if let Some(waist) = character.waist {
-
         let waist = format!("{}cm", waist);
 
         fields.push((character_localised.waist.clone(), waist, true));
     }
 
     if let Some(hips) = character.hips {
-
         let hips = format!("{}cm", hips);
 
         fields.push((character_localised.hip.clone(), hips, true));
     }
 
     if let Some(cup) = character.cup {
-
         fields.push((character_localised.cup.clone(), cup, true));
     }
 
@@ -131,7 +119,6 @@ async fn send_embed(
     fields.push((character_localised.sex, sex, true));
 
     if let Some(birthday) = character.birthday {
-
         let birthday = format!("{:02}/{:02}", birthday[0], birthday[1]);
 
         fields.push((character_localised.birthday.clone(), birthday, true));
@@ -181,9 +168,7 @@ async fn send_embed(
     };
 
     if (sexual <= 1.5) && (violence <= 1.0) {
-
         if let Some(url) = url {
-
             builder_embed = builder_embed.image(url);
         }
     }

@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::helper::error_management::error_dispatch;
+use crate::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::character;
@@ -25,19 +25,16 @@ pub struct CharacterCommand {
 
 impl Command for CharacterCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for CharacterCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -54,7 +51,6 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the name or ID of the character from the command interaction options
     let map = get_option_map_string(command_interaction);
 
@@ -66,10 +62,8 @@ async fn send_embed(
     // If the value is an integer, treat it as an ID and retrieve the character with that ID
     // If the value is not an integer, treat it as a name and retrieve the character with that name
     let data: Character = if value.parse::<i32>().is_ok() {
-
         get_character_by_id(value.parse::<i32>().unwrap(), anilist_cache).await?
     } else {
-
         let var = CharacterQuerrySearchVariables {
             search: Some(&*value),
         };
@@ -92,7 +86,6 @@ pub async fn get_character_by_id(
     value: i32,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Character, Box<dyn Error>> {
-
     let var = CharacterQuerryIdVariables { id: Some(value) };
 
     let operation = CharacterQuerryId::build(var);

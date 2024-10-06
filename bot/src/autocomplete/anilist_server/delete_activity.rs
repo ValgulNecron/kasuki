@@ -1,9 +1,9 @@
 use crate::config::DbConfig;
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
+use crate::database::activity_data::Column;
+use crate::database::prelude::ActivityData;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
-use crate::structure::database::activity_data::Column;
-use crate::structure::database::prelude::ActivityData;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -48,7 +48,6 @@ pub async fn autocomplete(
     autocomplete_interaction: CommandInteraction,
     db_config: DbConfig,
 ) {
-
     let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
 
     let activity_search = map
@@ -63,7 +62,6 @@ pub async fn autocomplete(
     let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
         Ok(conn) => conn,
         Err(e) => {
-
             error!(?e);
 
             return;
@@ -77,7 +75,6 @@ pub async fn autocomplete(
     {
         Ok(data) => data,
         Err(e) => {
-
             tracing::debug!(?e);
 
             return;
@@ -102,7 +99,6 @@ pub async fn autocomplete(
     let mut choices = Vec::new();
 
     for (activity, _) in matches {
-
         let parts: Vec<&str> = activity.split('$').collect();
 
         let id = parts[1].to_string();

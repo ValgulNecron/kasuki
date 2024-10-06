@@ -37,7 +37,6 @@ pub async fn load_localization_avatar(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<AvatarLocalised> {
-
     let path = "json/message/user/avatar.json";
 
     load_localization(guild_id, path, db_config).await

@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime::random_image::load_localization_random_image;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -22,19 +22,16 @@ pub struct AnimeRandomImageCommand {
 
 impl Command for AnimeRandomImageCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for AnimeRandomImageCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -44,7 +41,6 @@ async fn send(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the type of image to fetch from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
 
@@ -107,7 +103,6 @@ pub async fn send_embed(
     title: String,
     endpoint: &str,
 ) -> Result<(), Box<dyn Error>> {
-
     // Construct the URL to fetch the image from
     let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
 

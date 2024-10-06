@@ -36,7 +36,6 @@ pub async fn load_localization_random(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<RandomLocalised> {
-
     let path = "json/message/anilist_user/random.json";
 
     load_localization(guild_id, path, db_config).await

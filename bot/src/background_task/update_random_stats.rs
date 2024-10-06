@@ -28,7 +28,6 @@ impl Default for RandomStat {
     /// Returns a default `RandomStat` with `anime_last_page` set to 1796 and `manga_last_page` set to 1796.
 
     fn default() -> Self {
-
         Self {
             anime_last_page: 1796,
             manga_last_page: 1796,
@@ -43,7 +42,6 @@ impl Default for RandomStat {
 /// * `anilist_cache` - A cache for storing Anilist API responses.
 
 pub async fn update_random_stats_launcher(anilist_cache: Arc<RwLock<Cache<String, String>>>) {
-
     // Log the start of the random stats update task.
     info!("Starting random stats update");
 
@@ -52,7 +50,6 @@ pub async fn update_random_stats_launcher(anilist_cache: Arc<RwLock<Cache<String
 
     // Run the update task indefinitely.
     loop {
-
         // Wait for the next tick of the interval.
         interval.tick().await;
 
@@ -74,7 +71,6 @@ pub async fn update_random_stats_launcher(anilist_cache: Arc<RwLock<Cache<String
 pub async fn update_random_stats(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<RandomStat, Box<dyn Error>> {
-
     // Try to load random stats from a JSON file.
     let mut random_stats: RandomStat = match std::fs::read_to_string(RANDOM_STATS_PATH) {
         Ok(stats) => serde_json::from_str(&stats)?,
@@ -108,12 +104,10 @@ async fn update_random(
     mut random_stats: RandomStat,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<RandomStat, Box<dyn Error>> {
-
     // Keep updating pages until there are no more pages to update.
     let mut has_more_pages = true;
 
     while has_more_pages {
-
         has_more_pages = update_page(&mut random_stats, &anilist_cache, true, true).await;
 
         // sleep 1s
@@ -123,7 +117,6 @@ async fn update_random(
     has_more_pages = true;
 
     while has_more_pages {
-
         has_more_pages = update_page(&mut random_stats, &anilist_cache, false, false).await;
 
         // sleep 1s
@@ -152,10 +145,8 @@ async fn update_page(
     update_anime: bool,
     update_manga: bool,
 ) -> bool {
-
     // Build the appropriate query based on whether we're updating anime or manga.
     let data = if update_anime {
-
         let var = AnimeStatVariables {
             page: Some(random_stats.anime_last_page),
         };
@@ -167,7 +158,6 @@ async fn update_page(
 
         data
     } else if update_manga {
-
         let var = MangaStatVariables {
             page: Some(random_stats.manga_last_page),
         };
@@ -179,7 +169,6 @@ async fn update_page(
 
         data
     } else {
-
         return false;
     };
 
@@ -206,9 +195,7 @@ async fn update_page(
 
     // Update the last page number based on whether there are more pages to update.
     if has_next_page {
-
         if update_anime {
-
             random_stats.anime_last_page += 1;
 
             random_stats.manga_last_page += 1;

@@ -12,12 +12,12 @@ use tokio::sync::RwLock;
 use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::Command;
 use crate::config::{Config, DbConfig};
+use crate::database::prelude::RegisteredUser;
+use crate::database::registered_user::Column;
+use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::database::prelude::RegisteredUser;
-use crate::structure::database::registered_user::Column;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
 use sea_orm::ColumnTrait;
@@ -32,19 +32,16 @@ pub struct LevelCommand {
 
 impl Command for LevelCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl LevelCommand {
     pub async fn run_slash(self) -> Result<(), Box<dyn Error>> {
-
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -61,7 +58,6 @@ pub async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the username from the command interaction
     let map = get_option_map_string(command_interaction);
 
@@ -69,14 +65,12 @@ pub async fn send_embed(
 
     match user {
         Some(value) => {
-
             // If a username is provided, fetch the user data and send an embed
             let data: User = get_user(value, anilist_cache).await?;
 
             send_embed2(ctx, command_interaction, data, config.db.clone()).await
         }
         None => {
-
             // If no username is provided, retrieve the ID of the user who triggered the command
             let user_id = &command_interaction.user.id.to_string();
 
@@ -120,7 +114,6 @@ pub async fn send_embed2(
     user: User,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
-
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -139,35 +132,27 @@ pub async fn send_embed2(
 
     // Calculate the number of manga and anime completed
     let manga_completed = if let Some(manga) = manga.clone() {
-
         get_completed(manga.statuses.unwrap())
     } else {
-
         0
     };
 
     let anime_completed = if let Some(anime) = anime.clone() {
-
         get_completed(anime.statuses.unwrap())
     } else {
-
         0
     };
 
     // Get the number of chapters read and minutes watched
     let chap_read = if let Some(manga) = manga.clone() {
-
         manga.chapters_read
     } else {
-
         0
     };
 
     let tw = if let Some(anime) = anime.clone() {
-
         anime.minutes_watched
     } else {
-
         0
     };
 
@@ -198,7 +183,6 @@ pub async fn send_embed2(
 
     // Add the user's banner image to the embed if it exists
     if let Some(banner_image) = &user.banner_image {
-
         builder_embed = builder_embed.image(banner_image)
     }
 
@@ -217,7 +201,6 @@ pub async fn send_embed2(
 }
 
 pub static LEVELS: Lazy<[(u32, f64, f64); 102]> = Lazy::new(|| {
-
     [
         (0, 0.0, xp_required_for_level(1)),
         (1, xp_required_for_level(1), xp_required_for_level(2)),
@@ -339,11 +322,8 @@ pub static LEVELS: Lazy<[(u32, f64, f64); 102]> = Lazy::new(|| {
 /// A tuple containing the level as a `u32`, the progress within that level as a `f64`, and the total progress required to reach the next level as a `f64`.
 
 fn get_level(xp: f64) -> (u32, f64, f64) {
-
     for &(level, required_xp, next_level_required_xp) in LEVELS.iter().rev() {
-
         if xp >= required_xp {
-
             let level_progress = xp - required_xp;
 
             let level_progress_total = next_level_required_xp - required_xp;
@@ -379,7 +359,6 @@ fn get_level(xp: f64) -> (u32, f64, f64) {
 /// The experience points required to reach the given level as a `f64`.
 
 fn xp_required_for_level(level: u32) -> f64 {
-
     match level {
         0..=9 => (level as f64).powf(3f64),
         10..=29 => (level as f64).powf(4f64),

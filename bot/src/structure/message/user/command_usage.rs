@@ -38,7 +38,6 @@ pub async fn load_localization_command_usage(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<CommandUsageLocalised> {
-
     let path = "json/message/user/command_usage.json";
 
     load_localization(guild_id, path, db_config).await

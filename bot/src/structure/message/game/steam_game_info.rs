@@ -51,7 +51,6 @@ pub async fn load_localization_steam_game_info(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<SteamGameInfoLocalised> {
-
     let path = "json/message/game/steam_game_info.json";
 
     load_localization(guild_id, path, db_config).await

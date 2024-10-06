@@ -11,7 +11,6 @@ pub async fn give_premium_sub_autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
 ) {
-
     let map = get_option_map_string(&autocomplete_interaction);
 
     let _subscription = map
@@ -23,10 +22,8 @@ pub async fn give_premium_sub_autocomplete(
     let sku_list = sku_list
         .iter()
         .map(|sku| {
-
             (
                 {
-
                     let kind = match sku.kind {
                         SkuKind::Subscription => String::from("Subscription"),
                         SkuKind::SubscriptionGroup => String::from("Subscription Group"),
@@ -48,17 +45,14 @@ pub async fn give_premium_sub_autocomplete(
                     let mut flags2 = String::new();
 
                     if (available & flags_bits) != 0 {
-
                         flags2.push_str("is available ");
                     }
 
                     if (guild_subscription & flags_bits) != 0 {
-
                         flags.push_str("guild subscription ");
                     }
 
                     if (user_subscription & flags_bits) != 0 {
-
                         flags.push_str("user subscription ");
                     }
 
@@ -76,7 +70,6 @@ pub async fn give_premium_sub_autocomplete(
         .collect::<Vec<AutocompleteChoice>>();
 
     if sku_list.is_empty() {
-
         return;
     }
 
@@ -88,7 +81,6 @@ pub async fn give_premium_sub_autocomplete(
         .create_response(ctx.http, builder)
         .await
     {
-
         debug!("Error sending response: {:?}", why);
     }
 }

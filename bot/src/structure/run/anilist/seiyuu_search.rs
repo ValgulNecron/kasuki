@@ -94,7 +94,6 @@ pub enum CharacterSort {
 
 impl From<CharacterImage> for seiyuu_id::CharacterImage {
     fn from(character_image: CharacterImage) -> Self {
-
         Self {
             large: character_image.large,
         }
@@ -103,7 +102,6 @@ impl From<CharacterImage> for seiyuu_id::CharacterImage {
 
 impl From<CharacterName> for seiyuu_id::CharacterName {
     fn from(character_name: CharacterName) -> Self {
-
         Self {
             full: character_name.full,
             native: character_name.native,
@@ -114,7 +112,6 @@ impl From<CharacterName> for seiyuu_id::CharacterName {
 
 impl From<Character> for seiyuu_id::Character {
     fn from(character: Character) -> Self {
-
         Self {
             image: character.image.map(|image| image.into()),
             name: character.name.map(|name| name.into()),
@@ -124,16 +121,12 @@ impl From<Character> for seiyuu_id::Character {
 
 impl From<CharacterConnection> for seiyuu_id::CharacterConnection {
     fn from(character_connection: CharacterConnection) -> Self {
-
         let nodes: Option<Vec<Option<seiyuu_id::Character>>> =
             character_connection.nodes.map(|nodes| {
-
                 nodes
                     .into_iter()
                     .filter_map(|node| {
-
                         node.map(|node| {
-
                             let node: seiyuu_id::Character = node.into();
 
                             Some(node)
@@ -148,7 +141,6 @@ impl From<CharacterConnection> for seiyuu_id::CharacterConnection {
 
 impl From<StaffImage> for seiyuu_id::StaffImage {
     fn from(staff_image: StaffImage) -> Self {
-
         Self {
             large: staff_image.large,
         }
@@ -157,7 +149,6 @@ impl From<StaffImage> for seiyuu_id::StaffImage {
 
 impl From<StaffName> for seiyuu_id::StaffName {
     fn from(staff_name: StaffName) -> Self {
-
         Self {
             full: staff_name.full,
             native: staff_name.native,
@@ -168,7 +159,6 @@ impl From<StaffName> for seiyuu_id::StaffName {
 
 impl From<Staff> for seiyuu_id::Staff {
     fn from(staff: Staff) -> Self {
-
         Self {
             site_url: staff.site_url,
             image: staff.image.map(|image| image.into()),

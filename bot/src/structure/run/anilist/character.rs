@@ -1,16 +1,16 @@
-use std::error::Error;
 
 use crate::config::DbConfig;
 use crate::constant::COLOR;
+use crate::error_management::error_dispatch;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CommandInteraction, Context as SerenityContext, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::log::trace;
+use anyhow::{Context, Result, Error};
 
 #[cynic::schema("anilist")]
 
@@ -85,44 +85,12 @@ pub struct FuzzyDate {
     pub year: Option<i32>,
     pub day: Option<i32>,
 }
-
-/// `send_embed` is an asynchronous function that sends an embed message.
-/// It takes `ctx`, `command_interaction`, and `data` as parameters.
-/// `ctx` is a Context that represents the context.
-/// `command_interaction` is a CommandInteraction that represents the command interaction.
-/// `data` is a CharacterWrapper that represents the character wrapper.
-///
-/// This function first gets the guild ID from the `command_interaction`.
-/// It then clones the character from the `data`.
-/// It loads the localized character using the guild ID.
-/// It clones the date of birth data from the character.
-/// It creates a date of birth string from the date of birth data.
-/// It replaces the placeholders in the description of the localized character with the actual data from the character.
-/// It converts the AniList flavored markdown in the description to Discord flavored markdown.
-/// It trims the description if it exceeds the limit.
-/// It gets the native name and the user preferred name from the character and formats them into a character name.
-/// It creates a new embed with the description, the thumbnail, the title, and the URL of the character.
-/// It creates a new interaction response message with the embed.
-/// It creates a new interaction response with the interaction response message.
-/// It then sends the interaction response using the `command_interaction`.
-///
-/// # Arguments
-///
-/// * `ctx` - A Context that represents the context.
-/// * `command_interaction` - A CommandInteraction that represents the command interaction.
-/// * `data` - A CharacterWrapper that represents the character wrapper.
-///
-/// # Returns
-///
-/// * `Result<(), AppError>` - A Result that represents the result of the function. It returns an empty Ok if the function is successful, otherwise it returns an Err with an AppError.
-
 pub async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     character: Character,
     db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
-
+) -> Result<()> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -137,7 +105,6 @@ pub async fn send_embed(
     let mut fields = Vec::new();
 
     if let Some(date_of_birth_data) = date_of_birth_data {
-
         let mut has_month: bool = false;
 
         let mut has_day: bool = false;
@@ -145,16 +112,13 @@ pub async fn send_embed(
         let mut date_of_birth_string = String::new();
 
         if let Some(m) = date_of_birth_data.month {
-
             date_of_birth_string.push_str(format!("{:02}", m).as_str());
 
             has_month = true
         }
 
         if let Some(d) = date_of_birth_data.day {
-
             if has_month {
-
                 date_of_birth_string.push('/')
             }
 
@@ -164,9 +128,7 @@ pub async fn send_embed(
         }
 
         if let Some(y) = date_of_birth_data.year {
-
             if has_day {
-
                 date_of_birth_string.push('/')
             }
 
@@ -183,28 +145,24 @@ pub async fn send_embed(
     let gender = character.gender.clone();
 
     if let Some(gender) = gender {
-
         fields.push((character_localised.gender, gender, true));
     }
 
     let age = character.age.clone();
 
     if let Some(age) = age {
-
         fields.push((character_localised.age, age, true));
     }
 
     let favourites = character.favourites;
 
     if let Some(favourites) = favourites {
-
         fields.push((character_localised.fav, favourites.to_string(), true));
     }
 
     let blood_type = character.blood_type.clone();
 
     if let Some(blood_type) = blood_type {
-
         fields.push((character_localised.blood_type, blood_type, true));
     }
 
@@ -215,16 +173,15 @@ pub async fn send_embed(
     let length_diff = 4096 - desc.len() as i32;
 
     if length_diff <= 0 {
-
         desc = trim(desc, length_diff)
     }
 
     let name = match character.name.clone() {
         Some(name) => name,
         None => {
-            return Err(Box::new(error_dispatch::Error::Option(
+            return Err(Error::from(
                 "No name found".to_string(),
-            )))
+            ))
         }
     };
 
@@ -243,9 +200,7 @@ pub async fn send_embed(
         .fields(fields);
 
     if let Some(image) = character.image {
-
         if let Some(large) = image.large {
-
             builder_embed = builder_embed.thumbnail(large)
         }
     }

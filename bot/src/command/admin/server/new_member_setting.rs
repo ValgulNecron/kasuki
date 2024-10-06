@@ -6,8 +6,8 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::constant::{NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
+use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::{
     get_option_map_attachment_subcommand_group, get_option_map_boolean_subcommand_group,
     get_option_map_channel_subcommand_group,
@@ -28,19 +28,16 @@ pub struct NewMemberSettingCommand {
 
 impl Command for NewMemberSettingCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for NewMemberSettingCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -50,7 +47,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     let bool_map = get_option_map_boolean_subcommand_group(command_interaction);
 
     let attachment = get_option_map_attachment_subcommand_group(command_interaction);
@@ -103,7 +99,6 @@ async fn send_embed(
 
     let attachment = match attachment {
         Some(attachment) => {
-
             // create NEW_MEMBER_IMAGE_PATH if it doesn't exist
             fs::create_dir_all(NEW_MEMBER_IMAGE_PATH)?;
 

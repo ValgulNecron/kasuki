@@ -100,7 +100,6 @@ pub const UNKNOWN: &str = "Unknown";
 /// Map of language codes to language names.
 
 pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
-
     let languages = [("en", "english"), ("fr", "french"), ("de", "german"), ("ja", "japanese")];
 
     languages.iter().cloned().collect()
@@ -117,10 +116,6 @@ pub const LOGS_PREFIX: &str = "kasuki_";
 /// Suffix for the logs
 
 pub const LOGS_SUFFIX: &str = "log";
-
-/// Guard for the non-blocking appender.
-
-pub static mut GUARD: Option<tracing_appender::non_blocking::WorkerGuard> = None;
 
 /// Default string value.
 

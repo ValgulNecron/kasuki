@@ -5,11 +5,11 @@ use tracing_subscriber::filter::{Directive, EnvFilter};
 use tracing_subscriber::fmt;
 use tracing_subscriber::layer::SubscriberExt;
 
-use crate::constant::{GUARD, LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, OTHER_CRATE_LEVEL};
+use crate::constant::{LOGS_PATH, LOGS_PREFIX, LOGS_SUFFIX, OTHER_CRATE_LEVEL};
 use anyhow::{Context, Result};
+use tracing_appender::non_blocking::WorkerGuard;
 
-pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<()> {
-
+pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<WorkerGuard> {
     let kasuki_filter = match log {
         "warn" => "kasuki=warn",
         "error" => "kasuki=error",
@@ -42,11 +42,6 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<()> {
 
     let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
-    unsafe {
-
-        GUARD = Some(guard);
-    }
-
     let format = fmt::layer().with_ansi(true);
 
     let registry = tracing_subscriber::registry()
@@ -59,15 +54,15 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<()> {
         );
 
     tracing::subscriber::set_global_default(registry)
-        .context("Failed to set global default subscriber")
+        .context("Failed to set global default subscriber")?;
+
+    Ok(guard)
 }
 
 pub fn create_log_directory() -> Result<()> {
-
     fs::create_dir_all("../logs").context("Failed to create log directory")
 }
 
 fn get_directive(filter: &str) -> Result<Directive> {
-
     Directive::from_str(filter).context("Failed to create directive")
 }

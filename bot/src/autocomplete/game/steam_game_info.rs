@@ -46,7 +46,6 @@ pub async fn autocomplete(
     autocomplete_interaction: CommandInteraction,
     apps: Arc<RwLock<HashMap<String, u128>>>,
 ) {
-
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 
     let game_search = map
@@ -77,20 +76,15 @@ pub async fn autocomplete(
     // truncate the name are longer than 0 characters and less than 100 characters
     // to prevent the discord api from returning an error
     if !result.is_empty() {
-
         for (name, _) in result {
-
             let name_show = if name.len() > 100 {
-
                 // first 100 characters
                 name.chars().take(100).collect::<String>()
             } else {
-
                 name.clone()
             };
 
             if !name.is_empty() {
-
                 choices.push(AutocompleteChoice::new(
                     name_show.clone(),
                     guard[&name].to_string(),
@@ -111,7 +105,6 @@ pub async fn autocomplete(
         .create_response(ctx.http, builder)
         .await
     {
-
         debug!("Error sending response: {:?}", why);
     }
 }

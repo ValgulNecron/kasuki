@@ -29,7 +29,6 @@ pub struct Stats {
 pub async fn get_stats(
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Stats, Box<dyn Error>> {
-
     let path = "/stats".to_string();
 
     let response = do_request_cached(path.clone(), vndb_cache).await?;

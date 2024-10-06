@@ -43,7 +43,6 @@ impl Info for InfoService {
         &self,
         _request: Request<InfoRequest>,
     ) -> Result<Response<InfoResponse>, Status> {
-
         trace!("Got a info request");
 
         let bot_data = self.bot_info.clone();
@@ -78,7 +77,6 @@ impl Info for InfoService {
         let mut shard_info = Vec::new();
 
         for (shard_id, shard) in shard_manager.iter() {
-
             let id = shard_id.0.to_string();
 
             let latency = shard.latency.unwrap_or_default().as_millis().to_string();
@@ -133,7 +131,6 @@ impl Info for InfoService {
 
         let bot_profile: Option<BotProfile> = match bot_data {
             Ok(user) => {
-
                 let profile_picture = user.face();
 
                 let banner = user.banner_url();
@@ -175,7 +172,6 @@ impl Info for InfoService {
 
         let owner_info = match (owner_data, team) {
             (Ok(user), None) => {
-
                 let profile_picture = user.face();
 
                 let banner = user.banner_url();
@@ -191,7 +187,6 @@ impl Info for InfoService {
                 })
             }
             (_, Some(team)) => {
-
                 let name = team.name;
 
                 let id = team.id.to_string();
@@ -213,7 +208,6 @@ impl Info for InfoService {
                 let mut team_owner = None;
 
                 for member in team.members {
-
                     let owner_id = owner_id.to_string();
 
                     let role: InternalTeamMemberRole = member.role.into();
@@ -235,7 +229,6 @@ impl Info for InfoService {
                     trace!(owner_id);
 
                     if id == owner_id {
-
                         team_owner = Some(TeamMember {
                             role: role.to_string(),
                             membership_state: membership_state.to_string(),
@@ -282,7 +275,6 @@ impl Info for InfoService {
         let mut members: Vec<Member> = Vec::new();
 
         for guild in self.cache.guilds() {
-
             let real_guild = match guild.to_partial_guild_with_counts(&self.http).await {
                 Ok(guild) => guild,
                 _ => continue,
@@ -308,7 +300,6 @@ impl Info for InfoService {
             members.append(&mut members_temp.clone());
 
             while members_temp.len() > 1000 {
-
                 members_temp = real_guild
                     .members(
                         &self.http,
@@ -349,7 +340,6 @@ impl Info for InfoService {
         let mut users = Vec::new();
 
         for member in members {
-
             let user = match member.user.id.to_user(&self.http).await {
                 Ok(user) => user,
                 _ => continue,
@@ -373,7 +363,6 @@ impl Info for InfoService {
 
             // If there are, iterate over the flags and add them to a vector
             for (flag, _) in flags.iter_names() {
-
                 user_flags.push(flag)
             }
 
@@ -390,7 +379,6 @@ impl Info for InfoService {
             let contain = users.iter().any(|u: &User| u.id == user.id);
 
             if contain {
-
                 let index = users
                     .iter()
                     .position(|u| u.id == user.id)
@@ -476,6 +464,5 @@ impl Info for InfoService {
 }
 
 pub fn get_info_server(info_service: InfoService) -> InfoServer<InfoService> {
-
     InfoServer::new(info_service)
 }

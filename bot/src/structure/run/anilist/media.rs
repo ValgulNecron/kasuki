@@ -1,17 +1,16 @@
-use std::error::Error;
 use std::fmt::Display;
 
 use crate::config::DbConfig;
 use crate::constant::{COLOR, UNKNOWN};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
 use serenity::all::{
-    CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
+    CommandInteraction, Context as SerenityContext, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
 };
+use anyhow::{Context, Result, Error};
 
 #[cynic::schema("anilist")]
 
@@ -263,14 +262,12 @@ pub struct CountryCode(pub String);
 
 impl Display for CountryCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         write!(f, "{}", self.0.clone())
     }
 }
 
 impl Display for MediaType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         match self {
             MediaType::Anime => write!(f, "Anime"),
             MediaType::Manga => write!(f, "Manga"),
@@ -280,7 +277,6 @@ impl Display for MediaType {
 
 impl Display for MediaStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         match self {
             MediaStatus::Finished => write!(f, "Finished"),
             MediaStatus::Releasing => write!(f, "Releasing"),
@@ -293,7 +289,6 @@ impl Display for MediaStatus {
 
 impl Display for MediaSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         match self {
             MediaSource::Original => write!(f, "Original"),
             MediaSource::Manga => write!(f, "Manga"),
@@ -316,7 +311,6 @@ impl Display for MediaSource {
 
 impl Display for MediaFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         match self {
             MediaFormat::Tv => write!(f, "TV"),
             MediaFormat::TvShort => write!(f, "TV Short"),
@@ -334,7 +328,6 @@ impl Display for MediaFormat {
 
 impl Display for MediaSeason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         match self {
             MediaSeason::Winter => write!(f, "Winter"),
             MediaSeason::Spring => write!(f, "Spring"),
@@ -346,7 +339,6 @@ impl Display for MediaSeason {
 
 impl Display for CharacterRole {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         match self {
             CharacterRole::Main => write!(f, "Main"),
             CharacterRole::Supporting => write!(f, "Supporting"),
@@ -355,26 +347,7 @@ impl Display for CharacterRole {
     }
 }
 
-/// `embed_title` is a function that creates a title for the embed.
-/// It takes a `data` as a parameter.
-/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
-/// It returns a String that represents the title of the embed.
-///
-/// This function first gets the English and Romaji titles from the `data`.
-/// It then checks if the English title is not empty and adds it to the title.
-/// It also checks if the Romaji title is not empty and adds it to the title.
-/// If the English title is not empty and the Romaji title is not empty, it separates them with a slash.
-///
-/// # Arguments
-///
-/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the title of the embed.
-
 fn embed_title(title: &MediaTitle) -> String {
-
     let en = title.english.clone();
 
     let rj = title.romaji.clone();
@@ -390,7 +363,6 @@ fn embed_title(title: &MediaTitle) -> String {
     match en.as_str() {
         "" => {}
         _ => {
-
             has_en_title = true;
 
             title.push_str(en.as_str())
@@ -401,12 +373,10 @@ fn embed_title(title: &MediaTitle) -> String {
         "" => {}
         _ => {
             if has_en_title {
-
                 title.push_str(" / ");
 
                 title.push_str(rj.as_str())
             } else {
-
                 title.push_str(rj.as_str())
             }
         }
@@ -415,26 +385,7 @@ fn embed_title(title: &MediaTitle) -> String {
     title
 }
 
-/// `embed_desc` is a function that creates a description for the embed.
-/// It takes a `data` as a parameter.
-/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
-/// It returns a String that represents the description of the embed.
-///
-/// This function first gets the description from the `data`.
-/// It then converts the AniList flavored markdown in the description to Discord flavored markdown.
-/// It checks if the length of the description exceeds the limit.
-/// If it does, it trims the description to fit the limit.
-///
-/// # Arguments
-///
-/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the description of the embed.
-
 fn embed_desc(media: &Media) -> String {
-
     let mut desc = media.description.clone().unwrap_or_default();
 
     desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
@@ -442,32 +393,13 @@ fn embed_desc(media: &Media) -> String {
     let length_diff = 4096 - desc.len() as i32;
 
     if length_diff <= 0 {
-
         desc = trim(desc, length_diff)
     }
 
     desc
 }
 
-/// `get_genre` is a function that gets the genres of the media.
-/// It takes a `data` as a parameter.
-/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
-/// It returns a String that represents the genres of the media.
-///
-/// This function first gets the genres from the `data`.
-/// It then filters the genres that are not None and converts them to a string.
-/// It takes the first 5 genres and joins them with a newline.
-///
-/// # Arguments
-///
-/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the genres of the media.
-
 fn get_genre(genres: &[Option<String>]) -> String {
-
     genres
         .iter()
         .map(|string| string.clone().unwrap_or_default())
@@ -476,28 +408,9 @@ fn get_genre(genres: &[Option<String>]) -> String {
         .join("\n")
 }
 
-/// `get_tag` is a function that gets the tags of the media.
-/// It takes a `data` as a parameter.
-/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
-/// It returns a String that represents the tags of the media.
-///
-/// This function first gets the tags from the `data`.
-/// It then filters the tags that are not None and converts them to a string.
-/// It takes the first 5 tags and joins them with a newline.
-///
-/// # Arguments
-///
-/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the tags of the media.
-
 fn get_tag(tags: &[Option<MediaTag>]) -> String {
-
     tags.iter()
         .map(|media_tag| {
-
             media_tag
                 .clone()
                 .unwrap_or(MediaTag {
@@ -517,70 +430,18 @@ fn get_tag(tags: &[Option<MediaTag>]) -> String {
         .join("\n")
 }
 
-/// `get_url` is a function that gets the URL of the media.
-/// It takes a `data` as a parameter.
-/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
-/// It returns a String that represents the URL of the media.
-///
-/// This function first gets the URL from the `data`.
-/// If the URL is None, it returns a default URL.
-///
-/// # Arguments
-///
-/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the URL of the media.
-
 fn get_url(media: &Media) -> String {
-
     media
         .site_url
         .clone()
         .unwrap_or("https://example.com".to_string())
 }
 
-/// `get_banner` is a function that gets the banner of the media.
-/// It takes a `data` as a parameter.
-/// `data` is a reference to a `MediaWrapper` that represents the media wrapper.
-/// It returns a String that represents the banner of the media.
-///
-/// This function first gets the ID of the media from the `data`.
-/// It then formats the ID into a URL that represents the banner of the media.
-///
-/// # Arguments
-///
-/// * `data` - A reference to a `MediaWrapper` that represents the media wrapper.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the banner of the media.
-
 pub fn get_banner(media: &Media) -> String {
-
     format!("https://img.anili.st/media/{}", media.id)
 }
 
-/// `get_date` is a function that gets the date.
-/// It takes a `date` as a parameter.
-/// `date` is a reference to a `StartEndDate` that represents the start or end date.
-/// It returns a String that represents the date.
-///
-/// This function first gets the year, the day, and the month from the `date`.
-/// If the year, the day, and the month are all 0, it returns a default date.
-/// Otherwise, it formats the year, the day, and the month into a date string.
-///
-/// # Arguments
-///
-/// * `date` - A reference to a `StartEndDate` that represents the start or end date.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the date.
-
 fn get_date(date: &FuzzyDate) -> String {
-
     let date_y = date.year.unwrap_or(0);
 
     let date_d = date.day.unwrap_or(0);
@@ -588,10 +449,8 @@ fn get_date(date: &FuzzyDate) -> String {
     let date_m = date.month.unwrap_or(0);
 
     if date_y == 0 && date_d == 0 && date_m == 0 {
-
         UNKNOWN.to_string()
     } else {
-
         let mut date_of_birth_string = String::new();
 
         let mut has_month: bool = false;
@@ -599,16 +458,13 @@ fn get_date(date: &FuzzyDate) -> String {
         let mut has_day: bool = false;
 
         if let Some(m) = date.month {
-
             date_of_birth_string.push_str(format!("{:02}", m).as_str());
 
             has_month = true
         }
 
         if let Some(d) = date.day {
-
             if has_month {
-
                 date_of_birth_string.push('/')
             }
 
@@ -618,9 +474,7 @@ fn get_date(date: &FuzzyDate) -> String {
         }
 
         if let Some(y) = date.year {
-
             if has_day {
-
                 date_of_birth_string.push('/')
             }
 
@@ -631,39 +485,14 @@ fn get_date(date: &FuzzyDate) -> String {
     }
 }
 
-/// `get_staff` is a function that gets the staff of the media.
-/// It takes `staff` and `staff_string` as parameters.
-/// `staff` is a reference to a vector of `Edge` that represents the staff.
-/// `staff_string` is a reference to a string that represents the staff string.
-/// It returns a String that represents the staff of the media.
-///
-/// This function first creates a new string for the staff text.
-/// It then iterates over the staff and gets the node and the name from each staff.
-/// It gets the full name and the user preferred name from the name.
-/// It sets the staff name to the user preferred name if it is not None, otherwise it sets it to the full name.
-/// It gets the role from the staff and sets it to a default string if it is None.
-/// It then replaces the placeholders in the staff string with the staff name and the role and adds it to the staff text.
-///
-/// # Arguments
-///
-/// * `staff` - A reference to a vector of `Edge` that represents the staff.
-/// * `staff_string` - A reference to a string that represents the staff string.
-///
-/// # Returns
-///
-/// * `String` - A String that represents the staff of the media.
-
 fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
-
     let mut staff_text = String::new();
 
     // iterate over staff with index
     let mut i = 0;
 
     for s in staff.into_iter() {
-
         if i > 4 {
-
             break;
         }
 
@@ -703,22 +532,18 @@ fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 }
 
 fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
-
     let mut character_text = String::new();
 
     // iterate over staff with index
     let mut i = 0;
 
     for s in character.into_iter() {
-
         if i > 4 {
-
             break;
         }
 
         let name = match s {
             Some(s) => {
-
                 let node = match s.node {
                     Some(n) => n,
                     None => continue,
@@ -748,43 +573,16 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
     character_text
 }
 
-/// `send_embed` is an asynchronous function that sends an embed.
-/// It takes `ctx`, `command_interaction`, and `data` as parameters.
-/// `ctx` is a Context that represents the context.
-/// `command_interaction` is a CommandInteraction that represents the command interaction.
-/// `data` is a MediaWrapper that represents the media wrapper.
-///
-/// This function first checks if the media is adult and if the channel is not NSFW.
-/// If it is, it returns an error.
-/// It then gets the guild ID from the `command_interaction`.
-/// It loads the localized media using the guild ID.
-/// It creates a new embed with the description, the title, the URL, the genre, the tag, the thumbnail, and the image of the media.
-/// It creates a new interaction response message with the embed.
-/// It creates a new interaction response with the interaction response message.
-/// It then sends the interaction response using the `command_interaction`.
-///
-/// # Arguments
-///
-/// * `ctx` - A Context that represents the context.
-/// * `command_interaction` - A CommandInteraction that represents the command interaction.
-/// * `data` - A MediaWrapper that represents the media wrapper.
-///
-/// # Returns
-///
-/// * `Result<(), AppError>` - A Result that represents the result of the function. It returns an empty Ok if the function is successful, otherwise it returns an Err with an AppError.
-
 pub async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     data: Media,
     db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
-
+) -> Result<()> {
     let is_adult = data.is_adult.unwrap_or(true);
 
     if is_adult && !get_nsfw(command_interaction, ctx).await {
-
-        return Err(Box::new(error_dispatch::Error::AdultMedia));
+        return Err(Error::from("This an adult media in a non adult channel"));
     }
 
     let guild_id = match command_interaction.guild_id {
@@ -809,15 +607,7 @@ pub async fn send_embed(
 
     let tag = tag
         .into_iter()
-        .filter_map(|t| {
-            if let Some(t) = t {
-
-                Some(t.name)
-            } else {
-
-                None
-            }
-        })
+        .filter_map(|t| if let Some(t) = t { Some(t.name) } else { None })
         .take(5)
         .collect::<Vec<String>>();
 
@@ -826,9 +616,7 @@ pub async fn send_embed(
     fields.push((media_localised.genre, genres.join(", "), true));
 
     if let Some(staff) = data.staff.clone() {
-
         if let Some(edges) = staff.edges {
-
             let staffs = get_staff(edges);
 
             fields.push((media_localised.staffs, staffs, true));
@@ -836,9 +624,7 @@ pub async fn send_embed(
     }
 
     if let Some(characters) = data.characters.clone() {
-
         if let Some(edges) = characters.edges {
-
             let characters = get_character(edges);
 
             fields.push((media_localised.characters, characters, true));
@@ -846,31 +632,25 @@ pub async fn send_embed(
     }
 
     if let Some(format) = data.format {
-
         fields.push((media_localised.format, format.to_string(), true))
     }
 
     if let Some(source) = data.source {
-
         fields.push((media_localised.source, source.to_string(), true))
     }
 
     if let Some(start_date) = data.start_date.clone() {
-
         let mut start_date_str = String::new();
 
         if let Some(day) = start_date.day {
-
             start_date_str.push_str(format!("{}/", day).as_str());
         }
 
         if let Some(month) = start_date.month {
-
             start_date_str.push_str(format!("{}/", month).as_str());
         }
 
         if let Some(year) = start_date.year {
-
             start_date_str.push_str(year.to_string().as_str());
         }
 
@@ -878,21 +658,17 @@ pub async fn send_embed(
     }
 
     if let Some(end_date) = data.end_date.clone() {
-
         let mut end_date_str = String::new();
 
         if let Some(day) = end_date.day {
-
             end_date_str.push_str(format!("{}/", day).as_str());
         }
 
         if let Some(month) = end_date.month {
-
             end_date_str.push_str(format!("{}/", month).as_str());
         }
 
         if let Some(year) = end_date.year {
-
             end_date_str.push_str(year.to_string().as_str());
         }
 
@@ -900,13 +676,11 @@ pub async fn send_embed(
     }
 
     if let Some(favourites) = data.favourites {
-
         fields.push((media_localised.fav, favourites.to_string(), true))
     }
 
     match data.duration {
         Some(duration) => {
-
             fields.push((
                 media_localised.duration,
                 format!("{} {}", duration, media_localised.minutes),
@@ -915,7 +689,6 @@ pub async fn send_embed(
         }
         None => {
             if let Some(chapters) = data.chapters {
-
                 fields.push((
                     media_localised.duration,
                     format!("{} {}", chapters, media_localised.chapter),
@@ -928,9 +701,9 @@ pub async fn send_embed(
     let title = match data.title.clone() {
         Some(t) => t,
         None => {
-            return Err(Box::new(error_dispatch::Error::Option(String::from(
+            return Err(Error::from(
                 "No title",
-            ))))
+            ))
         }
     };
 
@@ -943,9 +716,7 @@ pub async fn send_embed(
         .fields(fields);
 
     if let Some(image) = data.cover_image {
-
         if let Some(extra_large) = image.extra_large {
-
             builder_embed = builder_embed.thumbnail(extra_large);
         }
     }

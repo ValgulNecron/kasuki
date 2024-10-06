@@ -4,9 +4,9 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
+use crate::error_management::error_dispatch;
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::{
     get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
@@ -32,19 +32,16 @@ pub struct TranscriptCommand<'de> {
 
 impl Command for TranscriptCommand<'_> {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for TranscriptCommand<'_> {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
@@ -53,7 +50,6 @@ impl SlashCommand for TranscriptCommand<'_> {
             )
             .await?
         {
-
             return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "You have reached your hourly limit. Please try again later.",
             ))));
@@ -68,7 +64,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     let map = get_option_map_string_subcommand(command_interaction);
 
     let attachment_map = get_option_map_attachment_subcommand(command_interaction);
@@ -107,7 +102,6 @@ async fn send_embed(
     let transcript_localised = load_localization_transcript(guild_id, config.db.clone()).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-
         return Err(Box::new(error_dispatch::Error::File(String::from(
             "Unsupported file type",
         ))));
@@ -140,7 +134,6 @@ async fn send_embed(
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
-
         return Err(Box::new(error_dispatch::Error::File(String::from(
             "Unsupported file extension",
         ))));
@@ -176,13 +169,10 @@ async fn send_embed(
 
     // check the last 3 characters of the url if it v1/ or v1 or something else
     let url = if api_base_url.ends_with("v1/") {
-
         format!("{}audio/transcriptions/", api_base_url)
     } else if api_base_url.ends_with("v1") {
-
         format!("{}/audio/transcriptions/", api_base_url)
     } else {
-
         format!("{}/v1/audio/transcriptions/", api_base_url)
     };
 

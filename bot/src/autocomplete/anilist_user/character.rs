@@ -48,7 +48,6 @@ pub async fn autocomplete(
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
-
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 
     let character_search = map.get(&String::from("name")).unwrap_or(DEFAULT_STRING);
@@ -63,7 +62,6 @@ pub async fn autocomplete(
         match make_request_anilist(operation, false, anilist_cache).await {
             Ok(data) => data,
             Err(e) => {
-
                 tracing::debug!(?e);
 
                 return;
@@ -83,7 +81,6 @@ pub async fn autocomplete(
             None => return,
         },
         None => {
-
             tracing::debug!(?data.errors);
 
             return;
@@ -91,7 +88,6 @@ pub async fn autocomplete(
     };
 
     for character in characters {
-
         let data = character.unwrap();
 
         let name = data.name.unwrap();

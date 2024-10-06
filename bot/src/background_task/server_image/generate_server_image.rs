@@ -25,10 +25,10 @@ use crate::background_task::server_image::common::{
 };
 use crate::config::ImageConfig;
 use crate::constant::THREAD_POOL_SIZE;
+use crate::database::prelude::{ServerImage, UserColor};
+use crate::database::server_image::{ActiveModel, Column};
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::new_member::change_to_x256_url;
-use crate::structure::database::prelude::{ServerImage, UserColor};
-use crate::structure::database::server_image::{ActiveModel, Column};
 
 pub async fn generate_local_server_image(
     ctx: &SerenityContext,
@@ -36,13 +36,11 @@ pub async fn generate_local_server_image(
     image_config: ImageConfig,
     connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
-
     let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
 
     let average_colors = return_average_user_color(members, connection.clone())
         .await
         .map_err(|e| {
-
             anyhow!(
                 "Failed to return average user color for guild {}. {:?}",
                 guild_id,
@@ -69,7 +67,6 @@ pub async fn generate_global_server_image(
     image_config: ImageConfig,
     connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
-
     let average_colors = UserColor::find().all(&*connection).await?;
 
     let color_vec = create_color_vector_from_user_color(average_colors.clone());
@@ -93,7 +90,6 @@ pub async fn generate_server_image(
     image_config: ImageConfig,
     connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
-
     info!("Generating server image for {}.", guild_id);
 
     let guild = guild_id
@@ -109,7 +105,7 @@ pub async fn generate_server_image(
 
     let img = get_image_from_url(guild_pfp.clone()).await?;
 
-    let dim = 128 * 64;
+    let dim = 128 * 1024;
 
     let mut combined_image = DynamicImage::new_rgba8(dim, dim);
 
@@ -119,9 +115,7 @@ pub async fn generate_server_image(
     let mut handles = Vec::new();
 
     for y in 0..img.height() {
-
         for x in 0..img.width() {
-
             let pixel = img.get_pixel(x, y);
 
             let color_vec_moved = average_colors.clone();
@@ -129,7 +123,6 @@ pub async fn generate_server_image(
             let vec_image_clone = Arc::clone(&vec_image_rw);
 
             let handle = thread::spawn(move || {
-
                 let r = pixel[0] as f32 / 255.0;
 
                 let g = pixel[1] as f32 / 255.0;
@@ -158,9 +151,7 @@ pub async fn generate_server_image(
             handles.push(handle);
 
             if handles.len() >= THREAD_POOL_SIZE {
-
                 for handle in handles {
-
                     match handle.join() {
                         Ok(_) => {}
                         Err(_) => continue,
@@ -175,7 +166,6 @@ pub async fn generate_server_image(
     let vec_image = vec_image_rw
         .read()
         .map_err(|e| {
-
             anyhow!(
                 "Failed to read from RwLock<Vec<(u32, u32, DynamicImage)>>. {:?}",
                 e
@@ -188,8 +178,7 @@ pub async fn generate_server_image(
     let internal_vec = vec_image.clone();
 
     for (x, y, image) in internal_vec {
-
-        match combined_image.copy_from(&image, x * 64, y * 64) {
+        match combined_image.copy_from(&image, x * 1024, y * 1024) {
             Ok(_) => {}
             Err(_) => continue,
         }
@@ -241,7 +230,6 @@ pub async fn generate_server_image(
     )
     .await
     .map_err(|e| {
-
         anyhow!(
             "Failed to save server image for guild {}. {:?}",
             guild_id,
@@ -277,9 +265,7 @@ pub async fn server_image_management(
     image_config: ImageConfig,
     connection: Arc<DatabaseConnection>,
 ) {
-
     for guild in ctx.cache.guilds() {
-
         let ctx_clone = ctx.clone();
 
         let guild_clone = guild;
@@ -289,18 +275,15 @@ pub async fn server_image_management(
         let connection_a = connection.clone();
 
         task::spawn(async move {
-
             if let Err(e) =
                 generate_local_server_image(&ctx_clone, guild_clone, image_config_a, connection_a)
                     .await
             {
-
                 warn!(
                     "Failed to generate local server image for guild {}. {:?}",
                     guild, e
                 );
             } else {
-
                 info!("Generated local server image for guild {}", guild);
             }
         });
@@ -308,13 +291,11 @@ pub async fn server_image_management(
         if let Err(e) =
             generate_global_server_image(ctx, guild, image_config.clone(), connection.clone()).await
         {
-
             warn!(
                 "Failed to generate global server image for guild {}. {:?}",
                 guild, e
             );
         } else {
-
             info!("Generated global server image for guild {}", guild);
         }
     }

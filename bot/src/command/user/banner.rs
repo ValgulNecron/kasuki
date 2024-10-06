@@ -18,19 +18,16 @@ pub struct BannerCommand {
 
 impl Command for BannerCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for BannerCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         let user = get_user_command(&self.ctx, &self.command_interaction).await?;
 
         send_embed(&self.ctx, &self.command_interaction, user, &self.config).await
@@ -39,7 +36,6 @@ impl SlashCommand for BannerCommand {
 
 impl UserCommand for BannerCommand {
     async fn run_user(&self) -> Result<(), Box<dyn Error>> {
-
         let user = get_user_command_user(&self.ctx, &self.command_interaction);
 
         send_embed(
@@ -58,7 +54,6 @@ pub async fn no_banner(
     username: &str,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
-
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -87,13 +82,11 @@ pub async fn send_embed(
     user: User,
     config: &Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     let db_config = config.db.clone();
 
     let banner = match user.banner_url() {
         Some(url) => url,
         None => {
-
             no_banner(ctx, command_interaction, &user.name, db_config).await?;
 
             return Ok(());

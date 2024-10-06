@@ -36,7 +36,6 @@ pub async fn load_localization_translation(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<TranslationLocalised> {
-
     let path = "json/message/ai/translation.json";
 
     load_localization(guild_id, path, db_config).await

@@ -4,11 +4,11 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::config::DbConfig;
+use crate::database::prelude::UserColor;
+use crate::database::user_color::{ActiveModel, Column, Model};
 use crate::event_handler::{add_user_data_to_db, BotData};
 use crate::get_url;
 use crate::new_member::change_to_x256_url;
-use crate::structure::database::prelude::UserColor;
-use crate::structure::database::user_color::{ActiveModel, Column, Model};
 use anyhow::{Context, Result};
 use base64::engine::general_purpose;
 use base64::Engine;
@@ -35,17 +35,14 @@ pub async fn calculate_users_color(
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
     bot_data: Arc<BotData>,
 ) -> Result<(), Box<dyn Error>> {
-
     let guard = user_blacklist_server_image.read().await;
 
     let connection = bot_data.db_connection.clone();
 
     for member in members {
-
         trace!("Calculating user color for {}", member.user.id);
 
         if guard.contains(&member.user.id.to_string()) {
-
             debug!(
                 "Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE",
                 member.user.id
@@ -73,7 +70,6 @@ pub async fn calculate_users_color(
         let pfp_url_old = user_color.profile_picture_url.clone();
 
         if pfp_url != pfp_url_old {
-
             let (average_color, image): (String, String) =
                 calculate_user_color(member.user.clone()).await?;
 
@@ -109,11 +105,9 @@ pub async fn return_average_user_color(
     members: Vec<Member>,
     connection: Arc<DatabaseConnection>,
 ) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
-
     let mut average_colors = Vec::with_capacity(members.len());
 
     for member in members {
-
         let pfp_url = change_to_x256_url(member.user.face());
 
         let id = member.user.id.to_string();
@@ -125,7 +119,6 @@ pub async fn return_average_user_color(
 
         match user_color {
             Some(user_color) => {
-
                 let (color, pfp_url_old, image_old) = (
                     user_color.color,
                     user_color.profile_picture_url,
@@ -133,7 +126,6 @@ pub async fn return_average_user_color(
                 );
 
                 if pfp_url != pfp_url_old {
-
                     let (average_color, image) = calculate_user_color(member.user.clone()).await?;
 
                     average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
@@ -162,7 +154,6 @@ pub async fn return_average_user_color(
                 average_colors.push((color, pfp_url_old, image_old));
             }
             None => {
-
                 let (average_color, image) = calculate_user_color(member.user.clone()).await?;
 
                 average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
@@ -192,7 +183,6 @@ pub async fn return_average_user_color(
 }
 
 async fn calculate_user_color(user: User) -> Result<(String, String), Box<dyn Error>> {
-
     let pfp_url = change_to_x256_url(user.face());
 
     let img = get_image_from_url(pfp_url).await?;
@@ -243,7 +233,6 @@ async fn calculate_user_color(user: User) -> Result<(String, String), Box<dyn Er
 }
 
 pub async fn get_image_from_url(url: String) -> Result<DynamicImage> {
-
     // Fetch the image data
     let resp = reqwest::get(&url)
         .await
@@ -268,11 +257,9 @@ pub async fn color_management(
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
     bot_data: Arc<BotData>,
 ) {
-
     let mut futures = FuturesUnordered::new();
 
     for guild in guilds {
-
         let guild_id = guild.to_string();
 
         debug!(guild_id);
@@ -289,7 +276,6 @@ pub async fn color_management(
     let mut members = Vec::new();
 
     while let Some(mut result) = futures.next().await {
-
         let guild_id = match result.first() {
             Some(member) => member.guild_id.to_string(),
             None => String::from(""),
@@ -313,26 +299,21 @@ pub async fn color_management(
 }
 
 pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Member> {
-
     let mut i = 0;
 
     let mut members_temp_out: Vec<Member> = Vec::new();
 
     while members_temp_out.len() == (1000 * i) {
-
         let mut members_temp_in = if i == 0 {
-
             match guild.members(&ctx_clone.http, Some(1000), None).await {
                 Ok(members) => members,
                 Err(e) => {
-
                     error!("{:?}", e);
 
                     break;
                 }
             }
         } else {
-
             let user: UserId = match members_temp_out.last() {
                 Some(member) => member.user.id,
                 None => break,
@@ -341,7 +322,6 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
             match guild.members(&ctx_clone.http, Some(1000), Some(user)).await {
                 Ok(members) => members,
                 Err(e) => {
-
                     error!("{:?}", e);
 
                     break;
@@ -362,13 +342,11 @@ pub async fn get_specific_user_color(
     user: User,
     db_config: DbConfig,
 ) {
-
     if user_blacklist_server_image
         .read()
         .await
         .contains(&user.id.to_string())
     {
-
         debug!(
             "Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE",
             user.id
@@ -401,7 +379,6 @@ pub async fn get_specific_user_color(
     let pfp_url_old = user_color.profile_picture_url.clone();
 
     if pfp_url_old == pfp_url {
-
         return;
     }
 

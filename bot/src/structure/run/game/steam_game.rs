@@ -3,8 +3,9 @@ use std::sync::Arc;
 
 use crate::config::DbConfig;
 use crate::constant::LANG_MAP;
-use crate::helper::error_management::error_dispatch;
+use crate::error_management::error_dispatch;
 use crate::helper::get_guild_lang::get_guild_language;
+use anyhow::{Context, Error, Result};
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
@@ -96,15 +97,12 @@ pub struct ReleaseDate {
     pub date: Option<String>,
 }
 
-use anyhow::{Context, Error, Result};
-
 impl SteamGameWrapper {
     pub async fn new_steam_game_by_id(
         appid: u128,
         guild_id: String,
         db_config: DbConfig,
     ) -> Result<SteamGameWrapper> {
-
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
             .build()
@@ -139,9 +137,7 @@ impl SteamGameWrapper {
         let re = Regex::new(r#""required_age":"(\d+)""#).expect("Failed to create regex");
 
         if let Some(cap) = re.captures(&text) {
-
             if let Some(number) = cap.get(1) {
-
                 let number_str = number.as_str();
 
                 let number: u32 = number_str.parse().expect("Not a number!");
@@ -161,9 +157,6 @@ impl SteamGameWrapper {
 
         let game = game_wrapper
             .get(&appid.to_string())
-            .ok_or(error_dispatch::Error::Option(String::from(
-                "Game not found",
-            )))
             .context("Failed to get game")?;
 
         Ok(game.clone())
@@ -175,7 +168,6 @@ impl SteamGameWrapper {
         apps: Arc<RwLock<HashMap<String, u128>>>,
         db_config: DbConfig,
     ) -> Result<SteamGameWrapper> {
-
         let guard = apps.read().await;
 
         let choices: Vec<(&String, &u128)> = guard.iter().collect();
@@ -187,36 +179,24 @@ impl SteamGameWrapper {
         let mut appid = &0u128;
 
         if results.is_empty() {
-
-            return Err(Error::from(error_dispatch::Error::Option(
-                "No game found".to_string(),
-            )));
+            return Err(Error::from("No game found".to_string()));
         }
 
         for (name, _) in results {
-
             if appid == &0u128 {
-
                 appid = match guard.get(name) {
                     Some(appid) => appid,
                     None => {
-
-                        return Err(Error::from(error_dispatch::Error::Option(
-                            "No game found".to_string(),
-                        )));
+                        return Err(Error::from("No game found".to_string()));
                     }
                 }
             }
 
             if search.to_lowercase() == name.to_lowercase() {
-
                 appid = match guard.get(name) {
                     Some(appid) => appid,
                     None => {
-
-                        return Err(Error::from(error_dispatch::Error::Option(
-                            "No game found".to_string(),
-                        )));
+                        return Err(Error::from("No game found".to_string()));
                     }
                 };
 

@@ -16,7 +16,6 @@ pub async fn autocomplete(
     autocomplete_interaction: CommandInteraction,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
-
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 
     let game = map.get(&String::from("name")).unwrap();
@@ -35,7 +34,6 @@ pub async fn autocomplete(
     trace!("Map: {:?}", map);
 
     for character in characters {
-
         choices.push(AutocompleteChoice::new(
             character.name.clone(),
             character.id.clone(),
@@ -50,7 +48,6 @@ pub async fn autocomplete(
         .create_response(ctx.http, builder)
         .await
     {
-
         tracing::error!("Error sending response: {:?}", e);
     }
 }

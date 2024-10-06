@@ -60,7 +60,6 @@ pub async fn get_character(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<CharacterRoot, Box<dyn Error>> {
-
     let value = value.to_lowercase();
 
     let value = value.trim();
@@ -70,13 +69,11 @@ pub async fn get_character(
     let is_number = value.chars().skip(1).all(|c| c.is_numeric());
 
     let json = if start_with_v && is_number {
-
         (r#"{
     		"filters": ["id", "=",""#.to_owned() + value + r#""],
     		"fields": "id,description, name,image.url,image.sexual,image.violence,blood_type,height,weight,bust,waist,hips,cup,age,sex,vns.title,traits.spoiler,traits.name"
 		}"#).to_string()
     } else {
-
         (r#"{
     		"filters": ["search", "=",""#.to_owned() + value + r#""],
     		"fields": "id,description, name,image.url,image.sexual,image.violence,blood_type,height,weight,bust,waist,hips,cup,age,sex,vns.title,traits.spoiler,traits.name"

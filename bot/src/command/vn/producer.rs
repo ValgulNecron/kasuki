@@ -24,19 +24,16 @@ pub struct VnProducerCommand {
 
 impl Command for VnProducerCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for VnProducerCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -53,7 +50,6 @@ async fn send_embed(
     config: Arc<Config>,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -77,12 +73,10 @@ async fn send_embed(
     let mut fields = vec![];
 
     if let Some(lang) = producer.lang {
-
         fields.push((producer_localised.lang.clone(), lang, true));
     }
 
     if let Some(aliases) = producer.aliases {
-
         let aliases = aliases
             .into_iter()
             .take(10)
@@ -93,7 +87,6 @@ async fn send_embed(
     }
 
     if let Some(results_type) = producer.results_type {
-
         fields.push((
             producer_localised.prod_type.clone(),
             results_type.to_string(),

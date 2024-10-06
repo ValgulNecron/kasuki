@@ -5,8 +5,8 @@ use std::sync::Arc;
 use crate::command::command_trait::SlashCommand;
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
+use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::studio::load_localization_studio;
@@ -29,19 +29,16 @@ pub struct StudioCommand {
 
 impl Command for StudioCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for StudioCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         let ctx = &self.ctx;
 
         let command_interaction = &self.command_interaction;
@@ -60,7 +57,6 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the name or ID of the studio from the command interaction
     let map = get_option_map_string(command_interaction);
 
@@ -72,7 +68,6 @@ async fn send_embed(
 
     // Fetch the studio's data from AniList
     let studio = if value.parse::<i32>().is_ok() {
-
         let id = value.parse::<i32>().unwrap();
 
         let var = StudioQuerryIdVariables { id: Some(id) };
@@ -84,7 +79,6 @@ async fn send_embed(
 
         data.data.unwrap().studio.unwrap()
     } else {
-
         let var = StudioQuerrySearchVariables {
             search: Some(value.as_str()),
         };
@@ -111,7 +105,6 @@ async fn send_embed(
 
     // Iterate over the nodes of the studio's media
     for m in studio.media.unwrap().nodes.unwrap() {
-
         // Clone the title of the media
         let m = m.unwrap();
 

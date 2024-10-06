@@ -36,7 +36,6 @@ pub async fn load_localization_random_image_nsfw(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<RandomImageNSFWLocalised> {
-
     let path = "json/message/anime_nsfw/random_image_nsfw.json";
 
     load_localization(guild_id, path, db_config).await

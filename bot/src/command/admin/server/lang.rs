@@ -1,11 +1,11 @@
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::database::guild_lang;
+use crate::database::prelude::GuildLang;
+use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
-use crate::structure::database::guild_lang;
-use crate::structure::database::prelude::GuildLang;
 use crate::structure::message::admin::server::lang::load_localization_lang;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
@@ -23,19 +23,16 @@ pub struct LangCommand {
 
 impl Command for LangCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for LangCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -45,7 +42,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     let map = get_option_map_string_subcommand_group(command_interaction);
 
     let lang = map

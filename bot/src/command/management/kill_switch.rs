@@ -1,11 +1,11 @@
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::database::kill_switch::{ActiveModel, Column};
+use crate::database::prelude::KillSwitch;
+use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
-use crate::structure::database::kill_switch::{ActiveModel, Column};
-use crate::structure::database::prelude::KillSwitch;
 use crate::structure::message::management::kill_switch::load_localization_kill_switch;
 use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
@@ -25,19 +25,16 @@ pub struct KillSwitchCommand {
 
 impl Command for KillSwitchCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for KillSwitchCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -47,7 +44,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -90,7 +86,6 @@ async fn send_embed(
         "ANIME" => row.anime_module = state,
         "VN" => row.vn_module = state,
         _ => {
-
             return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "The module specified does not exist",
             ))));
@@ -102,10 +97,8 @@ async fn send_embed(
     active_model.update(&connection).await?;
 
     let desc = if state {
-
         &module_localised.on
     } else {
-
         &module_localised.off
     };
 

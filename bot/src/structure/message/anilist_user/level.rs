@@ -36,7 +36,6 @@ pub async fn load_localization_level(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<LevelLocalised> {
-
     let path = "json/message/anilist_user/level.json";
 
     load_localization(guild_id, path, db_config).await

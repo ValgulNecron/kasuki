@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{
     CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
@@ -18,19 +18,16 @@ pub struct GuildCommand {
 
 impl Command for GuildCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for GuildCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -40,7 +37,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -149,13 +145,11 @@ async fn send_embed(
 
     // Add the guild's avatar to the embed if it exists
     if guild_avatar.is_some() {
-
         builder_embed = builder_embed.thumbnail(guild_avatar.unwrap())
     }
 
     // Add the guild's banner to the embed if it exists
     if guild_banner.is_some() {
-
         builder_embed = builder_embed.image(guild_banner.unwrap())
     }
 

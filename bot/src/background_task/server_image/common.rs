@@ -1,4 +1,4 @@
-use crate::structure::database::user_color::Model;
+use crate::database::user_color::Model;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use image::DynamicImage;
@@ -25,7 +25,6 @@ pub struct ColorWithUrl {
 }
 
 fn convert_hex_to_rgb(hex: String) -> (u8, u8, u8) {
-
     (
         hex[1..3].parse::<u8>().unwrap_or_default(),
         hex[3..5].parse::<u8>().unwrap_or_default(),
@@ -44,11 +43,9 @@ fn convert_hex_to_rgb(hex: String) -> (u8, u8, u8) {
 /// string is a hex color code, and the third string is an image in base64 format.
 
 pub fn create_color_vector_from_tuple(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUrl> {
-
     tuples
         .into_iter()
         .filter_map(|(hex, _, image)| {
-
             let (r, g, b) = convert_hex_to_rgb(hex);
 
             let input = image.trim_start_matches("data:image/png;base64,");
@@ -75,11 +72,9 @@ pub fn create_color_vector_from_tuple(tuples: Vec<(String, String, String)>) -> 
 /// * `tuples` - A vector of `UserColor` objects.
 
 pub fn create_color_vector_from_user_color(tuples: Vec<Model>) -> Vec<ColorWithUrl> {
-
     tuples
         .into_iter()
         .filter_map(|user_color| {
-
             let hex = user_color.color;
 
             let image = user_color.images;
@@ -115,11 +110,9 @@ pub fn create_color_vector_from_user_color(tuples: Vec<Model>) -> Vec<ColorWithU
 /// * `Option<ColorWithUrl>` - Returns an optional `ColorWithUrl`. If the closest color is found, it returns `Some(ColorWithUrl)`. If the colors list is empty, it returns `None`.
 
 pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<ColorWithUrl> {
-
     colors
         .iter()
         .min_by(|&a, &b| {
-
             let delta_e_a = a.cielab.improved_delta_e(target.cielab);
 
             let delta_e_b = b.cielab.improved_delta_e(target.cielab);
@@ -145,7 +138,6 @@ pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<Col
 /// * `Option<ColorWithUrl>` - Returns an optional `ColorWithUrl`. If the RGB color values are valid, it returns `Some(ColorWithUrl)`. If any of the RGB color values are invalid, it returns `None`.
 
 pub fn get_color_with_url(img: DynamicImage, r: u8, g: u8, b: u8) -> ColorWithUrl {
-
     let rgb_color = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
 
     let lab_color: Lab = rgb_color.into_color();

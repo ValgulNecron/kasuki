@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::structure::message::bot::ping::load_localization_ping;
 use crate::type_map_key::ShardManagerContainer;
 use serenity::all::{
@@ -19,19 +19,16 @@ pub struct PingCommand {
 
 impl Command for PingCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for PingCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -41,7 +38,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -57,7 +53,6 @@ async fn send_embed(
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
         None => {
-
             return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "Could not get the shard manager from the context data",
             ))));
@@ -76,7 +71,6 @@ async fn send_embed(
     let shard_runner_info = match shard_manager.get(&shard_id) {
         Some(data) => data,
         None => {
-
             return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "Could not get the shard runner info from the shard manager",
             ))));

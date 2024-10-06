@@ -35,7 +35,6 @@ impl proto::shard_server::Shard for ShardService {
         &self,
         _request: Request<proto::ShardCountRequest>,
     ) -> Result<Response<proto::ShardCountResponse>, Status> {
-
         trace!("Got a shard count request");
 
         // Clone the shard_manager
@@ -46,7 +45,6 @@ impl proto::shard_server::Shard for ShardService {
 
         // Iterate over the shard runners and push their ids to the shard_ids vector
         for (shard_id, _) in shard_manager.runners.lock().await.iter() {
-
             shard_ids.push(shard_id.0 as i32);
         }
 
@@ -68,7 +66,6 @@ impl proto::shard_server::Shard for ShardService {
         &self,
         request: Request<proto::ShardInfoRequest>,
     ) -> Result<Response<proto::ShardInfoResponse>, Status> {
-
         trace!("Got a shard info request");
 
         // Get the data from the request
@@ -85,7 +82,6 @@ impl proto::shard_server::Shard for ShardService {
 
         // If the shard is not found, return an error
         if !runners.contains_key(&ShardId(id as u32)) {
-
             return Err(Status::not_found("Shard not found"));
         }
 
@@ -110,6 +106,5 @@ impl proto::shard_server::Shard for ShardService {
 }
 
 pub fn get_shard_server(shard_service: ShardService) -> ShardServer<ShardService> {
-
     ShardServer::new(shard_service)
 }

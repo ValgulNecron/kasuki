@@ -22,15 +22,14 @@ use crate::constant::{
     TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
+use crate::database::ping_history::ActiveModel;
+use crate::database::prelude::PingHistory;
 use crate::event_handler::{BotData, RootUsage};
-use crate::structure::database::ping_history::ActiveModel;
-use crate::structure::database::prelude::PingHistory;
 use crate::structure::steam_game_id_struct::get_game;
 use crate::type_map_key::ShardManagerContainer;
 use crate::{api, get_url};
 
 pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db_config: DbConfig) {
-
     let command_usage = bot_data.number_of_command_use_per_command.clone();
 
     let is_grpc_on = bot_data.config.grpc.grpc_is_on;
@@ -93,7 +92,6 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
 }
 
 async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
-
     // Log a message indicating that the ping thread is being launched
     info!("Launching the ping thread!");
 
@@ -104,7 +102,6 @@ async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
         None => {
-
             return;
         }
     };
@@ -116,7 +113,6 @@ async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
     let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
         Ok(connection) => connection,
         Err(e) => {
-
             error!("Failed to connect to the database. {:#?}", e);
 
             return;
@@ -124,7 +120,6 @@ async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
     };
 
     loop {
-
         // Wait for the next interval tick
         interval.tick().await;
 
@@ -132,7 +127,6 @@ async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
         let runner = shard_manager.runners.lock().await;
 
         for (shard_id, shard) in runner.iter() {
-
             // Extract latency and current timestamp information
             let latency = shard.latency.unwrap_or_default().as_millis().to_string();
 
@@ -148,11 +142,9 @@ async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
             .await
             {
                 Ok(_) => {
-
                     debug!("Updated ping history for shard {}.", shard_id);
                 }
                 Err(e) => {
-
                     error!(
                         "Failed to update ping history for shard {}. {:#?}",
                         shard_id, e
@@ -172,10 +164,8 @@ async fn launch_web_server_thread(
     config: Arc<Config>,
     bot_data: Arc<BotData>,
 ) {
-
     // Check if GRPC is enabled
     if !is_grpc_on {
-
         info!("API is off, skipping the API server thread!");
 
         return;
@@ -190,7 +180,6 @@ async fn launch_web_server_thread(
     let shard_manager = match data_read.get::<ShardManagerContainer>() {
         Some(data) => data,
         None => {
-
             return;
         }
     };
@@ -226,7 +215,6 @@ async fn launch_user_color_management_thread(
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
     bot_data: Arc<BotData>,
 ) {
-
     // Create an interval for periodic updates
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE));
 
@@ -235,7 +223,6 @@ async fn launch_user_color_management_thread(
 
     // Enter a loop that waits for the next interval tick and triggers color management
     loop {
-
         // Wait for the next interval tick
         interval.tick().await;
 
@@ -261,7 +248,6 @@ async fn launch_user_color_management_thread(
 ///
 
 async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>) {
-
     // Create an interval for periodic updates
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_GAME_UPDATE));
 
@@ -270,7 +256,6 @@ async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>)
 
     // Loop indefinitely
     loop {
-
         // Wait for the next interval tick
         interval.tick().await;
 
@@ -295,7 +280,6 @@ async fn launch_activity_management_thread(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) {
-
     // Create an interval for periodic updates
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_ACTIVITY_CHECK));
 
@@ -304,7 +288,6 @@ async fn launch_activity_management_thread(
 
     // Enter a loop that waits for the next interval tick and spawns a new task to manage the bot's activity
     loop {
-
         // Wait for the next interval tick
         interval.tick().await;
 
@@ -333,7 +316,6 @@ async fn launch_server_image_management_thread(
     image_config: ImageConfig,
     connection: Arc<DatabaseConnection>,
 ) {
-
     // Log a message indicating that the server image management thread is being launched
     info!("Launching the server image management thread!");
 
@@ -342,7 +324,6 @@ async fn launch_server_image_management_thread(
 
     // Loop indefinitely
     loop {
-
         // Wait for the next interval tick
         interval.tick().await;
 
@@ -359,13 +340,11 @@ async fn launch_server_image_management_thread(
 ///
 
 async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
-
     // Create an interval for periodic updates
     let mut interval =
         tokio::time::interval(Duration::from_secs(TIME_BETWEEN_BLACKLISTED_USER_UPDATE));
 
     loop {
-
         // Wait for the interval to tick
         interval.tick().await;
 
@@ -387,7 +366,6 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
         let user_ids: Vec<String> = match blacklist_json["user_id"].as_array() {
             Some(arr) => arr,
             None => {
-
                 error!("Failed to get user_id from blacklist");
 
                 continue;
@@ -397,7 +375,6 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
         .map(|id| match id.as_str() {
             Some(id) => id.to_string(),
             None => {
-
                 error!("Failed to get user_id from blacklist");
 
                 "".to_string()
@@ -425,12 +402,10 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
 ///
 
 async fn update_bot_info(context: Context, bot_data: Arc<BotData>) {
-
     // Create a time interval for updating bot info
     let mut update_interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_BOT_INFO));
 
     loop {
-
         // Wait for the update interval
         update_interval.tick().await;
 
@@ -438,7 +413,6 @@ async fn update_bot_info(context: Context, bot_data: Arc<BotData>) {
         let current_bot_info = match context.http.get_current_application_info().await {
             Ok(info) => info,
             Err(e) => {
-
                 error!("Failed to get bot info: {:?}", e);
 
                 continue;

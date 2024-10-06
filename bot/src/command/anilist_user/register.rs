@@ -12,12 +12,12 @@ use tokio::sync::RwLock;
 use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::database::prelude::RegisteredUser;
+use crate::database::registered_user::{ActiveModel, Column};
+use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::database::prelude::RegisteredUser;
-use crate::structure::database::registered_user::{ActiveModel, Column};
 use crate::structure::message::anilist_user::register::load_localization_register;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 
@@ -30,19 +30,16 @@ pub struct RegisterCommand {
 
 impl Command for RegisterCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for RegisterCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -59,7 +56,6 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the username of the AniList account from the command interaction
     let map = get_option_map_string(command_interaction);
 

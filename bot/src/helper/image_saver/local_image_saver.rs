@@ -30,7 +30,6 @@ pub async fn local_image_save(
     filename: String,
     image_data: Vec<u8>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Get the current date and time
     let now = Local::now();
 
@@ -42,7 +41,6 @@ pub async fn local_image_save(
 
     // Check if the directory exists, if not, create it
     if !Path::new(&file_path).exists() {
-
         fs::create_dir_all(&file_path)?;
     }
 

@@ -14,7 +14,7 @@ use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::helper::error_management::error_dispatch;
+use crate::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 
 pub struct SearchCommand {
@@ -26,19 +26,16 @@ pub struct SearchCommand {
 
 impl Command for SearchCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for SearchCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         let ctx = &self.ctx;
 
         let command_interaction = &self.command_interaction;

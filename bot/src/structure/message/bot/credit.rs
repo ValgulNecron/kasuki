@@ -47,7 +47,6 @@ pub async fn load_localization_credit(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<CreditLocalised> {
-
     let path = "json/message/bot/credit.json";
 
     load_localization(guild_id, path, db_config).await

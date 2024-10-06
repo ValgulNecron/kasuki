@@ -34,7 +34,6 @@ pub async fn autocomplete(
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
-
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 
     let search_type = map.get(&String::from("type")).unwrap_or(DEFAULT_STRING);

@@ -1,6 +1,6 @@
 [package]
 name = "kasuki"
-version = "2.10.7"
+version = "3.0.0"
 edition = "2021"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
@@ -15,7 +15,7 @@ regex = "1.10.6"
 reqwest = { version = "0.12.7", features = ["json", "multipart", "blocking"] }
 serde = "1.0.210"
 serde_json = "1.0.128"
-serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "current", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "unstable_discord_api", "voice", "cache", "http"] }
+serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "voice", "cache", "http"] }
 tokio = { version = "1.40.0", features = ["full"] }
 rand = "0.9.0-alpha.2"
 chrono = "0.4.38"
@@ -44,27 +44,21 @@ moka = { version = "0.12.8", features = ["future"] }
 toml = "0.8.19"
 num-bigint = "0.4.6"
 text-to-png = "0.2.0"
-songbird = { git = "https://github.com/valgulnecron/songbird.git", branch = "next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
+songbird = { git = "https://github.com/serenity-rs/songbird.git", branch = "serenity-next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
 symphonia = { features = ["aac", "mp3", "isomp4", "alac", "symphonia-format-isomp4"], version = "0.5.4" }
 dashmap = "6.1.0"
 url = "2.5.2"
 dirs = "5.0.1"
 sea-orm = { version = "1.1.0-rc.1", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
 sea-orm-migration = { version = "1.1.0-rc.1" }
-percent-encoding = "2.3.1"
 serde_urlencoded = "0.7.1"
-poem = { version = "3.1.0" }
-async-graphql-poem = { version = "7.0.9" }
-async-graphql = { version = "7.0.11", features = ["decimal", "chrono", "dataloader", "dynamic-schema"] }
 dotenvy = "0.15.7"
 lazy_static = { version = "1.5.0" }
-seaography = "1.1.0-rc.1"
 catbox = "0.8.2"
 tempfile = "3.13.0"
 rusty_ytdl = { version = "0.7.4", features = ["rustls-tls"] }
 either = "1.13.0"
 anyhow = "1.0.89"
-thiserror = "1.0.64"
 
 [build-dependencies]
 tonic-build = "0.12.3"

@@ -3,12 +3,12 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::database::prelude::RegisteredUser;
+use crate::database::registered_user::Column;
+use crate::error_management::error_dispatch;
 use crate::get_url;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::database::prelude::RegisteredUser;
-use crate::structure::database::registered_user::Column;
 use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::{
     User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
@@ -30,19 +30,16 @@ pub struct UserCommand {
 
 impl Command for UserCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for UserCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         let ctx = &self.ctx;
 
         let command_interaction = &self.command_interaction;
@@ -61,7 +58,6 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the username from the command interaction
     let map = get_option_map_string(command_interaction);
 
@@ -69,7 +65,6 @@ async fn send_embed(
 
     // If the username is provided, fetch the user's data from AniList and send it as a response
     if let Some(value) = user {
-
         let data: User = get_user(value, anilist_cache.clone()).await?;
 
         return user::send_embed(ctx, command_interaction, data, config.db.clone()).await;
@@ -110,10 +105,8 @@ pub async fn get_user(
     value: &str,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<User, Box<dyn Error>> {
-
     // If the value is a valid user ID, fetch the user's data by ID
     let user = if value.parse::<i32>().is_ok() {
-
         let id = value.parse::<i32>().unwrap();
 
         let var = UserQueryIdVariables { id: Some(id) };
@@ -125,7 +118,6 @@ pub async fn get_user(
 
         data.data.unwrap().user.unwrap()
     } else {
-
         // If the value is not a valid user ID, fetch the user's data by username
         let var = UserQuerySearchVariables {
             search: Some(value),

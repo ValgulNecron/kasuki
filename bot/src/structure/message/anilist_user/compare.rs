@@ -68,7 +68,6 @@ pub async fn load_localization_compare(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<CompareLocalised> {
-
     let path = "json/message/anilist_user/compare.json";
 
     load_localization(guild_id, path, db_config).await

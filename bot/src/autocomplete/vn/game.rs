@@ -16,7 +16,6 @@ pub async fn autocomplete(
     autocomplete_interaction: CommandInteraction,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
-
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 
     let game = map.get(&String::from("title")).unwrap();
@@ -35,7 +34,6 @@ pub async fn autocomplete(
     trace!("Map: {:?}", map);
 
     for vn in vn_result {
-
         choices.push(AutocompleteChoice::new(vn.title.clone(), vn.id.clone()))
     }
 

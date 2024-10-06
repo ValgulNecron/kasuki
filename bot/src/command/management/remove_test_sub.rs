@@ -1,7 +1,7 @@
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_user;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -21,19 +21,16 @@ pub struct RemoveTestSubCommand {
 
 impl Command for RemoveTestSubCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for RemoveTestSubCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -43,7 +40,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     let map = get_option_map_user(command_interaction);
 
     let user = map.get(&String::from("user"));
@@ -51,7 +47,6 @@ async fn send_embed(
     let user = match user {
         Some(user) => user,
         None => {
-
             return Err(error_dispatch::Error::Sending(String::from("No user provided")).into());
         }
     };
@@ -75,9 +70,7 @@ async fn send_embed(
         .await?;
 
     for entitlement in entitlements {
-
         if let Err(e) = ctx.http.delete_test_entitlement(entitlement.id).await {
-
             error!("Error while deleting entitlement: {}", e);
         }
     }

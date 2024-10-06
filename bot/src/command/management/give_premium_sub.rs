@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
 use crate::structure::message::management::give_premium_sub::load_localization_give_premium_sub;
 use serenity::all::{
@@ -20,19 +20,16 @@ pub struct GivePremiumSubCommand {
 
 impl Command for GivePremiumSubCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for GivePremiumSubCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -42,7 +39,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     let map = get_option_map_user(command_interaction);
 
     let user = *map
@@ -65,7 +61,6 @@ async fn send_embed(
     let skus_id: Vec<String> = skus.iter().map(|sku| sku.id.to_string()).collect();
 
     if !skus_id.contains(&subscription) {
-
         Err(error_dispatch::Error::Option(String::from(
             "Invalid sub id",
         )))?
@@ -74,9 +69,7 @@ async fn send_embed(
     let mut sku_id = Default::default();
 
     for sku in skus {
-
         if sku.id.to_string() == subscription {
-
             sku_id = sku.id;
         }
     }

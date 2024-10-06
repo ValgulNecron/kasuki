@@ -32,7 +32,6 @@ impl CommandService for CommandServices {
         &self,
         _request: Request<CommandListRequest>,
     ) -> Result<Response<CommandListResponse>, Status> {
-
         let cmd_list = &self.command_list.clone();
 
         let cm_count = cmd_list.len();
@@ -44,18 +43,14 @@ impl CommandService for CommandServices {
         let mut sub_command_groups = Vec::new();
 
         for cmd in cmd_list.iter() {
-
             match cmd {
                 CommandItem::Command(c) => {
-
                     commands.push(c.into());
                 }
                 CommandItem::Subcommand(s) => {
-
                     sub_commands.push(s.into());
                 }
                 CommandItem::SubcommandGroup(sg) => {
-
                     sub_command_groups.push(sg.into());
                 }
             }
@@ -74,7 +69,6 @@ impl CommandService for CommandServices {
 
 impl From<&Command> for proto::Command {
     fn from(command: &Command) -> Self {
-
         proto::Command {
             name: command.name.clone(),
             description: command.desc.clone(),
@@ -90,7 +84,6 @@ impl From<&Command> for proto::Command {
 
 impl From<&Arg> for proto::Arg {
     fn from(arg: &Arg) -> Self {
-
         proto::Arg {
             name: arg.name.clone(),
             description: arg.desc.clone(),
@@ -102,7 +95,6 @@ impl From<&Arg> for proto::Arg {
 
 impl From<&SubCommand> for proto::SubCommand {
     fn from(subcommand: &SubCommand) -> Self {
-
         proto::SubCommand {
             name: subcommand.name.clone(),
             description: subcommand.desc.clone(),
@@ -118,7 +110,6 @@ impl From<&SubCommand> for proto::SubCommand {
 
 impl From<&SubCommandGroup> for proto::SubCommandGroup {
     fn from(subcommand_group: &SubCommandGroup) -> Self {
-
         proto::SubCommandGroup {
             name: subcommand_group.name.clone(),
             description: subcommand_group.desc.clone(),
@@ -141,6 +132,5 @@ impl From<&SubCommandGroup> for proto::SubCommandGroup {
 pub fn get_command_server(
     command_service: CommandServices,
 ) -> CommandServiceServer<CommandServices> {
-
     CommandServiceServer::new(command_service)
 }

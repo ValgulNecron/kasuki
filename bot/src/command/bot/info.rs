@@ -1,10 +1,10 @@
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::constant::{APP_VERSION, LIBRARY};
+use crate::database::prelude::UserColor;
+use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
-use crate::structure::database::prelude::UserColor;
 use crate::structure::message::bot::info::load_localization_info;
 use sea_orm::EntityTrait;
 use serenity::all::{
@@ -22,19 +22,16 @@ pub struct InfoCommand {
 
 impl Command for InfoCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for InfoCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -44,7 +41,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -76,10 +72,8 @@ async fn send_embed(
     let app_guild_count = bot.approximate_guild_count.unwrap_or_default() as usize;
 
     let guild_count = if server_count > app_guild_count {
-
         server_count
     } else {
-
         app_guild_count
     };
 
@@ -91,13 +85,11 @@ async fn send_embed(
         .ok_or(error_dispatch::Error::WebRequest("No bot icon".to_string()))?;
 
     let avatar = if bot_icon.is_animated() {
-
         format!(
             "https://cdn.discordapp.com/icons/{}/{}.gif?size=1024",
             bot_id, bot_icon
         )
     } else {
-
         format!(
             "https://cdn.discordapp.com/icons/{}/{}.webp?size=1024",
             bot_id, bot_icon

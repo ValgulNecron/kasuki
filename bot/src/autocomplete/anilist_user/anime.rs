@@ -37,7 +37,6 @@ pub async fn autocomplete(
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
-
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 
     let anime_search = map
@@ -52,7 +51,6 @@ pub async fn autocomplete(
 }
 
 pub fn get_autocomplete_media_variables(anime_search: &str) -> MediaAutocompleteVariables {
-
     MediaAutocompleteVariables {
         search: Some(anime_search),
         in_media_format: Some(vec![

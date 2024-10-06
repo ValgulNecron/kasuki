@@ -33,7 +33,6 @@ pub async fn grpc_server_launcher(
     config: Arc<Config>,
     bot_data: Arc<BotData>,
 ) {
-
     let grpc_config = config.grpc.clone();
 
     get_list_of_all_command();
@@ -74,7 +73,6 @@ pub async fn grpc_server_launcher(
     {
         Ok(reflection) => reflection,
         Err(e) => {
-
             error!("Failed to build the reflection service: {}", e);
 
             return;
@@ -88,7 +86,6 @@ pub async fn grpc_server_launcher(
     let mut builder = tonic::transport::Server::builder();
 
     if is_tls {
-
         let private_key_path = grpc_config.tls_key_path.clone();
 
         let cert_path = grpc_config.tls_cert_path.clone();
@@ -99,7 +96,6 @@ pub async fn grpc_server_launcher(
         let key = match tokio::fs::read(private_key_path).await {
             Ok(key) => key,
             Err(e) => {
-
                 error!("Failed to read the private key: {}", e);
 
                 return;
@@ -109,7 +105,6 @@ pub async fn grpc_server_launcher(
         let cert = match tokio::fs::read(cert_path).await {
             Ok(cert) => cert,
             Err(e) => {
-
                 error!("Failed to read the certificate: {}", e);
 
                 return;
@@ -120,7 +115,6 @@ pub async fn grpc_server_launcher(
         let key = match String::from_utf8(key) {
             Ok(key) => key,
             Err(e) => {
-
                 error!("Failed to convert the key to a string: {}", e);
 
                 return;
@@ -130,7 +124,6 @@ pub async fn grpc_server_launcher(
         let cert = match String::from_utf8(cert) {
             Ok(cert) => cert,
             Err(e) => {
-
                 error!("Failed to convert the certificate to a string: {}", e);
 
                 return;
@@ -145,7 +138,6 @@ pub async fn grpc_server_launcher(
         builder = match builder.tls_config(tls_config) {
             Ok(builder) => builder,
             Err(e) => {
-
                 error!("Failed to build the gRPC server with TLS: {}", e);
 
                 return;
@@ -167,7 +159,6 @@ pub async fn grpc_server_launcher(
 }
 
 fn generate_key(grpc_config: GrpcCfg) {
-
     // Specify the subject alternative names. Since we're not using a domain,
     // we'll just use "localhost" as an example.
     let subject_alt_names = vec![

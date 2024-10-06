@@ -2,12 +2,12 @@ use crate::config::{Config, DbConfig};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
-use crate::type_map_key::ShardManagerContainer;
+use anyhow::{Context, Result};
 use moka::future::Cache;
-use serenity::all::{GatewayIntents, ShardManager};
+use serenity::gateway::ShardManager;
+use serenity::prelude::GatewayIntents;
 use serenity::Client;
 use songbird::driver::DecodeMode;
-use songbird::SerenityInit;
 use std::process;
 use std::sync::Arc;
 use std::time::Duration;
@@ -23,6 +23,8 @@ mod components;
 mod config;
 mod constant;
 mod custom_serenity_impl;
+pub mod database;
+pub mod error_management;
 mod event_handler;
 mod helper;
 mod logger;
@@ -30,19 +32,16 @@ mod new_member;
 mod register;
 mod removed_member;
 mod structure;
-mod type_map_key;
 
 #[tokio::main]
 
 async fn main() {
-
     println!("Preparing bot environment please wait...");
 
     // read config.toml as string
     let config = match std::fs::read_to_string("config.toml") {
         Ok(config) => config,
         Err(e) => {
-
             eprintln!("Error while reading config.toml: {:?}", e);
 
             process::exit(1);
@@ -52,7 +51,6 @@ async fn main() {
     let mut config: Config = match toml::from_str(&config) {
         Ok(config) => config,
         Err(e) => {
-
             eprintln!("Error while parsing config.toml: {:?}", e);
 
             process::exit(1);
@@ -76,7 +74,6 @@ async fn main() {
     // Create the log directory.
     // If an error occurs, print the error and return.
     if let Err(e) = create_log_directory() {
-
         eprintln!("{:?}", e);
 
         process::exit(2);
@@ -84,17 +81,18 @@ async fn main() {
 
     // Initialize the logger with the specified log level.
     // If an error occurs, print the error and return.
-    if let Err(e) = init_logger(log, max_log_retention_days) {
+    let guard = match init_logger(log, max_log_retention_days) {
+        Ok(guard) => guard,
+        Err(e) => {
+            eprintln!("{:?}", e);
 
-        eprintln!("{:?}", e);
-
-        process::exit(2);
-    }
+            process::exit(2);
+        }
+    };
 
     // Initialize the SQL database.
     // If an error occurs, log the error and return.
     if let Err(e) = init_db(config.clone()).await {
-
         let e = e.to_string().replace("\\\\n", "\n");
 
         error!("{}", e);
@@ -106,11 +104,9 @@ async fn main() {
 
     // populate the number_of_command_use_per_command with the content of the file
     if let Ok(content) = std::fs::read_to_string(COMMAND_USE_PATH) {
-
         number_of_command_use_per_command =
             serde_json::from_str(&content).unwrap_or_else(|_| RootUsage::new());
     } else {
-
         number_of_command_use_per_command = RootUsage::new();
     }
 
@@ -134,26 +130,11 @@ async fn main() {
     let connection = match sea_orm::Database::connect(get_url(config.db.clone())).await {
         Ok(connection) => connection,
         Err(e) => {
-
             error!("Failed to connect to the database. {}", e);
 
             return;
         }
     };
-
-    let bot_data: Arc<BotData> = Arc::new(BotData {
-        number_of_command_use_per_command,
-        config,
-        bot_info: Arc::new(RwLock::new(None)),
-        anilist_cache,
-        vndb_cache,
-        already_launched: false.into(),
-        apps: Arc::new(Default::default()),
-        user_blacklist_server_image: Arc::new(Default::default()),
-        db_connection: Arc::new(connection),
-    });
-
-    let handler = Handler { bot_data };
 
     // Get all the non-privileged intent.
     let gateway_intent_non_privileged =
@@ -182,12 +163,29 @@ async fn main() {
 
     let songbird_config = songbird::Config::default().decode_mode(DecodeMode::Decode);
 
+    let manager = songbird::Songbird::serenity_from_config(songbird_config);
+
+    let bot_data: Arc<BotData> = Arc::new(BotData {
+        number_of_command_use_per_command,
+        config,
+        bot_info: Arc::new(RwLock::new(None)),
+        anilist_cache,
+        vndb_cache,
+        already_launched: false.into(),
+        apps: Arc::new(Default::default()),
+        user_blacklist_server_image: Arc::new(Default::default()),
+        db_connection: Arc::new(connection),
+        manager: Arc::clone(&manager),
+        http_client: reqwest::Client::new(),
+        shard_manager: Arc::new(Default::default()),
+    });
+
     let mut client = Client::builder(discord_token, gateway_intent)
-        .event_handler(handler)
-        .register_songbird_from_config(songbird_config)
+        .data(bot_data)
+        .voice_manager(manager)
+        .event_handler(Handler)
         .await
         .unwrap_or_else(|e| {
-
             error!("Error while creating client: {}", e);
 
             process::exit(5);
@@ -195,11 +193,9 @@ async fn main() {
 
     let shard_manager = client.shard_manager.clone();
 
-    client
-        .data
-        .write()
-        .await
-        .insert::<ShardManagerContainer>(Arc::clone(&shard_manager));
+    let guard = bot_data.shard_manager.clone().write().await;
+
+    *guard = Some(shard_manager);
 
     // Clone the shard manager from the client.
     let shard_manager = client.shard_manager.clone();
@@ -209,9 +205,7 @@ async fn main() {
     // Spawn a new asynchronous task for starting the client.
     // If the client fails to start, log the error.
     tokio::spawn(async move {
-
         if let Err(why) = client.start_autosharded().await {
-
             error!("Client error: {:?}", why);
 
             process::exit(6);
@@ -220,7 +214,6 @@ async fn main() {
 
     #[cfg(unix)]
     {
-
         // Create a signal handler for "all" signals in unix.
         // If a signal is received, print a shutdown message.
         // All signals and not only ctrl-c
@@ -256,7 +249,6 @@ async fn main() {
 
     #[cfg(windows)]
     {
-
         // Create a signal handler for "all" signals in windows.
         // If a signal is received, print a shutdown message.
         // All signals and not only ctrl-c
@@ -286,10 +278,7 @@ async fn main() {
     }
 }
 
-use anyhow::{Context, Result};
-
 async fn init_db(config: Arc<Config>) -> Result<()> {
-
     let db_config = config.db.clone();
 
     let url = get_url(db_config);
@@ -298,7 +287,6 @@ async fn init_db(config: Arc<Config>) -> Result<()> {
 
     #[cfg(windows)]
     {
-
         let mut cmd = process::Command::new("./migration.exe");
 
         let child = cmd.spawn().context("Failed to run migration")?;
@@ -310,7 +298,6 @@ async fn init_db(config: Arc<Config>) -> Result<()> {
 
     #[cfg(unix)]
     {
-
         let mut cmd = process::Command::new("./migration");
 
         let child = cmd.spawn().context("Failed to run migration")?;
@@ -324,14 +311,11 @@ async fn init_db(config: Arc<Config>) -> Result<()> {
 }
 
 pub fn get_url(db_config: DbConfig) -> String {
-
     match db_config.db_type.as_str() {
         "postgresql" => {
-
             let host = match db_config.host.clone() {
                 Some(host) => host,
                 None => {
-
                     error!("No host provided");
 
                     process::exit(7)
@@ -341,7 +325,6 @@ pub fn get_url(db_config: DbConfig) -> String {
             let port = match db_config.port {
                 Some(port) => port,
                 None => {
-
                     error!("No port provided");
 
                     process::exit(7)
@@ -351,7 +334,6 @@ pub fn get_url(db_config: DbConfig) -> String {
             let user = match db_config.user.clone() {
                 Some(user) => user,
                 None => {
-
                     error!("No user provided");
 
                     process::exit(7)
@@ -361,7 +343,6 @@ pub fn get_url(db_config: DbConfig) -> String {
             let password = match db_config.password.clone() {
                 Some(password) => password,
                 None => {
-
                     error!("No password provided");
 
                     process::exit(7)
@@ -379,7 +360,6 @@ pub fn get_url(db_config: DbConfig) -> String {
             url
         }
         _ => {
-
             panic!("Unsupported database type");
         }
     }

@@ -22,7 +22,6 @@ pub async fn load_localization_removed_member(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<RemovedMember> {
-
     let path = "json/message/removed_member.json";
 
     load_localization(guild_id, path, db_config).await

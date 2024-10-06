@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::helper::error_management::error_dispatch;
+use crate::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::media;
@@ -25,19 +25,16 @@ pub struct AnimeCommand {
 
 impl Command for AnimeCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for AnimeCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -54,7 +51,6 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the name or ID of the anime from the command interaction options
     let map = get_option_map_string(command_interaction);
 
@@ -76,7 +72,6 @@ async fn send_embed(
     // If the value is an integer, treat it as an ID and retrieve the anime with that ID
     // If the value is not an integer, treat it as a name and retrieve the anime with that name
     let data: Media = if value.parse::<i32>().is_ok() {
-
         let id = value.parse::<i32>().unwrap();
 
         let var = MediaQuerryIdVariables {
@@ -106,7 +101,6 @@ async fn send_embed(
             }
         }
     } else {
-
         let var = MediaQuerrySearchVariables {
             format_in,
             search: Some(&*value),

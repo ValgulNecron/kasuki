@@ -32,7 +32,6 @@ pub async fn load_localization_studio(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<StudioLocalised> {
-
     let path = "json/message/anilist_user/studio.json";
 
     load_localization(guild_id, path, db_config).await

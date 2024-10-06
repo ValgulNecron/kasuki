@@ -4,11 +4,11 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{Config, DbConfig};
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
+use crate::database::prelude::RegisteredUser;
+use crate::database::registered_user::{Column, Model};
+use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
-use crate::structure::database::prelude::RegisteredUser;
-use crate::structure::database::registered_user::{Column, Model};
 use crate::structure::message::anilist_server::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };
@@ -29,19 +29,16 @@ pub struct ListRegisterUser {
 
 impl Command for ListRegisterUser {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for ListRegisterUser {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -51,7 +48,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the guild ID from the command interaction or use "0" if it does not exist
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -85,7 +81,6 @@ async fn send_embed(
     let mut response = CreateInteractionResponseFollowup::new().embed(builder_message);
 
     if len >= (MEMBER_LIST_LIMIT + 1) as usize {
-
         // If the number of AniList users is greater than the limit, add a "next" button to the response
         response = response.button(
             CreateButton::new(format!("user_{}_0", last_id.unwrap()))
@@ -135,7 +130,6 @@ pub async fn get_the_list(
     last_id: Option<UserId>,
     db_config: DbConfig,
 ) -> Result<(CreateEmbed, usize, Option<UserId>), Box<dyn Error>> {
-
     let mut anilist_user = Vec::new();
 
     let mut last_id: Option<UserId> = last_id;
@@ -143,7 +137,6 @@ pub async fn get_the_list(
     let mut pass = 0;
 
     while anilist_user.len() < MEMBER_LIST_LIMIT as usize && pass < PASS_LIMIT {
-
         pass += 1;
 
         let members = guild
@@ -151,12 +144,10 @@ pub async fn get_the_list(
             .await?;
 
         if members.is_empty() {
-
             break;
         }
 
         for member in members {
-
             last_id = Some(member.user.id);
 
             let user_id = member.user.id.to_string();
@@ -187,7 +178,6 @@ pub async fn get_the_list(
     let user_links: Vec<String> = anilist_user
         .iter()
         .map(|data| {
-
             format!(
                 "[{}](<https://anilist_user.co/user/{}>)",
                 data.user.name, data.anilist

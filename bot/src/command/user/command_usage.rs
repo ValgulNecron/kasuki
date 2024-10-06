@@ -21,19 +21,16 @@ pub struct CommandUsageCommand {
 
 impl Command for CommandUsageCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for CommandUsageCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         let user = get_user_command(&self.ctx, &self.command_interaction).await?;
 
         send_embed(
@@ -54,7 +51,6 @@ pub async fn send_embed(
     config: &DbConfig,
     command_usage: &Arc<RwLock<RootUsage>>,
 ) -> Result<(), Box<dyn Error>> {
-
     let db_config = config.clone();
 
     let user_id = user.id.to_string();
@@ -78,7 +74,6 @@ pub async fn send_embed(
     let mut embeds = Vec::new();
 
     if usage.is_empty() {
-
         let inner_embed = embed.description(
             localized_command_usage
                 .no_usage
@@ -87,13 +82,11 @@ pub async fn send_embed(
 
         embeds.push(inner_embed);
     } else {
-
         let mut description = String::new();
 
         let mut inner_embed = embed.clone();
 
         for (command, usage_count) in &usage {
-
             description.push_str(
                 localized_command_usage
                     .command_usage
@@ -105,7 +98,6 @@ pub async fn send_embed(
             description.push('\n');
 
             if description.len() > 4096 {
-
                 embeds.push(inner_embed.clone().description(&description));
 
                 description.clear();
@@ -115,7 +107,6 @@ pub async fn send_embed(
         }
 
         if !description.is_empty() {
-
             embeds.push(inner_embed.clone().description(&description));
         }
     }
@@ -135,15 +126,11 @@ fn get_usage_for_id(
     target_id: &str,
     root_usage: RwLockReadGuard<RootUsage>,
 ) -> Vec<(String, u128)> {
-
     let mut usage = Vec::new();
 
     for (command, user_info) in root_usage.command_list.iter() {
-
         for (id, user_usage) in user_info.user_info.iter() {
-
             if id == target_id {
-
                 usage.push((command.clone(), user_usage.usage));
             }
         }

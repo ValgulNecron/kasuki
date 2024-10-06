@@ -8,7 +8,8 @@ use crate::new_member::{
 use crate::structure::message::removed_member::{load_localization_removed_member, RemovedMember};
 use anyhow::anyhow;
 use serenity::all::{AuditLogs, GuildId, User};
-use serenity::client::Context as SerenityContext;
+use serenity::nonmax::NonMaxU8;
+use serenity::prelude::Context as SerenityContext;
 use tracing::{debug, info};
 
 use anyhow::{Context, Result};
@@ -20,7 +21,6 @@ pub async fn removed_member_message(
     user: User,
     db_config: DbConfig,
 ) -> Result<()> {
-
     info!("Processing removed member message for guild: {}", guild_id);
 
     let guild_settings = load_guild_settings(guild_id).await;
@@ -52,7 +52,7 @@ pub async fn removed_member_message(
         .context("Failed to download user avatar image")?;
 
     let audit_log = guild_id
-        .audit_logs(&ctx.http, None, None, None, Some(100))
+        .audit_logs(&ctx.http, None, None, None, Some(NonMaxU8::from(100)))
         .await
         .context("Failed to fetch audit logs")?;
 
@@ -114,18 +114,13 @@ fn determine_reason(
     local: &RemovedMember,
     user_name: &str,
 ) -> String {
-
     if audit_log.entries.is_empty() {
-
         return local.bye.replace("$user$", user_name);
     }
 
     for entry in &audit_log.entries {
-
         if let Some(target) = entry.target_id {
-
             if target.to_string() == user.id.to_string() {
-
                 let reason = entry.reason.clone();
 
                 let action: InternalMemberAction = InternalAction::from(entry.action).into();

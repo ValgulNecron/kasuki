@@ -40,7 +40,6 @@ pub async fn load_localization_list_activity(
     guild_id: String,
     db_config: DbConfig,
 ) -> Result<ListActivityLocalised> {
-
     let path = "json/message/anilist_server/list_all_activity.json";
 
     load_localization(guild_id, path, db_config).await

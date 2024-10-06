@@ -95,7 +95,6 @@ pub enum MediaType {
 
 impl Display for MediaFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         match self {
             MediaFormat::Tv => write!(f, "TV"),
             MediaFormat::TvShort => write!(f, "TV_SHORT"),
@@ -113,7 +112,6 @@ impl Display for MediaFormat {
 
 impl Display for MediaStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
         match self {
             MediaStatus::Finished => write!(f, "FINISHED"),
             MediaStatus::Releasing => write!(f, "RELEASING"),

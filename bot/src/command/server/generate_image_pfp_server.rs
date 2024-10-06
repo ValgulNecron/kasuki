@@ -3,11 +3,11 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{Config, DbConfig};
+use crate::database::prelude::ServerImage;
+use crate::database::server_image::Column;
+use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
-use crate::structure::database::prelude::ServerImage;
-use crate::structure::database::server_image::Column;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
@@ -30,19 +30,16 @@ pub struct GenerateImagePfPCommand {
 
 impl Command for GenerateImagePfPCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for GenerateImagePfPCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         init(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -52,7 +49,6 @@ async fn init(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     send_embed(ctx, command_interaction, "local", config.db.clone()).await
 }
 
@@ -62,7 +58,6 @@ pub async fn send_embed(
     image_type: &str,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

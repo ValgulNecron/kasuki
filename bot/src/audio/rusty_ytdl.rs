@@ -1,4 +1,4 @@
-use crate::helper::error_management::error_dispatch;
+use crate::error_management::error_dispatch;
 use rand::Rng;
 use rusty_ytdl::search::{SearchOptions, SearchType};
 use rusty_ytdl::{
@@ -27,7 +27,6 @@ pub enum UrlType {
 
 impl From<UrlType> for SearchType {
     fn from(val: UrlType) -> Self {
-
         match val {
             UrlType::Video => SearchType::Video,
             UrlType::Playlist => SearchType::Playlist,
@@ -37,7 +36,6 @@ impl From<UrlType> for SearchType {
 
 impl From<SearchType> for UrlType {
     fn from(val: SearchType) -> Self {
-
         match val {
             SearchType::Video => UrlType::Video,
             SearchType::Playlist => UrlType::Playlist,
@@ -59,7 +57,6 @@ pub struct RustyYoutubeSearch {
 
 impl RustyYoutubeSearch {
     pub fn new_from_url(url: String) -> Result<Self, VideoError> {
-
         Ok(Self {
             rusty_ytdl: YouTube::new()?,
             metadata: None,
@@ -71,7 +68,6 @@ impl RustyYoutubeSearch {
     }
 
     pub fn new_from_search(query: String) -> Result<Self, VideoError> {
-
         Ok(Self {
             rusty_ytdl: YouTube::new()?,
             metadata: None,
@@ -85,7 +81,6 @@ impl RustyYoutubeSearch {
 
 impl From<RustyYoutubeSearch> for Input {
     fn from(val: RustyYoutubeSearch) -> Self {
-
         Input::Lazy(Box::new(val))
     }
 }
@@ -94,32 +89,27 @@ impl From<RustyYoutubeSearch> for Input {
 
 impl Compose for RustyYoutubeSearch {
     fn create(&mut self) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
-
         Err(AudioStreamError::Unsupported)
     }
 
     async fn create_async(
         &mut self,
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
-
         // check if valid_proxy.txt exists
         let proxy_path = Path::new("valid_proxy.txt");
 
         let proxy = proxy_path.exists();
 
         if self.metadata.is_none() {
-
             self.aux_metadata().await?;
         }
 
         let url = self.url.clone().unwrap_or_default();
 
         let request_options = if proxy {
-
             trace!("Using proxy");
 
             let proxy = fs::read_to_string(proxy_path).map_err(|e| {
-
                 AudioStreamError::Fail(
                     error_dispatch::Error::Audio(format!("Failed to read proxy file: {e:?}"))
                         .into(),
@@ -135,7 +125,6 @@ impl Compose for RustyYoutubeSearch {
             let proxy = proxy[n];
 
             let proxy = reqwest::Proxy::all(proxy).map_err(|e| {
-
                 AudioStreamError::Fail(
                     error_dispatch::Error::Audio(format!("Failed to create proxy: {e:?}")).into(),
                 )
@@ -146,7 +135,6 @@ impl Compose for RustyYoutubeSearch {
                 ..Default::default()
             }
         } else {
-
             Default::default()
         };
 
@@ -160,14 +148,12 @@ impl Compose for RustyYoutubeSearch {
             },
         )
         .map_err(|e| {
-
             AudioStreamError::Fail(
                 error_dispatch::Error::Audio(format!("Failed to create stream: {e:?}")).into(),
             )
         })?;
 
         let tempdir = tempfile::tempdir().map_err(|e| {
-
             AudioStreamError::Fail(
                 error_dispatch::Error::Audio(format!("Failed to create tempdir: {e:?}")).into(),
             )
@@ -180,7 +166,6 @@ impl Compose for RustyYoutubeSearch {
         let path = tempdir.path().join(format!("{}.mp4", uuid));
 
         video.download(&path).await.map_err(|e| {
-
             AudioStreamError::Fail(
                 error_dispatch::Error::Audio(format!("Failed to download video: {e:?}")).into(),
             )
@@ -189,7 +174,6 @@ impl Compose for RustyYoutubeSearch {
         trace!("Downloaded video");
 
         let file = fs::File::open(&path).map_err(|e| {
-
             AudioStreamError::Fail(
                 error_dispatch::Error::Audio(format!("Failed to open file: {e:?}")).into(),
             )
@@ -206,14 +190,11 @@ impl Compose for RustyYoutubeSearch {
     }
 
     fn should_create_async(&self) -> bool {
-
         true
     }
 
     async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
-
         if let Some(meta) = self.metadata.as_ref() {
-
             return Ok(meta.clone());
         }
 
@@ -242,7 +223,6 @@ impl Compose for RustyYoutubeSearch {
 
         match res.clone() {
             SearchResult::Video(video) => {
-
                 self.url_type = UrlType::Video;
 
                 metadata.track = Some(video.title.clone());
@@ -268,7 +248,6 @@ impl Compose for RustyYoutubeSearch {
                 metadata.thumbnail = Some(video.thumbnails.first().unwrap().url.clone());
             }
             SearchResult::Playlist(playlist) => {
-
                 self.url_type = UrlType::Playlist;
 
                 metadata.title = Some(playlist.name);

@@ -9,7 +9,6 @@ pub async fn get_staff(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<StaffRoot, Box<dyn Error>> {
-
     let value = value.to_lowercase();
 
     let value = value.trim();
@@ -19,7 +18,6 @@ pub async fn get_staff(
     let is_number = value.chars().skip(1).all(|c| c.is_numeric());
 
     let json = if start_with_v && is_number {
-
         (r#"{
     		"filters": ["id", "=",""#
             .to_owned()
@@ -29,7 +27,6 @@ pub async fn get_staff(
 		}"#)
         .to_string()
     } else {
-
         (r#"{
     		"filters": ["search", "=",""#
             .to_owned()

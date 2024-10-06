@@ -16,13 +16,11 @@ use serenity::all::{ChannelId, CommandInteraction, Context};
 /// * A boolean value indicating whether the channel is marked as NSFW. Returns `true` if the channel is NSFW, `false` otherwise.
 
 pub async fn get_nsfw(command: &CommandInteraction, ctx: &Context) -> bool {
-
     let channel_id: ChannelId = command.channel_id;
 
     let channel = channel_id.to_channel(&ctx.http).await.unwrap();
 
     if let Some(channel) = channel.guild() {
-
         return channel.nsfw;
     }
 

@@ -7,7 +7,7 @@ use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessag
 use crate::command::anime::random_image::send_embed;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::helper::error_management::error_dispatch;
+use crate::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
 
@@ -19,19 +19,16 @@ pub struct AnimeRandomNsfwImageCommand {
 
 impl Command for AnimeRandomNsfwImageCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for AnimeRandomNsfwImageCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -41,7 +38,6 @@ async fn send(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     // Retrieve the type of image to fetch from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
 

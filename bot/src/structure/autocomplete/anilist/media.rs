@@ -3,7 +3,7 @@ use std::sync::Arc;
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{
-    AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
+    AutocompleteChoice, CommandInteraction, Context as SerenityContext, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
 use tokio::sync::RwLock;
@@ -78,19 +78,17 @@ pub enum MediaType {
 }
 
 pub async fn send_auto_complete(
-    ctx: Context,
+    ctx:  &SerenityContext,
     autocomplete_interaction: CommandInteraction,
     media: MediaAutocompleteVariables<'_>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
-
     let operation = MediaAutocomplete::build(media);
 
     let data: GraphQlResponse<MediaAutocomplete> =
         match make_request_anilist(operation, false, anilist_cache).await {
             Ok(data) => data,
             Err(e) => {
-
                 tracing::error!(?e);
 
                 return;
@@ -102,7 +100,6 @@ pub async fn send_auto_complete(
     let data = match data.data {
         Some(data) => data,
         None => {
-
             tracing::debug!(?data.errors);
 
             return;
@@ -120,7 +117,6 @@ pub async fn send_auto_complete(
     };
 
     for media in medias {
-
         let media = match media {
             Some(media) => media,
             None => continue,
@@ -147,6 +143,6 @@ pub async fn send_auto_complete(
     let builder = CreateInteractionResponse::Autocomplete(data);
 
     let _ = autocomplete_interaction
-        .create_response(ctx.http, builder)
+        .create_response(&ctx.http, builder)
         .await;
 }

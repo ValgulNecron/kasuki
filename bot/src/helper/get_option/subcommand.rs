@@ -19,7 +19,6 @@ use serenity::all::{Attachment, ChannelId, CommandInteraction, ResolvedValue, Ro
 pub fn get_option_map_string_subcommand(
     interaction: &CommandInteraction,
 ) -> HashMap<String, String> {
-
     let mut map = HashMap::new();
 
     let binding = interaction.data.options();
@@ -27,9 +26,7 @@ pub fn get_option_map_string_subcommand(
     let subcommand = &binding.first().unwrap().value;
 
     if let ResolvedValue::SubCommand(op) = subcommand {
-
         for option in op {
-
             let name = option.name.to_string();
 
             let value = match option.value {
@@ -59,7 +56,6 @@ pub fn get_option_map_string_subcommand(
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_integer_subcommand(interaction: &CommandInteraction) -> HashMap<String, i64> {
-
     let mut map = HashMap::new();
 
     let binding = interaction.data.options();
@@ -67,9 +63,7 @@ pub fn get_option_map_integer_subcommand(interaction: &CommandInteraction) -> Ha
     let subcommand = &binding.first().unwrap().value;
 
     if let ResolvedValue::SubCommand(op) = subcommand {
-
         for option in op {
-
             let name = option.name.to_string();
 
             let value = match option.value {
@@ -101,7 +95,6 @@ pub fn get_option_map_integer_subcommand(interaction: &CommandInteraction) -> Ha
 pub fn get_option_map_boolean_subcommand(
     interaction: &CommandInteraction,
 ) -> HashMap<String, bool> {
-
     let mut map = HashMap::new();
 
     let binding = interaction.data.options();
@@ -109,9 +102,7 @@ pub fn get_option_map_boolean_subcommand(
     let subcommand = &binding.first().unwrap().value;
 
     if let ResolvedValue::SubCommand(op) = subcommand {
-
         for option in op {
-
             let name = option.name.to_string();
 
             let value = match option.value {
@@ -141,7 +132,6 @@ pub fn get_option_map_boolean_subcommand(
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashMap<String, UserId> {
-
     let mut map = HashMap::new();
 
     let binding = interaction.data.options();
@@ -149,9 +139,7 @@ pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashM
     let subcommand = &binding.first().unwrap().value;
 
     if let ResolvedValue::SubCommand(op) = subcommand {
-
         for option in op {
-
             let name = option.name.to_string();
 
             let value = match &option.value {
@@ -183,7 +171,6 @@ pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashM
 pub fn get_option_map_channel_subcommand(
     interaction: &CommandInteraction,
 ) -> HashMap<String, ChannelId> {
-
     let mut map = HashMap::new();
 
     let binding = interaction.data.options();
@@ -191,9 +178,7 @@ pub fn get_option_map_channel_subcommand(
     let subcommand = &binding.first().unwrap().value;
 
     if let ResolvedValue::SubCommand(op) = subcommand {
-
         for option in op {
-
             let name = option.name.to_string();
 
             let value = match &option.value {
@@ -223,7 +208,6 @@ pub fn get_option_map_channel_subcommand(
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_role_subcommand(interaction: &CommandInteraction) -> HashMap<String, RoleId> {
-
     let mut map = HashMap::new();
 
     let binding = interaction.data.options();
@@ -231,9 +215,7 @@ pub fn get_option_map_role_subcommand(interaction: &CommandInteraction) -> HashM
     let subcommand = &binding.first().unwrap().value;
 
     if let ResolvedValue::SubCommand(op) = subcommand {
-
         for option in op {
-
             let name = option.name.to_string();
 
             let value = match &option.value {
@@ -263,7 +245,6 @@ pub fn get_option_map_role_subcommand(interaction: &CommandInteraction) -> HashM
 /// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_number_subcommand(interaction: &CommandInteraction) -> HashMap<String, f64> {
-
     let mut map = HashMap::new();
 
     let binding = interaction.data.options();
@@ -271,9 +252,7 @@ pub fn get_option_map_number_subcommand(interaction: &CommandInteraction) -> Has
     let subcommand = &binding.first().unwrap().value;
 
     if let ResolvedValue::SubCommand(op) = subcommand {
-
         for option in op {
-
             let name = option.name.to_string();
 
             let value = match &option.value {
@@ -305,7 +284,6 @@ pub fn get_option_map_number_subcommand(interaction: &CommandInteraction) -> Has
 pub fn get_option_map_attachment_subcommand(
     interaction: &CommandInteraction,
 ) -> HashMap<String, Attachment> {
-
     let mut map = HashMap::new();
 
     let binding = interaction.data.options();
@@ -313,14 +291,11 @@ pub fn get_option_map_attachment_subcommand(
     let subcommand = &binding.first().unwrap().value;
 
     if let ResolvedValue::SubCommand(op) = subcommand {
-
         for option in op {
-
             let name = option.name.to_string();
 
             let value = match &option.value {
                 ResolvedValue::Attachment(a) => {
-
                     let att = *a;
 
                     att.clone()
@@ -352,7 +327,6 @@ pub fn get_option_map_attachment_subcommand(
 pub fn get_option_map_string_autocomplete_subcommand(
     interaction: &CommandInteraction,
 ) -> HashMap<String, String> {
-
     let mut map = HashMap::new();
 
     let binding = interaction.data.options();
@@ -360,9 +334,7 @@ pub fn get_option_map_string_autocomplete_subcommand(
     let subcommand = &binding.first().unwrap().value;
 
     if let ResolvedValue::SubCommand(op) = subcommand {
-
         for option in op {
-
             let name = option.name.to_string();
 
             let value = match &option.value {

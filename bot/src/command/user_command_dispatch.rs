@@ -4,8 +4,8 @@ use crate::command::command_trait::UserCommand;
 use crate::command::user::avatar::AvatarCommand;
 use crate::command::user::banner::BannerCommand;
 use crate::command::user::profile::ProfileCommand;
+use crate::error_management::error_dispatch;
 use crate::event_handler::Handler;
-use crate::helper::error_management::error_dispatch;
 use serenity::all::{CommandInteraction, Context};
 
 pub async fn dispatch_user_command(
@@ -13,7 +13,6 @@ pub async fn dispatch_user_command(
     command_interaction: &CommandInteraction,
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
-
     match command_interaction.data.name.as_str() {
         "avatar" => {
             AvatarCommand {

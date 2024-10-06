@@ -17,7 +17,6 @@ use crate::constant::COLOR;
 /// * A `CreateEmbed` instance with the current timestamp and the specified color.
 
 pub fn get_default_embed(option: Option<Colour>) -> CreateEmbed {
-
     let color = option.unwrap_or(COLOR);
 
     CreateEmbed::new().timestamp(Timestamp::now()).color(color)

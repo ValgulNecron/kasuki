@@ -4,10 +4,10 @@ use std::sync::Arc;
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
 use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
 use crate::config::{Config, DbConfig};
+use crate::database::prelude::ActivityData;
+use crate::error_management::error_dispatch;
 use crate::get_url;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
-use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
 use moka::future::Cache;
 use sea_orm::ColumnTrait;
@@ -24,19 +24,16 @@ pub struct DeleteActivityCommand {
 
 impl Command for DeleteActivityCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for DeleteActivityCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         let anilist_cache = self.anilist_cache.clone();
 
         let command_interaction = self.command_interaction.clone();
@@ -98,12 +95,11 @@ async fn remove_activity(
     anime_id: &i32,
     db_config: DbConfig,
 ) -> Result<(), Box<dyn Error>> {
-
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
 
     let activity = ActivityData::find()
-        .filter(crate::structure::database::activity_data::Column::ServerId.eq(guild_id))
-        .filter(crate::structure::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
+        .filter(crate::database::activity_data::Column::ServerId.eq(guild_id))
+        .filter(crate::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
         .one(&connection)
         .await?
         .ok_or(error_dispatch::Error::Option(format!(

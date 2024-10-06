@@ -24,6 +24,7 @@ use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
 use crate::command::anilist_user::waifu::WaifuCommand;
 use crate::command::anime::random_image::AnimeRandomImageCommand;
+use crate::command::anime_nsfw::random_nsfw_image::AnimeRandomNsfwImageCommand;
 use crate::command::audio::join::AudioJoinCommand;
 use crate::command::audio::play::AudioPlayCommand;
 use crate::command::bot::credit::CreditCommand;
@@ -49,24 +50,22 @@ use crate::command::vn::staff::VnStaffCommand;
 use crate::command::vn::stats::VnStatsCommand;
 use crate::command::vn::user::VnUserCommand;
 use crate::config::DbConfig;
+use crate::database;
+use crate::database::module_activation::Model;
+use crate::database::prelude::ModuleActivation;
 use crate::event_handler::Handler;
 use crate::get_url;
-use crate::structure::database;
-use crate::structure::database::module_activation::Model;
-use crate::structure::database::prelude::ModuleActivation;
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context};
 use std::error::Error;
 use tracing::trace;
-use crate::command::anime_nsfw::random_nsfw_image::AnimeRandomNsfwImageCommand;
 
 pub async fn dispatch_command(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     self_handler: &Handler,
 ) -> Result<(), Box<dyn Error>> {
-
     let (kind, name) = guess_command_kind(command_interaction);
 
     let full_command_name = format!("{} {}", kind, name);
@@ -564,7 +563,6 @@ pub async fn dispatch_command(
             .await?
         }
         _ => {
-
             Err(anyhow::anyhow!("Command not found"))?;
         }
     };
@@ -585,7 +583,6 @@ pub async fn check_if_module_is_on(
     module: &str,
     db_config: DbConfig,
 ) -> Result<bool, Box<dyn Error>> {
-
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
 
     let row = ModuleActivation::find()
@@ -615,7 +612,6 @@ async fn check_kill_switch_status(
     db_config: DbConfig,
     guild_id: String,
 ) -> Result<bool, Box<dyn Error>> {
-
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
 
     let row = ModuleActivation::find()

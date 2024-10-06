@@ -3,7 +3,7 @@ use crate::constant::{
     PAID_IMAGE_MULTIPLIER, PAID_QUESTION_MULTIPLIER, PAID_TRANSCRIPT_MULTIPLIER,
     PAID_TRANSLATION_MULTIPLIER,
 };
-use crate::event_handler::Handler;
+use crate::event_handler::{BotData, Handler};
 use crate::helper::create_default_embed::get_default_embed;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
@@ -12,8 +12,8 @@ use serenity::all::{
 use serenity::builder::{
     CreateButton, CreateInteractionResponse, CreateInteractionResponseFollowup,
 };
-use serenity::client::Context;
 use serenity::model::Colour;
+use serenity::prelude::Context;
 use std::error::Error;
 
 pub trait Command {
@@ -71,7 +71,6 @@ impl<T: Command> Embed for T {
         command_type: EmbedType,
         colour: Option<Colour>,
     ) -> Result<(), Box<dyn Error>> {
-
         let ctx = self.get_ctx();
 
         let command_interaction = self.get_command_interaction();
@@ -79,7 +78,6 @@ impl<T: Command> Embed for T {
         let mut builder_embed = get_default_embed(colour);
 
         if let Some(image) = image {
-
             builder_embed = builder_embed.image(image);
         }
 
@@ -88,12 +86,10 @@ impl<T: Command> Embed for T {
         builder_embed = builder_embed.description(description);
 
         if let Some(thumbnail) = thumbnail {
-
             builder_embed = builder_embed.thumbnail(thumbnail);
         }
 
         if let Some(url) = url {
-
             builder_embed = builder_embed.url(url);
         }
 
@@ -101,7 +97,6 @@ impl<T: Command> Embed for T {
 
         match command_type {
             EmbedType::First => {
-
                 let builder = CreateInteractionResponseMessage::new().embed(builder_embed);
 
                 let builder = CreateInteractionResponse::Message(builder);
@@ -111,7 +106,6 @@ impl<T: Command> Embed for T {
                     .await?;
             }
             EmbedType::Followup => {
-
                 let builder = CreateInteractionResponseFollowup::new().embed(builder_embed);
 
                 command_interaction
@@ -124,7 +118,6 @@ impl<T: Command> Embed for T {
     }
 
     async fn defer(&self) -> Result<(), Box<dyn Error>> {
-
         let ctx = self.get_ctx();
 
         let command_interaction = self.get_command_interaction();
@@ -151,6 +144,7 @@ impl<T: Command> PremiumCommand for T {
         handler: &Handler,
         command: PremiumCommandType,
     ) -> Result<bool, Box<dyn Error>> {
+        let bot_data = self.get_ctx().data::<BotData>().clone();
 
         let ctx = self.get_ctx();
 
@@ -170,8 +164,7 @@ impl<T: Command> PremiumCommand for T {
             PremiumCommandType::AITranslation => PAID_TRANSLATION_MULTIPLIER,
         };
 
-        if !handler.bot_data.config.bot.respect_premium {
-
+        if !bot_data.config.bot.respect_premium {
             return Ok(false);
         }
 
@@ -192,15 +185,12 @@ impl<T: Command> PremiumCommand for T {
         let mut available_user_sku = None;
 
         for available_sku in available_skus {
-
             match available_sku.kind {
                 SkuKind::Subscription => {
                     if available_sku.flags == SkuFlags::USER_SUBSCRIPTION {
-
                         available_user_sku = Some(available_sku.id);
 
                         if user_sub.is_none() && user_skus.contains(&available_sku.id) {
-
                             user_sub = Some(available_sku.id);
                         }
                     }
@@ -212,17 +202,14 @@ impl<T: Command> PremiumCommand for T {
         }
 
         if available_user_sku.is_none() {
-
             return Ok(false);
         }
 
         if usage <= free_limit as u128 && user_sub.is_none() {
-
             return Ok(false);
         }
 
         if usage <= (free_limit as f64 * paid_multiplier) as u128 && user_sub.is_some() {
-
             return Ok(false);
         }
 

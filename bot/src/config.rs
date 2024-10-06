@@ -95,7 +95,6 @@ pub struct GrpcCfg {
 
 impl Default for Config {
     fn default() -> Self {
-
         Config {
             bot: BotConfig {
                 discord_token: "".to_string(),
@@ -155,7 +154,6 @@ impl Default for Config {
 
 impl Config {
     pub fn set_default_value_on_none(&mut self) {
-
         if self.ai.image.ai_image_token.is_none()
             || self
                 .ai
@@ -165,7 +163,6 @@ impl Config {
                 .unwrap_or_default()
                 .is_empty()
         {
-
             self.ai.image.ai_image_token = Some(self.ai.ai_token.clone());
         }
 
@@ -178,7 +175,6 @@ impl Config {
                 .unwrap_or_default()
                 .is_empty()
         {
-
             self.ai.image.ai_image_base_url = Some(self.ai.ai_base_url.clone());
         }
 
@@ -191,7 +187,6 @@ impl Config {
                 .unwrap_or_default()
                 .is_empty()
         {
-
             self.ai.image.ai_image_model = Some("dall-e-3".to_string());
         }
 
@@ -204,7 +199,6 @@ impl Config {
                 .unwrap_or_default()
                 .is_empty()
         {
-
             self.ai.question.ai_question_token = Some(self.ai.ai_token.clone());
         }
 
@@ -217,7 +211,6 @@ impl Config {
                 .unwrap_or_default()
                 .is_empty()
         {
-
             self.ai.question.ai_question_base_url = Some(self.ai.ai_base_url.clone());
         }
 
@@ -230,7 +223,6 @@ impl Config {
                 .unwrap_or_default()
                 .is_empty()
         {
-
             self.ai.question.ai_question_model = Some("gpt-3.5-turbo".to_string());
         }
 
@@ -243,7 +235,6 @@ impl Config {
                 .unwrap_or_default()
                 .is_empty()
         {
-
             self.ai.transcription.ai_transcription_token = Some(self.ai.ai_token.clone());
         }
 
@@ -256,7 +247,6 @@ impl Config {
                 .unwrap_or_default()
                 .is_empty()
         {
-
             self.ai.transcription.ai_transcription_base_url = Some(self.ai.ai_base_url.clone());
         }
 
@@ -269,7 +259,6 @@ impl Config {
                 .unwrap_or_default()
                 .is_empty()
         {
-
             self.ai.transcription.ai_transcription_model = Some("whisper-1".to_string());
         }
     }

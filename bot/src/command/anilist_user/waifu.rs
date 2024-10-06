@@ -19,19 +19,16 @@ pub struct WaifuCommand {
 
 impl Command for WaifuCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for WaifuCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         let ctx = &self.ctx;
 
         let command_interaction = &self.command_interaction;

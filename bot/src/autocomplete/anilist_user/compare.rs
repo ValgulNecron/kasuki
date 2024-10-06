@@ -43,7 +43,6 @@ pub async fn autocomplete(
     autocomplete_interaction: CommandInteraction,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) {
-
     let mut choice = Vec::new();
 
     trace!("{:?}", &autocomplete_interaction.data.options);
@@ -95,7 +94,6 @@ async fn get_choices(
     search: &str,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Vec<AutocompleteChoice> {
-
     trace!("{:?}", search);
 
     let var = UserAutocompleteVariables {
@@ -110,7 +108,6 @@ async fn get_choices(
     let data = match data {
         Ok(data) => data,
         Err(e) => {
-
             tracing::error!(?e);
 
             return Vec::new();
@@ -126,7 +123,6 @@ async fn get_choices(
             None => return Vec::new(),
         },
         None => {
-
             tracing::error!(?data.errors);
 
             return Vec::new();
@@ -136,7 +132,6 @@ async fn get_choices(
     let mut choices = Vec::new();
 
     for user in users {
-
         let data = user.unwrap();
 
         let user = data.name;

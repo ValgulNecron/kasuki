@@ -1,13 +1,13 @@
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::database::module_activation::Model;
+use crate::database::prelude::ModuleActivation;
+use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::{
     get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
-use crate::structure::database::module_activation::Model;
-use crate::structure::database::prelude::ModuleActivation;
 use crate::structure::message::admin::server::module::load_localization_module_activation;
 use sea_orm::ColumnTrait;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
@@ -25,19 +25,16 @@ pub struct ModuleCommand {
 
 impl Command for ModuleCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for ModuleCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
@@ -47,7 +44,6 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn Error>> {
-
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -75,7 +71,7 @@ async fn send_embed(
     let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
 
     let mut row = ModuleActivation::find()
-        .filter(crate::structure::database::module_activation::Column::GuildId.eq(guild_id.clone()))
+        .filter(crate::database::module_activation::Column::GuildId.eq(guild_id.clone()))
         .one(&connection)
         .await?
         .unwrap_or(Model {
@@ -97,7 +93,6 @@ async fn send_embed(
         "ANIME" => row.anime_module = state,
         "VN" => row.vn_module = state,
         _ => {
-
             return Err(Box::new(error_dispatch::Error::Option(String::from(
                 "The module specified does not exist",
             ))));
@@ -109,10 +104,8 @@ async fn send_embed(
     active_model.update(&connection).await?;
 
     let desc = if state {
-
         &module_localised.on
     } else {
-
         &module_localised.off
     };
 
@@ -130,7 +123,6 @@ async fn send_embed(
 }
 
 pub async fn check_activation_status(module: &str, row: Model) -> bool {
-
     match module {
         "ANILIST" => row.anilist_module,
         "AI" => row.ai_module,

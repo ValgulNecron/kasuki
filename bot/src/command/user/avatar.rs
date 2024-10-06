@@ -17,19 +17,16 @@ pub struct AvatarCommand {
 
 impl Command for AvatarCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for AvatarCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         let user = get_user_command(&self.ctx, &self.command_interaction).await?;
 
         send_embed(&self.ctx, &self.command_interaction, user, &self.config).await
@@ -38,7 +35,6 @@ impl SlashCommand for AvatarCommand {
 
 impl UserCommand for AvatarCommand {
     async fn run_user(&self) -> Result<(), Box<dyn Error>> {
-
         let user = get_user_command_user(&self.ctx, &self.command_interaction).await;
 
         send_embed(&self.ctx, &self.command_interaction, user, &self.config).await
@@ -49,7 +45,6 @@ pub async fn get_user_command_user(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> User {
-
     let users = &command_interaction.data.resolved.users;
 
     let mut user: Option<User> = None;
@@ -57,10 +52,8 @@ pub async fn get_user_command_user(
     let command_user = command_interaction.user.clone();
 
     for (user_id, u) in users {
-
         // If the user_id is not the same as the id of the user who invoked the command, assign the user to u and break the loop
         if user_id != &command_interaction.user.id {
-
             user = Some(u.clone());
 
             break;
@@ -76,7 +69,6 @@ pub async fn get_user_command(
     ctx: &Context,
     command_interaction: &CommandInteraction,
 ) -> Result<User, Box<dyn Error>> {
-
     let user = get_option_map_user_subcommand(command_interaction);
 
     let user = user.get(&String::from("username"));
@@ -95,7 +87,6 @@ pub async fn send_embed(
     user: User,
     config: &Config,
 ) -> Result<(), Box<dyn Error>> {
-
     let guild_id = interaction
         .guild_id
         .map(|id| id.to_string())
@@ -113,7 +104,6 @@ pub async fn send_embed(
 
     let server_avatar = match interaction.guild_id {
         Some(guild_id) => {
-
             let member = guild_id.member(&ctx.http, interaction.user.id).await;
 
             match member {
@@ -126,7 +116,6 @@ pub async fn send_embed(
 
     let message = match server_avatar {
         Some(server_avatar) => {
-
             let server_embed = get_default_embed(None).image(server_avatar).title(
                 avatar_localised
                     .server_title

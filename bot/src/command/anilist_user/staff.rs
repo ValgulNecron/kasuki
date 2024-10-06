@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::staff::load_localization_staff;
@@ -27,19 +27,16 @@ pub struct StaffCommand {
 
 impl Command for StaffCommand {
     fn get_ctx(&self) -> &Context {
-
         &self.ctx
     }
 
     fn get_command_interaction(&self) -> &CommandInteraction {
-
         &self.command_interaction
     }
 }
 
 impl SlashCommand for StaffCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-
         let ctx = &self.ctx;
 
         let command_interaction = &self.command_interaction;
@@ -58,7 +55,6 @@ async fn send_embed(
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<(), Box<dyn Error>> {
-
     let map = get_option_map_string(command_interaction);
 
     let value = map
@@ -68,7 +64,6 @@ async fn send_embed(
         )))?;
 
     let staff = if value.parse::<i32>().is_ok() {
-
         let var = StaffQuerryIdVariables {
             id: Some(value.parse().unwrap()),
         };
@@ -80,7 +75,6 @@ async fn send_embed(
 
         data.data.unwrap().staff.unwrap()
     } else {
-
         let var = StaffQuerrySearchVariables {
             search: Some(value),
         };
@@ -109,18 +103,15 @@ async fn send_embed(
     let date_of_birth = staff.date_of_birth.unwrap().clone();
 
     if let Some(m) = date_of_birth.month {
-
         month = true;
 
         date.push_str(m.to_string().as_str())
     }
 
     if let Some(d) = date_of_birth.day {
-
         day = true;
 
         if month {
-
             date.push('/')
         }
 
@@ -128,9 +119,7 @@ async fn send_embed(
     }
 
     if let Some(y) = date_of_birth.year {
-
         if day {
-
             date.push('/')
         }
 
@@ -150,18 +139,15 @@ async fn send_embed(
     let date_of_death = staff.date_of_death.unwrap().clone();
 
     if let Some(m) = date_of_death.month {
-
         month = true;
 
         date.push_str(m.to_string().as_str())
     }
 
     if let Some(d) = date_of_death.day {
-
         day = true;
 
         if month {
-
             date.push('/')
         }
 
@@ -169,9 +155,7 @@ async fn send_embed(
     }
 
     if let Some(y) = date_of_death.year {
-
         if day {
-
             date.push('/')
         }
 
@@ -217,7 +201,6 @@ async fn send_embed(
         .unwrap()
         .iter()
         .filter_map(|x| {
-
             let x = x.clone().unwrap();
 
             let name = x.name.unwrap();
@@ -239,7 +222,6 @@ async fn send_embed(
         .unwrap()
         .iter()
         .filter_map(|x| {
-
             let node = x.clone().unwrap().node.unwrap();
 
             let title = node.title.unwrap();
@@ -290,7 +272,6 @@ async fn send_embed(
 /// A `Option<String>` that contains the formatted full name of the character or staff member, or `None` if neither name is available.
 
 fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {
-
     match (a, b) {
         (Some(a), Some(b)) => Some(format!("{}/{}", a, b)),
         (Some(a), None) => Some(a.to_string()),

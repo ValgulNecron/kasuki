@@ -31,7 +31,6 @@ struct InnerReceiver {
 
 impl Receiver {
     pub fn new() -> Self {
-
         // You can manage state here, such as a buffer of audio packet bytes so
         // you can later store them in intervals.
         Self {
@@ -49,7 +48,6 @@ impl EventHandler for Receiver {
     #[allow(unused_variables)]
 
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
-
         use EventContext as Ctx;
 
         match ctx {
@@ -59,7 +57,6 @@ impl EventHandler for Receiver {
                 user_id,
                 ..
             }) => {
-
                 // Discord voice calls use RTP, where every sender uses a randomly allocated
                 // *Synchronisation Source* (SSRC) to allow receivers to tell which audio
                 // stream a received packet belongs to. As this number is not derived from
@@ -77,12 +74,10 @@ impl EventHandler for Receiver {
                 );
 
                 if let Some(user) = user_id {
-
                     self.inner.known_ssrcs.insert(*ssrc, UserId::from(user.0));
                 }
             }
             Ctx::VoiceTick(tick) => {
-
                 let speaking = tick.speaking.len();
 
                 let total_participants = speaking + tick.silent.len();
@@ -90,17 +85,14 @@ impl EventHandler for Receiver {
                 let last_tick_was_empty = self.inner.last_tick_was_empty.load(Ordering::SeqCst);
 
                 if speaking == 0 && !last_tick_was_empty {
-
                     self.inner.last_tick_was_empty.store(true, Ordering::SeqCst);
                 } else if speaking != 0 {
-
                     self.inner
                         .last_tick_was_empty
                         .store(false, Ordering::SeqCst);
                 }
             }
             Ctx::ClientDisconnect(ClientDisconnect { user_id, .. }) => {
-
                 // You can implement your own logic here to handle a user who has left the
                 // voice channel e.g., finalise processing of statistics etc.
                 // You will typically need to map the User ID to their SSRC; observed when
@@ -110,7 +102,6 @@ impl EventHandler for Receiver {
             }
             Ctx::Track(track_list) => {
                 for (state, handle) in *track_list {
-
                     error!(
                         "Track {:?} encountered an error: {:?}",
                         handle.uuid(),
@@ -131,11 +122,8 @@ pub struct TrackErrorNotifier;
 
 impl EventHandler for TrackErrorNotifier {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
-
         if let EventContext::Track(track_list) = ctx {
-
             for (state, handle) in *track_list {
-
                 error!(
                     "Track {:?} encountered an error: {:?}",
                     handle.uuid(),
@@ -158,25 +146,21 @@ pub struct TrackEndNotifier {
 
 impl EventHandler for TrackEndNotifier {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
-
         let handler_mutex = self.manager.clone();
 
         let url = self.url.clone();
 
         if let EventContext::Track(track_list) = ctx {
-
             let handler_mutex_clone = handler_mutex.clone();
 
             let mut handler_lock = handler_mutex_clone.lock().await;
 
             for (_, handle) in *track_list {
-
                 debug!("Track {:?} ended", handle.uuid());
 
                 let mut src = match RustyYoutubeSearch::new_from_url(url.clone()) {
                     Ok(src) => src,
                     Err(e) => {
-
                         error!("Failed to create source: {:?}", e);
 
                         break;
