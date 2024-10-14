@@ -1,7 +1,7 @@
 use crate::register::function::common::{get_option, get_permission, get_vec};
 use crate::register::structure::guild_command::GuildCommand;
+use anyhow::Result;
 use serenity::all::{CommandType, CreateCommand, GuildId, Http};
-use std::error::Error;
 use std::sync::Arc;
 use tracing::{error, trace};
 
@@ -20,7 +20,7 @@ pub async fn creates_guild_commands(http: &Arc<Http>) {
     }
 }
 
-pub fn get_commands(path: &str) -> Result<Vec<GuildCommand>, Box<dyn Error>> {
+pub fn get_commands(path: &str) -> Result<Vec<GuildCommand>> {
     let commands: Vec<GuildCommand> = get_vec(path)?;
 
     if commands.is_empty() {

@@ -63,7 +63,7 @@ pub const THREAD_POOL_SIZE: usize = 25;
 
 /// Limit for member list.
 
-pub const MEMBER_LIST_LIMIT: u64 = 10;
+pub const MEMBER_LIST_LIMIT: u16 = 10;
 
 /// Limit for activity list.
 

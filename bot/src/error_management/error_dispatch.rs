@@ -6,8 +6,7 @@ use serenity::all::{
 use tracing::error;
 
 use crate::constant::COLOR;
-use crate::event_handler::Handler;
-use thiserror::Error;
+use crate::event_handler::{BotData, Handler};
 
 const ERROR_MESSAGE: &str = "**There was an error while processing the command**\
     \n**This error is most likely an input error** \
@@ -19,48 +18,29 @@ pub async fn command_dispatching(
     message: String,
     command_interaction: &CommandInteraction,
     ctx: &Context,
-    self_handler: &Handler,
 ) {
     error!("{}", message.replace("\\n", "\n"));
 
-    match send_error(message.clone(), command_interaction, ctx, self_handler).await {
+    match send_error(message.clone(), command_interaction, ctx).await {
         Ok(_) => {}
-        Err(_) => {
-            match send_differed_error(message, command_interaction, ctx, self_handler).await {
-                Ok(_) => {}
-                Err(e) => {
-                    error!("{}", e);
-                }
+        Err(_) => match send_differed_error(message, command_interaction, ctx).await {
+            Ok(_) => {}
+            Err(e) => {
+                error!("{}", e);
             }
-        }
+        },
     }
 }
-
-/// `send_error` is an asynchronous function that sends an error message.
-/// It takes an `e`, `command_interaction`, and `ctx` as parameters.
-/// `e` is an AppError, `command_interaction` is a reference to a CommandInteraction, and `ctx` is a reference to a Context.
-/// It returns a Result which is either an empty tuple or an AppError.
-///
-/// # Arguments
-///
-/// * `e` - An AppError that represents the error.
-/// * `command_interaction` - A reference to a CommandInteraction that represents the command interaction.
-/// * `ctx` - A reference to a Context that represents the context.
-///
-/// # Returns
-///
-/// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
 
 async fn send_error(
     e: String,
     command_interaction: &CommandInteraction,
     ctx: &Context,
-    self_handler: &Handler,
 ) -> Result<(), String> {
     let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
 
     // censor url and token in the error message
-    let error_message = censor_url_and_token(error_message, self_handler);
+    let error_message = censor_url_and_token(error_message, ctx);
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -80,31 +60,15 @@ async fn send_error(
     Ok(())
 }
 
-/// `send_differed_error` is an asynchronous function that sends a differed error message.
-/// It takes an `e`, `command_interaction`, and `ctx` as parameters.
-/// `e` is an AppError, `command_interaction` is a reference to a CommandInteraction, and `ctx` is a reference to a Context.
-/// It returns a Result which is either an empty tuple or an AppError.
-///
-/// # Arguments
-///
-/// * `e` - An AppError that represents the error.
-/// * `command_interaction` - A reference to a CommandInteraction that represents the command interaction.
-/// * `ctx` - A reference to a Context that represents the context.
-///
-/// # Returns
-///
-/// * `Result<(), AppError>` - A Result type which is either an empty tuple or an AppError.
-
 async fn send_differed_error(
     e: String,
     command_interaction: &CommandInteraction,
     ctx: &Context,
-    self_handler: &Handler,
 ) -> Result<(), String> {
     let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
 
     // censor url and token in the error message
-    let error_message = censor_url_and_token(error_message, self_handler);
+    let error_message = censor_url_and_token(error_message, ctx);
 
     let builder_embed = CreateEmbed::new()
         .timestamp(Timestamp::now())
@@ -122,21 +86,8 @@ async fn send_differed_error(
     Ok(())
 }
 
-/// `censor_url_and_token` is a function that censors URLs and tokens in the given error message.
-/// It takes an `error_message` as a parameter.
-/// `error_message` is a String.
-/// It returns a String which is the censored error message.
-///
-/// # Arguments
-///
-/// * `error_message` - A String that represents the error message.
-///
-/// # Returns
-///
-/// * `String` - A String which is the censored error message.
-
-fn censor_url_and_token(error_message: String, self_handler: &Handler) -> String {
-    let config = self_handler.bot_data.config.clone();
+fn censor_url_and_token(error_message: String, ctx: &Context) -> String {
+    let config = ctx.data::<BotData>().config.clone();
 
     let mut error_message = error_message;
 

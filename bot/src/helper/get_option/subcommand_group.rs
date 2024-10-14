@@ -4,20 +4,6 @@ use serenity::all::{
     Attachment, ChannelId, CommandInteraction, ResolvedOption, ResolvedValue, RoleId, UserId,
 };
 
-/// Retrieves the first subcommand group from the command interaction.
-///
-/// This function first retrieves the options from the command interaction.
-/// It then checks if the first option is a subcommand group.
-/// If it is, it returns the first option of the subcommand group.
-///
-/// # Arguments
-///
-/// * `interaction` - The command interaction from which to extract the subcommand group.
-///
-/// # Returns
-///
-/// An `Option` that contains the first `ResolvedOption` of the subcommand group if it exists, or `None` if it doesn't.
-
 pub fn get_subcommand(interaction: &CommandInteraction) -> Option<ResolvedOption<'_>> {
     let subcommand_group_value = interaction.data.options().first()?.clone();
 
@@ -27,20 +13,6 @@ pub fn get_subcommand(interaction: &CommandInteraction) -> Option<ResolvedOption
 
     None
 }
-
-/// Retrieves the string options from the subcommand group in the command interaction and returns them as a HashMap.
-///
-/// This function first retrieves the subcommand group from the command interaction.
-/// It then iterates over the options in the subcommand group and extracts the string options.
-/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
-///
-/// # Arguments
-///
-/// * `interaction` - The command interaction from which to extract the options.
-///
-/// # Returns
-///
-/// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_string_subcommand_group(
     interaction: &CommandInteraction,
@@ -71,20 +43,6 @@ pub fn get_option_map_string_subcommand_group(
     map
 }
 
-/// Retrieves the integer options from the subcommand group in the command interaction and returns them as a HashMap.
-///
-/// This function first retrieves the subcommand group from the command interaction.
-/// It then iterates over the options in the subcommand group and extracts the integer options.
-/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
-///
-/// # Arguments
-///
-/// * `interaction` - The command interaction from which to extract the options.
-///
-/// # Returns
-///
-/// A `HashMap` where the keys are the option names and the values are the option values.
-
 pub fn get_option_map_integer_subcommand_group(
     interaction: &CommandInteraction,
 ) -> HashMap<String, i64> {
@@ -113,20 +71,6 @@ pub fn get_option_map_integer_subcommand_group(
 
     map
 }
-
-/// Retrieves the boolean options from the subcommand group in the command interaction and returns them as a HashMap.
-///
-/// This function first retrieves the subcommand group from the command interaction.
-/// It then iterates over the options in the subcommand group and extracts the boolean options.
-/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
-///
-/// # Arguments
-///
-/// * `interaction` - The command interaction from which to extract the options.
-///
-/// # Returns
-///
-/// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_boolean_subcommand_group(
     interaction: &CommandInteraction,
@@ -157,20 +101,6 @@ pub fn get_option_map_boolean_subcommand_group(
     map
 }
 
-/// Retrieves the user options from the subcommand group in the command interaction and returns them as a HashMap.
-///
-/// This function first retrieves the subcommand group from the command interaction.
-/// It then iterates over the options in the subcommand group and extracts the user options.
-/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
-///
-/// # Arguments
-///
-/// * `interaction` - The command interaction from which to extract the options.
-///
-/// # Returns
-///
-/// A `HashMap` where the keys are the option names and the values are the option values.
-
 pub fn get_option_map_user_subcommand_group(
     interaction: &CommandInteraction,
 ) -> HashMap<String, UserId> {
@@ -199,20 +129,6 @@ pub fn get_option_map_user_subcommand_group(
 
     map
 }
-
-/// Retrieves the channel options from the subcommand group in the command interaction and returns them as a HashMap.
-///
-/// This function first retrieves the subcommand group from the command interaction.
-/// It then iterates over the options in the subcommand group and extracts the channel options.
-/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
-///
-/// # Arguments
-///
-/// * `interaction` - The command interaction from which to extract the options.
-///
-/// # Returns
-///
-/// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_channel_subcommand_group(
     interaction: &CommandInteraction,
@@ -243,20 +159,6 @@ pub fn get_option_map_channel_subcommand_group(
     map
 }
 
-/// Retrieves the role options from the subcommand group in the command interaction and returns them as a HashMap.
-///
-/// This function first retrieves the subcommand group from the command interaction.
-/// It then iterates over the options in the subcommand group and extracts the role options.
-/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
-///
-/// # Arguments
-///
-/// * `interaction` - The command interaction from which to extract the options.
-///
-/// # Returns
-///
-/// A `HashMap` where the keys are the option names and the values are the option values.
-
 pub fn get_option_map_role_subcommand_group(
     interaction: &CommandInteraction,
 ) -> HashMap<String, RoleId> {
@@ -285,20 +187,6 @@ pub fn get_option_map_role_subcommand_group(
 
     map
 }
-
-/// Retrieves the number options from the subcommand group in the command interaction and returns them as a HashMap.
-///
-/// This function first retrieves the subcommand group from the command interaction.
-/// It then iterates over the options in the subcommand group and extracts the number options.
-/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
-///
-/// # Arguments
-///
-/// * `interaction` - The command interaction from which to extract the options.
-///
-/// # Returns
-///
-/// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_number_subcommand_group(
     interaction: &CommandInteraction,
@@ -329,20 +217,6 @@ pub fn get_option_map_number_subcommand_group(
     map
 }
 
-/// Retrieves the attachment options from the subcommand group in the command interaction and returns them as a HashMap.
-///
-/// This function first retrieves the subcommand group from the command interaction.
-/// It then iterates over the options in the subcommand group and extracts the attachment options.
-/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
-///
-/// # Arguments
-///
-/// * `interaction` - The command interaction from which to extract the options.
-///
-/// # Returns
-///
-/// A `HashMap` where the keys are the option names and the values are the option values.
-
 pub fn get_option_map_attachment_subcommand_group(
     interaction: &CommandInteraction,
 ) -> HashMap<String, Attachment> {
@@ -371,20 +245,6 @@ pub fn get_option_map_attachment_subcommand_group(
 
     map
 }
-
-/// Retrieves the string options from the autocomplete subcommand group in the command interaction and returns them as a HashMap.
-///
-/// This function first retrieves the subcommand group from the command interaction.
-/// It then iterates over the options in the subcommand group and extracts the string options from the autocomplete subcommand group.
-/// These options are inserted into a HashMap with the option name as the key and the option value as the value.
-///
-/// # Arguments
-///
-/// * `interaction` - The command interaction from which to extract the options.
-///
-/// # Returns
-///
-/// A `HashMap` where the keys are the option names and the values are the option values.
 
 pub fn get_option_map_string_autocomplete_subcommand_group(
     interaction: &CommandInteraction,

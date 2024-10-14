@@ -22,15 +22,10 @@ pub async fn load_localization<'a, T: serde::Deserialize<'a> + Clone>(
     let lang_choice = get_guild_language(guild_id, db_config).await;
 
     // Retrieve the localized data for the add activity based on the language choice
-    Ok(json_data
-        .get(lang_choice.as_str())
-        .cloned()
-        .unwrap_or(
-            json_data
-                .get("en")
-                .cloned()
-                .ok_or(error_dispatch::Error::Option(
-                    "Failed to get English localization".to_string(),
-                ))?,
-        ))
+    Ok(json_data.get(lang_choice.as_str()).cloned().unwrap_or(
+        json_data
+            .get("en")
+            .cloned()
+            .context("Failed to get English localization")?,
+    ))
 }

@@ -1,24 +1,24 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::bot::ping::load_localization_ping;
-use crate::type_map_key::ShardManagerContainer;
+use anyhow::{Context, Error, Result};
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
-
 pub struct PingCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for PingCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -28,16 +28,16 @@ impl Command for PingCommand {
 }
 
 impl SlashCommand for PingCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -47,35 +47,18 @@ async fn send_embed(
     // Load the localized ping strings
     let ping_localised = load_localization_ping(guild_id, config.db.clone()).await?;
 
-    // Retrieve the shard manager from the context data
-    let data_read = ctx.data.read().await;
-
-    let shard_manager = match data_read.get::<ShardManagerContainer>() {
-        Some(data) => data,
-        None => {
-            return Err(Box::new(error_dispatch::Error::Option(String::from(
-                "Could not get the shard manager from the context data",
-            ))));
-        }
-    }
-    .runners
-    .clone();
-
-    // Lock the shard manager for exclusive access
-    let shard_manager = shard_manager.lock().await;
+    let shard_manager = match ctx.data::<BotData>().shard_manager.clone() {
+        Some(shard) => shard.runners.lock().await,
+        None => return Err(Error::from("failed to get the shard")),
+    };
 
     // Retrieve the shard ID from the context
     let shard_id = ctx.shard_id;
 
     // Retrieve the shard runner info from the shard manager
-    let shard_runner_info = match shard_manager.get(&shard_id) {
-        Some(data) => data,
-        None => {
-            return Err(Box::new(error_dispatch::Error::Option(String::from(
-                "Could not get the shard runner info from the shard manager",
-            ))));
-        }
-    };
+    let shard_runner_info = shard_manager
+        .get(&shard_id)
+        .ok_or("failed to get the shard info")?;
 
     // Format the latency as a string
     let latency = match shard_runner_info.latency {

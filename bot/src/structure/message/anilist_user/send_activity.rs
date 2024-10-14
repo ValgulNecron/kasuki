@@ -4,12 +4,6 @@ use serde::{Deserialize, Serialize};
 // Importing necessary libraries and modules
 use crate::structure::message::common::load_localization;
 
-/// SendActivityLocalised struct represents a send activity's localized data.
-/// It contains fields for title and description.
-///
-/// # Fields
-/// * `title`: A string representing the title related data.
-/// * `desc`: A string representing the description related data.
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
 pub struct SendActivityLocalised {

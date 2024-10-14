@@ -9,16 +9,7 @@ use crate::register::function::common::{
     get_vec_integration_context,
 };
 use crate::register::structure::subcommand::SubCommand;
-
-/// This asynchronous function creates subcommands in Discord by reading from a JSON file and sending them to the Discord API.
-///
-/// It first calls the `get_subcommands` function to read the subcommands from the JSON file located at "./json/subcommand".
-/// If an error occurs during this process, it logs the error and returns early.
-/// If the subcommands are successfully read, it iterates over each subcommand and calls the `create_command` function to send the subcommand to the Discord API.
-///
-/// # Arguments
-///
-/// * `http` - An `Arc<Http>` instance used to send the subcommands to the Discord API.
+use anyhow::{Context, Result};
 
 pub async fn creates_subcommands(http: &Arc<Http>) {
     let commands = match get_subcommands("./json/subcommand") {
@@ -35,24 +26,7 @@ pub async fn creates_subcommands(http: &Arc<Http>) {
     }
 }
 
-/// This function reads subcommands from a JSON file located at the given path and returns them as a vector of `SubCommand` structs.
-///
-/// It first reads the directory at the given path and maps any errors to an `AppError`.
-/// It then iterates over each entry in the directory.
-/// If an entry is a file with a ".json" extension, it opens the file and reads it into a `SubCommand` struct.
-/// If an error occurs during this process, it maps the error to an `AppError`.
-/// If the subcommand is successfully read, it is pushed to the `subcommands` vector.
-/// If no subcommands are found in the directory, it logs a trace message.
-///
-/// # Arguments
-///
-/// * `path` - A string slice representing the path to the directory containing the JSON files.
-///
-/// # Returns
-///
-/// A `Result` containing either a vector of `SubCommand` structs if the subcommands are successfully read, or an `AppError` if an error occurs.
-
-pub fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, Box<dyn Error>> {
+pub fn get_subcommands(path: &str) -> Result<Vec<SubCommand>> {
     let commands: Vec<SubCommand> = get_vec(path)?;
 
     if commands.is_empty() {
@@ -61,21 +35,6 @@ pub fn get_subcommands(path: &str) -> Result<Vec<SubCommand>, Box<dyn Error>> {
 
     Ok(commands)
 }
-
-/// This asynchronous function creates a global subcommand in Discord using the provided `SubCommand` struct and `Http` instance.
-///
-/// It first creates a `CreateCommand` instance using the name, NSFW status, command type, DM permission status, and description from the `SubCommand` struct.
-///
-/// It then calls the `get_permission` function to set the default member permissions of the `CreateCommand` based on the permissions in the `SubCommand` struct.
-///
-/// If the `SubCommand` struct contains a command, it calls the `get_subcommand_option` function to convert it into command options and sets them on the `CreateCommand`.
-///
-/// Finally, it sends the `CreateCommand` to the Discord API to create the global subcommand. If an error occurs during this process, it logs the error.
-///
-/// # Arguments
-///
-/// * `command` - A reference to a `SubCommand` struct containing the details of the subcommand to be created.
-/// * `http` - An `Arc<Http>` instance used to send the subcommand to the Discord API.
 
 async fn create_command(command: &SubCommand, http: &Arc<Http>) {
     let mut command_build = CreateCommand::new(&command.name)

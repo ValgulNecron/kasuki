@@ -78,7 +78,7 @@ pub enum MediaType {
 }
 
 pub async fn send_auto_complete(
-    ctx:  &SerenityContext,
+    ctx: &SerenityContext,
     autocomplete_interaction: CommandInteraction,
     media: MediaAutocompleteVariables<'_>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,

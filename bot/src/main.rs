@@ -81,7 +81,7 @@ async fn main() {
 
     // Initialize the logger with the specified log level.
     // If an error occurs, print the error and return.
-    let guard = match init_logger(log, max_log_retention_days) {
+    let _guard = match init_logger(log, max_log_retention_days) {
         Ok(guard) => guard,
         Err(e) => {
             eprintln!("{:?}", e);
@@ -175,14 +175,14 @@ async fn main() {
         apps: Arc::new(Default::default()),
         user_blacklist_server_image: Arc::new(Default::default()),
         db_connection: Arc::new(connection),
-        manager: Arc::clone(&manager),
+        manager: Arc::new(Default::default()),
         http_client: reqwest::Client::new(),
-        shard_manager: Arc::new(Default::default()),
+        shard_manager: None,
     });
 
     let mut client = Client::builder(discord_token, gateway_intent)
         .data(bot_data)
-        .voice_manager(manager)
+        .voice_manager::<songbird::Songbird>(Arc::clone(&manager))
         .event_handler(Handler)
         .await
         .unwrap_or_else(|e| {
@@ -196,7 +196,6 @@ async fn main() {
     let guard = bot_data.shard_manager.clone().write().await;
 
     *guard = Some(shard_manager);
-
     // Clone the shard manager from the client.
     let shard_manager = client.shard_manager.clone();
 

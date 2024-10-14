@@ -6,6 +6,7 @@ use tracing::{error, trace};
 
 use crate::register::function::common::{get_permission, get_vec, get_vec_installation_context};
 use crate::register::structure::message_command::MessageCommand;
+use anyhow::{Context, Result};
 
 pub async fn creates_message_command(http: &Arc<Http>) {
     let commands = match get_message_command("./json/message_command") {
@@ -22,7 +23,7 @@ pub async fn creates_message_command(http: &Arc<Http>) {
     }
 }
 
-fn get_message_command(path: &str) -> Result<Vec<MessageCommand>, Box<dyn Error>> {
+fn get_message_command(path: &str) -> Result<Vec<MessageCommand>> {
     let commands: Vec<MessageCommand> = get_vec(path)?;
 
     if commands.is_empty() {

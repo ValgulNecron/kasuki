@@ -1,2 +1,2 @@
 pub mod anilist;
-pub(crate) mod server;
+pub mod server;

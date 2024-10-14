@@ -14,6 +14,7 @@ use std::sync::Arc;
 use text_to_png::TextRenderer;
 use tracing::{debug, info};
 
+use crate::event_handler::BotData;
 use anyhow::{Context, Result};
 
 // Enums
@@ -250,16 +251,12 @@ pub async fn add_text(
 }
 
 // Main function
-pub async fn new_member_message(
-    ctx: &SerenityContext,
-    member: &Member,
-    db_config: DbConfig,
-) -> Result<()> {
+pub async fn new_member_message(ctx: &SerenityContext, member: &Member) -> Result<()> {
     info!(
         "Processing new member message for guild: {}",
         member.guild_id
     );
-
+    let db_config = ctx.data::<BotData>().config.db.clone();
     let guild_id = member.guild_id;
 
     let guild_settings = load_guild_settings(guild_id).await;

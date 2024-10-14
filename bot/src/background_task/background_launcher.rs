@@ -6,7 +6,7 @@ use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
-use serenity::all::Context;
+use serenity::all::Context as SerenityContext;
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
@@ -26,10 +26,13 @@ use crate::database::ping_history::ActiveModel;
 use crate::database::prelude::PingHistory;
 use crate::event_handler::{BotData, RootUsage};
 use crate::structure::steam_game_id_struct::get_game;
-use crate::type_map_key::ShardManagerContainer;
 use crate::{api, get_url};
-
-pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db_config: DbConfig) {
+use anyhow::{Context, Result};
+pub async fn thread_management_launcher(
+    ctx: SerenityContext,
+    bot_data: Arc<BotData>,
+    db_config: DbConfig,
+) {
     let command_usage = bot_data.number_of_command_use_per_command.clone();
 
     let is_grpc_on = bot_data.config.grpc.grpc_is_on;
@@ -91,19 +94,14 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
     info!("Done spawning thread manager.");
 }
 
-async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
+async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
     // Log a message indicating that the ping thread is being launched
     info!("Launching the ping thread!");
 
-    // Read the data from the context
-    let data_read = ctx.data.read().await;
-
     // Get the ShardManager from the data
-    let shard_manager = match data_read.get::<ShardManagerContainer>() {
-        Some(data) => data,
-        None => {
-            return;
-        }
+    let shard_manager = match ctx.data::<BotData>().shard_manager.clone() {
+        Some(inner) => inner,
+        None => return,
     };
 
     // Define an interval for periodic updates
@@ -158,7 +156,7 @@ async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
 }
 
 async fn launch_web_server_thread(
-    ctx: Context,
+    ctx: SerenityContext,
     command_usage: Arc<RwLock<RootUsage>>,
     is_grpc_on: bool,
     config: Arc<Config>,
@@ -174,14 +172,9 @@ async fn launch_web_server_thread(
     info!("Launching the API server thread!");
 
     // Read the data from the context
-    let data_read = ctx.data.read().await;
-
-    // Get the ShardManager from the data
-    let shard_manager = match data_read.get::<ShardManagerContainer>() {
-        Some(data) => data,
-        None => {
-            return;
-        }
+    let shard_manager = match ctx.data::<BotData>().shard_manager.clone() {
+        Some(inner) => inner,
+        None => return,
     };
 
     // Clone the cache and http instances
@@ -191,7 +184,7 @@ async fn launch_web_server_thread(
 
     // Launch the GRPC server
     grpc_server_launcher(
-        shard_manager,
+        &shard_manager,
         command_usage,
         cache,
         http,
@@ -211,7 +204,7 @@ async fn launch_web_server_thread(
 ///
 
 async fn launch_user_color_management_thread(
-    ctx: Context,
+    ctx: SerenityContext,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
     bot_data: Arc<BotData>,
 ) {
@@ -276,7 +269,7 @@ async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>)
 ///
 
 async fn launch_activity_management_thread(
-    ctx: Context,
+    ctx: SerenityContext,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) {
@@ -312,7 +305,7 @@ async fn launch_activity_management_thread(
 ///
 
 async fn launch_server_image_management_thread(
-    ctx: Context,
+    ctx: SerenityContext,
     image_config: ImageConfig,
     connection: Arc<DatabaseConnection>,
 ) {
@@ -401,7 +394,7 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
 /// * `bot_data` - An `Arc` reference to the `BotData` struct.
 ///
 
-async fn update_bot_info(context: Context, bot_data: Arc<BotData>) {
+async fn update_bot_info(context: SerenityContext, bot_data: Arc<BotData>) {
     // Create a time interval for updating bot info
     let mut update_interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_BOT_INFO));
 

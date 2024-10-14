@@ -32,7 +32,6 @@ use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardManager};
 use serenity::prelude::{Context as SerenityContext, EventHandler};
 use songbird::Songbird;
 use std::collections::HashMap;
-use std::error::Error;
 use std::ops::{Add, AddAssign};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -52,6 +51,7 @@ pub struct BotData {
     pub http_client: Client,
     pub shard_manager: Arc<RwLock<Option<Arc<ShardManager>>>>,
 }
+use anyhow::{Context, Result};
 
 pub struct Handler;
 
@@ -247,7 +247,7 @@ impl EventHandler for Handler {
                     false
                 });
 
-        match new_member_message(&ctx, &member, bot_data.config.db.clone()).await {
+        match new_member_message(&ctx, &member).await {
             Ok(_) => {}
             Err(e) => error!(?e),
         };
@@ -301,7 +301,7 @@ impl EventHandler for Handler {
         });
 
         if is_module_on {
-            match removed_member_message(&ctx, guild_id, user, bot_data.config.db.clone()).await {
+            match removed_member_message(&ctx, guild_id, user).await {
                 Ok(_) => {}
                 Err(e) => error!(?e),
             }
@@ -316,8 +316,6 @@ impl EventHandler for Handler {
         if members.is_empty() {
             return;
         }
-
-        let members: Vec<Member> = members.iter().map(|member| member.display_name()).collect();
 
         let connection = bot_data.db_connection.clone();
 
@@ -488,7 +486,7 @@ impl EventHandler for Handler {
                 trace!("{:?}", command_interaction)
             }
 
-            error_dispatch::command_dispatching(message, &command_interaction, &ctx, self).await;
+            error_dispatch::command_dispatching(message, &command_interaction, &ctx).await;
 
             user = Some(command_interaction.user.clone());
         } else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
@@ -649,10 +647,7 @@ async fn insert_user_subscription(
     };
 }
 
-pub async fn add_user_data_to_db(
-    user: User,
-    connection: Arc<DatabaseConnection>,
-) -> Result<(), Box<dyn Error>> {
+pub async fn add_user_data_to_db(user: User, connection: Arc<DatabaseConnection>) -> Result<()> {
     UserData::insert(crate::database::user_data::ActiveModel {
         user_id: Set(user.id.to_string()),
         username: Set(user.name.to_string()),
@@ -668,7 +663,8 @@ pub async fn add_user_data_to_db(
             .to_owned(),
     )
     .exec(&*connection)
-    .await?;
+    .await
+    .context("Failed to add user to db")?;
 
     Ok(())
 }

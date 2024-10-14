@@ -12,6 +12,7 @@ use serenity::nonmax::NonMaxU8;
 use serenity::prelude::Context as SerenityContext;
 use tracing::{debug, info};
 
+use crate::event_handler::BotData;
 use anyhow::{Context, Result};
 use chrono::Utc;
 
@@ -19,10 +20,9 @@ pub async fn removed_member_message(
     ctx: &SerenityContext,
     guild_id: GuildId,
     user: User,
-    db_config: DbConfig,
 ) -> Result<()> {
     info!("Processing removed member message for guild: {}", guild_id);
-
+    let db_config = ctx.data::<BotData>().config.db.clone();
     let guild_settings = load_guild_settings(guild_id).await;
 
     debug!(?guild_settings, "Loaded guild settings");
@@ -52,7 +52,13 @@ pub async fn removed_member_message(
         .context("Failed to download user avatar image")?;
 
     let audit_log = guild_id
-        .audit_logs(&ctx.http, None, None, None, Some(NonMaxU8::from(100)))
+        .audit_logs(
+            &ctx.http,
+            None,
+            None,
+            None,
+            Some(NonMaxU8::new(100).unwrap_or_default()),
+        )
         .await
         .context("Failed to fetch audit logs")?;
 
