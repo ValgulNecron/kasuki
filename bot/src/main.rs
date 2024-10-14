@@ -175,9 +175,9 @@ async fn main() {
         apps: Arc::new(Default::default()),
         user_blacklist_server_image: Arc::new(Default::default()),
         db_connection: Arc::new(connection),
-        manager: Arc::new(Default::default()),
+        manager: Arc::new(Arc::clone(manager)),
         http_client: reqwest::Client::new(),
-        shard_manager: None,
+        shard_manager: Arc::new(Default::default()),
     });
 
     let mut client = Client::builder(discord_token, gateway_intent)

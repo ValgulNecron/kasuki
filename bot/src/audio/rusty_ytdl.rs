@@ -111,7 +111,7 @@ impl Compose for RustyYoutubeSearch {
 
             let proxy = fs::read_to_string(proxy_path).map_err(|e| {
                 AudioStreamError::Fail(
-                    error_dispatch::Error::Audio(format!("Failed to read proxy file: {e:?}"))
+                    error_dispatch::Erro>>Wr::Audio(format!("Failed to read proxy file: {e:?}"))
                         .into(),
                 )
             })?;
