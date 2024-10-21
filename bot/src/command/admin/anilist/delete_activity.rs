@@ -1,29 +1,28 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
 use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
 use crate::config::{Config, DbConfig};
 use crate::database::prelude::ActivityData;
-use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
+use anyhow::{Error, Result};
 use moka::future::Cache;
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, ModelTrait, QueryFilter};
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tokio::sync::RwLock;
 
 pub struct DeleteActivityCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for DeleteActivityCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -33,7 +32,7 @@ impl Command for DeleteActivityCommand {
 }
 
 impl SlashCommand for DeleteActivityCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         let anilist_cache = self.anilist_cache.clone();
 
         let command_interaction = self.command_interaction.clone();
@@ -63,10 +62,9 @@ impl SlashCommand for DeleteActivityCommand {
 
         remove_activity(guild_id.as_str(), &anime_id, config.db.clone()).await?;
 
-        let title = media.title.ok_or(error_dispatch::Error::Option(format!(
-            "Anime with id {} not found",
-            anime_id
-        )))?;
+        let title = media
+            .title
+            .ok_or(Error::from(format!("Anime with id {} not found", anime_id)))?;
 
         let anime_name = get_name(title);
 
@@ -90,11 +88,7 @@ impl SlashCommand for DeleteActivityCommand {
     }
 }
 
-async fn remove_activity(
-    guild_id: &str,
-    anime_id: &i32,
-    db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
+async fn remove_activity(guild_id: &str, anime_id: &i32, db_config: DbConfig) -> Result<()> {
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
 
     let activity = ActivityData::find()
@@ -102,10 +96,7 @@ async fn remove_activity(
         .filter(crate::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
         .one(&connection)
         .await?
-        .ok_or(error_dispatch::Error::Option(format!(
-            "Anime with id {} not found",
-            anime_id
-        )))?;
+        .ok_or(Error::from(format!("Anime with id {} not found", anime_id)))?;
 
     activity.delete(&connection).await?;
 

@@ -1,5 +1,4 @@
-use std::error::Error;
-use std::sync::Arc;
+use anyhow::{Context, Error, Result};use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{Config, DbConfig};
@@ -16,20 +15,20 @@ use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateAttachment, CreateInteractionResponseMessage,
 };
 use serenity::builder::CreateInteractionResponseFollowup;
 use tracing::trace;
 use uuid::Uuid;
 
 pub struct GenerateImagePfPCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for GenerateImagePfPCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -39,25 +38,25 @@ impl Command for GenerateImagePfPCommand {
 }
 
 impl SlashCommand for GenerateImagePfPCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         init(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn init(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     send_embed(ctx, command_interaction, "local", config.db.clone()).await
 }
 
 pub async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     image_type: &str,
     db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -84,7 +83,7 @@ pub async fn send_embed(
         .filter(Column::ImageType.eq(image_type.to_string()))
         .one(&connection)
         .await?
-        .ok_or(error_dispatch::Error::Option(format!(
+        .ok_or(Error::from(format!(
             "Server image with type {} not found",
             image_type
         )))?

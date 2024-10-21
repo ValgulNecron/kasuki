@@ -1,8 +1,9 @@
-use std::error::Error;
+use anyhow::{Context, Error, Result};
 use std::sync::Arc;
 
 use moka::future::Cache;
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
+use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 
 use crate::command::anilist_user::anime::AnimeCommand;
@@ -18,14 +19,14 @@ use crate::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 
 pub struct SearchCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for SearchCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -35,7 +36,7 @@ impl Command for SearchCommand {
 }
 
 impl SlashCommand for SearchCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         let ctx = &self.ctx;
 
         let command_interaction = &self.command_interaction;
@@ -48,10 +49,8 @@ impl SlashCommand for SearchCommand {
         let map = get_option_map_string(command_interaction);
 
         let search_type = map
-            .get(&String::from("type"))
-            .ok_or(error_dispatch::Error::Option(String::from(
-                "No type specified",
-            )))?;
+            .get(&FixedString::from_str_trunc("type"))
+            .ok_or(Error::from("No type specified"))?;
 
         // Execute the corresponding search function based on the specified type
         match search_type.as_str() {
@@ -126,9 +125,7 @@ impl SlashCommand for SearchCommand {
                 .await
             }
             // Return an error if the specified type is not one of the expected types
-            _ => Err(Box::new(error_dispatch::Error::Option(String::from(
-                "Type does not exist.",
-            )))),
+            _ => Err(Error::from("Type does not exist.")),
         }
     }
 }

@@ -1,5 +1,5 @@
 use crate::command::command_trait::Command;
-use std::error::Error;
+use anyhow::{Context, Error, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::SlashCommand;
@@ -16,19 +16,21 @@ use crate::structure::run::anilist::studio::{
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
+use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 
 pub struct StudioCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for StudioCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -38,7 +40,7 @@ impl Command for StudioCommand {
 }
 
 impl SlashCommand for StudioCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         let ctx = &self.ctx;
 
         let command_interaction = &self.command_interaction;
@@ -52,23 +54,21 @@ impl SlashCommand for StudioCommand {
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the name or ID of the studio from the command interaction
     let map = get_option_map_string(command_interaction);
 
     let value = map
-        .get(&String::from("studio"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No studio specified",
-        )))?;
+        .get(&FixedString::from_str_trunc("studio"))
+        .ok_or(Error::from("No studio specified"))?;
 
     // Fetch the studio's data from AniList
     let studio = if value.parse::<i32>().is_ok() {
-        let id = value.parse::<i32>().unwrap();
+        let id = value.parse::<i32>()?;
 
         let var = StudioQuerryIdVariables { id: Some(id) };
 

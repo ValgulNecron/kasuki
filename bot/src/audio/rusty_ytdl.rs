@@ -1,4 +1,5 @@
 use crate::error_management::error_dispatch;
+use anyhow::{Context, Error, Result};
 use rand::Rng;
 use rusty_ytdl::search::{SearchOptions, SearchType};
 use rusty_ytdl::{
@@ -17,7 +18,6 @@ use symphonia::core::io::{
 };
 use tracing::trace;
 use uuid::Uuid;
-
 #[derive(Clone, Debug)]
 
 pub enum UrlType {
@@ -110,10 +110,9 @@ impl Compose for RustyYoutubeSearch {
             trace!("Using proxy");
 
             let proxy = fs::read_to_string(proxy_path).map_err(|e| {
-                AudioStreamError::Fail(
-                    error_dispatch::Erro>>Wr::Audio(format!("Failed to read proxy file: {e:?}"))
-                        .into(),
-                )
+                AudioStreamError::Fail(Box::from(Error::from(
+                    "Failed to get a proxy from the file",
+                )))
             })?;
 
             let proxy = proxy.split("\n").collect::<Vec<&str>>();
@@ -125,9 +124,9 @@ impl Compose for RustyYoutubeSearch {
             let proxy = proxy[n];
 
             let proxy = reqwest::Proxy::all(proxy).map_err(|e| {
-                AudioStreamError::Fail(
-                    error_dispatch::Error::Audio(format!("Failed to create proxy: {e:?}")).into(),
-                )
+                AudioStreamError::Fail(Box::from(Error::from(format!(
+                    "Failed to create proxy: {e:?}"
+                ))))
             })?;
 
             RequestOptions {
@@ -148,15 +147,15 @@ impl Compose for RustyYoutubeSearch {
             },
         )
         .map_err(|e| {
-            AudioStreamError::Fail(
-                error_dispatch::Error::Audio(format!("Failed to create stream: {e:?}")).into(),
-            )
+            AudioStreamError::Fail(Box::from(Error::from(format!(
+                "Failed to create stream: {e:?}"
+            ))))
         })?;
 
         let tempdir = tempfile::tempdir().map_err(|e| {
-            AudioStreamError::Fail(
-                error_dispatch::Error::Audio(format!("Failed to create tempdir: {e:?}")).into(),
-            )
+            AudioStreamError::Fail(Box::from(Error::from(format!(
+                "Failed to create tempdir: {e:?}"
+            ))))
         })?;
 
         trace!("Downloading video to {:?}", tempdir.path());
@@ -166,17 +165,17 @@ impl Compose for RustyYoutubeSearch {
         let path = tempdir.path().join(format!("{}.mp4", uuid));
 
         video.download(&path).await.map_err(|e| {
-            AudioStreamError::Fail(
-                error_dispatch::Error::Audio(format!("Failed to download video: {e:?}")).into(),
-            )
+            AudioStreamError::Fail(Box::from(Error::from(format!(
+                "Failed to download video: {e:?}"
+            ))))
         })?;
 
         trace!("Downloaded video");
 
         let file = fs::File::open(&path).map_err(|e| {
-            AudioStreamError::Fail(
-                error_dispatch::Error::Audio(format!("Failed to open file: {e:?}")).into(),
-            )
+            AudioStreamError::Fail(Box::from(Error::from(format!(
+                "Failed to open file: {e:?}"
+            ))))
         })?;
 
         let ros = ReadOnlySource::new(file);

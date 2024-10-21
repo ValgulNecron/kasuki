@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
@@ -11,22 +10,25 @@ use crate::structure::message::anilist_user::staff::load_localization_staff;
 use crate::structure::run::anilist::staff::{
     StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch, StaffQuerrySearchVariables,
 };
+use anyhow::{Context, Error, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
+use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 
 pub struct StaffCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for StaffCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -36,7 +38,7 @@ impl Command for StaffCommand {
 }
 
 impl SlashCommand for StaffCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         let ctx = &self.ctx;
 
         let command_interaction = &self.command_interaction;
@@ -50,18 +52,16 @@ impl SlashCommand for StaffCommand {
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let map = get_option_map_string(command_interaction);
 
     let value = map
-        .get(&String::from("staff_name"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No staff name specified",
-        )))?;
+        .get(&FixedString::from_str_trunc("staff_name"))
+        .ok_or(Error::from("No staff name specified"))?;
 
     let staff = if value.parse::<i32>().is_ok() {
         let var = StaffQuerryIdVariables {
@@ -254,22 +254,6 @@ async fn send_embed(
 
     Ok(())
 }
-
-/// Formats the full name of a character or staff member.
-///
-/// This function takes the English and native names of a character or staff member and formats them into a single string.
-/// If both names are available, they are combined with a slash in between.
-/// If only one name is available, that name is returned.
-/// If neither name is available, `None` is returned.
-///
-/// # Arguments
-///
-/// * `a` - The English name of the character or staff member.
-/// * `b` - The native name of the character or staff member.
-///
-/// # Returns
-///
-/// A `Option<String>` that contains the formatted full name of the character or staff member, or `None` if neither name is available.
 
 fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {
     match (a, b) {

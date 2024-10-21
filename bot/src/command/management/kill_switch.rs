@@ -12,19 +12,19 @@ use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{EntityTrait, IntoActiveModel};
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
-use std::error::Error;
-use std::sync::Arc;
+use anyhow::{Context, Error, Result};use std::sync::Arc;
+use small_fixed_array::FixedString;
 
 pub struct KillSwitchCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for KillSwitchCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -34,16 +34,16 @@ impl Command for KillSwitchCommand {
 }
 
 impl SlashCommand for KillSwitchCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -52,10 +52,10 @@ async fn send_embed(
     let map = get_option_map_string(command_interaction);
 
     let module = map
-        .get(&String::from("name"))
-        .ok_or(error_dispatch::Error::Option(String::from(
+        .get(&FixedString::from_str_trunc("name"))
+        .ok_or(Error::from(
             "No option for name",
-        )))?;
+        ))?;
 
     let module_localised =
         load_localization_kill_switch(guild_id.clone(), config.db.clone()).await?;
@@ -63,10 +63,10 @@ async fn send_embed(
     let map = get_option_map_boolean(command_interaction);
 
     let state = *map
-        .get(&String::from("state"))
-        .ok_or(error_dispatch::Error::Option(String::from(
+        .get(&FixedString::from_str_trunc("state"))
+        .ok_or(Error::from(
             "No option for state",
-        )))?;
+        ))?;
 
     let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
 
@@ -74,9 +74,9 @@ async fn send_embed(
         .filter(Column::GuildId.eq("0"))
         .one(&connection)
         .await?
-        .ok_or(error_dispatch::Error::Sending(String::from(
+        .ok_or(Error::from(
             "KillSwitch not found",
-        )))?;
+        ))?;
 
     match module.as_str() {
         "ANILIST" => row.anilist_module = state,
@@ -86,9 +86,9 @@ async fn send_embed(
         "ANIME" => row.anime_module = state,
         "VN" => row.vn_module = state,
         _ => {
-            return Err(Box::new(error_dispatch::Error::Option(String::from(
+            return Err(Error::from(
                 "The module specified does not exist",
-            ))));
+            ));
         }
     }
 

@@ -1,23 +1,23 @@
-use std::error::Error;
+use anyhow::{Error, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
+use serenity::nonmax::NonMaxU64;
 
 pub struct GuildCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for GuildCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -27,16 +27,16 @@ impl Command for GuildCommand {
 }
 
 impl SlashCommand for GuildCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -49,7 +49,7 @@ async fn send_embed(
     // Retrieve the guild ID from the command interaction or return an error if it does not exist
     let guild_id = command_interaction
         .guild_id
-        .ok_or(error_dispatch::Error::Option(String::from("No guild ID")))?;
+        .ok_or(Error::from("No guild ID"))?;
 
     // Retrieve the guild's information or return an error if it could not be retrieved
     let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
@@ -67,7 +67,7 @@ async fn send_embed(
 
     let online_member = guild.approximate_presence_count.unwrap_or_default();
 
-    let max_online = guild.max_presences.unwrap_or(25000);
+    let max_online = guild.max_presences.unwrap_or(NonMaxU64::new(25000).unwrap_or_default());
 
     let guild_banner = guild.banner_url();
 
@@ -100,7 +100,7 @@ async fn send_embed(
     // Add the fields to the vector
     fields.push((guild_localised.guild_id, guild_id.to_string(), true));
 
-    fields.push((guild_localised.guild_name, guild_name, true));
+    fields.push((guild_localised.guild_name, guild_name.to_string(), true));
 
     fields.push((
         guild_localised.member,
@@ -116,7 +116,7 @@ async fn send_embed(
 
     fields.push((guild_localised.creation_date, creation_date, true));
 
-    fields.push((guild_localised.lang, guild_lang, true));
+    fields.push((guild_localised.lang, guild_lang.to_string(), true));
 
     fields.push((
         guild_localised.premium,

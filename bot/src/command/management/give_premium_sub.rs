@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::{Context, Error, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
@@ -8,18 +8,19 @@ use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
 use crate::structure::message::management::give_premium_sub::load_localization_give_premium_sub;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-    EntitlementOwner,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage, EntitlementOwner,
 };
+use small_fixed_array::FixedString;
 
 pub struct GivePremiumSubCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for GivePremiumSubCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -29,31 +30,27 @@ impl Command for GivePremiumSubCommand {
 }
 
 impl SlashCommand for GivePremiumSubCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let map = get_option_map_user(command_interaction);
 
     let user = *map
-        .get(&String::from("user"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No option for user",
-        )))?;
+        .get(&FixedString::from("user"))
+        .ok_or(Error::from("No option for user"))?;
 
     let map = get_option_map_string(command_interaction);
 
     let subscription = map
         .get(&String::from("subscription"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No option for subscription",
-        )))?
+        .ok_or(Error::from("No option for subscription"))?
         .clone();
 
     let skus = ctx.http.get_skus().await?;
@@ -61,9 +58,7 @@ async fn send_embed(
     let skus_id: Vec<String> = skus.iter().map(|sku| sku.id.to_string()).collect();
 
     if !skus_id.contains(&subscription) {
-        Err(error_dispatch::Error::Option(String::from(
-            "Invalid sub id",
-        )))?
+        Err(Error::from("Invalid sub id"))?
     }
 
     let mut sku_id = Default::default();

@@ -33,7 +33,6 @@ pub fn trim_webhook(desc: String, lenght_diff: i32) -> String {
 #[cfg(test)]
 
 mod tests {
-
     use super::*;
 
     #[test]

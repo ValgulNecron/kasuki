@@ -8,7 +8,6 @@ use crate::api::grpc_server::service::shard::proto::shard_server::ShardServer;
 
 // Proto module contains the protobuf definitions for the shard service
 pub(crate) mod proto {
-
     // Include the protobuf definitions for the shard service
     tonic::include_proto!("shard");
 

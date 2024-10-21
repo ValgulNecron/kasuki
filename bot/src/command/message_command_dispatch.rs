@@ -1,16 +1,14 @@
-use crate::error_management::error_dispatch;
 use crate::event_handler::Handler;
-use serenity::all::{CommandInteraction, Context};
-use std::error::Error;
-
+use serenity::all::{CommandInteraction, Context as SerenityContext};
+use anyhow::{Context, Error, Result};
 pub async fn dispatch_message_command(
-    _ctx: &Context,
+    _ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     _self_handler: &Handler,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     match command_interaction.data.name.as_str() {
-        _ => Err(Box::new(error_dispatch::Error::Option(String::from(
+        _ => Err(Error::from(
             "Unknown command",
-        )))),
+        )),
     }
 }

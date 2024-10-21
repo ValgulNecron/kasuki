@@ -1,11 +1,11 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
 use once_cell::sync::Lazy;
 use sea_orm::EntityTrait;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
 use tokio::sync::RwLock;
 
@@ -14,24 +14,25 @@ use crate::command::command_trait::Command;
 use crate::config::{Config, DbConfig};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
-use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
+use anyhow::{Error, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
+use small_fixed_array::FixedString;
 
 pub struct LevelCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for LevelCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -41,7 +42,7 @@ impl Command for LevelCommand {
 }
 
 impl LevelCommand {
-    pub async fn run_slash(self) -> Result<(), Box<dyn Error>> {
+    pub async fn run_slash(self) -> Result<()> {
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -53,15 +54,15 @@ impl LevelCommand {
 }
 
 pub async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the username from the command interaction
     let map = get_option_map_string(command_interaction);
 
-    let user = map.get(&String::from("username"));
+    let user = map.get(&FixedString::from_str_trunc("username"));
 
     match user {
         Some(value) => {
@@ -82,9 +83,9 @@ pub async fn send_embed(
                 .one(&connection)
                 .await?;
 
-            let user = row.ok_or(error_dispatch::Error::Option(String::from(
+            let user = row.ok_or(Error::from(
                 "No user specified or linked to this discord account",
-            )))?;
+            ))?;
 
             // Fetch the user data and send an embed
             let data: User = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
@@ -109,11 +110,11 @@ pub async fn send_embed(
 /// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 
 pub async fn send_embed2(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     user: User,
     db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

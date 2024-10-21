@@ -8,26 +8,25 @@ use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
+use anyhow::{Context, Error, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateButton, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateButton,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
 };
-use std::error::Error;
 use std::sync::Arc;
 use tracing::trace;
-
 pub struct ListAllActivity {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for ListAllActivity {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -37,16 +36,16 @@ impl Command for ListAllActivity {
 }
 
 impl SlashCommand for ListAllActivity {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -57,9 +56,7 @@ async fn send_embed(
 
     let guild_id = command_interaction
         .guild_id
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "Could not get the id of the guild",
-        )))?;
+        .ok_or(Error::from("Could not get the id of the guild"))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 

@@ -2,27 +2,26 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::database::guild_lang;
 use crate::database::prelude::GuildLang;
-use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::server::lang::load_localization_lang;
+use anyhow::{Error, Result};
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
-use std::error::Error;
 use std::sync::Arc;
-
 pub struct LangCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for LangCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -32,23 +31,21 @@ impl Command for LangCommand {
 }
 
 impl SlashCommand for LangCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let map = get_option_map_string_subcommand_group(command_interaction);
 
     let lang = map
         .get(&String::from("lang_choice"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No option for lang_choice",
-        )))?;
+        .ok_or(Error::from("No option for lang_choice"))?;
 
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

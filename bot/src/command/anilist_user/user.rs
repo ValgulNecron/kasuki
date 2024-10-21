@@ -1,6 +1,3 @@
-use std::error::Error;
-use std::sync::Arc;
-
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::database::prelude::RegisteredUser;
@@ -13,23 +10,26 @@ use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::{
     User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
 };
+use anyhow::{Context, Error, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
+use small_fixed_array::FixedString;
+use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub struct UserCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for UserCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -39,7 +39,7 @@ impl Command for UserCommand {
 }
 
 impl SlashCommand for UserCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         let ctx = &self.ctx;
 
         let command_interaction = &self.command_interaction;
@@ -53,15 +53,15 @@ impl SlashCommand for UserCommand {
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the username from the command interaction
     let map = get_option_map_string(command_interaction);
 
-    let user = map.get(&String::from("username"));
+    let user = map.get(&FixedString::from_str_trunc("username"));
 
     // If the username is provided, fetch the user's data from AniList and send it as a response
     if let Some(value) = user {
@@ -80,7 +80,7 @@ async fn send_embed(
         .one(&connection)
         .await?;
 
-    let user = row.ok_or(error_dispatch::Error::Option(String::from("No user found")))?;
+    let user = row.ok_or(Error::from("No user found"))?;
 
     // Fetch the user's data from AniList and send it as a response
     let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
@@ -88,23 +88,10 @@ async fn send_embed(
     user::send_embed(ctx, command_interaction, data, config.db.clone()).await
 }
 
-/// Fetches the data of a user from AniList.
-///
-/// This function takes a username or user ID and fetches the user's data from AniList.
-/// If the username or user ID is not valid, it returns an error.
-///
-/// # Arguments
-///
-/// * `value` - The username or user ID of the user.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the user's data was fetched successfully, or `Err` if an error occurred.
-
 pub async fn get_user(
     value: &str,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<User, Box<dyn Error>> {
+) -> Result<User> {
     // If the value is a valid user ID, fetch the user's data by ID
     let user = if value.parse::<i32>().is_ok() {
         let id = value.parse::<i32>().unwrap();

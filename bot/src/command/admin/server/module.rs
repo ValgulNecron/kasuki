@@ -2,29 +2,29 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::database::module_activation::Model;
 use crate::database::prelude::ModuleActivation;
-use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand_group::{
     get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
 use crate::structure::message::admin::server::module::load_localization_module_activation;
+use anyhow::{Error, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
-use std::error::Error;
 use std::sync::Arc;
 
 pub struct ModuleCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for ModuleCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -34,16 +34,16 @@ impl Command for ModuleCommand {
 }
 
 impl SlashCommand for ModuleCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -53,9 +53,7 @@ async fn send_embed(
 
     let module = map
         .get(&String::from("name"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No option for name",
-        )))?;
+        .ok_or(Error::from("No option for name"))?;
 
     let module_localised =
         load_localization_module_activation(guild_id.clone(), config.db.clone()).await?;
@@ -64,9 +62,7 @@ async fn send_embed(
 
     let state = *map
         .get(&String::from("state"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No option for state",
-        )))?;
+        .ok_or(Error::from("No option for state"))?;
 
     let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
 
@@ -93,9 +89,7 @@ async fn send_embed(
         "ANIME" => row.anime_module = state,
         "VN" => row.vn_module = state,
         _ => {
-            return Err(Box::new(error_dispatch::Error::Option(String::from(
-                "The module specified does not exist",
-            ))));
+            return Err(Error::from("The module specified does not exist"));
         }
     }
 

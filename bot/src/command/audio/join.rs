@@ -2,23 +2,24 @@ use crate::audio::receiver::Receiver;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::audio::join::load_localization_join_localised;
-use serenity::all::{CommandInteraction, Context, CreateEmbed};
+use anyhow::{Context, Error, Result};
+use serenity::all::{CommandInteraction, Context as SerenityContext, CreateEmbed};
 use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
 use songbird::CoreEvent;
-use std::error::Error;
 use std::sync::Arc;
 use tracing::{error, trace};
 
 pub struct AudioJoinCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for AudioJoinCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -28,24 +29,21 @@ impl Command for AudioJoinCommand {
 }
 
 impl SlashCommand for AudioJoinCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guild_id = command_interaction
         .guild_id
-        .ok_or(error_dispatch::Error::Option(String::from("No guild id")))?;
+        .ok_or(Error::from("No guild id"))?;
 
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = ctx.data::<BotData>().manager.clone();
 
     let bind = manager.get(guild_id);
 
@@ -65,9 +63,7 @@ async fn send_embed(
                 None => {
                     error!("Failed to get the guild.");
 
-                    return Err(Box::new(error_dispatch::Error::Option(
-                        "Failed to get the guild.".to_string(),
-                    )));
+                    return Err(Error::from("Failed to get the guild."));
                 }
             };
 
@@ -81,17 +77,10 @@ async fn send_embed(
 
         let connect_to = match channel_id {
             Some(channel) => channel,
-            None => {
-                return Err(Box::new(error_dispatch::Error::Option(String::from(
-                    "Not connected to a voice channel",
-                ))))
-            }
+            None => return Err(Error::from("Not connected to a voice channel")),
         };
 
-        let manager = songbird::get(ctx)
-            .await
-            .expect("Songbird Voice client placed in at initialisation.")
-            .clone();
+        let manager = ctx.data::<BotData>().manager.clone();
 
         let success = manager.join(guild_id, connect_to).await;
 
@@ -122,10 +111,10 @@ async fn send_embed(
 
             return Ok(());
         } else if let Err(joining) = success {
-            return Err(Box::new(error_dispatch::Error::Audio(format!(
+            return Err(Error::from(format!(
                 "Failed to join voice channel: {:#?}",
                 joining
-            ))));
+            )));
         }
 
         Ok(())

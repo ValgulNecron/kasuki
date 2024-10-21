@@ -2,11 +2,10 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::bot::ping::load_localization_ping;
-use anyhow::{Context, Error, Result};
+use anyhow::{Error, Result};
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
     CreateInteractionResponseMessage,

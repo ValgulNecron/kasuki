@@ -5,6 +5,7 @@ use crate::constant::{
 };
 use crate::event_handler::{BotData, Handler};
 use crate::helper::create_default_embed::get_default_embed;
+use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId, SkuKind,
@@ -13,25 +14,24 @@ use serenity::builder::{
     CreateButton, CreateInteractionResponse, CreateInteractionResponseFollowup,
 };
 use serenity::model::Colour;
-use serenity::prelude::Context;
-use std::error::Error;
+use serenity::prelude::Context as SerenityContext;
 
 pub trait Command {
-    fn get_ctx(&self) -> &Context;
+    fn get_ctx(&self) -> &SerenityContext;
 
     fn get_command_interaction(&self) -> &CommandInteraction;
 }
 
 pub trait MessageCommand {
-    async fn run_message(&self) -> Result<(), Box<dyn Error>>;
+    async fn run_message(&self) -> Result<()>;
 }
 
 pub trait SlashCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>>;
+    async fn run_slash(&self) -> Result<()>;
 }
 
 pub trait UserCommand {
-    async fn run_user(&self) -> Result<(), Box<dyn Error>>;
+    async fn run_user(&self) -> Result<()>;
 }
 
 pub trait Embed {
@@ -45,9 +45,9 @@ pub trait Embed {
         url: Option<String>,
         command_type: EmbedType,
         colour: Option<Colour>,
-    ) -> Result<(), Box<dyn Error>>;
+    ) -> Result<()>;
 
-    async fn defer(&self) -> Result<(), Box<dyn Error>>;
+    async fn defer(&self) -> Result<()>;
 }
 
 pub trait PremiumCommand {
@@ -56,7 +56,7 @@ pub trait PremiumCommand {
         command_name: impl Into<String> + Clone,
         handler: &Handler,
         command: PremiumCommandType,
-    ) -> Result<bool, Box<dyn Error>>;
+    ) -> Result<bool>;
 }
 
 impl<T: Command> Embed for T {
@@ -70,7 +70,7 @@ impl<T: Command> Embed for T {
         url: Option<String>,
         command_type: EmbedType,
         colour: Option<Colour>,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<()> {
         let ctx = self.get_ctx();
 
         let command_interaction = self.get_command_interaction();
@@ -117,7 +117,7 @@ impl<T: Command> Embed for T {
         Ok(())
     }
 
-    async fn defer(&self) -> Result<(), Box<dyn Error>> {
+    async fn defer(&self) -> Result<()> {
         let ctx = self.get_ctx();
 
         let command_interaction = self.get_command_interaction();
@@ -143,7 +143,7 @@ impl<T: Command> PremiumCommand for T {
         command_name: impl Into<String> + Clone,
         handler: &Handler,
         command: PremiumCommandType,
-    ) -> Result<bool, Box<dyn Error>> {
+    ) -> Result<bool> {
         let bot_data = self.get_ctx().data::<BotData>().clone();
 
         let ctx = self.get_ctx();

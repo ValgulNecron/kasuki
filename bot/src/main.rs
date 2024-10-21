@@ -175,13 +175,13 @@ async fn main() {
         apps: Arc::new(Default::default()),
         user_blacklist_server_image: Arc::new(Default::default()),
         db_connection: Arc::new(connection),
-        manager: Arc::new(Arc::clone(manager)),
+        manager: Arc::clone(&manager),
         http_client: reqwest::Client::new(),
         shard_manager: Arc::new(Default::default()),
     });
 
     let mut client = Client::builder(discord_token, gateway_intent)
-        .data(bot_data)
+        .data(bot_data.clone())
         .voice_manager::<songbird::Songbird>(Arc::clone(&manager))
         .event_handler(Handler)
         .await
@@ -193,7 +193,8 @@ async fn main() {
 
     let shard_manager = client.shard_manager.clone();
 
-    let guard = bot_data.shard_manager.clone().write().await;
+    let bot_data_manager = bot_data.shard_manager.clone();
+    let mut guard = bot_data_manager.write().await;
 
     *guard = Some(shard_manager);
     // Clone the shard manager from the client.

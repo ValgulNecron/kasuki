@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
@@ -12,6 +11,7 @@ use crate::helper::get_option::subcommand::{
 };
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
+use anyhow::{Context, Error, Result};
 use prost::bytes::Bytes;
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
@@ -19,14 +19,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateAttachment,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
 };
 use tracing::{error, trace};
 use uuid::Uuid;
-
 pub struct ImageCommand<'de> {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
     pub handler: &'de Handler,
@@ -34,7 +33,7 @@ pub struct ImageCommand<'de> {
 }
 
 impl Command for ImageCommand<'_> {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -44,7 +43,7 @@ impl Command for ImageCommand<'_> {
 }
 
 impl SlashCommand for ImageCommand<'_> {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
@@ -53,9 +52,9 @@ impl SlashCommand for ImageCommand<'_> {
             )
             .await?
         {
-            return Err(Box::new(error_dispatch::Error::Option(String::from(
+            return Err(Error::from(
                 "You have reached your hourly limit. Please try again later.",
-            ))));
+            ));
         }
 
         let ctx = &self.ctx;
@@ -143,12 +142,12 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: &Arc<Config>,
     data: Value,
     n: i64,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -243,12 +242,12 @@ async fn image_with_n_equal_1(
     image_localised: ImageLocalised,
     filename: String,
     command_interaction: &CommandInteraction,
-    ctx: &Context,
+    ctx: &SerenityContext,
     bytes: Bytes,
     saver_server: String,
     token: Option<String>,
     save_type: Option<String>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let builder_embed = get_default_embed(None)
         .image(format!("attachment://{}", &filename))
         .title(image_localised.title);
@@ -293,9 +292,9 @@ async fn image_with_n_greater_than_1(
     image_localised: ImageLocalised,
     filename: String,
     command_interaction: &CommandInteraction,
-    ctx: &Context,
+    ctx: &SerenityContext,
     bytes: Vec<Bytes>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let message = image_localised.title;
 
     let attachments: Vec<CreateAttachment> = bytes
@@ -325,7 +324,7 @@ async fn get_image_from_response(
     token: Option<String>,
     save_type: Option<String>,
     guild_id: String,
-) -> Result<Vec<Bytes>, Box<dyn Error>> {
+) -> Result<Vec<Bytes>> {
     let token = token.unwrap_or_default();
 
     let saver = save_type.unwrap_or_default();
@@ -337,10 +336,10 @@ async fn get_image_from_response(
         Err(e) => {
             let root1: Root1 = serde_json::from_value(json)?;
 
-            return Err(Box::new(error_dispatch::Error::Option(format!(
+            return Err(Error::from(format!(
                 "Error: {} ............ {:?}",
                 e, root1.error
-            ))));
+            )));
         }
     };
 

@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 use std::time::Duration;
@@ -12,20 +11,23 @@ use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
+use anyhow::{Context, Error, Result};
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use chrono::{DateTime, Utc};
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
-use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait};
+use sea_orm::{ColumnTrait, DeleteResult};
+use serenity::builder::{CreateAttachment, ExecuteWebhook};
 use serenity::model::webhook::{EditWebhook, Webhook};
+use serenity::prelude::Context as SerenityContext;
 use tokio::sync::RwLock;
 use tracing::{error, instrument, trace};
 
 pub async fn manage_activity(
-    ctx: Context,
+    ctx: SerenityContext,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) {
@@ -33,7 +35,7 @@ pub async fn manage_activity(
 }
 
 async fn send_activity(
-    ctx: &Context,
+    ctx: &SerenityContext,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) {
@@ -74,11 +76,10 @@ async fn send_activity(
             let db_config = db_config.clone();
 
             tokio::spawn(async move {
-                tokio::time::sleep(Duration::from_secs(row2.delay as u64)).await;
+                tokio::time::sleep(Duration::from_secs(row.delay as u64)).await;
 
                 if let Err(e) =
-                    send_specific_activity(row, guild_id, row2, &ctx, anilist_cache, db_config)
-                        .await
+                    send_specific_activity(&row, guild_id, &ctx, anilist_cache, db_config).await
                 {
                     error!("{}", e)
                 }
@@ -90,8 +91,7 @@ async fn send_activity(
 
             tokio::spawn(async move {
                 if let Err(e) =
-                    send_specific_activity(row, guild_id, row2, &ctx, anilist_cache, db_config)
-                        .await
+                    send_specific_activity(&row, guild_id, &ctx, anilist_cache, db_config).await
                 {
                     error!("{}", e);
                 }
@@ -104,12 +104,12 @@ async fn send_activity(
 
 async fn send_specific_activity(
     row: &Model,
-    guild_id: &str,
-    ctx: &Context,
+    guild_id: String,
+    ctx: &SerenityContext,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: &DbConfig,
-) -> Result<(), Box<dyn Error>> {
-    let localised_text = load_localization_send_activity(guild_id, db_config).await?;
+    db_config: DbConfig,
+) -> Result<()> {
+    let localised_text = load_localization_send_activity(guild_id, db_config.clone()).await?;
 
     let mut webhook = Webhook::from_url(&ctx.http, &row.webhook).await?;
 
@@ -140,7 +140,7 @@ async fn send_specific_activity(
     webhook.execute(&ctx.http, false, builder_message).await?;
 
     tokio::spawn(async move {
-        if let Err(e) = update_info(row, guild_id, anilist_cache, db_config).await {
+        if let Err(e) = update_info(row, &*guild_id, anilist_cache, db_config).await {
             error!("Failed to update info: {}", e);
         }
     });
@@ -148,7 +148,7 @@ async fn send_specific_activity(
     Ok(())
 }
 
-fn decode_image(image: &str) -> Result<Vec<u8>, Box<dyn Error>> {
+fn decode_image(image: &str) -> Result<Vec<u8>> {
     let cursor = Cursor::new(image);
 
     let mut decoder = DecoderReader::new(cursor, &STANDARD);
@@ -164,19 +164,17 @@ async fn update_info(
     row: &Model,
     guild_id: &str,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: &DbConfig,
-) -> Result<(), Box<dyn Error>> {
+    db_config: DbConfig,
+) -> Result<()> {
     let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
 
     let next_airing = media.next_airing_episode.ok_or_else(|| {
         trace!("No next airing episode for anime_id: {}", row.anime_id);
 
-        remove_activity(row, guild_id, db_config)
-    })??;
+        remove_activity(row, guild_id, db_config.clone())
+    })?;
 
-    let title = media
-        .title
-        .ok_or_else(|| error_dispatch::Error::Option("no title".to_string()))?;
+    let title = media.title.ok_or(Err("No title"))?;
 
     let name = title
         .english
@@ -206,11 +204,7 @@ async fn update_info(
     Ok(())
 }
 
-async fn remove_activity(
-    row: &Model,
-    guild_id: &str,
-    db_config: &DbConfig,
-) -> Result<DeleteResult, Box<dyn Error>> {
+async fn remove_activity(row: &Model, guild_id: &str, db_config: DbConfig) -> Result<DeleteResult> {
     trace!(
         "Attempting to remove activity for anime_id: {} in guild: {}",
         row.anime_id,

@@ -1,24 +1,22 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
-use crate::error_management::error_dispatch;
 use crate::event_handler::Handler;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use anyhow::{Context, Error, Result};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponseFollowup,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
 use tracing::trace;
-
 pub struct QuestionCommand<'de> {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
     pub handler: &'de Handler,
@@ -26,7 +24,7 @@ pub struct QuestionCommand<'de> {
 }
 
 impl Command for QuestionCommand<'_> {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -36,7 +34,7 @@ impl Command for QuestionCommand<'_> {
 }
 
 impl SlashCommand for QuestionCommand<'_> {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
@@ -45,9 +43,9 @@ impl SlashCommand for QuestionCommand<'_> {
             )
             .await?
         {
-            return Err(Box::new(error_dispatch::Error::Option(String::from(
+            return Err(Error::from(
                 "You have reached your hourly limit. Please try again later.",
-            ))));
+            ));
         }
 
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
@@ -55,10 +53,10 @@ impl SlashCommand for QuestionCommand<'_> {
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let map = get_option_map_string_subcommand(command_interaction);
 
     let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
@@ -124,7 +122,7 @@ async fn question(
     api_key: String,
     api_base_url: String,
     model: String,
-) -> Result<String, Box<dyn Error>> {
+) -> Result<String> {
     let api_url = api_base_url.to_string();
 
     // check the last 3 characters of the url if it v1/ or v1 or something else

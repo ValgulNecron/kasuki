@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use cynic::{GraphQlResponse, QueryBuilder};
@@ -6,9 +5,10 @@ use moka::future::Cache;
 use rand::{thread_rng, Rng};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponseFollowup,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 use tracing::trace;
 
@@ -25,16 +25,17 @@ use crate::structure::message::anilist_user::random::{load_localization_random, 
 use crate::structure::run::anilist::random::{
     Media, MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
+use anyhow::{Context, Error, Result};
 
 pub struct RandomCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
     pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for RandomCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -44,7 +45,7 @@ impl Command for RandomCommand {
 }
 
 impl SlashCommand for RandomCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -56,11 +57,11 @@ impl SlashCommand for RandomCommand {
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -74,10 +75,8 @@ async fn send_embed(
     let map = get_option_map_string(command_interaction);
 
     let random_type = map
-        .get(&String::from("type"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No type specified",
-        )))?;
+        .get(&FixedString::from_str_trunc("type"))
+        .ok_or(Error::from("No type specified"))?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -112,32 +111,14 @@ async fn send_embed(
     Ok(())
 }
 
-/// Generates and sends an embed containing information about a random anime or manga.
-///
-/// This function generates a random number between 1 and the last page number of the media list, and fetches a media item from the corresponding page.
-/// If the specified media type is "manga", it fetches a manga page; if the media type is "anime", it fetches an anime page.
-/// It then constructs a URL for the media item and sends a follow-up message containing an embed with the media information.
-///
-/// # Arguments
-///
-/// * `last_page` - The last page number of the media list.
-/// * `random_type` - The type of media to fetch ("anime" or "manga").
-/// * `ctx` - The context in which this command is being executed.
-/// * `command_interaction` - The interaction that triggered this command.
-/// * `random_localised` - The localised strings for the random command.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-
 async fn embed(
     last_page: i32,
     random_type: String,
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     random_localised: RandomLocalised,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let number = thread_rng().gen_range(1..=last_page);
 
     let mut var = RandomPageMediaVariables {
@@ -153,7 +134,7 @@ async fn embed(
 
     let operation = RandomPageMedia::build(var);
 
-    let data: Result<GraphQlResponse<RandomPageMedia>, Box<dyn Error>> =
+    let data: Result<GraphQlResponse<RandomPageMedia>> =
         make_request_anilist(operation, false, anilist_cache).await;
 
     let data = data?;
@@ -182,32 +163,13 @@ async fn embed(
     Ok(())
 }
 
-/// Sends a follow-up message containing an embed with information about a random anime or manga.
-///
-/// This function constructs an embed containing information about a random anime or manga, including the title, format, genres, tags, and description.
-/// The description is converted from AniList flavored markdown to Discord flavored markdown, and trimmed if it exceeds the maximum length of 4096 characters.
-/// The embed also includes a URL to the media item on AniList.
-/// The function then sends a follow-up message to the command interaction containing the embed.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this command is being executed.
-/// * `command_interaction` - The interaction that triggered this command.
-/// * `data` - The data for the media item to include in the embed.
-/// * `url` - The URL to the media item on AniList.
-/// * `random_localised` - The localised strings for the random command.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
-
 async fn follow_up_message(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     media: Media,
     url: String,
     random_localised: RandomLocalised,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let format = media.format.unwrap();
 
     let genres = media
@@ -260,8 +222,7 @@ async fn follow_up_message(
 
     command_interaction
         .create_followup(&ctx.http, builder_message)
-        .await
-        .map_err(|e| format!("{:#?}", e))?;
+        .await?;
 
     Ok(())
 }

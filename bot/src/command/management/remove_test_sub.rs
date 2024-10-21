@@ -6,21 +6,21 @@ use crate::helper::get_option::command::get_option_map_user;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponseFollowup,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use std::error::Error;
-use std::sync::Arc;
+use anyhow::{Context, Error, Result};use std::sync::Arc;
+use small_fixed_array::FixedString;
 use tracing::error;
 
 pub struct RemoveTestSubCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for RemoveTestSubCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -30,24 +30,24 @@ impl Command for RemoveTestSubCommand {
 }
 
 impl SlashCommand for RemoveTestSubCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let map = get_option_map_user(command_interaction);
 
-    let user = map.get(&String::from("user"));
+    let user = map.get(&FixedString::from_str_trunc("user"));
 
     let user = match user {
         Some(user) => user,
         None => {
-            return Err(error_dispatch::Error::Sending(String::from("No user provided")).into());
+            return Err(Error::from("No user provided").into());
         }
     };
 

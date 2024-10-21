@@ -1,12 +1,10 @@
 use std::collections::HashMap;
-use std::error::Error;
 use std::fs;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::constant::{NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
-use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand_group::{
     get_option_map_attachment_subcommand_group, get_option_map_boolean_subcommand_group,
@@ -14,20 +12,20 @@ use crate::helper::get_option::subcommand_group::{
 };
 use crate::new_member::NewMemberSetting;
 use crate::structure::message::admin::server::new_member_setting::load_localization_new_member_setting;
+use anyhow::{Error, Result};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponseFollowup,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-
 pub struct NewMemberSettingCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
 }
 
 impl Command for NewMemberSettingCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -37,16 +35,16 @@ impl Command for NewMemberSettingCommand {
 }
 
 impl SlashCommand for NewMemberSettingCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let bool_map = get_option_map_boolean_subcommand_group(command_interaction);
 
     let attachment = get_option_map_attachment_subcommand_group(command_interaction);
@@ -58,19 +56,13 @@ async fn send_embed(
         None => String::from("0"),
     };
 
-    let show_username =
-        *bool_map
-            .get(&String::from("show_username"))
-            .ok_or(error_dispatch::Error::Option(String::from(
-                "There is no option for show_username",
-            )))?;
+    let show_username = *bool_map
+        .get(&String::from("show_username"))
+        .ok_or(Error::from("There is no option for show_username"))?;
 
-    let show_time =
-        *bool_map
-            .get(&String::from("show_time"))
-            .ok_or(error_dispatch::Error::Option(String::from(
-                "There is no option for show_time",
-            )))?;
+    let show_time = *bool_map
+        .get(&String::from("show_time"))
+        .ok_or(Error::from("There is no option for show_time"))?;
 
     let channel_id = channel.get(&String::from("custom_channel"));
 

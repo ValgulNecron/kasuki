@@ -17,7 +17,6 @@ use crate::event_handler::{BotData, RootUsage};
 
 // Proto module contains the protobuf definitions for the shard service
 pub(crate) mod proto {
-
     // Include the protobuf definitions for the shard service
     tonic::include_proto!("info");
 
