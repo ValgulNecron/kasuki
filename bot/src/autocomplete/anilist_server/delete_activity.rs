@@ -8,43 +8,13 @@ use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::{
-    AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
+    AutocompleteChoice, CommandInteraction, Context as SerenityContext, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
 use tracing::error;
 
-/// `autocomplete` is an asynchronous function that handles the autocomplete feature for deleting activities.
-///
-/// It takes a `Context` and a `CommandInteraction` as parameters.
-/// `ctx` is the context in which this function is called.
-/// `autocomplete_interaction` is the command interaction that triggered this function.
-///
-/// This function first gets the map of options from the command interaction.
-/// It then gets the activity search string from the map of options.
-/// If the activity search string is not found in the map, it defaults to a predefined string.
-/// It then gets the guild ID from the command interaction.
-/// If the guild ID is not found, it defaults to "0".
-/// It then gets all activities by the server with the guild ID.
-/// It creates a vector of activity strings from the activities.
-/// It creates a vector of activity references from the activity strings.
-/// It then uses `rust_fuzzy_search` to find the top matches for the activity search string in the activity references.
-/// It creates a new vector for the autocomplete choices.
-/// For each match, it extracts the activity name and user from the string and creates a new `AutocompleteChoice` with the name and the ID.
-/// It then creates a new `CreateAutocompleteResponse` with the choices.
-/// It creates a new `CreateInteractionResponse` with the `CreateAutocompleteResponse`.
-/// It sends the response to the Discord channel.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this function is called.
-/// * `autocomplete_interaction` - The command interaction that triggered this function.
-///
-/// # Async
-///
-/// This function is asynchronous. It awaits the getting of all activities by the server, the fuzzy search, and the sending of the response.
-
 pub async fn autocomplete(
-    ctx: Context,
+    ctx: SerenityContext,
     autocomplete_interaction: CommandInteraction,
     db_config: DbConfig,
 ) {
@@ -113,6 +83,6 @@ pub async fn autocomplete(
     let builder = CreateInteractionResponse::Autocomplete(data);
 
     let _ = autocomplete_interaction
-        .create_response(ctx.http, builder)
+        .create_response(&ctx.http, builder)
         .await;
 }

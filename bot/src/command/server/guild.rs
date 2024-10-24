@@ -6,7 +6,8 @@ use crate::config::Config;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{
-    CommandInteraction, Context as SerenityContext, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
 use serenity::nonmax::NonMaxU64;
 
@@ -67,7 +68,9 @@ async fn send_embed(
 
     let online_member = guild.approximate_presence_count.unwrap_or_default();
 
-    let max_online = guild.max_presences.unwrap_or(NonMaxU64::new(25000).unwrap_or_default());
+    let max_online = guild
+        .max_presences
+        .unwrap_or(NonMaxU64::new(25000).unwrap_or_default());
 
     let guild_banner = guild.banner_url();
 

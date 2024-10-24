@@ -47,7 +47,7 @@ pub async fn autocomplete(
 
     let var = get_autocomplete_media_variables(anime_search);
 
-    send_auto_complete(ctx, autocomplete_interaction, var, anilist_cache).await;
+    send_auto_complete(&ctx, autocomplete_interaction, var, anilist_cache).await;
 }
 
 pub fn get_autocomplete_media_variables(anime_search: &str) -> MediaAutocompleteVariables {

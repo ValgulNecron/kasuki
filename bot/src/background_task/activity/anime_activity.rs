@@ -7,7 +7,6 @@ use crate::config::DbConfig;
 use crate::database::activity_data;
 use crate::database::activity_data::Model;
 use crate::database::prelude::ActivityData;
-use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
@@ -20,8 +19,8 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::QueryFilter;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait};
 use sea_orm::{ColumnTrait, DeleteResult};
-use serenity::builder::{CreateAttachment, ExecuteWebhook};
-use serenity::model::webhook::{EditWebhook, Webhook};
+use serenity::builder::{CreateAttachment, EditWebhook, ExecuteWebhook};
+use serenity::model::webhook::Webhook;
 use serenity::prelude::Context as SerenityContext;
 use tokio::sync::RwLock;
 use tracing::{error, instrument, trace};
@@ -75,11 +74,13 @@ async fn send_activity(
 
             let db_config = db_config.clone();
 
+            let ctx_clone = ctx.clone();
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs(row.delay as u64)).await;
 
                 if let Err(e) =
-                    send_specific_activity(&row, guild_id, &ctx, anilist_cache, db_config).await
+                    send_specific_activity(&row, guild_id, &ctx_clone, anilist_cache, db_config)
+                        .await
                 {
                     error!("{}", e)
                 }
@@ -166,7 +167,8 @@ async fn update_info(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) -> Result<()> {
-    let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
+    let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await;
+    let media = media?;
 
     let next_airing = media.next_airing_episode.ok_or_else(|| {
         trace!("No next airing episode for anime_id: {}", row.anime_id);

@@ -108,6 +108,6 @@ pub async fn autocomplete(
     let builder = CreateInteractionResponse::Autocomplete(data);
 
     let _ = autocomplete_interaction
-        .create_response(ctx.http, builder)
+        .create_response(&ctx.http, builder)
         .await;
 }

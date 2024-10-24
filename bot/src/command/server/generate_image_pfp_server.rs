@@ -1,4 +1,5 @@
-use anyhow::{Context, Error, Result};use std::sync::Arc;
+use anyhow::{Context, Error, Result};
+use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{Config, DbConfig};
@@ -15,7 +16,8 @@ use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context as SerenityContext, CreateAttachment, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateAttachment,
+    CreateInteractionResponseMessage,
 };
 use serenity::builder::CreateInteractionResponseFollowup;
 use tracing::trace;

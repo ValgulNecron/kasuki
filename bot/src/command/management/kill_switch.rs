@@ -7,15 +7,17 @@ use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
 use crate::structure::message::management::kill_switch::load_localization_kill_switch;
+use anyhow::{Context, Error, Result};
 use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{EntityTrait, IntoActiveModel};
 use serenity::all::{
-    CommandInteraction, Context as SerenityContext, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
-use anyhow::{Context, Error, Result};use std::sync::Arc;
 use small_fixed_array::FixedString;
+use std::sync::Arc;
 
 pub struct KillSwitchCommand {
     pub ctx: SerenityContext,
@@ -53,9 +55,7 @@ async fn send_embed(
 
     let module = map
         .get(&FixedString::from_str_trunc("name"))
-        .ok_or(Error::from(
-            "No option for name",
-        ))?;
+        .ok_or(Error::from("No option for name"))?;
 
     let module_localised =
         load_localization_kill_switch(guild_id.clone(), config.db.clone()).await?;
@@ -64,9 +64,7 @@ async fn send_embed(
 
     let state = *map
         .get(&FixedString::from_str_trunc("state"))
-        .ok_or(Error::from(
-            "No option for state",
-        ))?;
+        .ok_or(Error::from("No option for state"))?;
 
     let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
 
@@ -74,9 +72,7 @@ async fn send_embed(
         .filter(Column::GuildId.eq("0"))
         .one(&connection)
         .await?
-        .ok_or(Error::from(
-            "KillSwitch not found",
-        ))?;
+        .ok_or(Error::from("KillSwitch not found"))?;
 
     match module.as_str() {
         "ANILIST" => row.anilist_module = state,
@@ -86,9 +82,7 @@ async fn send_embed(
         "ANIME" => row.anime_module = state,
         "VN" => row.vn_module = state,
         _ => {
-            return Err(Error::from(
-                "The module specified does not exist",
-            ));
+            return Err(Error::from("The module specified does not exist"));
         }
     }
 

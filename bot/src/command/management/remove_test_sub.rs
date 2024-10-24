@@ -4,13 +4,14 @@ use crate::error_management::error_dispatch;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_user;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
+use anyhow::{Context, Error, Result};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
-use anyhow::{Context, Error, Result};use std::sync::Arc;
 use small_fixed_array::FixedString;
+use std::sync::Arc;
 use tracing::error;
 
 pub struct RemoveTestSubCommand {

@@ -1,24 +1,24 @@
-use std::error::Error;
+use anyhow::{Context, Error, Result};
 
 use crate::command::command_trait::UserCommand;
 use crate::command::user::avatar::AvatarCommand;
 use crate::command::user::banner::BannerCommand;
 use crate::command::user::profile::ProfileCommand;
 use crate::error_management::error_dispatch;
-use crate::event_handler::Handler;
-use serenity::all::{CommandInteraction, Context};
+use crate::event_handler::{BotData, Handler};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub async fn dispatch_user_command(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
-    self_handler: &Handler,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
+    let bot_data = ctx.data::<BotData>().clone();
     match command_interaction.data.name.as_str() {
         "avatar" => {
             AvatarCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
+                config: bot_data.config.clone(),
             }
             .run_user()
             .await
@@ -27,7 +27,7 @@ pub async fn dispatch_user_command(
             BannerCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
+                config: bot_data.config.clone(),
             }
             .run_user()
             .await
@@ -36,13 +36,11 @@ pub async fn dispatch_user_command(
             ProfileCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
+                config: bot_data.config.clone(),
             }
             .run_user()
             .await
         }
-        _ => Err(Box::new(error_dispatch::Error::Option(String::from(
-            "Unknown command",
-        )))),
+        _ => Err(Error::from("Unknown command")),
     }
 }

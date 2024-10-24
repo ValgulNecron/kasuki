@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::{Context, Error, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
@@ -11,19 +11,20 @@ use crate::structure::message::vn::user::load_localization_user;
 use crate::structure::message::vn::user::UserLocalised;
 use moka::future::Cache;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
 use tokio::sync::RwLock;
 
 pub struct VnUserCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
     pub config: Arc<Config>,
     pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for VnUserCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -33,7 +34,7 @@ impl Command for VnUserCommand {
 }
 
 impl SlashCommand for VnUserCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         send_embed(
             &self.ctx,
             &self.command_interaction,
@@ -45,11 +46,11 @@ impl SlashCommand for VnUserCommand {
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -59,9 +60,7 @@ async fn send_embed(
 
     let user = map
         .get(&String::from("username"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No username provided",
-        )))?;
+        .ok_or(Error::from("No username provided"))?;
 
     let path = format!("/user?q={}&fields=lengthvotes,lengthvotes_sum", user);
 

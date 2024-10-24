@@ -1,7 +1,8 @@
-use std::error::Error;
+use anyhow::{Context, Error, Result};
 
 use serenity::all::{
-    ComponentInteraction, Context, CreateButton, CreateEmbed, EditMessage, UserId,
+    ComponentInteraction, Context as SerenityContext, CreateButton, CreateEmbed, EditMessage,
+    UserId,
 };
 
 use crate::command::anilist_server::list_register_user::get_the_list;
@@ -10,32 +11,13 @@ use crate::constant::MEMBER_LIST_LIMIT;
 use crate::error_management::error_dispatch;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 
-/// Updates the user list in the server.
-///
-/// This function takes a context, a component interaction, a user ID, and a previous ID as parameters.
-/// It retrieves the guild ID from the component interaction and loads the localized user list.
-/// It then retrieves all server users and formats them into a list.
-/// The function creates an embed message with the user list and updates the message with the embed.
-/// If there are more users than the limit, it adds a button to the message to go to the next page.
-///
-/// # Arguments
-///
-/// * `ctx` - A reference to the context.
-/// * `component_interaction` - A reference to the component interaction.
-/// * `user_id` - A string that represents the current user ID.
-/// * `prev_id` - A string that represents the previous user ID.
-///
-/// # Returns
-///
-/// * A Result that is either an empty Ok variant if the operation was successful, or an Err variant with an AppError.
-
 pub async fn update(
-    ctx: &Context,
+    ctx: &SerenityContext,
     component_interaction: &ComponentInteraction,
     user_id: &str,
     prev_id: &str,
     db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the guild ID from the component interaction
     let guild_id = match component_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -48,9 +30,7 @@ pub async fn update(
     // Retrieve the guild ID from the component interaction
     let guild_id = component_interaction
         .guild_id
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "Guild ID not found",
-        )))?;
+        .ok_or(Error::from("Guild ID not found"))?;
 
     // Retrieve the guild with counts
     let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
