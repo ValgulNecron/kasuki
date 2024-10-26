@@ -12,6 +12,7 @@ use crate::helper::get_option::subcommand::{
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
 use anyhow::{anyhow, Result};
+use image::EncodableLayout;
 use prost::bytes::Bytes;
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
@@ -48,7 +49,7 @@ impl SlashCommand for ImageCommand {
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
-                bot_data.clone(),
+                &bot_data.clone(),
                 PremiumCommandType::AIImage,
             )
             .await?
@@ -274,7 +275,9 @@ async fn image_with_n_equal_1(
         Err(e) => error!("Error saving image: {}", e),
     }
 
-    let attachment = CreateAttachment::bytes(Cow::from(bytes.as_ref()), &filename);
+    let bytes = bytes.as_bytes().to_vec();
+    let cow_bytes = Cow::from(bytes);
+    let attachment = CreateAttachment::bytes(cow_bytes, filename);
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -301,8 +304,9 @@ async fn image_with_n_greater_than_1(
         .enumerate()
         .map(|(index, byte)| {
             let filename = format!("{}_{}.png", filename, index);
-
-            CreateAttachment::bytes(Cow::from(bytes.as_ref()), filename)
+            let byte = byte.as_bytes().to_vec();
+            let cow_byte = Cow::from(byte);
+            CreateAttachment::bytes(Cow::from(cow_byte), filename)
         })
         .collect();
 

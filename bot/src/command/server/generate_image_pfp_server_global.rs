@@ -36,7 +36,7 @@ impl SlashCommand for GenerateGlobalImagePfPCommand {
 }
 
 pub async fn init(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<()> {

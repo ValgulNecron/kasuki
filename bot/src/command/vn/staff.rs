@@ -67,9 +67,9 @@ async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteract
         (staff_localised.gender.clone(), staff.gender.clone(), true),
         (staff_localised.main.clone(), staff.ismain.to_string(), true),
     ];
-
+    let staff_desc = staff.description.clone();
     let builder_embed = get_default_embed(None)
-        .description(convert_vndb_markdown(&staff.description.clone()))
+        .description(convert_vndb_markdown(&staff_desc))
         .fields(fields)
         .title(staff.name.clone())
         .url(format!("https://vndb.org/{}", staff.id));

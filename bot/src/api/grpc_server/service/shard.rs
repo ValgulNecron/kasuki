@@ -80,12 +80,12 @@ impl proto::shard_server::Shard for ShardService {
         let runners = shard_manager.runners.lock().await;
 
         // If the shard is not found, return an error
-        if !runners.contains_key(&ShardId(id as u32)) {
+        if !runners.contains_key(&ShardId(id as u16)) {
             return Err(Status::not_found("Shard not found"));
         }
 
         // Get the shard
-        let shard = match runners.get(&ShardId(id as u32)) {
+        let shard = match runners.get(&ShardId(id as u16)) {
             Some(shard) => shard,
             None => return Err(Status::not_found("Shard not found")),
         };

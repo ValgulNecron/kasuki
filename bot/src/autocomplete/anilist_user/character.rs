@@ -1,27 +1,21 @@
-use std::sync::Arc;
-
 use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::constant::DEFAULT_STRING;
+use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::character::{
     CharacterAutocomplete, CharacterAutocompleteVariables,
 };
 
-pub async fn autocomplete(
-    ctx: Context,
-    autocomplete_interaction: CommandInteraction,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) {
+pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+    let bot_data = ctx.data::<BotData>().clone();
 
     let character_search = map.get(&String::from("name")).unwrap_or(DEFAULT_STRING);
 
@@ -32,7 +26,7 @@ pub async fn autocomplete(
     let operation = CharacterAutocomplete::build(var);
 
     let data: GraphQlResponse<CharacterAutocomplete> =
-        match make_request_anilist(operation, false, anilist_cache).await {
+        match make_request_anilist(operation, false, bot_data.anilist_cache.clone()).await {
             Ok(data) => data,
             Err(e) => {
                 tracing::debug!(?e);

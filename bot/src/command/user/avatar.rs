@@ -56,7 +56,7 @@ pub async fn get_user_command_user(
 
     for user_inner in users {
         // If the user_id is not the same as the id of the user who invoked the command, assign the user to u and break the loop
-        if user_inner.id.get() != &command_interaction.user.id.get() {
+        if user_inner.id.get() != command_interaction.user.id.get() {
             user = Some(user_inner.clone());
 
             break;

@@ -7,17 +7,18 @@ use crate::config::{Config, DbConfig};
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::banner::load_localization_banner;
+use anyhow::{Context, Result};
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage, User,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage, User,
 };
-
 pub struct BannerCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
 }
 
 impl Command for BannerCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -27,7 +28,7 @@ impl Command for BannerCommand {
 }
 
 impl SlashCommand for BannerCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         let user = get_user_command(&self.ctx, &self.command_interaction).await?;
         let ctx = self.get_ctx();
         let bot_data = ctx.data::<BotData>().clone();
@@ -36,7 +37,7 @@ impl SlashCommand for BannerCommand {
 }
 
 impl UserCommand for BannerCommand {
-    async fn run_user(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_user(&self) -> Result<()> {
         let user = get_user_command_user(&self.ctx, &self.command_interaction);
         let ctx = self.get_ctx();
         let bot_data = ctx.data::<BotData>().clone();
@@ -51,11 +52,11 @@ impl UserCommand for BannerCommand {
 }
 
 pub async fn no_banner(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     username: &str,
     db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -79,11 +80,11 @@ pub async fn no_banner(
 }
 
 pub async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     user: User,
     config: &Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let db_config = config.db.clone();
 
     let banner = match user.banner_url() {

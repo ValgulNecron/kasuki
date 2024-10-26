@@ -10,17 +10,15 @@ use tokio::sync::RwLock;
 use tracing::log::trace;
 
 use crate::constant::DEFAULT_STRING;
+use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
 use anyhow::Result;
 
-pub async fn autocomplete(
-    ctx: SerenityContext,
-    autocomplete_interaction: CommandInteraction,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) {
+pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: CommandInteraction) {
     let mut choice = Vec::new();
+    let bot_data = ctx.data::<BotData>().clone();
 
     trace!("{:?}", &autocomplete_interaction.data.options);
 
@@ -28,13 +26,13 @@ pub async fn autocomplete(
 
     let user1 = map.get(&String::from("username")).unwrap_or(DEFAULT_STRING);
 
-    choice.extend(get_choices(user1, anilist_cache.clone()).await);
+    choice.extend(get_choices(user1, bot_data.anilist_cache.clone()).await);
 
     let user2 = map
         .get(&String::from("username2"))
         .unwrap_or(DEFAULT_STRING);
 
-    choice.extend(get_choices(user2, anilist_cache).await);
+    choice.extend(get_choices(user2, bot_data.anilist_cache.clone()).await);
 
     let data = CreateAutocompleteResponse::new().set_choices(choice);
 

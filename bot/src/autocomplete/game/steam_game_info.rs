@@ -1,29 +1,23 @@
-use std::collections::HashMap;
-use std::sync::Arc;
-
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse,
 };
-use tokio::sync::RwLock;
 use tracing::debug;
 
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
+use crate::event_handler::BotData;
 use crate::helper::fuzzy_search::distance_top_n;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 
-pub async fn autocomplete(
-    ctx: Context,
-    autocomplete_interaction: CommandInteraction,
-    apps: Arc<RwLock<HashMap<String, u128>>>,
-) {
+pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+    let bot_data = ctx.data::<BotData>().clone();
 
     let game_search = map
         .get(&String::from("game_name"))
         .unwrap_or(DEFAULT_STRING);
 
-    let guard = apps.read().await;
+    let guard = bot_data.apps.read().await;
 
     let app_names: Vec<String> = guard
         .clone()

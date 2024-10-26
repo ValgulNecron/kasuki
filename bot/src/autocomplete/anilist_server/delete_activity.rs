@@ -1,7 +1,7 @@
-use crate::config::DbConfig;
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::database::activity_data::Column;
 use crate::database::prelude::ActivityData;
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
 use sea_orm::ColumnTrait;
@@ -13,12 +13,9 @@ use serenity::all::{
 };
 use tracing::error;
 
-pub async fn autocomplete(
-    ctx: SerenityContext,
-    autocomplete_interaction: CommandInteraction,
-    db_config: DbConfig,
-) {
+pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
+    let bot_data = ctx.data::<BotData>().clone();
 
     let activity_search = map
         .get(&String::from("anime_name"))
@@ -29,7 +26,7 @@ pub async fn autocomplete(
         None => String::from("0"),
     };
 
-    let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
+    let connection = match sea_orm::Database::connect(get_url(bot_data.config.db.clone())).await {
         Ok(conn) => conn,
         Err(e) => {
             error!(?e);

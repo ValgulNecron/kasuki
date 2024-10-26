@@ -142,11 +142,10 @@ async fn send_embed(
     if !characters.is_empty() {
         fields.push((game_localised.characters.clone(), characters, true));
     }
+    let vn_desc = vn.description.clone().unwrap_or_default();
 
     let mut builder_embed = get_default_embed(None)
-        .description(convert_vndb_markdown(
-            &vn.description.unwrap_or_default().clone(),
-        ))
+        .description(convert_vndb_markdown(&vn_desc))
         .fields(fields)
         .title(vn.title.clone())
         .url(format!("https://vndb.org/{}", vn.id));

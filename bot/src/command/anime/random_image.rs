@@ -1,18 +1,19 @@
-use anyhow::{anyhow, Result};
-use std::sync::Arc;
-
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime::random_image::load_localization_random_image;
+use anyhow::{anyhow, Result};
+use image::EncodableLayout;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateAttachment,
     CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
 };
 use small_fixed_array::FixedString;
+use std::borrow::Cow;
+use std::sync::Arc;
 use uuid::Uuid;
 
 pub struct AnimeRandomImageCommand {
@@ -52,7 +53,7 @@ async fn send(
     let map = get_option_map_string_subcommand(command_interaction);
 
     let image_type = map
-        .get(&FixedString::from_str_trunc("image_type"))
+        .get(&String::from("image_type"))
         .ok_or(anyhow!("No image type specified"))?;
 
     // Retrieve the guild ID from the command interaction
@@ -122,7 +123,9 @@ pub async fn send_embed(
         .title(title);
 
     // Construct the attachment for the image
-    let attachment = CreateAttachment::bytes(bytes, &filename);
+    let bytes = bytes.as_bytes().to_vec();
+    let cow_bytes = Cow::from(bytes);
+    let attachment = CreateAttachment::bytes(cow_bytes, filename);
 
     // Construct the follow-up response containing the embed and the attachment
     let builder_message = CreateInteractionResponseFollowup::new()

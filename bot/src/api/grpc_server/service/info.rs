@@ -1,4 +1,6 @@
+use sea_orm::EntityTrait;
 use serenity::all::{Cache, Http, Member, ShardManager};
+use serenity::nonmax::NonMaxU16;
 use std::sync::Arc;
 use sysinfo::System;
 use tokio::sync::RwLock;
@@ -13,6 +15,7 @@ use crate::api::grpc_server::service::info::proto::{
 use crate::config::Config;
 use crate::constant::APP_VERSION;
 use crate::custom_serenity_impl::{InternalMembershipState, InternalTeamMemberRole};
+use crate::database::prelude::UserColor;
 use crate::event_handler::{BotData, RootUsage};
 
 // Proto module contains the protobuf definitions for the shard service
@@ -91,8 +94,12 @@ impl Info for InfoService {
         let uptime = format!("{}s", uptime);
 
         let number_of_commands_executed = self.command_usage.read().await.get_total_command_use();
+        let connection = self.bot_info.db_connection.clone();
 
-        let number_of_members = self.cache.user_count() as i64;
+        let number_of_members = match UserColor::find().all(&*connection).await {
+            Ok(res) => res.len() as i64,
+            Err(e) => return Err(Status::internal("Failed to get the number of user.")),
+        };
 
         let number_of_guilds = self.cache.guild_count() as i64;
 
@@ -143,11 +150,11 @@ impl Info for InfoService {
         };
 
         let info = Some(BotInfo {
-            name,
+            name: name.to_string(),
             version,
             id,
             bot_activity,
-            description,
+            description: description.to_string(),
             bot_profile,
         });
 
@@ -176,7 +183,7 @@ impl Info for InfoService {
                 let banner = user.banner_url();
 
                 Some(OwnerInfo {
-                    name,
+                    name: name.to_string(),
                     id,
                     profile_picture,
                     banner,
@@ -231,7 +238,7 @@ impl Info for InfoService {
                         team_owner = Some(TeamMember {
                             role: role.to_string(),
                             membership_state: membership_state.to_string(),
-                            username,
+                            username: username.to_string(),
                             id,
                             profile_picture,
                             banner,
@@ -243,7 +250,7 @@ impl Info for InfoService {
                     team_members.push(TeamMember {
                         role: role.to_string(),
                         membership_state: membership_state.to_string(),
-                        username,
+                        username: username.to_string(),
                         id,
                         profile_picture,
                         banner,
@@ -251,7 +258,7 @@ impl Info for InfoService {
                 }
 
                 let owner_info = OwnerInfo {
-                    name,
+                    name: name.to_string(),
                     id,
                     profile_picture,
                     banner: None,
@@ -292,7 +299,11 @@ impl Info for InfoService {
             let description = real_guild.description.clone();
 
             let mut members_temp = real_guild
-                .members(&self.http, Some(1000), None)
+                .members(
+                    &self.http,
+                    Some(NonMaxU16::new(1000).unwrap_or_default()),
+                    None,
+                )
                 .await
                 .unwrap_or_default();
 
@@ -302,7 +313,7 @@ impl Info for InfoService {
                 members_temp = real_guild
                     .members(
                         &self.http,
-                        Some(1000),
+                        Some(NonMaxU16::new(1000).unwrap_or_default()),
                         Some(match members_temp.last() {
                             Some(m) => m.user.id,
                             None => break,
@@ -313,10 +324,10 @@ impl Info for InfoService {
 
                 members.append(&mut members_temp.clone());
             }
-
+            let description = description.map(|fs| fs.to_string());
             let guild = Guild {
                 id,
-                name,
+                name: name.to_string(),
                 owner_id,
                 icon,
                 banner,
@@ -333,9 +344,12 @@ impl Info for InfoService {
 
         // removed all duplicate members that have the same user id
         members.sort_by(|a, b| a.user.id.cmp(&b.user.id));
+        let connection = self.bot_info.db_connection.clone();
 
-        let user_count = self.cache.user_count() as i64;
-
+        let user_count = match UserColor::find().all(&*connection).await {
+            Ok(res) => res.len() as i64,
+            Err(e) => return Err(Status::internal("Failed to get the number of user.")),
+        };
         let mut users = Vec::new();
 
         for member in members {
@@ -352,7 +366,7 @@ impl Info for InfoService {
 
             let banner = user.banner_url();
 
-            let is_bot = user.bot;
+            let is_bot = user.bot();
 
             let mut guilds = vec![member.guild_id.to_string()];
 
@@ -366,7 +380,7 @@ impl Info for InfoService {
             }
 
             let mut user = User {
-                username,
+                username: username.to_string(),
                 id,
                 profile_picture,
                 is_bot,

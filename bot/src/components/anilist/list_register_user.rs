@@ -46,8 +46,9 @@ pub async fn update(
     };
 
     // Get the list of users
+    let list_user = list_user_localised.clone();
     let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) =
-        get_the_list(guild, ctx, &list_user_localised, id, db_config).await?;
+        get_the_list(guild, ctx, &list_user, id, db_config).await?;
 
     // Create the response message
     let mut response = EditMessage::new().embed(builder_message);

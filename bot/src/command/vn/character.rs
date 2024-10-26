@@ -8,7 +8,7 @@ use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::character::get_character;
 use crate::structure::message::vn::character::load_localization_character;
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use markdown_converter::vndb::convert_vndb_markdown;
 use moka::future::Cache;
 use serenity::all::{
@@ -146,11 +146,9 @@ async fn send_embed(
         .join(", ");
 
     fields.push((character_localised.traits.clone(), traits, true));
-
+    let char_desc = character.description.clone().unwrap_or_default();
     let mut builder_embed = get_default_embed(None)
-        .description(convert_vndb_markdown(
-            &character.description.unwrap_or_default().clone(),
-        ))
+        .description(convert_vndb_markdown(&char_desc))
         .fields(fields)
         .title(character.name.clone())
         .url(format!("https://vndb.org/{}", character.id));

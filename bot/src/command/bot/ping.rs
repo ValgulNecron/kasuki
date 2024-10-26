@@ -1,15 +1,15 @@
-use std::sync::Arc;
-
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::bot::ping::load_localization_ping;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-    CreateInteractionResponseMessage,
+    CreateInteractionResponseMessage, ShardManager,
 };
+use std::sync::Arc;
+use std::time::Duration;
 pub struct PingCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
@@ -52,18 +52,23 @@ async fn send_embed(
     // Load the localized ping strings
     let ping_localised = load_localization_ping(guild_id, config.db.clone()).await?;
 
-    let shard_manager = match ctx.data::<BotData>().shard_manager.clone() {
-        Some(shard) => shard.runners.lock().await,
-        None => return Err(anyhow!("failed to get the shard")),
+    let guard = ctx.data::<BotData>().shard_manager.clone();
+    let shard_manager = match guard.read().await.clone() {
+        Some(shard_manager) => shard_manager,
+        None => {
+            return Err(anyhow!("failed to get the shard manager"));
+        }
     };
 
     // Retrieve the shard ID from the context
     let shard_id = ctx.shard_id;
-
     // Retrieve the shard runner info from the shard manager
     let shard_runner_info = shard_manager
+        .runners
+        .lock()
+        .await
         .get(&shard_id)
-        .ok_or("failed to get the shard info")?;
+        .ok_or(anyhow!("failed to get the shard info"))?;
 
     // Format the latency as a string
     let latency = match shard_runner_info.latency {

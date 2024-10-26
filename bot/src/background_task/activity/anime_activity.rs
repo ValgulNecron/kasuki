@@ -89,10 +89,11 @@ async fn send_activity(
             let anilist_cache = anilist_cache.clone();
 
             let db_config = db_config.clone();
-
+            let ctx_clone = ctx.clone();
             tokio::spawn(async move {
                 if let Err(e) =
-                    send_specific_activity(&row, guild_id, &ctx, anilist_cache, db_config).await
+                    send_specific_activity(&row, guild_id, &ctx_clone, anilist_cache, db_config)
+                        .await
                 {
                     error!("{}", e);
                 }
@@ -140,9 +141,9 @@ async fn send_specific_activity(
     let builder_message = ExecuteWebhook::new().embed(embed);
 
     webhook.execute(&ctx.http, false, builder_message).await?;
-
+    let row_clone = row.clone();
     tokio::spawn(async move {
-        if let Err(e) = update_info(row, &*guild_id, anilist_cache, db_config).await {
+        if let Err(e) = update_info(&row_clone, &*guild_id, anilist_cache, db_config).await {
             error!("Failed to update info: {}", e);
         }
     });
@@ -182,7 +183,7 @@ async fn update_info(
         }
     };
 
-    let title = media.title.ok_or(Err(anyhow!("No title")))?;
+    let title = media.title.ok_or(anyhow!("No title"))?;
 
     let name = title
         .english

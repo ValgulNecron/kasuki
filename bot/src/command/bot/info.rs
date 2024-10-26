@@ -131,35 +131,39 @@ async fn send_embed(
 
     // Add buttons for various actions
 
-    buttons.push(
-        [CreateButton::new_link("https://github.com/ValgulNecron/kasuki")
+    buttons.to_mut().push(
+        CreateButton::new_link("https://github.com/ValgulNecron/kasuki")
             .style(ButtonStyle::Primary)
-            .label(&info_localised.button_see_on_github)],
+            .label(&info_localised.button_see_on_github),
     );
 
-    buttons.push([CreateButton::new_link("https://kasuki.valgul.moe/")
-        .style(ButtonStyle::Primary)
-        .label(&info_localised.button_official_website)]);
+    buttons.to_mut().push(
+        CreateButton::new_link("https://kasuki.valgul.moe/")
+            .style(ButtonStyle::Primary)
+            .label(&info_localised.button_official_website),
+    );
 
-    buttons.push([CreateButton::new_link("https://discord.gg/h4hYxMURQx")
-        .style(ButtonStyle::Primary)
-        .label(&info_localised.button_official_discord)]);
+    buttons.to_mut().push(
+        CreateButton::new_link("https://discord.gg/h4hYxMURQx")
+            .style(ButtonStyle::Primary)
+            .label(&info_localised.button_official_discord),
+    );
 
-    components.push(buttons.clone());
+    components.push(CreateActionRow::Buttons(buttons.clone()));
 
     buttons.to_mut().clear();
 
-    buttons.push([
+    buttons.to_mut().push(
         CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=395677134144&scope=bot")
             .style(ButtonStyle::Primary)
             .label(&info_localised.button_add_the_bot)
-    ]);
+    );
 
-    buttons.push([
+    buttons.to_mut().push(
         CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=1122304053620260924&permissions=395677134144&scope=bot")
             .style(ButtonStyle::Primary)
             .label(&info_localised.button_add_the_beta_bot)
-    ]);
+    );
 
     components.push(CreateActionRow::Buttons(buttons));
 

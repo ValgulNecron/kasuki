@@ -43,7 +43,7 @@ impl SlashCommand for TranscriptCommand {
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
-                bot_data,
+                &bot_data,
                 PremiumCommandType::AITranscript,
             )
             .await?

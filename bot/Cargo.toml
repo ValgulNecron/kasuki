@@ -11,12 +11,12 @@ license-file = "../LICENSE"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-regex = "1.11.0"
+regex = "1.11.1"
 reqwest = { version = "0.12.8", features = ["json", "multipart", "blocking"] }
-serde = "1.0.210"
+serde = "1.0.213"
 serde_json = "1.0.132"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "voice", "cache", "http", "unstable"] }
-tokio = { version = "1.40.0", features = ["full"] }
+tokio = { version = "1.41.0", features = ["full"] }
 rand = "0.9.0-alpha.2"
 chrono = "0.4.38"
 uuid = { version = "1.11.0", features = ["v4"] }
@@ -58,7 +58,7 @@ catbox = "0.8.2"
 tempfile = "3.13.0"
 rusty_ytdl = { version = "0.7.4", features = ["rustls-tls"] }
 either = "1.13.0"
-anyhow = "1.0.90"
+anyhow = "1.0.91"
 small-fixed-array = "0.4.5"
 
 [build-dependencies]

@@ -1,6 +1,6 @@
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
-    CreateInteractionResponse, SkuKind,
+    CreateInteractionResponse, Sku, SkuKind,
 };
 use small_fixed_array::FixedString;
 use tracing::debug;
@@ -25,9 +25,11 @@ pub async fn give_premium_sub_autocomplete(
         .map(|sku| {
             (
                 {
-                    let kind = match sku.kind {
-                        SkuKind::Subscription => String::from("Subscription"),
-                        SkuKind::SubscriptionGroup => String::from("Subscription Group"),
+                    let kind = match sku.kind.0 {
+                        5 => String::from("Subscription"),
+                        6 => String::from("Subscription Group"),
+                        2 => String::from("DURABLE"),
+                        3 => String::from("CONSUMABLE"),
                         _ => String::from("Unknown"),
                     };
 

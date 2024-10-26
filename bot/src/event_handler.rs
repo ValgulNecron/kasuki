@@ -489,7 +489,7 @@ impl EventHandler for Handler {
             // Dispatch the autocomplete interaction
             user = Some(autocomplete_interaction.user.clone());
 
-            autocomplete_dispatching(ctx, autocomplete_interaction, self).await;
+            autocomplete_dispatching(ctx, autocomplete_interaction).await;
         } else if let Interaction::Component(component_interaction) = interaction.clone() {
             // Dispatch the component interaction
             user = Some(component_interaction.user.clone());

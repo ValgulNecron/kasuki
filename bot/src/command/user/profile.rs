@@ -7,18 +7,19 @@ use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::profile::{load_localization_profile, ProfileLocalised};
+use anyhow::{Context, Result};
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-    EntitlementKind, Member, User,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage, EntitlementKind, Member, User,
 };
 
 pub struct ProfileCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
 }
 
 impl Command for ProfileCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -28,7 +29,7 @@ impl Command for ProfileCommand {
 }
 
 impl SlashCommand for ProfileCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         let user = get_user_command(&self.ctx, &self.command_interaction).await?;
         let ctx = self.get_ctx();
         let bot_data = ctx.data::<BotData>().clone();
@@ -37,7 +38,7 @@ impl SlashCommand for ProfileCommand {
 }
 
 impl UserCommand for ProfileCommand {
-    async fn run_user(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_user(&self) -> Result<()> {
         let user = get_user_command_user(&self.ctx, &self.command_interaction).await;
         let ctx = self.get_ctx();
         let bot_data = ctx.data::<BotData>().clone();
@@ -86,11 +87,11 @@ fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, 
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     user: User,
     config: &Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let db_config = config.db.clone();
 
     let guild_id = command_interaction
@@ -132,9 +133,9 @@ async fn send_embed(
         .await;
 
     if user_premium.is_ok() && skus.is_ok() {
-        let skus = skus.unwrap().clone();
+        let skus = skus?.clone();
 
-        let data = user_premium.unwrap();
+        let data = user_premium?;
 
         if !data.is_empty() {
             let string = data.iter().map(|e| {
@@ -143,18 +144,15 @@ async fn send_embed(
                 let sku = skus.iter().find(|e2| e2.id == sku_id);
 
                 let e_type = e.kind.clone();
-
-                let type_name = match e_type {
-                    EntitlementKind::ApplicationSubscription => {
-                        String::from("APPLICATION_SUBSCRIPTION")
-                    }
-                    EntitlementKind::Unknown(1) => String::from("PURCHASE"),
-                    EntitlementKind::Unknown(2) => String::from("PREMIUM_SUBSCRIPTION"),
-                    EntitlementKind::Unknown(3) => String::from("DEVELOPER_GIFT"),
-                    EntitlementKind::Unknown(4) => String::from("TEST_MODE_PURCHASE"),
-                    EntitlementKind::Unknown(5) => String::from("FREE_PURCHASE"),
-                    EntitlementKind::Unknown(6) => String::from("USER_GIFT"),
-                    EntitlementKind::Unknown(7) => String::from("PREMIUM_PURCHASE"),
+                let type_name = match e_type.0 {
+                    8 => String::from("APPLICATION_SUBSCRIPTION"),
+                    1 => String::from("purchase"),
+                    2 => String::from("premium_subscription"),
+                    3 => String::from("developer_gift"),
+                    4 => String::from("test_mode_purchase"),
+                    5 => String::from("free_purchase"),
+                    6 => String::from("user_gift"),
+                    7 => String::from("premium_purchase"),
                     _ => String::from("Unknown"),
                 };
 

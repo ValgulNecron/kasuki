@@ -85,11 +85,10 @@ async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteract
             true,
         ));
     }
+    let prod_desc = producer.description.clone().unwrap_or_default();
 
     let builder_embed = get_default_embed(None)
-        .description(convert_vndb_markdown(
-            &producer.description.unwrap_or_default().clone(),
-        ))
+        .description(convert_vndb_markdown(&prod_desc))
         .fields(fields)
         .title(producer.name.clone())
         .url(format!("https://vndb.org/{}", producer.id));

@@ -5,7 +5,7 @@ use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_user;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Context, Error, Result};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
@@ -55,7 +55,7 @@ async fn send_embed(
     let user = match user {
         Some(user) => user,
         None => {
-            return Err(Error::from("No user provided").into());
+            return Err(anyhow!("No user provided").into());
         }
     };
 

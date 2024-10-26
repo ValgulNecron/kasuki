@@ -47,8 +47,8 @@ impl LevelCommand {
         send_embed(
             &self.ctx,
             &self.command_interaction,
-            bot_data.config,
-            bot_data.anilist_cache,
+            bot_data.config.clone(),
+            bot_data.anilist_cache.clone(),
         )
         .await
     }

@@ -142,7 +142,7 @@ impl<T: Command> PremiumCommand for T {
     async fn check_hourly_limit(
         &self,
         command_name: impl Into<String> + Clone,
-        handler: Arc<BotData>,
+        handler: &BotData,
         command: PremiumCommandType,
     ) -> Result<bool> {
         let bot_data = self.get_ctx().data::<BotData>().clone();
@@ -186,8 +186,8 @@ impl<T: Command> PremiumCommand for T {
         let mut available_user_sku = None;
 
         for available_sku in available_skus {
-            match available_sku.kind {
-                SkuKind::Subscription => {
+            match available_sku.kind.0 {
+                5 => {
                     if available_sku.flags == SkuFlags::USER_SUBSCRIPTION {
                         available_user_sku = Some(available_sku.id);
 
@@ -196,10 +196,11 @@ impl<T: Command> PremiumCommand for T {
                         }
                     }
                 }
-                SkuKind::SubscriptionGroup => {}
-                SkuKind::Unknown(_) => {}
+                6 => {}
+                2 => {}
+                3 => {}
                 _ => {}
-            }
+            };
         }
 
         if available_user_sku.is_none() {

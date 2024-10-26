@@ -1,9 +1,4 @@
-use std::collections::HashMap;
-use std::sync::Arc;
-
-use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
-use tokio::sync::RwLock;
 
 use crate::autocomplete::anilist_server::{add_anime_activity, delete_activity};
 use crate::autocomplete::anilist_user::{
@@ -13,8 +8,6 @@ use crate::autocomplete::game::steam_game_info;
 use crate::autocomplete::management::give_premium_sub::give_premium_sub_autocomplete;
 use crate::autocomplete::vn;
 use crate::autocomplete::vn::{game, producer};
-use crate::config::DbConfig;
-use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_subcommand;
 
 pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
@@ -69,7 +62,8 @@ async fn vn_autocomplete(ctx: Context, autocomplete_interaction: CommandInteract
 }
 
 async fn anilist_admin_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-    let subcommand = get_subcommand(&autocomplete_interaction).unwrap();
+    let interaction = autocomplete_interaction.clone();
+    let subcommand = get_subcommand(&interaction).unwrap();
 
     let subcommand_name = subcommand.name;
 

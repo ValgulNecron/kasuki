@@ -50,7 +50,7 @@ async fn send_embed(
 
     let user = *map
         .get(&FixedString::from_str_trunc("user"))
-        .ok_or(Error::from("No option for user"))?;
+        .ok_or(anyhow!("No option for user"))?;
 
     let map = get_option_map_string(command_interaction);
 

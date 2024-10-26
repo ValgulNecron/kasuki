@@ -4,7 +4,7 @@ use crate::config::DbConfig;
 use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use serenity::all::CommandInteraction;
 use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
 use serenity::model::Colour;
@@ -200,7 +200,7 @@ pub async fn send_embed(
     let statistics = user
         .statistics
         .clone()
-        .ok_or(anyhow::Error::from("Could not get the statistics"))?;
+        .ok_or(anyhow!("Could not get the statistics"))?;
 
     let manga = statistics.manga.clone();
 

@@ -1,5 +1,8 @@
 use std::sync::Arc;
 
+use crate::event_handler::BotData;
+use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
+use crate::helper::vndbapi::game::{get_vn, VN};
 use moka::future::Cache;
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
@@ -8,19 +11,15 @@ use serenity::all::{
 use tokio::sync::RwLock;
 use tracing::trace;
 
-use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use crate::helper::vndbapi::game::{get_vn, VN};
-
-pub async fn autocomplete(
-    ctx: Context,
-    autocomplete_interaction: CommandInteraction,
-    vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) {
+pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+    let bot_data = ctx.data::<BotData>().clone();
 
     let game = map.get(&String::from("title")).unwrap();
 
-    let vn = get_vn(game.clone(), vndb_cache).await.unwrap();
+    let vn = get_vn(game.clone(), bot_data.vndb_cache.clone())
+        .await
+        .unwrap();
 
     let vn_result = vn.results;
 

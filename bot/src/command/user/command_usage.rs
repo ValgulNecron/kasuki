@@ -3,22 +3,24 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::command::user::avatar::get_user_command;
-use crate::config::{Config, DbConfig};
+use crate::config::DbConfig;
 use crate::event_handler::{BotData, RootUsage};
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::command_usage::load_localization_command_usage;
+use anyhow::{Context, Result};
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage, User,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage, User,
 };
 use tokio::sync::{RwLock, RwLockReadGuard};
 
 pub struct CommandUsageCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
 }
 
 impl Command for CommandUsageCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -28,7 +30,7 @@ impl Command for CommandUsageCommand {
 }
 
 impl SlashCommand for CommandUsageCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         let user = get_user_command(&self.ctx, &self.command_interaction).await?;
         let ctx = self.get_ctx();
         let bot_data = ctx.data::<BotData>().clone();
@@ -44,12 +46,12 @@ impl SlashCommand for CommandUsageCommand {
 }
 
 pub async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     user: User,
     config: &DbConfig,
     command_usage: &Arc<RwLock<RootUsage>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let db_config = config.clone();
 
     let user_id = user.id.to_string();
@@ -97,7 +99,8 @@ pub async fn send_embed(
             description.push('\n');
 
             if description.len() > 4096 {
-                embeds.push(inner_embed.clone().description(&description));
+                let desc = description.clone();
+                embeds.push(inner_embed.clone().description(desc));
 
                 description.clear();
 
@@ -106,7 +109,7 @@ pub async fn send_embed(
         }
 
         if !description.is_empty() {
-            embeds.push(inner_embed.clone().description(&description));
+            embeds.push(inner_embed.clone().description(description));
         }
     }
 

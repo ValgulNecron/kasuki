@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use std::io::{Seek, Write};
 use tracing::debug;
 
@@ -17,9 +17,12 @@ pub async fn upload_image_catbox(
 
     file.seek(std::io::SeekFrom::Start(0))?;
 
-    debug!("File path: {}", file.path().to_str().unwrap());
+    debug!("File path: {}", file.path().to_str().unwrap_or_default());
 
-    catbox::file::from_file(file.path().to_str().unwrap(), Some(&token)).await?;
+    match catbox::file::from_file(file.path().to_str().unwrap_or_default(), Some(&token)).await {
+        Ok(_) => {}
+        Err(e) => return Err(anyhow!("failed to upload to catbox {}", e)),
+    };
 
     Ok(())
 }

@@ -183,7 +183,8 @@ async fn launch_web_server_thread(
     info!("Launching the API server thread!");
 
     // Read the data from the context
-    let shard_manager = match ctx.data::<BotData>().shard_manager.clone().read().await {
+    let guard = ctx.data::<BotData>().shard_manager.clone();
+    let shard_manager = match guard.read().await.clone() {
         Some(shard_manager) => shard_manager,
         None => {
             tokio::time::sleep(Duration::from_secs(10)).await;

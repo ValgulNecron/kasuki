@@ -1,4 +1,4 @@
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Context, Error, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
@@ -92,7 +92,7 @@ pub async fn send_embed(
         .filter(Column::ImageType.eq(image_type.to_string()))
         .one(&connection)
         .await?
-        .ok_or(Error::from(format!(
+        .ok_or(anyhow!(format!(
             "Server image with type {} not found",
             image_type
         )))?

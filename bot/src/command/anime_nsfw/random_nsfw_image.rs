@@ -50,7 +50,7 @@ async fn send(
     let map = get_option_map_string_subcommand(command_interaction);
 
     let image_type = map
-        .get(&FixedString::from_str_trunc("image_type"))
+        .get(&String::from("image_type"))
         .ok_or(anyhow!("No image type specified"))?;
 
     // Retrieve the guild ID from the command interaction
