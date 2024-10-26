@@ -1,6 +1,6 @@
 use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
-    CreateInteractionResponse, Sku, SkuKind,
+    CreateInteractionResponse,
 };
 use small_fixed_array::FixedString;
 use tracing::debug;

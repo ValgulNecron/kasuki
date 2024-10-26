@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand, UserCommand};
@@ -7,10 +6,10 @@ use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::profile::{load_localization_profile, ProfileLocalised};
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-    CreateInteractionResponseMessage, EntitlementKind, Member, User,
+    CreateInteractionResponseMessage, Member, User,
 };
 
 pub struct ProfileCommand {

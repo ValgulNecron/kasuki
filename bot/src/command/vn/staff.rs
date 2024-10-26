@@ -1,21 +1,17 @@
 use std::error::Error;
-use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::staff::get_staff;
 use crate::structure::message::vn::staff::load_localization_staff;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use markdown_converter::vndb::convert_vndb_markdown;
-use moka::future::Cache;
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
     CreateInteractionResponseMessage,
 };
-use tokio::sync::RwLock;
 use tracing::trace;
 
 pub struct VnStaffCommand {

@@ -11,7 +11,6 @@ use serenity::all::{CommandInteraction, CreateInteractionResponseFollowup};
 use serenity::builder::CreateInteractionResponse::Defer;
 use serenity::builder::CreateInteractionResponseMessage;
 use serenity::prelude::Context as SerenityContext;
-use small_fixed_array::FixedString;
 use songbird::input::Compose;
 use songbird::tracks::Track;
 use songbird::{CoreEvent, TrackEvent};

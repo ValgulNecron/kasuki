@@ -4,7 +4,6 @@ use crate::command::command_trait::UserCommand;
 use crate::command::user::avatar::AvatarCommand;
 use crate::command::user::banner::BannerCommand;
 use crate::command::user::profile::ProfileCommand;
-use crate::event_handler::BotData;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub async fn dispatch_user_command(

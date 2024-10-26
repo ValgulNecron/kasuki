@@ -2,10 +2,9 @@ use crate::config::DbConfig;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::activity_data::{Column, Model};
 use crate::database::prelude::ActivityData;
-use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serenity::all::{
     ComponentInteraction, Context as SerenityContext, CreateButton, CreateEmbed,

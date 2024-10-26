@@ -4,12 +4,11 @@ use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::structure::message::user::avatar::load_localization_avatar;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
     CreateInteractionResponseMessage, User,
 };
-use std::sync::Arc;
 
 pub struct AvatarCommand {
     pub ctx: SerenityContext,

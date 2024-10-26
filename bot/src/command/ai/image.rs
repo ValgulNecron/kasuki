@@ -306,7 +306,7 @@ async fn image_with_n_greater_than_1(
             let filename = format!("{}_{}.png", filename, index);
             let byte = byte.as_bytes().to_vec();
             let cow_byte = Cow::from(byte);
-            CreateAttachment::bytes(Cow::from(cow_byte), filename)
+            CreateAttachment::bytes(cow_byte, filename)
         })
         .collect();
 

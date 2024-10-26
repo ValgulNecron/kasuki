@@ -7,7 +7,7 @@ use crate::config::DbConfig;
 use crate::event_handler::{BotData, RootUsage};
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::command_usage::load_localization_command_usage;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
     CreateInteractionResponseMessage, User,

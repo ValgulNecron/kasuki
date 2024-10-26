@@ -190,7 +190,7 @@ pub fn get_vec<T: serde::Deserialize<'static> + Clone>(path: &str) -> Result<Vec
             let json: &'static str = Box::leak(json_content.into_boxed_str());
 
             // Now, `json` has a 'static lifetime and can be passed to `serde_json::from_str`
-            let command: T = serde_json::from_str(&json)
+            let command: T = serde_json::from_str(json)
                 .context("failed to create the command struct from the json")?;
 
             commands.push(command);

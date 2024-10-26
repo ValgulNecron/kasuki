@@ -8,14 +8,13 @@ use crate::helper::create_default_embed::get_default_embed;
 use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId, SkuKind,
+    CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId,
 };
 use serenity::builder::{
     CreateButton, CreateInteractionResponse, CreateInteractionResponseFollowup,
 };
 use serenity::model::Colour;
 use serenity::prelude::Context as SerenityContext;
-use std::sync::Arc;
 
 pub trait Command {
     fn get_ctx(&self) -> &SerenityContext;

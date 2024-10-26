@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 
 use serenity::all::{
     ComponentInteraction, Context as SerenityContext, CreateButton, CreateEmbed, EditMessage,
@@ -8,7 +8,6 @@ use serenity::all::{
 use crate::command::anilist_server::list_register_user::get_the_list;
 use crate::config::DbConfig;
 use crate::constant::MEMBER_LIST_LIMIT;
-use crate::error_management::error_dispatch;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 
 pub async fn update(

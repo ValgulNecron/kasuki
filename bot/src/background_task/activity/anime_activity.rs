@@ -143,7 +143,7 @@ async fn send_specific_activity(
     webhook.execute(&ctx.http, false, builder_message).await?;
     let row_clone = row.clone();
     tokio::spawn(async move {
-        if let Err(e) = update_info(&row_clone, &*guild_id, anilist_cache, db_config).await {
+        if let Err(e) = update_info(&row_clone, &guild_id, anilist_cache, db_config).await {
             error!("Failed to update info: {}", e);
         }
     });

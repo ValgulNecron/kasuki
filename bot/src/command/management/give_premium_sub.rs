@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Error, Result};
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};

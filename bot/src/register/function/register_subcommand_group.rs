@@ -9,7 +9,7 @@ use crate::register::function::common::{
     get_vec_installation_context, get_vec_integration_context,
 };
 use crate::register::structure::subcommand_group::SubCommandGroup;
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub async fn creates_subcommands_group(http: &Arc<Http>) {
     let commands = match get_subcommands_group("./json/subcommand_group") {

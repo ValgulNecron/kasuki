@@ -24,7 +24,7 @@ pub struct Stats {
 
     pub vn: i32,
 }
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub async fn get_stats(vndb_cache: Arc<RwLock<Cache<String, String>>>) -> Result<Stats> {
     let path = "/stats".to_string();

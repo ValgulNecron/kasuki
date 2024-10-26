@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{CommandType, CreateCommand, Http};
@@ -6,7 +5,7 @@ use tracing::{error, trace};
 
 use crate::register::function::common::{get_permission, get_vec, get_vec_installation_context};
 use crate::register::structure::user_command::UserCommand;
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub async fn creates_user_command(http: &Arc<Http>) {
     let commands = match get_user_command("./json/user_command") {

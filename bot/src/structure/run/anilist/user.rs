@@ -4,7 +4,7 @@ use crate::config::DbConfig;
 use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use serenity::all::CommandInteraction;
 use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
 use serenity::model::Colour;

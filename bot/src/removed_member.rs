@@ -1,4 +1,3 @@
-use crate::config::DbConfig;
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
 use crate::custom_serenity_impl::{InternalAction, InternalMemberAction};
 use crate::new_member::{

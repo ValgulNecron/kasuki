@@ -1,11 +1,10 @@
-use anyhow::{anyhow, Context, Error, Result};
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{Config, DbConfig};
 use crate::database::prelude::ServerImage;
 use crate::database::server_image::Column;
-use crate::error_management::error_dispatch;
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;

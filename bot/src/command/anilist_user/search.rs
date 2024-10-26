@@ -1,10 +1,7 @@
 use anyhow::{anyhow, Result};
-use std::sync::Arc;
 
-use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
-use tokio::sync::RwLock;
 
 use crate::command::anilist_user::anime::AnimeCommand;
 use crate::command::anilist_user::character::CharacterCommand;
@@ -14,7 +11,6 @@ use crate::command::anilist_user::staff::StaffCommand;
 use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
 use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 

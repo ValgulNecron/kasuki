@@ -1,4 +1,3 @@
-use crate::config::DbConfig;
 use crate::constant::{HEX_COLOR, NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
 use crate::structure::message::new_member::load_localization_new_member;
 use image::ImageFormat::WebP;

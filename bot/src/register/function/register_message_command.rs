@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use serenity::all::{CommandType, CreateCommand, Http};
@@ -6,7 +5,7 @@ use tracing::{error, trace};
 
 use crate::register::function::common::{get_permission, get_vec, get_vec_installation_context};
 use crate::register::structure::message_command::MessageCommand;
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 pub async fn creates_message_command(http: &Arc<Http>) {
     let commands = match get_message_command("./json/message_command") {

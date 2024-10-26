@@ -1,13 +1,9 @@
 use anyhow::Result;
-use std::sync::Arc;
 
-use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use tokio::sync::RwLock;
 
 use crate::command::anilist_user::character::get_character_by_id;
 use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::structure::run::anilist::character::send_embed;
 

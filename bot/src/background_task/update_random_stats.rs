@@ -199,8 +199,7 @@ async fn update_page(
             random_stats.anime_last_page += 1;
 
             random_stats.manga_last_page += 1;
-        } else {
-        }
+        } 
     }
 
     has_next_page

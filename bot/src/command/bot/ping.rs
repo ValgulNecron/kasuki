@@ -3,13 +3,12 @@ use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::bot::ping::load_localization_ping;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-    CreateInteractionResponseMessage, ShardManager,
+    CreateInteractionResponseMessage,
 };
 use std::sync::Arc;
-use std::time::Duration;
 pub struct PingCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
@@ -63,13 +62,10 @@ async fn send_embed(
     // Retrieve the shard ID from the context
     let shard_id = ctx.shard_id;
     // Retrieve the shard runner info from the shard manager
-    let shard_runner_info = shard_manager
-        .runners
-        .lock()
-        .await
+    let shard_runner_info_lock = shard_manager.runners.lock().await;
+    let shard_runner_info = shard_runner_info_lock
         .get(&shard_id)
         .ok_or(anyhow!("failed to get the shard info"))?;
-
     // Format the latency as a string
     let latency = match shard_runner_info.latency {
         Some(latency) => format!("{:.2}ms", latency.as_millis()),

@@ -11,7 +11,6 @@ use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
 };
-use small_fixed_array::FixedString;
 
 pub struct AnimeRandomNsfwImageCommand {
     pub ctx: SerenityContext,

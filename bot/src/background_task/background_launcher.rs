@@ -27,7 +27,6 @@ use crate::database::prelude::PingHistory;
 use crate::event_handler::{BotData, RootUsage};
 use crate::get_url;
 use crate::structure::steam_game_id_struct::get_game;
-use anyhow::{Context, Result};
 pub async fn thread_management_launcher(
     ctx: SerenityContext,
     bot_data: Arc<BotData>,

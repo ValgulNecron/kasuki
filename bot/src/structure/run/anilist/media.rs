@@ -6,7 +6,7 @@ use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discor
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,

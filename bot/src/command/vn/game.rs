@@ -8,7 +8,7 @@ use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::game::get_vn;
 use crate::structure::message::vn::game::load_localization_game;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use markdown_converter::vndb::convert_vndb_markdown;
 use moka::future::Cache;
 use serenity::all::{
