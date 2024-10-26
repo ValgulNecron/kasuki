@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::Result;
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -82,7 +82,7 @@ pub struct VNRoot {
 pub async fn get_vn(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<VNRoot, Box<dyn Error>> {
+) -> Result<VNRoot> {
     let value = value.to_lowercase();
 
     let value = value.trim();

@@ -4,7 +4,7 @@ use crate::error_management::error_dispatch;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Context, Result};
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
@@ -177,7 +177,7 @@ pub async fn send_embed(
 
     let name = match character.name.clone() {
         Some(name) => name,
-        None => return Err(Error::from("No name found".to_string())),
+        None => return Err(anyhow!("No name found".to_string())),
     };
 
     let native = name.native.unwrap_or_default();

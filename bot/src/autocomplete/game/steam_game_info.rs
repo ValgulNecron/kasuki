@@ -12,35 +12,6 @@ use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::helper::fuzzy_search::distance_top_n;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 
-/// `autocomplete` is an asynchronous function that handles the autocomplete feature for game search.
-///
-/// It takes a `Context` and a `CommandInteraction` as parameters.
-/// `ctx` is the context in which this function is called.
-/// `autocomplete_interaction` is the command interaction that triggered this function.
-///
-/// This function first gets the map of options from the command interaction.
-/// It then gets the game name from the map of options.
-/// If the game name is not found in the map, it defaults to a predefined string.
-/// It then creates a vector of app names from the global `APPS` array.
-/// It performs a fuzzy search on the app names with the game name and a limit of `AUTOCOMPLETE_COUNT_LIMIT`.
-/// It creates a new `AutocompleteChoice` for each matched string with the name and the ID and pushes it to the vector.
-/// It creates a new `CreateAutocompleteResponse` with the choices.
-/// It creates a new `CreateInteractionResponse` with the `CreateAutocompleteResponse`.
-/// It sends the response to the Discord channel.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this function is called.
-/// * `autocomplete_interaction` - The command interaction that triggered this function.
-///
-/// # Async
-///
-/// This function is asynchronous. It awaits the sending of the response.
-///
-/// # Safety
-///
-/// This function uses `unsafe` to access the global `APPS` array. The safety of this function depends on the correct usage of the `APPS` array.
-
 pub async fn autocomplete(
     ctx: Context,
     autocomplete_interaction: CommandInteraction,
@@ -102,7 +73,7 @@ pub async fn autocomplete(
     let builder = CreateInteractionResponse::Autocomplete(data);
 
     if let Err(why) = autocomplete_interaction
-        .create_response(ctx.http, builder)
+        .create_response(&ctx.http, builder)
         .await
     {
         debug!("Error sending response: {:?}", why);

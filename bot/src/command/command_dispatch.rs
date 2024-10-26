@@ -53,19 +53,20 @@ use crate::config::DbConfig;
 use crate::database;
 use crate::database::module_activation::Model;
 use crate::database::prelude::ModuleActivation;
-use crate::event_handler::Handler;
+use crate::event_handler::BotData;
 use crate::get_url;
+use anyhow::Result;
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, QueryFilter};
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::error::Error;
 use tracing::trace;
 
 pub async fn dispatch_command(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
-    self_handler: &Handler,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
+    let bot_data = ctx.data::<BotData>().clone();
     let (kind, name) = guess_command_kind(command_interaction);
 
     let full_command_name = format!("{} {}", kind, name);
@@ -77,7 +78,6 @@ pub async fn dispatch_command(
             AvatarCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -86,7 +86,6 @@ pub async fn dispatch_command(
             BannerCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -95,7 +94,6 @@ pub async fn dispatch_command(
             ProfileCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -104,11 +102,6 @@ pub async fn dispatch_command(
             CommandUsageCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                command_usage: self_handler
-                    .bot_data
-                    .number_of_command_use_per_command
-                    .clone(),
             }
             .run_slash()
             .await?
@@ -118,7 +111,6 @@ pub async fn dispatch_command(
             LangCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -127,7 +119,6 @@ pub async fn dispatch_command(
             ModuleCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -136,7 +127,6 @@ pub async fn dispatch_command(
             NewMemberSettingCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -146,8 +136,6 @@ pub async fn dispatch_command(
             AddActivityCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -156,8 +144,6 @@ pub async fn dispatch_command(
             DeleteActivityCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -167,8 +153,6 @@ pub async fn dispatch_command(
             SteamGameInfoCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                apps: self_handler.bot_data.apps.clone(),
             }
             .run_slash()
             .await?
@@ -178,8 +162,6 @@ pub async fn dispatch_command(
             ImageCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                handler: self_handler,
                 command_name: full_command_name.clone(),
             }
             .run_slash()
@@ -189,8 +171,6 @@ pub async fn dispatch_command(
             QuestionCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                handler: self_handler,
                 command_name: full_command_name.clone(),
             }
             .run_slash()
@@ -200,8 +180,6 @@ pub async fn dispatch_command(
             TranscriptCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                handler: self_handler,
                 command_name: full_command_name.clone(),
             }
             .run_slash()
@@ -211,8 +189,6 @@ pub async fn dispatch_command(
             TranslationCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                handler: self_handler,
                 command_name: full_command_name.clone(),
             }
             .run_slash()
@@ -223,7 +199,6 @@ pub async fn dispatch_command(
             ListRegisterUser {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -232,7 +207,6 @@ pub async fn dispatch_command(
             ListAllActivity {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -242,8 +216,6 @@ pub async fn dispatch_command(
             AnimeCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -252,8 +224,6 @@ pub async fn dispatch_command(
             CharacterCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -262,8 +232,6 @@ pub async fn dispatch_command(
             CompareCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -272,8 +240,6 @@ pub async fn dispatch_command(
             LevelCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -282,8 +248,6 @@ pub async fn dispatch_command(
             LnCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -292,8 +256,6 @@ pub async fn dispatch_command(
             MangaCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -302,8 +264,6 @@ pub async fn dispatch_command(
             UserCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -312,8 +272,6 @@ pub async fn dispatch_command(
             WaifuCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -322,8 +280,6 @@ pub async fn dispatch_command(
             RandomCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -332,8 +288,6 @@ pub async fn dispatch_command(
             RegisterCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -342,8 +296,6 @@ pub async fn dispatch_command(
             StaffCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -352,8 +304,6 @@ pub async fn dispatch_command(
             StudioCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -362,8 +312,6 @@ pub async fn dispatch_command(
             SearchCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -372,8 +320,6 @@ pub async fn dispatch_command(
             SeiyuuCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                anilist_cache: self_handler.bot_data.anilist_cache.clone(),
             }
             .run_slash()
             .await?
@@ -383,7 +329,6 @@ pub async fn dispatch_command(
             AnimeRandomImageCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -393,7 +338,6 @@ pub async fn dispatch_command(
             AnimeRandomNsfwImageCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -403,7 +347,6 @@ pub async fn dispatch_command(
             AudioJoinCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -412,7 +355,6 @@ pub async fn dispatch_command(
             AudioPlayCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -422,7 +364,6 @@ pub async fn dispatch_command(
             CreditCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -431,7 +372,6 @@ pub async fn dispatch_command(
             InfoCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -440,7 +380,6 @@ pub async fn dispatch_command(
             PingCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -450,7 +389,6 @@ pub async fn dispatch_command(
             KillSwitchCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -459,7 +397,6 @@ pub async fn dispatch_command(
             GivePremiumSubCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -468,7 +405,6 @@ pub async fn dispatch_command(
             RemoveTestSubCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -478,7 +414,6 @@ pub async fn dispatch_command(
             GuildCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -487,7 +422,6 @@ pub async fn dispatch_command(
             GenerateImagePfPCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -496,7 +430,6 @@ pub async fn dispatch_command(
             GenerateGlobalImagePfPCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
             }
             .run_slash()
             .await?
@@ -506,8 +439,6 @@ pub async fn dispatch_command(
             VnGameCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                vndb_cache: self_handler.bot_data.vndb_cache.clone(),
             }
             .run_slash()
             .await?
@@ -516,8 +447,6 @@ pub async fn dispatch_command(
             VnCharacterCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                vndb_cache: self_handler.bot_data.vndb_cache.clone(),
             }
             .run_slash()
             .await?
@@ -526,8 +455,6 @@ pub async fn dispatch_command(
             VnStaffCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                vndb_cache: self_handler.bot_data.vndb_cache.clone(),
             }
             .run_slash()
             .await?
@@ -536,8 +463,6 @@ pub async fn dispatch_command(
             VnUserCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                vndb_cache: self_handler.bot_data.vndb_cache.clone(),
             }
             .run_slash()
             .await?
@@ -546,8 +471,6 @@ pub async fn dispatch_command(
             VnProducerCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                vndb_cache: self_handler.bot_data.vndb_cache.clone(),
             }
             .run_slash()
             .await?
@@ -556,8 +479,6 @@ pub async fn dispatch_command(
             VnStatsCommand {
                 ctx: ctx.clone(),
                 command_interaction: command_interaction.clone(),
-                config: self_handler.bot_data.config.clone(),
-                vndb_cache: self_handler.bot_data.vndb_cache.clone(),
             }
             .run_slash()
             .await?
@@ -567,7 +488,7 @@ pub async fn dispatch_command(
         }
     };
 
-    self_handler
+    bot_data
         .increment_command_use_per_command(
             full_command_name,
             command_interaction.user.id.to_string(),

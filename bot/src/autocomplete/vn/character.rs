@@ -45,7 +45,7 @@ pub async fn autocomplete(
     let builder = CreateInteractionResponse::Autocomplete(data);
 
     if let Err(e) = autocomplete_interaction
-        .create_response(ctx.http, builder)
+        .create_response(&ctx.http, builder)
         .await
     {
         tracing::error!("Error sending response: {:?}", e);

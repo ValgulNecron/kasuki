@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -25,10 +24,9 @@ pub struct Stats {
 
     pub vn: i32,
 }
+use anyhow::{Context, Result};
 
-pub async fn get_stats(
-    vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<Stats, Box<dyn Error>> {
+pub async fn get_stats(vndb_cache: Arc<RwLock<Cache<String, String>>>) -> Result<Stats> {
     let path = "/stats".to_string();
 
     let response = do_request_cached(path.clone(), vndb_cache).await?;

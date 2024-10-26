@@ -1,17 +1,20 @@
 use std::collections::HashSet;
-use std::error::Error;
 use std::sync::Arc;
 
+use anyhow::Result;
 use moka::future::Cache;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
+use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
@@ -21,14 +24,12 @@ use crate::structure::run::anilist::user::{
 };
 
 pub struct CompareCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for CompareCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -38,33 +39,35 @@ impl Command for CompareCommand {
 }
 
 impl SlashCommand for CompareCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         send_embed(
             &self.ctx,
             &self.command_interaction,
-            self.config.clone(),
-            self.anilist_cache.clone(),
+            bot_data.config.clone(),
+            bot_data.anilist_cache.clone(),
         )
         .await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the usernames from the command interaction
     let map = get_option_map_string(command_interaction);
 
     let value = map
-        .get(&String::from("username"))
+        .get(&FixedString::from_str_trunc("username"))
         .cloned()
         .unwrap_or(String::new());
 
     let value2 = map
-        .get(&String::from("username2"))
+        .get(&FixedString::from_str_trunc("username2"))
         .cloned()
         .unwrap_or(String::new());
 

@@ -1,10 +1,10 @@
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Error, Result};
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -18,8 +18,6 @@ use tokio::sync::RwLock;
 pub struct SteamGameInfoCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub apps: Arc<RwLock<HashMap<String, u128>>>,
 }
 
 impl Command for SteamGameInfoCommand {
@@ -34,10 +32,12 @@ impl Command for SteamGameInfoCommand {
 
 impl SlashCommand for SteamGameInfoCommand {
     async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         let data = get_steam_game(
-            self.apps.clone(),
+            bot_data.apps.clone(),
             self.command_interaction.clone(),
-            self.config.clone(),
+            bot_data.config.clone(),
         )
         .await?;
 
@@ -45,7 +45,7 @@ impl SlashCommand for SteamGameInfoCommand {
             &self.ctx,
             &self.command_interaction,
             data,
-            self.config.clone(),
+            bot_data.config.clone(),
         )
         .await
     }
@@ -65,7 +65,7 @@ async fn get_steam_game(
 
     let value = map
         .get(&String::from("game_name"))
-        .ok_or(Error::from("No option for game_name"))?;
+        .ok_or(anyhow!("No option for game_name"))?;
 
     let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
         SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, config.db.clone())

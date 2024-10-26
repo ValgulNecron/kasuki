@@ -4,6 +4,7 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand, UserCommand};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::config::{Config, DbConfig};
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::banner::load_localization_banner;
 use serenity::all::{
@@ -13,7 +14,6 @@ use serenity::all::{
 pub struct BannerCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for BannerCommand {
@@ -29,20 +29,22 @@ impl Command for BannerCommand {
 impl SlashCommand for BannerCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         let user = get_user_command(&self.ctx, &self.command_interaction).await?;
-
-        send_embed(&self.ctx, &self.command_interaction, user, &self.config).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(&self.ctx, &self.command_interaction, user, &bot_data.config).await
     }
 }
 
 impl UserCommand for BannerCommand {
     async fn run_user(&self) -> Result<(), Box<dyn Error>> {
         let user = get_user_command_user(&self.ctx, &self.command_interaction);
-
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         send_embed(
             &self.ctx,
             &self.command_interaction,
             user.await,
-            &self.config,
+            &bot_data.config,
         )
         .await
     }

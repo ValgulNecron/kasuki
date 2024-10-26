@@ -1,11 +1,10 @@
 use crate::audio::receiver::Receiver;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::audio::join::load_localization_join_localised;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use serenity::all::{CommandInteraction, Context as SerenityContext, CreateEmbed};
 use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
 use songbird::CoreEvent;
@@ -15,7 +14,6 @@ use tracing::{error, trace};
 pub struct AudioJoinCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for AudioJoinCommand {
@@ -30,7 +28,14 @@ impl Command for AudioJoinCommand {
 
 impl SlashCommand for AudioJoinCommand {
     async fn run_slash(&self) -> Result<()> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -39,9 +44,7 @@ async fn send_embed(
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
 ) -> Result<()> {
-    let guild_id = command_interaction
-        .guild_id
-        .ok_or(Error::from("No guild id"))?;
+    let guild_id = command_interaction.guild_id.ok_or(anyhow!("No guild id"))?;
 
     let manager = ctx.data::<BotData>().manager.clone();
 
@@ -63,7 +66,7 @@ async fn send_embed(
                 None => {
                     error!("Failed to get the guild.");
 
-                    return Err(Error::from("Failed to get the guild."));
+                    return Err(anyhow!("Failed to get the guild."));
                 }
             };
 
@@ -77,7 +80,7 @@ async fn send_embed(
 
         let connect_to = match channel_id {
             Some(channel) => channel,
-            None => return Err(Error::from("Not connected to a voice channel")),
+            None => return Err(anyhow!("Not connected to a voice channel")),
         };
 
         let manager = ctx.data::<BotData>().manager.clone();
@@ -111,7 +114,7 @@ async fn send_embed(
 
             return Ok(());
         } else if let Err(joining) = success {
-            return Err(Error::from(format!(
+            return Err(anyhow!(format!(
                 "Failed to join voice channel: {:#?}",
                 joining
             )));

@@ -1,14 +1,14 @@
-use anyhow::anyhow;
-use std::error::Error;
+use anyhow::{anyhow, Result};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
 use crate::command::command_trait::Embed;
 use crate::command::command_trait::{Command, EmbedType, SlashCommand};
-use crate::config::{Config, DbConfig};
+use crate::config::DbConfig;
 use crate::database::activity_data;
 use crate::database::activity_data::Column;
 use crate::database::prelude::ActivityData;
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -33,19 +33,19 @@ use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serde_json::json;
-use serenity::all::{ChannelId, CommandInteraction, Context, CreateAttachment, EditWebhook};
+use serenity::all::{
+    ChannelId, CommandInteraction, Context as SerenityContext, CreateAttachment, EditWebhook,
+};
 use tokio::sync::RwLock;
 use tracing::trace;
 
 pub struct AddActivityCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for AddActivityCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -55,14 +55,14 @@ impl Command for AddActivityCommand {
 }
 
 impl SlashCommand for AddActivityCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        let anilist_cache = self.anilist_cache.clone();
-
+    async fn run_slash(&self) -> Result<()> {
         let command_interaction = self.command_interaction.clone();
 
         let ctx = self.ctx.clone();
+        let bot_data = ctx.data::<BotData>().clone();
+        let anilist_cache = bot_data.anilist_cache.clone();
 
-        let config = self.config.clone();
+        let config = bot_data.config.clone();
 
         let map = get_option_map_string_subcommand_group(&command_interaction);
 
@@ -195,7 +195,7 @@ impl SlashCommand for AddActivityCommand {
     }
 }
 
-async fn resize_image(image_bytes: &Bytes) -> Result<Cursor<Vec<u8>>, Box<dyn Error>> {
+async fn resize_image(image_bytes: &Bytes) -> Result<Cursor<Vec<u8>>> {
     let image = image::load_from_memory_with_format(image_bytes, guess_format(image_bytes)?)?;
 
     let (width, height) = image.dimensions();
@@ -262,12 +262,12 @@ pub fn get_name(title: MediaTitle) -> String {
 }
 
 async fn get_webhook(
-    ctx: &Context,
+    ctx: &SerenityContext,
     channel_id: ChannelId,
     image: String,
     base64: String,
     anime_name: String,
-) -> Result<String, Box<dyn Error>> {
+) -> Result<String> {
     trace!(?image);
 
     trace!(?anime_name);
@@ -347,7 +347,7 @@ async fn get_webhook(
 pub async fn get_minimal_anime_by_id(
     id: i32,
     cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<Media, Box<dyn Error>> {
+) -> Result<Media> {
     trace!(?id);
 
     let query = MinimalAnimeIdVariables { id: Some(id) };
@@ -369,7 +369,7 @@ pub async fn get_minimal_anime_by_id(
 async fn get_minimal_anime_by_search(
     query: &str,
     cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<Media, Box<dyn Error>> {
+) -> Result<Media> {
     trace!(?query);
 
     let search_query = MinimalAnimeSearchVariables {
@@ -393,7 +393,7 @@ async fn get_minimal_anime_by_search(
 pub async fn get_minimal_anime_media(
     anime: String,
     cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<Media, Box<dyn Error>> {
+) -> Result<Media> {
     let media = if let Ok(id) = anime.parse::<i32>() {
         get_minimal_anime_by_id(id, cache).await?
     } else {

@@ -2,12 +2,11 @@ use crate::audio::receiver::{Receiver, TrackEndNotifier, TrackErrorNotifier};
 use crate::audio::rusty_ytdl::RustyYoutubeSearch;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::audio::play::load_localization_play_localised;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use serenity::all::{CommandInteraction, CreateInteractionResponseFollowup};
 use serenity::builder::CreateInteractionResponse::Defer;
 use serenity::builder::CreateInteractionResponseMessage;
@@ -22,7 +21,6 @@ use tracing::{error, trace};
 pub struct AudioPlayCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for AudioPlayCommand {
@@ -37,7 +35,14 @@ impl Command for AudioPlayCommand {
 
 impl SlashCommand for AudioPlayCommand {
     async fn run_slash(&self) -> Result<()> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -49,13 +54,11 @@ async fn send_embed(
     let map = get_option_map_string_subcommand(command_interaction);
 
     let mut url = map
-        .get(&FixedString::from_str_trunc("song"))
-        .ok_or(Error::from("No option for song"))?
+        .get(&String::from("song"))
+        .ok_or(anyhow!("No option for song"))?
         .clone();
 
-    let guild_id = command_interaction
-        .guild_id
-        .ok_or(Error::from("No guild id"))?;
+    let guild_id = command_interaction.guild_id.ok_or(anyhow!("No guild id"))?;
 
     let cache = ctx.cache.clone();
 
@@ -87,7 +90,7 @@ async fn send_embed(
                 None => {
                     error!("Failed to get the guild.");
 
-                    return Err(Error::from("Failed to get the guild"));
+                    return Err(anyhow!("Failed to get the guild"));
                 }
             };
 
@@ -101,7 +104,7 @@ async fn send_embed(
 
         let connect_to = match channel_id {
             Some(channel) => channel,
-            None => return Err(Error::from("Not connected to a voice channel")),
+            None => return Err(anyhow!("Not connected to a voice channel")),
         };
 
         let bot_data = ctx.data::<BotData>().clone();
@@ -125,7 +128,7 @@ async fn send_embed(
 
             handler.add_global_event(CoreEvent::VoiceTick.into(), evt_receiver);
         } else if let Err(joining) = success {
-            return Err(Error::from(format!(
+            return Err(anyhow!(format!(
                 "Failed to join voice channel: {:#?}",
                 joining
             )));

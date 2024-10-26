@@ -2,11 +2,11 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::constant::{APP_VERSION, LIBRARY};
 use crate::database::prelude::UserColor;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::bot::info::load_localization_info;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use sea_orm::EntityTrait;
 use serenity::all::{
     ButtonStyle, CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton,
@@ -18,7 +18,6 @@ use std::sync::Arc;
 pub struct InfoCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for InfoCommand {
@@ -33,7 +32,14 @@ impl Command for InfoCommand {
 
 impl SlashCommand for InfoCommand {
     async fn run_slash(&self) -> Result<()> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -81,7 +87,7 @@ async fn send_embed(
     let app_installation_count = bot.approximate_user_install_count.unwrap_or_default() as usize;
 
     // Retrieve the bot's avatar
-    let bot_icon = bot.icon.ok_or(Error::from("No bot icon"))?;
+    let bot_icon = bot.icon.ok_or(anyhow!("No bot icon"))?;
 
     let avatar = if bot_icon.is_animated() {
         format!(

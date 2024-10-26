@@ -1,22 +1,23 @@
 use crate::command::command_trait::{Command, SlashCommand, UserCommand};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::structure::message::user::avatar::load_localization_avatar;
+use anyhow::{Context, Result};
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage, User,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage, User,
 };
-use std::error::Error;
 use std::sync::Arc;
 
 pub struct AvatarCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for AvatarCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -26,23 +27,25 @@ impl Command for AvatarCommand {
 }
 
 impl SlashCommand for AvatarCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
         let user = get_user_command(&self.ctx, &self.command_interaction).await?;
-
-        send_embed(&self.ctx, &self.command_interaction, user, &self.config).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(&self.ctx, &self.command_interaction, user, &bot_data.config).await
     }
 }
 
 impl UserCommand for AvatarCommand {
-    async fn run_user(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_user(&self) -> Result<()> {
         let user = get_user_command_user(&self.ctx, &self.command_interaction).await;
-
-        send_embed(&self.ctx, &self.command_interaction, user, &self.config).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(&self.ctx, &self.command_interaction, user, &bot_data.config).await
     }
 }
 
 pub async fn get_user_command_user(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
 ) -> User {
     let users = &command_interaction.data.resolved.users;
@@ -51,10 +54,10 @@ pub async fn get_user_command_user(
 
     let command_user = command_interaction.user.clone();
 
-    for (user_id, u) in users {
+    for user_inner in users {
         // If the user_id is not the same as the id of the user who invoked the command, assign the user to u and break the loop
-        if user_id != &command_interaction.user.id {
-            user = Some(u.clone());
+        if user_inner.id.get() != &command_interaction.user.id.get() {
+            user = Some(user_inner.clone());
 
             break;
         }
@@ -66,9 +69,9 @@ pub async fn get_user_command_user(
 }
 
 pub async fn get_user_command(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
-) -> Result<User, Box<dyn Error>> {
+) -> Result<User> {
     let user = get_option_map_user_subcommand(command_interaction);
 
     let user = user.get(&String::from("username"));
@@ -82,11 +85,11 @@ pub async fn get_user_command(
 }
 
 pub async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     interaction: &CommandInteraction,
     user: User,
     config: &Config,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guild_id = interaction
         .guild_id
         .map(|id| id.to_string())

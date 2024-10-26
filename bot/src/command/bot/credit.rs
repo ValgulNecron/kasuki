@@ -1,22 +1,23 @@
-use std::error::Error;
+use anyhow::Result;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::bot::credit::load_localization_credit;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
 
 pub struct CreditCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for CreditCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -26,16 +27,23 @@ impl Command for CreditCommand {
 }
 
 impl SlashCommand for CreditCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the guild ID from the command interaction or use "0" if it does not exist
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),

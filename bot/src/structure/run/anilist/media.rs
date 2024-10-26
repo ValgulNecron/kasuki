@@ -6,7 +6,7 @@ use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discor
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Context, Result};
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateEmbed, CreateInteractionResponse,
     CreateInteractionResponseMessage, Timestamp,
@@ -582,7 +582,7 @@ pub async fn send_embed(
     let is_adult = data.is_adult.unwrap_or(true);
 
     if is_adult && !get_nsfw(command_interaction, ctx).await {
-        return Err(Error::from("This an adult media in a non adult channel"));
+        return Err(anyhow!("This an adult media in a non adult channel"));
     }
 
     let guild_id = match command_interaction.guild_id {
@@ -700,7 +700,7 @@ pub async fn send_embed(
 
     let title = match data.title.clone() {
         Some(t) => t,
-        None => return Err(Error::from("No title")),
+        None => return Err(anyhow!("No title")),
     };
 
     let mut builder_embed = CreateEmbed::new()

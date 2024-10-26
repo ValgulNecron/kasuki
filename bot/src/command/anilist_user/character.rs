@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::character;
@@ -9,7 +10,7 @@ use crate::structure::run::anilist::character::{
     Character, CharacterQuerryId, CharacterQuerryIdVariables, CharacterQuerrySearch,
     CharacterQuerrySearchVariables,
 };
-use anyhow::{Error, Result};
+use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -19,8 +20,6 @@ use tokio::sync::RwLock;
 pub struct CharacterCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for CharacterCommand {
@@ -35,11 +34,13 @@ impl Command for CharacterCommand {
 
 impl SlashCommand for CharacterCommand {
     async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         send_embed(
             &self.ctx,
             &self.command_interaction,
-            self.config.clone(),
-            self.anilist_cache.clone(),
+            bot_data.config.clone(),
+            bot_data.anilist_cache.clone(),
         )
         .await
     }
@@ -96,8 +97,8 @@ pub async fn get_character_by_id(
     Ok(match data.data {
         Some(data) => match data.character {
             Some(media) => media,
-            None => return Err(Error::from("No character found")),
+            None => return Err(anyhow!("No character found")),
         },
-        None => return Err(Error::from("No data found")),
+        None => return Err(anyhow!("No data found")),
     })
 }

@@ -4,11 +4,11 @@ use crate::config::Config;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::database::activity_data::Column;
 use crate::database::prelude::ActivityData;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -19,10 +19,10 @@ use serenity::all::{
 };
 use std::sync::Arc;
 use tracing::trace;
+
 pub struct ListAllActivity {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for ListAllActivity {
@@ -37,7 +37,14 @@ impl Command for ListAllActivity {
 
 impl SlashCommand for ListAllActivity {
     async fn run_slash(&self) -> Result<()> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -56,7 +63,7 @@ async fn send_embed(
 
     let guild_id = command_interaction
         .guild_id
-        .ok_or(Error::from("Could not get the id of the guild"))?;
+        .ok_or(anyhow!("Could not get the id of the guild"))?;
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
 

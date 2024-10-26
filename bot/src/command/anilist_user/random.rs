@@ -15,7 +15,7 @@ use tracing::trace;
 use crate::background_task::update_random_stats::update_random_stats;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
@@ -25,13 +25,11 @@ use crate::structure::message::anilist_user::random::{load_localization_random, 
 use crate::structure::run::anilist::random::{
     Media, MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 
 pub struct RandomCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for RandomCommand {
@@ -46,11 +44,13 @@ impl Command for RandomCommand {
 
 impl SlashCommand for RandomCommand {
     async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         send_embed(
             &self.ctx,
             &self.command_interaction,
-            self.config.clone(),
-            self.anilist_cache.clone(),
+            bot_data.config.clone(),
+            bot_data.anilist_cache.clone(),
         )
         .await
     }
@@ -76,7 +76,7 @@ async fn send_embed(
 
     let random_type = map
         .get(&FixedString::from_str_trunc("type"))
-        .ok_or(Error::from("No type specified"))?;
+        .ok_or(anyhow!("No type specified"))?;
 
     // Create a deferred response to the command interaction
     let builder_message = Defer(CreateInteractionResponseMessage::new());

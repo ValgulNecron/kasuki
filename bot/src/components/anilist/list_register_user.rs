@@ -1,4 +1,4 @@
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Context, Result};
 
 use serenity::all::{
     ComponentInteraction, Context as SerenityContext, CreateButton, CreateEmbed, EditMessage,
@@ -30,7 +30,7 @@ pub async fn update(
     // Retrieve the guild ID from the component interaction
     let guild_id = component_interaction
         .guild_id
-        .ok_or(Error::from("Guild ID not found"))?;
+        .ok_or(anyhow!("Guild ID not found"))?;
 
     // Retrieve the guild with counts
     let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;

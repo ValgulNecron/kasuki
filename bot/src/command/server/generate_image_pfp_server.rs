@@ -6,6 +6,7 @@ use crate::config::{Config, DbConfig};
 use crate::database::prelude::ServerImage;
 use crate::database::server_image::Column;
 use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
@@ -26,7 +27,6 @@ use uuid::Uuid;
 pub struct GenerateImagePfPCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for GenerateImagePfPCommand {
@@ -41,7 +41,14 @@ impl Command for GenerateImagePfPCommand {
 
 impl SlashCommand for GenerateImagePfPCommand {
     async fn run_slash(&self) -> Result<()> {
-        init(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        init(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 

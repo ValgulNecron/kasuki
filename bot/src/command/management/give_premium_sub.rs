@@ -1,9 +1,9 @@
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Error, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
 use crate::structure::message::management::give_premium_sub::load_localization_give_premium_sub;
@@ -16,7 +16,6 @@ use small_fixed_array::FixedString;
 pub struct GivePremiumSubCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for GivePremiumSubCommand {
@@ -31,7 +30,14 @@ impl Command for GivePremiumSubCommand {
 
 impl SlashCommand for GivePremiumSubCommand {
     async fn run_slash(&self) -> Result<()> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -43,14 +49,14 @@ async fn send_embed(
     let map = get_option_map_user(command_interaction);
 
     let user = *map
-        .get(&FixedString::from("user"))
+        .get(&FixedString::from_str_trunc("user"))
         .ok_or(Error::from("No option for user"))?;
 
     let map = get_option_map_string(command_interaction);
 
     let subscription = map
-        .get(&String::from("subscription"))
-        .ok_or(Error::from("No option for subscription"))?
+        .get(&FixedString::from_str_trunc("subscription"))
+        .ok_or(anyhow!("No option for subscription"))?
         .clone();
 
     let skus = ctx.http.get_skus().await?;
@@ -58,7 +64,7 @@ async fn send_embed(
     let skus_id: Vec<String> = skus.iter().map(|sku| sku.id.to_string()).collect();
 
     if !skus_id.contains(&subscription) {
-        Err(Error::from("Invalid sub id"))?
+        Err(anyhow!("Invalid sub id"))?
     }
 
     let mut sku_id = Default::default();

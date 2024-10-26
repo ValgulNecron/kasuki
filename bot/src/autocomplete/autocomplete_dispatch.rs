@@ -14,50 +14,31 @@ use crate::autocomplete::management::give_premium_sub::give_premium_sub_autocomp
 use crate::autocomplete::vn;
 use crate::autocomplete::vn::{game, producer};
 use crate::config::DbConfig;
-use crate::event_handler::Handler;
+use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_subcommand;
 
-pub async fn autocomplete_dispatching(
-    ctx: Context,
-    autocomplete_interaction: CommandInteraction,
-    self_handler: &Handler,
-) {
-    let anilist_cache = self_handler.bot_data.anilist_cache.clone();
-
-    let vndb_cache = self_handler.bot_data.vndb_cache.clone();
-
-    let apps = self_handler.bot_data.apps.clone();
-
-    let db_config = self_handler.bot_data.config.db.clone();
-
+pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
     match autocomplete_interaction.data.name.as_str() {
-        "admin" => {
-            admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_config).await
-        }
-        "anime" => anime::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "ln" => ln::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "manga" => manga::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "user" => user::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "character" => character::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "compare" => compare::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "register" => user::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "staff" => staff::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "studio" => studio::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "search" => search::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "seiyuu" => staff::autocomplete(ctx, autocomplete_interaction, anilist_cache).await,
-        "steam" => steam_autocomplete(ctx, autocomplete_interaction, apps).await,
-        "vn" => vn_autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
+        "admin" => admin_autocomplete(ctx, autocomplete_interaction).await,
+        "anime" => anime::autocomplete(ctx, autocomplete_interaction).await,
+        "ln" => ln::autocomplete(ctx, autocomplete_interaction).await,
+        "manga" => manga::autocomplete(ctx, autocomplete_interaction).await,
+        "user" => user::autocomplete(ctx, autocomplete_interaction).await,
+        "character" => character::autocomplete(ctx, autocomplete_interaction).await,
+        "compare" => compare::autocomplete(ctx, autocomplete_interaction).await,
+        "register" => user::autocomplete(ctx, autocomplete_interaction).await,
+        "staff" => staff::autocomplete(ctx, autocomplete_interaction).await,
+        "studio" => studio::autocomplete(ctx, autocomplete_interaction).await,
+        "search" => search::autocomplete(ctx, autocomplete_interaction).await,
+        "seiyuu" => staff::autocomplete(ctx, autocomplete_interaction).await,
+        "steam" => steam_autocomplete(ctx, autocomplete_interaction).await,
+        "vn" => vn_autocomplete(ctx, autocomplete_interaction).await,
         "give_premium_sub" => give_premium_sub_autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
 }
 
-async fn admin_autocomplete(
-    ctx: Context,
-    autocomplete_interaction: CommandInteraction,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: DbConfig,
-) {
+async fn admin_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     if autocomplete_interaction
         .data
         .options
@@ -67,15 +48,11 @@ async fn admin_autocomplete(
         .as_str()
         == "anilist"
     {
-        anilist_admin_autocomplete(ctx, autocomplete_interaction, anilist_cache, db_config).await
+        anilist_admin_autocomplete(ctx, autocomplete_interaction).await
     }
 }
 
-async fn vn_autocomplete(
-    ctx: Context,
-    autocomplete_interaction: CommandInteraction,
-    vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) {
+async fn vn_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     match autocomplete_interaction
         .data
         .options
@@ -84,39 +61,28 @@ async fn vn_autocomplete(
         .name
         .as_str()
     {
-        "game" => game::autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
-        "character" => vn::character::autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
-        "producer" => producer::autocomplete(ctx, autocomplete_interaction, vndb_cache).await,
+        "game" => game::autocomplete(ctx, autocomplete_interaction).await,
+        "character" => vn::character::autocomplete(ctx, autocomplete_interaction).await,
+        "producer" => producer::autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
 }
 
-async fn anilist_admin_autocomplete(
-    ctx: Context,
-    autocomplete_interaction: CommandInteraction,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    db_config: DbConfig,
-) {
+async fn anilist_admin_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let subcommand = get_subcommand(&autocomplete_interaction).unwrap();
 
     let subcommand_name = subcommand.name;
 
     match subcommand_name {
         "add_anime_activity" => {
-            add_anime_activity::autocomplete(ctx, autocomplete_interaction, anilist_cache).await
+            add_anime_activity::autocomplete(ctx, autocomplete_interaction).await
         }
-        "delete_activity" => {
-            delete_activity::autocomplete(ctx, autocomplete_interaction, db_config).await
-        }
+        "delete_activity" => delete_activity::autocomplete(ctx, autocomplete_interaction).await,
         _ => {}
     }
 }
 
-async fn steam_autocomplete(
-    ctx: Context,
-    autocomplete_interaction: CommandInteraction,
-    apps: Arc<RwLock<HashMap<String, u128>>>,
-) {
+async fn steam_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     if autocomplete_interaction
         .data
         .options
@@ -126,6 +92,6 @@ async fn steam_autocomplete(
         .as_str()
         == "game"
     {
-        steam_game_info::autocomplete(ctx, autocomplete_interaction, apps).await
+        steam_game_info::autocomplete(ctx, autocomplete_interaction).await
     }
 }

@@ -2,7 +2,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -10,7 +10,7 @@ use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::{
     User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
 };
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use sea_orm::ColumnTrait;
@@ -24,8 +24,6 @@ use tokio::sync::RwLock;
 pub struct UserCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for UserCommand {
@@ -40,13 +38,13 @@ impl Command for UserCommand {
 
 impl SlashCommand for UserCommand {
     async fn run_slash(&self) -> Result<()> {
-        let ctx = &self.ctx;
-
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         let command_interaction = &self.command_interaction;
 
-        let config = self.config.clone();
+        let config = bot_data.config.clone();
 
-        let anilist_cache = self.anilist_cache.clone();
+        let anilist_cache = bot_data.anilist_cache.clone();
 
         send_embed(ctx, command_interaction, config, anilist_cache).await
     }
@@ -80,7 +78,7 @@ async fn send_embed(
         .one(&connection)
         .await?;
 
-    let user = row.ok_or(Error::from("No user found"))?;
+    let user = row.ok_or(anyhow!("No user found"))?;
 
     // Fetch the user's data from AniList and send it as a response
     let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
@@ -94,7 +92,7 @@ pub async fn get_user(
 ) -> Result<User> {
     // If the value is a valid user ID, fetch the user's data by ID
     let user = if value.parse::<i32>().is_ok() {
-        let id = value.parse::<i32>().unwrap();
+        let id = value.parse::<i32>()?;
 
         let var = UserQueryIdVariables { id: Some(id) };
 

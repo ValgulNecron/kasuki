@@ -97,13 +97,9 @@ impl RootUsage {
     }
 }
 
-impl Handler {
-    pub async fn get_hourly_usage(
-        bot_data: Arc<BotData>,
-        command_name: String,
-        user_id: String,
-    ) -> u128 {
-        let number_of_command_use_per_command = bot_data.number_of_command_use_per_command.clone();
+impl BotData {
+    pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {
+        let number_of_command_use_per_command = self.number_of_command_use_per_command.clone();
 
         let guard = number_of_command_use_per_command.read().await;
 
@@ -125,12 +121,12 @@ impl Handler {
 
     // thread safe way to increment the number of command use per command
     pub async fn increment_command_use_per_command(
-        bot_data: Arc<BotData>,
+        &self,
         command_name: String,
         user_id: String,
         user_name: String,
     ) {
-        let number_of_command_use_per_command = bot_data.number_of_command_use_per_command.clone();
+        let number_of_command_use_per_command = self.number_of_command_use_per_command.clone();
 
         let mut guard = number_of_command_use_per_command.write().await;
 
@@ -164,7 +160,7 @@ impl Handler {
         drop(guard);
 
         // save the content as a json
-        match serde_json::to_string(&*bot_data.number_of_command_use_per_command.read().await) {
+        match serde_json::to_string(&*self.number_of_command_use_per_command.read().await) {
             Ok(content) => {
                 // save the content to the file
                 if let Err(e) = std::fs::write(COMMAND_USE_PATH, content) {
@@ -469,14 +465,14 @@ impl EventHandler for Handler {
             let mut message = String::from("");
 
             if command_interaction.data.kind == CommandType::ChatInput {
-                match dispatch_command(&ctx, &command_interaction, self).await {
+                match dispatch_command(&ctx, &command_interaction).await {
                     Ok(()) => return,
                     Err(e) => {
                         message = e.to_string();
                     }
                 }
             } else if command_interaction.data.kind == CommandType::User {
-                match dispatch_user_command(&ctx, &command_interaction, self).await {
+                match dispatch_user_command(&ctx, &command_interaction).await {
                     Ok(()) => return,
                     Err(e) => {
                         message = e.to_string();

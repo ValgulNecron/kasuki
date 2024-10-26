@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::media;
@@ -9,7 +10,7 @@ use crate::structure::run::anilist::media::{
     Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
     MediaQuerrySearchVariables, MediaType,
 };
-use anyhow::{Error, Result};
+use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -19,8 +20,6 @@ use tokio::sync::RwLock;
 pub struct AnimeCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for AnimeCommand {
@@ -35,11 +34,13 @@ impl Command for AnimeCommand {
 
 impl SlashCommand for AnimeCommand {
     async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         send_embed(
             &self.ctx,
             &self.command_interaction,
-            self.config.clone(),
-            self.anilist_cache.clone(),
+            bot_data.config.clone(),
+            bot_data.anilist_cache.clone(),
         )
         .await
     }
@@ -88,9 +89,9 @@ async fn send_embed(
         match data.data {
             Some(data) => match data.media {
                 Some(media) => media,
-                None => return Err(Error::from("Anime not found")),
+                None => return Err(anyhow!("Anime not found")),
             },
-            None => return Err(Error::from("Anime not found")),
+            None => return Err(anyhow!("Anime not found")),
         }
     } else {
         let var = MediaQuerrySearchVariables {
@@ -107,9 +108,9 @@ async fn send_embed(
         match data.data {
             Some(data) => match data.media {
                 Some(media) => media,
-                None => return Err(Error::from("Anime not found")),
+                None => return Err(anyhow!("Anime not found")),
             },
-            None => return Err(Error::from("Anime not found")),
+            None => return Err(anyhow!("Anime not found")),
         }
     };
 

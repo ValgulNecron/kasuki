@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::{Context, Result};
 use std::io::Cursor;
 use std::sync::Arc;
 use std::time::Duration;
@@ -9,7 +9,6 @@ use crate::database::user_color::{ActiveModel, Column, Model};
 use crate::event_handler::{add_user_data_to_db, BotData};
 use crate::get_url;
 use crate::new_member::change_to_x256_url;
-use anyhow::{Context, Result};
 use base64::engine::general_purpose;
 use base64::Engine;
 use futures::stream::FuturesUnordered;
@@ -25,7 +24,7 @@ use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
-
+use serenity::nonmax::NonMaxU16;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, trace};
@@ -34,7 +33,7 @@ pub async fn calculate_users_color(
     members: Vec<Member>,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
     bot_data: Arc<BotData>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guard = user_blacklist_server_image.read().await;
 
     let connection = bot_data.db_connection.clone();
@@ -104,7 +103,7 @@ pub async fn calculate_users_color(
 pub async fn return_average_user_color(
     members: Vec<Member>,
     connection: Arc<DatabaseConnection>,
-) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
+) -> Result<Vec<(String, String, String)>> {
     let mut average_colors = Vec::with_capacity(members.len());
 
     for member in members {
@@ -182,7 +181,7 @@ pub async fn return_average_user_color(
     Ok(average_colors)
 }
 
-async fn calculate_user_color(user: User) -> Result<(String, String), Box<dyn Error>> {
+async fn calculate_user_color(user: User) -> Result<(String, String)> {
     let pfp_url = change_to_x256_url(user.face());
 
     let img = get_image_from_url(pfp_url).await?;
@@ -305,7 +304,14 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 
     while members_temp_out.len() == (1000 * i) {
         let mut members_temp_in = if i == 0 {
-            match guild.members(&ctx_clone.http, Some(1000), None).await {
+            match guild
+                .members(
+                    &ctx_clone.http,
+                    Some(NonMaxU16::new(1000).unwrap_or_default()),
+                    None,
+                )
+                .await
+            {
                 Ok(members) => members,
                 Err(e) => {
                     error!("{:?}", e);
@@ -319,7 +325,14 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
                 None => break,
             };
 
-            match guild.members(&ctx_clone.http, Some(1000), Some(user)).await {
+            match guild
+                .members(
+                    &ctx_clone.http,
+                    Some(NonMaxU16::new(1000).unwrap_or_default()),
+                    Some(user),
+                )
+                .await
+            {
                 Ok(members) => members,
                 Err(e) => {
                     error!("{:?}", e);

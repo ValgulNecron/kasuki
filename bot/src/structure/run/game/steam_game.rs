@@ -5,7 +5,7 @@ use crate::config::DbConfig;
 use crate::constant::LANG_MAP;
 use crate::error_management::error_dispatch;
 use crate::helper::get_guild_lang::get_guild_language;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Context, Result};
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use serde::{Deserialize, Serialize};
@@ -179,7 +179,7 @@ impl SteamGameWrapper {
         let mut appid = &0u128;
 
         if results.is_empty() {
-            return Err(Error::from("No game found".to_string()));
+            return Err(anyhow!("No game found".to_string()));
         }
 
         for (name, _) in results {
@@ -187,7 +187,7 @@ impl SteamGameWrapper {
                 appid = match guard.get(name) {
                     Some(appid) => appid,
                     None => {
-                        return Err(Error::from("No game found".to_string()));
+                        return Err(anyhow!("No game found".to_string()));
                     }
                 }
             }
@@ -196,7 +196,7 @@ impl SteamGameWrapper {
                 appid = match guard.get(name) {
                     Some(appid) => appid,
                     None => {
-                        return Err(Error::from("No game found".to_string()));
+                        return Err(anyhow!("No game found".to_string()));
                     }
                 };
 

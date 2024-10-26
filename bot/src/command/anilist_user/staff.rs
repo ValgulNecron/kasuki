@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -10,7 +10,7 @@ use crate::structure::message::anilist_user::staff::load_localization_staff;
 use crate::structure::run::anilist::staff::{
     StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch, StaffQuerrySearchVariables,
 };
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{
@@ -23,8 +23,6 @@ use tokio::sync::RwLock;
 pub struct StaffCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for StaffCommand {
@@ -39,13 +37,13 @@ impl Command for StaffCommand {
 
 impl SlashCommand for StaffCommand {
     async fn run_slash(&self) -> Result<()> {
-        let ctx = &self.ctx;
-
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         let command_interaction = &self.command_interaction;
 
-        let config = self.config.clone();
+        let config = bot_data.config.clone();
 
-        let anilist_cache = self.anilist_cache.clone();
+        let anilist_cache = bot_data.anilist_cache.clone();
 
         send_embed(ctx, command_interaction, config, anilist_cache).await
     }
@@ -61,11 +59,11 @@ async fn send_embed(
 
     let value = map
         .get(&FixedString::from_str_trunc("staff_name"))
-        .ok_or(Error::from("No staff name specified"))?;
+        .ok_or(anyhow!("No staff name specified"))?;
 
     let staff = if value.parse::<i32>().is_ok() {
         let var = StaffQuerryIdVariables {
-            id: Some(value.parse().unwrap()),
+            id: Some(value.parse()?),
         };
 
         let operation = StaffQuerryId::build(var);

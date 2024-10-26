@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::{Context, Result};
 use std::io::{Seek, Write};
 use tracing::debug;
 
@@ -6,7 +6,7 @@ pub async fn upload_image_catbox(
     filename: String,
     image_data: Vec<u8>,
     token: String,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let suffix = filename.split(".").last().unwrap_or_default().to_string();
 
     let mut file = tempfile::Builder::new()

@@ -3,14 +3,13 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
-use crate::error_management::error_dispatch;
-use crate::event_handler::Handler;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::{
     get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::structure::message::ai::transcript::load_localization_transcript;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
 use serde_json::Value;
@@ -21,15 +20,13 @@ use serenity::all::{
 };
 use tracing::trace;
 use uuid::Uuid;
-pub struct TranscriptCommand<'de> {
+pub struct TranscriptCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub handler: &'de Handler,
     pub command_name: String,
 }
 
-impl Command for TranscriptCommand<'_> {
+impl Command for TranscriptCommand {
     fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
@@ -39,22 +36,29 @@ impl Command for TranscriptCommand<'_> {
     }
 }
 
-impl SlashCommand for TranscriptCommand<'_> {
+impl SlashCommand for TranscriptCommand {
     async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
-                self.handler,
+                bot_data,
                 PremiumCommandType::AITranscript,
             )
             .await?
         {
-            return Err(Error::from(
+            return Err(anyhow!(
                 "You have reached your hourly limit. Please try again later.",
             ));
         }
 
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -79,12 +83,12 @@ async fn send_embed(
 
     let attachment = attachment_map
         .get(&String::from("video"))
-        .ok_or(Error::from("No option for video"))?;
+        .ok_or(anyhow!("No option for video"))?;
 
     let content_type = attachment
         .content_type
         .clone()
-        .ok_or(Error::from("Failed to get the content type"))?;
+        .ok_or(anyhow!("Failed to get the content type"))?;
 
     let content = attachment.proxy_url.clone();
 
@@ -96,7 +100,7 @@ async fn send_embed(
     let transcript_localised = load_localization_transcript(guild_id, config.db.clone()).await?;
 
     if !content_type.starts_with("audio/") && !content_type.starts_with("video/") {
-        return Err(Error::from("Unsupported file type"));
+        return Err(anyhow!("Unsupported file type"));
     }
 
     let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -111,18 +115,18 @@ async fn send_embed(
 
     let path_segments = parsed_url
         .path_segments()
-        .ok_or(Error::from("Failed to get the path segments"))?;
+        .ok_or(anyhow!("Failed to get the path segments"))?;
 
     let last_segment = path_segments.last().unwrap_or_default();
 
     let file_extension = last_segment
         .rsplit('.')
         .next()
-        .ok_or(Error::from("Failed to get the file extension"))?
+        .ok_or(anyhow!("Failed to get the file extension"))?
         .to_lowercase();
 
     if !allowed_extensions.contains(&&*file_extension) {
-        return Err(Error::from("Unsupported file extension"));
+        return Err(anyhow!("Unsupported file extension"));
     }
 
     let response = reqwest::get(content.to_string()).await?;

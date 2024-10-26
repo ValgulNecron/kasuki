@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::Result;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -70,7 +70,7 @@ pub async fn update_random_stats_launcher(anilist_cache: Arc<RwLock<Cache<String
 
 pub async fn update_random_stats(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<RandomStat, Box<dyn Error>> {
+) -> Result<RandomStat> {
     // Try to load random stats from a JSON file.
     let mut random_stats: RandomStat = match std::fs::read_to_string(RANDOM_STATS_PATH) {
         Ok(stats) => serde_json::from_str(&stats)?,
@@ -103,7 +103,7 @@ pub async fn update_random_stats(
 async fn update_random(
     mut random_stats: RandomStat,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<RandomStat, Box<dyn Error>> {
+) -> Result<RandomStat> {
     // Keep updating pages until there are no more pages to update.
     let mut has_more_pages = true;
 
@@ -153,7 +153,7 @@ async fn update_page(
 
         let operation = AnimeStat::build(var);
 
-        let data: Result<GraphQlResponse<AnimeStat>, Box<dyn Error>> =
+        let data: Result<GraphQlResponse<AnimeStat>> =
             make_request_anilist(operation, false, anilist_cache.clone()).await;
 
         data
@@ -164,7 +164,7 @@ async fn update_page(
 
         let operation = MangaStat::build(var);
 
-        let data: Result<GraphQlResponse<AnimeStat>, Box<dyn Error>> =
+        let data: Result<GraphQlResponse<AnimeStat>> =
             make_request_anilist(operation, false, anilist_cache.clone()).await;
 
         data

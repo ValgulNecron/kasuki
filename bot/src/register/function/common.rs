@@ -1,4 +1,6 @@
 use anyhow::{Context, Result};
+use std::borrow::Cow;
+use std::collections::HashMap;
 use std::fs;
 
 use serenity::all::{
@@ -74,8 +76,13 @@ fn add_choices_localised<'a>(
 ) -> CreateCommandOption<'a> {
     let vec = locales
         .iter()
-        .map(|locale| (locale.code.as_str(), locale.name.as_str()))
-        .collect::<Vec<_>>();
+        .map(|locale| {
+            (
+                Cow::from(locale.code.as_str()),
+                Cow::from(locale.name.as_str()),
+            )
+        })
+        .collect::<HashMap<Cow<'a, str>, Cow<'a, str>>>();
 
     option.add_string_choice_localized(name, name, vec)
 }

@@ -5,7 +5,7 @@ use crate::database::prelude::ActivityData;
 use crate::error_management::error_dispatch;
 use crate::get_url;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Context, Result};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serenity::all::{
     ComponentInteraction, Context as SerenityContext, CreateButton, CreateEmbed,
@@ -29,7 +29,7 @@ pub async fn update(
 
     let guild_id = component_interaction
         .guild_id
-        .ok_or(Error::from("Guild ID not found"))?;
+        .ok_or(anyhow!("Guild ID not found"))?;
 
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
 

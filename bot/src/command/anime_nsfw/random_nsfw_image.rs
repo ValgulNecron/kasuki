@@ -1,10 +1,10 @@
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use crate::command::anime::random_image::send_embed;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -16,7 +16,6 @@ use small_fixed_array::FixedString;
 pub struct AnimeRandomNsfwImageCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for AnimeRandomNsfwImageCommand {
@@ -31,7 +30,14 @@ impl Command for AnimeRandomNsfwImageCommand {
 
 impl SlashCommand for AnimeRandomNsfwImageCommand {
     async fn run_slash(&self) -> Result<()> {
-        send(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -45,7 +51,7 @@ async fn send(
 
     let image_type = map
         .get(&FixedString::from_str_trunc("image_type"))
-        .ok_or(Error::from("No image type specified"))?;
+        .ok_or(anyhow!("No image type specified"))?;
 
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {

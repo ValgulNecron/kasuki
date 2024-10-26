@@ -25,8 +25,8 @@ use crate::constant::{
 use crate::database::ping_history::ActiveModel;
 use crate::database::prelude::PingHistory;
 use crate::event_handler::{BotData, RootUsage};
+use crate::get_url;
 use crate::structure::steam_game_id_struct::get_game;
-use crate::{api, get_url};
 use anyhow::{Context, Result};
 pub async fn thread_management_launcher(
     ctx: SerenityContext,
@@ -99,9 +99,20 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
     info!("Launching the ping thread!");
 
     // Get the ShardManager from the data
-    let shard_manager = match ctx.data::<BotData>().shard_manager.clone() {
-        Some(inner) => inner,
-        None => return,
+    let shard_manager = match ctx
+        .data::<BotData>()
+        .shard_manager
+        .clone()
+        .read()
+        .await
+        .clone()
+    {
+        Some(shard_manager) => shard_manager,
+        None => {
+            tokio::time::sleep(Duration::from_secs(TIME_BETWEEN_PING_UPDATE)).await;
+            ping_manager_thread(ctx, db_config);
+            return;
+        }
     };
 
     // Define an interval for periodic updates
@@ -172,9 +183,20 @@ async fn launch_web_server_thread(
     info!("Launching the API server thread!");
 
     // Read the data from the context
-    let shard_manager = match ctx.data::<BotData>().shard_manager.clone() {
-        Some(inner) => inner,
-        None => return,
+    let shard_manager = match ctx.data::<BotData>().shard_manager.clone().read().await {
+        Some(shard_manager) => shard_manager,
+        None => {
+            tokio::time::sleep(Duration::from_secs(10)).await;
+            Box::pin(launch_web_server_thread(
+                ctx,
+                command_usage,
+                is_grpc_on,
+                config,
+                bot_data,
+            ))
+            .await;
+            return;
+        }
     };
 
     // Clone the cache and http instances

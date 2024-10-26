@@ -3,10 +3,10 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
-use crate::event_handler::Handler;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
@@ -15,15 +15,13 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 use tracing::trace;
-pub struct QuestionCommand<'de> {
+pub struct QuestionCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub handler: &'de Handler,
     pub command_name: String,
 }
 
-impl Command for QuestionCommand<'_> {
+impl Command for QuestionCommand {
     fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
@@ -33,22 +31,30 @@ impl Command for QuestionCommand<'_> {
     }
 }
 
-impl SlashCommand for QuestionCommand<'_> {
+impl SlashCommand for QuestionCommand {
     async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
-                self.handler,
+                bot_data,
                 PremiumCommandType::AIQuestion,
             )
             .await?
         {
-            return Err(Error::from(
+            return Err(anyhow!(
                 "You have reached your hourly limit. Please try again later.",
             ));
         }
 
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 

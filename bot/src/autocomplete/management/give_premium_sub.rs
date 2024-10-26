@@ -2,6 +2,7 @@ use serenity::all::{
     AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
     CreateInteractionResponse, SkuKind,
 };
+use small_fixed_array::FixedString;
 use tracing::debug;
 
 use crate::constant::DEFAULT_STRING;
@@ -14,7 +15,7 @@ pub async fn give_premium_sub_autocomplete(
     let map = get_option_map_string(&autocomplete_interaction);
 
     let _subscription = map
-        .get(&String::from("subscription"))
+        .get(&FixedString::from_str_trunc("subscription"))
         .unwrap_or(DEFAULT_STRING);
 
     let sku_list = ctx.http.get_skus().await.unwrap();
@@ -27,8 +28,6 @@ pub async fn give_premium_sub_autocomplete(
                     let kind = match sku.kind {
                         SkuKind::Subscription => String::from("Subscription"),
                         SkuKind::SubscriptionGroup => String::from("Subscription Group"),
-                        SkuKind::Unknown(2) => String::from("DURABLE"),
-                        SkuKind::Unknown(3) => String::from("CONSUMABLE"),
                         _ => String::from("Unknown"),
                     };
 
@@ -78,7 +77,7 @@ pub async fn give_premium_sub_autocomplete(
     let builder = CreateInteractionResponse::Autocomplete(data);
 
     if let Err(why) = autocomplete_interaction
-        .create_response(ctx.http, builder)
+        .create_response(&ctx.http, builder)
         .await
     {
         debug!("Error sending response: {:?}", why);

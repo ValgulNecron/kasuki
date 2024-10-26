@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::Result;
 
 // Importing necessary libraries and modules
 use std::fs;
@@ -10,7 +10,7 @@ pub async fn local_image_save(
     guild_id: String,
     filename: String,
     image_data: Vec<u8>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let now = Local::now();
 
     let formatted = now.format("%m-%d-%Y_%H-%M").to_string();

@@ -1,17 +1,17 @@
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
-use crate::error_management::error_dispatch;
-use crate::event_handler::Handler;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::{
     get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use prost::bytes::Bytes;
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
@@ -24,15 +24,14 @@ use serenity::all::{
 };
 use tracing::{error, trace};
 use uuid::Uuid;
-pub struct ImageCommand<'de> {
+
+pub struct ImageCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub handler: &'de Handler,
     pub command_name: String,
 }
 
-impl Command for ImageCommand<'_> {
+impl Command for ImageCommand {
     fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
@@ -42,34 +41,34 @@ impl Command for ImageCommand<'_> {
     }
 }
 
-impl SlashCommand for ImageCommand<'_> {
+impl SlashCommand for ImageCommand {
     async fn run_slash(&self) -> Result<()> {
+        let ctx = &self.ctx;
+        let bot_data = ctx.data::<BotData>().clone();
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
-                self.handler,
+                bot_data.clone(),
                 PremiumCommandType::AIImage,
             )
             .await?
         {
-            return Err(Error::from(
+            return Err(anyhow!(
                 "You have reached your hourly limit. Please try again later.",
             ));
         }
 
-        let ctx = &self.ctx;
-
         let command_interaction = &self.command_interaction;
 
-        let config = &self.config;
+        let config = bot_data.config.clone();
 
         let map = get_option_map_integer_subcommand(command_interaction);
 
         let n = *map.get(&String::from("n")).unwrap_or(&1);
 
-        let data = get_value(command_interaction, n, config);
+        let data = get_value(command_interaction, n, &config);
 
-        send_embed(ctx, command_interaction, config, data, n).await
+        send_embed(ctx, command_interaction, &config, data, n).await
     }
 }
 
@@ -275,7 +274,7 @@ async fn image_with_n_equal_1(
         Err(e) => error!("Error saving image: {}", e),
     }
 
-    let attachment = CreateAttachment::bytes(bytes.clone(), &filename);
+    let attachment = CreateAttachment::bytes(Cow::from(bytes.as_ref()), &filename);
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -303,7 +302,7 @@ async fn image_with_n_greater_than_1(
         .map(|(index, byte)| {
             let filename = format!("{}_{}.png", filename, index);
 
-            CreateAttachment::bytes(byte.clone(), filename)
+            CreateAttachment::bytes(Cow::from(bytes.as_ref()), filename)
         })
         .collect();
 
@@ -336,7 +335,7 @@ async fn get_image_from_response(
         Err(e) => {
             let root1: Root1 = serde_json::from_value(json)?;
 
-            return Err(Error::from(format!(
+            return Err(anyhow!(format!(
                 "Error: {} ............ {:?}",
                 e, root1.error
             )));

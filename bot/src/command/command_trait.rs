@@ -3,7 +3,7 @@ use crate::constant::{
     PAID_IMAGE_MULTIPLIER, PAID_QUESTION_MULTIPLIER, PAID_TRANSCRIPT_MULTIPLIER,
     PAID_TRANSLATION_MULTIPLIER,
 };
-use crate::event_handler::{BotData, Handler};
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -15,6 +15,7 @@ use serenity::builder::{
 };
 use serenity::model::Colour;
 use serenity::prelude::Context as SerenityContext;
+use std::sync::Arc;
 
 pub trait Command {
     fn get_ctx(&self) -> &SerenityContext;
@@ -54,7 +55,7 @@ pub trait PremiumCommand {
     async fn check_hourly_limit(
         &self,
         command_name: impl Into<String> + Clone,
-        handler: &Handler,
+        bot_data: &BotData,
         command: PremiumCommandType,
     ) -> Result<bool>;
 }
@@ -141,7 +142,7 @@ impl<T: Command> PremiumCommand for T {
     async fn check_hourly_limit(
         &self,
         command_name: impl Into<String> + Clone,
-        handler: &Handler,
+        handler: Arc<BotData>,
         command: PremiumCommandType,
     ) -> Result<bool> {
         let bot_data = self.get_ctx().data::<BotData>().clone();

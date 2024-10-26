@@ -1,4 +1,4 @@
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -15,14 +15,12 @@ use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 
 pub struct SearchCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for SearchCommand {
@@ -37,20 +35,20 @@ impl Command for SearchCommand {
 
 impl SlashCommand for SearchCommand {
     async fn run_slash(&self) -> Result<()> {
-        let ctx = &self.ctx;
-
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         let command_interaction = &self.command_interaction;
 
-        let config = &self.config;
+        let config = &bot_data.config;
 
-        let anilist_cache = &self.anilist_cache;
+        let anilist_cache = &bot_data.anilist_cache;
 
         // Retrieve the type of AniList data to search for from the command interaction
         let map = get_option_map_string(command_interaction);
 
         let search_type = map
             .get(&FixedString::from_str_trunc("type"))
-            .ok_or(Error::from("No type specified"))?;
+            .ok_or(anyhow!("No type specified"))?;
 
         // Execute the corresponding search function based on the specified type
         match search_type.as_str() {
@@ -58,8 +56,6 @@ impl SlashCommand for SearchCommand {
                 AnimeCommand {
                     ctx: ctx.clone(),
                     command_interaction: command_interaction.clone(),
-                    config: config.clone(),
-                    anilist_cache: anilist_cache.clone(),
                 }
                 .run_slash()
                 .await
@@ -68,8 +64,6 @@ impl SlashCommand for SearchCommand {
                 CharacterCommand {
                     ctx: ctx.clone(),
                     command_interaction: command_interaction.clone(),
-                    config: config.clone(),
-                    anilist_cache: anilist_cache.clone(),
                 }
                 .run_slash()
                 .await
@@ -78,8 +72,6 @@ impl SlashCommand for SearchCommand {
                 LnCommand {
                     ctx: ctx.clone(),
                     command_interaction: command_interaction.clone(),
-                    config: config.clone(),
-                    anilist_cache: anilist_cache.clone(),
                 }
                 .run_slash()
                 .await
@@ -88,8 +80,6 @@ impl SlashCommand for SearchCommand {
                 MangaCommand {
                     ctx: ctx.clone(),
                     command_interaction: command_interaction.clone(),
-                    config: config.clone(),
-                    anilist_cache: anilist_cache.clone(),
                 }
                 .run_slash()
                 .await
@@ -98,8 +88,6 @@ impl SlashCommand for SearchCommand {
                 StaffCommand {
                     ctx: ctx.clone(),
                     command_interaction: command_interaction.clone(),
-                    config: config.clone(),
-                    anilist_cache: anilist_cache.clone(),
                 }
                 .run_slash()
                 .await
@@ -108,8 +96,6 @@ impl SlashCommand for SearchCommand {
                 UserCommand {
                     ctx: ctx.clone(),
                     command_interaction: command_interaction.clone(),
-                    config: config.clone(),
-                    anilist_cache: anilist_cache.clone(),
                 }
                 .run_slash()
                 .await
@@ -118,14 +104,12 @@ impl SlashCommand for SearchCommand {
                 StudioCommand {
                     ctx: ctx.clone(),
                     command_interaction: command_interaction.clone(),
-                    config: config.clone(),
-                    anilist_cache: anilist_cache.clone(),
                 }
                 .run_slash()
                 .await
             }
             // Return an error if the specified type is not one of the expected types
-            _ => Err(Error::from("Type does not exist.")),
+            _ => Err(anyhow!("Type does not exist.")),
         }
     }
 }

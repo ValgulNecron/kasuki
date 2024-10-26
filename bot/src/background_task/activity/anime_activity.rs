@@ -10,7 +10,7 @@ use crate::database::prelude::ActivityData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Context, Result};
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use chrono::{DateTime, Utc};
@@ -110,7 +110,8 @@ async fn send_specific_activity(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) -> Result<()> {
-    let localised_text = load_localization_send_activity(guild_id, db_config.clone()).await?;
+    let localised_text =
+        load_localization_send_activity(guild_id.clone(), db_config.clone()).await?;
 
     let mut webhook = Webhook::from_url(&ctx.http, &row.webhook).await?;
 
@@ -167,16 +168,21 @@ async fn update_info(
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) -> Result<()> {
-    let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await;
-    let media = media?;
+    let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
 
-    let next_airing = media.next_airing_episode.ok_or_else(|| {
-        trace!("No next airing episode for anime_id: {}", row.anime_id);
+    let next_airing = match media.next_airing_episode {
+        Some(airing) => airing,
+        None => {
+            trace!("No next airing episode for anime_id: {}", row.anime_id);
 
-        remove_activity(row, guild_id, db_config.clone())
-    })?;
+            remove_activity(row, guild_id, db_config.clone())
+                .await
+                .context("failed to delete activity")?;
+            return Ok(());
+        }
+    };
 
-    let title = media.title.ok_or(Err("No title"))?;
+    let title = media.title.ok_or(Err(anyhow!("No title")))?;
 
     let name = title
         .english

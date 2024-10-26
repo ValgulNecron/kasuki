@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::Result;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -59,7 +59,7 @@ pub struct CharacterRoot {
 pub async fn get_character(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<CharacterRoot, Box<dyn Error>> {
+) -> Result<CharacterRoot> {
     let value = value.to_lowercase();
 
     let value = value.trim();

@@ -1,4 +1,5 @@
 use serenity::all::{CommandInteraction, ResolvedValue};
+use small_fixed_array::FixedString;
 use std::fmt::Display;
 
 pub enum CommandKind {
@@ -17,7 +18,7 @@ impl Display for CommandKind {
     }
 }
 
-pub fn guess_command_kind(command_interaction: &CommandInteraction) -> (CommandKind, String) {
+pub fn guess_command_kind(command_interaction: &CommandInteraction) -> (CommandKind, FixedString) {
     // get the option list
     let options = &command_interaction.data.options();
 
@@ -32,7 +33,10 @@ pub fn guess_command_kind(command_interaction: &CommandInteraction) -> (CommandK
     if let ResolvedValue::SubCommand(_) = value {
         let command_name = format!("{}_{}", command_interaction.data.name.clone(), option.name);
 
-        return (CommandKind::Subcommand, command_name);
+        return (
+            CommandKind::Subcommand,
+            FixedString::from_string_trunc(command_name),
+        );
     }
 
     if let ResolvedValue::SubCommandGroup(op) = value {
@@ -44,7 +48,10 @@ pub fn guess_command_kind(command_interaction: &CommandInteraction) -> (CommandK
                 op[0].name
             );
 
-            return (CommandKind::SubcommandGroup, command_name);
+            return (
+                CommandKind::SubcommandGroup,
+                FixedString::from_string_trunc(command_name),
+            );
         }
     }
 

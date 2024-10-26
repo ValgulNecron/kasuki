@@ -5,7 +5,7 @@ use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::bot::ping::load_localization_ping;
-use anyhow::{Error, Result};
+use anyhow::{anyhow, Result};
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
     CreateInteractionResponseMessage,
@@ -13,7 +13,6 @@ use serenity::all::{
 pub struct PingCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for PingCommand {
@@ -28,7 +27,14 @@ impl Command for PingCommand {
 
 impl SlashCommand for PingCommand {
     async fn run_slash(&self) -> Result<()> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -48,7 +54,7 @@ async fn send_embed(
 
     let shard_manager = match ctx.data::<BotData>().shard_manager.clone() {
         Some(shard) => shard.runners.lock().await,
-        None => return Err(Error::from("failed to get the shard")),
+        None => return Err(anyhow!("failed to get the shard")),
     };
 
     // Retrieve the shard ID from the context

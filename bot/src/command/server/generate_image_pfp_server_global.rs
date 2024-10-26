@@ -1,19 +1,19 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::command::server::generate_image_pfp_server::send_embed;
 use crate::config::Config;
-use serenity::all::{CommandInteraction, Context};
+use crate::event_handler::BotData;
+use anyhow::{Context, Result};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct GenerateGlobalImagePfPCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for GenerateGlobalImagePfPCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -23,8 +23,15 @@ impl Command for GenerateGlobalImagePfPCommand {
 }
 
 impl SlashCommand for GenerateGlobalImagePfPCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        init(&self.ctx, &self.command_interaction, self.config.clone()).await
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        init(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -32,6 +39,6 @@ pub async fn init(
     ctx: &Context,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     send_embed(ctx, command_interaction, "global", config.db.clone()).await
 }

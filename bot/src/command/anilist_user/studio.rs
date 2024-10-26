@@ -1,11 +1,11 @@
 use crate::command::command_trait::Command;
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::SlashCommand;
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -25,8 +25,6 @@ use tokio::sync::RwLock;
 pub struct StudioCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for StudioCommand {
@@ -41,13 +39,13 @@ impl Command for StudioCommand {
 
 impl SlashCommand for StudioCommand {
     async fn run_slash(&self) -> Result<()> {
-        let ctx = &self.ctx;
-
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         let command_interaction = &self.command_interaction;
 
-        let config = self.config.clone();
+        let config = bot_data.config.clone();
 
-        let anilist_cache = self.anilist_cache.clone();
+        let anilist_cache = bot_data.anilist_cache.clone();
 
         send_embed(ctx, command_interaction, config, anilist_cache).await
     }
@@ -64,7 +62,7 @@ async fn send_embed(
 
     let value = map
         .get(&FixedString::from_str_trunc("studio"))
-        .ok_or(Error::from("No studio specified"))?;
+        .ok_or(anyhow!("No studio specified"))?;
 
     // Fetch the studio's data from AniList
     let studio = if value.parse::<i32>().is_ok() {

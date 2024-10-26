@@ -18,9 +18,9 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<WorkerGuard
         _ => "kasuki=info",
     };
 
-    let crate_log = get_directive(OTHER_CRATE_LEVEL).context("Failed to get crate directive")?;
+    let crate_log = get_directive(OTHER_CRATE_LEVEL)?;
 
-    let kasuki_log = get_directive(kasuki_filter).context("Failed to get kasuki directive")?;
+    let kasuki_log = get_directive(kasuki_filter)?;
 
     let filter = EnvFilter::from_default_env()
         .add_directive(crate_log)

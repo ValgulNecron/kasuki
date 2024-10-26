@@ -3,27 +3,28 @@ use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::staff::get_staff;
 use crate::structure::message::vn::staff::load_localization_staff;
+use anyhow::{Context, Result};
 use markdown_converter::vndb::convert_vndb_markdown;
 use moka::future::Cache;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
 use tokio::sync::RwLock;
 use tracing::trace;
 
 pub struct VnStaffCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for VnStaffCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -33,23 +34,12 @@ impl Command for VnStaffCommand {
 }
 
 impl SlashCommand for VnStaffCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        send_embed(
-            &self.ctx,
-            &self.command_interaction,
-            self.config.clone(),
-            self.vndb_cache.clone(),
-        )
-        .await
+    async fn run_slash(&self) -> Result<()> {
+        send_embed(&self.ctx, &self.command_interaction).await
     }
 }
 
-async fn send_embed(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    config: Arc<Config>,
-    vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteraction) -> Result<()> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -58,15 +48,16 @@ async fn send_embed(
     let map = get_option_map_string_subcommand(command_interaction);
 
     trace!("{:?}", map);
+    let bot_data = ctx.data::<BotData>().clone();
 
     let staff = map
         .get(&String::from("name"))
         .cloned()
         .unwrap_or(String::new());
 
-    let staff_localised = load_localization_staff(guild_id, config.db.clone()).await?;
+    let staff_localised = load_localization_staff(guild_id, bot_data.config.db.clone()).await?;
 
-    let staff = get_staff(staff.clone(), vndb_cache).await?;
+    let staff = get_staff(staff.clone(), bot_data.vndb_cache.clone()).await?;
 
     let staff = staff.results[0].clone();
 

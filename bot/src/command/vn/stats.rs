@@ -1,26 +1,21 @@
-use std::error::Error;
-use std::sync::Arc;
-
 use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::vndbapi::stats::get_stats;
 use crate::structure::message::vn::stats::load_localization_stats;
-use moka::future::Cache;
+use anyhow::Result;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
-use tokio::sync::RwLock;
 
 pub struct VnStatsCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for VnStatsCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -30,32 +25,22 @@ impl Command for VnStatsCommand {
 }
 
 impl SlashCommand for VnStatsCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        send_embed(
-            &self.ctx,
-            &self.command_interaction,
-            self.config.clone(),
-            self.vndb_cache.clone(),
-        )
-        .await
+    async fn run_slash(&self) -> Result<()> {
+        send_embed(&self.ctx, &self.command_interaction).await
     }
 }
 
-async fn send_embed(
-    ctx: &Context,
-    command_interaction: &CommandInteraction,
-    config: Arc<Config>,
-    vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteraction) -> Result<()> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
     };
 
-    let stats_localised = load_localization_stats(guild_id, config.db.clone()).await?;
-
+    let bot_data = ctx.data::<BotData>().clone();
+    let vndb_cache = bot_data.vndb_cache.clone();
     let stats = get_stats(vndb_cache).await?;
-
+    let config = bot_data.config.clone();
+    let stats_localised = load_localization_stats(guild_id, config.db.clone()).await?;
     let fields = vec![
         (stats_localised.chars.clone(), stats.chars.to_string(), true),
         (

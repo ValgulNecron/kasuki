@@ -1,4 +1,4 @@
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -16,6 +16,7 @@ use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::{ActiveModel, Column};
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
@@ -25,8 +26,6 @@ use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 pub struct RegisterCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for RegisterCommand {
@@ -41,11 +40,13 @@ impl Command for RegisterCommand {
 
 impl SlashCommand for RegisterCommand {
     async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         send_embed(
             &self.ctx,
             &self.command_interaction,
-            self.config.clone(),
-            self.anilist_cache.clone(),
+            bot_data.config.clone(),
+            bot_data.anilist_cache.clone(),
         )
         .await
     }
@@ -62,7 +63,7 @@ async fn send_embed(
 
     let value = map
         .get(&FixedString::from_str_trunc("username"))
-        .ok_or(Error::from("No username provided"))?;
+        .ok_or(anyhow!("No username provided"))?;
 
     // Fetch the user data from AniList
     let user_data: User = get_user(value, anilist_cache).await?;

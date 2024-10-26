@@ -1,6 +1,7 @@
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_user;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
@@ -17,7 +18,6 @@ use tracing::error;
 pub struct RemoveTestSubCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for RemoveTestSubCommand {
@@ -32,7 +32,14 @@ impl Command for RemoveTestSubCommand {
 
 impl SlashCommand for RemoveTestSubCommand {
     async fn run_slash(&self) -> Result<()> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 

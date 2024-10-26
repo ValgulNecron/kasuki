@@ -1,10 +1,10 @@
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 use std::io::Cursor;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -30,8 +30,6 @@ use uuid::Uuid;
 pub struct SeiyuuCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for SeiyuuCommand {
@@ -46,13 +44,14 @@ impl Command for SeiyuuCommand {
 
 impl SlashCommand for SeiyuuCommand {
     async fn run_slash(&self) -> Result<()> {
-        let ctx = &self.ctx;
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
 
         let command_interaction = &self.command_interaction;
 
-        let config = self.config.clone();
+        let config = bot_data.config.clone();
 
-        let anilist_cache = self.anilist_cache.clone();
+        let anilist_cache = bot_data.anilist_cache.clone();
 
         send_embed(ctx, command_interaction, config, anilist_cache).await
     }
@@ -68,7 +67,7 @@ async fn send_embed(
 
     let value = map
         .get(&FixedString::from_str_trunc("staff_name"))
-        .ok_or(Error::from("No staff name specified"))?;
+        .ok_or(anyhow!("No staff name specified"))?;
 
     let total_per_row = 4u32;
 
@@ -106,13 +105,13 @@ async fn send_embed(
                 Some(page) => match page.staff {
                     Some(staff) => match staff[0].clone() {
                         Some(staff) => staff,
-                        None => return Err(Error::from("No staff found")),
+                        None => return Err(anyhow!("No staff found")),
                     },
-                    None => return Err(Error::from("No staff list found")),
+                    None => return Err(anyhow!("No staff list found")),
                 },
-                None => return Err(Error::from("No page found")),
+                None => return Err(anyhow!("No page found")),
             },
-            None => return Err(Error::from("No data found")),
+            None => return Err(anyhow!("No data found")),
         };
 
         Staff::from(data)
@@ -135,7 +134,7 @@ async fn send_embed(
 
     let staff_image = match staff.image {
         Some(image) => image,
-        None => return Err(Error::from("No image found")),
+        None => return Err(anyhow!("No image found")),
     };
 
     let url = get_staff_image(staff_image);

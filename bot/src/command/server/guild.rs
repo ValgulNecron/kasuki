@@ -1,8 +1,9 @@
-use anyhow::{Error, Result};
+use anyhow::{anyhow, Error, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{
@@ -14,7 +15,6 @@ use serenity::nonmax::NonMaxU64;
 pub struct GuildCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for GuildCommand {
@@ -29,7 +29,14 @@ impl Command for GuildCommand {
 
 impl SlashCommand for GuildCommand {
     async fn run_slash(&self) -> Result<()> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -48,9 +55,7 @@ async fn send_embed(
     let guild_localised = load_localization_guild(guild_id, config.db.clone()).await?;
 
     // Retrieve the guild ID from the command interaction or return an error if it does not exist
-    let guild_id = command_interaction
-        .guild_id
-        .ok_or(Error::from("No guild ID"))?;
+    let guild_id = command_interaction.guild_id.ok_or(anyhow!("No guild ID"))?;
 
     // Retrieve the guild's information or return an error if it could not be retrieved
     let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;

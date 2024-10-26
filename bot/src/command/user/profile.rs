@@ -4,6 +4,7 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand, UserCommand};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::profile::{load_localization_profile, ProfileLocalised};
 use serenity::all::{
@@ -14,7 +15,6 @@ use serenity::all::{
 pub struct ProfileCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for ProfileCommand {
@@ -30,16 +30,18 @@ impl Command for ProfileCommand {
 impl SlashCommand for ProfileCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         let user = get_user_command(&self.ctx, &self.command_interaction).await?;
-
-        send_embed(&self.ctx, &self.command_interaction, user, &self.config).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(&self.ctx, &self.command_interaction, user, &bot_data.config).await
     }
 }
 
 impl UserCommand for ProfileCommand {
     async fn run_user(&self) -> Result<(), Box<dyn Error>> {
         let user = get_user_command_user(&self.ctx, &self.command_interaction).await;
-
-        send_embed(&self.ctx, &self.command_interaction, user, &self.config).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(&self.ctx, &self.command_interaction, user, &bot_data.config).await
     }
 }
 
@@ -55,10 +57,10 @@ fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, 
             format!("<t:{}>", user.created_at().timestamp()),
             true,
         ),
-        (profile_localised.bot.clone(), user.bot.to_string(), true),
+        (profile_localised.bot.clone(), user.bot().to_string(), true),
         (
             profile_localised.system.clone(),
-            user.system.to_string(),
+            user.system().to_string(),
             true,
         ),
     ];

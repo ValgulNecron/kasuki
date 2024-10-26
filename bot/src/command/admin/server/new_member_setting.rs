@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 use std::fs;
-use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::Config;
 use crate::constant::{NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand_group::{
     get_option_map_attachment_subcommand_group, get_option_map_boolean_subcommand_group,
@@ -12,16 +11,16 @@ use crate::helper::get_option::subcommand_group::{
 };
 use crate::new_member::NewMemberSetting;
 use crate::structure::message::admin::server::new_member_setting::load_localization_new_member_setting;
-use anyhow::{Error, Result};
+use anyhow::{anyhow, Result};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
     CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
     CreateInteractionResponseMessage,
 };
+
 pub struct NewMemberSettingCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for NewMemberSettingCommand {
@@ -36,16 +35,13 @@ impl Command for NewMemberSettingCommand {
 
 impl SlashCommand for NewMemberSettingCommand {
     async fn run_slash(&self) -> Result<()> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        send_embed(&self.ctx, &self.command_interaction).await
     }
 }
 
-async fn send_embed(
-    ctx: &SerenityContext,
-    command_interaction: &CommandInteraction,
-    config: Arc<Config>,
-) -> Result<()> {
+async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteraction) -> Result<()> {
     let bool_map = get_option_map_boolean_subcommand_group(command_interaction);
+    let bot_data = ctx.data::<BotData>().clone();
 
     let attachment = get_option_map_attachment_subcommand_group(command_interaction);
 
@@ -58,11 +54,11 @@ async fn send_embed(
 
     let show_username = *bool_map
         .get(&String::from("show_username"))
-        .ok_or(Error::from("There is no option for show_username"))?;
+        .ok_or(anyhow!("There is no option for show_username"))?;
 
     let show_time = *bool_map
         .get(&String::from("show_time"))
-        .ok_or(Error::from("There is no option for show_time"))?;
+        .ok_or(anyhow!("There is no option for show_time"))?;
 
     let channel_id = channel.get(&String::from("custom_channel"));
 
@@ -118,7 +114,7 @@ async fn send_embed(
     fs::write(NEW_MEMBER_PATH, serde_json::to_string(&hashmap)?)?;
 
     let localised =
-        load_localization_new_member_setting(guild_id.clone(), config.db.clone()).await?;
+        load_localization_new_member_setting(guild_id.clone(), bot_data.config.db.clone()).await?;
 
     let embed = get_default_embed(None)
         .title(localised.title)

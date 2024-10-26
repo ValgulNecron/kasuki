@@ -6,13 +6,14 @@ use serenity::all::{
 use tracing::error;
 
 use crate::constant::COLOR;
-use crate::event_handler::{BotData, Handler};
+use crate::event_handler::BotData;
 
 const ERROR_MESSAGE: &str = "**There was an error while processing the command**\
     \n**This error is most likely an input error** \
     **like searching for non existent anime, requesting nsfw image to the ai, etc.**\n \
     **but in some case it's a server or programming error**.\
-    **in this case report it to me and I will try to fix it the fastest I can**";
+    **in this case report it to me and I will try to fix it the fastest I can** \
+    \n\n\n";
 
 pub async fn command_dispatching(
     message: String,

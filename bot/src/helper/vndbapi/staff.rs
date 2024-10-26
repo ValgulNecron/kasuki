@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::Result;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -8,7 +8,7 @@ use tokio::sync::RwLock;
 pub async fn get_staff(
     value: String,
     vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<StaffRoot, Box<dyn Error>> {
+) -> Result<StaffRoot> {
     let value = value.to_lowercase();
 
     let value = value.trim();

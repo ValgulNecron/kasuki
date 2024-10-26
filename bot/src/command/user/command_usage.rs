@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::command::user::avatar::get_user_command;
 use crate::config::{Config, DbConfig};
-use crate::event_handler::RootUsage;
+use crate::event_handler::{BotData, RootUsage};
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::command_usage::load_localization_command_usage;
 use serenity::all::{
@@ -15,8 +15,6 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 pub struct CommandUsageCommand {
     pub ctx: Context,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub command_usage: Arc<RwLock<RootUsage>>,
 }
 
 impl Command for CommandUsageCommand {
@@ -32,13 +30,14 @@ impl Command for CommandUsageCommand {
 impl SlashCommand for CommandUsageCommand {
     async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
         let user = get_user_command(&self.ctx, &self.command_interaction).await?;
-
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         send_embed(
             &self.ctx,
             &self.command_interaction,
             user,
-            &self.config.db.clone(),
-            &self.command_usage,
+            &bot_data.config.db.clone(),
+            &bot_data.number_of_command_use_per_command,
         )
         .await
     }

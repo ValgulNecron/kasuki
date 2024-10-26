@@ -5,12 +5,13 @@ use crate::config::{Config, DbConfig};
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::{Column, Model};
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_server::list_register_user::{
     load_localization_list_user, ListUserLocalised,
 };
-use anyhow::{Error, Result};
+use anyhow::{anyhow, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -25,7 +26,6 @@ use serenity::nonmax::NonMaxU16;
 pub struct ListRegisterUser {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for ListRegisterUser {
@@ -40,7 +40,14 @@ impl Command for ListRegisterUser {
 
 impl SlashCommand for ListRegisterUser {
     async fn run_slash(&self) -> Result<()> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
@@ -61,7 +68,7 @@ async fn send_embed(
     // Retrieve the guild from the guild ID
     let guild_id = match command_interaction.guild_id {
         Some(id) => id,
-        None => return Err(Error::from("Failed to get the id of the guild")),
+        None => return Err(anyhow!("Failed to get the id of the guild")),
     };
 
     let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
@@ -118,7 +125,11 @@ pub async fn get_the_list<'a>(
         pass += 1;
 
         let members = guild
-            .members(&ctx.http, Some(NonMaxU16::new(MEMBER_LIST_LIMIT)), last_id)
+            .members(
+                &ctx.http,
+                Some(NonMaxU16::new(MEMBER_LIST_LIMIT).unwrap_or_default()),
+                last_id,
+            )
             .await?;
 
         if members.is_empty() {

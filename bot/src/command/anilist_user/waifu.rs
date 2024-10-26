@@ -1,24 +1,23 @@
-use std::error::Error;
+use anyhow::Result;
 use std::sync::Arc;
 
 use moka::future::Cache;
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tokio::sync::RwLock;
 
 use crate::command::anilist_user::character::get_character_by_id;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::structure::run::anilist::character::send_embed;
 
 pub struct WaifuCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for WaifuCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -28,14 +27,14 @@ impl Command for WaifuCommand {
 }
 
 impl SlashCommand for WaifuCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        let ctx = &self.ctx;
-
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         let command_interaction = &self.command_interaction;
 
-        let config = self.config.clone();
+        let config = bot_data.config.clone();
 
-        let anilist_cache = self.anilist_cache.clone();
+        let anilist_cache = bot_data.anilist_cache.clone();
 
         // Execute the corresponding search function based on the specified type
         // Fetch the data of the character with ID 156323 from AniList

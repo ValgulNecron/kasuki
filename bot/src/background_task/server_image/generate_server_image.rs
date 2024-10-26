@@ -239,7 +239,7 @@ pub async fn generate_server_image(
 
     ServerImage::insert(ActiveModel {
         server_id: Set(guild_id.to_string()),
-        server_name: Set(guild.name),
+        server_name: Set(guild.name.to_string()),
         image_type: Set(image_type.clone()),
         image: Set(image.clone()),
         image_url: Set(guild_pfp.clone()),

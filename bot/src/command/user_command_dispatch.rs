@@ -1,11 +1,10 @@
-use anyhow::{Context, Error, Result};
+use anyhow::{anyhow, Result};
 
 use crate::command::command_trait::UserCommand;
 use crate::command::user::avatar::AvatarCommand;
 use crate::command::user::banner::BannerCommand;
 use crate::command::user::profile::ProfileCommand;
-use crate::error_management::error_dispatch;
-use crate::event_handler::{BotData, Handler};
+use crate::event_handler::BotData;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub async fn dispatch_user_command(
@@ -41,6 +40,6 @@ pub async fn dispatch_user_command(
             .run_user()
             .await
         }
-        _ => Err(Error::from("Unknown command")),
+        _ => Err(anyhow!("Unknown command")),
     }
 }

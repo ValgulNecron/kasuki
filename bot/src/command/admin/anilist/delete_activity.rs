@@ -1,24 +1,19 @@
-use std::sync::Arc;
-
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
 use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
-use crate::config::{Config, DbConfig};
+use crate::config::DbConfig;
 use crate::database::prelude::ActivityData;
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
-use anyhow::{Error, Result};
-use moka::future::Cache;
+use anyhow::{anyhow, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, ModelTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use tokio::sync::RwLock;
 
 pub struct DeleteActivityCommand {
     pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for DeleteActivityCommand {
@@ -33,11 +28,13 @@ impl Command for DeleteActivityCommand {
 
 impl SlashCommand for DeleteActivityCommand {
     async fn run_slash(&self) -> Result<()> {
-        let anilist_cache = self.anilist_cache.clone();
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        let anilist_cache = bot_data.anilist_cache.clone();
 
         let command_interaction = self.command_interaction.clone();
 
-        let config = self.config.clone();
+        let config = bot_data.config.clone();
 
         let map = get_option_map_string_subcommand_group(&command_interaction);
 
@@ -64,7 +61,7 @@ impl SlashCommand for DeleteActivityCommand {
 
         let title = media
             .title
-            .ok_or(Error::from(format!("Anime with id {} not found", anime_id)))?;
+            .ok_or(anyhow!(format!("Anime with id {} not found", anime_id)))?;
 
         let anime_name = get_name(title);
 
@@ -96,7 +93,7 @@ async fn remove_activity(guild_id: &str, anime_id: &i32, db_config: DbConfig) ->
         .filter(crate::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
         .one(&connection)
         .await?
-        .ok_or(Error::from(format!("Anime with id {} not found", anime_id)))?;
+        .ok_or(anyhow!(format!("Anime with id {} not found", anime_id)))?;
 
     activity.delete(&connection).await?;
 
