@@ -1,0 +1,27 @@
+name: Clear Cache
+on:
+  schedule:
+    # Runs at 00:00 UTC on Monday every two weeks
+    - cron: '0 0 */14 * MON'
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  clear-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear GitHub Actions cache
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const caches = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+            for (const cache of caches.data.actions_caches) {
+              console.log('Clearing cache:', cache.id, cache.key)
+              await github.rest.actions.deleteActionsCacheById({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                cache_id: cache.id,
+              })
+            }
