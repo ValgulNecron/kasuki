@@ -6,15 +6,15 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "kill_switch")]
 
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub guild_id: String,
-    pub ai_module: bool,
-    pub anilist_module: bool,
-    pub game_module: bool,
-    pub new_members_module: bool,
-    pub anime_module: bool,
-    pub vn_module: bool,
-    pub updated_at: DateTime,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub guild_id: String,
+	pub ai_module: bool,
+	pub anilist_module: bool,
+	pub game_module: bool,
+	pub new_members_module: bool,
+	pub anime_module: bool,
+	pub vn_module: bool,
+	pub updated_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

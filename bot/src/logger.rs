@@ -10,59 +10,59 @@ use anyhow::{Context, Result};
 use tracing_appender::non_blocking::WorkerGuard;
 
 pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<WorkerGuard> {
-    let kasuki_filter = match log {
-        "warn" => "kasuki=warn",
-        "error" => "kasuki=error",
-        "debug" => "kasuki=debug",
-        "trace" => "kasuki=trace",
-        _ => "kasuki=info",
-    };
+	let kasuki_filter = match log {
+		"warn" => "kasuki=warn",
+		"error" => "kasuki=error",
+		"debug" => "kasuki=debug",
+		"trace" => "kasuki=trace",
+		_ => "kasuki=info",
+	};
 
-    let crate_log = get_directive(OTHER_CRATE_LEVEL)?;
+	let crate_log = get_directive(OTHER_CRATE_LEVEL)?;
 
-    let kasuki_log = get_directive(kasuki_filter)?;
+	let kasuki_log = get_directive(kasuki_filter)?;
 
-    let filter = EnvFilter::from_default_env()
-        .add_directive(crate_log)
-        .add_directive(kasuki_log);
+	let filter = EnvFilter::from_default_env()
+		.add_directive(crate_log)
+		.add_directive(kasuki_log);
 
-    let log_prefix = LOGS_PREFIX;
+	let log_prefix = LOGS_PREFIX;
 
-    let log_suffix = LOGS_SUFFIX;
+	let log_suffix = LOGS_SUFFIX;
 
-    let logs_path = LOGS_PATH;
+	let logs_path = LOGS_PATH;
 
-    let file_appender = tracing_appender::rolling::Builder::new()
-        .filename_prefix(log_prefix)
-        .filename_suffix(log_suffix)
-        .rotation(Rotation::DAILY)
-        .max_log_files(max_log_retention_days as usize)
-        .build(logs_path)
-        .context("Failed to create file appender")?;
+	let file_appender = tracing_appender::rolling::Builder::new()
+		.filename_prefix(log_prefix)
+		.filename_suffix(log_suffix)
+		.rotation(Rotation::DAILY)
+		.max_log_files(max_log_retention_days as usize)
+		.build(logs_path)
+		.context("Failed to create file appender")?;
 
-    let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+	let (file_appender_non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
-    let format = fmt::layer().with_ansi(true);
+	let format = fmt::layer().with_ansi(true);
 
-    let registry = tracing_subscriber::registry()
-        .with(filter)
-        .with(format)
-        .with(
-            tracing_subscriber::fmt::layer()
-                .with_writer(file_appender_non_blocking)
-                .with_ansi(false),
-        );
+	let registry = tracing_subscriber::registry()
+		.with(filter)
+		.with(format)
+		.with(
+			tracing_subscriber::fmt::layer()
+				.with_writer(file_appender_non_blocking)
+				.with_ansi(false),
+		);
 
-    tracing::subscriber::set_global_default(registry)
-        .context("Failed to set global default subscriber")?;
+	tracing::subscriber::set_global_default(registry)
+		.context("Failed to set global default subscriber")?;
 
-    Ok(guard)
+	Ok(guard)
 }
 
 pub fn create_log_directory() -> Result<()> {
-    fs::create_dir_all("../logs").context("Failed to create log directory")
+	fs::create_dir_all("../logs").context("Failed to create log directory")
 }
 
 fn get_directive(filter: &str) -> Result<Directive> {
-    Directive::from_str(filter).context("Failed to create directive")
+	Directive::from_str(filter).context("Failed to create directive")
 }

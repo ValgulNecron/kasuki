@@ -100,9 +100,9 @@ pub const UNKNOWN: &str = "Unknown";
 /// Map of language codes to language names.
 
 pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
-    let languages = [("en", "english"), ("fr", "french"), ("de", "german"), ("ja", "japanese")];
+	let languages = [("en", "english"), ("fr", "french"), ("de", "german"), ("ja", "japanese")];
 
-    languages.iter().cloned().collect()
+	languages.iter().cloned().collect()
 });
 
 /// Path to the logs.

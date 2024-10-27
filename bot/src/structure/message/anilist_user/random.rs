@@ -7,16 +7,15 @@ use crate::structure::message::common::load_localization;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
 pub struct RandomLocalised {
-    pub desc: String,
+	pub desc: String,
 }
 
 use anyhow::Result;
 
 pub async fn load_localization_random(
-    guild_id: String,
-    db_config: DbConfig,
+	guild_id: String, db_config: DbConfig,
 ) -> Result<RandomLocalised> {
-    let path = "json/message/anilist_user/random.json";
+	let path = "json/message/anilist_user/random.json";
 
-    load_localization(guild_id, path, db_config).await
+	load_localization(guild_id, path, db_config).await
 }

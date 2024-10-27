@@ -6,34 +6,34 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "module_activation")]
 
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub guild_id: String,
-    pub ai_module: bool,
-    pub anilist_module: bool,
-    pub game_module: bool,
-    pub new_members_module: bool,
-    pub anime_module: bool,
-    pub vn_module: bool,
-    pub updated_at: DateTime,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub guild_id: String,
+	pub ai_module: bool,
+	pub anilist_module: bool,
+	pub game_module: bool,
+	pub new_members_module: bool,
+	pub anime_module: bool,
+	pub vn_module: bool,
+	pub updated_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 
 pub enum Relation {
-    #[sea_orm(
-        belongs_to = "super::guild_data::Entity",
-        from = "Column::GuildId",
-        to = "super::guild_data::Column::GuildId",
-        on_update = "Cascade",
-        on_delete = "Cascade"
-    )]
-    GuildData,
+	#[sea_orm(
+		belongs_to = "super::guild_data::Entity",
+		from = "Column::GuildId",
+		to = "super::guild_data::Column::GuildId",
+		on_update = "Cascade",
+		on_delete = "Cascade"
+	)]
+	GuildData,
 }
 
 impl Related<super::guild_data::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::GuildData.def()
-    }
+	fn to() -> RelationDef {
+		Relation::GuildData.def()
+	}
 }
 
 impl ActiveModelBehavior for ActiveModel {}
@@ -41,6 +41,6 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 
 pub enum RelatedEntity {
-    #[sea_orm(entity = "super::guild_data::Entity")]
-    GuildData,
+	#[sea_orm(entity = "super::guild_data::Entity")]
+	GuildData,
 }
