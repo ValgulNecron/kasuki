@@ -37,7 +37,7 @@ COPY Migration/Cargo.toml ./Cargo.toml
 
 RUN cargo build --release
 RUN rm src/*.rs
-RUN rm target/release/Migration*
+RUN rm target/release/migration*
 
 COPY Migration/src ./src
 RUN cargo build --release
@@ -60,6 +60,6 @@ ENV PATH="/kasuki/.venv/bin:$PATH"
 COPY json /kasuki/json
 COPY server_image /kasuki/server_image
 COPY --from=builder-bot /kasuki/target/release/kasuki /kasuki/
-COPY --from=builder-migration /Migration/target/release/migration /kasuki/
+COPY --from=builder-migration /migration/target/release/migration /kasuki/
 
 CMD ["./kasuki"]
