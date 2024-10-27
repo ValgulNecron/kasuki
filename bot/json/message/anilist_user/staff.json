@@ -2,28 +2,31 @@
   "en": {
     "field1_title": "Media",
     "field2_title": "VA",
-    "desc": "**Info** $dob$ $dod$ \n Occupation: $job$ \n Gender: $gender$ \n Age: $age$",
-    "date_of_birth": "\n Date of Birth: $date$.",
-    "date_of_death": "\n Date of death: $date$."
+    "desc": "\n Gender: $gender$ \n Age: $age$ \n\n $desc$",
+    "date_of_birth": "Date of Birth: $date$.",
+    "date_of_death": "Date of death: $date$.",
+    "hometown": "\n hometown: $hometown$",
+    "lang": "\n langage: $lang$",
+    "occupation": "Occupation: $job$"
   },
   "fr": {
     "field1_title": "Média",
     "field2_title": "Doubleur",
-    "desc": "**Info** $dob$ $dod$ \n Occupation : $job$ \n Genre : $gender$ \n Âge : $age$",
+    "desc": "**Info** $dob$ $dod$ \n Occupation : $job$ \n Genre : $gender$ \n Âge : $age$ \n\n $desc$",
     "date_of_birth": "\n Date de naissance : $date$.",
     "date_of_death": "\n Date de décès : $date$."
   },
   "jp": {
     "field1_title": "メディア",
     "field2_title": "声優",
-    "desc": "**情報** $dob$ $dod$ \n 職業: $job$ \n 性別: $gender$ \n 年齢: $age$",
+    "desc": "**情報** $dob$ $dod$ \n 職業: $job$ \n 性別: $gender$ \n 年齢: $age$ \n\n $desc$",
     "date_of_birth": "\n 生年月日: $date$.",
     "date_of_death": "\n 死亡日: $date$."
   },
   "de": {
     "field1_title": "Medien",
     "field2_title": "Synchronsprecher",
-    "desc": "**Info** $dob$ $dod$ \n Beruf: $job$ \n Geschlecht: $gender$ \n Alter: $age$",
+    "desc": "**Info** $dob$ $dod$ \n Beruf: $job$ \n Geschlecht: $gender$ \n Alter: $age$ \n\n $desc$",
     "date_of_birth": "\n Geburtsdatum: $date$.",
     "date_of_death": "\n Todesdatum: $date$."
   }

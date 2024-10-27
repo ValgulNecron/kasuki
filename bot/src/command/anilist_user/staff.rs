@@ -19,6 +19,7 @@ use serenity::all::{
 };
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
+use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 
 pub struct StaffCommand {
 	pub ctx: SerenityContext,
@@ -181,7 +182,8 @@ async fn send_embed(
 				.unwrap_or(String::from("Unknown."))
 				.as_str(),
 		)
-		.replace("$age$", staff.age.unwrap_or(0).to_string().as_str());
+		.replace("$age$", staff.age.unwrap_or(0).to_string().as_str())
+		.replace("$desc$", convert_anilist_flavored_to_discord_flavored_markdown(staff.description.unwrap_or_default()).as_str());
 
 	let name = staff.name.unwrap();
 

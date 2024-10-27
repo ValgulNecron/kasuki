@@ -36,7 +36,6 @@ pub struct StaffQuerrySearch {
 #[cynic(graphql_type = "Staff")]
 
 pub struct Staff {
-	pub id: i32,
 	pub language_v2: Option<String>,
 	pub name: Option<StaffName>,
 	pub image: Option<StaffImage>,
@@ -46,7 +45,6 @@ pub struct Staff {
 	pub description: Option<String>,
 	pub date_of_death: Option<FuzzyDate>,
 	pub age: Option<i32>,
-	pub years_active: Option<Vec<Option<i32>>>,
 	pub home_town: Option<String>,
 	pub site_url: Option<String>,
 	pub staff_media: Option<MediaConnection>,
