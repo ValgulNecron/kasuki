@@ -7,7 +7,7 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Replace the sample below with your own migration scripts
+        // Replace the sample below with your own Migration scripts
         manager
             .create_table(
                 Table::create()
@@ -20,7 +20,7 @@ impl MigrationTrait for Migration {
                     .col(string(UserColor::ProfilePictureUrl))
                     .col(timestamp(UserColor::CalculatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
-                        &mut ForeignKey::create()
+                        ForeignKey::create()
                             .name("FK_user_color")
                             .to(UserData::Table, UserData::UserId)
                             .from(UserColor::Table, UserColor::UserId)

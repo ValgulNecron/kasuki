@@ -24,7 +24,7 @@ impl MigrationTrait for Migration {
                     .col(timestamp(GuildSubscription::UpdatedAt))
                     .col(timestamp(GuildSubscription::ExpiredAt))
                     .foreign_key(
-                        &mut ForeignKey::create()
+                        ForeignKey::create()
                             .name("FK_guild_subscription")
                             .to(UserData::Table, UserData::UserId)
                             .from(GuildSubscription::Table, GuildSubscription::GuildId)

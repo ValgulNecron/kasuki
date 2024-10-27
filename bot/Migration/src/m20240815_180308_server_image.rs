@@ -24,7 +24,7 @@ impl MigrationTrait for Migration {
                     .col(string(ServerImage::ImageUrl))
                     .col(timestamp(ServerImage::GeneratedAt).default(Expr::current_timestamp()))
                     .foreign_key(
-                        &mut ForeignKey::create()
+                        ForeignKey::create()
                             .name("FK_server_image")
                             .to(GuildData::Table, GuildData::GuildId)
                             .from(ServerImage::Table, ServerImage::ServerId)

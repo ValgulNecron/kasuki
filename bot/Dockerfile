@@ -30,16 +30,16 @@ FROM rust:slim-bookworm AS builder-migration
 
 USER root
 
-RUN cargo new --bin migration
+RUN cargo new --bin Migration
 WORKDIR /migration
 
-COPY migration/Cargo.toml ./Cargo.toml
+COPY Migration/Cargo.toml ./Cargo.toml
 
 RUN cargo build --release
 RUN rm src/*.rs
-RUN rm target/release/migration*
+RUN rm target/release/Migration*
 
-COPY migration/src ./src
+COPY Migration/src ./src
 RUN cargo build --release
 
 FROM debian:trixie-slim AS bot
@@ -60,6 +60,6 @@ ENV PATH="/kasuki/.venv/bin:$PATH"
 COPY json /kasuki/json
 COPY server_image /kasuki/server_image
 COPY --from=builder-bot /kasuki/target/release/kasuki /kasuki/
-COPY --from=builder-migration /migration/target/release/migration /kasuki/
+COPY --from=builder-migration /Migration/target/release/migration /kasuki/
 
 CMD ["./kasuki"]

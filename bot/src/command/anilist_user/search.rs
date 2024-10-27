@@ -11,7 +11,6 @@ use crate::command::anilist_user::staff::StaffCommand;
 use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
 use crate::command::command_trait::{Command, SlashCommand};
-use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 
 pub struct SearchCommand {
@@ -32,12 +31,7 @@ impl Command for SearchCommand {
 impl SlashCommand for SearchCommand {
     async fn run_slash(&self) -> Result<()> {
         let ctx = self.get_ctx();
-        let bot_data = ctx.data::<BotData>().clone();
         let command_interaction = &self.command_interaction;
-
-        let config = &bot_data.config;
-
-        let anilist_cache = &bot_data.anilist_cache;
 
         // Retrieve the type of AniList data to search for from the command interaction
         let map = get_option_map_string(command_interaction);

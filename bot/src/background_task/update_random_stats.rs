@@ -194,12 +194,10 @@ async fn update_page(
     };
 
     // Update the last page number based on whether there are more pages to update.
-    if has_next_page {
-        if update_anime {
-            random_stats.anime_last_page += 1;
+    if has_next_page && update_anime {
+        random_stats.anime_last_page += 1;
 
-            random_stats.manga_last_page += 1;
-        }
+        random_stats.manga_last_page += 1;
     }
 
     has_next_page

@@ -287,24 +287,24 @@ async fn init_db(config: Arc<Config>) -> Result<()> {
 
     #[cfg(windows)]
     {
-        let mut cmd = process::Command::new("./migration.exe");
+        let mut cmd = process::Command::new("./Migration.exe");
 
-        let child = cmd.spawn().context("Failed to run migration")?;
+        let child = cmd.spawn().context("Failed to run Migration")?;
 
         child
             .wait_with_output()
-            .context("Failed to wait for migration")?;
+            .context("Failed to wait for Migration")?;
     }
 
     #[cfg(unix)]
     {
-        let mut cmd = process::Command::new("./migration");
+        let mut cmd = process::Command::new("./Migration");
 
-        let child = cmd.spawn().context("Failed to run migration")?;
+        let child = cmd.spawn().context("Failed to run Migration")?;
 
         child
             .wait_with_output()
-            .context("Failed to wait for migration")?;
+            .context("Failed to wait for Migration")?;
     }
 
     Ok(())
