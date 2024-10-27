@@ -7,9 +7,7 @@ use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-    CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId,
-};
+use serenity::all::{CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId};
 use serenity::builder::{
     CreateButton, CreateInteractionResponse, CreateInteractionResponseFollowup,
 };
