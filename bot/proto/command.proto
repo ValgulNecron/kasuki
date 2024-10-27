@@ -3,41 +3,41 @@ syntax = "proto3";
 package command;
 
 service CommandService {
-    rpc CommandList (CommandListRequest) returns (CommandListResponse) {}
+  rpc CommandList (CommandListRequest) returns (CommandListResponse) {}
 }
 
 message CommandListRequest {
 }
 
 message CommandListResponse {
-    int64 command_count = 1;
-    repeated Command commands = 2;
-    repeated SubCommand sub_commands = 3;
-    repeated SubCommandGroup sub_command_groups = 4;
+  int64 command_count = 1;
+  repeated Command commands = 2;
+  repeated SubCommand sub_commands = 3;
+  repeated SubCommandGroup sub_command_groups = 4;
 }
 
 message Command {
-    string name = 1;
-    string description = 2;
-    repeated Arg args = 3;
+  string name = 1;
+  string description = 2;
+  repeated Arg args = 3;
 }
 
 message Arg {
-    string name = 1;
-    string description = 2;
-    bool required = 3;
-    repeated string choices = 4;
+  string name = 1;
+  string description = 2;
+  bool required = 3;
+  repeated string choices = 4;
 }
 
 message SubCommand {
-    string name = 1;
-    string description = 2;
-    repeated Command commands = 3;
+  string name = 1;
+  string description = 2;
+  repeated Command commands = 3;
 }
 
 message SubCommandGroup {
-    string name = 1;
-    string description = 2;
-    repeated SubCommand sub_commands = 3;
-    repeated Command commands = 4;
+  string name = 1;
+  string description = 2;
+  repeated SubCommand sub_commands = 3;
+  repeated Command commands = 4;
 }

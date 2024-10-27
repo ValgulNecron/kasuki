@@ -4,9 +4,9 @@ use std::time::Duration;
 
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
-use sea_orm::EntityTrait;
+use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
-use serenity::all::Context;
+use serenity::all::Context as SerenityContext;
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
@@ -22,48 +22,48 @@ use crate::constant::{
     TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
     TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
 };
+use crate::database::ping_history::ActiveModel;
+use crate::database::prelude::PingHistory;
 use crate::event_handler::{BotData, RootUsage};
-use crate::structure::database::ping_history::ActiveModel;
-use crate::structure::database::prelude::PingHistory;
+use crate::get_url;
 use crate::structure::steam_game_id_struct::get_game;
-use crate::type_map_key::ShardManagerContainer;
-use crate::{api, get_url};
-
-/// This function is responsible for launching various background threads that manage the bot's activity, games, and web server.
-///
-/// # Arguments
-///
-/// * `ctx` - A `Context` instance used to access the bot's data and cache.
-/// * `bot_data` - An `Arc` wrapped `BotData` instance containing the bot's configuration and data.
-///
-pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db_config: DbConfig) {
-    // Clone the necessary data from bot_data
+pub async fn thread_management_launcher(
+    ctx: SerenityContext,
+    bot_data: Arc<BotData>,
+    db_config: DbConfig,
+) {
     let command_usage = bot_data.number_of_command_use_per_command.clone();
+
     let is_grpc_on = bot_data.config.grpc.grpc_is_on;
+
     let config = bot_data.config.clone();
+
     let anilist_cache = bot_data.anilist_cache.clone();
+
     let apps = bot_data.apps.clone();
+
     let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
 
-    // Spawn background threads to manage the bot's activity, games, and web server
-    tokio::spawn(launch_user_color_management_thread(
-        ctx.clone(),
-        user_blacklist_server_image.clone(),
-        db_config.clone(),
-    ));
+    let connection = bot_data.db_connection.clone();
+
     tokio::spawn(launch_activity_management_thread(
         ctx.clone(),
         anilist_cache.clone(),
         db_config.clone(),
     ));
+
     tokio::spawn(launch_game_management_thread(apps));
+
     tokio::spawn(ping_manager_thread(ctx.clone(), db_config.clone()));
-    tokio::spawn(update_user_blacklist(user_blacklist_server_image));
+
+    tokio::spawn(update_user_blacklist(user_blacklist_server_image.clone()));
+
     tokio::spawn(update_random_stats_launcher(anilist_cache.clone()));
+
     tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
 
-    // Wait for 1 second before launching the web server thread
     sleep(Duration::from_secs(1)).await;
+
     tokio::spawn(launch_web_server_thread(
         ctx.clone(),
         command_usage,
@@ -72,37 +72,44 @@ pub async fn thread_management_launcher(ctx: Context, bot_data: Arc<BotData>, db
         bot_data.clone(),
     ));
 
-    // Wait for a certain amount of time before launching the server image management thread
     sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
+
+    tokio::spawn(launch_user_color_management_thread(
+        ctx.clone(),
+        user_blacklist_server_image.clone(),
+        bot_data.clone(),
+    ));
+
+    sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
+
     let image_config = bot_data.config.image.clone();
+
     tokio::spawn(launch_server_image_management_thread(
         ctx.clone(),
         image_config,
-        db_config.clone(),
+        connection,
     ));
 
-    // Log a message indicating that all threads have been launched
     info!("Done spawning thread manager.");
 }
 
-/// Asynchronously manages the ping thread.
-///
-/// # Arguments
-///
-/// * `ctx` - A `Context` instance used to access the bot's data and cache.
-/// * `db_type` - A `String` representing the type of database.
-///
-async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
+async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
     // Log a message indicating that the ping thread is being launched
     info!("Launching the ping thread!");
 
-    // Read the data from the context
-    let data_read = ctx.data.read().await;
-
     // Get the ShardManager from the data
-    let shard_manager = match data_read.get::<ShardManagerContainer>() {
-        Some(data) => data,
+    let shard_manager = match ctx
+        .data::<BotData>()
+        .shard_manager
+        .clone()
+        .read()
+        .await
+        .clone()
+    {
+        Some(shard_manager) => shard_manager,
         None => {
+            tokio::time::sleep(Duration::from_secs(TIME_BETWEEN_PING_UPDATE)).await;
+            ping_manager_thread(ctx, db_config);
             return;
         }
     };
@@ -115,19 +122,24 @@ async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
         Ok(connection) => connection,
         Err(e) => {
             error!("Failed to connect to the database. {:#?}", e);
+
             return;
         }
     };
+
     loop {
         // Wait for the next interval tick
         interval.tick().await;
 
         // Lock the shard manager and iterate over the runners
         let runner = shard_manager.runners.lock().await;
+
         for (shard_id, shard) in runner.iter() {
             // Extract latency and current timestamp information
             let latency = shard.latency.unwrap_or_default().as_millis().to_string();
+
             let now = chrono::Utc::now().naive_utc();
+
             match PingHistory::insert(ActiveModel {
                 shard_id: Set(shard_id.to_string()),
                 latency: Set(latency),
@@ -148,21 +160,13 @@ async fn ping_manager_thread(ctx: Context, db_config: DbConfig) {
                 }
             }
         }
+
+        drop(runner);
     }
 }
 
-/// Asynchronously launches the web server thread.
-///
-/// # Arguments
-///
-/// * `ctx` - A `Context` instance used to access the bot's data and cache.
-/// * `command_usage` - An `Arc` wrapped `RwLock` containing the root command usage.
-/// * `is_grpc_on` - A boolean indicating if GRPC is enabled.
-/// * `config` - An `Arc` wrapped `Config` instance.
-/// * `bot_data` - An `Arc` wrapped `BotData` instance.
-///
 async fn launch_web_server_thread(
-    ctx: Context,
+    ctx: SerenityContext,
     command_usage: Arc<RwLock<RootUsage>>,
     is_grpc_on: bool,
     config: Arc<Config>,
@@ -171,30 +175,38 @@ async fn launch_web_server_thread(
     // Check if GRPC is enabled
     if !is_grpc_on {
         info!("API is off, skipping the API server thread!");
+
         return;
     }
+
     info!("Launching the API server thread!");
 
-    tokio::spawn(api::graphql::server::launch(config.db.clone()));
-
     // Read the data from the context
-    let data_read = ctx.data.read().await;
-
-    // Get the ShardManager from the data
-    let shard_manager = match data_read.get::<ShardManagerContainer>() {
-        Some(data) => data,
+    let guard = ctx.data::<BotData>().shard_manager.clone();
+    let shard_manager = match guard.read().await.clone() {
+        Some(shard_manager) => shard_manager,
         None => {
+            tokio::time::sleep(Duration::from_secs(10)).await;
+            Box::pin(launch_web_server_thread(
+                ctx,
+                command_usage,
+                is_grpc_on,
+                config,
+                bot_data,
+            ))
+            .await;
             return;
         }
     };
 
     // Clone the cache and http instances
     let cache = ctx.cache.clone();
+
     let http = ctx.http.clone();
 
     // Launch the GRPC server
     grpc_server_launcher(
-        shard_manager,
+        &shard_manager,
         command_usage,
         cache,
         http,
@@ -212,10 +224,11 @@ async fn launch_web_server_thread(
 /// * `db_type` - A `String` representing the type of database being used.
 /// * `user_blacklist_server_image` - An `Arc` wrapped `RwLock` containing a list of strings for user blacklist and server image management.
 ///
+
 async fn launch_user_color_management_thread(
-    ctx: Context,
+    ctx: SerenityContext,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-    db_config: DbConfig,
+    bot_data: Arc<BotData>,
 ) {
     // Create an interval for periodic updates
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE));
@@ -236,7 +249,7 @@ async fn launch_user_color_management_thread(
             &guilds,
             &ctx,
             user_blacklist_server_image.clone(),
-            db_config.clone(),
+            bot_data.clone(),
         )
         .await;
     }
@@ -248,6 +261,7 @@ async fn launch_user_color_management_thread(
 ///
 /// * `apps` - An `Arc` wrapped `RwLock` containing a `HashMap` of `String` keys and `u128` values.
 ///
+
 async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>) {
     // Create an interval for periodic updates
     let mut interval = interval(Duration::from_secs(TIME_BETWEEN_GAME_UPDATE));
@@ -275,8 +289,9 @@ async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>)
 /// It then enters a loop that waits for the next interval tick and spawns a new task to manage the bot's activity.
 /// The task is cloned from the `Context` and `db_type` arguments.
 ///
+
 async fn launch_activity_management_thread(
-    ctx: Context,
+    ctx: SerenityContext,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
     db_config: DbConfig,
 ) {
@@ -310,10 +325,11 @@ async fn launch_activity_management_thread(
 ///
 /// * `ctx` - A `Context` instance which is used in the server image management function.
 ///
+
 async fn launch_server_image_management_thread(
-    ctx: Context,
+    ctx: SerenityContext,
     image_config: ImageConfig,
-    db_config: DbConfig,
+    connection: Arc<DatabaseConnection>,
 ) {
     // Log a message indicating that the server image management thread is being launched
     info!("Launching the server image management thread!");
@@ -327,7 +343,7 @@ async fn launch_server_image_management_thread(
         interval.tick().await;
 
         // Call the server_image_management function with the provided context, database type, and image configuration
-        server_image_management(&ctx, image_config.clone(), db_config.clone()).await;
+        server_image_management(&ctx, image_config.clone(), connection.clone()).await;
     }
 }
 
@@ -337,6 +353,7 @@ async fn launch_server_image_management_thread(
 ///
 /// * `blacklist_lock` - An `Arc` wrapped `RwLock` containing the blacklist data.
 ///
+
 async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
     // Create an interval for periodic updates
     let mut interval =
@@ -349,6 +366,7 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
         // Fetch the blacklist data from a URL
         let blacklist_url =
             "https://raw.githubusercontent.com/ValgulNecron/kasuki/dev/blacklist.json";
+
         let blacklist_response = reqwest::get(blacklist_url)
             .await
             .expect("Failed to get blacklist");
@@ -364,6 +382,7 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
             Some(arr) => arr,
             None => {
                 error!("Failed to get user_id from blacklist");
+
                 continue;
             }
         }
@@ -372,6 +391,7 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
             Some(id) => id.to_string(),
             None => {
                 error!("Failed to get user_id from blacklist");
+
                 "".to_string()
             }
         })
@@ -379,8 +399,11 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
 
         // Write the updated blacklist to the shared data structure
         let mut blacklist = blacklist_lock.write().await;
+
         blacklist.clear();
+
         blacklist.shrink_to_fit();
+
         *blacklist = user_ids;
     }
 }
@@ -392,7 +415,8 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
 /// * `context` - A `Context` instance used to retrieve information.
 /// * `bot_data` - An `Arc` reference to the `BotData` struct.
 ///
-async fn update_bot_info(context: Context, bot_data: Arc<BotData>) {
+
+async fn update_bot_info(context: SerenityContext, bot_data: Arc<BotData>) {
     // Create a time interval for updating bot info
     let mut update_interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_BOT_INFO));
 
@@ -405,12 +429,14 @@ async fn update_bot_info(context: Context, bot_data: Arc<BotData>) {
             Ok(info) => info,
             Err(e) => {
                 error!("Failed to get bot info: {:?}", e);
+
                 continue;
             }
         };
 
         // Acquire a lock on bot info and update it with the current information
         let mut bot_info_lock = bot_data.bot_info.write().await;
+
         *bot_info_lock = Some(current_bot_info);
     }
 }

@@ -1,13 +1,16 @@
 #[cynic::schema("anilist")]
+
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct StaffQuerryIdVariables {
     pub id: Option<i32>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "StaffQuerryIdVariables")]
+
 pub struct StaffQuerryId {
     #[arguments(id: $ id)]
     #[cynic(rename = "Staff")]
@@ -15,12 +18,14 @@ pub struct StaffQuerryId {
 }
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct StaffQuerrySearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "StaffQuerrySearchVariables")]
+
 pub struct StaffQuerrySearch {
     #[arguments(search: $ search)]
     #[cynic(rename = "Staff")]
@@ -29,6 +34,7 @@ pub struct StaffQuerrySearch {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Staff")]
+
 pub struct Staff {
     pub id: i32,
     pub language_v2: Option<String>,
@@ -48,11 +54,13 @@ pub struct Staff {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct StaffImage {
     pub large: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct StaffName {
     pub user_preferred: Option<String>,
     pub native: Option<String>,
@@ -60,11 +68,13 @@ pub struct StaffName {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct MediaConnection {
     pub edges: Option<Vec<Option<MediaEdge>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct MediaEdge {
     pub role_notes: Option<String>,
     pub staff_role: Option<String>,
@@ -73,11 +83,13 @@ pub struct MediaEdge {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct Media {
     pub title: Option<MediaTitle>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct MediaTitle {
     pub user_preferred: Option<String>,
     pub native: Option<String>,
@@ -86,6 +98,7 @@ pub struct MediaTitle {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct FuzzyDate {
     pub year: Option<i32>,
     pub month: Option<i32>,
@@ -93,17 +106,20 @@ pub struct FuzzyDate {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterConnection {
     pub nodes: Option<Vec<Option<Character>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct Character {
     pub image: Option<CharacterImage>,
     pub name: Option<CharacterName>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterName {
     pub user_preferred: Option<String>,
     pub native: Option<String>,
@@ -111,11 +127,13 @@ pub struct CharacterName {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct CharacterImage {
     pub large: Option<String>,
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum MediaRelation {
     Adaptation,
     Prequel,

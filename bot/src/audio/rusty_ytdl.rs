@@ -1,4 +1,4 @@
-use crate::helper::error_management::error_dispatch;
+use anyhow::{Error, Result};
 use rand::Rng;
 use rusty_ytdl::search::{SearchOptions, SearchType};
 use rusty_ytdl::{
@@ -17,8 +17,8 @@ use symphonia::core::io::{
 };
 use tracing::trace;
 use uuid::Uuid;
-
 #[derive(Clone, Debug)]
+
 pub enum UrlType {
     Video,
     Playlist,
@@ -44,6 +44,7 @@ impl From<SearchType> for UrlType {
 }
 
 #[derive(Clone, Debug)]
+
 pub struct RustyYoutubeSearch {
     pub rusty_ytdl: YouTube,
     pub metadata: Option<AuxMetadata>,
@@ -84,6 +85,7 @@ impl From<RustyYoutubeSearch> for Input {
 }
 
 #[async_trait]
+
 impl Compose for RustyYoutubeSearch {
     fn create(&mut self) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
         Err(AudioStreamError::Unsupported)
@@ -94,6 +96,7 @@ impl Compose for RustyYoutubeSearch {
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
         // check if valid_proxy.txt exists
         let proxy_path = Path::new("valid_proxy.txt");
+
         let proxy = proxy_path.exists();
 
         if self.metadata.is_none() {
@@ -104,21 +107,28 @@ impl Compose for RustyYoutubeSearch {
 
         let request_options = if proxy {
             trace!("Using proxy");
+
             let proxy = fs::read_to_string(proxy_path).map_err(|e| {
-                AudioStreamError::Fail(
-                    error_dispatch::Error::Audio(format!("Failed to read proxy file: {e:?}"))
-                        .into(),
-                )
+                AudioStreamError::Fail(Box::from(Error::msg(format!(
+                    "Failed to get a proxy from the file {}",
+                    e
+                ))))
             })?;
+
             let proxy = proxy.split("\n").collect::<Vec<&str>>();
+
             let mut rng = rand::thread_rng();
+
             let n = rng.gen_range(0..proxy.len());
+
             let proxy = proxy[n];
+
             let proxy = reqwest::Proxy::all(proxy).map_err(|e| {
-                AudioStreamError::Fail(
-                    error_dispatch::Error::Audio(format!("Failed to create proxy: {e:?}")).into(),
-                )
+                AudioStreamError::Fail(Box::from(Error::msg(format!(
+                    "Failed to create proxy: {e:?}"
+                ))))
             })?;
+
             RequestOptions {
                 proxy: Some(proxy),
                 ..Default::default()
@@ -137,33 +147,37 @@ impl Compose for RustyYoutubeSearch {
             },
         )
         .map_err(|e| {
-            AudioStreamError::Fail(
-                error_dispatch::Error::Audio(format!("Failed to create stream: {e:?}")).into(),
-            )
+            AudioStreamError::Fail(Box::from(Error::msg(format!(
+                "Failed to create stream: {e:?}"
+            ))))
         })?;
 
         let tempdir = tempfile::tempdir().map_err(|e| {
-            AudioStreamError::Fail(
-                error_dispatch::Error::Audio(format!("Failed to create tempdir: {e:?}")).into(),
-            )
+            AudioStreamError::Fail(Box::from(Error::msg(format!(
+                "Failed to create tempdir: {e:?}"
+            ))))
         })?;
+
         trace!("Downloading video to {:?}", tempdir.path());
+
         let uuid = Uuid::new_v4();
+
         let path = tempdir.path().join(format!("{}.mp4", uuid));
+
         video.download(&path).await.map_err(|e| {
-            AudioStreamError::Fail(
-                error_dispatch::Error::Audio(format!("Failed to download video: {e:?}")).into(),
-            )
+            AudioStreamError::Fail(Box::from(Error::msg(format!(
+                "Failed to download video: {e:?}"
+            ))))
         })?;
+
         trace!("Downloaded video");
 
         let file = fs::File::open(&path).map_err(|e| {
-            AudioStreamError::Fail(
-                error_dispatch::Error::Audio(format!("Failed to open file: {e:?}")).into(),
-            )
+            AudioStreamError::Fail(Box::from(Error::msg(format!("Failed to open file: {e:?}"))))
         })?;
 
         let ros = ReadOnlySource::new(file);
+
         let source = MediaSourceStream::new(Box::new(ros), MediaSourceStreamOptions::default());
 
         Ok(AudioStream {
@@ -180,10 +194,12 @@ impl Compose for RustyYoutubeSearch {
         if let Some(meta) = self.metadata.as_ref() {
             return Ok(meta.clone());
         }
+
         let data = self
             .url
             .clone()
             .unwrap_or(self.search.clone().unwrap_or_default());
+
         let res: SearchResult = self
             .rusty_ytdl
             .search_one(
@@ -201,36 +217,53 @@ impl Compose for RustyYoutubeSearch {
             ))))?;
 
         let mut metadata = AuxMetadata::default();
+
         match res.clone() {
             SearchResult::Video(video) => {
                 self.url_type = UrlType::Video;
 
                 metadata.track = Some(video.title.clone());
+
                 metadata.artist = None;
+
                 metadata.album = None;
+
                 metadata.date = video.uploaded_at.clone();
 
                 metadata.channels = Some(2);
+
                 metadata.channel = Some(video.channel.name);
+
                 metadata.duration = Some(Duration::from_millis(video.duration));
+
                 metadata.sample_rate = Some(48000);
+
                 metadata.source_url = Some(video.url);
+
                 metadata.title = Some(video.title);
+
                 metadata.thumbnail = Some(video.thumbnails.first().unwrap().url.clone());
             }
             SearchResult::Playlist(playlist) => {
                 self.url_type = UrlType::Playlist;
+
                 metadata.title = Some(playlist.name);
+
                 metadata.source_url = Some(playlist.url);
+
                 metadata.duration = None;
+
                 metadata.thumbnail = Some(playlist.thumbnails.first().unwrap().url.clone());
             }
             _ => {}
         };
+
         self.search = Some(metadata.title.clone().unwrap_or_default());
+
         self.url = Some(metadata.source_url.clone().unwrap_or_default());
 
         self.metadata = Some(metadata.clone());
+
         Ok(metadata)
     }
 }

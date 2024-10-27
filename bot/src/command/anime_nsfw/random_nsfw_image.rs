@@ -1,24 +1,24 @@
-use std::error::Error;
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
-
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessage};
 
 use crate::command::anime::random_image::send_embed;
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
-use crate::helper::error_management::error_dispatch;
+use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
+};
 
 pub struct AnimeRandomNsfwImageCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for AnimeRandomNsfwImageCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -28,22 +28,29 @@ impl Command for AnimeRandomNsfwImageCommand {
 }
 
 impl SlashCommand for AnimeRandomNsfwImageCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        send(&self.ctx, &self.command_interaction, self.config.clone()).await
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
+
 async fn send(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the type of image to fetch from the command interaction
     let map = get_option_map_string_subcommand(command_interaction);
+
     let image_type = map
         .get(&String::from("image_type"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No image type specified",
-        )))?;
+        .ok_or(anyhow!("No image type specified"))?;
 
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {

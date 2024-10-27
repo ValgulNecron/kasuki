@@ -1,27 +1,27 @@
+use anyhow::{anyhow, Result};
 use std::collections::HashMap;
-use std::error::Error;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::game::steam_game_info::load_localization_steam_game_info;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
-use serenity::all::{CommandInteraction, Context, CreateInteractionResponseFollowup, GuildId};
+use serenity::all::{
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup, GuildId,
+};
 use tokio::sync::RwLock;
 
 pub struct SteamGameInfoCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub apps: Arc<RwLock<HashMap<String, u128>>>,
 }
 
 impl Command for SteamGameInfoCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -31,18 +31,21 @@ impl Command for SteamGameInfoCommand {
 }
 
 impl SlashCommand for SteamGameInfoCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         let data = get_steam_game(
-            self.apps.clone(),
+            bot_data.apps.clone(),
             self.command_interaction.clone(),
-            self.config.clone(),
+            bot_data.config.clone(),
         )
         .await?;
+
         send_embed(
             &self.ctx,
             &self.command_interaction,
             data,
-            self.config.clone(),
+            bot_data.config.clone(),
         )
         .await
     }
@@ -52,17 +55,18 @@ async fn get_steam_game(
     apps: Arc<RwLock<HashMap<String, u128>>>,
     command_interaction: CommandInteraction,
     config: Arc<Config>,
-) -> Result<SteamGameWrapper, Box<dyn Error>> {
+) -> Result<SteamGameWrapper> {
     let guild_id = command_interaction
         .guild_id
         .unwrap_or(GuildId::from(0))
         .to_string();
+
     let map = get_option_map_string_subcommand(&command_interaction);
+
     let value = map
         .get(&String::from("game_name"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No option for game_name",
-        )))?;
+        .ok_or(anyhow!("No option for game_name"))?;
+
     let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
         SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, config.db.clone())
             .await?
@@ -74,11 +78,11 @@ async fn get_steam_game(
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     data: SteamGameWrapper,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guild_id = command_interaction
         .guild_id
         .unwrap_or(GuildId::from(0))
@@ -106,6 +110,7 @@ async fn send_embed(
                     price.final_formatted.unwrap_or_default(),
                     price.discount_percent.unwrap_or_default()
                 );
+
                 (
                     steam_game_info_localised.field1,
                     convert_steam_to_discord_flavored_markdown(price),
@@ -119,7 +124,9 @@ async fn send_embed(
             ),
         }
     };
+
     fields.push(field1);
+
     let platforms = match game.platforms {
         Some(platforms) => platforms,
         _ => Platforms {
@@ -136,6 +143,7 @@ async fn send_embed(
             true,
         ));
     }
+
     if let Some(required_age) = game.required_age {
         fields.push((
             steam_game_info_localised.required_age,
@@ -165,6 +173,7 @@ async fn send_embed(
             true,
         )
     };
+
     fields.push(field2);
 
     // Add the developers field if it exists
@@ -202,11 +211,17 @@ async fn send_embed(
             true,
         ))
     }
+
     let win = platforms.windows.unwrap_or(false);
+
     let mac = platforms.mac.unwrap_or(false);
+
     let linux = platforms.linux.unwrap_or(false);
+
     fields.push((steam_game_info_localised.win, win.to_string(), true));
+
     fields.push((steam_game_info_localised.mac, mac.to_string(), true));
+
     fields.push((steam_game_info_localised.linux, linux.to_string(), true));
 
     // Add the categories field if it exists
@@ -215,8 +230,10 @@ async fn send_embed(
             .into_iter()
             .filter_map(|category| category.description)
             .collect();
+
         let joined_descriptions =
             convert_steam_to_discord_flavored_markdown(descriptions.join(", "));
+
         fields.push((steam_game_info_localised.field7, joined_descriptions, false))
     }
 
@@ -232,6 +249,7 @@ async fn send_embed(
             game.steam_appid.unwrap()
         ))
         .image(game.header_image.unwrap());
+
     let builder_message = CreateInteractionResponseFollowup::new().embed(builder_embed);
 
     // Send the follow-up response to the command interaction

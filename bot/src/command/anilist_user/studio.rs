@@ -1,12 +1,12 @@
 use crate::command::command_trait::Command;
-use std::error::Error;
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::SlashCommand;
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::studio::load_localization_studio;
@@ -16,19 +16,19 @@ use crate::structure::run::anilist::studio::{
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
+use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 
 pub struct StudioCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for StudioCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -38,45 +38,57 @@ impl Command for StudioCommand {
 }
 
 impl SlashCommand for StudioCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        let ctx = &self.ctx;
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         let command_interaction = &self.command_interaction;
-        let config = self.config.clone();
-        let anilist_cache = self.anilist_cache.clone();
+
+        let config = bot_data.config.clone();
+
+        let anilist_cache = bot_data.anilist_cache.clone();
+
         send_embed(ctx, command_interaction, config, anilist_cache).await
     }
 }
+
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the name or ID of the studio from the command interaction
     let map = get_option_map_string(command_interaction);
+
     let value = map
-        .get(&String::from("studio"))
-        .ok_or(error_dispatch::Error::Option(String::from(
-            "No studio specified",
-        )))?;
+        .get(&FixedString::from_str_trunc("studio"))
+        .ok_or(anyhow!("No studio specified"))?;
 
     // Fetch the studio's data from AniList
     let studio = if value.parse::<i32>().is_ok() {
-        let id = value.parse::<i32>().unwrap();
+        let id = value.parse::<i32>()?;
+
         let var = StudioQuerryIdVariables { id: Some(id) };
+
         let operation = StudioQuerryId::build(var);
+
         let data: GraphQlResponse<StudioQuerryId> =
             make_request_anilist(operation, false, anilist_cache).await?;
+
         data.data.unwrap().studio.unwrap()
     } else {
         let var = StudioQuerrySearchVariables {
             search: Some(value.as_str()),
         };
+
         let operation = StudioQuerrySearch::build(var);
+
         let data: GraphQlResponse<StudioQuerrySearch> =
             make_request_anilist(operation, false, anilist_cache).await?;
+
         data.data.unwrap().studio.unwrap()
     };
+
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -93,10 +105,12 @@ async fn send_embed(
     for m in studio.media.unwrap().nodes.unwrap() {
         // Clone the title of the media
         let m = m.unwrap();
+
         let title = m.title.unwrap().clone();
 
         // Retrieve the romaji and user-preferred titles
         let rj = title.romaji.unwrap_or_default();
+
         let en = title.user_preferred.unwrap_or_default();
 
         // Format the text for the response
@@ -109,6 +123,7 @@ async fn send_embed(
 
         // Append the text to the content string
         content.push_str(text.as_str());
+
         content.push('\n')
     }
 
@@ -145,5 +160,6 @@ async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await?;
+
     Ok(())
 }

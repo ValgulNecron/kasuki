@@ -9,6 +9,7 @@ use tracing::{debug, error};
 
 // App is a struct that represents a Steam app
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct App {
     // app_id is the id of the app
     #[serde(rename = "appid")]
@@ -23,16 +24,20 @@ pub struct App {
 /// # Errors
 ///
 /// This function will log an error and return early if it encounters any issues while making the HTTP request, parsing the response body, or deserializing the JSON.
+
 pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) {
     // Log the start of the process
     debug!("Started the process");
+
     // Define the URL for the Steam API
     let url = "https://api.steampowered.com/ISteamApps/GetAppList/v0002/?format=json";
+
     // Make the HTTP request
     let response = match reqwest::get(url).await {
         Err(e) => {
             // Log the error and return early if the HTTP request fails
             error!("Error: {}", e);
+
             return;
         }
         Ok(response) => response,
@@ -43,6 +48,7 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) {
         Err(e) => {
             // Log the error and return early if getting the response body fails
             error!("Error: {}", e);
+
             return;
         }
         Ok(body) => body,
@@ -53,6 +59,7 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) {
         Err(e) => {
             // Log the error and return early if parsing the JSON fails
             error!("Error: {}", e);
+
             return;
         }
         Ok(json) => json,
@@ -63,6 +70,7 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) {
         Err(e) => {
             // Log the error and return early if deserializing the JSON fails
             error!("Error: {}", e);
+
             return;
         }
         Ok(apps) => apps,
@@ -70,14 +78,20 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) {
 
     // Clear the APPS constant and insert the new apps
     let mut guard = apps_data.write().await;
+
     guard.clear();
+
     guard.shrink_to_fit();
+
     // Convert the vector of apps into a hashmap
     let app_map: HashMap<String, u128> = apps
         .iter()
         .map(|app| (app.name.clone(), app.app_id))
         .collect();
+
     *guard = app_map;
+
     guard.shrink_to_fit();
+
     debug!("Done getting game")
 }

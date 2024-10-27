@@ -14,6 +14,7 @@ use crate::api::grpc_server::service::command::proto::{CommandListRequest, Comma
 pub(crate) mod proto {
     // Include the protobuf definitions for the shard service
     tonic::include_proto!("command");
+
     // FILE_DESCRIPTOR_SET is a constant byte array that contains the file descriptor set for the shard service
     pub(crate) const COMMAND_FILE_DESCRIPTOR_SET: &[u8] =
         tonic::include_file_descriptor_set!("command_descriptor");
@@ -24,16 +25,22 @@ pub struct CommandServices {
 }
 
 #[tonic::async_trait]
+
 impl CommandService for CommandServices {
     async fn command_list(
         &self,
         _request: Request<CommandListRequest>,
     ) -> Result<Response<CommandListResponse>, Status> {
         let cmd_list = &self.command_list.clone();
+
         let cm_count = cmd_list.len();
+
         let mut commands = Vec::new();
+
         let mut sub_commands = Vec::new();
+
         let mut sub_command_groups = Vec::new();
+
         for cmd in cmd_list.iter() {
             match cmd {
                 CommandItem::Command(c) => {
@@ -47,12 +54,14 @@ impl CommandService for CommandServices {
                 }
             }
         }
+
         let response = CommandListResponse {
             command_count: cm_count as i64,
             commands,
             sub_commands,
             sub_command_groups,
         };
+
         Ok(Response::new(response))
     }
 }

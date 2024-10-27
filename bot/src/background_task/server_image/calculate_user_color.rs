@@ -1,16 +1,16 @@
-use std::error::Error;
+use anyhow::{Context, Result};
 use std::io::Cursor;
 use std::sync::Arc;
 use std::time::Duration;
 
 use crate::config::DbConfig;
+use crate::database::prelude::UserColor;
+use crate::database::user_color::{ActiveModel, Column, Model};
+use crate::event_handler::{add_user_data_to_db, BotData};
 use crate::get_url;
-use crate::new_member::change_to_x64_url;
-use crate::structure::database::prelude::{UserColor, UserData};
-use crate::structure::database::user_color::{ActiveModel, Column, Model};
+use crate::new_member::change_to_x256_url;
 use base64::engine::general_purpose;
 use base64::Engine;
-use chrono::Utc;
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use image::codecs::png::PngEncoder;
@@ -20,10 +20,11 @@ use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::ActiveValue::Set;
-use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
-use serenity::all::{Context, GuildId, Member, User, UserId};
+use sea_orm::{ColumnTrait, DatabaseConnection};
+use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
+use serenity::nonmax::NonMaxU16;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, trace};
@@ -31,25 +32,31 @@ use tracing::{debug, error, trace};
 pub async fn calculate_users_color(
     members: Vec<Member>,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-    db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
+    bot_data: Arc<BotData>,
+) -> Result<()> {
     let guard = user_blacklist_server_image.read().await;
+
+    let connection = bot_data.db_connection.clone();
+
     for member in members {
         trace!("Calculating user color for {}", member.user.id);
+
         if guard.contains(&member.user.id.to_string()) {
             debug!(
                 "Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE",
                 member.user.id
             );
+
             continue;
         }
-        let pfp_url = change_to_x64_url(member.user.face());
+
+        let pfp_url = change_to_x256_url(member.user.face());
 
         let id = member.user.id.to_string();
-        let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
         let user_color = UserColor::find()
             .filter(Column::UserId.eq(id.clone()))
-            .one(&connection)
+            .one(&*connection)
             .await?
             .unwrap_or(Model {
                 user_id: id.clone(),
@@ -58,28 +65,15 @@ pub async fn calculate_users_color(
                 images: String::from(""),
                 calculated_at: Default::default(),
             });
+
         let pfp_url_old = user_color.profile_picture_url.clone();
-        match UserData::insert(crate::structure::database::user_data::ActiveModel {
-            user_id: Set(id.clone()),
-            username: Set(member.user.name.clone()),
-            added_at: Set(Utc::now().naive_utc()),
-            is_bot: Set(member.user.bot),
-            banner: Set(member.user.banner_url().unwrap_or_default()),
-        })
-        .on_conflict(
-            OnConflict::column(crate::structure::database::user_data::Column::UserId)
-                .update_column(crate::structure::database::user_data::Column::Username)
-                .to_owned(),
-        )
-        .exec(&connection)
-        .await
-        {
-            Ok(_) => {}
-            Err(e) => error!("Failed to insert user data. {}", e),
-        };
+
         if pfp_url != pfp_url_old {
             let (average_color, image): (String, String) =
                 calculate_user_color(member.user.clone()).await?;
+
+            add_user_data_to_db(member.user.clone(), connection.clone()).await?;
+
             UserColor::insert(ActiveModel {
                 user_id: Set(id.clone()),
                 profile_picture_url: Set(pfp_url.clone()),
@@ -94,56 +88,47 @@ pub async fn calculate_users_color(
                     .update_column(Column::Images)
                     .to_owned(),
             )
-            .exec(&connection)
+            .exec(&*connection)
             .await?;
         }
+
         trace!("Done calculating user color for {}", member.user.id);
+
         sleep(Duration::from_nanos(1)).await
     }
+
     Ok(())
 }
 
 pub async fn return_average_user_color(
     members: Vec<Member>,
-    db_config: DbConfig,
-) -> Result<Vec<(String, String, String)>, Box<dyn Error>> {
-    let mut average_colors = Vec::new();
+    connection: Arc<DatabaseConnection>,
+) -> Result<Vec<(String, String, String)>> {
+    let mut average_colors = Vec::with_capacity(members.len());
+
     for member in members {
-        let pfp_url = change_to_x64_url(member.user.face());
+        let pfp_url = change_to_x256_url(member.user.face());
+
         let id = member.user.id.to_string();
 
-        let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
         let user_color = UserColor::find()
             .filter(Column::UserId.eq(id.clone()))
-            .one(&connection)
+            .one(&*connection)
             .await?;
-        match UserData::insert(crate::structure::database::user_data::ActiveModel {
-            user_id: Set(id.clone()),
-            username: Set(member.user.name.clone()),
-            added_at: Set(Utc::now().naive_utc()),
-            is_bot: Set(member.user.bot),
-            banner: Set(member.user.banner_url().unwrap_or_default()),
-        })
-        .on_conflict(
-            OnConflict::column(crate::structure::database::user_data::Column::UserId)
-                .update_column(crate::structure::database::user_data::Column::Username)
-                .to_owned(),
-        )
-        .exec(&connection)
-        .await
-        {
-            Ok(_) => {}
-            Err(e) => error!("Failed to insert user data. {}", e),
-        };
+
         match user_color {
             Some(user_color) => {
-                let color = user_color.color.clone();
-                let pfp_url_old = user_color.profile_picture_url.clone();
-                let image_old = user_color.images;
+                let (color, pfp_url_old, image_old) = (
+                    user_color.color,
+                    user_color.profile_picture_url,
+                    user_color.images,
+                );
+
                 if pfp_url != pfp_url_old {
-                    let (average_color, image): (String, String) =
-                        calculate_user_color(member.user.clone()).await?;
+                    let (average_color, image) = calculate_user_color(member.user.clone()).await?;
+
                     average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
+
                     UserColor::insert(ActiveModel {
                         user_id: Set(id.clone()),
                         profile_picture_url: Set(pfp_url.clone()),
@@ -152,7 +137,6 @@ pub async fn return_average_user_color(
                         ..Default::default()
                     })
                     .on_conflict(
-                        // update url, color, images and calculated_at
                         OnConflict::column(Column::UserId)
                             .update_column(Column::Color)
                             .update_column(Column::ProfilePictureUrl)
@@ -160,18 +144,19 @@ pub async fn return_average_user_color(
                             .update_column(Column::CalculatedAt)
                             .to_owned(),
                     )
-                    .exec(&connection)
+                    .exec(&*connection)
                     .await?;
 
                     continue;
                 }
+
                 average_colors.push((color, pfp_url_old, image_old));
-                continue;
             }
-            _ => {
-                let (average_color, image): (String, String) =
-                    calculate_user_color(member.user.clone()).await?;
+            None => {
+                let (average_color, image) = calculate_user_color(member.user.clone()).await?;
+
                 average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
+
                 UserColor::insert(ActiveModel {
                     user_id: Set(id.clone()),
                     profile_picture_url: Set(pfp_url.clone()),
@@ -180,7 +165,6 @@ pub async fn return_average_user_color(
                     ..Default::default()
                 })
                 .on_conflict(
-                    // update url, color, images and calculated_at
                     OnConflict::column(Column::UserId)
                         .update_column(Column::Color)
                         .update_column(Column::ProfilePictureUrl)
@@ -188,9 +172,8 @@ pub async fn return_average_user_color(
                         .update_column(Column::CalculatedAt)
                         .to_owned(),
                 )
-                .exec(&connection)
+                .exec(&*connection)
                 .await?;
-                continue;
             }
         }
     }
@@ -198,8 +181,8 @@ pub async fn return_average_user_color(
     Ok(average_colors)
 }
 
-async fn calculate_user_color(user: User) -> Result<(String, String), Box<dyn Error>> {
-    let pfp_url = change_to_x64_url(user.face());
+async fn calculate_user_color(user: User) -> Result<(String, String)> {
+    let pfp_url = change_to_x256_url(user.face());
 
     let img = get_image_from_url(pfp_url).await?;
 
@@ -220,14 +203,19 @@ async fn calculate_user_color(user: User) -> Result<(String, String), Box<dyn Er
 
     // Calculate the average color by dividing the sum by the total number of pixels
     let num_pixels = img.width() * img.height();
+
     let r_avg = r_total / num_pixels;
+
     let g_avg = g_total / num_pixels;
+
     let b_avg = b_total / num_pixels;
 
     let average_color = format!("#{:02x}{:02x}{:02x}", r_avg, g_avg, b_avg);
+
     debug!("{}", average_color);
 
     let mut image_data: Vec<u8> = Vec::new();
+
     PngEncoder::new(&mut image_data).write_image(
         img.as_raw(),
         img.width(),
@@ -236,52 +224,71 @@ async fn calculate_user_color(user: User) -> Result<(String, String), Box<dyn Er
     )?;
 
     let base64_image = general_purpose::STANDARD.encode(image_data.clone());
+
     let image = format!("data:image/png;base64,{}", base64_image);
+
     // Return the average color
     Ok((average_color, image))
 }
 
-pub async fn get_image_from_url(url: String) -> Result<DynamicImage, Box<dyn Error>> {
+pub async fn get_image_from_url(url: String) -> Result<DynamicImage> {
     // Fetch the image data
-    let resp = reqwest::get(&url).await?.bytes().await?;
+    let resp = reqwest::get(&url)
+        .await
+        .context(format!("Failed to fetch image from URL: {}", url))?
+        .bytes()
+        .await
+        .context(format!("Failed to get image bytes from URL: {}", url))?;
 
     // Decode the image data
     let img = ImageReader::new(Cursor::new(resp))
-        .with_guessed_format()?
-        .decode()?;
+        .with_guessed_format()
+        .context(format!("Failed to guess image format from URL: {}", url))?
+        .decode()
+        .context(format!("Failed to decode image from URL: {}", url))?;
 
     Ok(img)
 }
 
 pub async fn color_management(
     guilds: &Vec<GuildId>,
-    ctx_clone: &Context,
+    ctx_clone: &SerenityContext,
     user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-    db_config: DbConfig,
+    bot_data: Arc<BotData>,
 ) {
     let mut futures = FuturesUnordered::new();
+
     for guild in guilds {
         let guild_id = guild.to_string();
+
         debug!(guild_id);
 
         let ctx_clone = ctx_clone.clone();
+
         let guild = *guild;
+
         let future = get_member(ctx_clone, guild);
+
         futures.push(future);
     }
+
     let mut members = Vec::new();
+
     while let Some(mut result) = futures.next().await {
         let guild_id = match result.first() {
             Some(member) => member.guild_id.to_string(),
             None => String::from(""),
         };
+
         debug!("{}: {}", guild_id, result.len());
+
         members.append(&mut result);
     }
+
     match calculate_users_color(
         members.into_iter().collect(),
         user_blacklist_server_image,
-        db_config,
+        bot_data,
     )
     .await
     {
@@ -290,15 +297,25 @@ pub async fn color_management(
     };
 }
 
-pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
+pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Member> {
     let mut i = 0;
+
     let mut members_temp_out: Vec<Member> = Vec::new();
+
     while members_temp_out.len() == (1000 * i) {
         let mut members_temp_in = if i == 0 {
-            match guild.members(&ctx_clone.http, Some(1000), None).await {
+            match guild
+                .members(
+                    &ctx_clone.http,
+                    Some(NonMaxU16::new(1000).unwrap_or_default()),
+                    None,
+                )
+                .await
+            {
                 Ok(members) => members,
                 Err(e) => {
                     error!("{:?}", e);
+
                     break;
                 }
             }
@@ -307,17 +324,29 @@ pub async fn get_member(ctx_clone: Context, guild: GuildId) -> Vec<Member> {
                 Some(member) => member.user.id,
                 None => break,
             };
-            match guild.members(&ctx_clone.http, Some(1000), Some(user)).await {
+
+            match guild
+                .members(
+                    &ctx_clone.http,
+                    Some(NonMaxU16::new(1000).unwrap_or_default()),
+                    Some(user),
+                )
+                .await
+            {
                 Ok(members) => members,
                 Err(e) => {
                     error!("{:?}", e);
+
                     break;
                 }
             }
         };
+
         i += 1;
+
         members_temp_out.append(&mut members_temp_in);
     }
+
     members_temp_out
 }
 
@@ -335,13 +364,18 @@ pub async fn get_specific_user_color(
             "Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE",
             user.id
         );
+
         return;
     }
-    let pfp_url = change_to_x64_url(user.face());
+
+    let pfp_url = change_to_x256_url(user.face());
+
     let id = user.id.to_string();
+
     let connection = sea_orm::Database::connect(get_url(db_config.clone()))
         .await
         .unwrap();
+
     let user_color = UserColor::find()
         .filter(Column::UserId.eq(id.clone()))
         .one(&connection)
@@ -354,6 +388,7 @@ pub async fn get_specific_user_color(
             images: String::from(""),
             calculated_at: Default::default(),
         });
+
     let pfp_url_old = user_color.profile_picture_url.clone();
 
     if pfp_url_old == pfp_url {
@@ -362,24 +397,7 @@ pub async fn get_specific_user_color(
 
     let (average_color, image): (String, String) =
         calculate_user_color(user.clone()).await.unwrap();
-    match UserData::insert(crate::structure::database::user_data::ActiveModel {
-        user_id: Set(id.clone()),
-        username: Set(user.name.clone()),
-        added_at: Set(Utc::now().naive_utc()),
-        is_bot: Set(user.bot),
-        banner: Set(user.banner_url().unwrap_or_default()),
-    })
-    .on_conflict(
-        OnConflict::column(crate::structure::database::user_data::Column::UserId)
-            .update_column(crate::structure::database::user_data::Column::Username)
-            .to_owned(),
-    )
-    .exec(&connection)
-    .await
-    {
-        Ok(_) => {}
-        Err(e) => error!("Failed to insert user data. {}", e),
-    };
+
     UserColor::insert(ActiveModel {
         user_id: Set(id.clone()),
         profile_picture_url: Set(pfp_url.clone()),

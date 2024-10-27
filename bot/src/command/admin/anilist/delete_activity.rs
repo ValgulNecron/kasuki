@@ -1,29 +1,23 @@
-use std::error::Error;
-use std::sync::Arc;
-
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
 use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
-use crate::config::{Config, DbConfig};
+use crate::config::DbConfig;
+use crate::database::prelude::ActivityData;
+use crate::event_handler::BotData;
 use crate::get_url;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
-use crate::structure::database::prelude::ActivityData;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
-use moka::future::Cache;
+use anyhow::{anyhow, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, ModelTrait, QueryFilter};
-use serenity::all::{CommandInteraction, Context};
-use tokio::sync::RwLock;
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct DeleteActivityCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for DeleteActivityCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -33,11 +27,17 @@ impl Command for DeleteActivityCommand {
 }
 
 impl SlashCommand for DeleteActivityCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        let anilist_cache = self.anilist_cache.clone();
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        let anilist_cache = bot_data.anilist_cache.clone();
+
         let command_interaction = self.command_interaction.clone();
-        let config = self.config.clone();
+
+        let config = bot_data.config.clone();
+
         let map = get_option_map_string_subcommand_group(&command_interaction);
+
         let anime = map
             .get(&String::from("anime_name"))
             .cloned()
@@ -47,6 +47,7 @@ impl SlashCommand for DeleteActivityCommand {
             Some(id) => id.to_string(),
             None => String::from("1"),
         };
+
         self.defer().await?;
 
         let delete_activity_localised_text =
@@ -55,12 +56,13 @@ impl SlashCommand for DeleteActivityCommand {
         let media = get_minimal_anime_media(anime.to_string(), anilist_cache).await?;
 
         let anime_id = media.id;
+
         remove_activity(guild_id.as_str(), &anime_id, config.db.clone()).await?;
 
-        let title = media.title.ok_or(error_dispatch::Error::Option(format!(
-            "Anime with id {} not found",
-            anime_id
-        )))?;
+        let title = media
+            .title
+            .ok_or(anyhow!(format!("Anime with id {} not found", anime_id)))?;
+
         let anime_name = get_name(title);
 
         let url = format!("https://anilist.co/anime/{}", media.id);
@@ -78,25 +80,22 @@ impl SlashCommand for DeleteActivityCommand {
             None,
         )
         .await?;
+
         Ok(())
     }
 }
 
-async fn remove_activity(
-    guild_id: &str,
-    anime_id: &i32,
-    db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
+async fn remove_activity(guild_id: &str, anime_id: &i32, db_config: DbConfig) -> Result<()> {
     let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+
     let activity = ActivityData::find()
-        .filter(crate::structure::database::activity_data::Column::ServerId.eq(guild_id))
-        .filter(crate::structure::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
+        .filter(crate::database::activity_data::Column::ServerId.eq(guild_id))
+        .filter(crate::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
         .one(&connection)
         .await?
-        .ok_or(error_dispatch::Error::Option(format!(
-            "Anime with id {} not found",
-            anime_id
-        )))?;
+        .ok_or(anyhow!(format!("Anime with id {} not found", anime_id)))?;
+
     activity.delete(&connection).await?;
+
     Ok(())
 }

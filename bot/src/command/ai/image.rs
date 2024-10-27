@@ -1,17 +1,18 @@
-use std::error::Error;
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
-use crate::event_handler::Handler;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::subcommand::{
     get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
+use anyhow::{anyhow, Result};
+use image::EncodableLayout;
 use prost::bytes::Bytes;
 use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
@@ -19,22 +20,20 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseFollowup,
-    CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateAttachment,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
 };
 use tracing::{error, trace};
 use uuid::Uuid;
 
-pub struct ImageCommand<'de> {
-    pub ctx: Context,
+pub struct ImageCommand {
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub handler: &'de Handler,
     pub command_name: String,
 }
 
-impl Command for ImageCommand<'_> {
-    fn get_ctx(&self) -> &Context {
+impl Command for ImageCommand {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -42,40 +41,53 @@ impl Command for ImageCommand<'_> {
         &self.command_interaction
     }
 }
-impl SlashCommand for ImageCommand<'_> {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
+
+impl SlashCommand for ImageCommand {
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = &self.ctx;
+        let bot_data = ctx.data::<BotData>().clone();
         if self
             .check_hourly_limit(
                 self.command_name.clone(),
-                self.handler,
+                &bot_data.clone(),
                 PremiumCommandType::AIImage,
             )
             .await?
         {
-            return Err(Box::new(error_dispatch::Error::Option(String::from(
+            return Err(anyhow!(
                 "You have reached your hourly limit. Please try again later.",
-            ))));
+            ));
         }
-        let ctx = &self.ctx;
+
         let command_interaction = &self.command_interaction;
-        let config = &self.config;
+
+        let config = bot_data.config.clone();
 
         let map = get_option_map_integer_subcommand(command_interaction);
+
         let n = *map.get(&String::from("n")).unwrap_or(&1);
-        let data = get_value(command_interaction, n, config);
-        send_embed(ctx, command_interaction, config, data, n).await
+
+        let data = get_value(command_interaction, n, &config);
+
+        send_embed(ctx, command_interaction, &config, data, n).await
     }
 }
 
 fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Config>) -> Value {
     let map = get_option_map_string_subcommand(command_interaction);
+
     let prompt = map
         .get(&String::from("description"))
         .unwrap_or(DEFAULT_STRING);
+
     let model = config.ai.image.ai_image_model.clone().unwrap_or_default();
+
     let model = model.as_str();
+
     let quality = config.ai.image.ai_image_style.clone();
+
     let style = config.ai.image.ai_image_quality.clone();
+
     let size = config
         .ai
         .image
@@ -125,16 +137,17 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
             })
         }
     };
+
     data
 }
 
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: &Arc<Config>,
     data: Value,
     n: i64,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
         None => String::from("0"),
@@ -149,15 +162,18 @@ async fn send_embed(
         .await?;
 
     let uuid_name = Uuid::new_v4();
+
     let filename = format!("{}.png", uuid_name);
 
     let token = config.ai.image.ai_image_token.clone().unwrap_or_default();
+
     let url = config
         .ai
         .image
         .ai_image_base_url
         .clone()
         .unwrap_or_default();
+
     // check the last 3 characters of the url if it v1/ or v1 or something else
     let url = if url.ends_with("v1/") {
         format!("{}images/generations", url)
@@ -170,21 +186,29 @@ async fn send_embed(
     let client = reqwest::Client::new();
 
     let token = token.as_str();
+
     let mut headers = HeaderMap::new();
+
     headers.insert(
         AUTHORIZATION,
         HeaderValue::from_str(&format!("Bearer {}", token))?,
     );
+
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
     let url = url.as_str();
+
     let res = client.post(url).headers(headers).json(&data).send().await?;
+
     let res = res.json().await?;
+
     trace!(?res);
+
     let guild_id = match command_interaction.guild_id {
         Some(guild_id) => guild_id.to_string(),
         None => String::from("0"),
     };
+
     let bytes = get_image_from_response(
         res,
         config.image.save_image.clone(),
@@ -210,6 +234,7 @@ async fn send_embed(
         image_with_n_greater_than_1(image_localised, filename, command_interaction, ctx, bytes)
             .await?
     }
+
     Ok(())
 }
 
@@ -217,21 +242,25 @@ async fn image_with_n_equal_1(
     image_localised: ImageLocalised,
     filename: String,
     command_interaction: &CommandInteraction,
-    ctx: &Context,
+    ctx: &SerenityContext,
     bytes: Bytes,
     saver_server: String,
     token: Option<String>,
     save_type: Option<String>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let builder_embed = get_default_embed(None)
         .image(format!("attachment://{}", &filename))
         .title(image_localised.title);
+
     let guild_id = match command_interaction.guild_id {
         Some(guild_id) => guild_id.to_string(),
         None => String::from("0"),
     };
+
     let token = token.unwrap_or_default();
+
     let saver = save_type.unwrap_or_default();
+
     match image_saver(
         guild_id,
         filename.clone(),
@@ -245,7 +274,10 @@ async fn image_with_n_equal_1(
         Ok(_) => (),
         Err(e) => error!("Error saving image: {}", e),
     }
-    let attachment = CreateAttachment::bytes(bytes.clone(), &filename);
+
+    let bytes = bytes.as_bytes().to_vec();
+    let cow_bytes = Cow::from(bytes);
+    let attachment = CreateAttachment::bytes(cow_bytes, filename);
 
     let builder_message = CreateInteractionResponseFollowup::new()
         .embed(builder_embed)
@@ -254,6 +286,7 @@ async fn image_with_n_equal_1(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await?;
+
     Ok(())
 }
 
@@ -261,18 +294,22 @@ async fn image_with_n_greater_than_1(
     image_localised: ImageLocalised,
     filename: String,
     command_interaction: &CommandInteraction,
-    ctx: &Context,
+    ctx: &SerenityContext,
     bytes: Vec<Bytes>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let message = image_localised.title;
+
     let attachments: Vec<CreateAttachment> = bytes
         .iter()
         .enumerate()
         .map(|(index, byte)| {
             let filename = format!("{}_{}.png", filename, index);
-            CreateAttachment::bytes(byte.clone(), filename)
+            let byte = byte.as_bytes().to_vec();
+            let cow_byte = Cow::from(byte);
+            CreateAttachment::bytes(cow_byte, filename)
         })
         .collect();
+
     let builder_message = CreateInteractionResponseFollowup::new()
         .content(message)
         .files(attachments);
@@ -280,6 +317,7 @@ async fn image_with_n_greater_than_1(
     command_interaction
         .create_followup(&ctx.http, builder_message)
         .await?;
+
     Ok(())
 }
 
@@ -289,28 +327,38 @@ async fn get_image_from_response(
     token: Option<String>,
     save_type: Option<String>,
     guild_id: String,
-) -> Result<Vec<Bytes>, Box<dyn Error>> {
+) -> Result<Vec<Bytes>> {
     let token = token.unwrap_or_default();
+
     let saver = save_type.unwrap_or_default();
+
     let mut bytes = Vec::new();
+
     let root: Root = match serde_json::from_value(json.clone()) {
         Ok(root) => root,
         Err(e) => {
             let root1: Root1 = serde_json::from_value(json)?;
 
-            return Err(Box::new(error_dispatch::Error::Option(format!(
+            return Err(anyhow!(format!(
                 "Error: {} ............ {:?}",
                 e, root1.error
-            ))));
+            )));
         }
     };
+
     let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();
+
     trace!("{:?}", urls);
+
     for (i, url) in urls.iter().enumerate() {
         let client = reqwest::Client::new();
+
         let res = client.get(url).send().await?;
+
         let body = res.bytes().await?;
+
         let filename = format!("ai_{}_{}.png", i, Uuid::new_v4());
+
         match image_saver(
             guild_id.clone(),
             filename.clone(),
@@ -324,23 +372,28 @@ async fn get_image_from_response(
             Ok(_) => (),
             Err(e) => error!("Error saving image: {}", e),
         }
+
         bytes.push(body);
     }
+
     Ok(bytes)
 }
 
 #[derive(Debug, Deserialize)]
+
 struct Root {
     #[serde(rename = "data")]
     data: Vec<Data>,
 }
 
 #[derive(Debug, Deserialize)]
+
 struct Data {
     url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+
 struct AiError {
     pub message: String,
     #[serde(rename = "type")]
@@ -350,6 +403,7 @@ struct AiError {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+
 struct Root1 {
     pub error: AiError,
 }

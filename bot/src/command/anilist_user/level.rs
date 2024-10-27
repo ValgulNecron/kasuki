@@ -1,37 +1,37 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
 use once_cell::sync::Lazy;
 use sea_orm::EntityTrait;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
 use tokio::sync::RwLock;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::Command;
 use crate::config::{Config, DbConfig};
+use crate::database::prelude::RegisteredUser;
+use crate::database::registered_user::Column;
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::database::prelude::RegisteredUser;
-use crate::structure::database::registered_user::Column;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
+use anyhow::{anyhow, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
+use small_fixed_array::FixedString;
 
 pub struct LevelCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
 }
 
 impl Command for LevelCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -41,71 +41,67 @@ impl Command for LevelCommand {
 }
 
 impl LevelCommand {
-    pub async fn run_slash(self) -> Result<(), Box<dyn Error>> {
+    pub async fn run_slash(self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
         send_embed(
             &self.ctx,
             &self.command_interaction,
-            self.config,
-            self.anilist_cache,
+            bot_data.config.clone(),
+            bot_data.anilist_cache.clone(),
         )
         .await
     }
 }
 
 pub async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
     anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the username from the command interaction
     let map = get_option_map_string(command_interaction);
-    let user = map.get(&String::from("username"));
+
+    let user = map.get(&FixedString::from_str_trunc("username"));
+
     match user {
         Some(value) => {
             // If a username is provided, fetch the user data and send an embed
             let data: User = get_user(value, anilist_cache).await?;
+
             send_embed2(ctx, command_interaction, data, config.db.clone()).await
         }
         None => {
             // If no username is provided, retrieve the ID of the user who triggered the command
             let user_id = &command_interaction.user.id.to_string();
+
             // Check if the user is registered
             let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+
             let row = RegisteredUser::find()
                 .filter(Column::UserId.eq(user_id))
                 .one(&connection)
                 .await?;
-            let user = row.ok_or(error_dispatch::Error::Option(String::from(
+
+            let user = row.ok_or(anyhow!(
                 "No user specified or linked to this discord account",
-            )))?;
+            ))?;
 
             // Fetch the user data and send an embed
             let data: User = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
+
             send_embed2(ctx, command_interaction, data, config.db.clone()).await
         }
     }
 }
 
-/// Sends an embed containing a user's level and progress based on their anime and manga statistics.
-///
-/// This function calculates the user's level and progress based on their anime and manga statistics, constructs an embed containing this information, and sends it as a response to the command interaction.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this command is being executed.
-/// * `command_interaction` - The interaction that triggered this command.
-/// * `data` - The user data to use for calculating the level and progress.
-///
-/// # Returns
-///
-/// A `Result` that is `Ok` if the command executed successfully, or `Err` if an error occurred.
 pub async fn send_embed2(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     user: User,
     db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Get the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -117,7 +113,9 @@ pub async fn send_embed2(
 
     // Clone the manga and anime statistics
     let statistics = user.statistics.clone().unwrap();
+
     let manga = statistics.manga.clone();
+
     let anime = statistics.anime.clone();
 
     // Calculate the number of manga and anime completed
@@ -126,17 +124,20 @@ pub async fn send_embed2(
     } else {
         0
     };
+
     let anime_completed = if let Some(anime) = anime.clone() {
         get_completed(anime.statuses.unwrap())
     } else {
         0
     };
+
     // Get the number of chapters read and minutes watched
     let chap_read = if let Some(manga) = manga.clone() {
         manga.chapters_read
     } else {
         0
     };
+
     let tw = if let Some(anime) = anime.clone() {
         anime.minutes_watched
     } else {
@@ -169,9 +170,8 @@ pub async fn send_embed2(
         );
 
     // Add the user's banner image to the embed if it exists
-    match &user.banner_image {
-        Some(banner_image) => builder_embed = builder_embed.image(banner_image),
-        None => {}
+    if let Some(banner_image) = &user.banner_image {
+        builder_embed = builder_embed.image(banner_image)
     }
 
     // Create the message for the response
@@ -295,52 +295,20 @@ pub static LEVELS: Lazy<[(u32, f64, f64); 102]> = Lazy::new(|| {
     ]
 });
 
-/// Calculates the level, progress within that level, and the total progress required to reach the next level based on the given experience points (xp).
-///
-/// This function iterates over the predefined LEVELS array in reverse order. For each level, it checks if the given xp is greater than or equal to the required xp for that level.
-/// If it is, it calculates the progress within that level and the total progress required to reach the next level, and returns these values along with the level.
-/// If the given xp is less than the required xp for all levels, it returns 0 for the level and progress, and 20.0 for the total progress required to reach the next level.
-///
-/// # Arguments
-///
-/// * `xp` - The experience points for which to calculate the level and progress.
-///
-/// # Returns
-///
-/// A tuple containing the level as a `u32`, the progress within that level as a `f64`, and the total progress required to reach the next level as a `f64`.
 fn get_level(xp: f64) -> (u32, f64, f64) {
     for &(level, required_xp, next_level_required_xp) in LEVELS.iter().rev() {
         if xp >= required_xp {
             let level_progress = xp - required_xp;
+
             let level_progress_total = next_level_required_xp - required_xp;
+
             return (level, level_progress, level_progress_total);
         }
     }
+
     (0, 0.0, 20.0)
 }
 
-/// Calculates the experience points required to reach a given level.
-///
-/// This function uses a match expression to determine the formula to use based on the given level.
-/// The formulas are as follows:
-/// - For levels 0 to 9, the cube of the level is used.
-/// - For levels 10 to 29, the fourth power of the level is used.
-/// - For levels 30 to 39, the fifth power of the level is used.
-/// - For levels 40 to 49, the sixth power of the level is used.
-/// - For levels 50 to 59, the seventh power of the level is used.
-/// - For levels 60 to 69, the eighth power of the level is used.
-/// - For levels 70 to 79, the ninth power of the level is used.
-/// - For levels 80 to 89, the tenth power of the level is used.
-/// - For levels 90 to 100, the eleventh power of the level is used.
-/// - For levels above 100, the maximum possible `f64` value is used.
-///
-/// # Arguments
-///
-/// * `level` - The level for which to calculate the required experience points.
-///
-/// # Returns
-///
-/// The experience points required to reach the given level as a `f64`.
 fn xp_required_for_level(level: u32) -> f64 {
     match level {
         0..=9 => (level as f64).powf(3f64),

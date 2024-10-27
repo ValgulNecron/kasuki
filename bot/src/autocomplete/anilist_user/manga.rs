@@ -1,47 +1,31 @@
-use std::sync::Arc;
-
-use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context};
-use tokio::sync::RwLock;
 
 use crate::constant::DEFAULT_STRING;
+use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::structure::autocomplete::anilist::media::{
     send_auto_complete, MediaAutocompleteVariables, MediaFormat, MediaType,
 };
 
-/// `autocomplete` is an asynchronous function that handles the autocomplete feature for manga search.
-/// It takes a `Context` and a `CommandInteraction` as parameters.
-/// `ctx` is the context in which this function is called.
-/// `autocomplete_interaction` is the command interaction that triggered this function.
-///
-/// This function first gets the map of options from the command interaction.
-/// It then gets the manga name from the map of options.
-/// If the manga name is not found in the map, it defaults to a predefined string.
-/// It then creates a new `MediaPageWrapper` for the autocomplete manga search with the manga name.
-/// It sends the autocomplete response with the `MediaPageWrapper`.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this function is called.
-/// * `autocomplete_interaction` - The command interaction that triggered this function.
-///
-/// # Async
-///
-/// This function is asynchronous. It awaits the creation of the `MediaPageWrapper` and the sending of the autocomplete response.
-pub async fn autocomplete(
-    ctx: Context,
-    autocomplete_interaction: CommandInteraction,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) {
+pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
     let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+    let bot_data = ctx.data::<BotData>().clone();
+
     let manga_search = map
         .get(&String::from("manga_name"))
         .unwrap_or(DEFAULT_STRING);
+
     let var = MediaAutocompleteVariables {
         search: Some(manga_search.as_str()),
         in_media_format: Some(vec![Some(MediaFormat::Manga), Some(MediaFormat::OneShot)]),
         media_type: Some(MediaType::Manga),
     };
-    send_auto_complete(ctx, autocomplete_interaction, var, anilist_cache).await;
+
+    send_auto_complete(
+        &ctx,
+        autocomplete_interaction,
+        var,
+        bot_data.anilist_cache.clone(),
+    )
+    .await;
 }

@@ -1,27 +1,27 @@
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
 use crate::constant::{APP_VERSION, LIBRARY};
+use crate::database::prelude::UserColor;
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
-use crate::structure::database::prelude::UserColor;
 use crate::structure::message::bot::info::load_localization_info;
+use anyhow::{anyhow, Result};
 use sea_orm::EntityTrait;
 use serenity::all::{
-    ButtonStyle, CommandInteraction, Context, CreateActionRow, CreateButton, CreateEmbedFooter,
-    CreateInteractionResponse, CreateInteractionResponseMessage,
+    ButtonStyle, CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton,
+    CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage,
 };
-use std::error::Error;
+use std::borrow::Cow;
 use std::sync::Arc;
 
 pub struct InfoCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for InfoCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -31,15 +31,23 @@ impl Command for InfoCommand {
 }
 
 impl SlashCommand for InfoCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
+
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -51,15 +59,25 @@ async fn send_embed(
 
     // Retrieve various details about the bot and the server
     let shard_count = ctx.cache.shard_count();
+
     let shard = ctx.shard_id.to_string();
+
     let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+
     let user_count = UserColor::find().all(&connection).await?.len();
+
     let bot = ctx.http.get_current_application_info().await?;
+
     let bot_name = bot.name;
+
     let bot_id = bot.id.to_string();
+
     let creation_date = format!("<t:{}:F>", bot.id.created_at().unix_timestamp());
+
     let server_count = ctx.cache.guild_count();
+
     let app_guild_count = bot.approximate_guild_count.unwrap_or_default() as usize;
+
     let guild_count = if server_count > app_guild_count {
         server_count
     } else {
@@ -67,10 +85,10 @@ async fn send_embed(
     };
 
     let app_installation_count = bot.approximate_user_install_count.unwrap_or_default() as usize;
+
     // Retrieve the bot's avatar
-    let bot_icon = bot
-        .icon
-        .ok_or(error_dispatch::Error::WebRequest("No bot icon".to_string()))?;
+    let bot_icon = bot.icon.ok_or(anyhow!("No bot icon"))?;
+
     let avatar = if bot_icon.is_animated() {
         format!(
             "https://cdn.discordapp.com/icons/{}/{}.gif?size=1024",
@@ -107,32 +125,46 @@ async fn send_embed(
         .footer(CreateEmbedFooter::new(&info_localised.footer));
 
     // Initialize the buttons and components for the response
-    let mut buttons = Vec::new();
-    let mut components = Vec::new();
+    let mut buttons = Cow::from(vec![]);
+
+    let mut components = vec![];
 
     // Add buttons for various actions
-    let button = CreateButton::new_link("https://github.com/ValgulNecron/kasuki")
-        .style(ButtonStyle::Primary)
-        .label(&info_localised.button_see_on_github);
-    buttons.push(button);
-    let button = CreateButton::new_link("https://kasuki.valgul.moe/")
-        .style(ButtonStyle::Primary)
-        .label(&info_localised.button_official_website);
-    buttons.push(button);
-    let button = CreateButton::new_link("https://discord.gg/h4hYxMURQx")
-        .style(ButtonStyle::Primary)
-        .label(&info_localised.button_official_discord);
-    buttons.push(button);
+
+    buttons.to_mut().push(
+        CreateButton::new_link("https://github.com/ValgulNecron/kasuki")
+            .style(ButtonStyle::Primary)
+            .label(&info_localised.button_see_on_github),
+    );
+
+    buttons.to_mut().push(
+        CreateButton::new_link("https://kasuki.valgul.moe/")
+            .style(ButtonStyle::Primary)
+            .label(&info_localised.button_official_website),
+    );
+
+    buttons.to_mut().push(
+        CreateButton::new_link("https://discord.gg/h4hYxMURQx")
+            .style(ButtonStyle::Primary)
+            .label(&info_localised.button_official_discord),
+    );
+
     components.push(CreateActionRow::Buttons(buttons.clone()));
-    buttons.clear();
-    let button = CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=395677134144&scope=bot")
-        .style(ButtonStyle::Primary)
-        .label(&info_localised.button_add_the_bot);
-    buttons.push(button);
-    let button = CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=1122304053620260924&permissions=395677134144&scope=bot")
-        .style(ButtonStyle::Primary)
-        .label(&info_localised.button_add_the_beta_bot);
-    buttons.push(button);
+
+    buttons.to_mut().clear();
+
+    buttons.to_mut().push(
+        CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=395677134144&scope=bot")
+            .style(ButtonStyle::Primary)
+            .label(&info_localised.button_add_the_bot)
+    );
+
+    buttons.to_mut().push(
+        CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=1122304053620260924&permissions=395677134144&scope=bot")
+            .style(ButtonStyle::Primary)
+            .label(&info_localised.button_add_the_beta_bot)
+    );
+
     components.push(CreateActionRow::Buttons(buttons));
 
     // Construct the message for the response

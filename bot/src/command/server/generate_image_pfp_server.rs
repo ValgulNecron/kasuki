@@ -1,13 +1,13 @@
-use std::error::Error;
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::{Config, DbConfig};
+use crate::database::prelude::ServerImage;
+use crate::database::server_image::Column;
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
-use crate::structure::database::prelude::ServerImage;
-use crate::structure::database::server_image::Column;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
@@ -16,20 +16,20 @@ use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-    CommandInteraction, Context, CreateAttachment, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateAttachment,
+    CreateInteractionResponseMessage,
 };
 use serenity::builder::CreateInteractionResponseFollowup;
 use tracing::trace;
 use uuid::Uuid;
 
 pub struct GenerateImagePfPCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for GenerateImagePfPCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -39,24 +39,32 @@ impl Command for GenerateImagePfPCommand {
 }
 
 impl SlashCommand for GenerateImagePfPCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        init(&self.ctx, &self.command_interaction, self.config.clone()).await
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        init(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
 
 async fn init(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     send_embed(ctx, command_interaction, "local", config.db.clone()).await
 }
+
 pub async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     image_type: &str,
     db_config: DbConfig,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -83,7 +91,7 @@ pub async fn send_embed(
         .filter(Column::ImageType.eq(image_type.to_string()))
         .one(&connection)
         .await?
-        .ok_or(error_dispatch::Error::Option(format!(
+        .ok_or(anyhow!(format!(
             "Server image with type {} not found",
             image_type
         )))?
@@ -91,10 +99,14 @@ pub async fn send_embed(
 
     // Decode the image from base64
     let input = image.trim_start_matches("data:image/png;base64,");
+
     let image_data: Vec<u8> = BASE64.decode(input)?;
+
+    drop(image);
 
     // Generate a unique filename for the image
     let uuid = Uuid::new_v4();
+
     let image_path = format!("{}.png", uuid);
 
     // Construct the embed for the response
@@ -114,6 +126,8 @@ pub async fn send_embed(
     command_interaction
         .create_followup(&ctx.http, builder)
         .await?;
+
     trace!("Done");
+
     Ok(())
 }

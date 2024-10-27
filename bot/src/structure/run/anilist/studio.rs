@@ -1,13 +1,16 @@
 #[cynic::schema("anilist")]
+
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct StudioQuerryIdVariables {
     pub id: Option<i32>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "StudioQuerryIdVariables")]
+
 pub struct StudioQuerryId {
     #[arguments(id: $ id)]
     #[cynic(rename = "Studio")]
@@ -15,12 +18,14 @@ pub struct StudioQuerryId {
 }
 
 #[derive(cynic::QueryVariables, Debug, Clone)]
+
 pub struct StudioQuerrySearchVariables<'a> {
     pub search: Option<&'a str>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "StudioQuerrySearchVariables")]
+
 pub struct StudioQuerrySearch {
     #[arguments(search: $ search)]
     #[cynic(rename = "Studio")]
@@ -28,6 +33,7 @@ pub struct StudioQuerrySearch {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct Studio {
     pub id: i32,
     pub name: String,
@@ -39,23 +45,27 @@ pub struct Studio {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct MediaConnection {
     pub nodes: Option<Vec<Option<Media>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct Media {
     pub title: Option<MediaTitle>,
     pub site_url: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
+
 pub struct MediaTitle {
     pub romaji: Option<String>,
     pub user_preferred: Option<String>,
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
+
 pub enum MediaSort {
     Id,
     IdDesc,

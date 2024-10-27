@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -9,6 +8,7 @@ use tracing::trace;
 use crate::helper::vndbapi::common::do_request_cached;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+
 pub struct Stats {
     pub chars: i32,
 
@@ -24,12 +24,16 @@ pub struct Stats {
 
     pub vn: i32,
 }
-pub async fn get_stats(
-    vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<Stats, Box<dyn Error>> {
+use anyhow::Result;
+
+pub async fn get_stats(vndb_cache: Arc<RwLock<Cache<String, String>>>) -> Result<Stats> {
     let path = "/stats".to_string();
+
     let response = do_request_cached(path.clone(), vndb_cache).await?;
+
     trace!("Response: {}", response);
+
     let response: Stats = serde_json::from_str(&response)?;
+
     Ok(response)
 }

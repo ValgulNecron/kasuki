@@ -1,10 +1,9 @@
-use std::error::Error;
-
 use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+
 pub struct CharacterLocalised {
     pub blood_type: String,
 
@@ -31,10 +30,13 @@ pub struct CharacterLocalised {
     pub traits: String,
 }
 
+use anyhow::Result;
+
 pub async fn load_localization_character(
     guild_id: String,
     db_config: DbConfig,
-) -> Result<CharacterLocalised, Box<dyn Error>> {
+) -> Result<CharacterLocalised> {
     let path = "json/message/vn/character.json";
+
     load_localization(guild_id, path, db_config).await
 }

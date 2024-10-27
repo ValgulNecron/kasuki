@@ -3,113 +3,113 @@ syntax = "proto3";
 package info;
 
 service Info {
-    rpc GetInfo (InfoRequest) returns (InfoResponse);
+  rpc GetInfo (InfoRequest) returns (InfoResponse);
 }
 
 message InfoRequest {
 }
 
 message InfoResponse {
-    BotInfoData bot_info = 1;
-    SystemInfoData sys_info = 2;
+  BotInfoData bot_info = 1;
+  SystemInfoData sys_info = 2;
 }
 
 message BotStat {
-    string uptime = 1;
-    string number_of_commands_executed = 2;
-    int64 number_of_members = 3;
-    int64 number_of_guilds = 4;
-    repeated ShardStats shard_info = 5;
+  string uptime = 1;
+  string number_of_commands_executed = 2;
+  int64 number_of_members = 3;
+  int64 number_of_guilds = 4;
+  repeated ShardStats shard_info = 5;
 }
 
 message ShardStats {
-    string id = 1;
-    string latency = 2;
-    string stage = 3;
+  string id = 1;
+  string latency = 2;
+  string stage = 3;
 }
 
 message BotSystemUsage {
-    string cpu = 1;
-    string memory = 2;
+  string cpu = 1;
+  string memory = 2;
 }
 
 message BotInfo {
-    string name = 1;
-    string version = 2;
-    string id = 3;
-    string bot_activity = 4;
-    string description = 5;
-    optional BotProfile bot_profile = 6;
+  string name = 1;
+  string version = 2;
+  string id = 3;
+  string bot_activity = 4;
+  string description = 5;
+  optional BotProfile bot_profile = 6;
 }
 
 message BotProfile {
-    string profile_picture = 1;
-    optional string banner = 2;
+  string profile_picture = 1;
+  optional string banner = 2;
 }
 
 message OwnerInfo {
-    string name = 1;
-    string id = 2;
-    string profile_picture = 3;
-    optional string banner = 4;
-    bool team_owned = 5;
-    repeated TeamMember team_members = 6;
-    optional TeamMember team_owner = 7;
+  string name = 1;
+  string id = 2;
+  string profile_picture = 3;
+  optional string banner = 4;
+  bool team_owned = 5;
+  repeated TeamMember team_members = 6;
+  optional TeamMember team_owner = 7;
 }
 
 message TeamMember {
-    string role = 1;
-    string membership_state = 2;
-    string username = 3;
-    string id = 4;
-    string profile_picture = 5;
-    optional string banner = 6;
+  string role = 1;
+  string membership_state = 2;
+  string username = 3;
+  string id = 4;
+  string profile_picture = 5;
+  optional string banner = 6;
 }
 
 message BotInfoData {
-    BotStat stat = 1;
-    BotSystemUsage usage = 2;
-    BotInfo info = 3;
-    OwnerInfo owner_info = 4;
-    GuildInfo guild_info = 5;
-    UserInfo user_info = 6;
+  BotStat stat = 1;
+  BotSystemUsage usage = 2;
+  BotInfo info = 3;
+  OwnerInfo owner_info = 4;
+  GuildInfo guild_info = 5;
+  UserInfo user_info = 6;
 }
 
 message GuildInfo {
-    int64 guild_count = 1;
-    repeated Guild guilds = 2;
+  int64 guild_count = 1;
+  repeated Guild guilds = 2;
 }
 
 message Guild {
-    string id = 1;
-    string name = 2;
-    string owner_id = 3;
-    optional string icon = 4;
-    optional string banner = 5;
-    optional string description = 6;
+  string id = 1;
+  string name = 2;
+  string owner_id = 3;
+  optional string icon = 4;
+  optional string banner = 5;
+  optional string description = 6;
 }
 
 message UserInfo {
-    int64 user_count = 1;
-    repeated User users = 2;
+  int64 user_count = 1;
+  repeated User users = 2;
 }
 
 message User {
-    string username = 1;
-    string id = 2;
-    string profile_picture = 3;
-    bool is_bot = 4;
-    repeated string guilds = 5;
-    optional string banner = 10;
+  string username = 1;
+  string id = 2;
+  string profile_picture = 3;
+  bool is_bot = 4;
+  repeated string guilds = 5;
+  optional string banner = 10;
 }
 
 message SystemInfoData {
-    string os = 1;
-    string system_total_memory = 2;
-    string system_used_memory = 3;
-    string system_cpu_usage = 4;
-    string system_cpu_name = 5;
-    string system_cpu_brand = 6;
-    string system_cpu_frequency = 7;
-    string system_cpu_count = 8;
+  string os = 1;
+  string system_total_memory = 2;
+  string system_used_memory = 3;
+  string system_cpu_usage = 4;
+  string system_cpu_name = 5;
+  string system_cpu_brand = 6;
+  string system_cpu_frequency = 7;
+  string system_cpu_count = 8;
 }

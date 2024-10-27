@@ -1,3 +1,3 @@
-pub mod command_struct;
+pub mod function;
 pub mod registration_dispatcher;
-pub mod registration_function;
+pub mod structure;

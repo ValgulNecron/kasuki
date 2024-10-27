@@ -1,23 +1,24 @@
-use std::error::Error;
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::config::Config;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::helper::error_management::error_dispatch;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{
-    CommandInteraction, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
+    CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
+    CreateInteractionResponseMessage,
 };
+use serenity::nonmax::NonMaxU64;
 
 pub struct GuildCommand {
-    pub ctx: Context,
+    pub ctx: SerenityContext,
     pub command_interaction: CommandInteraction,
-    pub config: Arc<Config>,
 }
 
 impl Command for GuildCommand {
-    fn get_ctx(&self) -> &Context {
+    fn get_ctx(&self) -> &SerenityContext {
         &self.ctx
     }
 
@@ -27,15 +28,23 @@ impl Command for GuildCommand {
 }
 
 impl SlashCommand for GuildCommand {
-    async fn run_slash(&self) -> Result<(), Box<dyn Error>> {
-        send_embed(&self.ctx, &self.command_interaction, self.config.clone()).await
+    async fn run_slash(&self) -> Result<()> {
+        let ctx = self.get_ctx();
+        let bot_data = ctx.data::<BotData>().clone();
+        send_embed(
+            &self.ctx,
+            &self.command_interaction,
+            bot_data.config.clone(),
+        )
+        .await
     }
 }
+
 async fn send_embed(
-    ctx: &Context,
+    ctx: &SerenityContext,
     command_interaction: &CommandInteraction,
     config: Arc<Config>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     // Retrieve the guild ID from the command interaction
     let guild_id = match command_interaction.guild_id {
         Some(id) => id.to_string(),
@@ -46,35 +55,51 @@ async fn send_embed(
     let guild_localised = load_localization_guild(guild_id, config.db.clone()).await?;
 
     // Retrieve the guild ID from the command interaction or return an error if it does not exist
-    let guild_id = command_interaction
-        .guild_id
-        .ok_or(error_dispatch::Error::Option(String::from("No guild ID")))?;
+    let guild_id = command_interaction.guild_id.ok_or(anyhow!("No guild ID"))?;
 
     // Retrieve the guild's information or return an error if it could not be retrieved
     let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
     // Retrieve various details about the guild
     let channels = guild.channels(&ctx.http).await.unwrap_or_default().len();
+
     let guild_id = guild.id;
+
     let guild_name = guild.name.clone();
+
     let max_member = guild.max_members.unwrap_or_default();
+
     let actual_member = guild.approximate_member_count.unwrap_or_default();
+
     let online_member = guild.approximate_presence_count.unwrap_or_default();
-    let max_online = guild.max_presences.unwrap_or(25000);
+
+    let max_online = guild
+        .max_presences
+        .unwrap_or(NonMaxU64::new(25000).unwrap_or_default());
+
     let guild_banner = guild.banner_url();
+
     let guild_avatar = guild.icon_url();
+
     let guild_lang = guild.preferred_locale;
+
     let guild_premium = guild.premium_tier;
+
     let guild_sub = guild.premium_subscription_count.unwrap_or_default();
+
     let guild_nsfw = guild.nsfw_level;
+
     let creation_date = format!("<t:{}:F>", guild.id.created_at().unix_timestamp());
+
     let owner = guild
         .owner_id
         .to_user(&ctx.http)
         .await
         .map(|u| u.tag())
         .unwrap_or_default();
+
     let roles = guild.roles.len();
+
     let verification_level = guild.verification_level;
 
     // Initialize a vector to store the fields for the embed
@@ -82,29 +107,41 @@ async fn send_embed(
 
     // Add the fields to the vector
     fields.push((guild_localised.guild_id, guild_id.to_string(), true));
-    fields.push((guild_localised.guild_name, guild_name, true));
+
+    fields.push((guild_localised.guild_name, guild_name.to_string(), true));
+
     fields.push((
         guild_localised.member,
         format!("{}/{}", actual_member, max_member),
         true,
     ));
+
     fields.push((
         guild_localised.online,
         format!("{}/{}", online_member, max_online),
         true,
     ));
+
     fields.push((guild_localised.creation_date, creation_date, true));
-    fields.push((guild_localised.lang, guild_lang, true));
+
+    fields.push((guild_localised.lang, guild_lang.to_string(), true));
+
     fields.push((
         guild_localised.premium,
         format!("{:?}", guild_premium),
         true,
     ));
+
     fields.push((guild_localised.sub, guild_sub.to_string(), true));
+
     fields.push((guild_localised.nsfw, format!("{:?}", guild_nsfw), true));
+
     fields.push((guild_localised.owner, owner, true));
+
     fields.push((guild_localised.roles, roles.to_string(), true));
+
     fields.push((guild_localised.channels, channels.to_string(), true));
+
     fields.push((
         guild_localised.verification_level,
         format!("{:?}", verification_level),
@@ -134,5 +171,6 @@ async fn send_embed(
     command_interaction
         .create_response(&ctx.http, builder)
         .await?;
+
     Ok(())
 }

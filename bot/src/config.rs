@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct Config {
     pub bot: BotConfig,
     pub db: DbConfig,
@@ -11,6 +12,7 @@ pub struct Config {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct BotConfig {
     pub discord_token: String,
     pub bot_activity: String,
@@ -19,6 +21,7 @@ pub struct BotConfig {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct DbConfig {
     pub db_type: String,
     pub host: Option<String>,
@@ -29,6 +32,7 @@ pub struct DbConfig {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct ImageConfig {
     pub save_image: String,
     pub save_server: Option<String>,
@@ -36,12 +40,14 @@ pub struct ImageConfig {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct LoggingConfig {
     pub log_level: String,
     pub max_log_retention: u32,
 }
 
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct AICfg {
     pub ai_token: String,
     pub ai_base_url: String,
@@ -51,6 +57,7 @@ pub struct AICfg {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct AICfgImage {
     pub ai_image_token: Option<String>,
     pub ai_image_base_url: Option<String>,
@@ -61,6 +68,7 @@ pub struct AICfgImage {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct AICfgQuestion {
     pub ai_question_token: Option<String>,
     pub ai_question_base_url: Option<String>,
@@ -68,6 +76,7 @@ pub struct AICfgQuestion {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct AICfgTranscription {
     pub ai_transcription_token: Option<String>,
     pub ai_transcription_base_url: Option<String>,
@@ -75,6 +84,7 @@ pub struct AICfgTranscription {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+
 pub struct GrpcCfg {
     pub grpc_is_on: bool,
     pub grpc_port: u16,
@@ -155,6 +165,7 @@ impl Config {
         {
             self.ai.image.ai_image_token = Some(self.ai.ai_token.clone());
         }
+
         if self.ai.image.ai_image_base_url.is_none()
             || self
                 .ai
@@ -166,6 +177,7 @@ impl Config {
         {
             self.ai.image.ai_image_base_url = Some(self.ai.ai_base_url.clone());
         }
+
         if self.ai.image.ai_image_model.is_none()
             || self
                 .ai
@@ -189,6 +201,7 @@ impl Config {
         {
             self.ai.question.ai_question_token = Some(self.ai.ai_token.clone());
         }
+
         if self.ai.question.ai_question_base_url.is_none()
             || self
                 .ai
@@ -200,6 +213,7 @@ impl Config {
         {
             self.ai.question.ai_question_base_url = Some(self.ai.ai_base_url.clone());
         }
+
         if self.ai.question.ai_question_model.is_none()
             || self
                 .ai
@@ -223,6 +237,7 @@ impl Config {
         {
             self.ai.transcription.ai_transcription_token = Some(self.ai.ai_token.clone());
         }
+
         if self.ai.transcription.ai_transcription_base_url.is_none()
             || self
                 .ai
@@ -234,6 +249,7 @@ impl Config {
         {
             self.ai.transcription.ai_transcription_base_url = Some(self.ai.ai_base_url.clone());
         }
+
         if self.ai.transcription.ai_transcription_model.is_none()
             || self
                 .ai

@@ -44,7 +44,6 @@ impl From<MembershipState> for InternalMembershipState {
         match state {
             MembershipState::Invited => InternalMembershipState::Invited,
             MembershipState::Accepted => InternalMembershipState::Accepted,
-            MembershipState::Unknown(a) => InternalMembershipState::Unknown(a),
             _ => InternalMembershipState::Unknown(u8::MAX),
         }
     }
@@ -61,11 +60,14 @@ impl Display for InternalMembershipState {
 }
 
 #[derive(Debug, Clone)]
+
 pub enum InternalAction {
     Member(InternalMemberAction),
     Other,
 }
+
 #[derive(Debug, Clone)]
+
 pub enum InternalMemberAction {
     BanAdd,
     Kick,

@@ -1,5 +1,5 @@
-use crate::m20240815_181459_user_data::UserData;
-use crate::m20240815_231531_guild_data::GuildData;
+use crate::m20240815_180000_guild_data::GuildData;
+use crate::m20240815_180201_user_data::UserData;
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
@@ -13,7 +13,7 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(ServerUserRelation::Table)
                     .if_not_exists()
-                    .col(pk_auto(ServerUserRelation::UserId))
+                    .col(string(ServerUserRelation::UserId))
                     .col(string(ServerUserRelation::GuildId))
                     .primary_key(
                         Index::create()
