@@ -22,7 +22,7 @@ impl MigrationTrait for Migration {
                     .col(boolean(ModuleActivation::VnModule).default(true))
                     .col(timestamp(ModuleActivation::UpdatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
-                        &mut ForeignKey::create()
+                        ForeignKey::create()
                             .name("FK_server_module_activation")
                             .to(GuildData::Table, GuildData::GuildId)
                             .from(ModuleActivation::Table, ModuleActivation::GuildId)

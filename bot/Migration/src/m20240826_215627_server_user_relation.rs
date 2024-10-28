@@ -21,7 +21,7 @@ impl MigrationTrait for Migration {
                             .col(ServerUserRelation::GuildId),
                     )
                     .foreign_key(
-                        &mut ForeignKey::create()
+                        ForeignKey::create()
                             .name("FK_user_relation")
                             .to(UserData::Table, UserData::UserId)
                             .from(ServerUserRelation::Table, ServerUserRelation::UserId)
@@ -29,7 +29,7 @@ impl MigrationTrait for Migration {
                             .on_update(ForeignKeyAction::Cascade),
                     )
                     .foreign_key(
-                        &mut ForeignKey::create()
+                        ForeignKey::create()
                             .name("FK_server_relation")
                             .to(GuildData::Table, GuildData::GuildId)
                             .from(ServerUserRelation::Table, ServerUserRelation::GuildId)

@@ -6,31 +6,31 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "user_color")]
 
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub user_id: String,
-    pub color: String,
-    pub images: String,
-    pub profile_picture_url: String,
-    pub calculated_at: DateTime,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub user_id: String,
+	pub color: String,
+	pub images: String,
+	pub profile_picture_url: String,
+	pub calculated_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 
 pub enum Relation {
-    #[sea_orm(
-        belongs_to = "super::user_data::Entity",
-        from = "Column::UserId",
-        to = "super::user_data::Column::UserId",
-        on_update = "Cascade",
-        on_delete = "Cascade"
-    )]
-    UserData,
+	#[sea_orm(
+		belongs_to = "super::user_data::Entity",
+		from = "Column::UserId",
+		to = "super::user_data::Column::UserId",
+		on_update = "Cascade",
+		on_delete = "Cascade"
+	)]
+	UserData,
 }
 
 impl Related<super::user_data::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::UserData.def()
-    }
+	fn to() -> RelationDef {
+		Relation::UserData.def()
+	}
 }
 
 impl ActiveModelBehavior for ActiveModel {}
@@ -38,6 +38,6 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 
 pub enum RelatedEntity {
-    #[sea_orm(entity = "super::user_data::Entity")]
-    UserData,
+	#[sea_orm(entity = "super::user_data::Entity")]
+	UserData,
 }

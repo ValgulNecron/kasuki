@@ -1,30 +1,46 @@
 {
   "en": {
-    "field1_title": "Media",
-    "field2_title": "VA",
-    "desc": "**Info** $dob$ $dod$ \n Occupation: $job$ \n Gender: $gender$ \n Age: $age$",
-    "date_of_birth": "\n Date of Birth: $date$.",
-    "date_of_death": "\n Date of death: $date$."
+    "media": "Media",
+    "va": "VA",
+    "date_of_birth": "Date of Birth:.",
+    "date_of_death": "Date of death:.",
+    "hometown": "\n hometown:",
+    "lang": "\n langage:",
+    "occupation": "Occupation:",
+    "age": "Age:",
+    "gender": "Gender:"
   },
   "fr": {
-    "field1_title": "Média",
-    "field2_title": "Doubleur",
-    "desc": "**Info** $dob$ $dod$ \n Occupation : $job$ \n Genre : $gender$ \n Âge : $age$",
-    "date_of_birth": "\n Date de naissance : $date$.",
-    "date_of_death": "\n Date de décès : $date$."
+    "media": "Média",
+    "va": "VA",
+    "date_of_birth": "Date de naissance:.",
+    "date_of_death": "Date de décès:.",
+    "hometown": "\n ville natale:",
+    "lang": "\n langue:",
+    "occupation": "Profession:",
+    "age": "Âge:",
+    "gender": "Genre:"
   },
   "jp": {
-    "field1_title": "メディア",
-    "field2_title": "声優",
-    "desc": "**情報** $dob$ $dod$ \n 職業: $job$ \n 性別: $gender$ \n 年齢: $age$",
-    "date_of_birth": "\n 生年月日: $date$.",
-    "date_of_death": "\n 死亡日: $date$."
+    "media": "メディア",
+    "va": "声優",
+    "date_of_birth": "生年月日:.",
+    "date_of_death": "死亡日:.",
+    "hometown": "\n 出身地:",
+    "lang": "\n 言語:",
+    "occupation": "職業:",
+    "age": "年齢:",
+    "gender": "性別:"
   },
   "de": {
-    "field1_title": "Medien",
-    "field2_title": "Synchronsprecher",
-    "desc": "**Info** $dob$ $dod$ \n Beruf: $job$ \n Geschlecht: $gender$ \n Alter: $age$",
-    "date_of_birth": "\n Geburtsdatum: $date$.",
-    "date_of_death": "\n Todesdatum: $date$."
+    "media": "Medien",
+    "va": "VA",
+    "date_of_birth": "Geburtsdatum:.",
+    "date_of_death": "Todesdatum:.",
+    "hometown": "\n Heimatstadt:",
+    "lang": "\n Sprache:",
+    "occupation": "Beruf:",
+    "age": "Alter:",
+    "gender": "Geschlecht:"
   }
 }

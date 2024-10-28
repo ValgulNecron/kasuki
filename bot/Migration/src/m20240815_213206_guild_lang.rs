@@ -17,7 +17,7 @@ impl MigrationTrait for Migration {
                     .col(string(GuildLang::Lang))
                     .col(timestamp(GuildLang::UpdatedAt).default(Expr::current_timestamp()))
                     .foreign_key(
-                        &mut ForeignKey::create()
+                        ForeignKey::create()
                             .name("FK_server_lang")
                             .to(GuildData::Table, GuildData::GuildId)
                             .from(GuildLang::Table, GuildLang::GuildId)

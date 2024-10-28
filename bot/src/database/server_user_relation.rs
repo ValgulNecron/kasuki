@@ -6,43 +6,43 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "server_user_relation")]
 
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub user_id: String,
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub guild_id: String,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub user_id: String,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub guild_id: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 
 pub enum Relation {
-    #[sea_orm(
-        belongs_to = "super::guild_data::Entity",
-        from = "Column::GuildId",
-        to = "super::guild_data::Column::GuildId",
-        on_update = "Cascade",
-        on_delete = "Cascade"
-    )]
-    GuildData,
-    #[sea_orm(
-        belongs_to = "super::user_data::Entity",
-        from = "Column::UserId",
-        to = "super::user_data::Column::UserId",
-        on_update = "Cascade",
-        on_delete = "Cascade"
-    )]
-    UserData,
+	#[sea_orm(
+		belongs_to = "super::guild_data::Entity",
+		from = "Column::GuildId",
+		to = "super::guild_data::Column::GuildId",
+		on_update = "Cascade",
+		on_delete = "Cascade"
+	)]
+	GuildData,
+	#[sea_orm(
+		belongs_to = "super::user_data::Entity",
+		from = "Column::UserId",
+		to = "super::user_data::Column::UserId",
+		on_update = "Cascade",
+		on_delete = "Cascade"
+	)]
+	UserData,
 }
 
 impl Related<super::guild_data::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::GuildData.def()
-    }
+	fn to() -> RelationDef {
+		Relation::GuildData.def()
+	}
 }
 
 impl Related<super::user_data::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::UserData.def()
-    }
+	fn to() -> RelationDef {
+		Relation::UserData.def()
+	}
 }
 
 impl ActiveModelBehavior for ActiveModel {}
@@ -50,8 +50,8 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 
 pub enum RelatedEntity {
-    #[sea_orm(entity = "super::guild_data::Entity")]
-    GuildData,
-    #[sea_orm(entity = "super::user_data::Entity")]
-    UserData,
+	#[sea_orm(entity = "super::guild_data::Entity")]
+	GuildData,
+	#[sea_orm(entity = "super::user_data::Entity")]
+	UserData,
 }

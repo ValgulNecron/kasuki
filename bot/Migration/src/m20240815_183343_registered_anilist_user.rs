@@ -17,7 +17,7 @@ impl MigrationTrait for Migration {
                     .col(integer(RegisteredUser::AnilistId))
                     .col(timestamp(RegisteredUser::RegisteredAt).default(Expr::current_timestamp()))
                     .foreign_key(
-                        &mut ForeignKey::create()
+                        ForeignKey::create()
                             .name("FK_user_registered_user")
                             .to(UserData::Table, UserData::UserId)
                             .from(RegisteredUser::Table, RegisteredUser::UserId)

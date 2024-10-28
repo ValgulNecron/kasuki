@@ -6,65 +6,65 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "guild_data")]
 
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub guild_id: String,
-    pub guild_name: String,
-    pub updated_at: DateTime,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub guild_id: String,
+	pub guild_name: String,
+	pub updated_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 
 pub enum Relation {
-    #[sea_orm(has_many = "super::activity_data::Entity")]
-    ActivityData,
-    #[sea_orm(has_one = "super::guild_lang::Entity")]
-    GuildLang,
-    #[sea_orm(has_one = "super::module_activation::Entity")]
-    ModuleActivation,
-    #[sea_orm(has_many = "super::server_image::Entity")]
-    ServerImage,
-    #[sea_orm(has_many = "super::server_user_relation::Entity")]
-    ServerUserRelation,
+	#[sea_orm(has_many = "super::activity_data::Entity")]
+	ActivityData,
+	#[sea_orm(has_one = "super::guild_lang::Entity")]
+	GuildLang,
+	#[sea_orm(has_one = "super::module_activation::Entity")]
+	ModuleActivation,
+	#[sea_orm(has_many = "super::server_image::Entity")]
+	ServerImage,
+	#[sea_orm(has_many = "super::server_user_relation::Entity")]
+	ServerUserRelation,
 }
 
 impl Related<super::activity_data::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::ActivityData.def()
-    }
+	fn to() -> RelationDef {
+		Relation::ActivityData.def()
+	}
 }
 
 impl Related<super::guild_lang::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::GuildLang.def()
-    }
+	fn to() -> RelationDef {
+		Relation::GuildLang.def()
+	}
 }
 
 impl Related<super::module_activation::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::ModuleActivation.def()
-    }
+	fn to() -> RelationDef {
+		Relation::ModuleActivation.def()
+	}
 }
 
 impl Related<super::server_image::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::ServerImage.def()
-    }
+	fn to() -> RelationDef {
+		Relation::ServerImage.def()
+	}
 }
 
 impl Related<super::server_user_relation::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::ServerUserRelation.def()
-    }
+	fn to() -> RelationDef {
+		Relation::ServerUserRelation.def()
+	}
 }
 
 impl Related<super::user_data::Entity> for Entity {
-    fn to() -> RelationDef {
-        super::server_user_relation::Relation::UserData.def()
-    }
+	fn to() -> RelationDef {
+		super::server_user_relation::Relation::UserData.def()
+	}
 
-    fn via() -> Option<RelationDef> {
-        Some(super::server_user_relation::Relation::GuildData.def().rev())
-    }
+	fn via() -> Option<RelationDef> {
+		Some(super::server_user_relation::Relation::GuildData.def().rev())
+	}
 }
 
 impl ActiveModelBehavior for ActiveModel {}
@@ -72,16 +72,16 @@ impl ActiveModelBehavior for ActiveModel {}
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 
 pub enum RelatedEntity {
-    #[sea_orm(entity = "super::activity_data::Entity")]
-    ActivityData,
-    #[sea_orm(entity = "super::guild_lang::Entity")]
-    GuildLang,
-    #[sea_orm(entity = "super::module_activation::Entity")]
-    ModuleActivation,
-    #[sea_orm(entity = "super::server_image::Entity")]
-    ServerImage,
-    #[sea_orm(entity = "super::server_user_relation::Entity")]
-    ServerUserRelation,
-    #[sea_orm(entity = "super::user_data::Entity")]
-    UserData,
+	#[sea_orm(entity = "super::activity_data::Entity")]
+	ActivityData,
+	#[sea_orm(entity = "super::guild_lang::Entity")]
+	GuildLang,
+	#[sea_orm(entity = "super::module_activation::Entity")]
+	ModuleActivation,
+	#[sea_orm(entity = "super::server_image::Entity")]
+	ServerImage,
+	#[sea_orm(entity = "super::server_user_relation::Entity")]
+	ServerUserRelation,
+	#[sea_orm(entity = "super::user_data::Entity")]
+	UserData,
 }

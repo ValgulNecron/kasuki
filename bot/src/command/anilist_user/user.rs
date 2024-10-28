@@ -8,7 +8,7 @@ use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::{
-    User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
+	User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
 };
 use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
@@ -22,99 +22,96 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub struct UserCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl Command for UserCommand {
-    fn get_ctx(&self) -> &SerenityContext {
-        &self.ctx
-    }
+	fn get_ctx(&self) -> &SerenityContext {
+		&self.ctx
+	}
 
-    fn get_command_interaction(&self) -> &CommandInteraction {
-        &self.command_interaction
-    }
+	fn get_command_interaction(&self) -> &CommandInteraction {
+		&self.command_interaction
+	}
 }
 
 impl SlashCommand for UserCommand {
-    async fn run_slash(&self) -> Result<()> {
-        let ctx = self.get_ctx();
-        let bot_data = ctx.data::<BotData>().clone();
-        let command_interaction = &self.command_interaction;
+	async fn run_slash(&self) -> Result<()> {
+		let ctx = self.get_ctx();
+		let bot_data = ctx.data::<BotData>().clone();
+		let command_interaction = &self.command_interaction;
 
-        let config = bot_data.config.clone();
+		let config = bot_data.config.clone();
 
-        let anilist_cache = bot_data.anilist_cache.clone();
+		let anilist_cache = bot_data.anilist_cache.clone();
 
-        send_embed(ctx, command_interaction, config, anilist_cache).await
-    }
+		send_embed(ctx, command_interaction, config, anilist_cache).await
+	}
 }
 
 async fn send_embed(
-    ctx: &SerenityContext,
-    command_interaction: &CommandInteraction,
-    config: Arc<Config>,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
+	anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<()> {
-    // Retrieve the username from the command interaction
-    let map = get_option_map_string(command_interaction);
+	// Retrieve the username from the command interaction
+	let map = get_option_map_string(command_interaction);
 
-    let user = map.get(&FixedString::from_str_trunc("username"));
+	let user = map.get(&FixedString::from_str_trunc("username"));
 
-    // If the username is provided, fetch the user's data from AniList and send it as a response
-    if let Some(value) = user {
-        let data: User = get_user(value, anilist_cache.clone()).await?;
+	// If the username is provided, fetch the user's data from AniList and send it as a response
+	if let Some(value) = user {
+		let data: User = get_user(value, anilist_cache.clone()).await?;
 
-        return user::send_embed(ctx, command_interaction, data, config.db.clone()).await;
-    }
+		return user::send_embed(ctx, command_interaction, data, config.db.clone()).await;
+	}
 
-    // If the username is not provided, fetch the data of the user who triggered the command interaction
-    let user_id = &command_interaction.user.id.to_string();
+	// If the username is not provided, fetch the data of the user who triggered the command interaction
+	let user_id = &command_interaction.user.id.to_string();
 
-    let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+	let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
 
-    let row = RegisteredUser::find()
-        .filter(Column::UserId.eq(user_id))
-        .one(&connection)
-        .await?;
+	let row = RegisteredUser::find()
+		.filter(Column::UserId.eq(user_id))
+		.one(&connection)
+		.await?;
 
-    let user = row.ok_or(anyhow!("No user found"))?;
+	let user = row.ok_or(anyhow!("No user found"))?;
 
-    // Fetch the user's data from AniList and send it as a response
-    let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
+	// Fetch the user's data from AniList and send it as a response
+	let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
 
-    user::send_embed(ctx, command_interaction, data, config.db.clone()).await
+	user::send_embed(ctx, command_interaction, data, config.db.clone()).await
 }
 
 pub async fn get_user(
-    value: &str,
-    anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	value: &str, anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<User> {
-    // If the value is a valid user ID, fetch the user's data by ID
-    let user = if value.parse::<i32>().is_ok() {
-        let id = value.parse::<i32>()?;
+	// If the value is a valid user ID, fetch the user's data by ID
+	let user = if value.parse::<i32>().is_ok() {
+		let id = value.parse::<i32>()?;
 
-        let var = UserQueryIdVariables { id: Some(id) };
+		let var = UserQueryIdVariables { id: Some(id) };
 
-        let operation = UserQueryId::build(var);
+		let operation = UserQueryId::build(var);
 
-        let data: GraphQlResponse<UserQueryId> =
-            make_request_anilist(operation, false, anilist_cache).await?;
+		let data: GraphQlResponse<UserQueryId> =
+			make_request_anilist(operation, false, anilist_cache).await?;
 
-        data.data.unwrap().user.unwrap()
-    } else {
-        // If the value is not a valid user ID, fetch the user's data by username
-        let var = UserQuerySearchVariables {
-            search: Some(value),
-        };
+		data.data.unwrap().user.unwrap()
+	} else {
+		// If the value is not a valid user ID, fetch the user's data by username
+		let var = UserQuerySearchVariables {
+			search: Some(value),
+		};
 
-        let operation = UserQuerySearch::build(var);
+		let operation = UserQuerySearch::build(var);
 
-        let data: GraphQlResponse<UserQuerySearch> =
-            make_request_anilist(operation, false, anilist_cache).await?;
+		let data: GraphQlResponse<UserQuerySearch> =
+			make_request_anilist(operation, false, anilist_cache).await?;
 
-        data.data.unwrap().user.unwrap()
-    };
+		data.data.unwrap().user.unwrap()
+	};
 
-    Ok(user)
+	Ok(user)
 }
