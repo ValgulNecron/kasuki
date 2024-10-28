@@ -1,25 +1,21 @@
 use std::sync::Arc;
 
-use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::Config;
+use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
+use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::message::anilist_user::staff::load_localization_staff;
 use crate::structure::run::anilist::staff::{
-	StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch, StaffQuerrySearchVariables,
+	FuzzyDate, Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch,
+	StaffQuerrySearchVariables,
 };
 use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
-use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 
 pub struct StaffCommand {
 	pub ctx: SerenityContext,
@@ -45,15 +41,102 @@ impl SlashCommand for StaffCommand {
 		let config = bot_data.config.clone();
 
 		let anilist_cache = bot_data.anilist_cache.clone();
+		let staff = get_staff(command_interaction, anilist_cache).await?;
 
-		send_embed(ctx, command_interaction, config, anilist_cache).await
+		let va = staff
+			.characters
+			.unwrap()
+			.nodes
+			.unwrap()
+			.iter()
+			.filter_map(|x| {
+				let x = x.clone().unwrap();
+				let name = x.name.unwrap();
+				let full = name.full.as_deref();
+				let native = name.native.as_deref();
+				get_full_name(full, native)
+			})
+			.take(5)
+			.collect::<Vec<String>>()
+			.join("\n");
+
+		let media = staff
+			.staff_media
+			.unwrap()
+			.edges
+			.unwrap()
+			.iter()
+			.filter_map(|x| {
+				let node = x.clone().unwrap().node.unwrap();
+				let title = node.title.unwrap();
+				let romaji = title.romaji.as_deref();
+				let english = title.english.as_deref();
+				get_full_name(romaji, english)
+			})
+			.take(5)
+			.collect::<Vec<String>>()
+			.join("\n");
+
+		let job = staff.primary_occupations.unwrap()[0]
+			.clone()
+			.unwrap_or_default();
+
+		let gender = staff.gender.clone().unwrap_or(String::from("Unknown."));
+
+		let age = staff.age.unwrap_or(0).to_string();
+
+		let lang = staff.language_v2.unwrap_or_default();
+
+		let guild_id = match command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+		let staff_localised = load_localization_staff(guild_id, config.db.clone()).await?;
+
+		let mut fields = vec![
+			(staff_localised.media, media, true),
+			(staff_localised.va, va, true),
+			(staff_localised.occupation, job, true),
+			(staff_localised.age, age, true),
+			(staff_localised.gender, gender, true),
+			(staff_localised.lang, lang, true),
+		];
+
+		let name = staff.name.unwrap();
+		if staff.date_of_birth.is_some() {
+			let date_of_birth = get_date(staff.date_of_birth.clone());
+			fields.push((staff_localised.date_of_birth, date_of_birth, true));
+		}
+
+		if staff.date_of_death.is_some() {
+			let date_of_death = get_date(staff.date_of_death.clone());
+
+			fields.push((staff_localised.date_of_death, date_of_death, true));
+		}
+
+		let name = name.full.unwrap_or(
+			name.user_preferred
+				.unwrap_or(name.native.unwrap_or(String::from("Unknown."))),
+		);
+		self.send_embed(
+			fields,
+			None,
+			name,
+			convert_anilist_flavored_to_discord_flavored_markdown(
+				staff.description.unwrap_or_default(),
+			),
+			staff.image.unwrap().large,
+			staff.site_url,
+			EmbedType::First,
+			None,
+		)
+		.await
 	}
 }
 
-async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
-	anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<()> {
+async fn get_staff(
+	command_interaction: &CommandInteraction, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<Staff> {
 	let map = get_option_map_string(command_interaction);
 
 	let value = map
@@ -84,173 +167,46 @@ async fn send_embed(
 		data.data.unwrap().staff.unwrap()
 	};
 
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
+	Ok(staff)
+}
 
-	let staff_localised = load_localization_staff(guild_id, config.db.clone()).await?;
+fn get_date(option: Option<FuzzyDate>) -> String {
+	if option.is_none() {
+		return String::new();
+	}
+	let date = option.unwrap();
 
-	let mut date = String::new();
+	let mut date_string = String::new();
 
 	let mut day = false;
 
 	let mut month = false;
 
-	let date_of_birth = staff.date_of_birth.unwrap().clone();
-
-	if let Some(m) = date_of_birth.month {
+	if let Some(m) = date.month {
 		month = true;
 
-		date.push_str(m.to_string().as_str())
+		date_string.push_str(m.to_string().as_str())
 	}
 
-	if let Some(d) = date_of_birth.day {
+	if let Some(d) = date.day {
 		day = true;
 
 		if month {
-			date.push('/')
+			date_string.push('/')
 		}
 
-		date.push_str(d.to_string().as_str())
+		date_string.push_str(d.to_string().as_str())
 	}
 
-	if let Some(y) = date_of_birth.year {
+	if let Some(y) = date.year {
 		if day {
-			date.push('/')
+			date_string.push('/')
 		}
 
-		date.push_str(y.to_string().as_str())
+		date_string.push_str(y.to_string().as_str())
 	}
 
-	let dob = staff_localised
-		.date_of_birth
-		.replace("$date$", date.as_str());
-
-	let mut date = String::new();
-
-	let mut day = false;
-
-	let mut month = false;
-
-	let date_of_death = staff.date_of_death.unwrap().clone();
-
-	if let Some(m) = date_of_death.month {
-		month = true;
-
-		date.push_str(m.to_string().as_str())
-	}
-
-	if let Some(d) = date_of_death.day {
-		day = true;
-
-		if month {
-			date.push('/')
-		}
-
-		date.push_str(d.to_string().as_str())
-	}
-
-	if let Some(y) = date_of_death.year {
-		if day {
-			date.push('/')
-		}
-
-		date.push_str(y.to_string().as_str())
-	}
-
-	let dod = staff_localised
-		.date_of_death
-		.replace("$date$", date.as_str());
-
-	let desc = staff_localised
-		.desc
-		.replace("$dob$", dob.as_str())
-		.replace("$dod$", dod.as_str())
-		.replace(
-			"$job$",
-			staff.primary_occupations.unwrap()[0]
-				.clone()
-				.unwrap_or_default()
-				.as_str(),
-		)
-		.replace(
-			"$gender$",
-			staff
-				.gender
-				.clone()
-				.unwrap_or(String::from("Unknown."))
-				.as_str(),
-		)
-		.replace("$age$", staff.age.unwrap_or(0).to_string().as_str())
-		.replace("$desc$", convert_anilist_flavored_to_discord_flavored_markdown(staff.description.unwrap_or_default()).as_str());
-
-	let name = staff.name.unwrap();
-
-	let name = name.full.unwrap_or(
-		name.user_preferred
-			.unwrap_or(name.native.unwrap_or(String::from("Unknown."))),
-	);
-
-	let va = staff
-		.characters
-		.unwrap()
-		.nodes
-		.unwrap()
-		.iter()
-		.filter_map(|x| {
-			let x = x.clone().unwrap();
-
-			let name = x.name.unwrap();
-
-			let full = name.full.as_deref();
-
-			let native = name.native.as_deref();
-
-			get_full_name(full, native)
-		})
-		.take(5)
-		.collect::<Vec<String>>()
-		.join("\n");
-
-	let media = staff
-		.staff_media
-		.unwrap()
-		.edges
-		.unwrap()
-		.iter()
-		.filter_map(|x| {
-			let node = x.clone().unwrap().node.unwrap();
-
-			let title = node.title.unwrap();
-
-			let romaji = title.romaji.as_deref();
-
-			let english = title.english.as_deref();
-
-			get_full_name(romaji, english)
-		})
-		.take(5)
-		.collect::<Vec<String>>()
-		.join("\n");
-
-	let builder_embed = get_default_embed(None)
-		.description(desc)
-		.title(name)
-		.url(staff.site_url.unwrap_or_default())
-		.thumbnail(staff.image.unwrap().large.unwrap_or_default())
-		.field(&staff_localised.field2_title, va, true)
-		.field(&staff_localised.field1_title, media, true);
-
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	command_interaction
-		.create_response(&ctx.http, builder)
-		.await?;
-
-	Ok(())
+	date_string
 }
 
 fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {

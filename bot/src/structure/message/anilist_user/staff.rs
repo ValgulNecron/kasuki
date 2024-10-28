@@ -4,14 +4,25 @@ use serde::{Deserialize, Serialize};
 // Importing necessary libraries and modules
 use crate::structure::message::common::load_localization;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StaffLocalised {
-	pub field1_title: String,
-	pub field2_title: String,
-	pub desc: String,
+	pub media: String,
+
+	pub va: String,
+
 	pub date_of_birth: String,
+
 	pub date_of_death: String,
+
+	pub hometown: String,
+
+	pub lang: String,
+
+	pub occupation: String,
+
+	pub age: String,
+
+	pub gender: String,
 }
 
 use anyhow::Result;
