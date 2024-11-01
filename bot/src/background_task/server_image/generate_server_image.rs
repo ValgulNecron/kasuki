@@ -28,7 +28,7 @@ use crate::constant::THREAD_POOL_SIZE;
 use crate::database::prelude::{ServerImage, UserColor};
 use crate::database::server_image::{ActiveModel, Column};
 use crate::helper::image_saver::general_image_saver::image_saver;
-use crate::new_member::change_to_x256_url;
+use crate::new_member::change_to_x128_url;
 
 pub async fn generate_local_server_image(
 	ctx: &SerenityContext, guild_id: GuildId, image_config: ImageConfig,
@@ -89,7 +89,7 @@ pub async fn generate_server_image(
 		.await
 		.context("Failed to get partial guild")?;
 
-	let guild_pfp = change_to_x256_url(
+	let guild_pfp = change_to_x128_url(
 		guild
 			.icon_url()
 			.ok_or(anyhow!("Failed to get guild icon URL"))?,
