@@ -1,4 +1,4 @@
-use crate::command::command_trait::{Command, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
 use crate::database::module_activation::Model;
 use crate::database::prelude::ModuleActivation;
 use crate::event_handler::BotData;
@@ -33,82 +33,83 @@ impl Command for ModuleCommand {
 
 impl SlashCommand for ModuleCommand {
 	async fn run_slash(&self) -> Result<()> {
-		send_embed(&self.ctx, &self.command_interaction).await
+		let ctx = &self.ctx;
+		let command_interaction = &self.command_interaction;
+		let bot_data = ctx.data::<BotData>().clone();
+		let connection = bot_data.db_connection.clone();
+		let guild_id = match command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+		let bot_data = ctx.data::<BotData>().clone();
+
+		let map = get_option_map_string_subcommand_group(command_interaction);
+
+		let module = map
+			.get(&String::from("name"))
+			.ok_or(anyhow!("No option for name"))?;
+
+		let module_localised =
+			load_localization_module_activation(guild_id.clone(), bot_data.config.db.clone())
+				.await?;
+
+		let map = get_option_map_boolean_subcommand_group(command_interaction);
+
+		let state = *map
+			.get(&String::from("state"))
+			.ok_or(anyhow!("No option for state"))?;
+
+		let connection = bot_data.db_connection.clone();
+
+		let mut row = ModuleActivation::find()
+			.filter(crate::database::module_activation::Column::GuildId.eq(guild_id.clone()))
+			.one(&*connection)
+			.await?
+			.unwrap_or(Model {
+				guild_id,
+				ai_module: true,
+				anilist_module: true,
+				game_module: true,
+				new_members_module: false,
+				anime_module: true,
+				vn_module: true,
+				updated_at: Default::default(),
+			});
+
+		match module.as_str() {
+			"ANILIST" => row.anilist_module = state,
+			"AI" => row.ai_module = state,
+			"GAME" => row.game_module = state,
+			"NEW_MEMBER" => row.new_members_module = state,
+			"ANIME" => row.anime_module = state,
+			"VN" => row.vn_module = state,
+			_ => {
+				return Err(anyhow!("The module specified does not exist"));
+			},
+		}
+
+		let active_model = row.into_active_model();
+
+		active_model.update(&*connection).await?;
+
+		let desc = if state {
+			&module_localised.on
+		} else {
+			&module_localised.off
+		};
+
+		self.send_embed(
+			Vec::new(),
+			None,
+			module.clone(),
+			desc.clone(),
+			None,
+			None,
+			EmbedType::First,
+			None,
+		)
+		.await
 	}
-}
-
-async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteraction) -> Result<()> {
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let bot_data = ctx.data::<BotData>().clone();
-
-	let map = get_option_map_string_subcommand_group(command_interaction);
-
-	let module = map
-		.get(&String::from("name"))
-		.ok_or(anyhow!("No option for name"))?;
-
-	let module_localised =
-		load_localization_module_activation(guild_id.clone(), bot_data.config.db.clone()).await?;
-
-	let map = get_option_map_boolean_subcommand_group(command_interaction);
-
-	let state = *map
-		.get(&String::from("state"))
-		.ok_or(anyhow!("No option for state"))?;
-
-	let connection = sea_orm::Database::connect(get_url(bot_data.config.db.clone())).await?;
-
-	let mut row = ModuleActivation::find()
-		.filter(crate::database::module_activation::Column::GuildId.eq(guild_id.clone()))
-		.one(&connection)
-		.await?
-		.unwrap_or(Model {
-			guild_id,
-			ai_module: true,
-			anilist_module: true,
-			game_module: true,
-			new_members_module: false,
-			anime_module: true,
-			vn_module: true,
-			updated_at: Default::default(),
-		});
-
-	match module.as_str() {
-		"ANILIST" => row.anilist_module = state,
-		"AI" => row.ai_module = state,
-		"GAME" => row.game_module = state,
-		"NEW_MEMBER" => row.new_members_module = state,
-		"ANIME" => row.anime_module = state,
-		"VN" => row.vn_module = state,
-		_ => {
-			return Err(anyhow!("The module specified does not exist"));
-		},
-	}
-
-	let active_model = row.into_active_model();
-
-	active_model.update(&connection).await?;
-
-	let desc = if state {
-		&module_localised.on
-	} else {
-		&module_localised.off
-	};
-
-	let builder_embed = get_default_embed(None).description(desc).title(module);
-
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	command_interaction
-		.create_response(&ctx.http, builder)
-		.await?;
-
-	Ok(())
 }
 
 pub async fn check_activation_status(module: &str, row: Model) -> bool {

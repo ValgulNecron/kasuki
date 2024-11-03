@@ -1,7 +1,6 @@
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 use crate::structure::autocomplete::anilist::media::{
 	send_auto_complete, MediaAutocompleteVariables, MediaFormat, MediaType,
 };

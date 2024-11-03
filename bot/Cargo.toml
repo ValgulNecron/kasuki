@@ -12,8 +12,8 @@ license-file = "../LICENSE"
 
 [dependencies]
 regex = "1.11.1"
-reqwest = { version = "0.12.8", features = ["json", "multipart", "blocking"] }
-serde = "1.0.213"
+reqwest = { version = "0.12.9", features = ["json", "multipart", "blocking"] }
+serde = "1.0.214"
 serde_json = "1.0.132"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "voice", "cache", "http", "unstable"] }
 tokio = { version = "1.41.0", features = ["full"] }
@@ -58,7 +58,7 @@ catbox = "0.8.2"
 tempfile = "3.13.0"
 rusty_ytdl = { version = "0.7.4", features = ["rustls-tls"] }
 either = "1.13.0"
-anyhow = "1.0.91"
+anyhow = "1.0.92"
 small-fixed-array = "0.4.5"
 
 [build-dependencies]

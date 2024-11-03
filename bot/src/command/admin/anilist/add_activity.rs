@@ -155,7 +155,7 @@ impl SlashCommand for AddActivityCommand {
 			)
 			.await?;
 
-			let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+			let connection = bot_data.db_connection.clone();
 
 			let timestamp = next_airing.airing_at as i64;
 
@@ -173,7 +173,7 @@ impl SlashCommand for AddActivityCommand {
 				delay: Set(delay),
 				image: Set(image),
 			})
-			.exec(&connection)
+			.exec(&*connection)
 			.await?;
 
 			self.send_embed(
