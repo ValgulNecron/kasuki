@@ -59,8 +59,6 @@ impl SlashCommand for ModuleCommand {
 			.get(&String::from("state"))
 			.ok_or(anyhow!("No option for state"))?;
 
-		let connection = bot_data.db_connection.clone();
-
 		let mut row = ModuleActivation::find()
 			.filter(crate::database::module_activation::Column::GuildId.eq(guild_id.clone()))
 			.one(&*connection)

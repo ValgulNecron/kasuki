@@ -66,8 +66,6 @@ impl SlashCommand for LangCommand {
 			EmbedType::First,
 			None,
 		)
-		.await?;
-
-		Ok(())
+		.await
 	}
 }
