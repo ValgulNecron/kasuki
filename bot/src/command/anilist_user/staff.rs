@@ -141,6 +141,7 @@ impl SlashCommand for StaffCommand {
 			staff.site_url,
 			EmbedType::First,
 			None,
+			Vec::new(),
 		)
 		.await
 	}

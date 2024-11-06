@@ -33,13 +33,13 @@ USER root
 RUN cargo new --bin migration
 WORKDIR /migration
 
-COPY migration/Cargo.toml ./Cargo.toml
+COPY Migration/Cargo.toml ./Cargo.toml
 
 RUN cargo build --release
 RUN rm src/*.rs
 RUN rm target/release/migration*
 
-COPY migration/src ./src
+COPY Migration/src ./src
 RUN cargo build --release
 
 FROM debian:trixie-slim AS bot

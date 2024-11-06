@@ -125,6 +125,7 @@ impl SlashCommand for NewMemberSettingCommand {
 			None,
 			EmbedType::First,
 			None,
+			Vec::new(),
 		)
 		.await
 	}

@@ -65,6 +65,7 @@ impl SlashCommand for LangCommand {
 			None,
 			EmbedType::First,
 			None,
+			Vec::new(),
 		)
 		.await
 	}

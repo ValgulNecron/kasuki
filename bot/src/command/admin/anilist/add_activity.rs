@@ -109,6 +109,7 @@ impl SlashCommand for AddActivityCommand {
 				Some(url),
 				EmbedType::Followup,
 				None,
+				Vec::new(),
 			)
 			.await?;
 		} else {
@@ -187,6 +188,7 @@ impl SlashCommand for AddActivityCommand {
 				Some(url),
 				EmbedType::Followup,
 				None,
+				Vec::new(),
 			)
 			.await?;
 		}

@@ -105,6 +105,7 @@ impl SlashCommand for ModuleCommand {
 			None,
 			EmbedType::First,
 			None,
+			Vec::new(),
 		)
 		.await
 	}

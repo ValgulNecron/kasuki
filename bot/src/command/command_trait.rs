@@ -9,7 +9,7 @@ use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId};
 use serenity::builder::{
-	CreateButton, CreateInteractionResponse, CreateInteractionResponseFollowup,
+	CreateAttachment, CreateButton, CreateInteractionResponse, CreateInteractionResponseFollowup,
 };
 use serenity::model::Colour;
 use serenity::prelude::Context as SerenityContext;
@@ -36,7 +36,7 @@ pub trait Embed {
 	async fn send_embed(
 		&self, fields: Vec<(String, String, bool)>, image: Option<String>, title: String,
 		description: String, thumbnail: Option<String>, url: Option<String>,
-		command_type: EmbedType, colour: Option<Colour>,
+		command_type: EmbedType, colour: Option<Colour>, attachments: Vec<CreateAttachment>,
 	) -> Result<()>;
 
 	async fn defer(&self) -> Result<()>;
@@ -53,7 +53,7 @@ impl<T: Command> Embed for T {
 	async fn send_embed(
 		&self, fields: Vec<(String, String, bool)>, image: Option<String>, title: String,
 		description: String, thumbnail: Option<String>, url: Option<String>,
-		command_type: EmbedType, colour: Option<Colour>,
+		command_type: EmbedType, colour: Option<Colour>, attachments: Vec<CreateAttachment<'_>>,
 	) -> Result<()> {
 		let ctx = self.get_ctx();
 
@@ -81,7 +81,9 @@ impl<T: Command> Embed for T {
 
 		match command_type {
 			EmbedType::First => {
-				let builder = CreateInteractionResponseMessage::new().embed(builder_embed);
+				let builder = CreateInteractionResponseMessage::new()
+					.embed(builder_embed)
+					.files(attachments);
 
 				let builder = CreateInteractionResponse::Message(builder);
 
