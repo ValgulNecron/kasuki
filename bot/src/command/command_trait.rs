@@ -34,7 +34,7 @@ pub trait UserCommand {
 
 pub trait Embed {
 	async fn send_embed(
-		&self, fields: Vec<(String, String, bool)>, image: Option<String>, title: String,
+		&self, fields: Vec<(String, String, bool)>, images: Option<Vec<String>>, title: String,
 		description: String, thumbnail: Option<String>, url: Option<String>,
 		command_type: EmbedType, colour: Option<Colour>, attachments: Vec<CreateAttachment>,
 	) -> Result<()>;
@@ -51,7 +51,7 @@ pub trait PremiumCommand {
 
 impl<T: Command> Embed for T {
 	async fn send_embed(
-		&self, fields: Vec<(String, String, bool)>, image: Option<String>, title: String,
+		&self, fields: Vec<(String, String, bool)>, images: Option<Vec<String>>, title: String,
 		description: String, thumbnail: Option<String>, url: Option<String>,
 		command_type: EmbedType, colour: Option<Colour>, attachments: Vec<CreateAttachment<'_>>,
 	) -> Result<()> {
@@ -60,10 +60,6 @@ impl<T: Command> Embed for T {
 		let command_interaction = self.get_command_interaction();
 
 		let mut builder_embed = get_default_embed(colour);
-
-		if let Some(image) = image {
-			builder_embed = builder_embed.image(image);
-		}
 
 		builder_embed = builder_embed.title(title);
 
@@ -79,10 +75,24 @@ impl<T: Command> Embed for T {
 
 		builder_embed = builder_embed.fields(fields);
 
+		let mut builders_embeds = Vec::new();
+
+		if let Some(images) = images {
+			if images.len() == 1 {
+				builder_embed = builder_embed.image(images[0].clone());
+				builders_embeds.push(builder_embed)
+			} else {
+				for image in images {
+					let builder_embed = builder_embed.clone().image(image.clone());
+					builders_embeds.push(builder_embed)
+				}
+			}
+		}
+
 		match command_type {
 			EmbedType::First => {
 				let builder = CreateInteractionResponseMessage::new()
-					.embed(builder_embed)
+					.embeds(builders_embeds)
 					.files(attachments);
 
 				let builder = CreateInteractionResponse::Message(builder);
@@ -92,7 +102,9 @@ impl<T: Command> Embed for T {
 					.await?;
 			},
 			EmbedType::Followup => {
-				let builder = CreateInteractionResponseFollowup::new().embed(builder_embed);
+				let builder = CreateInteractionResponseFollowup::new()
+					.embeds(builders_embeds)
+					.files(attachments);
 
 				command_interaction
 					.create_followup(&ctx.http, builder)

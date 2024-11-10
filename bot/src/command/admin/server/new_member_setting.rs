@@ -4,7 +4,6 @@ use std::fs;
 use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
 use crate::constant::{NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand_group::{
 	get_option_map_attachment_subcommand_group, get_option_map_boolean_subcommand_group,
 	get_option_map_channel_subcommand_group,
@@ -14,7 +13,7 @@ use crate::structure::message::admin::server::new_member_setting::load_localizat
 use anyhow::{anyhow, Result};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
+	CommandInteraction, Context as SerenityContext,
 	CreateInteractionResponseMessage,
 };
 

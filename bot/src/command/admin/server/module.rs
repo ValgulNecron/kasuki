@@ -2,8 +2,6 @@ use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
 use crate::database::module_activation::Model;
 use crate::database::prelude::ModuleActivation;
 use crate::event_handler::BotData;
-use crate::get_url;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand_group::{
 	get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
@@ -12,8 +10,8 @@ use anyhow::{anyhow, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
+	CommandInteraction, Context as SerenityContext
+	,
 };
 
 pub struct ModuleCommand {

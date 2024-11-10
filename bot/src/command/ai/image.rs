@@ -7,12 +7,11 @@ use crate::command::command_trait::{
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::{
 	get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
 use crate::helper::image_saver::general_image_saver::image_saver;
-use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
+use crate::structure::message::ai::image::{load_localization_image};
 use anyhow::{anyhow, Result};
 use image::EncodableLayout;
 use prost::bytes::Bytes;
@@ -20,7 +19,6 @@ use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateAttachment,
 	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
@@ -140,10 +138,11 @@ impl SlashCommand for ImageCommand {
 		let (images, attachement) = if n == 1 {
 			(
 				image_with_n_equal_1(filename.clone(), bytes.clone()).await,
-				Some(format!("attachment://{}", &filename)),
+				Some(vec![format!("attachment://{}", &filename)]),
 			)
 		} else {
-			(image_with_n_greater_than_1(filename, bytes).await, None)
+			let (images, filenames) = image_with_n_greater_than_1(filename, bytes).await;
+			(images, Some(filenames))
 		};
 
 		for image in images.clone() {
@@ -257,15 +256,18 @@ async fn image_with_n_equal_1<'a>(
 
 async fn image_with_n_greater_than_1<'a>(
 	filename: String, bytes: Vec<Bytes>,
-) -> Vec<CreateAttachment<'a>> {
-	let attachments: Vec<CreateAttachment> = bytes
+) -> (Vec<CreateAttachment<'a>>, Vec<String>) {
+	let attachments: (Vec<CreateAttachment>, Vec<String>) = bytes
 		.iter()
 		.enumerate()
 		.map(|(index, byte)| {
 			let filename = format!("{}_{}.png", filename, index);
 			let byte = byte.as_bytes().to_vec();
 			let cow_byte = Cow::from(byte);
-			CreateAttachment::bytes(cow_byte, filename)
+			(
+				CreateAttachment::bytes(cow_byte, filename.clone()),
+				format!("{}_{}.png", filename, index),
+			)
 		})
 		.collect();
 
