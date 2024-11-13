@@ -11,9 +11,7 @@ use anyhow::{anyhow, Result};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::{multipart, Url};
 use serde_json::Value;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::trace;
 use uuid::Uuid;
 pub struct TranscriptCommand {

@@ -11,7 +11,7 @@ use crate::helper::get_option::subcommand::{
 	get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
 use crate::helper::image_saver::general_image_saver::image_saver;
-use crate::structure::message::ai::image::{load_localization_image};
+use crate::structure::message::ai::image::load_localization_image;
 use anyhow::{anyhow, Result};
 use image::EncodableLayout;
 use prost::bytes::Bytes;
@@ -149,7 +149,7 @@ impl SlashCommand for ImageCommand {
 			let bytes = image.data.clone();
 			let filename = image.filename.clone();
 			let image_config = bot_data.config.image.clone();
-			let bytes: Vec<u8> = bytes.clone().into_owned();
+			let bytes: Vec<u8> = bytes.clone().to_owned().into();
 			image_saver(
 				guild_id.to_string(),
 				filename.to_string(),

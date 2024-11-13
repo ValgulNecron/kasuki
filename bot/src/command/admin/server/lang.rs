@@ -7,9 +7,7 @@ use crate::structure::message::admin::server::lang::load_localization_lang;
 use anyhow::{anyhow, Result};
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct LangCommand {
 	pub ctx: SerenityContext,

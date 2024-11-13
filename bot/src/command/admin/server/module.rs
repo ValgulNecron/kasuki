@@ -9,10 +9,7 @@ use crate::structure::message::admin::server::module::load_localization_module_a
 use anyhow::{anyhow, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext
-	,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct ModuleCommand {
 	pub ctx: SerenityContext,

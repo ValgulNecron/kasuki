@@ -13,8 +13,7 @@ use crate::structure::message::admin::server::new_member_setting::load_localizat
 use anyhow::{anyhow, Result};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext,
-	CreateInteractionResponseMessage,
+	CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
 };
 
 pub struct NewMemberSettingCommand {
