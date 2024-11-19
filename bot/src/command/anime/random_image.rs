@@ -118,8 +118,7 @@ pub async fn send_embed(
 
 	// Construct the attachment for the image
 	let bytes = bytes.as_bytes().to_vec();
-	let cow_bytes = Cow::from(bytes);
-	let attachment = CreateAttachment::bytes(cow_bytes, filename);
+	let attachment = CreateAttachment::bytes(bytes, filename);
 
 	// Construct the follow-up response containing the embed and the attachment
 	let builder_message = CreateInteractionResponseFollowup::new()

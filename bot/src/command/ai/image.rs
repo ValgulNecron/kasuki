@@ -248,8 +248,7 @@ async fn image_with_n_equal_1<'a>(
 	filename: String, bytes: Vec<Bytes>,
 ) -> Vec<CreateAttachment<'a>> {
 	let bytes = bytes[0].as_bytes().to_vec();
-	let cow_bytes = Cow::from(bytes);
-	let attachment = CreateAttachment::bytes(cow_bytes, filename);
+	let attachment = CreateAttachment::bytes(bytes, filename);
 
 	vec![attachment]
 }
@@ -263,9 +262,8 @@ async fn image_with_n_greater_than_1<'a>(
 		.map(|(index, byte)| {
 			let filename = format!("{}_{}.png", filename, index);
 			let byte = byte.as_bytes().to_vec();
-			let cow_byte = Cow::from(byte);
 			(
-				CreateAttachment::bytes(cow_byte, filename.clone()),
+				CreateAttachment::bytes(byte, filename.clone()),
 				format!("{}_{}.png", filename, index),
 			)
 		})

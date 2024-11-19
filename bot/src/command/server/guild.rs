@@ -59,7 +59,7 @@ async fn send_embed(
 	let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
 	// Retrieve various details about the guild
-	let channels = guild.channels(&ctx.http).await.unwrap_or_default().len();
+	let channels = guild.id.channels(&ctx.http).await.unwrap_or_default().len();
 
 	let guild_id = guild.id;
 
