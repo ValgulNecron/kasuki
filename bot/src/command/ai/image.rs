@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::command::command_trait::{
@@ -19,10 +18,7 @@ use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateAttachment,
-	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
 use tracing::{error, trace};
 use uuid::Uuid;
 

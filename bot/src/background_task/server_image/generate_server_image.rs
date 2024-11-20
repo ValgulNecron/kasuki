@@ -97,7 +97,7 @@ pub async fn generate_server_image(
 
 	let img = get_image_from_url(guild_pfp.clone()).await?;
 
-	let dim = 128 * 1024;
+	let dim = 128 * 128;
 
 	let mut combined_image = DynamicImage::new_rgba8(dim, dim);
 
@@ -170,7 +170,7 @@ pub async fn generate_server_image(
 	let internal_vec = vec_image.clone();
 
 	for (x, y, image) in internal_vec {
-		match combined_image.copy_from(&image, x * 1024, y * 1024) {
+		match combined_image.copy_from(&image, x * 128, y * 128) {
 			Ok(_) => {},
 			Err(_) => continue,
 		}

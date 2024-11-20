@@ -36,7 +36,6 @@ impl SlashCommand for NewMemberSettingCommand {
 		let ctx = &self.ctx;
 		let command_interaction = &self.command_interaction;
 		let bot_data = ctx.data::<BotData>().clone();
-		let connection = bot_data.db_connection.clone();
 
 		let bool_map = get_option_map_boolean_subcommand_group(command_interaction);
 

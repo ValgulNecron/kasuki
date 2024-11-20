@@ -1,13 +1,9 @@
-use std::sync::Arc;
-
 use crate::command::ai::question::question_api_url;
 use crate::command::command_trait::{
 	Command, Embed, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
 };
-use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
@@ -16,11 +12,7 @@ use anyhow::{anyhow, Result};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
 use serde_json::{json, Value};
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
-	CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::trace;
 use uuid::Uuid;
 

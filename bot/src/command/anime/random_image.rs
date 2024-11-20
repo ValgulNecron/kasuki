@@ -11,7 +11,6 @@ use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateAttachment,
 	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
 };
-use std::borrow::Cow;
 use std::sync::Arc;
 use uuid::Uuid;
 
