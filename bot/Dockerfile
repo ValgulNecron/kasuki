@@ -30,7 +30,7 @@ FROM rust:slim-bookworm AS builder-migration
 
 USER root
 
-RUN cargo new --bin Migration
+RUN cargo new --bin migration
 WORKDIR /migration
 
 COPY Migration/Cargo.toml ./Cargo.toml
@@ -61,5 +61,6 @@ COPY json /kasuki/json
 COPY server_image /kasuki/server_image
 COPY --from=builder-bot /kasuki/target/release/kasuki /kasuki/
 COPY --from=builder-migration /migration/target/release/migration /kasuki/
+RUN mv /kasuki/migration /kasuki/Migration
 
 CMD ["./kasuki"]

@@ -1,5 +1,3 @@
-use serenity::all::{CommandInteraction, Context};
-
 use crate::autocomplete::anilist_server::{add_anime_activity, delete_activity};
 use crate::autocomplete::anilist_user::{
 	anime, character, compare, ln, manga, search, staff, studio, user,
@@ -9,8 +7,11 @@ use crate::autocomplete::management::give_premium_sub::give_premium_sub_autocomp
 use crate::autocomplete::vn;
 use crate::autocomplete::vn::{game, producer};
 use crate::helper::get_option::subcommand_group::get_subcommand;
+use serenity::all::{CommandInteraction, Context};
+use tracing::trace;
 
 pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
+	trace!(?ctx, ?autocomplete_interaction);
 	match autocomplete_interaction.data.name.as_str() {
 		"admin" => admin_autocomplete(ctx, autocomplete_interaction).await,
 		"anime" => anime::autocomplete(ctx, autocomplete_interaction).await,

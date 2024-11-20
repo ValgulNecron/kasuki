@@ -303,6 +303,7 @@ impl Info for InfoService {
 			let description = real_guild.description.clone();
 
 			let mut members_temp = real_guild
+				.id
 				.members(
 					&self.http,
 					Some(NonMaxU16::new(1000).unwrap_or_default()),
@@ -315,6 +316,7 @@ impl Info for InfoService {
 
 			while members_temp.len() > 1000 {
 				members_temp = real_guild
+					.id
 					.members(
 						&self.http,
 						Some(NonMaxU16::new(1000).unwrap_or_default()),

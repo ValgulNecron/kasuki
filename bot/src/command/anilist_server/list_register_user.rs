@@ -120,6 +120,7 @@ pub async fn get_the_list<'a>(
 		pass += 1;
 
 		let members = guild
+			.id
 			.members(
 				&ctx.http,
 				Some(NonMaxU16::new(MEMBER_LIST_LIMIT).unwrap_or_default()),

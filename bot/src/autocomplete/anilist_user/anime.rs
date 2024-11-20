@@ -1,18 +1,19 @@
 use serenity::all::{CommandInteraction, Context};
+use small_fixed_array::FixedString;
 use tracing::trace;
 
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
-use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
+use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::autocomplete::anilist::media::{
 	send_auto_complete, MediaAutocompleteVariables, MediaFormat, MediaType,
 };
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-	let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+	let map = get_option_map_string(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
 	let anime_search = map
-		.get(&String::from("anime_name"))
+		.get(&FixedString::from_str_trunc("anime_name"))
 		.unwrap_or(DEFAULT_STRING);
 
 	trace!("anime_search: {}", anime_search);

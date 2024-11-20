@@ -1,7 +1,7 @@
 use crate::custom_serenity_impl::InternalMemberAction::{BanAdd, Kick};
 use crate::custom_serenity_impl::{InternalAction, InternalMemberAction};
 use crate::new_member::{
-	add_text, change_to_x256_url, encode_image, get_channel_id, get_image, get_server_image,
+	add_text, change_to_x128_url, encode_image, get_channel_id, get_image, get_server_image,
 	load_guild_settings, overlay_image, send_image, XAlignment, YAlignment,
 };
 use crate::structure::message::removed_member::{load_localization_removed_member, RemovedMember};
@@ -40,7 +40,7 @@ pub async fn removed_member_message(
 	let mut guild_image = image::load_from_memory(&guild_image_data)
 		.context("Failed to load guild image from memory")?;
 
-	let avatar_url = change_to_x256_url(user.face());
+	let avatar_url = change_to_x128_url(user.face());
 
 	debug!(?avatar_url, "Changed avatar URL to x64 size");
 

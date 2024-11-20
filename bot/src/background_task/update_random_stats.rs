@@ -107,7 +107,7 @@ async fn update_random(
 	let mut has_more_pages = true;
 
 	while has_more_pages {
-		has_more_pages = update_page(&mut random_stats, &anilist_cache, true, true).await;
+		has_more_pages = update_page(&mut random_stats, anilist_cache.clone(), true, true).await;
 
 		// sleep 1s
 		tokio::time::sleep(Duration::from_secs(1)).await;
@@ -116,7 +116,7 @@ async fn update_random(
 	has_more_pages = true;
 
 	while has_more_pages {
-		has_more_pages = update_page(&mut random_stats, &anilist_cache, false, false).await;
+		has_more_pages = update_page(&mut random_stats, anilist_cache.clone(), false, false).await;
 
 		// sleep 1s
 		tokio::time::sleep(Duration::from_secs(1)).await;
@@ -125,24 +125,10 @@ async fn update_random(
 	Ok(random_stats)
 }
 
-/// Updates a single page of random statistics.
-///
-/// # Arguments
-///
-/// * `random_stats` - The current random statistics.
-/// * `anilist_cache` - A cache for storing Anilist API responses.
-/// * `update_anime` - Whether to update the anime statistics.
-/// * `update_manga` - Whether to update the manga statistics.
-///
-/// # Returns
-///
-/// A boolean indicating whether there are more pages to update.
-
 async fn update_page(
-	random_stats: &mut RandomStat, anilist_cache: &Arc<RwLock<Cache<String, String>>>,
+	random_stats: &mut RandomStat, anilist_cache: Arc<RwLock<Cache<String, String>>>,
 	update_anime: bool, update_manga: bool,
 ) -> bool {
-	// Build the appropriate query based on whether we're updating anime or manga.
 	let data = if update_anime {
 		let var = AnimeStatVariables {
 			page: Some(random_stats.anime_last_page),
@@ -169,13 +155,11 @@ async fn update_page(
 		return false;
 	};
 
-	// Extract the data from the result. If there was an error, return false.
 	let data = match data {
 		Ok(data) => data,
 		Err(_) => return false,
 	};
 
-	// Check if there are more pages to update.
 	let has_next_page = match &data.data {
 		Some(data) => match &data.site_statistics {
 			Some(site_statistics) => match &site_statistics.manga {
@@ -190,7 +174,6 @@ async fn update_page(
 		None => false,
 	};
 
-	// Update the last page number based on whether there are more pages to update.
 	if has_next_page && update_anime {
 		random_stats.anime_last_page += 1;
 
