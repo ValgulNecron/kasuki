@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
@@ -268,8 +267,7 @@ async fn image_with_n_equal_1(
 	}
 
 	let bytes = bytes.as_bytes().to_vec();
-	let cow_bytes = Cow::from(bytes);
-	let attachment = CreateAttachment::bytes(cow_bytes, filename);
+	let attachment = CreateAttachment::bytes(bytes, filename);
 
 	let builder_message = CreateInteractionResponseFollowup::new()
 		.embed(builder_embed)
@@ -294,8 +292,7 @@ async fn image_with_n_greater_than_1(
 		.map(|(index, byte)| {
 			let filename = format!("{}_{}.png", filename, index);
 			let byte = byte.as_bytes().to_vec();
-			let cow_byte = Cow::from(byte);
-			CreateAttachment::bytes(cow_byte, filename)
+			CreateAttachment::bytes(byte, filename)
 		})
 		.collect();
 

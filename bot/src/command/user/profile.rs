@@ -54,7 +54,7 @@ fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, 
 		),
 		(
 			profile_localised.creation_date.clone(),
-			format!("<t:{}>", user.created_at().timestamp()),
+			format!("<t:{}>", user.id.created_at().timestamp()),
 			true,
 		),
 		(profile_localised.bot.clone(), user.bot().to_string(), true),

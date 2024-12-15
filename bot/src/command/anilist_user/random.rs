@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
-use rand::{thread_rng, Rng};
+use rand::{rng, Rng};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
@@ -114,7 +114,7 @@ async fn embed(
 	command_interaction: &CommandInteraction, random_localised: RandomLocalised,
 	anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<()> {
-	let number = thread_rng().gen_range(1..=last_page);
+	let number = rng().random_range(1..=last_page);
 
 	let mut var = RandomPageMediaVariables {
 		media_type: None,
