@@ -1,0 +1,4 @@
+vn:
+    staff: content + autocomplete
+    producer: content + autocomplete
+    character: content?

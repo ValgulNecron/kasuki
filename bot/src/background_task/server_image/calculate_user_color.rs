@@ -8,7 +8,7 @@ use crate::database::prelude::UserColor;
 use crate::database::user_color::{ActiveModel, Column, Model};
 use crate::event_handler::{add_user_data_to_db, BotData};
 use crate::get_url;
-use crate::new_member::change_to_x256_url;
+use crate::new_member::change_to_x128_url;
 use base64::engine::general_purpose;
 use base64::Engine;
 use futures::stream::FuturesUnordered;
@@ -49,7 +49,7 @@ pub async fn calculate_users_color(
 			continue;
 		}
 
-		let pfp_url = change_to_x256_url(member.user.face());
+		let pfp_url = change_to_x128_url(member.user.face());
 
 		let id = member.user.id.to_string();
 
@@ -105,7 +105,7 @@ pub async fn return_average_user_color(
 	let mut average_colors = Vec::with_capacity(members.len());
 
 	for member in members {
-		let pfp_url = change_to_x256_url(member.user.face());
+		let pfp_url = change_to_x128_url(member.user.face());
 
 		let id = member.user.id.to_string();
 
@@ -180,7 +180,7 @@ pub async fn return_average_user_color(
 }
 
 async fn calculate_user_color(user: User) -> Result<(String, String)> {
-	let pfp_url = change_to_x256_url(user.face());
+	let pfp_url = change_to_x128_url(user.face());
 
 	let img = get_image_from_url(pfp_url).await?;
 
@@ -362,7 +362,7 @@ pub async fn get_specific_user_color(
 		return;
 	}
 
-	let pfp_url = change_to_x256_url(user.face());
+	let pfp_url = change_to_x128_url(user.face());
 
 	let id = user.id.to_string();
 

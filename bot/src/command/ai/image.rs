@@ -1,15 +1,16 @@
 use std::sync::Arc;
 
-use crate::command::command_trait::{Command, PremiumCommand, PremiumCommandType, SlashCommand};
+use crate::command::command_trait::{
+	Command, Embed, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
+};
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::{
 	get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
 use crate::helper::image_saver::general_image_saver::image_saver;
-use crate::structure::message::ai::image::{load_localization_image, ImageLocalised};
+use crate::structure::message::ai::image::load_localization_image;
 use anyhow::{anyhow, Result};
 use image::EncodableLayout;
 use prost::bytes::Bytes;
@@ -17,11 +18,7 @@ use prost::Message;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateAttachment,
-	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
 use tracing::{error, trace};
 use uuid::Uuid;
 
@@ -68,7 +65,110 @@ impl SlashCommand for ImageCommand {
 
 		let data = get_value(command_interaction, n, &config);
 
-		send_embed(ctx, command_interaction, &config, data, n).await
+		let guild_id = match command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+
+		let image_localised = load_localization_image(guild_id.clone(), config.db.clone()).await?;
+
+		self.defer().await?;
+
+		let uuid_name = Uuid::new_v4();
+
+		let filename = format!("{}.png", uuid_name);
+
+		let token = config.ai.image.ai_image_token.clone().unwrap_or_default();
+
+		let url = config
+			.ai
+			.image
+			.ai_image_base_url
+			.clone()
+			.unwrap_or_default();
+
+		// check the last 3 characters of the url if it v1/ or v1 or something else
+		let url = if url.ends_with("v1/") {
+			format!("{}images/generations", url)
+		} else if url.ends_with("v1") {
+			format!("{}/images/generations", url)
+		} else {
+			format!("{}/v1/images/generations", url)
+		};
+
+		let client = reqwest::Client::new();
+
+		let token = token.as_str();
+
+		let mut headers = HeaderMap::new();
+
+		headers.insert(
+			AUTHORIZATION,
+			HeaderValue::from_str(&format!("Bearer {}", token))?,
+		);
+
+		headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
+		let url = url.as_str();
+
+		let res = client.post(url).headers(headers).json(&data).send().await?;
+
+		let res = res.json().await?;
+
+		trace!(?res);
+
+		let guild_id = match command_interaction.guild_id {
+			Some(guild_id) => guild_id.to_string(),
+			None => String::from("0"),
+		};
+
+		let bytes = get_image_from_response(
+			res,
+			config.image.save_image.clone(),
+			config.image.save_server.clone(),
+			config.image.token.clone(),
+			guild_id.clone(),
+		)
+		.await?;
+
+		let (images, attachement) = if n == 1 {
+			(
+				image_with_n_equal_1(filename.clone(), bytes.clone()).await,
+				Some(vec![format!("attachment://{}", &filename)]),
+			)
+		} else {
+			let (images, filenames) = image_with_n_greater_than_1(filename, bytes).await;
+			(images, Some(filenames))
+		};
+
+		for image in images.clone() {
+			let bytes = image.data.clone();
+			let filename = image.filename.clone();
+			let image_config = bot_data.config.image.clone();
+			let bytes: Vec<u8> = bytes.clone().to_owned().into();
+			image_saver(
+				guild_id.to_string(),
+				filename.to_string(),
+				bytes,
+				image_config.save_server.unwrap_or_default(),
+				image_config.token.unwrap_or_default(),
+				image_config.save_image,
+			)
+			.await?;
+		}
+
+		self.send_embed(
+			Vec::new(),
+			attachement,
+			image_localised.title,
+			String::new(),
+			None,
+			None,
+			EmbedType::Followup,
+			None,
+			images,
+		)
+		.await
 	}
 }
 
@@ -140,171 +240,32 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 	data
 }
 
-async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: &Arc<Config>,
-	data: Value, n: i64,
-) -> Result<()> {
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-
-	let image_localised = load_localization_image(guild_id.clone(), config.db.clone()).await?;
-
-	let builder_message = Defer(CreateInteractionResponseMessage::new());
-
-	command_interaction
-		.create_response(&ctx.http, builder_message)
-		.await?;
-
-	let uuid_name = Uuid::new_v4();
-
-	let filename = format!("{}.png", uuid_name);
-
-	let token = config.ai.image.ai_image_token.clone().unwrap_or_default();
-
-	let url = config
-		.ai
-		.image
-		.ai_image_base_url
-		.clone()
-		.unwrap_or_default();
-
-	// check the last 3 characters of the url if it v1/ or v1 or something else
-	let url = if url.ends_with("v1/") {
-		format!("{}images/generations", url)
-	} else if url.ends_with("v1") {
-		format!("{}/images/generations", url)
-	} else {
-		format!("{}/v1/images/generations", url)
-	};
-
-	let client = reqwest::Client::new();
-
-	let token = token.as_str();
-
-	let mut headers = HeaderMap::new();
-
-	headers.insert(
-		AUTHORIZATION,
-		HeaderValue::from_str(&format!("Bearer {}", token))?,
-	);
-
-	headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-
-	let url = url.as_str();
-
-	let res = client.post(url).headers(headers).json(&data).send().await?;
-
-	let res = res.json().await?;
-
-	trace!(?res);
-
-	let guild_id = match command_interaction.guild_id {
-		Some(guild_id) => guild_id.to_string(),
-		None => String::from("0"),
-	};
-
-	let bytes = get_image_from_response(
-		res,
-		config.image.save_image.clone(),
-		config.image.save_server.clone(),
-		config.image.token.clone(),
-		guild_id,
-	)
-	.await?;
-
-	if n == 1 {
-		image_with_n_equal_1(
-			image_localised,
-			filename,
-			command_interaction,
-			ctx,
-			bytes[0].clone(),
-			config.image.save_image.clone(),
-			config.image.save_server.clone(),
-			config.image.token.clone(),
-		)
-		.await?
-	} else {
-		image_with_n_greater_than_1(image_localised, filename, command_interaction, ctx, bytes)
-			.await?
-	}
-
-	Ok(())
-}
-
-async fn image_with_n_equal_1(
-	image_localised: ImageLocalised, filename: String, command_interaction: &CommandInteraction,
-	ctx: &SerenityContext, bytes: Bytes, saver_server: String, token: Option<String>,
-	save_type: Option<String>,
-) -> Result<()> {
-	let builder_embed = get_default_embed(None)
-		.image(format!("attachment://{}", &filename))
-		.title(image_localised.title);
-
-	let guild_id = match command_interaction.guild_id {
-		Some(guild_id) => guild_id.to_string(),
-		None => String::from("0"),
-	};
-
-	let token = token.unwrap_or_default();
-
-	let saver = save_type.unwrap_or_default();
-
-	match image_saver(
-		guild_id,
-		filename.clone(),
-		bytes.clone().encode_to_vec(),
-		saver_server,
-		token,
-		saver,
-	)
-	.await
-	{
-		Ok(_) => (),
-		Err(e) => error!("Error saving image: {}", e),
-	}
-
-	let bytes = bytes.as_bytes().to_vec();
+async fn image_with_n_equal_1<'a>(
+	filename: String, bytes: Vec<Bytes>,
+) -> Vec<CreateAttachment<'a>> {
+	let bytes = bytes[0].as_bytes().to_vec();
 	let attachment = CreateAttachment::bytes(bytes, filename);
 
-	let builder_message = CreateInteractionResponseFollowup::new()
-		.embed(builder_embed)
-		.files(vec![attachment]);
-
-	command_interaction
-		.create_followup(&ctx.http, builder_message)
-		.await?;
-
-	Ok(())
+	vec![attachment]
 }
 
-async fn image_with_n_greater_than_1(
-	image_localised: ImageLocalised, filename: String, command_interaction: &CommandInteraction,
-	ctx: &SerenityContext, bytes: Vec<Bytes>,
-) -> Result<()> {
-	let message = image_localised.title;
-
-	let attachments: Vec<CreateAttachment> = bytes
+async fn image_with_n_greater_than_1<'a>(
+	filename: String, bytes: Vec<Bytes>,
+) -> (Vec<CreateAttachment<'a>>, Vec<String>) {
+	let attachments: (Vec<CreateAttachment>, Vec<String>) = bytes
 		.iter()
 		.enumerate()
 		.map(|(index, byte)| {
 			let filename = format!("{}_{}.png", filename, index);
 			let byte = byte.as_bytes().to_vec();
-			CreateAttachment::bytes(byte, filename)
+			(
+				CreateAttachment::bytes(byte, filename.clone()),
+				format!("{}_{}.png", filename, index),
+			)
 		})
 		.collect();
 
-	let builder_message = CreateInteractionResponseFollowup::new()
-		.content(message)
-		.files(attachments);
-
-	command_interaction
-		.create_followup(&ctx.http, builder_message)
-		.await?;
-
-	Ok(())
+	attachments
 }
 
 async fn get_image_from_response(

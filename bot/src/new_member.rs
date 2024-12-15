@@ -127,20 +127,20 @@ pub async fn get_image(avatar_url: String) -> Result<DynamicImage> {
 	image::load_from_memory(&body).context("Failed to load image from memory")
 }
 
-pub fn change_to_x256_url(url: String) -> String {
-	debug!("Changing URL size to 64x64: {}", url);
+pub fn change_to_x128_url(url: String) -> String {
+	debug!("Changing URL size to 128x128: {}", url);
 
 	let mut url = url
-		.replace("?size=4096", "?size=256")
-		.replace("?size=2048", "?size=256")
-		.replace("?size=1024", "?size=256")
-		.replace("?size=512", "?size=256")
-		.replace("?size=256", "?size=256")
-		.replace("?size=128", "?size=256")
-		.replace("?size=64", "?size=256");
+		.replace("?size=4096", "?size=128")
+		.replace("?size=2048", "?size=128")
+		.replace("?size=1024", "?size=128")
+		.replace("?size=512", "?size=128")
+		.replace("?size=256", "?size=128")
+		.replace("?size=128", "?size=128")
+		.replace("?size=64", "?size=128");
 
-	if !url.ends_with("?size=256") {
-		url = format!("{}?size=256", url)
+	if !url.ends_with("?size=128") {
+		url = format!("{}?size=128", url)
 	}
 
 	url
@@ -264,7 +264,7 @@ pub async fn new_member_message(ctx: &SerenityContext, member: &Member) -> Resul
 
 	let mut guild_image = image::load_from_memory(&guild_image_data)?;
 
-	let avatar_url = change_to_x256_url(member.face());
+	let avatar_url = change_to_x128_url(member.face());
 
 	let avatar_image = get_image(avatar_url).await?;
 

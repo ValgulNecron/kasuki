@@ -1,0 +1,23 @@
+vn:
+    user: bad content, not replaced, and other
+
+user:
+    profile: if no user no banner even if user has one
+    banner: if no user no banner even if user has one
+
+steam:
+    game: autocomplete, content, response
+
+management:
+    kill_switch: don't work
+
+bot:
+    ping: no response
+
+audio:
+    play: seem to hang
+
+anilist:
+    user: autocomplete
+    studio: autocomplete, no response
+

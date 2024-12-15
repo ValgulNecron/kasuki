@@ -78,6 +78,7 @@ impl SlashCommand for DeleteActivityCommand {
 			Some(url),
 			EmbedType::Followup,
 			None,
+			Vec::new(),
 		)
 		.await?;
 

@@ -1,20 +1,22 @@
+use crate::constant::DEFAULT_STRING;
+use crate::event_handler::BotData;
+use crate::helper::get_option::command::get_option_map_string;
+use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
-
-use crate::constant::DEFAULT_STRING;
-use crate::event_handler::BotData;
-use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
+use small_fixed_array::FixedString;
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-	let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+	let map = get_option_map_string(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
 
-	let user_search = map.get(&String::from("username")).unwrap_or(DEFAULT_STRING);
+	let user_search = map
+		.get(&FixedString::from_str_trunc("username"))
+		.unwrap_or(DEFAULT_STRING);
 
 	let var = UserAutocompleteVariables {
 		search: Some(user_search),

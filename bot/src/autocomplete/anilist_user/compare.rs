@@ -11,10 +11,11 @@ use tracing::log::trace;
 
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
-use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
+use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
 use anyhow::Result;
+use small_fixed_array::FixedString;
 
 pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: CommandInteraction) {
 	let mut choice = Vec::new();
@@ -22,14 +23,16 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
 
 	trace!("{:?}", &autocomplete_interaction.data.options);
 
-	let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
+	let map = get_option_map_string(&autocomplete_interaction);
 
-	let user1 = map.get(&String::from("username")).unwrap_or(DEFAULT_STRING);
+	let user1 = map
+		.get(&FixedString::from_str_trunc("username"))
+		.unwrap_or(DEFAULT_STRING);
 
 	choice.extend(get_choices(user1, bot_data.anilist_cache.clone()).await);
 
 	let user2 = map
-		.get(&String::from("username2"))
+		.get(&FixedString::from_str_trunc("username2"))
 		.unwrap_or(DEFAULT_STRING);
 
 	choice.extend(get_choices(user2, bot_data.anilist_cache.clone()).await);

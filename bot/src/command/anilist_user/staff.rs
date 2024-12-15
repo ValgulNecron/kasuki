@@ -83,8 +83,6 @@ impl SlashCommand for StaffCommand {
 
 		let gender = staff.gender.clone().unwrap_or(String::from("Unknown."));
 
-		let age = staff.age.unwrap_or(0).to_string();
-
 		let lang = staff.language_v2.unwrap_or_default();
 
 		let guild_id = match command_interaction.guild_id {
@@ -95,23 +93,37 @@ impl SlashCommand for StaffCommand {
 
 		let mut fields = vec![
 			(staff_localised.media, media, true),
-			(staff_localised.va, va, true),
 			(staff_localised.occupation, job, true),
-			(staff_localised.age, age, true),
 			(staff_localised.gender, gender, true),
 			(staff_localised.lang, lang, true),
 		];
+		if !va.is_empty() {
+			fields.push((staff_localised.va, va, true))
+		}
+
+		let age = staff.age;
+
+		if age.is_some() {
+			fields.push((
+				staff_localised.age,
+				age.unwrap_or_default().to_string(),
+				true,
+			))
+		}
 
 		let name = staff.name.unwrap();
 		if staff.date_of_birth.is_some() {
 			let date_of_birth = get_date(staff.date_of_birth.clone());
-			fields.push((staff_localised.date_of_birth, date_of_birth, true));
+			if date_of_birth != String::new() {
+				fields.push((staff_localised.date_of_birth, date_of_birth, true));
+			}
 		}
 
 		if staff.date_of_death.is_some() {
 			let date_of_death = get_date(staff.date_of_death.clone());
-
-			fields.push((staff_localised.date_of_death, date_of_death, true));
+			if date_of_death != String::new() {
+				fields.push((staff_localised.date_of_death, date_of_death, true));
+			}
 		}
 
 		let name = name.full.unwrap_or(
@@ -129,6 +141,7 @@ impl SlashCommand for StaffCommand {
 			staff.site_url,
 			EmbedType::First,
 			None,
+			Vec::new(),
 		)
 		.await
 	}
