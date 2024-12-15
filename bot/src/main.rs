@@ -9,12 +9,13 @@ use serenity::prelude::GatewayIntents;
 use serenity::Client;
 use songbird::driver::DecodeMode;
 use std::process;
+use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
+use serenity::secrets::Token;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
-mod api;
 mod audio;
 pub mod autocomplete;
 mod background_task;
@@ -159,7 +160,14 @@ async fn main() {
 	// Create a new client instance using the provided token and gateway intents.
 	// The client is built with an event handler of type `Handler`.
 	// If the client creation fails, log the error and exit the process.
-	let discord_token = discord_token.as_str();
+	let discord_token = match Token::from_str(discord_token.as_str()) {
+		Ok(token) => token,
+		Err(e) => {
+			error!("Failed to get the token. {}", e);
+
+			return;
+		},
+	};
 
 	let songbird_config = songbird::Config::default().decode_mode(DecodeMode::Decode);
 

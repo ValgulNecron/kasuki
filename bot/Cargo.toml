@@ -29,12 +29,8 @@ serde_with = { version = "3.11.0", features = ["macros"] }
 rust-fuzzy-search = "0.1.1"
 palette = "0.7.6"
 tracing-appender = "0.2.3"
-tonic = { version = "0.12.3", features = ["tls"] }
-prost = "0.13.3"
-tonic-reflection = "0.12.3"
-sysinfo = "0.32.0"
 rayon = "1.10.0"
-rcgen = "0.13.1"
+prost = "0.13.3"
 markdown_converter = "0.3.4"
 futures = "0.3.31"
 rapidfuzz = "0.5.0"
@@ -55,7 +51,6 @@ anyhow = "1.0.92"
 small-fixed-array = "0.4.6"
 
 [build-dependencies]
-tonic-build = "0.12.3"
 cynic-codegen = { version = "3.8.0" }
 
 [profile.dev]

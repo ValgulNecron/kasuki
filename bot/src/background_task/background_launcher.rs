@@ -11,12 +11,11 @@ use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
 
-use crate::api::grpc_server::launcher::grpc_server_launcher;
 use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::background_task::update_random_stats::update_random_stats_launcher;
-use crate::config::{Config, DbConfig, ImageConfig};
+use crate::config::{ DbConfig, ImageConfig};
 use crate::constant::{
 	TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_BLACKLISTED_USER_UPDATE,
 	TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
@@ -24,18 +23,12 @@ use crate::constant::{
 };
 use crate::database::ping_history::ActiveModel;
 use crate::database::prelude::PingHistory;
-use crate::event_handler::{BotData, RootUsage};
+use crate::event_handler::{BotData};
 use crate::get_url;
 use crate::structure::steam_game_id_struct::get_game;
 pub async fn thread_management_launcher(
 	ctx: SerenityContext, bot_data: Arc<BotData>, db_config: DbConfig,
 ) {
-	let command_usage = bot_data.number_of_command_use_per_command.clone();
-
-	let is_grpc_on = bot_data.config.grpc.grpc_is_on;
-
-	let config = bot_data.config.clone();
-
 	let anilist_cache = bot_data.anilist_cache.clone();
 
 	let apps = bot_data.apps.clone();
@@ -61,14 +54,6 @@ pub async fn thread_management_launcher(
 	tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
 
 	sleep(Duration::from_secs(1)).await;
-
-	tokio::spawn(launch_web_server_thread(
-		ctx.clone(),
-		command_usage,
-		is_grpc_on,
-		config,
-		bot_data.clone(),
-	));
 
 	sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
 
@@ -161,54 +146,6 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 
 		drop(runner);
 	}
-}
-
-async fn launch_web_server_thread(
-	ctx: SerenityContext, command_usage: Arc<RwLock<RootUsage>>, is_grpc_on: bool,
-	config: Arc<Config>, bot_data: Arc<BotData>,
-) {
-	// Check if GRPC is enabled
-	if !is_grpc_on {
-		info!("API is off, skipping the API server thread!");
-
-		return;
-	}
-
-	info!("Launching the API server thread!");
-
-	// Read the data from the context
-	let guard = ctx.data::<BotData>().shard_manager.clone();
-	let shard_manager = match guard.read().await.clone() {
-		Some(shard_manager) => shard_manager,
-		None => {
-			tokio::time::sleep(Duration::from_secs(10)).await;
-			Box::pin(launch_web_server_thread(
-				ctx,
-				command_usage,
-				is_grpc_on,
-				config,
-				bot_data,
-			))
-			.await;
-			return;
-		},
-	};
-
-	// Clone the cache and http instances
-	let cache = ctx.cache.clone();
-
-	let http = ctx.http.clone();
-
-	// Launch the GRPC server
-	grpc_server_launcher(
-		&shard_manager,
-		command_usage,
-		cache,
-		http,
-		config.clone(),
-		bot_data.clone(),
-	)
-	.await
 }
 
 /// Asynchronously launches the user color management thread.

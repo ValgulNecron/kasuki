@@ -4,7 +4,6 @@ use std::env;
 use once_cell::sync::Lazy;
 use serenity::all::Colour;
 
-use crate::api::grpc_server::command_list::{get_list_of_all_command, CommandItem};
 
 /// Delay before a new thread is spawned.
 /// Delay between ping updates.
@@ -127,7 +126,6 @@ pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Vec of all available bot commands.
 
-pub static BOT_COMMANDS: Lazy<Vec<CommandItem>> = Lazy::new(get_list_of_all_command);
 
 /// Used library.
 

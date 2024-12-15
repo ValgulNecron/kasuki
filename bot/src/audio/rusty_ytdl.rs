@@ -117,9 +117,9 @@ impl Compose for RustyYoutubeSearch {
 
 			let proxy = proxy.split("\n").collect::<Vec<&str>>();
 
-			let mut rng = rand::thread_rng();
+			let mut rng = rand::rng();
 
-			let n = rng.gen_range(0..proxy.len());
+			let n = rng.random_range(0..proxy.len());
 
 			let proxy = proxy[n];
 
