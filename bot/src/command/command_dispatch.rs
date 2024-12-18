@@ -131,7 +131,7 @@ pub async fn dispatch_command(
 			.await?
 		},
 
-		"admin_anilist_add_activity" => {
+		"admin_anilist_add_anime_activity" => {
 			AddActivityCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
@@ -139,7 +139,7 @@ pub async fn dispatch_command(
 			.run_slash()
 			.await?
 		},
-		"admin_anilist_delete_activity" => {
+		"admin_anilist_delete_anime_activity" => {
 			DeleteActivityCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),

@@ -98,6 +98,8 @@ impl SlashCommand for AddActivityCommand {
 		let anime_name = get_name(title);
 
 		if exist {
+			trace!("already added");
+			trace!(?anime_name);
 			self.send_embed(
 				Vec::new(),
 				None,
@@ -113,6 +115,8 @@ impl SlashCommand for AddActivityCommand {
 			)
 			.await?;
 		} else {
+			trace!("adding");
+			trace!(?anime_name);
 			let channel_id = command_interaction.channel_id;
 
 			let delay = map
@@ -131,7 +135,7 @@ impl SlashCommand for AddActivityCommand {
                 anyhow!("No cover image for this media".to_string()),
             )?.extra_large.
                 unwrap_or(
-                    "https://imgs.search.brave.com/ CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+                    "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
                         .to_string()
                 )
             ).await?.bytes().await?;

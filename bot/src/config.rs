@@ -8,7 +8,6 @@ pub struct Config {
 	pub image: ImageConfig,
 	pub logging: LoggingConfig,
 	pub ai: AICfg,
-	pub grpc: GrpcCfg,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -83,16 +82,6 @@ pub struct AICfgTranscription {
 	pub ai_transcription_model: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-
-pub struct GrpcCfg {
-	pub grpc_is_on: bool,
-	pub grpc_port: u16,
-	pub use_tls: bool,
-	pub tls_cert_path: String,
-	pub tls_key_path: String,
-}
-
 impl Default for Config {
 	fn default() -> Self {
 		Config {
@@ -140,13 +129,6 @@ impl Default for Config {
 					ai_transcription_base_url: None,
 					ai_transcription_model: None,
 				},
-			},
-			grpc: GrpcCfg {
-				grpc_is_on: false,
-				grpc_port: 443,
-				use_tls: false,
-				tls_cert_path: "cert/cert.pem".to_string(),
-				tls_key_path: "cert/key.pem".to_string(),
 			},
 		}
 	}

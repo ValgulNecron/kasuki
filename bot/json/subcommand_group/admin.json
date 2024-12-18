@@ -108,7 +108,7 @@
           ]
         },
         {
-          "name": "delete_activity",
+          "name": "delete_anime_activity",
           "desc": "Delete an anime activity.",
           "args": [
             {
@@ -144,22 +144,22 @@
           "localised": [
             {
               "code": "en-US",
-              "name": "delete_activity",
+              "name": "delete_anime_activity",
               "desc": "Delete an anime activity."
             },
             {
               "code": "fr",
-              "name": "supprimer_activite",
+              "name": "supprimer_activite_anime",
               "desc": "Supprimer une activité anime."
             },
             {
               "code": "de",
-              "name": "aktivitat_loeschen",
+              "name": "anime_aktivitat_loeschen",
               "desc": "Löschen Sie eine Anime-Aktivität."
             },
             {
               "code": "ja",
-              "name": "katsudo_wo_sakujo",
+              "name": "anime_katsudo_wo_sakujo",
               "desc": "アニメ活動を削除します。"
             }
           ]

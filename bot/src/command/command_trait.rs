@@ -78,7 +78,7 @@ impl<T: Command> Embed for T {
 		let mut builders_embeds = Vec::new();
 
 		if let Some(images) = images {
-			if images.len() == 1 {
+			if images.len() <= 1 {
 				builder_embed = builder_embed.image(images[0].clone());
 				builders_embeds.push(builder_embed)
 			} else {
@@ -120,7 +120,7 @@ impl<T: Command> Embed for T {
 
 		let command_interaction = self.get_command_interaction();
 
-		let builder_message = Defer(CreateInteractionResponseMessage::new());
+		let builder_message = Defer(Default::default());
 
 		command_interaction
 			.create_response(&ctx.http, builder_message)

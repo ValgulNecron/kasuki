@@ -405,7 +405,14 @@ impl EventHandler for Handler {
 			)
 		}
 
-		// Spawns a new thread for managing various tasks
+		// Logs a message indicating that the shard is connected
+		info!(
+			"Shard {:?} of {} is connected!",
+			ready.shard, ready.user.name
+		);
+		ctx.set_activity(Some(ActivityData::custom(
+			bot_data.config.bot.bot_activity.clone(),
+		)));
 		let guard = bot_data.already_launched.read().await;
 
 		if !(*guard) {
@@ -421,30 +428,12 @@ impl EventHandler for Handler {
 				bot_data.config.db.clone(),
 			));
 
-			drop(write_guard)
+			drop(write_guard);
+
+			let remove_old_command = bot_data.config.bot.remove_old_commands;
+
+			command_registration(&ctx.http, remove_old_command).await;
 		}
-
-		// Sets the bot's activity
-		ctx.set_activity(Some(ActivityData::custom(
-			bot_data.config.bot.bot_activity.clone(),
-		)));
-
-		// Logs a message indicating that the shard is connected
-		info!(
-			"Shard {:?} of {} is connected!",
-			ready.shard, ready.user.name
-		);
-
-		// Logs the number of servers the bot is in
-		let server_number = ctx.cache.guilds().len();
-
-		info!(server_number);
-
-		// Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
-		let remove_old_command = bot_data.config.bot.remove_old_commands;
-
-		// Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
-		command_registration(&ctx.http, remove_old_command).await;
 	}
 
 	async fn interaction_create(&self, ctx: SerenityContext, interaction: Interaction) {
