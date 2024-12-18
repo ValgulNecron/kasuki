@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
 
-use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::constant::{NEW_MEMBER_IMAGE_PATH, NEW_MEMBER_PATH};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::{
@@ -113,17 +113,19 @@ impl SlashCommand for NewMemberSettingCommand {
 			load_localization_new_member_setting(guild_id.clone(), bot_data.config.db.clone())
 				.await?;
 
-		self.send_embed(
-			Vec::new(),
-			None,
-			localised.title.clone(),
-			localised.description,
-			None,
-			None,
-			EmbedType::First,
-			None,
-			Vec::new(),
-		)
-		.await
+		let embed_content = EmbedContent {
+			title: localised.title.clone(),
+
+			description: localised.description,
+
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::First,
+			colour: None,
+			fields: vec![],
+			images: None,
+		};
+
+		self.send_embed(embed_content).await
 	}
 }

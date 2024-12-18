@@ -1,4 +1,4 @@
-use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::database::guild_lang;
 use crate::database::prelude::GuildLang;
 use crate::event_handler::BotData;
@@ -52,17 +52,17 @@ impl SlashCommand for LangCommand {
 
 		let lang_localised = load_localization_lang(guild_id, bot_data.config.db.clone()).await?;
 
-		self.send_embed(
-			Vec::new(),
-			None,
-			lang_localised.title.clone(),
-			lang_localised.desc.replace("$lang$", lang.as_str()),
-			None,
-			None,
-			EmbedType::First,
-			None,
-			Vec::new(),
-		)
-		.await
+		let embed_content = EmbedContent {
+			title: lang_localised.title.clone(),
+			description: lang_localised.desc.replace("$lang$", lang.as_str()),
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::First,
+			colour: None,
+			fields: vec![],
+			images: None,
+		};
+
+		self.send_embed(embed_content).await
 	}
 }

@@ -4,7 +4,6 @@ use std::env;
 use once_cell::sync::Lazy;
 use serenity::all::Colour;
 
-
 /// Delay before a new thread is spawned.
 /// Delay between ping updates.
 
@@ -125,7 +124,6 @@ pub const DEFAULT_STRING: &String = &String::new();
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Vec of all available bot commands.
-
 
 /// Used library.
 

@@ -15,7 +15,7 @@ use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::background_task::update_random_stats::update_random_stats_launcher;
-use crate::config::{ DbConfig, ImageConfig};
+use crate::config::{DbConfig, ImageConfig};
 use crate::constant::{
 	TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_BLACKLISTED_USER_UPDATE,
 	TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
@@ -23,7 +23,7 @@ use crate::constant::{
 };
 use crate::database::ping_history::ActiveModel;
 use crate::database::prelude::PingHistory;
-use crate::event_handler::{BotData};
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::structure::steam_game_id_struct::get_game;
 pub async fn thread_management_launcher(

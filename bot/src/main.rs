@@ -6,13 +6,13 @@ use anyhow::{Context, Result};
 use moka::future::Cache;
 use serenity::gateway::ShardManager;
 use serenity::prelude::GatewayIntents;
+use serenity::secrets::Token;
 use serenity::Client;
 use songbird::driver::DecodeMode;
 use std::process;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use serenity::secrets::Token;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 

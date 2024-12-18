@@ -2,8 +2,8 @@ use anyhow::{anyhow, Result};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-use crate::command::command_trait::Embed;
 use crate::command::command_trait::{Command, EmbedType, SlashCommand};
+use crate::command::command_trait::{Embed, EmbedContent};
 use crate::config::DbConfig;
 use crate::database::activity_data;
 use crate::database::activity_data::Column;
@@ -100,20 +100,19 @@ impl SlashCommand for AddActivityCommand {
 		if exist {
 			trace!("already added");
 			trace!(?anime_name);
-			self.send_embed(
-				Vec::new(),
-				None,
-				add_activity_localised.fail.clone(),
-				add_activity_localised
+			let embed_content = EmbedContent {
+				title: add_activity_localised.fail.clone(),
+				description: add_activity_localised
 					.fail_desc
 					.replace("$anime$", anime_name.as_str()),
-				None,
-				Some(url),
-				EmbedType::Followup,
-				None,
-				Vec::new(),
-			)
-			.await?;
+				thumbnail: None,
+				url: Some(url),
+				command_type: EmbedType::Followup,
+				colour: None,
+				fields: vec![],
+				images: None,
+			};
+			self.send_embed(embed_content).await?;
 		} else {
 			trace!("adding");
 			trace!(?anime_name);
@@ -181,20 +180,19 @@ impl SlashCommand for AddActivityCommand {
 			.exec(&*connection)
 			.await?;
 
-			self.send_embed(
-				Vec::new(),
-				None,
-				add_activity_localised.success.clone(),
-				add_activity_localised
+			let embed_content = EmbedContent {
+				title: add_activity_localised.success.clone(),
+				description: add_activity_localised
 					.success_desc
 					.replace("$anime$", anime_name.as_str()),
-				None,
-				Some(url),
-				EmbedType::Followup,
-				None,
-				Vec::new(),
-			)
-			.await?;
+				thumbnail: None,
+				url: Some(url),
+				command_type: EmbedType::Followup,
+				colour: None,
+				fields: vec![],
+				images: None,
+			};
+			self.send_embed(embed_content).await?;
 		}
 
 		Ok(())
