@@ -1,5 +1,5 @@
 use crate::command::command_trait::{
-	Command, Embed, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
+	Command, Embed, EmbedContent, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
 };
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
@@ -74,18 +74,17 @@ impl SlashCommand for QuestionCommand {
 
 		let text = question(prompt, api_key, api_base_url, model).await?;
 
-		self.send_embed(
-			Vec::new(),
-			None,
-			String::new(),
-			text,
-			None,
-			None,
-			EmbedType::Followup,
-			None,
-			Vec::new(),
-		)
-		.await
+		let embed_content = EmbedContent {
+			title: String::new(),
+			description: text,
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::Followup,
+			colour: None,
+			fields: vec![],
+			images: None,
+		};
+		self.send_embed(embed_content).await
 	}
 }
 

@@ -45,6 +45,7 @@ pub trait PremiumCommand {
 	) -> Result<bool>;
 }
 
+#[derive(Clone)]
 pub struct EmbedContent<'a> {
 	pub title: String,
 	pub description: String,
@@ -56,6 +57,7 @@ pub struct EmbedContent<'a> {
 	pub images: Option<Vec<EmbedImage<'a>>>,
 }
 
+#[derive(Clone)]
 pub struct EmbedImage<'a> {
 	pub attachment: CreateAttachment<'a>,
 	pub image: String,
@@ -164,6 +166,7 @@ impl<T: Command> Embed for T {
 	}
 }
 
+#[derive(Clone)]
 pub enum EmbedType {
 	First,
 	Followup,

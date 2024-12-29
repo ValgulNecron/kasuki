@@ -1,4 +1,5 @@
 use crate::command::ai::question::question_api_url;
+use crate::command::command_trait::EmbedContent;
 use crate::command::command_trait::{
 	Command, Embed, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
 };
@@ -213,19 +214,17 @@ impl SlashCommand for TranslationCommand {
 		} else {
 			String::from(text)
 		};
-
-		self.send_embed(
-			Vec::new(),
-			None,
-			translation_localised.title,
-			text,
-			None,
-			None,
-			EmbedType::Followup,
-			None,
-			Vec::new(),
-		)
-		.await
+		let embed_content = EmbedContent {
+			title: translation_localised.title,
+			description: text.to_string(),
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::Followup,
+			colour: None,
+			fields: vec![],
+			images: None,
+		};
+		self.send_embed(embed_content).await
 	}
 }
 pub async fn translation(

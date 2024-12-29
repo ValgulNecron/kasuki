@@ -3,28 +3,38 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "guild_subscription")]
+#[sea_orm(table_name = "command_usage")]
 pub struct Model {
 	#[sea_orm(primary_key, auto_increment = false)]
-	pub guild_id: String,
-	pub entitlement_id: String,
+	pub command: String,
 	#[sea_orm(primary_key, auto_increment = false)]
-	pub sku_id: String,
-	pub created_at: DateTime,
-	pub updated_at: DateTime,
-	pub expired_at: DateTime,
+	pub user: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
 	#[sea_orm(
+		belongs_to = "super::command_list::Entity",
+		from = "(Column::Command, Column::Command)",
+		to = "(super::command_list::Column::CommandName, super::command_list::Column::CommandName)",
+		on_update = "Cascade",
+		on_delete = "Cascade"
+	)]
+	CommandList,
+	#[sea_orm(
 		belongs_to = "super::user_data::Entity",
-		from = "Column::GuildId",
+		from = "Column::User",
 		to = "super::user_data::Column::UserId",
 		on_update = "Cascade",
 		on_delete = "Cascade"
 	)]
 	UserData,
+}
+
+impl Related<super::command_list::Entity> for Entity {
+	fn to() -> RelationDef {
+		Relation::CommandList.def()
+	}
 }
 
 impl Related<super::user_data::Entity> for Entity {

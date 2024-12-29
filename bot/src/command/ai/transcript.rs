@@ -1,5 +1,5 @@
 use crate::command::command_trait::{
-	Command, Embed, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
+	Command, Embed, EmbedContent, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
 };
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
@@ -182,18 +182,16 @@ impl SlashCommand for TranscriptCommand {
 		let res = res_result?;
 
 		let text = res["text"].as_str().unwrap_or("");
-
-		self.send_embed(
-			Vec::new(),
-			None,
-			transcript_localised.title,
-			text.to_string(),
-			None,
-			None,
-			EmbedType::Followup,
-			None,
-			Vec::new(),
-		)
-		.await
+		let embed_content = EmbedContent {
+			title: transcript_localised.title,
+			description: text.to_string(),
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::Followup,
+			colour: None,
+			fields: vec![],
+			images: None,
+		};
+		self.send_embed(embed_content).await
 	}
 }

@@ -3,13 +3,22 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "ping_history")]
+#[sea_orm(table_name = "anime_song")]
 pub struct Model {
 	#[sea_orm(primary_key, auto_increment = false)]
-	pub shard_id: String,
+	pub anilist_id: String,
 	#[sea_orm(primary_key, auto_increment = false)]
-	pub timestamp: DateTime,
-	pub latency: String,
+	pub ann_id: String,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub ann_song_id: String,
+	pub anime_en_name: String,
+	pub anime_jp_name: String,
+	pub anime_alt_name: String,
+	pub song_type: String,
+	pub song_name: String,
+	pub hq: String,
+	pub mq: String,
+	pub audio: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

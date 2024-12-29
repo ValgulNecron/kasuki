@@ -9,7 +9,6 @@ use tracing::{debug, error};
 
 // App is a struct that represents a Steam app
 #[derive(Debug, Deserialize, Clone)]
-
 pub struct App {
 	// app_id is the id of the app
 	#[serde(rename = "appid")]

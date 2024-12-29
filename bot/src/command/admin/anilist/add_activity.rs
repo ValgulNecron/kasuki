@@ -175,7 +175,7 @@ impl SlashCommand for AddActivityCommand {
 				episode: Set(next_airing.episode),
 				name: Set(trimmed_anime_name),
 				delay: Set(delay),
-				image: Set(image),
+				image: Set(image.clone()),
 			})
 			.exec(&*connection)
 			.await?;
@@ -185,7 +185,7 @@ impl SlashCommand for AddActivityCommand {
 				description: add_activity_localised
 					.success_desc
 					.replace("$anime$", anime_name.as_str()),
-				thumbnail: None,
+				thumbnail: Some(image),
 				url: Some(url),
 				command_type: EmbedType::Followup,
 				colour: None,

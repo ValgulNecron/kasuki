@@ -1,3 +1,4 @@
+use crate::background_task::get_anisong_db::get_anisong;
 use crate::config::{Config, DbConfig};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::event_handler::{BotData, Handler, RootUsage};
@@ -100,6 +101,8 @@ async fn main() {
 
 		process::exit(4);
 	}
+
+	let anisong_db = get_anisong(Arc::default(), config.db.clone()).await;
 
 	let number_of_command_use_per_command: RootUsage;
 

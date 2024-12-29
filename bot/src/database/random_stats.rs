@@ -3,17 +3,12 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "kill_switch")]
+#[sea_orm(table_name = "random_stats")]
 pub struct Model {
-	#[sea_orm(primary_key, auto_increment = false)]
-	pub guild_id: String,
-	pub ai_module: bool,
-	pub anilist_module: bool,
-	pub game_module: bool,
-	pub new_members_module: bool,
-	pub anime_module: bool,
-	pub vn_module: bool,
-	pub updated_at: DateTime,
+	#[sea_orm(primary_key)]
+	pub id: i32,
+	pub last_anime_page: i32,
+	pub last_manga_page: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

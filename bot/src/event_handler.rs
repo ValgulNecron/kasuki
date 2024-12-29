@@ -577,9 +577,11 @@ async fn insert_guild_subscription(
 			crate::database::guild_subscription::Column::GuildId,
 			crate::database::guild_subscription::Column::SkuId,
 		])
-		.update_column(crate::database::guild_subscription::Column::EntitlementId)
-		.update_column(crate::database::guild_subscription::Column::ExpiredAt)
-		.update_column(crate::database::user_subscription::Column::UpdatedAt)
+		.update_columns([
+			crate::database::guild_subscription::Column::EntitlementId,
+			crate::database::guild_subscription::Column::ExpiredAt,
+			crate::database::guild_subscription::Column::UpdatedAt,
+		])
 		.to_owned(),
 	)
 	.exec(&*connection.clone())
@@ -606,9 +608,11 @@ async fn insert_user_subscription(
 			crate::database::user_subscription::Column::UserId,
 			crate::database::user_subscription::Column::SkuId,
 		])
-		.update_column(crate::database::user_subscription::Column::EntitlementId)
-		.update_column(crate::database::user_subscription::Column::ExpiredAt)
-		.update_column(crate::database::user_subscription::Column::UpdatedAt)
+		.update_columns([
+			crate::database::user_subscription::Column::EntitlementId,
+			crate::database::user_subscription::Column::ExpiredAt,
+			crate::database::user_subscription::Column::UpdatedAt,
+		])
 		.to_owned(),
 	)
 	.exec(&*connection.clone())
@@ -629,9 +633,11 @@ pub async fn add_user_data_to_db(user: User, connection: Arc<DatabaseConnection>
 	})
 	.on_conflict(
 		sea_orm::sea_query::OnConflict::column(crate::database::user_data::Column::UserId)
-			.update_column(crate::database::user_data::Column::Username)
-			.update_column(crate::database::user_data::Column::Banner)
-			.update_column(crate::database::user_data::Column::IsBot)
+			.update_columns([
+				crate::database::user_data::Column::Username,
+				crate::database::user_data::Column::Banner,
+				crate::database::user_data::Column::IsBot,
+			])
 			.to_owned(),
 	)
 	.exec(&*connection)
