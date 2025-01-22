@@ -1,4 +1,4 @@
-use std::sync::Arc;
+	use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand, UserCommand};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};

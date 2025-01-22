@@ -27,6 +27,9 @@
       Get the currency and language from the server language setting.
         - [X] Steam
 
+- Audio module:
+    - [X] ytdl play back 
+
 - AI module:
     - [X] Image generation with AI.
     - [X] Video transcription.

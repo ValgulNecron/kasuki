@@ -75,7 +75,7 @@ pub async fn get_user_command(
 
 	let user = match user {
 		Some(user) => user.to_user(&ctx.http).await?,
-		None => command_interaction.user.clone(),
+		None => command_interaction.user.id.to_user(&ctx.http).clone(),
 	};
 
 	Ok(user)

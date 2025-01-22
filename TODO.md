@@ -39,7 +39,6 @@
 - General module:
     - [ ] Better langage json loading.
 
-
 - General part:
     - [ ] Cache
         - [ ] Add redis for cache.
@@ -48,6 +47,7 @@
       (Run, Register, and Autocomplete don’t need this.).
     - [ ] Rework the bot way of working to be clearer.
     - [ ] Change image to alpine to reduce size.
+    - [ ] switch to new command way.
 
 - Optimisation needed:
     - [ ] anilist_server list_user

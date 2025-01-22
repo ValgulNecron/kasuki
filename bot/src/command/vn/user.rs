@@ -70,7 +70,7 @@ async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteract
 	];
 
 	let builder_embed = get_default_embed(None)
-		.title(user_localised.title)
+		.title(user_localised.title.replace("$user$", &user.username))
 		.fields(fields);
 
 	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
