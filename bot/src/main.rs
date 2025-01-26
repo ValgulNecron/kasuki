@@ -102,8 +102,6 @@ async fn main() {
 		process::exit(4);
 	}
 
-	let anisong_db = get_anisong(Arc::default(), config.db.clone()).await;
-
 	let number_of_command_use_per_command: RootUsage;
 
 	// populate the number_of_command_use_per_command with the content of the file

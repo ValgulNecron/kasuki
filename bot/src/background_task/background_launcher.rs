@@ -12,6 +12,7 @@ use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
 
 use crate::background_task::activity::anime_activity::manage_activity;
+use crate::background_task::get_anisong_db::get_anisong;
 use crate::background_task::server_image::calculate_user_color::color_management;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::background_task::update_random_stats::update_random_stats_launcher;
@@ -29,6 +30,8 @@ use crate::structure::steam_game_id_struct::get_game;
 pub async fn thread_management_launcher(
 	ctx: SerenityContext, bot_data: Arc<BotData>, db_config: DbConfig,
 ) {
+	tokio::spawn(get_anisong());
+
 	let anilist_cache = bot_data.anilist_cache.clone();
 
 	let apps = bot_data.apps.clone();
@@ -74,6 +77,11 @@ pub async fn thread_management_launcher(
 	));
 
 	info!("Done spawning thread manager.");
+}
+
+async fn update_anisong_db() {
+	let mut interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_PING_UPDATE));
+	get_anisong().await;
 }
 
 async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {

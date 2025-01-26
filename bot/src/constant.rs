@@ -44,6 +44,8 @@ pub const TIME_BETWEEN_ACTIVITY_CHECK: u64 = 1;
 /// time between random stats update.
 
 pub const TIME_BETWEEN_RANDOM_STATS_UPDATE: u64 = 86_400;
+/// time between anisong db update
+pub const TIME_BETWEEN_ANISONG_UPDATE: u64 = 604_800;
 
 /// Max capacity for the cache.
 

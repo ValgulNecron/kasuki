@@ -29,13 +29,12 @@ pub struct AniSongDB {
 }
 
 pub async fn get_anisong(
-	anisong_list: Arc<RwLock<HashMap<String, AniSongDB>>>, db: DbConfig,
-) -> Arc<RwLock<HashMap<String, AniSongDB>>> {
+) {
 	let connection = match sea_orm::Database::connect(get_url(db)).await {
 		Ok(connection) => Arc::new(connection),
 		Err(e) => {
 			error!("Failed to connect to the database. {}", e);
-			return anisong_list;
+			return
 		},
 	};
 
@@ -147,43 +146,7 @@ pub async fn get_anisong(
 		futures.push(future);
 		i += 1;
 	}
-	let results = join_all(futures).await;
-	let mut all_anisongs = Vec::new();
-	for result in results {
-		if let Ok(anisongs) = result {
-			all_anisongs.extend(anisongs);
-		}
-	}
-	let new_anisong: HashMap<String, AniSongDB> = all_anisongs
-		.into_iter()
-		.filter(|ani_song| ani_song.linked_ids.anilist.is_some())
-		.map(|ani_song| {
-			let data: AniSongDB = AniSongDB {
-				ann_id: ani_song.ann_id,
-				ann_song_id: ani_song.ann_song_id,
-				anime_en_name: ani_song.anime_en_name,
-				anime_jp_name: ani_song.anime_jp_name,
-				anime_alt_name: ani_song.anime_alt_name,
-				song_type: ani_song.song_type,
-				song_name: ani_song.song_name,
-				hq: ani_song.hq,
-				mq: ani_song.mq,
-				audio: ani_song.audio,
-			};
-
-			(
-				ani_song.linked_ids.anilist.unwrap_or_default().to_string(),
-				data,
-			)
-		})
-		.collect();
-
-	trace!("{:?}", new_anisong);
-
-	let mut anisong_list_guard = anisong_list.write().await;
-	*anisong_list_guard = new_anisong;
-	drop(anisong_list_guard);
-	anisong_list
+	join_all(futures).await;
 }
 
 #[derive(Debug, Deserialize, Clone)]
