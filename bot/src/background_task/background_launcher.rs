@@ -30,7 +30,6 @@ use crate::structure::steam_game_id_struct::get_game;
 pub async fn thread_management_launcher(
 	ctx: SerenityContext, bot_data: Arc<BotData>, db_config: DbConfig,
 ) {
-	tokio::spawn(get_anisong());
 
 	let anilist_cache = bot_data.anilist_cache.clone();
 
@@ -39,6 +38,9 @@ pub async fn thread_management_launcher(
 	let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
 
 	let connection = bot_data.db_connection.clone();
+
+	tokio::spawn(get_anisong(connection.clone()));
+
 
 	tokio::spawn(launch_activity_management_thread(
 		ctx.clone(),

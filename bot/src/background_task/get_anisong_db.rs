@@ -1,7 +1,7 @@
 use futures::future::join_all;
 use reqwest::Client;
 use sea_orm::ActiveValue::Set;
-use sea_orm::EntityTrait;
+use sea_orm::{DatabaseConnection, EntityTrait};
 use std::collections::HashMap;
 use std::sync::Arc;
 // Import necessary libraries and modules
@@ -29,14 +29,8 @@ pub struct AniSongDB {
 }
 
 pub async fn get_anisong(
+	connection: Arc<DatabaseConnection>
 ) {
-	let connection = match sea_orm::Database::connect(get_url(db)).await {
-		Ok(connection) => Arc::new(connection),
-		Err(e) => {
-			error!("Failed to connect to the database. {}", e);
-			return
-		},
-	};
 
 	let client = Arc::new(Client::new());
 	let semaphore = Arc::new(Semaphore::new(10)); // Limit to 10 concurrent tasks
