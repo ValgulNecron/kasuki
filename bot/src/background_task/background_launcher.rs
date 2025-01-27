@@ -39,7 +39,7 @@ pub async fn thread_management_launcher(
 
 	let connection = bot_data.db_connection.clone();
 
-	tokio::spawn(get_anisong(connection.clone()));
+	tokio::spawn(update_anisong_db(connection.clone()));
 
 
 	tokio::spawn(launch_activity_management_thread(
@@ -81,9 +81,12 @@ pub async fn thread_management_launcher(
 	info!("Done spawning thread manager.");
 }
 
-async fn update_anisong_db() {
+async fn update_anisong_db(db: Arc<DatabaseConnection>) {
 	let mut interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_PING_UPDATE));
-	get_anisong().await;
+	loop {
+		interval.tick().await;
+		get_anisong(db).await;
+	}
 }
 
 async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
