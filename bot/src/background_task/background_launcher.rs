@@ -85,7 +85,7 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>) {
 	let mut interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_PING_UPDATE));
 	loop {
 		interval.tick().await;
-		get_anisong(db).await;
+		get_anisong(db.clone()).await;
 	}
 }
 
