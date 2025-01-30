@@ -30,9 +30,7 @@ pub mod error_management;
 mod event_handler;
 mod helper;
 mod logger;
-mod new_member;
 mod register;
-mod removed_member;
 mod structure;
 
 #[tokio::main]

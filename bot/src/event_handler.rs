@@ -13,9 +13,7 @@ use crate::database::prelude::{
 	GuildData, GuildSubscription, ServerUserRelation, UserData, UserSubscription,
 };
 use crate::error_management::error_dispatch;
-use crate::new_member::new_member_message;
 use crate::register::registration_dispatcher::command_registration;
-use crate::removed_member::removed_member_message;
 use chrono::Utc;
 use moka::future::Cache;
 use num_bigint::BigUint;
@@ -240,11 +238,6 @@ impl EventHandler for Handler {
 					false
 				});
 
-		match new_member_message(&ctx, &member).await {
-			Ok(_) => {},
-			Err(e) => error!(?e),
-		};
-
 		color_management(
 			&ctx.cache.guilds(),
 			&ctx,
@@ -289,13 +282,6 @@ impl EventHandler for Handler {
 
 			false
 		});
-
-		if is_module_on {
-			match removed_member_message(&ctx, guild_id, user).await {
-				Ok(_) => {},
-				Err(e) => error!(?e),
-			}
-		}
 	}
 
 	async fn guild_members_chunk(&self, ctx: SerenityContext, chunk: GuildMembersChunkEvent) {

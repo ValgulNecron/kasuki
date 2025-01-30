@@ -2,7 +2,6 @@ use crate::command::admin::anilist::add_activity::AddActivityCommand;
 use crate::command::admin::anilist::delete_activity::DeleteActivityCommand;
 use crate::command::admin::server::lang::LangCommand;
 use crate::command::admin::server::module::{check_activation_status, ModuleCommand};
-use crate::command::admin::server::new_member_setting::NewMemberSettingCommand;
 use crate::command::ai::image::ImageCommand;
 use crate::command::ai::question::QuestionCommand;
 use crate::command::ai::transcript::TranscriptCommand;
