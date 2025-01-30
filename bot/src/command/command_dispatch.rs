@@ -121,14 +121,6 @@ pub async fn dispatch_command(
 			.run_slash()
 			.await?
 		},
-		"admin_general_new_member_setting" => {
-			NewMemberSettingCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
-			}
-			.run_slash()
-			.await?
-		},
 
 		"admin_anilist_add_anime_activity" => {
 			AddActivityCommand {
