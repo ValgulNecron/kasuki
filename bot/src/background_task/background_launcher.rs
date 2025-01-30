@@ -82,6 +82,7 @@ pub async fn thread_management_launcher(
 }
 
 async fn update_anisong_db(db: Arc<DatabaseConnection>) {
+	info!("Launching the anisongdb thread!");
 	let mut interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_PING_UPDATE));
 	loop {
 		interval.tick().await;
