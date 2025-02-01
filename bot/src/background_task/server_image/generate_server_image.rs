@@ -16,7 +16,9 @@ use tokio::task;
 use tracing::{info, warn};
 use uuid::Uuid;
 
-use crate::background_task::server_image::calculate_user_color::{change_to_x128_url, get_image_from_url, get_member, return_average_user_color};
+use crate::background_task::server_image::calculate_user_color::{
+	change_to_x128_url, get_image_from_url, get_member, return_average_user_color,
+};
 use crate::background_task::server_image::common::{
 	create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
 	ColorWithUrl,

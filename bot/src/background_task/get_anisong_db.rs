@@ -28,10 +28,7 @@ pub struct AniSongDB {
 	audio: Option<String>,
 }
 
-pub async fn get_anisong(
-	connection: Arc<DatabaseConnection>
-) {
-
+pub async fn get_anisong(connection: Arc<DatabaseConnection>) {
 	let client = Arc::new(Client::new());
 	let semaphore = Arc::new(Semaphore::new(10)); // Limit to 10 concurrent tasks
 	let mut futures = Vec::new();

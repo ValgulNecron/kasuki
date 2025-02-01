@@ -265,25 +265,6 @@ impl EventHandler for Handler {
 		};
 	}
 
-	async fn guild_member_removal(
-		&self, ctx: SerenityContext, guild_id: GuildId, user: User,
-		_member_data_if_available: Option<Member>,
-	) {
-		let bot_data = ctx.data::<BotData>().clone();
-
-		let is_module_on = check_if_module_is_on(
-			guild_id.to_string().clone(),
-			"NEW_MEMBER",
-			bot_data.config.db.clone(),
-		)
-		.await
-		.unwrap_or_else(|e| {
-			error!("{}", e);
-
-			false
-		});
-	}
-
 	async fn guild_members_chunk(&self, ctx: SerenityContext, chunk: GuildMembersChunkEvent) {
 		let bot_data = ctx.data::<BotData>().clone();
 

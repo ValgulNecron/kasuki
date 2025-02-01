@@ -30,7 +30,6 @@ use crate::structure::steam_game_id_struct::get_game;
 pub async fn thread_management_launcher(
 	ctx: SerenityContext, bot_data: Arc<BotData>, db_config: DbConfig,
 ) {
-
 	let anilist_cache = bot_data.anilist_cache.clone();
 
 	let apps = bot_data.apps.clone();
@@ -40,7 +39,6 @@ pub async fn thread_management_launcher(
 	let connection = bot_data.db_connection.clone();
 
 	tokio::spawn(update_anisong_db(connection.clone()));
-
 
 	tokio::spawn(launch_activity_management_thread(
 		ctx.clone(),
@@ -59,14 +57,6 @@ pub async fn thread_management_launcher(
 	tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
 
 	sleep(Duration::from_secs(1)).await;
-
-	sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
-
-	tokio::spawn(launch_user_color_management_thread(
-		ctx.clone(),
-		user_blacklist_server_image.clone(),
-		bot_data.clone(),
-	));
 
 	sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
 
@@ -159,44 +149,6 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 		}
 
 		drop(runner);
-	}
-}
-
-/// Asynchronously launches the user color management thread.
-///
-/// # Arguments
-///
-/// * `ctx` - A `Context` instance used to access the bot's data and cache.
-/// * `db_type` - A `String` representing the type of database being used.
-/// * `user_blacklist_server_image` - An `Arc` wrapped `RwLock` containing a list of strings for user blacklist and server image management.
-///
-
-async fn launch_user_color_management_thread(
-	ctx: SerenityContext, user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-	bot_data: Arc<BotData>,
-) {
-	// Create an interval for periodic updates
-	let mut interval = interval(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE));
-
-	// Log a message indicating that the user color management thread is being launched
-	info!("Launching the user color management thread!");
-
-	// Enter a loop that waits for the next interval tick and triggers color management
-	loop {
-		// Wait for the next interval tick
-		interval.tick().await;
-
-		// Get the guilds from the context cache
-		let guilds = ctx.cache.guilds();
-
-		// Perform color management for the guilds
-		color_management(
-			&guilds,
-			&ctx,
-			user_blacklist_server_image.clone(),
-			bot_data.clone(),
-		)
-		.await;
 	}
 }
 

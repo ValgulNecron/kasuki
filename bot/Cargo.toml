@@ -14,10 +14,10 @@ license-file = "../LICENSE"
 regex = "1.11.1"
 reqwest = { version = "0.12.12", features = ["json", "multipart", "blocking"] }
 serde = "1.0.217"
-serde_json = "1.0.137"
+serde_json = "1.0.138"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "voice", "cache", "http", "unstable"] }
 tokio = { version = "1.43.0", features = ["full"] }
-rand = "0.9.0-beta.3"
+rand = "0.9.0"
 chrono = "0.4.39"
 uuid = { version = "1.12.1", features = ["v4"] }
 image = "0.25.5"
@@ -38,14 +38,13 @@ cynic = { version = "3.9.1", features = ["reqwest", "http-reqwest", "serde_json"
 moka = { version = "0.12.10", features = ["future"] }
 toml = "0.8.19"
 num-bigint = "0.4.6"
-text-to-png = "0.2.0"
 songbird = { git = "https://github.com/serenity-rs/songbird.git", branch = "serenity-next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
 symphonia = { features = ["aac", "mp3", "isomp4", "alac", "symphonia-format-isomp4"], version = "0.5.4" }
 dashmap = "6.1.0"
 sea-orm = { version = "1.1.4", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
 serde_urlencoded = "0.7.1"
 catbox = "0.8.2"
-tempfile = "3.15.0"
+tempfile = "3.16.0"
 rusty_ytdl = { version = "0.7.4", features = ["rustls-tls"] }
 anyhow = "1.0.95"
 small-fixed-array = "0.4.7"
@@ -54,13 +53,14 @@ small-fixed-array = "0.4.7"
 cynic-codegen = { version = "3.9.1" }
 
 [profile.dev]
-codegen-units = 512
 debug = 2
 
 [profile.release]
 lto = true
-strip = "symbols"
+strip = true
+opt-level = "s"
 panic = "abort"
+codegen-units = 1
 
 [[bin]]
 name = "kasuki"
