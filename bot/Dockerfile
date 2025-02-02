@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev libjpeg-dev \
     ca-certificates pkg-config \
     libopus-dev \
+    youtube-dl \
     && rm -rf /var/lib/apt/lists/*
 
 USER root
