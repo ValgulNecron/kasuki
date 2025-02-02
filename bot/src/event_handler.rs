@@ -22,7 +22,7 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 use serenity::all::{
-	CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildId, GuildMembersChunkEvent,
+	CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildMembersChunkEvent,
 	Interaction, Member, Presence, Ready, User,
 };
 use serenity::async_trait;

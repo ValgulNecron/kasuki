@@ -1,4 +1,3 @@
-use crate::background_task::get_anisong_db::get_anisong;
 use crate::config::{Config, DbConfig};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::event_handler::{BotData, Handler, RootUsage};

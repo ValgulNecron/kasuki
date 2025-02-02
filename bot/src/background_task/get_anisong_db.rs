@@ -2,31 +2,14 @@ use futures::future::join_all;
 use reqwest::Client;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
-use std::collections::HashMap;
 use std::sync::Arc;
 // Import necessary libraries and modules
-use crate::config::DbConfig;
 use crate::database::prelude::AnimeSong;
-use crate::get_url;
 use serde::Deserialize;
 use serde_json::json;
-use tokio::sync::{RwLock, Semaphore};
+use tokio::sync::{ Semaphore};
 use tracing::error;
 use tracing::trace;
-
-#[derive(Debug)]
-pub struct AniSongDB {
-	ann_id: i64,
-	ann_song_id: i64,
-	anime_en_name: String,
-	anime_jp_name: String,
-	anime_alt_name: Option<Vec<String>>,
-	song_type: String,
-	song_name: String,
-	hq: Option<String>,
-	mq: Option<String>,
-	audio: Option<String>,
-}
 
 pub async fn get_anisong(connection: Arc<DatabaseConnection>) {
 	let client = Arc::new(Client::new());
