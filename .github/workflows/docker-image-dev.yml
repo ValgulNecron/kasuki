@@ -34,12 +34,12 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
       - name: Build and push amd64
         id: docker_build_amd64
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: bot
           file: bot/Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64/v8
+          platforms: linux/amd64
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:dev
           cache-from: type=gha
           cache-to: type=gha,mode=max
