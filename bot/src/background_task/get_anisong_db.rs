@@ -7,7 +7,7 @@ use std::sync::Arc;
 use crate::database::prelude::AnimeSong;
 use serde::Deserialize;
 use serde_json::json;
-use tokio::sync::{ Semaphore};
+use tokio::sync::Semaphore;
 use tracing::error;
 use tracing::trace;
 

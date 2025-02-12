@@ -9,7 +9,8 @@ use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId};
 use serenity::builder::{
-	CreateAttachment, CreateButton, CreateInteractionResponse, CreateInteractionResponseFollowup,
+	CreateActionRow, CreateAttachment, CreateButton, CreateInteractionResponse,
+	CreateInteractionResponseFollowup,
 };
 use serenity::model::Colour;
 use serenity::prelude::Context as SerenityContext;
@@ -46,7 +47,7 @@ pub trait PremiumCommand {
 }
 
 #[derive(Clone)]
-pub struct EmbedContent<'a> {
+pub struct EmbedContent<'a, 'b> {
 	pub title: String,
 	pub description: String,
 	pub thumbnail: Option<String>,
@@ -55,6 +56,7 @@ pub struct EmbedContent<'a> {
 	pub colour: Option<Colour>,
 	pub fields: Vec<(String, String, bool)>,
 	pub images: Option<Vec<EmbedImage<'a>>>,
+	pub action_row: Option<CreateActionRow<'b>>,
 }
 
 #[derive(Clone)]
@@ -64,7 +66,7 @@ pub struct EmbedImage<'a> {
 }
 
 impl<T: Command> Embed for T {
-	async fn send_embed(&self, content: EmbedContent<'_>) -> Result<()> {
+	async fn send_embed(&self, content: EmbedContent<'_, '_>) -> Result<()> {
 		let ctx = self.get_ctx();
 
 		let command_interaction = self.get_command_interaction();

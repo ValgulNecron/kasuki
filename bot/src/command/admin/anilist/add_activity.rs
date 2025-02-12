@@ -130,14 +130,14 @@ impl SlashCommand for AddActivityCommand {
 				anime_name.clone()
 			};
 
-			let bytes = get(media.cover_image.ok_or(
-                anyhow!("No cover image for this media".to_string()),
-            )?.extra_large.
-                unwrap_or(
-                    "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
-                        .to_string()
-                )
-            ).await?.bytes().await?;
+			let image_url = media.cover_image.ok_or(
+				anyhow!("No cover image for this media".to_string()),
+			)?.extra_large.
+				unwrap_or(
+					"https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+						.to_string()
+				);
+			let bytes = get(image_url.clone()).await?.bytes().await?;
 
 			let buf = resize_image(&bytes).await?;
 
@@ -185,12 +185,13 @@ impl SlashCommand for AddActivityCommand {
 				description: add_activity_localised
 					.success_desc
 					.replace("$anime$", anime_name.as_str()),
-				thumbnail: Some(image),
+				thumbnail: Some(image_url),
 				url: Some(url),
 				command_type: EmbedType::Followup,
 				colour: None,
 				fields: vec![],
 				images: None,
+				action_row: None,
 			};
 			self.send_embed(embed_content).await?;
 		}
