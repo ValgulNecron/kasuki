@@ -17,6 +17,7 @@ use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton,
 	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
 };
+use std::borrow::Cow;
 use std::sync::Arc;
 use tracing::trace;
 
@@ -38,7 +39,7 @@ impl Command for ListAllActivity {
 impl SlashCommand for ListAllActivity {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
-		let command_interaction = self.command_interaction();
+		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
 		let guild_id = command_interaction
@@ -46,7 +47,7 @@ impl SlashCommand for ListAllActivity {
 			.ok_or(anyhow!("Could not get the id of the guild"))?;
 
 		let list_activity_localised_text =
-			load_localization_list_activity(guild_id, config.db.clone()).await?;
+			load_localization_list_activity(guild_id.to_string(), config.db.clone()).await?;
 
 		self.defer().await?;
 
@@ -82,13 +83,12 @@ impl SlashCommand for ListAllActivity {
 		trace!("{:?}", ACTIVITY_LIST_LIMIT);
 
 		if len > ACTIVITY_LIST_LIMIT as usize {
-			content.action_row = Some(CreateActionRow::Buttons([CreateButton::new(format!(
-				"next_activity_{}",
-				next_page
-			))
-			.label(&list_activity_localised_text.next)]));
+			content.action_row = Some(CreateActionRow::Buttons(Cow::from(vec![
+				CreateButton::new(format!("next_activity_{}", next_page))
+					.label(&list_activity_localised_text.next),
+			])));
 		}
 
-		self.send_embed(content).await?;
+		self.send_embed(content).await
 	}
 }
