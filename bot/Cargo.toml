@@ -40,7 +40,7 @@ toml = "0.8.20"
 num-bigint = "0.4.6"
 songbird = { git = "https://github.com/serenity-rs/songbird.git", branch = "serenity-next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
 symphonia = { features = ["aac", "mp3", "isomp4", "alac", "symphonia-format-isomp4"], version = "0.5.4" }
-dashmap = "6.1.0"
+dashmap = "7.0.0-rc0"
 sea-orm = { version = "1.1.4", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
 serde_urlencoded = "0.7.1"
 catbox = "0.8.2"
