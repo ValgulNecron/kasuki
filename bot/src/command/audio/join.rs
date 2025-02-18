@@ -30,6 +30,12 @@ impl SlashCommand for AudioJoinCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
+		let command_interaction = self.command_interaction.clone();
+		let guild_id = command_interaction.guild_id.ok_or(anyhow!("No guild id"))?;
+
+		let manager = ctx.data::<BotData>().manager.clone();
+
+		let bind = manager.get(guild_id);
 		send_embed(
 			&self.ctx,
 			&self.command_interaction,
@@ -42,11 +48,7 @@ impl SlashCommand for AudioJoinCommand {
 async fn send_embed(
 	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
 ) -> Result<()> {
-	let guild_id = command_interaction.guild_id.ok_or(anyhow!("No guild id"))?;
 
-	let manager = ctx.data::<BotData>().manager.clone();
-
-	let bind = manager.get(guild_id);
 
 	trace!(?bind);
 

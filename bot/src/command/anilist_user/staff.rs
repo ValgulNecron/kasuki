@@ -142,6 +142,7 @@ impl SlashCommand for StaffCommand {
 			colour: None,
 			fields: fields,
 			images: None,
+			action_row: None,
 		};
 		self.send_embed(embed_content).await
 	}

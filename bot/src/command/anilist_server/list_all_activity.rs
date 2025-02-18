@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::config::Config;
@@ -38,7 +39,7 @@ impl Command for ListAllActivity {
 impl SlashCommand for ListAllActivity {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
-		let command_interaction = self.command_interaction();
+		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
 		let guild_id = command_interaction
@@ -46,7 +47,7 @@ impl SlashCommand for ListAllActivity {
 			.ok_or(anyhow!("Could not get the id of the guild"))?;
 
 		let list_activity_localised_text =
-			load_localization_list_activity(guild_id, config.db.clone()).await?;
+			load_localization_list_activity(guild_id.to_string(), config.db.clone()).await?;
 
 		self.defer().await?;
 
@@ -82,13 +83,13 @@ impl SlashCommand for ListAllActivity {
 		trace!("{:?}", ACTIVITY_LIST_LIMIT);
 
 		if len > ACTIVITY_LIST_LIMIT as usize {
-			content.action_row = Some(CreateActionRow::Buttons([CreateButton::new(format!(
+			content.action_row = Some(CreateActionRow::Buttons(Cow::from(vec![CreateButton::new(format!(
 				"next_activity_{}",
 				next_page
 			))
-			.label(&list_activity_localised_text.next)]));
+				.label(&list_activity_localised_text.next)])));
 		}
 
-		self.send_embed(content).await?;
+		self.send_embed(content).await
 	}
 }

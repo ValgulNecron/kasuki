@@ -111,6 +111,7 @@ impl SlashCommand for AddActivityCommand {
 				colour: None,
 				fields: vec![],
 				images: None,
+				action_row: None,
 			};
 			self.send_embed(embed_content).await?;
 		} else {

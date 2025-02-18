@@ -37,7 +37,7 @@ pub async fn thread_management_launcher(
 
 	let connection = bot_data.db_connection.clone();
 
-	tokio::spawn(update_anisong_db(connection.clone()));
+	//tokio::spawn(update_anisong_db(connection.clone()));
 
 	tokio::spawn(launch_activity_management_thread(
 		ctx.clone(),
