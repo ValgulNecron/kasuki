@@ -83,11 +83,10 @@ impl SlashCommand for ListAllActivity {
 		trace!("{:?}", ACTIVITY_LIST_LIMIT);
 
 		if len > ACTIVITY_LIST_LIMIT as usize {
-			content.action_row = Some(CreateActionRow::Buttons(Cow::from(vec![CreateButton::new(format!(
-				"next_activity_{}",
-				next_page
-			))
-				.label(&list_activity_localised_text.next)])));
+			content.action_row = Some(CreateActionRow::Buttons(Cow::from(vec![
+				CreateButton::new(format!("next_activity_{}", next_page))
+					.label(&list_activity_localised_text.next),
+			])));
 		}
 
 		self.send_embed(content).await
