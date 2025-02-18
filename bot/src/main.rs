@@ -16,7 +16,6 @@ use std::time::Duration;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
-mod audio;
 pub mod autocomplete;
 mod background_task;
 mod command;

@@ -8,7 +8,6 @@ pub mod anilist_server;
 pub mod anilist_user;
 pub mod anime;
 pub mod anime_nsfw;
-pub mod audio;
 pub mod bot;
 pub mod command_dispatch;
 pub mod management;

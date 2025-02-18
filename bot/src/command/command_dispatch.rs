@@ -24,8 +24,6 @@ use crate::command::anilist_user::user::UserCommand;
 use crate::command::anilist_user::waifu::WaifuCommand;
 use crate::command::anime::random_image::AnimeRandomImageCommand;
 use crate::command::anime_nsfw::random_nsfw_image::AnimeRandomNsfwImageCommand;
-use crate::command::audio::join::AudioJoinCommand;
-use crate::command::audio::play::AudioPlayCommand;
 use crate::command::bot::credit::CreditCommand;
 use crate::command::bot::info::InfoCommand;
 use crate::command::bot::ping::PingCommand;
@@ -326,23 +324,6 @@ pub async fn dispatch_command(
 
 		"random_hanime_random_himage" => {
 			AnimeRandomNsfwImageCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
-			}
-			.run_slash()
-			.await?
-		},
-
-		"audio_join" => {
-			AudioJoinCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
-			}
-			.run_slash()
-			.await?
-		},
-		"audio_play" => {
-			AudioPlayCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
