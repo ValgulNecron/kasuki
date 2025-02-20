@@ -1,8 +1,9 @@
+use std::borrow::Cow;
 use std::sync::Arc;
 
-use crate::command::command_trait::{Command, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::config::{Config, DbConfig};
-use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
+use crate::constant::{ACTIVITY_LIST_LIMIT, MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::{Column, Model};
 use crate::event_handler::BotData;
@@ -17,7 +18,7 @@ use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateButton, CreateEmbed,
+	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton, CreateEmbed,
 	CreateInteractionResponseFollowup, CreateInteractionResponseMessage, PartialGuild, User,
 	UserId,
 };
@@ -42,63 +43,50 @@ impl SlashCommand for ListRegisterUser {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		send_embed(
-			&self.ctx,
-			&self.command_interaction,
-			bot_data.config.clone(),
-		)
-		.await
+		let command_interaction = self.get_command_interaction();
+		let config = bot_data.config.clone();
+
+		let guild_id = match command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+
+		// Load the localized text for the list user command
+		let list_user_localised = load_localization_list_user(guild_id, config.db.clone()).await?;
+
+		// Retrieve the guild from the guild ID
+		let guild_id = match command_interaction.guild_id {
+			Some(id) => id,
+			None => return Err(anyhow!("Failed to get the id of the guild")),
+		};
+
+		let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
+
+		self.defer().await?;
+
+		let (desc, len, last_id): (String, usize, Option<UserId>) =
+			get_the_list(guild, ctx, None, config.db.clone()).await?;
+
+		let mut content = EmbedContent {
+			title: list_user_localised.title,
+			description: desc,
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::Followup,
+			colour: None,
+			fields: vec![],
+			images: None,
+			action_row: None,
+		};
+
+		if len >= MEMBER_LIST_LIMIT as usize {
+			content.action_row = Some(CreateActionRow::Buttons(Cow::from(vec![
+				CreateButton::new(format!("user_{}_0", last_id.unwrap()))
+					.label(&list_user_localised.next),
+			])));
+		}
+		self.send_embed(content).await
 	}
-}
-
-async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
-) -> Result<()> {
-	// Retrieve the guild ID from the command interaction or use "0" if it does not exist
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-
-	// Load the localized text for the list user command
-	let list_user_localised = load_localization_list_user(guild_id, config.db.clone()).await?;
-
-	// Retrieve the guild from the guild ID
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id,
-		None => return Err(anyhow!("Failed to get the id of the guild")),
-	};
-
-	let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
-
-	// Send a deferred response to the command interaction
-	let builder_message = Defer(CreateInteractionResponseMessage::new());
-
-	command_interaction
-		.create_response(&ctx.http, builder_message)
-		.await?;
-
-	// Retrieve a list of AniList users in the guild
-	let (builder_message, len, last_id): (CreateEmbed, usize, Option<UserId>) =
-		get_the_list(guild, ctx, &list_user_localised, None, config.db.clone()).await?;
-
-	// Check if the number of AniList users is greater than the limit
-	let mut response = CreateInteractionResponseFollowup::new().embed(builder_message);
-
-	if len >= (MEMBER_LIST_LIMIT + 1) as usize {
-		// If the number of AniList users is greater than the limit, add a "next" button to the response
-		response = response.button(
-			CreateButton::new(format!("user_{}_0", last_id.unwrap()))
-				.label(&list_user_localised.next),
-		)
-	}
-
-	// Send a followup message with the list of AniList users
-	command_interaction
-		.create_followup(&ctx.http, response)
-		.await?;
-
-	Ok(())
 }
 
 struct Data {
@@ -106,10 +94,9 @@ struct Data {
 	pub anilist: String,
 }
 
-pub async fn get_the_list<'a>(
-	guild: PartialGuild, ctx: &'a SerenityContext, list_user_localised: &'a ListUserLocalised,
-	last_id: Option<UserId>, db_config: DbConfig,
-) -> Result<(CreateEmbed<'a>, usize, Option<UserId>)> {
+pub async fn get_the_list(
+	guild: PartialGuild, ctx: &SerenityContext, last_id: Option<UserId>, db_config: DbConfig,
+) -> Result<(String, usize, Option<UserId>)> {
 	let mut anilist_user = Vec::new();
 
 	let mut last_id: Option<UserId> = last_id;
@@ -172,11 +159,5 @@ pub async fn get_the_list<'a>(
 
 	let joined_string = user_links.join("\n\n");
 
-	Ok((
-		get_default_embed(None)
-			.title(&list_user_localised.title)
-			.description(joined_string),
-		anilist_user.len(),
-		last_id,
-	))
+	Ok((joined_string, anilist_user.len(), last_id))
 }

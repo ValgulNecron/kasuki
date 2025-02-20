@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::config::Config;
@@ -18,6 +17,7 @@ use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton,
 	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
 };
+use std::borrow::Cow;
 use std::sync::Arc;
 use tracing::trace;
 
