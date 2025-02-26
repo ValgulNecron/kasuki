@@ -118,7 +118,7 @@ for those of you who prefer web dev.\
 # Credit
 
 - Thanks Srayeals for the badge I use as the bot
-  pfp. ([Anilist thread](https://anilist.co/forum/thread/20292), [Anilist user](https://anilist.co/user/Srayeals), [website](https://srayealsbadges.carrd.co/#s), [Response](https://anilist.co/forum/thread/20292/comment/2206321)) \
+  pfp. ([Anilist thread](https://anilist.co/forum/thread/20292), [Anilist user](https://anilist.co/user/Srayeals), [website](https://srayealsbadges.carrd.co/#s)) \
   for the bot
   pfp [Valedstorm Olivia](https://i.imgur.com/vERcUNo.png) \
   for the beta
