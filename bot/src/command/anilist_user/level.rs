@@ -10,7 +10,7 @@ use serenity::all::{
 use tokio::sync::RwLock;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command_trait::Command;
+use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType};
 use crate::config::{Config, DbConfig};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
@@ -44,144 +44,116 @@ impl LevelCommand {
 	pub async fn run_slash(self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		send_embed(
-			&self.ctx,
-			&self.command_interaction,
-			bot_data.config.clone(),
-			bot_data.anilist_cache.clone(),
-		)
-		.await
-	}
-}
+		let command_interaction = self.get_command_interaction();
 
-pub async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
-	anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<()> {
-	// Retrieve the username from the command interaction
-	let map = get_option_map_string(command_interaction);
+		let anilist_cache = bot_data.anilist_cache.clone();
+		let config = bot_data.config.clone();
+		let db_config = config.db.clone();
+		let map = get_option_map_string(command_interaction);
 
-	let user = map.get(&FixedString::from_str_trunc("username"));
+		let user = map.get(&FixedString::from_str_trunc("username"));
 
-	match user {
-		Some(value) => {
-			// If a username is provided, fetch the user data and send an embed
-			let data: User = get_user(value, anilist_cache).await?;
+		let data = match user {
+			Some(value) => {
+				get_user(value, anilist_cache).await?
+			},
+			None => {
+				let user_id = &command_interaction.user.id.to_string();
 
-			send_embed2(ctx, command_interaction, data, config.db.clone()).await
-		},
-		None => {
-			// If no username is provided, retrieve the ID of the user who triggered the command
-			let user_id = &command_interaction.user.id.to_string();
+				let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
 
-			// Check if the user is registered
-			let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+				let row = RegisteredUser::find()
+					.filter(Column::UserId.eq(user_id))
+					.one(&connection)
+					.await?;
 
-			let row = RegisteredUser::find()
-				.filter(Column::UserId.eq(user_id))
-				.one(&connection)
-				.await?;
-
-			let user = row.ok_or(anyhow!(
+				let user = row.ok_or(anyhow!(
 				"No user specified or linked to this discord account",
 			))?;
 
-			// Fetch the user data and send an embed
-			let data: User = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
+				get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?
+			},
+		};
 
-			send_embed2(ctx, command_interaction, data, config.db.clone()).await
-		},
-	}
-}
+		let user = data;
 
-pub async fn send_embed2(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, user: User,
-	db_config: DbConfig,
-) -> Result<()> {
-	// Get the guild ID from the command interaction
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
+		let guild_id = match command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
 
-	// Load the localized level strings
-	let level_localised = load_localization_level(guild_id, db_config).await?;
+		// Load the localized level strings
+		let level_localised = load_localization_level(guild_id, db_config).await?;
 
-	// Clone the manga and anime statistics
-	let statistics = user.statistics.clone().unwrap();
+		// Clone the manga and anime statistics
+		let statistics = user.statistics.clone().unwrap();
 
-	let manga = statistics.manga.clone();
+		let manga = statistics.manga.clone();
 
-	let anime = statistics.anime.clone();
+		let anime = statistics.anime.clone();
 
-	// Calculate the number of manga and anime completed
-	let manga_completed = if let Some(manga) = manga.clone() {
-		get_completed(manga.statuses.unwrap())
-	} else {
-		0
-	};
+		// Calculate the number of manga and anime completed
+		let manga_completed = if let Some(manga) = manga.clone() {
+			get_completed(manga.statuses.unwrap())
+		} else {
+			0
+		};
 
-	let anime_completed = if let Some(anime) = anime.clone() {
-		get_completed(anime.statuses.unwrap())
-	} else {
-		0
-	};
+		let anime_completed = if let Some(anime) = anime.clone() {
+			get_completed(anime.statuses.unwrap())
+		} else {
+			0
+		};
 
-	// Get the number of chapters read and minutes watched
-	let chap_read = if let Some(manga) = manga.clone() {
-		manga.chapters_read
-	} else {
-		0
-	};
+		// Get the number of chapters read and minutes watched
+		let chap_read = if let Some(manga) = manga.clone() {
+			manga.chapters_read
+		} else {
+			0
+		};
 
-	let tw = if let Some(anime) = anime.clone() {
-		anime.minutes_watched
-	} else {
-		0
-	};
+		let tw = if let Some(anime) = anime.clone() {
+			anime.minutes_watched
+		} else {
+			0
+		};
 
-	// Calculate the experience points
-	let xp =
-		(2.0 * (manga_completed + anime_completed) as f64) + chap_read as f64 + (tw as f64 * 0.1);
+		// Calculate the experience points
+		let xp =
+			(2.0 * (manga_completed + anime_completed) as f64) + chap_read as f64 + (tw as f64 * 0.1);
 
-	// Get the username
-	let username = user.name.clone();
+		// Get the username
+		let username = user.name.clone();
 
-	// Calculate the level and progress
-	let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
+		// Calculate the level and progress
+		let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
 
-	// Initialize the embed builder
-	let mut builder_embed = get_default_embed(Some(get_color(user.clone())))
-		.title(user.name)
-		.url(get_user_url(user.id))
-		.thumbnail(user.avatar.unwrap().large.clone().unwrap())
-		.description(
-			level_localised
+		let mut content = EmbedContent {
+			title: user.clone().name,
+			description: level_localised
 				.desc
 				.replace("$username$", username.as_str())
 				.replace("$level$", level.to_string().as_str())
 				.replace("$xp$", xp.to_string().as_str())
 				.replace("$actual$", actual.to_string().as_str())
 				.replace("$next$", next_xp.to_string().as_str()),
-		);
+			thumbnail: Some(user.clone().avatar.unwrap().large.clone().unwrap()),
+			url: Some(get_user_url(user.clone().id)),
+			command_type: EmbedType::First,
+			colour: Some(get_color(user.clone())),
+			fields: vec![],
+			images: None,
+			action_row: None,
+			images_url: None,
+		};
 
-	// Add the user's banner image to the embed if it exists
-	if let Some(banner_image) = &user.banner_image {
-		builder_embed = builder_embed.image(banner_image)
+		// Add the user's banner image to the embed if it exists
+		if let Some(banner_image) = &user.banner_image {
+			content.images_url = Some(banner_image.clone());
+		}
+
+		self.send_embed(content).await
 	}
-
-	// Create the message for the response
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	// Create the response
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	// Send the response
-	command_interaction
-		.create_response(&ctx.http, builder)
-		.await?;
-
-	Ok(())
 }
 
 pub static LEVELS: Lazy<[(u32, f64, f64); 102]> = Lazy::new(|| {

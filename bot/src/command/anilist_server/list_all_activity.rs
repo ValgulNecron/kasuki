@@ -76,6 +76,7 @@ impl SlashCommand for ListAllActivity {
 			fields: vec![],
 			images: None,
 			action_row: None,
+			images_url: None,
 		};
 
 		trace!("{:?}", len);

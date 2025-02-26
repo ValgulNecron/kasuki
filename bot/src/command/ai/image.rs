@@ -175,8 +175,9 @@ impl SlashCommand for ImageCommand {
 			command_type: EmbedType::Followup,
 			colour: None,
 			fields: vec![],
-			images: None,
+			images: Some(images),
 			action_row: None,
+			images_url: None,
 		};
 
 		self.send_embed(embed_content).await

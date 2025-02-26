@@ -5,7 +5,7 @@ use crate::constant::{
 };
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId};
 use serenity::builder::{
@@ -57,6 +57,7 @@ pub struct EmbedContent<'a, 'b> {
 	pub fields: Vec<(String, String, bool)>,
 	pub images: Option<Vec<EmbedImage<'a>>>,
 	pub action_row: Option<CreateActionRow<'b>>,
+	pub images_url: Option<String>,
 }
 
 #[derive(Clone)]
@@ -81,8 +82,8 @@ impl<T: Command> Embed for T {
 			embed = embed.url(url);
 		}
 
-		match (content.command_type, content.images) {
-			(EmbedType::First, Some(images)) => {
+		match (content.command_type, content.images, content.images_url) {
+			(EmbedType::First, Some(images), None) => {
 				let mut embeds = Vec::new();
 				let mut attachments = Vec::new();
 				let mut first = true;
@@ -107,7 +108,7 @@ impl<T: Command> Embed for T {
 					.create_response(&ctx.http, builder)
 					.await?;
 			},
-			(EmbedType::First, None) => {
+			(EmbedType::First, None, None) => {
 				let embeds = vec![embed];
 				let builder = CreateInteractionResponseMessage::new().embeds(embeds);
 
@@ -116,7 +117,7 @@ impl<T: Command> Embed for T {
 					.create_response(&ctx.http, builder)
 					.await?;
 			},
-			(EmbedType::Followup, Some(images)) => {
+			(EmbedType::Followup, Some(images), None) => {
 				let mut embeds = Vec::new();
 				let mut attachments = Vec::new();
 				let mut first = true;
@@ -140,7 +141,7 @@ impl<T: Command> Embed for T {
 					.create_followup(&ctx.http, builder)
 					.await?;
 			},
-			(EmbedType::Followup, None) => {
+			(EmbedType::Followup, None, None) => {
 				let embeds = vec![embed];
 				let builder = CreateInteractionResponseFollowup::new().embeds(embeds);
 
@@ -148,6 +149,28 @@ impl<T: Command> Embed for T {
 					.create_followup(&ctx.http, builder)
 					.await?;
 			},
+
+			(EmbedType::First, None, Some(image_link)) => {
+				let embeds = vec![embed.image(image_link.clone())];
+				let builder = CreateInteractionResponseMessage::new().embeds(embeds);
+
+				let builder = CreateInteractionResponse::Message(builder);
+				command_interaction
+					.create_response(&ctx.http, builder)
+					.await?;
+			},
+
+			(EmbedType::Followup, None, Some(image_link)) => {
+				let embeds = vec![embed.image(image_link.clone())];
+				let builder = CreateInteractionResponseFollowup::new().embeds(embeds);
+
+				command_interaction
+					.create_followup(&ctx.http, builder)
+					.await?;
+			}
+			_ => {
+				return Err(anyhow!("There is both image."));
+			}
 		}
 
 		Ok(())

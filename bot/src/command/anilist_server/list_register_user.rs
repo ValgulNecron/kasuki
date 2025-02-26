@@ -1,25 +1,20 @@
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
-use crate::config::{Config, DbConfig};
-use crate::constant::{ACTIVITY_LIST_LIMIT, MEMBER_LIST_LIMIT, PASS_LIMIT};
+use crate::config::DbConfig;
+use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::{Column, Model};
 use crate::event_handler::BotData;
 use crate::get_url;
-use crate::helper::create_default_embed::get_default_embed;
-use crate::structure::message::anilist_server::list_register_user::{
-	load_localization_list_user, ListUserLocalised,
-};
+use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 use anyhow::{anyhow, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
-use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton, CreateEmbed,
-	CreateInteractionResponseFollowup, CreateInteractionResponseMessage, PartialGuild, User,
+	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton
+	, PartialGuild, User,
 	UserId,
 };
 use serenity::nonmax::NonMaxU16;
@@ -77,6 +72,7 @@ impl SlashCommand for ListRegisterUser {
 			fields: vec![],
 			images: None,
 			action_row: None,
+			images_url: None,
 		};
 
 		if len >= MEMBER_LIST_LIMIT as usize {

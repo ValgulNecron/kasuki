@@ -12,7 +12,7 @@ use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command_trait::{Command, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
@@ -42,294 +42,284 @@ impl SlashCommand for CompareCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		send_embed(
-			&self.ctx,
-			&self.command_interaction,
-			bot_data.config.clone(),
-			bot_data.anilist_cache.clone(),
-		)
-		.await
-	}
-}
+		let command_interaction = self.get_command_interaction();
 
-async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
-	anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<()> {
-	// Retrieve the usernames from the command interaction
-	let map = get_option_map_string(command_interaction);
+		let anilist_cache = bot_data.anilist_cache.clone();
+		let config = bot_data.config.clone();
 
-	let value = map
-		.get(&FixedString::from_str_trunc("username"))
-		.cloned()
-		.unwrap_or(String::new());
+		let map = get_option_map_string(command_interaction);
 
-	let value2 = map
-		.get(&FixedString::from_str_trunc("username2"))
-		.cloned()
-		.unwrap_or(String::new());
+		let value = map
+			.get(&FixedString::from_str_trunc("username"))
+			.cloned()
+			.unwrap_or(String::new());
 
-	// Fetch the user data for both users
-	let user: User = get_user(&value, anilist_cache.clone()).await?;
+		let value2 = map
+			.get(&FixedString::from_str_trunc("username2"))
+			.cloned()
+			.unwrap_or(String::new());
 
-	let user2: User = get_user(&value2, anilist_cache).await?;
+		// Fetch the user data for both users
+		let user: User = get_user(&value, anilist_cache.clone()).await?;
 
-	// Get the guild ID from the command interaction
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
+		let user2: User = get_user(&value2, anilist_cache).await?;
 
-	// Load the localized comparison strings
-	let compare_localised = load_localization_compare(guild_id, config.db.clone()).await?;
+		// Get the guild ID from the command interaction
+		let guild_id = match command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
 
-	// Clone the user data
-	let username = user.name.clone();
+		// Load the localized comparison strings
+		let compare_localised = load_localization_compare(guild_id, config.db.clone()).await?;
 
-	let username2 = user2.name.clone();
+		// Clone the user data
+		let username = user.name.clone();
 
-	// Initialize the description string
-	let mut desc = String::new();
+		let username2 = user2.name.clone();
 
-	// Calculate the affinity between the two users
-	let affinity = get_affinity(
-		user.statistics.clone().unwrap(),
-		user2.statistics.clone().unwrap(),
-	);
+		// Initialize the description string
+		let mut desc = String::new();
 
-	// Add the affinity to the description string
-	desc.push_str(
-		compare_localised
-			.affinity
-			.replace("$1$", username.as_str())
-			.replace("$2$", username2.as_str())
-			.replace("$3$", affinity.to_string().as_str())
-			.as_str(),
-	);
+		// Calculate the affinity between the two users
+		let affinity = get_affinity(
+			user.statistics.clone().unwrap(),
+			user2.statistics.clone().unwrap(),
+		);
 
-	let statistics = user.statistics.unwrap();
-
-	let statistics2 = user2.statistics.unwrap();
-
-	let anime = statistics.anime.unwrap();
-
-	let anime2 = statistics2.anime.unwrap();
-
-	let minutes_watched = anime.minutes_watched;
-
-	let minutes_watched2 = anime2.minutes_watched;
-
-	let count = anime.count;
-
-	let count2 = anime2.count;
-
-	// Compare the count of anime watched by the two users and add the result to the description string
-	match count.cmp(&count2) {
-		std::cmp::Ordering::Greater => desc.push_str(
+		// Add the affinity to the description string
+		desc.push_str(
 			compare_localised
-				.more_anime
-				.replace("$greater$", username.as_str())
-				.replace("$lesser$", username2.as_str())
-				.as_str(),
-		),
-		std::cmp::Ordering::Less => desc.push_str(
-			compare_localised
-				.more_anime
-				.replace("$greater$", username2.as_str())
-				.replace("$lesser$", username.as_str())
-				.as_str(),
-		),
-		std::cmp::Ordering::Equal => desc.push_str(
-			compare_localised
-				.same_anime
-				.replace("$2$", username2.as_str())
+				.affinity
 				.replace("$1$", username.as_str())
-				.as_str(),
-		),
-	}
-
-	// Compare the minutes watched by the two users and add the result to the description string
-	match minutes_watched.cmp(&minutes_watched2) {
-		std::cmp::Ordering::Greater => desc.push_str(
-			compare_localised
-				.more_watch_time
-				.replace("$greater$", username.as_str())
-				.replace("$lesser$", username2.as_str())
-				.as_str(),
-		),
-		std::cmp::Ordering::Less => desc.push_str(
-			compare_localised
-				.more_watch_time
-				.replace("$greater$", username2.as_str())
-				.replace("$lesser$", username.as_str())
-				.as_str(),
-		),
-		std::cmp::Ordering::Equal => desc.push_str(
-			compare_localised
-				.same_watch_time
 				.replace("$2$", username2.as_str())
-				.replace("$1$", username.as_str())
+				.replace("$3$", affinity.to_string().as_str())
 				.as_str(),
-		),
-	}
+		);
 
-	// Get the tags of the anime watched by the two users and add the comparison to the description string
-	let tag = get_tag(&anime.tags.unwrap());
+		let statistics = user.statistics.unwrap();
 
-	let tag2 = get_tag(&anime2.tags.unwrap());
+		let statistics2 = user2.statistics.unwrap();
 
-	desc.push_str(
-		diff(
-			&tag,
-			&tag2,
-			&compare_localised.tag_anime,
-			&compare_localised.same_tag_anime,
-			&username,
-			&username2,
-		)
-		.as_str(),
-	);
+		let anime = statistics.anime.unwrap();
 
-	// Get the genres of the anime watched by the two users and add the comparison to the description string
-	let genre = get_genre(&anime.genres.unwrap());
+		let anime2 = statistics2.anime.unwrap();
 
-	let genre2 = get_genre(&anime2.genres.unwrap());
+		let minutes_watched = anime.minutes_watched;
 
-	desc.push_str(
-		diff(
-			&genre,
-			&genre2,
-			&compare_localised.genre_anime,
-			&compare_localised.same_genre_anime,
-			&username,
-			&username2,
-		)
-		.as_str(),
-	);
+		let minutes_watched2 = anime2.minutes_watched;
 
-	let manga = statistics.manga.unwrap();
+		let count = anime.count;
 
-	let manga2 = statistics2.manga.unwrap();
+		let count2 = anime2.count;
 
-	let count = manga.count;
-
-	let count2 = manga2.count;
-
-	let chapters_read = manga.chapters_read;
-
-	let chapters_read2 = manga2.chapters_read;
-
-	// Compare the count of manga read by the two users and add the result to the description string
-	match count.cmp(&count2) {
-		std::cmp::Ordering::Greater => {
-			desc.push_str(
+		// Compare the count of anime watched by the two users and add the result to the description string
+		match count.cmp(&count2) {
+			std::cmp::Ordering::Greater => desc.push_str(
 				compare_localised
-					.more_manga
+					.more_anime
 					.replace("$greater$", username.as_str())
 					.replace("$lesser$", username2.as_str())
 					.as_str(),
-			);
-		},
-		std::cmp::Ordering::Less => {
-			desc.push_str(
+			),
+			std::cmp::Ordering::Less => desc.push_str(
 				compare_localised
-					.more_manga
+					.more_anime
 					.replace("$greater$", username2.as_str())
 					.replace("$lesser$", username.as_str())
 					.as_str(),
-			);
-		},
-		std::cmp::Ordering::Equal => {
-			desc.push_str(
+			),
+			std::cmp::Ordering::Equal => desc.push_str(
 				compare_localised
-					.same_manga
+					.same_anime
 					.replace("$2$", username2.as_str())
 					.replace("$1$", username.as_str())
 					.as_str(),
-			);
-		},
-	}
+			),
+		}
 
-	// Compare the chapters read by the two users and add the result to the description string
-	match chapters_read.cmp(&chapters_read2) {
-		std::cmp::Ordering::Greater => {
-			desc.push_str(
+		// Compare the minutes watched by the two users and add the result to the description string
+		match minutes_watched.cmp(&minutes_watched2) {
+			std::cmp::Ordering::Greater => desc.push_str(
 				compare_localised
-					.more_manga_chapter
+					.more_watch_time
 					.replace("$greater$", username.as_str())
 					.replace("$lesser$", username2.as_str())
 					.as_str(),
-			);
-		},
-		std::cmp::Ordering::Less => {
-			desc.push_str(
+			),
+			std::cmp::Ordering::Less => desc.push_str(
 				compare_localised
-					.more_manga_chapter
+					.more_watch_time
 					.replace("$greater$", username2.as_str())
 					.replace("$lesser$", username.as_str())
 					.as_str(),
-			);
-		},
-		std::cmp::Ordering::Equal => {
-			desc.push_str(
+			),
+			std::cmp::Ordering::Equal => desc.push_str(
 				compare_localised
-					.same_manga_chapter
+					.same_watch_time
 					.replace("$2$", username2.as_str())
 					.replace("$1$", username.as_str())
 					.as_str(),
-			);
-		},
+			),
+		}
+
+		// Get the tags of the anime watched by the two users and add the comparison to the description string
+		let tag = get_tag(&anime.tags.unwrap());
+
+		let tag2 = get_tag(&anime2.tags.unwrap());
+
+		desc.push_str(
+			diff(
+				&tag,
+				&tag2,
+				&compare_localised.tag_anime,
+				&compare_localised.same_tag_anime,
+				&username,
+				&username2,
+			)
+				.as_str(),
+		);
+
+		// Get the genres of the anime watched by the two users and add the comparison to the description string
+		let genre = get_genre(&anime.genres.unwrap());
+
+		let genre2 = get_genre(&anime2.genres.unwrap());
+
+		desc.push_str(
+			diff(
+				&genre,
+				&genre2,
+				&compare_localised.genre_anime,
+				&compare_localised.same_genre_anime,
+				&username,
+				&username2,
+			)
+				.as_str(),
+		);
+
+		let manga = statistics.manga.unwrap();
+
+		let manga2 = statistics2.manga.unwrap();
+
+		let count = manga.count;
+
+		let count2 = manga2.count;
+
+		let chapters_read = manga.chapters_read;
+
+		let chapters_read2 = manga2.chapters_read;
+
+		// Compare the count of manga read by the two users and add the result to the description string
+		match count.cmp(&count2) {
+			std::cmp::Ordering::Greater => {
+				desc.push_str(
+					compare_localised
+						.more_manga
+						.replace("$greater$", username.as_str())
+						.replace("$lesser$", username2.as_str())
+						.as_str(),
+				);
+			},
+			std::cmp::Ordering::Less => {
+				desc.push_str(
+					compare_localised
+						.more_manga
+						.replace("$greater$", username2.as_str())
+						.replace("$lesser$", username.as_str())
+						.as_str(),
+				);
+			},
+			std::cmp::Ordering::Equal => {
+				desc.push_str(
+					compare_localised
+						.same_manga
+						.replace("$2$", username2.as_str())
+						.replace("$1$", username.as_str())
+						.as_str(),
+				);
+			},
+		}
+
+		// Compare the chapters read by the two users and add the result to the description string
+		match chapters_read.cmp(&chapters_read2) {
+			std::cmp::Ordering::Greater => {
+				desc.push_str(
+					compare_localised
+						.more_manga_chapter
+						.replace("$greater$", username.as_str())
+						.replace("$lesser$", username2.as_str())
+						.as_str(),
+				);
+			},
+			std::cmp::Ordering::Less => {
+				desc.push_str(
+					compare_localised
+						.more_manga_chapter
+						.replace("$greater$", username2.as_str())
+						.replace("$lesser$", username.as_str())
+						.as_str(),
+				);
+			},
+			std::cmp::Ordering::Equal => {
+				desc.push_str(
+					compare_localised
+						.same_manga_chapter
+						.replace("$2$", username2.as_str())
+						.replace("$1$", username.as_str())
+						.as_str(),
+				);
+			},
+		}
+
+		// Get the tags of the manga read by the two users and add the comparison to the description string
+		let tag = get_tag(&manga.tags.unwrap());
+
+		let tag2 = get_tag(&manga2.tags.unwrap());
+
+		desc.push_str(
+			diff(
+				&tag,
+				&tag2,
+				&compare_localised.tag_manga,
+				&compare_localised.same_genre_manga,
+				&username,
+				&username2,
+			)
+				.as_str(),
+		);
+
+		// Get the genres of the manga read by the two users and add the comparison to the description string
+		let genre = get_genre(&manga.genres.unwrap());
+
+		let genre2 = get_genre(&manga2.genres.unwrap());
+
+		desc.push_str(
+			diff(
+				&genre,
+				&genre2,
+				&compare_localised.genre_manga,
+				&compare_localised.same_genre_manga,
+				&username,
+				&username2,
+			)
+				.as_str(),
+		);
+
+		let content = EmbedContent {
+			title: "".to_string(),
+			description: desc,
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::First,
+			colour: None,
+			fields: vec![],
+			images: None,
+			action_row: None,
+			images_url: None,
+		};
+
+		self.send_embed(content).await
 	}
-
-	// Get the tags of the manga read by the two users and add the comparison to the description string
-	let tag = get_tag(&manga.tags.unwrap());
-
-	let tag2 = get_tag(&manga2.tags.unwrap());
-
-	desc.push_str(
-		diff(
-			&tag,
-			&tag2,
-			&compare_localised.tag_manga,
-			&compare_localised.same_genre_manga,
-			&username,
-			&username2,
-		)
-		.as_str(),
-	);
-
-	// Get the genres of the manga read by the two users and add the comparison to the description string
-	let genre = get_genre(&manga.genres.unwrap());
-
-	let genre2 = get_genre(&manga2.genres.unwrap());
-
-	desc.push_str(
-		diff(
-			&genre,
-			&genre2,
-			&compare_localised.genre_manga,
-			&compare_localised.same_genre_manga,
-			&username,
-			&username2,
-		)
-		.as_str(),
-	);
-
-	// Create the embed for the response
-	let builder_embed = get_default_embed(None).description(desc);
-
-	// Create the message for the response
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	// Create the response
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	// Send the response
-	command_interaction
-		.create_response(&ctx.http, builder)
-		.await?;
-
-	Ok(())
 }
 
 /// Calculates the affinity between two users based on their anime and manga statistics.

@@ -62,6 +62,7 @@ impl SlashCommand for LangCommand {
 			fields: vec![],
 			images: None,
 			action_row: None,
+			images_url: None,
 		};
 
 		self.send_embed(embed_content).await

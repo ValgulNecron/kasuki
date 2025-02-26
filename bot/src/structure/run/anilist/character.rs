@@ -9,6 +9,7 @@ use serenity::all::{
 	CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::log::trace;
+use crate::command::command_trait::{EmbedContent, EmbedType};
 
 #[cynic::schema("anilist")]
 
@@ -83,10 +84,10 @@ pub struct FuzzyDate {
 	pub year: Option<i32>,
 	pub day: Option<i32>,
 }
-pub async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, character: Character,
+pub async fn character_content(
+	command_interaction: &CommandInteraction, character: Character,
 	db_config: DbConfig,
-) -> Result<()> {
+) -> Result<EmbedContent> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -183,27 +184,24 @@ pub async fn send_embed(
 
 	let character_name = format!("{}/{}", user_pref, native);
 
-	let mut builder_embed = CreateEmbed::new()
-		.timestamp(Timestamp::now())
-		.color(COLOR)
-		.description(desc)
-		.title(character_name)
-		.url(character.site_url.unwrap_or_default())
-		.fields(fields);
+	let mut content = EmbedContent {
+		title: character_name,
+		description: desc,
+		thumbnail: None,
+		url: Some(character.site_url.unwrap_or_default()),
+		command_type: EmbedType::First,
+		colour: None,
+		fields,
+		images: None,
+		action_row: None,
+		images_url: None,
+	};
 
 	if let Some(image) = character.image {
 		if let Some(large) = image.large {
-			builder_embed = builder_embed.thumbnail(large)
+			content.images_url = Some(large);
 		}
 	}
 
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	command_interaction
-		.create_response(&ctx.http, builder)
-		.await?;
-
-	Ok(())
+	Ok(content)
 }
