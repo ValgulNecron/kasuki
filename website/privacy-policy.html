@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasuki - Privacy Policy</title>
+    <style>
+        :root {
+            --primary: #ff6b9d;
+            --primary-dark: #e05288;
+            --secondary: #8f68c9;
+            --light: #ffebf3;
+            --dark: #2a2438;
+            --text: #333344;
+            --text-light: #777788;
+            --background: #fcf8ff;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --shadow: 0 4px 20px rgba(255, 107, 157, 0.1);
+        }
+        
+        [data-theme="dark"] {
+            --background: #1a1a2e;
+            --card-bg: #212134;
+            --text: #f1f1f1;
+            --text-light: #b0b0b0;
+            --light: #2a2a45;
+            --dark: #121220;
+            --shadow: 0 4px 20px rgba(143, 104, 201, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        header h1 {
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        header .last-updated {
+            color: var(--text-light);
+            font-style: italic;
+        }
+        
+        h2 {
+            color: var(--primary-dark);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light);
+        }
+        
+        h3 {
+            color: var(--secondary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        p, ul, ol {
+            margin-bottom: 15px;
+        }
+        
+        ul, ol {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        .back-to-top {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .back-to-top:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--light);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .highlight-box {
+            background-color: var(--light);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .theme-toggle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.2);
+        }
+        
+        [data-theme="dark"] .theme-toggle {
+            background-color: var(--secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Privacy Policy</h1>
+            <p class="last-updated">Last updated: February 26, 2025</p>
+        </header>
+        
+        <h2>1. Introduction</h2>
+        <p>This Privacy Policy explains how Kasuki ("the Bot", "we", "us", or "our") collects, uses, and shares information about you when you use our Discord bot and related services (collectively, the "Service"). This Privacy Policy applies to all users of Kasuki, whether using the official instance or a self-hosted version.</p>
+        <p>We take your privacy seriously and are committed to protecting your personal information. Please read this Privacy Policy carefully to understand our practices regarding your data.</p>
+        
+        <h2>2. Information We Collect</h2>
+        
+        <h3>2.1. Information You Provide</h3>
+        <p>When using Kasuki, you may provide us with certain information:</p>
+        <ul>
+            <li>Discord user ID and server ID when you use commands</li>
+            <li>AniList usernames when you register them with the bot using the <code>/register</code> command</li>
+            <li>Content of commands and queries you submit, including AI image prompts, questions, and file uploads for transcription or translation</li>
+        </ul>
+        
+        <h3>2.2. Information Collected Automatically</h3>
+        <p>We automatically collect certain information when you interact with Kasuki:</p>
+        <ul>
+            <li>Command usage statistics (which commands are used and how frequently)</li>
+            <li>Error logs that may include command inputs and Discord identifiers</li>
+            <li>Server information when the bot is added to a Discord server</li>
+        </ul>
+        
+        <h3>2.3. Information from Third-Party Services</h3>
+        <p>Kasuki integrates with various third-party services:</p>
+        <ul>
+            <li>AniList: We access publicly available information from AniList based on registered usernames or search queries</li>
+            <li>Steam and other gaming platforms: We retrieve game information when requested</li>
+            <li>AI services (if configured): We may pass prompts or content to configured AI services</li>
+        </ul>
+        
+        <h2>3. How We Use Your Information</h2>
+        <p>We use the information we collect to:</p>
+        <ul>
+            <li>Provide, maintain, and improve the Service</li>
+            <li>Process and fulfill your requests for information or features</li>
+            <li>Store your preferences and settings (such as registered AniList accounts)</li>
+            <li>Generate statistics and monitor Service performance</li>
+            <li>Detect and prevent abuse, fraud, or other harmful activities</li>
+        </ul>
+        
+        <h2>4. Data Storage and Retention</h2>
+        
+        <h3>4.1. Storage Methods</h3>
+        <p>Kasuki stores data in the following ways:</p>
+        <ul>
+            <li>Server database: Stores registered user mappings, server preferences, and other persistent data</li>
+            <li>Server image storage: Stores generated images (server icons, user-requested AI images, etc.)</li>
+            <li>Log files: Stores command usage and error logs for troubleshooting and service improvement</li>
+        </ul>
+        
+        <h3>4.2. Data Retention</h3>
+        <ul>
+            <li>Log files: Retained for a maximum of 30 days by default (configurable)</li>
+            <li>Generated images: May be stored either locally or on remote servers based on configuration</li>
+            <li>Registered user data: Retained until explicitly removed by users or server administrators</li>
+        </ul>
+        
+        <h2>5. Information Sharing and Disclosure</h2>
+        <p>We do not sell, rent, or trade your personal information to third parties. We may share information in the following circumstances:</p>
+        
+        <h3>5.1. Third-Party Service Providers</h3>
+        <p>We may share your information with third-party service providers to help us operate, provide, and improve the Service:</p>
+        <ul>
+            <li>AI providers (if configured): May receive your prompts or content for processing</li>
+            <li>Image hosting services: May store images generated by the bot</li>
+        </ul>
+        
+        <h3>5.2. Compliance with Laws</h3>
+        <p>We may disclose your information if required to do so by law or in response to valid requests by public authorities.</p>
+        
+        <h3>5.3. With Your Consent</h3>
+        <p>We may share your information with your consent or at your direction.</p>
+        
+        <h2>6. Self-Hosted Instances</h2>
+        <p>If you choose to self-host Kasuki:</p>
+        <ul>
+            <li>You become the data controller for any information collected by your instance</li>
+            <li>You are responsible for complying with applicable privacy laws and regulations</li>
+            <li>This Privacy Policy applies to your collection and use of user data, but the official Kasuki maintainers do not have access to data collected by your instance</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <p><strong>Note:</strong> Self-hosted instances should ensure they comply with their local privacy laws and may need to establish their own privacy notices to users.</p>
+        </div>
+        
+        <h2>7. User Rights and Choices</h2>
+        <p>You have several rights regarding your personal information:</p>
+        
+        <h3>7.1. Access and Control</h3>
+        <ul>
+            <li>You can remove your registered AniList account using bot commands</li>
+            <li>Server administrators can control which features are enabled in their servers</li>
+            <li>You can configure notification preferences for anime releases</li>
+        </ul>
+        
+        <h3>7.2. Data Deletion</h3>
+        <ul>
+            <li>You may request deletion of your data by contacting us through GitHub issues</li>
+            <li>Some data may be retained in server logs for a limited time as specified in section 4.2</li>
+        </ul>
+        
+        <h2>8. Data Security</h2>
+        <p>We implement appropriate technical and organizational measures to protect your personal information:</p>
+        <ul>
+            <li>Secure database storage with appropriate access controls</li>
+            <li>Optional TLS encryption for gRPC server communications</li>
+            <li>Regular security updates to the bot's codebase</li>
+        </ul>
+        <p>However, no method of transmission over the Internet or electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your personal information, we cannot guarantee its absolute security.</p>
+        
+        <h2>9. Children's Privacy</h2>
+        <p>The Service is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that a child under 13 has provided us with personal information, we will take steps to delete such information.</p>
+        
+        <h2>10. Changes to This Privacy Policy</h2>
+        <p>We may update this Privacy Policy from time to time. We will notify users of any material changes by posting the new Privacy Policy on our GitHub repository. You are advised to review this Privacy Policy periodically for any changes.</p>
+        
+        <h2>11. Contact Us</h2>
+        <p>If you have any questions about this Privacy Policy, please contact us through GitHub issues on the Kasuki repository or contact the maintainer at the security email address provided in SECURITY.md.</p>
+        
+        <a href="#" class="back-to-top">Back to Top</a>
+        
+        <footer>
+            <p>This Privacy Policy was created for Kasuki and may be updated from time to time. The latest version will always be available on the bot's GitHub repository.</p>
+        </footer>
+    </div>
+    
+    <div class="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+    <script>
+        // Back to top button functionality
+        document.querySelector('.back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Theme toggle functionality
+        const themeToggle = document.querySelector('.theme-toggle');
+        let isDarkMode = localStorage.getItem('kasuki-theme') === 'dark';
+        
+        // Set initial theme
+        if (isDarkMode) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+        
+        // Toggle theme
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            
+            if (isDarkMode) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                localStorage.setItem('kasuki-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                localStorage.setItem('kasuki-theme', 'light');
+            }
+        });
+    </script>
+</body>
+</html>
