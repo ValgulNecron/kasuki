@@ -1,0 +1,26 @@
+{
+  "en": {
+    "title": "Join",
+    "error_no_voice": "Not in a voice channel",
+    "error_joining": "Error joining the channel: {0}",
+    "success": "Joined {0}"
+  },
+  "fr": {
+    "title": "Rejoindre",
+    "error_no_voice": "Pas dans un canal vocal",
+    "error_joining": "Erreur en rejoignant le canal: {0}",
+    "success": "A rejoint {0}"
+  },
+  "jp": {
+    "title": "参加",
+    "error_no_voice": "ボイスチャンネルに入っていません",
+    "error_joining": "チャンネルへの参加中にエラーが発生しました: {0}",
+    "success": "{0}に参加しました"
+  },
+  "de": {
+    "title": "Beitreten",
+    "error_no_voice": "Nicht in einem Sprachkanal",
+    "error_joining": "Fehler beim Beitreten zum Kanal: {0}",
+    "success": "Beigetreten zu {0}"
+  }
+}

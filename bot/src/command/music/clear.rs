@@ -1,5 +1,6 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
+use crate::structure::message::music::clear::load_localization_clear;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
@@ -25,8 +26,18 @@ impl SlashCommand for ClearCommand {
 		let command_interaction = self.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
-
 		self.defer().await?;
+
+		// Retrieve the guild ID from the command interaction
+		let guild_id_str = match command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+
+		// Load the localized strings
+		let clear_localised =
+			load_localization_clear(guild_id_str, bot_data.config.db.clone()).await?;
+
 		let lava_client = bot_data.lavalink.clone();
 		let lava_client = lava_client.read().await.clone();
 		match lava_client {
@@ -41,8 +52,8 @@ impl SlashCommand for ClearCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let content = EmbedContent {
-				title: "".to_string(),
-				description: "Join the bot to a voice channel first.".to_string(),
+				title: clear_localised.title,
+				description: clear_localised.error_no_voice,
 				thumbnail: None,
 				url: None,
 				command_type: EmbedType::Followup,
@@ -58,8 +69,8 @@ impl SlashCommand for ClearCommand {
 		player.get_queue().clear()?;
 
 		let content = EmbedContent {
-			title: "".to_string(),
-			description: "Queue cleared successfully".to_string(),
+			title: clear_localised.title,
+			description: clear_localised.success,
 			thumbnail: None,
 			url: None,
 			command_type: EmbedType::Followup,

@@ -32,6 +32,18 @@ use crate::command::guess_kind::guess_command_kind;
 use crate::command::management::give_premium_sub::GivePremiumSubCommand;
 use crate::command::management::kill_switch::KillSwitchCommand;
 use crate::command::management::remove_test_sub::RemoveTestSubCommand;
+use crate::command::music::clear::ClearCommand;
+use crate::command::music::join::JoinCommand;
+use crate::command::music::leave::LeaveCommand;
+use crate::command::music::pause::PauseCommand;
+use crate::command::music::play::PlayCommand;
+use crate::command::music::queue::QueueCommand;
+use crate::command::music::remove::RemoveCommand;
+use crate::command::music::resume::ResumeCommand;
+use crate::command::music::seek::SeekCommand;
+use crate::command::music::skip::SkipCommand;
+use crate::command::music::stop::StopCommand;
+use crate::command::music::swap::SwapCommand;
 use crate::command::server::generate_image_pfp_server::GenerateImagePfPCommand;
 use crate::command::server::generate_image_pfp_server_global::GenerateGlobalImagePfPCommand;
 use crate::command::server::guild::GuildCommand;
@@ -454,6 +466,104 @@ pub async fn dispatch_command(
 			.run_slash()
 			.await?
 		},
+
+		"music_play" => {
+			PlayCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_pause" => {
+			PauseCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_resume" => {
+			ResumeCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_stop" => {
+			StopCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_skip" => {
+			SkipCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_queue" => {
+			QueueCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_clear" => {
+			ClearCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_remove" => {
+			RemoveCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_seek" => {
+			SeekCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_swap" => {
+			SwapCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_join" => {
+			JoinCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_leave" => {
+			LeaveCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+
 		_ => {
 			Err(anyhow::anyhow!("Command not found"))?;
 		},

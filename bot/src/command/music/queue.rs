@@ -1,5 +1,6 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
+use crate::structure::message::music::queue::load_localization_queue;
 use anyhow::anyhow;
 use futures::future;
 use futures::StreamExt;
@@ -25,8 +26,18 @@ impl SlashCommand for QueueCommand {
 	async fn run_slash(&self) -> anyhow::Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-
 		self.defer().await?;
+
+		// Retrieve the guild ID from the command interaction
+		let guild_id_str = match self.command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+
+		// Load the localized strings
+		let queue_localised =
+			load_localization_queue(guild_id_str, bot_data.config.db.clone()).await?;
+
 		let command_interaction = self.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
@@ -43,8 +54,8 @@ impl SlashCommand for QueueCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let content = EmbedContent {
-				title: "".to_string(),
-				description: "Join the bot to a voice channel first.".to_string(),
+				title: queue_localised.title,
+				description: queue_localised.error_no_voice,
 				thumbnail: None,
 				url: None,
 				command_type: EmbedType::Followup,
@@ -67,19 +78,21 @@ impl SlashCommand for QueueCommand {
 			.map(|(idx, x)| {
 				if let Some(uri) = &x.track.info.uri {
 					format!(
-						"{} -> [{} - {}](<{}>) | Requested by <@!{}>",
+						"{} -> [{} - {}](<{}>) | {} <@!{}>",
 						idx + 1,
 						x.track.info.author,
 						x.track.info.title,
 						uri,
+						queue_localised.requested_by,
 						x.track.user_data.unwrap()["requester_id"]
 					)
 				} else {
 					format!(
-						"{} -> {} - {} | Requested by <@!{}",
+						"{} -> {} - {} | {} <@!{}",
 						idx + 1,
 						x.track.info.author,
 						x.track.info.title,
+						queue_localised.requested_by,
 						x.track.user_data.unwrap()["requester_id"]
 					)
 				}
@@ -95,24 +108,35 @@ impl SlashCommand for QueueCommand {
 
 			if let Some(uri) = &track.info.uri {
 				format!(
-					"Now playing: [{} - {}](<{}>) | {}, Requested by <@!{}>",
-					track.info.author,
-					track.info.title,
-					uri,
-					time,
-					track.user_data.unwrap()["requester_id"]
+					"{}",
+					queue_localised
+						.now_playing
+						.replace("{0}", &track.info.author)
+						.replace("{1}", &track.info.title)
+						.replace("{2}", uri)
+						.replace("{3}", &time)
+						.replace(
+							"{4}",
+							&format!("<@!{}>", track.user_data.unwrap()["requester_id"])
+						)
 				)
 			} else {
 				format!(
-					"Now playing: {} - {} | {}, Requested by <@!{}>",
-					track.info.author,
-					track.info.title,
-					time,
-					track.user_data.unwrap()["requester_id"]
+					"{}",
+					queue_localised
+						.now_playing
+						.replace("{0}", &track.info.author)
+						.replace("{1}", &track.info.title)
+						.replace("{2}", "")
+						.replace("{3}", &time)
+						.replace(
+							"{4}",
+							&format!("<@!{}>", track.user_data.unwrap()["requester_id"])
+						)
 				)
 			}
 		} else {
-			"Now playing: nothing".to_string()
+			queue_localised.nothing_playing.clone()
 		};
 
 		let content = EmbedContent {

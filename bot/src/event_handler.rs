@@ -353,7 +353,43 @@ impl EventHandler for Handler {
 
 	async fn ready(&self, ctx: SerenityContext, ready: Ready) {
 		let bot_data = ctx.data::<BotData>().clone();
+		let guard = bot_data.lavalink.read().await;
+		match *guard {
+			None => {
+				drop(guard);
+				let events = events::Events {
+					raw: Some(music_events::raw_event),
+					ready: Some(music_events::ready_event),
+					track_start: Some(music_events::track_start),
+					..Default::default()
+				};
 
+				let user_id = lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
+
+				let node_local = NodeBuilder {
+					hostname: bot_data.config.music.lavalink_hostname.clone(),
+					is_ssl: bot_data.config.music.https,
+					events: events::Events::default(),
+					password: bot_data.config.music.lavalink_password.clone(),
+					user_id,
+					session_id: None,
+				};
+
+				let client = LavalinkClient::new(
+					events,
+					vec![node_local],
+					NodeDistributionStrategy::round_robin(),
+				)
+				.await;
+				let mut write_guard = bot_data.lavalink.write().await;
+
+				*write_guard = Some(client);
+				drop(write_guard)
+			},
+			_ => {
+				drop(guard);
+			},
+		}
 		// Iterates over each guild the bot is in
 		let shard = ctx.shard.clone();
 
@@ -406,44 +442,6 @@ impl EventHandler for Handler {
 			let remove_old_command = bot_data.config.bot.remove_old_commands;
 
 			command_registration(&ctx.http, remove_old_command).await;
-		}
-
-		let guard = bot_data.lavalink.read().await;
-		match *guard {
-			None => {
-				drop(guard);
-				let events = events::Events {
-					raw: Some(music_events::raw_event),
-					ready: Some(music_events::ready_event),
-					track_start: Some(music_events::track_start),
-					..Default::default()
-				};
-
-				let user_id = lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
-
-				let node_local = NodeBuilder {
-					hostname: bot_data.config.music.lavalink_hostname.clone(),
-					is_ssl: bot_data.config.music.https,
-					events: events::Events::default(),
-					password: bot_data.config.music.lavalink_password.clone(),
-					user_id,
-					session_id: None,
-				};
-
-				let client = LavalinkClient::new(
-					events,
-					vec![node_local],
-					NodeDistributionStrategy::round_robin(),
-				)
-				.await;
-				let mut write_guard = bot_data.lavalink.write().await;
-
-				*write_guard = Some(client);
-				drop(write_guard)
-			},
-			_ => {
-				drop(guard);
-			},
 		}
 	}
 

@@ -3,10 +3,12 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::command::{
 	get_option_map_channel, get_option_map_number, get_option_map_string,
 };
+use crate::structure::message::music::remove::load_localization_remove;
 use anyhow::anyhow;
 use lavalink_rs::client::LavalinkClient;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
+use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 
 pub struct RemoveCommand {
 	pub ctx: SerenityContext,
@@ -27,8 +29,18 @@ impl SlashCommand for RemoveCommand {
 	async fn run_slash(&self) -> anyhow::Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-
 		self.defer().await?;
+
+		// Retrieve the guild ID from the command interaction
+		let guild_id_str = match self.command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+
+		// Load the localized strings
+		let remove_localised =
+			load_localization_remove(guild_id_str, bot_data.config.db.clone()).await?;
+
 		let command_interaction = self.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
@@ -45,8 +57,8 @@ impl SlashCommand for RemoveCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let content = EmbedContent {
-				title: "".to_string(),
-				description: "Join the bot to a voice channel first.".to_string(),
+				title: remove_localised.title,
+				description: remove_localised.error_no_voice,
 				thumbnail: None,
 				url: None,
 				command_type: EmbedType::Followup,
@@ -59,18 +71,18 @@ impl SlashCommand for RemoveCommand {
 			return self.send_embed(content).await;
 		};
 
-		let map = get_option_map_number(command_interaction);
+		let map = get_option_map_number_subcommand(command_interaction);
 
 		let index = map
-			.get(&FixedString::from_str_trunc("index"))
+			.get(&String::from("index"))
 			.cloned()
 			.unwrap_or_default() as usize;
 
 		player.get_queue().remove(index)?;
 
 		let content = EmbedContent {
-			title: "".to_string(),
-			description: "Removed successfully".to_string(),
+			title: remove_localised.title,
+			description: remove_localised.success,
 			thumbnail: None,
 			url: None,
 			command_type: EmbedType::Followup,

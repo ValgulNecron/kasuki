@@ -1,5 +1,6 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
+use crate::structure::message::music::stop::load_localization_stop;
 use anyhow::anyhow;
 use lavalink_rs::client::LavalinkClient;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -23,8 +24,18 @@ impl SlashCommand for StopCommand {
 	async fn run_slash(&self) -> anyhow::Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-
 		self.defer().await?;
+
+		// Retrieve the guild ID from the command interaction
+		let guild_id_str = match self.command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+
+		// Load the localized strings
+		let stop_localised =
+			load_localization_stop(guild_id_str, bot_data.config.db.clone()).await?;
+
 		let command_interaction = self.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
@@ -42,8 +53,8 @@ impl SlashCommand for StopCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let content = EmbedContent {
-				title: "".to_string(),
-				description: "Join the bot to a voice channel first.".to_string(),
+				title: stop_localised.title,
+				description: stop_localised.error_no_voice,
 				thumbnail: None,
 				url: None,
 				command_type: EmbedType::Followup,
@@ -56,7 +67,7 @@ impl SlashCommand for StopCommand {
 			return self.send_embed(content).await;
 		};
 		let mut content = EmbedContent {
-			title: "".to_string(),
+			title: stop_localised.title,
 			description: "".to_string(),
 			thumbnail: None,
 			url: None,
@@ -72,9 +83,9 @@ impl SlashCommand for StopCommand {
 
 		if let Some(np) = now_playing {
 			player.stop_now().await?;
-			content.description = format!("Stopped {}", np.info.title)
+			content.description = stop_localised.success.replace("{0}", &np.info.title);
 		} else {
-			content.description = "Nothing to stop".to_string()
+			content.description = stop_localised.nothing_to_stop;
 		}
 
 		self.send_embed(content).await

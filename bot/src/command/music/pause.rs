@@ -1,5 +1,6 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
+use crate::structure::message::music::pause::load_localization_pause;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
@@ -22,8 +23,18 @@ impl SlashCommand for PauseCommand {
 	async fn run_slash(&self) -> anyhow::Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-
 		self.defer().await?;
+
+		// Retrieve the guild ID from the command interaction
+		let guild_id_str = match self.command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+
+		// Load the localized strings
+		let pause_localised =
+			load_localization_pause(guild_id_str, bot_data.config.db.clone()).await?;
+
 		let command_interaction = self.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
@@ -41,8 +52,8 @@ impl SlashCommand for PauseCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let content = EmbedContent {
-				title: "".to_string(),
-				description: "Join the bot to a voice channel first.".to_string(),
+				title: pause_localised.title,
+				description: pause_localised.error_no_voice,
 				thumbnail: None,
 				url: None,
 				command_type: EmbedType::Followup,
@@ -57,8 +68,8 @@ impl SlashCommand for PauseCommand {
 		player.set_pause(true).await?;
 
 		let content = EmbedContent {
-			title: "".to_string(),
-			description: "Paused".to_string(),
+			title: pause_localised.title,
+			description: pause_localised.success,
 			thumbnail: None,
 			url: None,
 			command_type: EmbedType::Followup,

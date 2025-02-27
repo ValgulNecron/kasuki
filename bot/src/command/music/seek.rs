@@ -1,11 +1,13 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_number;
+use crate::structure::message::music::seek::load_localization_seek;
 use anyhow::anyhow;
 use lavalink_rs::client::LavalinkClient;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use std::time::Duration;
+use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 
 pub struct SeekCommand {
 	pub ctx: SerenityContext,
@@ -26,8 +28,18 @@ impl SlashCommand for SeekCommand {
 	async fn run_slash(&self) -> anyhow::Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-
 		self.defer().await?;
+
+		// Retrieve the guild ID from the command interaction
+		let guild_id_str = match self.command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+
+		// Load the localized strings
+		let seek_localised =
+			load_localization_seek(guild_id_str, bot_data.config.db.clone()).await?;
+
 		let command_interaction = self.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
@@ -45,8 +57,8 @@ impl SlashCommand for SeekCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let content = EmbedContent {
-				title: "".to_string(),
-				description: "Join the bot to a voice channel first.".to_string(),
+				title: seek_localised.title,
+				description: seek_localised.error_no_voice,
 				thumbnail: None,
 				url: None,
 				command_type: EmbedType::Followup,
@@ -59,17 +71,17 @@ impl SlashCommand for SeekCommand {
 			return self.send_embed(content).await;
 		};
 
-		let map = get_option_map_number(command_interaction);
+		let map = get_option_map_number_subcommand(command_interaction);
 
 		let time = map
-			.get(&FixedString::from_str_trunc("time"))
+			.get(&String::from("time"))
 			.cloned()
 			.unwrap_or_default() as u64;
 
 		let now_playing = player.get_player().await?.track;
 
 		let mut content = EmbedContent {
-			title: "".to_string(),
+			title: seek_localised.title,
 			description: "".to_string(),
 			thumbnail: None,
 			url: None,
@@ -81,11 +93,11 @@ impl SlashCommand for SeekCommand {
 			images_url: None,
 		};
 
-		if now_playing.is_some() {
+		if let Some(np) = now_playing {
 			player.set_position(Duration::from_secs(time)).await?;
-			content.description = format!("Jumped to {}s", time);
+			content.description = seek_localised.success.replace("{0}", &time.to_string());
 		} else {
-			content.description = "Nothing is playing".to_string();
+			content.description = seek_localised.nothing_playing;
 		}
 
 		self.send_embed(content).await

@@ -1,0 +1,30 @@
+{
+  "en": {
+    "title": "Swap",
+    "error_no_voice": "Join the bot to a voice channel first.",
+    "error_same_index": "Can't swap between the same indexes",
+    "error_max_index": "Maximum allowed index: {0}",
+    "success": "Swapped successfully"
+  },
+  "fr": {
+    "title": "Échanger",
+    "error_no_voice": "Rejoignez d'abord le bot dans un canal vocal.",
+    "error_same_index": "Impossible d'échanger entre les mêmes indices",
+    "error_max_index": "Indice maximum autorisé: {0}",
+    "success": "Échangé avec succès"
+  },
+  "jp": {
+    "title": "スワップ",
+    "error_no_voice": "まずボットをボイスチャンネルに参加させてください。",
+    "error_same_index": "同じインデックス間で交換できません",
+    "error_max_index": "許可されている最大インデックス: {0}",
+    "success": "正常に交換されました"
+  },
+  "de": {
+    "title": "Tauschen",
+    "error_no_voice": "Fügen Sie den Bot zuerst einem Sprachkanal hinzu.",
+    "error_same_index": "Kann nicht zwischen denselben Indizes tauschen",
+    "error_max_index": "Maximal erlaubter Index: {0}",
+    "success": "Erfolgreich getauscht"
+  }
+}
