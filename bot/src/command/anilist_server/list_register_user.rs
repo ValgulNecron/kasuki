@@ -13,9 +13,8 @@ use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton
-	, PartialGuild, User,
-	UserId,
+	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton, PartialGuild,
+	User, UserId,
 };
 use serenity::nonmax::NonMaxU16;
 

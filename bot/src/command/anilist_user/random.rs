@@ -1,29 +1,19 @@
-use std::sync::Arc;
-
 use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
 use rand::{rng, Rng};
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponseFollowup,
-	CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
-use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::background_task::update_random_stats::update_random_stats;
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
-use crate::structure::message::anilist_user::random::{load_localization_random, RandomLocalised};
+use crate::structure::message::anilist_user::random::load_localization_random;
 use crate::structure::run::anilist::random::{
-	Media, MediaType, RandomPageMedia, RandomPageMediaVariables,
+	MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
 use anyhow::{anyhow, Result};
 
@@ -172,4 +162,3 @@ impl SlashCommand for RandomCommand {
 		self.send_embed(content).await
 	}
 }
-

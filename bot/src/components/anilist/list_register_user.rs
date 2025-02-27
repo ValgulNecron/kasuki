@@ -1,13 +1,13 @@
 use anyhow::{anyhow, Result};
 
 use serenity::all::{
-	ComponentInteraction, Context as SerenityContext, CreateButton, CreateEmbed, EditMessage,
-	UserId,
+	ComponentInteraction, Context as SerenityContext, CreateButton, EditMessage, UserId,
 };
 
 use crate::command::anilist_server::list_register_user::get_the_list;
 use crate::config::DbConfig;
 use crate::constant::MEMBER_LIST_LIMIT;
+use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 
 pub async fn update(
@@ -46,8 +46,19 @@ pub async fn update(
 	let (builder_message, len, last_id): (String, usize, Option<UserId>) =
 		get_the_list(guild, ctx, id, db_config).await?;
 
+	let old_embed_title = component_interaction
+		.message
+		.embeds
+		.first()
+		.and_then(|embed| embed.title.clone())
+		.unwrap_or_default();
+
+	let embed = get_default_embed(None)
+		.title(old_embed_title)
+		.description(builder_message);
+
 	// Create the response message
-	let mut response = EditMessage::new().embed(builder_message);
+	let mut response = EditMessage::new().embed(embed);
 
 	if user_id != "0" {
 		response = response.button(

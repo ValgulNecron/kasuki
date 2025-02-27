@@ -1,25 +1,16 @@
-use std::sync::Arc;
-
-use moka::future::Cache;
 use once_cell::sync::Lazy;
 use sea_orm::EntityTrait;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
-};
-use tokio::sync::RwLock;
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType};
-use crate::config::{Config, DbConfig};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
 use crate::get_url;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::level::load_localization_level;
-use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url, User};
+use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
 use anyhow::{anyhow, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
@@ -54,9 +45,7 @@ impl LevelCommand {
 		let user = map.get(&FixedString::from_str_trunc("username"));
 
 		let data = match user {
-			Some(value) => {
-				get_user(value, anilist_cache).await?
-			},
+			Some(value) => get_user(value, anilist_cache).await?,
 			None => {
 				let user_id = &command_interaction.user.id.to_string();
 
@@ -68,8 +57,8 @@ impl LevelCommand {
 					.await?;
 
 				let user = row.ok_or(anyhow!(
-				"No user specified or linked to this discord account",
-			))?;
+					"No user specified or linked to this discord account",
+				))?;
 
 				get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?
 			},
@@ -119,8 +108,9 @@ impl LevelCommand {
 		};
 
 		// Calculate the experience points
-		let xp =
-			(2.0 * (manga_completed + anime_completed) as f64) + chap_read as f64 + (tw as f64 * 0.1);
+		let xp = (2.0 * (manga_completed + anime_completed) as f64)
+			+ chap_read as f64
+			+ (tw as f64 * 0.1);
 
 		// Get the username
 		let username = user.name.clone();

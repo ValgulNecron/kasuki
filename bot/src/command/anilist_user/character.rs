@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, Embed, SlashCommand};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -62,9 +61,10 @@ impl SlashCommand for CharacterCommand {
 			data.data.unwrap().character.unwrap()
 		};
 
-		let content = character::character_content( command_interaction, data, config.db.clone()).await?;
+		let content =
+			character::character_content(command_interaction, data, config.db.clone()).await?;
 
-		self.send_embed(content)
+		self.send_embed(content).await
 	}
 }
 

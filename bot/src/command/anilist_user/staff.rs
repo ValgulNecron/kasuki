@@ -140,9 +140,10 @@ impl SlashCommand for StaffCommand {
 			url: staff.site_url,
 			command_type: EmbedType::First,
 			colour: None,
-			fields: fields,
+			fields,
 			images: None,
 			action_row: None,
+			images_url: None,
 		};
 		self.send_embed(embed_content).await
 	}

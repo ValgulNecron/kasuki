@@ -1,15 +1,11 @@
+use crate::command::command_trait::{EmbedContent, EmbedType};
 use crate::config::DbConfig;
-use crate::constant::COLOR;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
 use anyhow::{anyhow, Result};
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateEmbed, CreateInteractionResponse,
-	CreateInteractionResponseMessage, Timestamp,
-};
+use serenity::all::CommandInteraction;
 use tracing::log::trace;
-use crate::command::command_trait::{EmbedContent, EmbedType};
 
 #[cynic::schema("anilist")]
 
@@ -85,8 +81,7 @@ pub struct FuzzyDate {
 	pub day: Option<i32>,
 }
 pub async fn character_content(
-	command_interaction: &CommandInteraction, character: Character,
-	db_config: DbConfig,
+	command_interaction: &CommandInteraction, character: Character, db_config: DbConfig,
 ) -> Result<EmbedContent> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),

@@ -1,21 +1,13 @@
 use std::collections::HashSet;
-use std::sync::Arc;
 
 use anyhow::Result;
-use moka::future::Cache;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
-use tokio::sync::RwLock;
 use tracing::trace;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
-use crate::config::Config;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
 use crate::structure::run::anilist::user::{
@@ -177,7 +169,7 @@ impl SlashCommand for CompareCommand {
 				&username,
 				&username2,
 			)
-				.as_str(),
+			.as_str(),
 		);
 
 		// Get the genres of the anime watched by the two users and add the comparison to the description string
@@ -194,7 +186,7 @@ impl SlashCommand for CompareCommand {
 				&username,
 				&username2,
 			)
-				.as_str(),
+			.as_str(),
 		);
 
 		let manga = statistics.manga.unwrap();
@@ -285,7 +277,7 @@ impl SlashCommand for CompareCommand {
 				&username,
 				&username2,
 			)
-				.as_str(),
+			.as_str(),
 		);
 
 		// Get the genres of the manga read by the two users and add the comparison to the description string
@@ -302,7 +294,7 @@ impl SlashCommand for CompareCommand {
 				&username,
 				&username2,
 			)
-				.as_str(),
+			.as_str(),
 		);
 
 		let content = EmbedContent {

@@ -1,8 +1,6 @@
 use anyhow::Result;
-use std::sync::Arc;
 
 use crate::command::command_trait::{Command, Embed, SlashCommand};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -12,10 +10,8 @@ use crate::structure::run::anilist::media::{
 	MediaQuerrySearchVariables, MediaType,
 };
 use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
-use tokio::sync::RwLock;
 
 pub struct LnCommand {
 	pub ctx: SerenityContext,
@@ -80,9 +76,9 @@ impl SlashCommand for LnCommand {
 			data.data.unwrap().media.unwrap()
 		};
 
-		let content = media::media_content(ctx, command_interaction, data, config.db.clone()).await?;
+		let content =
+			media::media_content(ctx, command_interaction, data, config.db.clone()).await?;
 
 		self.send_embed(content).await
 	}
 }
-

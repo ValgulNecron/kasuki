@@ -1,18 +1,14 @@
 use std::fmt::Display;
 
+use crate::command::command_trait::{EmbedContent, EmbedType};
 use crate::config::DbConfig;
-use crate::constant::{COLOR, UNKNOWN};
+use crate::constant::UNKNOWN;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
 use anyhow::{anyhow, Result};
-use serde::__private::de::TagOrContentField::Content;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateEmbed, CreateInteractionResponse,
-	CreateInteractionResponseMessage, Timestamp,
-};
-use crate::command::command_trait::{EmbedContent, EmbedType};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 #[cynic::schema("anilist")]
 
@@ -575,10 +571,10 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
 	character_text
 }
 
-pub async fn media_content(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, data: Media,
+pub async fn media_content<'a>(
+	ctx: &'a SerenityContext, command_interaction: &'a CommandInteraction, data: Media,
 	db_config: DbConfig,
-) ->  Result<EmbedContent> {
+) -> Result<EmbedContent<'a, 'a>> {
 	let is_adult = data.is_adult.unwrap_or(true);
 
 	if is_adult && !get_nsfw(command_interaction, ctx).await {

@@ -28,6 +28,7 @@ pub mod error_management;
 mod event_handler;
 mod helper;
 mod logger;
+mod music_events;
 mod register;
 mod structure;
 
@@ -183,6 +184,7 @@ async fn main() {
 		manager: Arc::clone(&manager),
 		http_client: reqwest::Client::new(),
 		shard_manager: Arc::new(Default::default()),
+		lavalink: Arc::new(Default::default()),
 	});
 
 	let mut client = Client::builder(discord_token, gateway_intent)

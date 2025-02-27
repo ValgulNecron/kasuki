@@ -1,24 +1,16 @@
 use anyhow::{anyhow, Result};
-use std::sync::Arc;
 
-use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
-use tokio::sync::RwLock;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
-use crate::config::Config;
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::{ActiveModel, Column};
 use crate::event_handler::BotData;
 use crate::get_url;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::register::load_localization_register;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
@@ -78,13 +70,13 @@ impl SlashCommand for RegisterCommand {
 			anilist_id: Set(user_data.id),
 			..Default::default()
 		})
-			.on_conflict(
-				sea_orm::sea_query::OnConflict::column(Column::AnilistId)
-					.update_column(Column::AnilistId)
-					.to_owned(),
-			)
-			.exec(&connection)
-			.await?;
+		.on_conflict(
+			sea_orm::sea_query::OnConflict::column(Column::AnilistId)
+				.update_column(Column::AnilistId)
+				.to_owned(),
+		)
+		.exec(&connection)
+		.await?;
 
 		// Construct the description for the embed
 		let desc = register_localised

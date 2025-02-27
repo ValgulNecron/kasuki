@@ -167,10 +167,10 @@ impl<T: Command> Embed for T {
 				command_interaction
 					.create_followup(&ctx.http, builder)
 					.await?;
-			}
+			},
 			_ => {
 				return Err(anyhow!("There is both image."));
-			}
+			},
 		}
 
 		Ok(())

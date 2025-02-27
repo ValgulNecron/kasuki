@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 pub struct Config {
 	pub bot: BotConfig,
+	pub music: MusicConfig,
 	pub db: DbConfig,
 	pub image: ImageConfig,
 	pub logging: LoggingConfig,
@@ -17,6 +18,13 @@ pub struct BotConfig {
 	pub bot_activity: String,
 	pub remove_old_commands: bool,
 	pub respect_premium: bool,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct MusicConfig {
+	pub lavalink_hostname: String,
+	pub lavalink_password: String,
+	pub https: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -90,6 +98,11 @@ impl Default for Config {
 				bot_activity: "".to_string(),
 				remove_old_commands: false,
 				respect_premium: false,
+			},
+			music: MusicConfig {
+				lavalink_hostname: "".to_string(),
+				lavalink_password: "".to_string(),
+				https: false,
 			},
 			db: DbConfig {
 				db_type: "sqlite".to_string(),

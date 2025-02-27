@@ -48,8 +48,14 @@ pub struct BotData {
 	pub manager: Arc<Songbird>,
 	pub http_client: Client,
 	pub shard_manager: Arc<RwLock<Option<Arc<ShardManager>>>>,
+	pub lavalink: Arc<RwLock<Option<LavalinkClient>>>,
 }
+use crate::music_events;
 use anyhow::{Context, Result};
+use lavalink_rs::client::LavalinkClient;
+use lavalink_rs::model::events;
+use lavalink_rs::node::NodeBuilder;
+use lavalink_rs::prelude::NodeDistributionStrategy;
 
 pub struct Handler;
 
@@ -400,6 +406,44 @@ impl EventHandler for Handler {
 			let remove_old_command = bot_data.config.bot.remove_old_commands;
 
 			command_registration(&ctx.http, remove_old_command).await;
+		}
+
+		let guard = bot_data.lavalink.read().await;
+		match *guard {
+			None => {
+				drop(guard);
+				let events = events::Events {
+					raw: Some(music_events::raw_event),
+					ready: Some(music_events::ready_event),
+					track_start: Some(music_events::track_start),
+					..Default::default()
+				};
+
+				let user_id = lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
+
+				let node_local = NodeBuilder {
+					hostname: bot_data.config.music.lavalink_hostname.clone(),
+					is_ssl: bot_data.config.music.https,
+					events: events::Events::default(),
+					password: bot_data.config.music.lavalink_password.clone(),
+					user_id,
+					session_id: None,
+				};
+
+				let client = LavalinkClient::new(
+					events,
+					vec![node_local],
+					NodeDistributionStrategy::round_robin(),
+				)
+				.await;
+				let mut write_guard = bot_data.lavalink.write().await;
+
+				*write_guard = Some(client);
+				drop(write_guard)
+			},
+			_ => {
+				drop(guard);
+			},
 		}
 	}
 

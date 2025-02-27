@@ -12,6 +12,7 @@ pub mod bot;
 pub mod command_dispatch;
 pub mod management;
 mod message_command_dispatch;
+pub mod music;
 pub mod server;
 pub mod steam;
 pub mod user_command_dispatch;

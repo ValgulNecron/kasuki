@@ -1,24 +1,18 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
-use crate::config::Config;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::database::activity_data::Column;
 use crate::database::prelude::ActivityData;
 use crate::event_handler::BotData;
-use crate::get_url;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 use anyhow::{anyhow, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
-use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton,
-	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
 };
 use std::borrow::Cow;
-use std::sync::Arc;
 use tracing::trace;
 
 pub struct ListAllActivity {
