@@ -42,7 +42,8 @@ impl SlashCommand for PlayCommand {
         let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 
         let Some(player) = lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get())) else {
-            ctx.say("Join the bot to a voice channel first.").await?;
+            content.description = "Join the bot to a voice channel first.".to_string();
+            self.send_embed(content).await?;
             return Ok(());
         };
 
@@ -53,29 +54,16 @@ impl SlashCommand for PlayCommand {
             .cloned()
             .unwrap_or_default();
 
-        let query = if let Some(term) = term {
+        let query =
             if term.starts_with("http") {
                 term
             } else {
                 //SearchEngines::YouTube.to_query(&term)?
                 SearchEngines::YouTube.to_query(&term)?
-            }
-        } else {
-            if let Ok(player_data) = player.get_player().await {
-                let queue = player.get_queue();
+            };
 
-                if player_data.track.is_none() && queue.get_track(0).await.is_ok_and(|x| x.is_some()) {
-                    player.skip()?;
-                } else {
-                    content.description = "The queue is empty.".to_string();
-                    self.send_embed(content).await?;
-                }
-            }
 
-            return Ok(());
-        };
-
-        let loaded_tracks = lava_client.load_tracks(guild_id, &query).await?;
+        let loaded_tracks = lava_client.load_tracks(lavalink_rs::model::GuildId::from(guild_id.get()), &query).await?;
 
         let mut playlist_info = None;
 
@@ -96,8 +84,7 @@ impl SlashCommand for PlayCommand {
         };
 
         if let Some(info) = playlist_info {
-            ctx.say(format!("Added playlist to queue: {}", info.name,))
-                .await?;
+            content.description = format!("Added playlist to queue: {}", info.name,);
         } else {
             let track = &tracks[0].track;
 
@@ -118,8 +105,9 @@ impl SlashCommand for PlayCommand {
             }
         }
 
+        let author_id = command_interaction.user.id;
         for i in &mut tracks {
-            i.track.user_data = Some(serde_json::json!({"requester_id": ctx.author().id.get()}));
+            i.track.user_data = Some(serde_json::json!({"requester_id": author_id}));
         }
 
         let queue = player.get_queue();
@@ -135,7 +123,7 @@ impl SlashCommand for PlayCommand {
             }
         }
 
-        Ok(())
+                self.send_embed(content).await
 
     }
 }

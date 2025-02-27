@@ -1,10 +1,11 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
 use anyhow::{anyhow, Result};
-use lavalink_rs::http::Http;
 use lavalink_rs::model::ChannelId;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Context};
 use std::sync::Arc;
+use serenity::http::Http;
+use serenity::prelude::Mentionable;
 
 pub struct JoinCommand {
     pub ctx: SerenityContext,
@@ -27,19 +28,25 @@ impl SlashCommand for JoinCommand {
         let bot_data = ctx.data::<BotData>().clone();
         let command_interaction = self.get_command_interaction();
 
-        let (_, content) = join(ctx, bot_data, command_interaction);
+        let (_, content) = join(ctx, bot_data, command_interaction).await?;
 
-        self.send_embed(content)
+        self.send_embed(content).await
     }
 }
 
-pub async fn join(ctx: &Context, bot_data: Arc<BotData>, command_interaction: &CommandInteraction) -> Result<(bool, EmbedContent)> {
-    let lava_client = ctx.data().lavalink.clone();
-
+pub async fn join<'a>(ctx: &'a Context, bot_data: Arc<BotData>, command_interaction: &'a CommandInteraction) -> Result<(bool, EmbedContent<'a, 'a>)> {
+    let lava_client = bot_data.lavalink.read().await.clone();
+    match lava_client {
+        Some(_) => {}
+        None => {
+            return Err(anyhow::anyhow!("Lavalink is disabled"));
+        }
+    }
+    let lava_client = lava_client.unwrap();
     let manager = bot_data.manager.clone();
 
     let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
-    let guild = guild_id.to_guild_cached(ctx).await?;
+    let guild = guild_id.to_guild_cached(&ctx.cache).ok_or(anyhow!("Guild not found"))?;
     let channel_id = command_interaction.channel_id;
     let author_id = command_interaction.user.id;
 
@@ -56,10 +63,8 @@ pub async fn join(ctx: &Context, bot_data: Arc<BotData>, command_interaction: &C
         images_url: None,
     };
 
-    if lava_client.get_player_context(guild_id).is_none() {
-        let connect_to = match channel_id {
-            Some(x) => x,
-            None => {
+    if lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get())).is_none() {
+        let connect_to =  {
                 let user_channel_id = guild
                     .voice_states
                     .get(&author_id)
@@ -72,20 +77,24 @@ pub async fn join(ctx: &Context, bot_data: Arc<BotData>, command_interaction: &C
                         return Ok((false, content));
                     }
                 }
-            }
-        };
+            };
 
-        let handler = manager.join_gateway(guild_id, connect_to).await;
+
+            let handler = manager.join_gateway(guild_id, connect_to).await;
 
         match handler {
             Ok((connection_info, _)) => {
                 lava_client
                     .create_player_context_with_data::<(ChannelId, Arc<Http>)>(
-                        guild_id,
-                        connection_info,
+                        lavalink_rs::model::GuildId::from(guild_id.get()),
+                        lavalink_rs::model::player::ConnectionInfo {
+                            endpoint: connection_info.endpoint,
+                            token: connection_info.token,
+                            session_id: connection_info.session_id,
+                        },
                         Arc::new((
-                            ctx.channel_id(),
-                            ctx.serenity_context().http.clone(),
+                            ChannelId(channel_id.get()),
+                            ctx.http.clone(),
                         )),
                     )
                     .await?;
@@ -99,4 +108,5 @@ pub async fn join(ctx: &Context, bot_data: Arc<BotData>, command_interaction: &C
             }
         }
     }
+    return Ok((false, content));
 }
