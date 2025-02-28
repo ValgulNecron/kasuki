@@ -1,13 +1,13 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_number;
+use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::structure::message::music::seek::load_localization_seek;
 use anyhow::anyhow;
 use lavalink_rs::client::LavalinkClient;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use std::time::Duration;
-use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 
 pub struct SeekCommand {
 	pub ctx: SerenityContext,
@@ -73,10 +73,7 @@ impl SlashCommand for SeekCommand {
 
 		let map = get_option_map_number_subcommand(command_interaction);
 
-		let time = map
-			.get(&String::from("time"))
-			.cloned()
-			.unwrap_or_default() as u64;
+		let time = map.get(&String::from("time")).cloned().unwrap_or_default() as u64;
 
 		let now_playing = player.get_player().await?.track;
 

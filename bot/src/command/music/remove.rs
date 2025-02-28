@@ -3,12 +3,12 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::command::{
 	get_option_map_channel, get_option_map_number, get_option_map_string,
 };
+use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::structure::message::music::remove::load_localization_remove;
 use anyhow::anyhow;
 use lavalink_rs::client::LavalinkClient;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
-use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 
 pub struct RemoveCommand {
 	pub ctx: SerenityContext,
@@ -73,10 +73,7 @@ impl SlashCommand for RemoveCommand {
 
 		let map = get_option_map_number_subcommand(command_interaction);
 
-		let index = map
-			.get(&String::from("index"))
-			.cloned()
-			.unwrap_or_default() as usize;
+		let index = map.get(&String::from("index")).cloned().unwrap_or_default() as usize;
 
 		player.get_queue().remove(index)?;
 

@@ -1,3 +1,4 @@
+use crate::api::rest::start_api_server;
 use crate::config::{Config, DbConfig};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::event_handler::{BotData, Handler, RootUsage};
@@ -16,6 +17,7 @@ use std::time::Duration;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
+mod api;
 pub mod autocomplete;
 mod background_task;
 mod command;
@@ -173,7 +175,7 @@ async fn main() {
 
 	let bot_data: Arc<BotData> = Arc::new(BotData {
 		number_of_command_use_per_command,
-		config,
+		config: config.clone(),
 		bot_info: Arc::new(RwLock::new(None)),
 		anilist_cache,
 		vndb_cache,
@@ -216,6 +218,12 @@ async fn main() {
 			error!("Client error: {:?}", why);
 
 			process::exit(6);
+		}
+	});
+
+	tokio::spawn(async move {
+		if let Err(e) = start_api_server(config.clone(), bot_data.clone()).await {
+			error!("API server error: {:?}", e);
 		}
 	});
 

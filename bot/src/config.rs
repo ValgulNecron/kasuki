@@ -5,10 +5,28 @@ use serde::Deserialize;
 pub struct Config {
 	pub bot: BotConfig,
 	pub music: MusicConfig,
+	pub api: ApiConfig,
 	pub db: DbConfig,
 	pub image: ImageConfig,
 	pub logging: LoggingConfig,
 	pub ai: AICfg,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ApiConfig {
+	pub enabled: bool,
+	pub port: u16,
+	pub api_key: String,
+}
+
+impl Default for ApiConfig {
+	fn default() -> Self {
+		Self {
+			enabled: false,
+			port: 8080,
+			api_key: String::from(""),
+		}
+	}
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -104,6 +122,7 @@ impl Default for Config {
 				lavalink_password: "".to_string(),
 				https: false,
 			},
+			api: Default::default(),
 			db: DbConfig {
 				db_type: "sqlite".to_string(),
 				host: None,

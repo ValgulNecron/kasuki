@@ -4,6 +4,11 @@ bot_activity = "Let you get info from anilist."
 remove_old_commands = false
 respect_premium = true
 
+[api]
+enabled = true
+port = 8080
+api_key = "your_secure_api_key_here"
+
 [music]
 lavalink_hostname = ""
 lavalink_password = ""
