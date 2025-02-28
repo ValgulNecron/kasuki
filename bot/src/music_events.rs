@@ -2,7 +2,7 @@ use lavalink_rs::{hook, model::events, prelude::*};
 use lavalink_rs::model::track::TrackData;
 use serenity::all::ChannelId;
 use serenity::http::Http;
-use tracing::info;
+use tracing::{error, info};
 
 #[hook]
 pub async fn raw_event(_: LavalinkClient, session_id: String, event: &serde_json::Value) {
@@ -21,9 +21,15 @@ pub async fn ready_event(client: LavalinkClient, session_id: String, event: &eve
 pub async fn track_start(client: LavalinkClient, _session_id: String, event: &events::TrackStart) {
 	info!("{:?}", event);
 	let player_context = client.get_player_context(event.guild_id).unwrap();
-	let data = player_context
+	let data = match player_context
 		.data::<(ChannelId, std::sync::Arc<Http>)>()
-		.unwrap();
+	{
+		Ok(data) => data,
+		Err(e) => {
+			error!("{:#?}", e);
+			return
+		}
+	};
 	let (channel_id, http) = (&data.0, &data.1);
 
 	let msg = {
