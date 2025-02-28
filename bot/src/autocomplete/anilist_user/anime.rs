@@ -6,7 +6,7 @@ use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::autocomplete::anilist::media::{
-	send_auto_complete, MediaAutocompleteVariables, MediaFormat, MediaType,
+	MediaAutocompleteVariables, MediaFormat, MediaType, send_auto_complete,
 };
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {

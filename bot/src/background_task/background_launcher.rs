@@ -6,7 +6,7 @@ use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
-use serenity::all::{Context as SerenityContext, ShardRunnerInfo};
+use serenity::all::{Context as SerenityContext, CurrentApplicationInfo, ShardRunnerInfo};
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
@@ -27,7 +27,7 @@ use crate::event_handler::BotData;
 use crate::get_url;
 use crate::structure::steam_game_id_struct::get_game;
 pub async fn thread_management_launcher(
-	ctx: SerenityContext, bot_data: Arc<BotData>, db_config: DbConfig,
+	ctx: SerenityContext, bot_data: Arc<BotData<'_>>, db_config: DbConfig,
 ) {
 	let anilist_cache = bot_data.anilist_cache.clone();
 
@@ -53,7 +53,7 @@ pub async fn thread_management_launcher(
 
 	tokio::spawn(update_random_stats_launcher(anilist_cache.clone()));
 
-	tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
+	tokio::spawn(update_bot_info(ctx.clone(), bot_data.bot_info.clone()));
 
 	sleep(Duration::from_secs(1)).await;
 
@@ -127,19 +127,20 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 					Ok(shard) => shard,
 					Err(e) => {
 						match e {
-							PoisonError { .. } => {
-								shard.clear_poison()
-							}
+							PoisonError { .. } => shard.clear_poison(),
 						}
-						continue
-					}
+						continue;
+					},
 				};
-				let latency = shard_info.latency.unwrap_or_default().as_millis().to_string();
+				let latency = shard_info
+					.latency
+					.unwrap_or_default()
+					.as_millis()
+					.to_string();
 				drop(shard_info);
 				let now = chrono::Utc::now().naive_utc();
 				(now, latency)
 			};
-
 
 			match PingHistory::insert(ActiveModel {
 				shard_id: Set(shard_id.to_string()),
@@ -321,7 +322,9 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
 /// * `bot_data` - An `Arc` reference to the `BotData` struct.
 ///
 
-async fn update_bot_info(context: SerenityContext, bot_data: Arc<BotData>) {
+async fn update_bot_info(
+	context: SerenityContext, bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
+) {
 	// Create a time interval for updating bot info
 	let mut update_interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_BOT_INFO));
 
@@ -340,7 +343,7 @@ async fn update_bot_info(context: SerenityContext, bot_data: Arc<BotData>) {
 		};
 
 		// Acquire a lock on bot info and update it with the current information
-		let mut bot_info_lock = bot_data.bot_info.write().await;
+		let mut bot_info_lock = bot_info.write().await;
 
 		*bot_info_lock = Some(current_bot_info);
 	}

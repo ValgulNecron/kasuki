@@ -12,13 +12,13 @@ use crate::helper::get_option::subcommand::{
 };
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::load_localization_image;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use image::EncodableLayout;
-use prost::bytes::Bytes;
 use prost::Message;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use prost::bytes::Bytes;
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
 use tracing::{error, trace};
 use uuid::Uuid;

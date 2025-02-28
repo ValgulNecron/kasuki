@@ -9,10 +9,10 @@ use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::structure::message::ai::translation::load_localization_translation;
-use anyhow::{anyhow, Result};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use reqwest::{multipart, Url};
-use serde_json::{json, Value};
+use anyhow::{Result, anyhow};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+use reqwest::{Url, multipart};
+use serde_json::{Value, json};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::trace;
 use uuid::Uuid;

@@ -2,8 +2,8 @@ use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, Sla
 use crate::event_handler::BotData;
 use crate::structure::message::music::queue::load_localization_queue;
 use anyhow::anyhow;
-use futures::future;
 use futures::StreamExt;
+use futures::future;
 use lavalink_rs::client::LavalinkClient;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 

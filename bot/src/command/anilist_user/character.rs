@@ -9,7 +9,7 @@ use crate::structure::run::anilist::character::{
 	Character, CharacterQuerryId, CharacterQuerryIdVariables, CharacterQuerrySearch,
 	CharacterQuerrySearchVariables,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};

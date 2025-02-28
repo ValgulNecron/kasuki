@@ -5,7 +5,7 @@ use crate::constant::{
 };
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId};
 use serenity::builder::{
@@ -199,7 +199,7 @@ pub enum EmbedType {
 
 impl<T: Command> PremiumCommand for T {
 	async fn check_hourly_limit(
-		&self, command_name: impl Into<String> + Clone, handler: &BotData,
+		&self, command_name: impl Into<String> + Clone, handler: &BotData<'_>,
 		command: PremiumCommandType,
 	) -> Result<bool> {
 		let bot_data = self.get_ctx().data::<BotData>().clone();

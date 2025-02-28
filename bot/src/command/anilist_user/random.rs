@@ -1,5 +1,5 @@
 use cynic::{GraphQlResponse, QueryBuilder};
-use rand::{rng, Rng};
+use rand::{Rng, rng};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use tracing::trace;
@@ -15,7 +15,7 @@ use crate::structure::message::anilist_user::random::load_localization_random;
 use crate::structure::run::anilist::random::{
 	MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 
 pub struct RandomCommand {
 	pub ctx: SerenityContext,

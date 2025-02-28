@@ -1,7 +1,7 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
 use crate::structure::message::music::join::load_localization_join;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use lavalink_rs::model::ChannelId;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Context};
 use serenity::http::Http;
@@ -38,7 +38,7 @@ impl SlashCommand for JoinCommand {
 }
 
 pub async fn join<'a>(
-	ctx: &'a Context, bot_data: Arc<BotData>, command_interaction: &'a CommandInteraction,
+	ctx: &'a Context, bot_data: Arc<BotData<'_>>, command_interaction: &'a CommandInteraction,
 ) -> Result<(bool, EmbedContent<'a, 'a>)> {
 	// Retrieve the guild ID from the command interaction
 	let guild_id_str = match command_interaction.guild_id {

@@ -8,7 +8,7 @@ use crate::database::registered_user::{Column, Model};
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;

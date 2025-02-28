@@ -1,13 +1,13 @@
 use crate::config::Config;
 use crate::database::prelude::*;
 use crate::event_handler::{BotData, RootUsage};
-use anyhow::{anyhow, Context as AnyhowContext, Result};
+use anyhow::{Context as AnyhowContext, Result, anyhow};
 use axum::{
+	Router,
 	extract::{Query, State},
 	http::{HeaderMap, StatusCode},
 	response::Json,
 	routing::get,
-	Router,
 };
 use sea_orm::{
 	ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
@@ -76,7 +76,7 @@ struct ApiQuery {
 #[derive(Clone)]
 struct AppState {
 	db: Arc<DatabaseConnection>,
-	bot_data: Arc<BotData>,
+	number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
 	api_key: String,
 }
 
@@ -92,7 +92,7 @@ fn verify_api_key(headers: &HeaderMap, expected_key: &str) -> bool {
 }
 
 // Start the API server
-pub async fn start_api_server(config: Arc<Config>, bot_data: Arc<BotData>) -> Result<()> {
+pub async fn start_api_server(config: Arc<Config>, bot_data: Arc<BotData<'_>>) -> Result<()> {
 	// Get API config, return early if API is not enabled
 	let api_config = if config.api.enabled {
 		config.api.clone()
@@ -103,7 +103,7 @@ pub async fn start_api_server(config: Arc<Config>, bot_data: Arc<BotData>) -> Re
 	// Create app state
 	let app_state = AppState {
 		db: bot_data.db_connection.clone(),
-		bot_data: bot_data.clone(),
+		number_of_command_use_per_command: bot_data.number_of_command_use_per_command.clone(),
 		api_key: api_config.api_key.clone(),
 	};
 
@@ -235,11 +235,7 @@ async fn get_command_usage(
 	}
 
 	// Get command usage from bot data
-	let command_usage_lock = state
-		.bot_data
-		.number_of_command_use_per_command
-		.read()
-		.await;
+	let command_usage_lock = state.number_of_command_use_per_command.read().await;
 	let command_list = &command_usage_lock.command_list;
 
 	let mut response = Vec::new();

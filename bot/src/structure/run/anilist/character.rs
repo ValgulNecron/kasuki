@@ -3,7 +3,7 @@ use crate::config::DbConfig;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serenity::all::CommandInteraction;
 use tracing::log::trace;
 

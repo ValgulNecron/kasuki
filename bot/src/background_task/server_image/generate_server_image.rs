@@ -1,9 +1,9 @@
 use std::sync::{Arc, RwLock};
 use std::thread;
 
-use anyhow::{anyhow, Context, Result};
-use base64::engine::general_purpose;
+use anyhow::{Context, Result, anyhow};
 use base64::Engine;
+use base64::engine::general_purpose;
 use image::codecs::png;
 use image::codecs::png::{CompressionType, PngEncoder};
 use image::imageops::FilterType;
@@ -20,8 +20,8 @@ use crate::background_task::server_image::calculate_user_color::{
 	change_to_x128_url, get_image_from_url, get_member, return_average_user_color,
 };
 use crate::background_task::server_image::common::{
-	create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
-	ColorWithUrl,
+	Color, ColorWithUrl, create_color_vector_from_tuple, create_color_vector_from_user_color,
+	find_closest_color,
 };
 use crate::config::ImageConfig;
 use crate::constant::THREAD_POOL_SIZE;

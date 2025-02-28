@@ -4,7 +4,7 @@ use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime::random_image::load_localization_random_image;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use image::EncodableLayout;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{

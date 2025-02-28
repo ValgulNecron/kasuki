@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 
 use serenity::all::{
 	ComponentInteraction, Context as SerenityContext, CreateButton, EditMessage, UserId,

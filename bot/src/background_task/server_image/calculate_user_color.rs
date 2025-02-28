@@ -6,21 +6,21 @@ use std::time::Duration;
 use crate::config::DbConfig;
 use crate::database::prelude::UserColor;
 use crate::database::user_color::{ActiveModel, Column, Model};
-use crate::event_handler::{add_user_data_to_db, BotData};
+use crate::event_handler::{BotData, add_user_data_to_db};
 use crate::get_url;
-use base64::engine::general_purpose;
 use base64::Engine;
-use futures::stream::FuturesUnordered;
+use base64::engine::general_purpose;
 use futures::StreamExt;
-use image::codecs::png::PngEncoder;
+use futures::stream::FuturesUnordered;
 use image::ImageReader;
+use image::codecs::png::PngEncoder;
 use image::{DynamicImage, ExtendedColorType, ImageEncoder};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
-use sea_orm::sea_query::OnConflict;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
+use sea_orm::sea_query::OnConflict;
 use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
 use serenity::nonmax::NonMaxU16;
@@ -49,7 +49,7 @@ pub fn change_to_x128_url(url: String) -> String {
 
 pub async fn calculate_users_color(
 	members: Vec<Member>, user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-	bot_data: Arc<BotData>,
+	bot_data: Arc<BotData<'_>>,
 ) -> Result<()> {
 	let guard = user_blacklist_server_image.read().await;
 
@@ -268,7 +268,7 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage> {
 
 pub async fn color_management(
 	guilds: &Vec<GuildId>, ctx_clone: &SerenityContext,
-	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, bot_data: Arc<BotData>,
+	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, bot_data: Arc<BotData<'_>>,
 ) {
 	let mut futures = FuturesUnordered::new();
 

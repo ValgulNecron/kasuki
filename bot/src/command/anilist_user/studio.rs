@@ -1,5 +1,5 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 
 use crate::command::command_trait::SlashCommand;
 use crate::constant::DEFAULT_STRING;

@@ -5,15 +5,16 @@ use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
 use anyhow::{Context, Result};
 use moka::future::Cache;
+use serenity::Client;
 use serenity::gateway::ShardManager;
 use serenity::prelude::GatewayIntents;
 use serenity::secrets::Token;
-use serenity::Client;
 use songbird::driver::DecodeMode;
 use std::process;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::io::AsyncWriteExt;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
@@ -189,7 +190,6 @@ async fn main() {
 		lavalink: Arc::new(Default::default()),
 	});
 
-
 	let mut client = Client::builder(discord_token, gateway_intent)
 		.data(bot_data.clone())
 		.voice_manager::<songbird::Songbird>(Arc::clone(&manager))
@@ -201,8 +201,12 @@ async fn main() {
 			process::exit(5);
 		});
 
-	let mut client = Arc::from(client);
-	let shutdown_client = client.clone();
+	let mut guard = bot_data.shard_manager.write().await;
+	let binding = &client.shard_manager;
+	*guard = Some(binding);
+
+	let shard_shutdown = &mut client.shard_manager;
+
 	// Spawn a new asynchronous task for starting the client.
 	// If the client fails to start, log the error.
 	tokio::spawn(async move {
@@ -218,13 +222,6 @@ async fn main() {
 			error!("API server error: {:?}", e);
 		}
 	});
-
-	let bot_data_manager = bot_data.shard_manager.clone();
-	let mut guard = bot_data_manager.write().await;
-	let shard_manager = shutdown_client.clone().shard_manager;
-	*guard = Some(Arc::from(shard_manager));
-	let shard_manager = shutdown_client.clone().shard_manager;
-	let shard_shutdown = shard_manager;
 
 	#[cfg(unix)]
 	{

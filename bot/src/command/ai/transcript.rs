@@ -7,9 +7,9 @@ use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::structure::message::ai::transcript::load_localization_transcript;
-use anyhow::{anyhow, Result};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
-use reqwest::{multipart, Url};
+use anyhow::{Result, anyhow};
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
+use reqwest::{Url, multipart};
 use serde_json::Value;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::trace;

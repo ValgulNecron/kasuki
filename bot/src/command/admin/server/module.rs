@@ -6,7 +6,7 @@ use crate::helper::get_option::subcommand_group::{
 	get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
 use crate::structure::message::admin::server::module::load_localization_module_activation;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sea_orm::ColumnTrait;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
