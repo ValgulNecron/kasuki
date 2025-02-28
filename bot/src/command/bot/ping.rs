@@ -4,11 +4,8 @@ use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::bot::ping::load_localization_ping;
 use anyhow::{anyhow, Result};
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
-};
-use std::sync::Arc;
+use serenity::all::{CommandInteraction, Context as SerenityContext, CreateInteractionResponse, CreateInteractionResponseMessage, ShardRunnerInfo};
+use std::sync::{Arc, MutexGuard, PoisonError};
 pub struct PingCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
@@ -60,18 +57,32 @@ async fn send_embed(
 	// Retrieve the shard ID from the context
 	let shard_id = ctx.shard_id;
 	// Retrieve the shard runner info from the shard manager
-	let shard_runner_info_lock = shard_manager.runners.lock().await;
-	let shard_runner_info = shard_runner_info_lock
-		.get(&shard_id)
-		.ok_or(anyhow!("failed to get the shard info"))?;
-	// Format the latency as a string
-	let latency = match shard_runner_info.latency {
-		Some(latency) => format!("{:.2}ms", latency.as_millis()),
-		None => "?,??ms".to_string(),
-	};
+	let (latency, stage) = {
+		let shard_runner_info_lock = shard_manager.runners.clone();
+		let shard_runner_info = shard_runner_info_lock
+			.get(&shard_id)
+			.ok_or(anyhow!("failed to get the shard info"))?;
+		// Format the latency as a string
+		let (shard_runner_info,_ ) = shard_runner_info;
+		let shard_runner_info = match shard_runner_info.lock() {
+			Ok(shard_runner_info) => shard_runner_info,
+			Err(e) => {
+				match e {
+					PoisonError { .. } => {shard_runner_info.clear_poison()}
+				}
+				return Err(anyhow!(e.to_string()));
+			}
+		};
+		let latency = match shard_runner_info.latency {
+			Some(latency) => format!("{:.2}ms", latency.as_millis()),
+			None => "?,??ms".to_string(),
+		};
 
-	// Retrieve the stage of the shard runner
-	let stage = &shard_runner_info.stage.to_string();
+		// Retrieve the stage of the shard runner
+		let stage = shard_runner_info.stage.to_string();
+		drop(shard_runner_info);
+		(latency, stage)
+	};
 
 	// Construct the embed for the response
 	let builder_embed = get_default_embed(None)
@@ -80,7 +91,7 @@ async fn send_embed(
 				.desc
 				.replace("$shard$", shard_id.to_string().as_str())
 				.replace("$latency$", latency.as_str())
-				.replace("$status$", stage),
+				.replace("$status$", &stage),
 		)
 		.title(&ping_localised.title);
 

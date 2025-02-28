@@ -189,6 +189,7 @@ async fn main() {
 		lavalink: Arc::new(Default::default()),
 	});
 
+
 	let mut client = Client::builder(discord_token, gateway_intent)
 		.data(bot_data.clone())
 		.voice_manager::<songbird::Songbird>(Arc::clone(&manager))
@@ -200,17 +201,8 @@ async fn main() {
 			process::exit(5);
 		});
 
-	let shard_manager = client.shard_manager.clone();
-
-	let bot_data_manager = bot_data.shard_manager.clone();
-	let mut guard = bot_data_manager.write().await;
-
-	*guard = Some(shard_manager);
-	// Clone the shard manager from the client.
-	let shard_manager = client.shard_manager.clone();
-
-	let shutdown = shard_manager.clone();
-
+	let mut client = Arc::from(client);
+	let shutdown_client = client.clone();
 	// Spawn a new asynchronous task for starting the client.
 	// If the client fails to start, log the error.
 	tokio::spawn(async move {
@@ -226,6 +218,13 @@ async fn main() {
 			error!("API server error: {:?}", e);
 		}
 	});
+
+	let bot_data_manager = bot_data.shard_manager.clone();
+	let mut guard = bot_data_manager.write().await;
+	let shard_manager = shutdown_client.clone().shard_manager;
+	*guard = Some(Arc::from(shard_manager));
+	let shard_manager = shutdown_client.clone().shard_manager;
+	let shard_shutdown = shard_manager;
 
 	#[cfg(unix)]
 	{
@@ -257,7 +256,11 @@ async fn main() {
 
 		info!("Received bot shutdown signal. Shutting down bot.");
 
-		ShardManager::shutdown_all(&shutdown).await;
+		let ids = &shard_manager.shards_instantiated();
+
+		for id in ids {
+			shard_manager.shutdown(id, 1).await?;
+		}
 
 		std::process::exit(0);
 	}
@@ -287,7 +290,11 @@ async fn main() {
 
 		info!("Received bot shutdown signal. Shutting down bot.");
 
-		ShardManager::shutdown_all(&shutdown).await;
+		let ids = shard_shutdown.shards_instantiated();
+
+		for id in ids {
+			shard_shutdown.shutdown(id, 1);
+		}
 
 		process::exit(0);
 	}
@@ -297,8 +304,9 @@ async fn init_db(config: Arc<Config>) -> Result<()> {
 	let db_config = config.db.clone();
 
 	let url = get_url(db_config);
-
-	std::env::set_var("DATABASE_URL", url);
+	unsafe {
+		std::env::set_var("DATABASE_URL", url);
+	}
 
 	#[cfg(windows)]
 	{

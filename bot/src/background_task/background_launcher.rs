@@ -1,12 +1,12 @@
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, MutexGuard, PoisonError};
 use std::time::Duration;
 
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
-use serenity::all::Context as SerenityContext;
+use serenity::all::{Context as SerenityContext, ShardRunnerInfo};
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
@@ -118,13 +118,28 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 		interval.tick().await;
 
 		// Lock the shard manager and iterate over the runners
-		let runner = shard_manager.runners.lock().await;
+		let runner = &shard_manager.runners;
 
-		for (shard_id, shard) in runner.iter() {
+		for (shard_id, (shard, _)) in runner.iter() {
 			// Extract latency and current timestamp information
-			let latency = shard.latency.unwrap_or_default().as_millis().to_string();
+			let (now, latency) = {
+				let shard_info = match shard.lock() {
+					Ok(shard) => shard,
+					Err(e) => {
+						match e {
+							PoisonError { .. } => {
+								shard.clear_poison()
+							}
+						}
+						continue
+					}
+				};
+				let latency = shard_info.latency.unwrap_or_default().as_millis().to_string();
+				drop(shard_info);
+				let now = chrono::Utc::now().naive_utc();
+				(now, latency)
+			};
 
-			let now = chrono::Utc::now().naive_utc();
 
 			match PingHistory::insert(ActiveModel {
 				shard_id: Set(shard_id.to_string()),
@@ -146,8 +161,6 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 				},
 			}
 		}
-
-		drop(runner);
 	}
 }
 

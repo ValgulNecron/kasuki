@@ -1,7 +1,7 @@
 [package]
 name = "kasuki"
 version = "3.0.2"
-edition = "2021"
+edition = "2024"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
 readme = "../readme.md"
