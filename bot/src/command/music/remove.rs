@@ -1,14 +1,9 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
-use crate::helper::get_option::command::{
-	get_option_map_channel, get_option_map_number, get_option_map_string,
-};
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::structure::message::music::remove::load_localization_remove;
 use anyhow::anyhow;
-use lavalink_rs::client::LavalinkClient;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use small_fixed_array::FixedString;
 
 pub struct RemoveCommand {
 	pub ctx: SerenityContext,

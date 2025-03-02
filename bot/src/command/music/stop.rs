@@ -2,7 +2,6 @@ use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, Sla
 use crate::event_handler::BotData;
 use crate::structure::message::music::stop::load_localization_stop;
 use anyhow::anyhow;
-use lavalink_rs::client::LavalinkClient;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct StopCommand {

@@ -1,12 +1,12 @@
 use std::collections::HashMap;
-use std::sync::{Arc, MutexGuard, PoisonError};
+use std::sync::{Arc, PoisonError};
 use std::time::Duration;
 
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
-use serenity::all::{Context as SerenityContext, CurrentApplicationInfo, ShardRunnerInfo};
+use serenity::all::{Context as SerenityContext, CurrentApplicationInfo};
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
@@ -27,7 +27,7 @@ use crate::event_handler::BotData;
 use crate::get_url;
 use crate::structure::steam_game_id_struct::get_game;
 pub async fn thread_management_launcher(
-	ctx: SerenityContext, bot_data: Arc<BotData<'_>>, db_config: DbConfig,
+	ctx: SerenityContext, bot_data: Arc<BotData>, db_config: DbConfig,
 ) {
 	let anilist_cache = bot_data.anilist_cache.clone();
 

@@ -1,4 +1,3 @@
-use lavalink_rs::model::track::TrackData;
 use lavalink_rs::{hook, model::events, prelude::*};
 use serenity::all::ChannelId;
 use serenity::http::Http;

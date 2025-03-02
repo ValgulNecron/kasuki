@@ -4,7 +4,6 @@ use crate::structure::message::music::queue::load_localization_queue;
 use anyhow::anyhow;
 use futures::StreamExt;
 use futures::future;
-use lavalink_rs::client::LavalinkClient;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct QueueCommand {

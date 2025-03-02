@@ -6,9 +6,9 @@ use crate::structure::message::bot::ping::load_localization_ping;
 use anyhow::{Result, anyhow};
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage, ShardRunnerInfo,
+	CreateInteractionResponseMessage,
 };
-use std::sync::{Arc, MutexGuard, PoisonError};
+use std::sync::{Arc, PoisonError};
 pub struct PingCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
@@ -50,8 +50,11 @@ async fn send_embed(
 	let ping_localised = load_localization_ping(guild_id, config.db.clone()).await?;
 
 	let guard = ctx.data::<BotData>().shard_manager.clone();
-	let shard_manager = match guard.read().await.clone() {
-		Some(shard_manager) => shard_manager,
+	let guard = guard.read().await;
+	let manager = guard.clone();
+	drop(guard);
+	let shard_manager = match manager {
+		Some(shard_manager) => shard_manager.clone(),
 		None => {
 			return Err(anyhow!("failed to get the shard manager"));
 		},

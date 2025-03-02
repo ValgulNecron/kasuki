@@ -199,7 +199,7 @@ pub enum EmbedType {
 
 impl<T: Command> PremiumCommand for T {
 	async fn check_hourly_limit(
-		&self, command_name: impl Into<String> + Clone, handler: &BotData<'_>,
+		&self, command_name: impl Into<String> + Clone, handler: &BotData,
 		command: PremiumCommandType,
 	) -> Result<bool> {
 		let bot_data = self.get_ctx().data::<BotData>().clone();

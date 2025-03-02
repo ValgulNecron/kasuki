@@ -6,7 +6,6 @@ use crate::logger::{create_log_directory, init_logger};
 use anyhow::{Context, Result};
 use moka::future::Cache;
 use serenity::Client;
-use serenity::gateway::ShardManager;
 use serenity::prelude::GatewayIntents;
 use serenity::secrets::Token;
 use songbird::driver::DecodeMode;
@@ -201,12 +200,7 @@ async fn main() {
 			process::exit(5);
 		});
 
-	let mut guard = bot_data.shard_manager.write().await;
-	let binding = &client.shard_manager;
-	*guard = Some(binding);
-
-	let shard_shutdown = &mut client.shard_manager;
-
+	let data = bot_data.clone();
 	// Spawn a new asynchronous task for starting the client.
 	// If the client fails to start, log the error.
 	tokio::spawn(async move {
@@ -215,10 +209,15 @@ async fn main() {
 
 			process::exit(6);
 		}
+
+		let bot_data = data;
+		let mut guard = bot_data.shard_manager.write().await;
+		*guard = Some(Arc::from(client.shard_manager))
 	});
 
+	let data = bot_data.clone();
 	tokio::spawn(async move {
-		if let Err(e) = start_api_server(config.clone(), bot_data.clone()).await {
+		if let Err(e) = start_api_server(config.clone(), data.clone()).await {
 			error!("API server error: {:?}", e);
 		}
 	});
@@ -253,13 +252,7 @@ async fn main() {
 
 		info!("Received bot shutdown signal. Shutting down bot.");
 
-		let ids = &shard_manager.shards_instantiated();
-
-		for id in ids {
-			shard_manager.shutdown(id, 1).await?;
-		}
-
-		std::process::exit(0);
+		process::exit(0)
 	}
 
 	#[cfg(windows)]
@@ -286,12 +279,6 @@ async fn main() {
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
-
-		let ids = shard_shutdown.shards_instantiated();
-
-		for id in ids {
-			shard_shutdown.shutdown(id, 1);
-		}
 
 		process::exit(0);
 	}

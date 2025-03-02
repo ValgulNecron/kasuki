@@ -35,7 +35,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
-pub struct BotData<'a> {
+pub struct BotData {
 	pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
 	pub config: Arc<Config>,
 	pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
@@ -47,7 +47,7 @@ pub struct BotData<'a> {
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
 	pub http_client: Client,
-	pub shard_manager: Arc<RwLock<Option<&'a ShardManager>>>,
+	pub shard_manager: Arc<RwLock<Option<Arc<ShardManager>>>>,
 	pub lavalink: Arc<RwLock<Option<LavalinkClient>>>,
 }
 use crate::music_events;
@@ -101,7 +101,7 @@ impl RootUsage {
 	}
 }
 
-impl BotData<'_> {
+impl BotData {
 	pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {
 		let number_of_command_use_per_command = self.number_of_command_use_per_command.clone();
 

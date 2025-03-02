@@ -1,15 +1,13 @@
-use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
+use crate::command::command_trait::{Command, Embed, SlashCommand};
 use crate::command::music::join::join;
 use crate::event_handler::BotData;
-use crate::helper::get_option::command::{get_option_map_number, get_option_map_string};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::music::play::load_localization_play;
 use anyhow::anyhow;
 use lavalink_rs::player_context::TrackInQueue;
 use lavalink_rs::prelude::{SearchEngines, TrackLoadData};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use small_fixed_array::FixedString;
-use tracing::{info, trace};
+use tracing::trace;
 
 pub struct PlayCommand {
 	pub ctx: SerenityContext,
@@ -127,10 +125,6 @@ impl SlashCommand for PlayCommand {
 
 		let queue = player.get_queue();
 		queue.append(tracks.into())?;
-
-		if has_joined {
-			return Ok(());
-		}
 
 		if let Ok(player_data) = player.get_player().await {
 			if player_data.track.is_none() && queue.get_track(0).await.is_ok_and(|x| x.is_some()) {

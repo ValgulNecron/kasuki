@@ -38,7 +38,7 @@ impl SlashCommand for JoinCommand {
 }
 
 pub async fn join<'a>(
-	ctx: &'a Context, bot_data: Arc<BotData<'_>>, command_interaction: &'a CommandInteraction,
+	ctx: &Context, bot_data: Arc<BotData>, command_interaction: &CommandInteraction,
 ) -> Result<(bool, EmbedContent<'a, 'a>)> {
 	// Retrieve the guild ID from the command interaction
 	let guild_id_str = match command_interaction.guild_id {

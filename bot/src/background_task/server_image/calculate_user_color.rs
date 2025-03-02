@@ -49,7 +49,7 @@ pub fn change_to_x128_url(url: String) -> String {
 
 pub async fn calculate_users_color(
 	members: Vec<Member>, user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-	bot_data: Arc<BotData<'_>>,
+	bot_data: Arc<BotData>,
 ) -> Result<()> {
 	let guard = user_blacklist_server_image.read().await;
 
@@ -268,7 +268,7 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage> {
 
 pub async fn color_management(
 	guilds: &Vec<GuildId>, ctx_clone: &SerenityContext,
-	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, bot_data: Arc<BotData<'_>>,
+	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, bot_data: Arc<BotData>,
 ) {
 	let mut futures = FuturesUnordered::new();
 

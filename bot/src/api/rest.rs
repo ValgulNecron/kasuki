@@ -10,11 +10,10 @@ use axum::{
 	routing::get,
 };
 use sea_orm::{
-	ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
+	ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryOrder,
 	QuerySelect,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -92,7 +91,7 @@ fn verify_api_key(headers: &HeaderMap, expected_key: &str) -> bool {
 }
 
 // Start the API server
-pub async fn start_api_server(config: Arc<Config>, bot_data: Arc<BotData<'_>>) -> Result<()> {
+pub async fn start_api_server(config: Arc<Config>, bot_data: Arc<BotData>) -> Result<()> {
 	// Get API config, return early if API is not enabled
 	let api_config = if config.api.enabled {
 		config.api.clone()
