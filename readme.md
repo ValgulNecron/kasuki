@@ -1,7 +1,5 @@
 [![Build & Publish Release Docker Image](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-release.yml/badge.svg?branch=master)](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-release.yml)
 [![Build & Publish Release Dev Image](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-dev.yml/badge.svg?branch=dev)](https://github.com/ValgulNecron/kasuki/actions/workflows/docker-image-dev.yml)
-[![Rust Clippy](https://github.com/ValgulNecron/kasuki/actions/workflows/linting.yml/badge.svg?branch=master)](https://github.com/ValgulNecron/kasuki/actions/workflows/linting.yml)
-[![Rust Testing](https://github.com/ValgulNecron/kasuki/actions/workflows/testing.yml/badge.svg)](https://github.com/ValgulNecron/kasuki/actions/workflows/testing.yml)
 ![Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/master?style=plastic)
 ![Dev Code Activity](https://img.shields.io/github/commit-activity/w/valgulnecron/kasuki/dev?style=plastic&label=Dev)
 
