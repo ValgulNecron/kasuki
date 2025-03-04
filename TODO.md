@@ -8,7 +8,6 @@
       a user can do update every second like every year. Will either have delay or be resource intensive.
     - [ ] Better compare command.
 
-
 - Anime module:
     - [ ]
 
@@ -32,9 +31,11 @@
 - AI module:
     - [ ] Make generic for api.
     - [ ] Rewrite the code to be cleaner.
+    - [ ] repair the broken part.
 
-- Audio module: (Not sure if I will do this one. since it broke tos (in some case))
+- Music module: (Will do it with file upload to a channel)
     - [ ] Play music from file upload.
+    - [ ] Create control channel 
 
 - General module:
     - [ ] Better langage json loading.

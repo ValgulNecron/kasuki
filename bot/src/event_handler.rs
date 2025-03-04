@@ -21,18 +21,15 @@ use reqwest::Client;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
-use serenity::all::{
-	CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildMembersChunkEvent, Interaction,
-	Member, Presence, Ready, User,
-};
+use serenity::all::{CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildMembersChunkEvent, Interaction, Member, Presence, Ready, ShardId, User};
 use serenity::async_trait;
-use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardManager};
+use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardManager, ShardRunnerInfo};
 use serenity::prelude::{Context as SerenityContext, EventHandler};
 use songbird::Songbird;
 use std::collections::HashMap;
 use std::ops::{Add, AddAssign};
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use std::sync::{Arc, Mutex};
+use tokio::sync::{ RwLock};
 use tracing::{debug, error, info, trace};
 
 pub struct BotData {
@@ -47,7 +44,7 @@ pub struct BotData {
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
 	pub http_client: Client,
-	pub shard_manager: Arc<RwLock<Option<Arc<ShardManager>>>>,
+	pub shard_manager: Arc<RwLock<Option<Arc<HashMap<ShardId, Arc<Mutex<ShardRunnerInfo>>>>>>>,
 	pub lavalink: Arc<RwLock<Option<LavalinkClient>>>,
 }
 use crate::music_events;

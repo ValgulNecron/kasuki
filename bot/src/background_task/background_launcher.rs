@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 use std::sync::{Arc, PoisonError};
 use std::time::Duration;
-
+use anyhow::anyhow;
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
-use serenity::all::{Context as SerenityContext, CurrentApplicationInfo};
-use tokio::sync::RwLock;
+use serenity::all::{Context as SerenityContext, CurrentApplicationInfo, ShardRunnerInfo};
+use tokio::sync::{MutexGuard, RwLock};
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
 
@@ -118,20 +118,19 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 		interval.tick().await;
 
 		// Lock the shard manager and iterate over the runners
-		let runner = &shard_manager.runners;
+		let runner = &shard_manager;
 
-		for (shard_id, (shard, _)) in runner.iter() {
+		for (shard_id, (shard)) in runner.iter() {
 			// Extract latency and current timestamp information
 			let (now, latency) = {
 				let shard_info = match shard.lock() {
-					Ok(shard) => shard,
-					Err(e) => {
-						match e {
-							PoisonError { .. } => shard.clear_poison(),
-						}
-						continue;
-					},
+					Ok(shard_runner_info) => {shard_runner_info}
+					Err(_) => {
+						error!("failed to get the shard runner info");
+						continue
+					}
 				};
+
 				let latency = shard_info
 					.latency
 					.unwrap_or_default()

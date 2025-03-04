@@ -203,17 +203,22 @@ async fn main() {
 	let data = bot_data.clone();
 	// Spawn a new asynchronous task for starting the client.
 	// If the client fails to start, log the error.
+
+	let bot_data = data;
+	let mut guard = bot_data.shard_manager.write().await;
+	let runner = client.shard_manager.runner_info();
+	let arc = Arc::from(runner);
+	*guard = Some(arc);
+
 	tokio::spawn(async move {
 		if let Err(why) = client.start_autosharded().await {
 			error!("Client error: {:?}", why);
 
 			process::exit(6);
 		}
-
-		let bot_data = data;
-		let mut guard = bot_data.shard_manager.write().await;
-		*guard = Some(Arc::from(client.shard_manager))
 	});
+
+	info!("test");
 
 	let data = bot_data.clone();
 	tokio::spawn(async move {

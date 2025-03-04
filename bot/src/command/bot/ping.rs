@@ -8,7 +8,7 @@ use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
 	CreateInteractionResponseMessage,
 };
-use std::sync::{Arc, PoisonError};
+use std::sync::{Arc, LockResult, PoisonError};
 pub struct PingCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
@@ -64,20 +64,17 @@ async fn send_embed(
 	let shard_id = ctx.shard_id;
 	// Retrieve the shard runner info from the shard manager
 	let (latency, stage) = {
-		let shard_runner_info_lock = shard_manager.runners.clone();
+		let shard_runner_info_lock = shard_manager.clone();
 		let shard_runner_info = shard_runner_info_lock
 			.get(&shard_id)
 			.ok_or(anyhow!("failed to get the shard info"))?;
 		// Format the latency as a string
-		let (shard_runner_info, _) = shard_runner_info;
+		let shard_runner_info = shard_runner_info;
 		let shard_runner_info = match shard_runner_info.lock() {
-			Ok(shard_runner_info) => shard_runner_info,
-			Err(e) => {
-				match e {
-					PoisonError { .. } => shard_runner_info.clear_poison(),
-				}
-				return Err(anyhow!(e.to_string()));
-			},
+			Ok(shard_runner_info) => {shard_runner_info}
+			Err(_) => {
+				return Err(anyhow!("failed to get the shard runner info"));
+			}
 		};
 		let latency = match shard_runner_info.latency {
 			Some(latency) => format!("{:.2}ms", latency.as_millis()),
