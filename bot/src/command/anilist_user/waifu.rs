@@ -3,9 +3,9 @@ use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 use crate::command::anilist_user::character::get_character_by_id;
-use crate::command::command_trait::{Command, SlashCommand};
+use crate::command::command_trait::{Command, Embed, SlashCommand};
 use crate::event_handler::BotData;
-use crate::structure::run::anilist::character::send_embed;
+use crate::structure::run::anilist::character::character_content;
 
 pub struct WaifuCommand {
 	pub ctx: SerenityContext,
@@ -29,6 +29,7 @@ impl SlashCommand for WaifuCommand {
 		let command_interaction = &self.command_interaction;
 
 		let config = bot_data.config.clone();
+		let db_config = config.db.clone();
 
 		let anilist_cache = bot_data.anilist_cache.clone();
 
@@ -38,7 +39,8 @@ impl SlashCommand for WaifuCommand {
 
 		let data = get_character_by_id(value, anilist_cache).await?;
 
-		// Send the character's data as a response to the command interaction
-		send_embed(ctx, command_interaction, data, config.db.clone()).await
+		let content = character_content(command_interaction, data, db_config).await?;
+
+		self.send_embed(content).await
 	}
 }

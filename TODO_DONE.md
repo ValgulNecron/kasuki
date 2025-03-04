@@ -27,6 +27,20 @@
       Get the currency and language from the server language setting.
         - [X] Steam
 
+- Music module:
+  - [X] clear
+  - [X] join
+  - [X] leave
+  - [X] pause
+  - [X] play
+  - [X] queue
+  - [X] remove
+  - [X] resume
+  - [X] seek
+  - [X] skip
+  - [X] stop
+  - [X] swap
+
 - AI module:
     - [X] Image generation with AI.
     - [X] Video transcription.

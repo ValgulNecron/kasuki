@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 
 use crate::command::command_trait::UserCommand;
 use crate::command::user::avatar::AvatarCommand;

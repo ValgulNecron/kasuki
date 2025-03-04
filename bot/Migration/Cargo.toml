@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sea-orm-migration = { version = "1.1.0", features = ["runtime-tokio-rustls", "sqlx-postgres", "sqlx-sqlite"] }
-tokio = { version = "1.41.0", features = ["rt", "rt-multi-thread", "macros"] }
+sea-orm-migration = { version = "1.1.4", features = ["runtime-tokio-rustls", "sqlx-postgres", "sqlx-sqlite"] }
+tokio = { version = "1.43.0", features = ["rt", "rt-multi-thread", "macros"] }
 
 [profile.dev]
 codegen-units = 512
@@ -13,7 +13,10 @@ debug = 2
 
 [profile.release]
 lto = true
-strip = "symbols"
+strip = true
+opt-level = "s"
+panic = "abort"
+codegen-units = 1
 
 [[bin]]
 name = "migration"

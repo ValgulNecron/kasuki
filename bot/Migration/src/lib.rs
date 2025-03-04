@@ -13,6 +13,10 @@ mod m20240815_231538_ping_history;
 mod m20240826_215627_server_user_relation;
 mod m20240831_133253_user_subscription;
 mod m20240831_134027_guild_subscription;
+mod m20241221_192311_command_list;
+mod m20241221_192314_command_usage;
+mod m20241221_192339_random_stats;
+mod m20241225_163933_anime_song;
 
 pub struct Migrator;
 
@@ -33,6 +37,10 @@ impl MigratorTrait for Migrator {
 			Box::new(m20240826_215627_server_user_relation::Migration),
 			Box::new(m20240831_133253_user_subscription::Migration),
 			Box::new(m20240831_134027_guild_subscription::Migration),
+			Box::new(m20241221_192311_command_list::Migration),
+			Box::new(m20241221_192314_command_usage::Migration),
+			Box::new(m20241221_192339_random_stats::Migration),
+			Box::new(m20241225_163933_anime_song::Migration),
 		]
 	}
 }

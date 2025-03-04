@@ -10,7 +10,7 @@ use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::{
 	User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use sea_orm::ColumnTrait;

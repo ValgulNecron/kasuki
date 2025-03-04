@@ -1,9 +1,9 @@
 use std::sync::{Arc, RwLock};
 use std::thread;
 
-use anyhow::{anyhow, Context, Result};
-use base64::engine::general_purpose;
+use anyhow::{Context, Result, anyhow};
 use base64::Engine;
+use base64::engine::general_purpose;
 use image::codecs::png;
 use image::codecs::png::{CompressionType, PngEncoder};
 use image::imageops::FilterType;
@@ -17,18 +17,17 @@ use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::background_task::server_image::calculate_user_color::{
-	get_image_from_url, get_member, return_average_user_color,
+	change_to_x128_url, get_image_from_url, get_member, return_average_user_color,
 };
 use crate::background_task::server_image::common::{
-	create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
-	ColorWithUrl,
+	Color, ColorWithUrl, create_color_vector_from_tuple, create_color_vector_from_user_color,
+	find_closest_color,
 };
 use crate::config::ImageConfig;
 use crate::constant::THREAD_POOL_SIZE;
 use crate::database::prelude::{ServerImage, UserColor};
 use crate::database::server_image::{ActiveModel, Column};
 use crate::helper::image_saver::general_image_saver::image_saver;
-use crate::new_member::change_to_x128_url;
 
 pub async fn generate_local_server_image(
 	ctx: &SerenityContext, guild_id: GuildId, image_config: ImageConfig,

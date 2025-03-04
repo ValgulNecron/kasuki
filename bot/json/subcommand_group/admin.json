@@ -108,7 +108,7 @@
           ]
         },
         {
-          "name": "delete_activity",
+          "name": "delete_anime_activity",
           "desc": "Delete an anime activity.",
           "args": [
             {
@@ -144,22 +144,22 @@
           "localised": [
             {
               "code": "en-US",
-              "name": "delete_activity",
+              "name": "delete_anime_activity",
               "desc": "Delete an anime activity."
             },
             {
               "code": "fr",
-              "name": "supprimer_activite",
+              "name": "supprimer_activite_anime",
               "desc": "Supprimer une activité anime."
             },
             {
               "code": "de",
-              "name": "aktivitat_loeschen",
+              "name": "anime_aktivitat_loeschen",
               "desc": "Löschen Sie eine Anime-Aktivität."
             },
             {
               "code": "ja",
-              "name": "katsudo_wo_sakujo",
+              "name": "anime_katsudo_wo_sakujo",
               "desc": "アニメ活動を削除します。"
             }
           ]
@@ -590,311 +590,6 @@
               "code": "ja",
               "name": "モジュール",
               "desc": "モジュールをオンまたはオフにします。"
-            }
-          ]
-        },
-        {
-          "name": "member_info_setting",
-          "desc": "Change the member info setting (new and removed member).",
-          "args": [
-            {
-              "name": "show_username",
-              "desc": "Show the username in the member info.",
-              "required": true,
-              "autocomplete": false,
-              "arg_type": "Boolean",
-              "choices": [
-                {
-                  "option_choice": "True",
-                  "option_choice_localised": [
-                    {
-                      "code": "en-US",
-                      "name": "True"
-                    },
-                    {
-                      "code": "fr",
-                      "name": "Vrai"
-                    },
-                    {
-                      "code": "de",
-                      "name": "Wahr"
-                    },
-                    {
-                      "code": "ja",
-                      "name": "真"
-                    }
-                  ]
-                },
-                {
-                  "option_choice": "False",
-                  "option_choice_localised": [
-                    {
-                      "code": "en-US",
-                      "name": "False"
-                    },
-                    {
-                      "code": "fr",
-                      "name": "Faux"
-                    },
-                    {
-                      "code": "de",
-                      "name": "Falsch"
-                    },
-                    {
-                      "code": "ja",
-                      "name": "偽"
-                    }
-                  ]
-                }
-              ],
-              "localised": [
-                {
-                  "code": "en-US",
-                  "name": "show_username",
-                  "desc": "Show the username in the member info."
-                },
-                {
-                  "code": "fr",
-                  "name": "afficher_nom_utilisateur",
-                  "desc": "Afficher le nom d'utilisateur dans les informations sur les membres."
-                },
-                {
-                  "code": "de",
-                  "name": "benutzernamen_anzeigen",
-                  "desc": "Zeigen Sie den Benutzernamen in den Mitgliederinformationen an."
-                },
-                {
-                  "code": "ja",
-                  "name": "yuza_nemuo_shimesu",
-                  "desc": "メンバー情報にユーザー名を表示します。"
-                }
-              ]
-            },
-            {
-              "name": "show_time",
-              "desc": "Show the time when he joined or left.",
-              "required": true,
-              "autocomplete": false,
-              "arg_type": "Boolean",
-              "choices": [
-                {
-                  "option_choice": "True",
-                  "option_choice_localised": [
-                    {
-                      "code": "en-US",
-                      "name": "True"
-                    },
-                    {
-                      "code": "fr",
-                      "name": "Vrai"
-                    },
-                    {
-                      "code": "de",
-                      "name": "Wahr"
-                    },
-                    {
-                      "code": "ja",
-                      "name": "真"
-                    }
-                  ]
-                },
-                {
-                  "option_choice": "False",
-                  "option_choice_localised": [
-                    {
-                      "code": "en-US",
-                      "name": "False"
-                    },
-                    {
-                      "code": "fr",
-                      "name": "Faux"
-                    },
-                    {
-                      "code": "de",
-                      "name": "Falsch"
-                    },
-                    {
-                      "code": "ja",
-                      "name": "偽"
-                    }
-                  ]
-                }
-              ],
-              "localised": [
-                {
-                  "code": "en-US",
-                  "name": "show_time",
-                  "desc": "Show the time when he joined or left."
-                },
-                {
-                  "code": "fr",
-                  "name": "afficher_temps",
-                  "desc": "Afficher l'heure à laquelle il a rejoint ou quitté."
-                },
-                {
-                  "code": "de",
-                  "name": "zeit_anzeigen",
-                  "desc": "Zeigen Sie die Zeit an, zu der er beigetreten oder gegangen ist."
-                },
-                {
-                  "code": "ja",
-                  "name": "jikan_wo_shimesu",
-                  "desc": "参加したときや去ったときの時間を表示します。"
-                }
-              ]
-            },
-            {
-              "name": "use_custom_image",
-              "desc": "Use a custom image for the member info.",
-              "required": true,
-              "autocomplete": false,
-              "arg_type": "Boolean",
-              "choices": [
-                {
-                  "option_choice": "True",
-                  "option_choice_localised": [
-                    {
-                      "code": "en-US",
-                      "name": "True"
-                    },
-                    {
-                      "code": "fr",
-                      "name": "Vrai"
-                    },
-                    {
-                      "code": "de",
-                      "name": "Wahr"
-                    },
-                    {
-                      "code": "ja",
-                      "name": "真"
-                    }
-                  ]
-                },
-                {
-                  "option_choice": "False",
-                  "option_choice_localised": [
-                    {
-                      "code": "en-US",
-                      "name": "False"
-                    },
-                    {
-                      "code": "fr",
-                      "name": "Faux"
-                    },
-                    {
-                      "code": "de",
-                      "name": "Falsch"
-                    },
-                    {
-                      "code": "ja",
-                      "name": "偽"
-                    }
-                  ]
-                }
-              ],
-              "localised_args": [
-                {
-                  "code": "en-US",
-                  "name": "use_custom_image",
-                  "desc": "Use a custom image for the member info."
-                },
-                {
-                  "code": "fr",
-                  "name": "utiliser_image_personnalisee",
-                  "desc": "Utiliser une image personnalisée pour les informations sur les membres."
-                },
-                {
-                  "code": "de",
-                  "name": "benutzerdefiniertes_bild_verwenden",
-                  "desc": "Verwenden Sie ein benutzerdefiniertes Bild für die Mitgliederinformationen."
-                },
-                {
-                  "code": "ja",
-                  "name": "kasutamuimejiwo_shiyo",
-                  "desc": "メンバー情報にカスタム画像を使用します。"
-                }
-              ]
-            },
-            {
-              "name": "custom_image",
-              "desc": "The custom image you want to set for the member info.",
-              "required": false,
-              "autocomplete": false,
-              "arg_type": "Attachment",
-              "localised_args": [
-                {
-                  "code": "en-US",
-                  "name": "custom_image",
-                  "desc": "The custom image you want to set for the member info."
-                },
-                {
-                  "code": "fr",
-                  "name": "image_personnalisee",
-                  "desc": "L'image personnalisée que vous souhaitez définir pour les informations sur les membres."
-                },
-                {
-                  "code": "de",
-                  "name": "benutzerdefiniertes_bild",
-                  "desc": "Das benutzerdefinierte Bild, das Sie für die Mitgliederinformationen festlegen möchten."
-                },
-                {
-                  "code": "ja",
-                  "name": "kasutamuimeji",
-                  "desc": "メンバー情報に設定したいカスタム画像。"
-                }
-              ]
-            },
-            {
-              "name": "custom_channel",
-              "desc": "The custom channel you want to set for the member info.",
-              "required": false,
-              "autocomplete": false,
-              "arg_type": "Channel",
-              "localised_args": [
-                {
-                  "code": "en-US",
-                  "name": "custom_channel",
-                  "desc": "The custom channel you want to set for the member info."
-                },
-                {
-                  "code": "fr",
-                  "name": "salon_personnalise",
-                  "desc": "Le salon personnalisé que vous souhaitez définir pour les informations sur les membres."
-                },
-                {
-                  "code": "de",
-                  "name": "benutzerdefinierter_kanal",
-                  "desc": "Der benutzerdefinierte Kanal, den Sie für die Mitgliederinformationen festlegen möchten."
-                },
-                {
-                  "code": "ja",
-                  "name": "kasutamuchanneru",
-                  "desc": "メンバー情報に設定したいカスタムチャンネル。"
-                }
-              ]
-            }
-          ],
-          "localised": [
-            {
-              "code": "en-US",
-              "name": "member_info_setting",
-              "desc": "Change the member info setting (new and removed member)."
-            },
-            {
-              "code": "fr",
-              "name": "parametre_info_membre",
-              "desc": "Modifier le paramètre d'information sur les membres (nouveau et ancien membre)."
-            },
-            {
-              "code": "de",
-              "name": "mitgliederinfoeinstellung",
-              "desc": "Ändern Sie die Mitgliederinfoeinstellung (neues und entferntes Mitglied)."
-            },
-            {
-              "code": "ja",
-              "name": "menba_infosetting",
-              "desc": "メンバー情報設定（新規および削除されたメンバー）を変更します。"
             }
           ]
         }

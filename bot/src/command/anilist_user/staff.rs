@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
@@ -10,7 +10,7 @@ use crate::structure::run::anilist::staff::{
 	FuzzyDate, Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch,
 	StaffQuerrySearchVariables,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -130,20 +130,22 @@ impl SlashCommand for StaffCommand {
 			name.user_preferred
 				.unwrap_or(name.native.unwrap_or(String::from("Unknown."))),
 		);
-		self.send_embed(
-			fields,
-			None,
-			name,
-			convert_anilist_flavored_to_discord_flavored_markdown(
+
+		let embed_content = EmbedContent {
+			title: name,
+			description: convert_anilist_flavored_to_discord_flavored_markdown(
 				staff.description.unwrap_or_default(),
 			),
-			staff.image.unwrap().large,
-			staff.site_url,
-			EmbedType::First,
-			None,
-			Vec::new(),
-		)
-		.await
+			thumbnail: staff.image.unwrap().large,
+			url: staff.site_url,
+			command_type: EmbedType::First,
+			colour: None,
+			fields,
+			images: None,
+			action_row: None,
+			images_url: None,
+		};
+		self.send_embed(embed_content).await
 	}
 }
 

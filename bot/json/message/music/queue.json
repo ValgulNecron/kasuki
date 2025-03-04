@@ -1,0 +1,30 @@
+{
+  "en": {
+    "title": "Queue",
+    "error_no_voice": "Join the bot to a voice channel first.",
+    "now_playing": "Now playing: [{0} - {1}](<{2}>) | {3}, Requested by {4}",
+    "nothing_playing": "Now playing: nothing",
+    "requested_by": "Requested by"
+  },
+  "fr": {
+    "title": "File d'attente",
+    "error_no_voice": "Rejoignez d'abord le bot dans un canal vocal.",
+    "now_playing": "En cours de lecture: [{0} - {1}](<{2}>) | {3}, Demandé par {4}",
+    "nothing_playing": "En cours de lecture: rien",
+    "requested_by": "Demandé par"
+  },
+  "jp": {
+    "title": "キュー",
+    "error_no_voice": "まずボットをボイスチャンネルに参加させてください。",
+    "now_playing": "再生中: [{0} - {1}](<{2}>) | {3}, リクエスト: {4}",
+    "nothing_playing": "再生中: なし",
+    "requested_by": "リクエスト"
+  },
+  "de": {
+    "title": "Warteschlange",
+    "error_no_voice": "Fügen Sie den Bot zuerst einem Sprachkanal hinzu.",
+    "now_playing": "Spielt gerade: [{0} - {1}](<{2}>) | {3}, Angefordert von {4}",
+    "nothing_playing": "Spielt gerade: nichts",
+    "requested_by": "Angefordert von"
+  }
+}

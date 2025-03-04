@@ -1,8 +1,7 @@
 use crate::command::admin::anilist::add_activity::AddActivityCommand;
 use crate::command::admin::anilist::delete_activity::DeleteActivityCommand;
 use crate::command::admin::server::lang::LangCommand;
-use crate::command::admin::server::module::{check_activation_status, ModuleCommand};
-use crate::command::admin::server::new_member_setting::NewMemberSettingCommand;
+use crate::command::admin::server::module::{ModuleCommand, check_activation_status};
 use crate::command::ai::image::ImageCommand;
 use crate::command::ai::question::QuestionCommand;
 use crate::command::ai::transcript::TranscriptCommand;
@@ -25,8 +24,6 @@ use crate::command::anilist_user::user::UserCommand;
 use crate::command::anilist_user::waifu::WaifuCommand;
 use crate::command::anime::random_image::AnimeRandomImageCommand;
 use crate::command::anime_nsfw::random_nsfw_image::AnimeRandomNsfwImageCommand;
-use crate::command::audio::join::AudioJoinCommand;
-use crate::command::audio::play::AudioPlayCommand;
 use crate::command::bot::credit::CreditCommand;
 use crate::command::bot::info::InfoCommand;
 use crate::command::bot::ping::PingCommand;
@@ -35,6 +32,18 @@ use crate::command::guess_kind::guess_command_kind;
 use crate::command::management::give_premium_sub::GivePremiumSubCommand;
 use crate::command::management::kill_switch::KillSwitchCommand;
 use crate::command::management::remove_test_sub::RemoveTestSubCommand;
+use crate::command::music::clear::ClearCommand;
+use crate::command::music::join::JoinCommand;
+use crate::command::music::leave::LeaveCommand;
+use crate::command::music::pause::PauseCommand;
+use crate::command::music::play::PlayCommand;
+use crate::command::music::queue::QueueCommand;
+use crate::command::music::remove::RemoveCommand;
+use crate::command::music::resume::ResumeCommand;
+use crate::command::music::seek::SeekCommand;
+use crate::command::music::skip::SkipCommand;
+use crate::command::music::stop::StopCommand;
+use crate::command::music::swap::SwapCommand;
 use crate::command::server::generate_image_pfp_server::GenerateImagePfPCommand;
 use crate::command::server::generate_image_pfp_server_global::GenerateGlobalImagePfPCommand;
 use crate::command::server::guild::GuildCommand;
@@ -122,16 +131,8 @@ pub async fn dispatch_command(
 			.run_slash()
 			.await?
 		},
-		"admin_general_new_member_setting" => {
-			NewMemberSettingCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
-			}
-			.run_slash()
-			.await?
-		},
 
-		"admin_anilist_add_activity" => {
+		"admin_anilist_add_anime_activity" => {
 			AddActivityCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
@@ -139,7 +140,7 @@ pub async fn dispatch_command(
 			.run_slash()
 			.await?
 		},
-		"admin_anilist_delete_activity" => {
+		"admin_anilist_delete_anime_activity" => {
 			DeleteActivityCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
@@ -342,23 +343,6 @@ pub async fn dispatch_command(
 			.await?
 		},
 
-		"audio_join" => {
-			AudioJoinCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
-			}
-			.run_slash()
-			.await?
-		},
-		"audio_play" => {
-			AudioPlayCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
-			}
-			.run_slash()
-			.await?
-		},
-
 		"bot_credit" => {
 			CreditCommand {
 				ctx: ctx.clone(),
@@ -482,6 +466,104 @@ pub async fn dispatch_command(
 			.run_slash()
 			.await?
 		},
+
+		"music_play" => {
+			PlayCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_pause" => {
+			PauseCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_resume" => {
+			ResumeCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_stop" => {
+			StopCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_skip" => {
+			SkipCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_queue" => {
+			QueueCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_clear" => {
+			ClearCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_remove" => {
+			RemoveCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_seek" => {
+			SeekCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_swap" => {
+			SwapCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_join" => {
+			JoinCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+		"music_leave" => {
+			LeaveCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+			.run_slash()
+			.await?
+		},
+
 		_ => {
 			Err(anyhow::anyhow!("Command not found"))?;
 		},

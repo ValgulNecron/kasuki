@@ -1,12 +1,12 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 
 use crate::command::command_trait::{Command, SlashCommand};
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::user::get_user;
-use crate::structure::message::vn::user::load_localization_user;
 use crate::structure::message::vn::user::UserLocalised;
+use crate::structure::message::vn::user::load_localization_user;
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
 	CreateInteractionResponseMessage,
@@ -70,7 +70,7 @@ async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteract
 	];
 
 	let builder_embed = get_default_embed(None)
-		.title(user_localised.title)
+		.title(user_localised.title.replace("$user$", &user.username))
 		.fields(fields);
 
 	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);

@@ -1,0 +1,511 @@
+{
+  "name": "music",
+  "desc": "Command from the Music module",
+  "integration_context": {
+    "bot_dm": false,
+    "guild": true,
+    "private_channel": false
+  },
+  "installation_context": {
+    "guild": true,
+    "user": false
+  },
+  "nsfw": false,
+  "command": [
+    {
+      "name": "play",
+      "desc": "Play a song from a search query or URL.",
+      "args": [
+        {
+          "name": "search",
+          "desc": "Search term or URL to play.",
+          "required": true,
+          "autocomplete": false,
+          "arg_type": "String",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "search",
+              "desc": "Search term or URL to play."
+            },
+            {
+              "code": "fr",
+              "name": "recherche",
+              "desc": "Terme de recherche ou URL à jouer."
+            },
+            {
+              "code": "de",
+              "name": "suche",
+              "desc": "Suchbegriff oder URL zum Abspielen."
+            },
+            {
+              "code": "ja",
+              "name": "検索",
+              "desc": "検索語またはURLを再生します。"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "play",
+          "desc": "Play a song from a search query or URL."
+        },
+        {
+          "code": "fr",
+          "name": "jouer",
+          "desc": "Jouer une chanson à partir d'une recherche ou d'une URL."
+        },
+        {
+          "code": "de",
+          "name": "spielen",
+          "desc": "Spiele einen Song von einer Suchanfrage oder URL ab."
+        },
+        {
+          "code": "ja",
+          "name": "再生",
+          "desc": "検索クエリまたはURLから曲を再生します。"
+        }
+      ]
+    },
+    {
+      "name": "pause",
+      "desc": "Pause the current playback.",
+      "args": [],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "pause",
+          "desc": "Pause the current playback."
+        },
+        {
+          "code": "fr",
+          "name": "pause",
+          "desc": "Mettre en pause la lecture en cours."
+        },
+        {
+          "code": "de",
+          "name": "pause",
+          "desc": "Pausiere die aktuelle Wiedergabe."
+        },
+        {
+          "code": "ja",
+          "name": "一時停止",
+          "desc": "現在の再生を一時停止します。"
+        }
+      ]
+    },
+    {
+      "name": "resume",
+      "desc": "Resume the paused playback.",
+      "args": [],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "resume",
+          "desc": "Resume the paused playback."
+        },
+        {
+          "code": "fr",
+          "name": "reprendre",
+          "desc": "Reprendre la lecture en pause."
+        },
+        {
+          "code": "de",
+          "name": "fortsetzen",
+          "desc": "Setze die pausierte Wiedergabe fort."
+        },
+        {
+          "code": "ja",
+          "name": "再開",
+          "desc": "一時停止した再生を再開します。"
+        }
+      ]
+    },
+    {
+      "name": "stop",
+      "desc": "Stop the current playback.",
+      "args": [],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "stop",
+          "desc": "Stop the current playback."
+        },
+        {
+          "code": "fr",
+          "name": "arrêter",
+          "desc": "Arrêter la lecture en cours."
+        },
+        {
+          "code": "de",
+          "name": "stopp",
+          "desc": "Stoppe die aktuelle Wiedergabe."
+        },
+        {
+          "code": "ja",
+          "name": "停止",
+          "desc": "現在の再生を停止します。"
+        }
+      ]
+    },
+    {
+      "name": "skip",
+      "desc": "Skip to the next track in the queue.",
+      "args": [],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "skip",
+          "desc": "Skip to the next track in the queue."
+        },
+        {
+          "code": "fr",
+          "name": "passer",
+          "desc": "Passer à la piste suivante dans la file d'attente."
+        },
+        {
+          "code": "de",
+          "name": "überspringen",
+          "desc": "Überspringe zum nächsten Titel in der Warteschlange."
+        },
+        {
+          "code": "ja",
+          "name": "スキップ",
+          "desc": "キュー内の次のトラックにスキップします。"
+        }
+      ]
+    },
+    {
+      "name": "queue",
+      "desc": "Display the current playlist queue.",
+      "args": [],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "queue",
+          "desc": "Display the current playlist queue."
+        },
+        {
+          "code": "fr",
+          "name": "file",
+          "desc": "Afficher la file d'attente de la playlist actuelle."
+        },
+        {
+          "code": "de",
+          "name": "warteschlange",
+          "desc": "Zeige die aktuelle Playlist-Warteschlange an."
+        },
+        {
+          "code": "ja",
+          "name": "キュー",
+          "desc": "現在のプレイリストキューを表示します。"
+        }
+      ]
+    },
+    {
+      "name": "clear",
+      "desc": "Clear the playlist queue.",
+      "args": [],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "clear",
+          "desc": "Clear the playlist queue."
+        },
+        {
+          "code": "fr",
+          "name": "effacer",
+          "desc": "Effacer la file d'attente de la playlist."
+        },
+        {
+          "code": "de",
+          "name": "leeren",
+          "desc": "Leere die Playlist-Warteschlange."
+        },
+        {
+          "code": "ja",
+          "name": "クリア",
+          "desc": "プレイリストキューをクリアします。"
+        }
+      ]
+    },
+    {
+      "name": "remove",
+      "desc": "Remove a specific track from the queue.",
+      "args": [
+        {
+          "name": "index",
+          "desc": "The position of the track to remove.",
+          "required": true,
+          "autocomplete": false,
+          "arg_type": "Integer",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "index",
+              "desc": "The position of the track to remove."
+            },
+            {
+              "code": "fr",
+              "name": "index",
+              "desc": "La position de la piste à supprimer."
+            },
+            {
+              "code": "de",
+              "name": "index",
+              "desc": "Die Position des zu entfernenden Tracks."
+            },
+            {
+              "code": "ja",
+              "name": "インデックス",
+              "desc": "削除するトラックの位置。"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "remove",
+          "desc": "Remove a specific track from the queue."
+        },
+        {
+          "code": "fr",
+          "name": "supprimer",
+          "desc": "Supprimer une piste spécifique de la file d'attente."
+        },
+        {
+          "code": "de",
+          "name": "entfernen",
+          "desc": "Entferne einen bestimmten Track aus der Warteschlange."
+        },
+        {
+          "code": "ja",
+          "name": "削除",
+          "desc": "キューから特定のトラックを削除します。"
+        }
+      ]
+    },
+    {
+      "name": "seek",
+      "desc": "Seek to a specific time in the current track.",
+      "args": [
+        {
+          "name": "time",
+          "desc": "Time in seconds to seek to.",
+          "required": true,
+          "autocomplete": false,
+          "arg_type": "Integer",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "time",
+              "desc": "Time in seconds to seek to."
+            },
+            {
+              "code": "fr",
+              "name": "temps",
+              "desc": "Temps en secondes à chercher."
+            },
+            {
+              "code": "de",
+              "name": "zeit",
+              "desc": "Zeit in Sekunden, zu der gesprungen werden soll."
+            },
+            {
+              "code": "ja",
+              "name": "時間",
+              "desc": "シークする秒単位の時間。"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "seek",
+          "desc": "Seek to a specific time in the current track."
+        },
+        {
+          "code": "fr",
+          "name": "chercher",
+          "desc": "Rechercher un moment précis dans la piste actuelle."
+        },
+        {
+          "code": "de",
+          "name": "springen",
+          "desc": "Springe zu einer bestimmten Zeit im aktuellen Track."
+        },
+        {
+          "code": "ja",
+          "name": "シーク",
+          "desc": "現在のトラックの特定の時間にシークします。"
+        }
+      ]
+    },
+    {
+      "name": "swap",
+      "desc": "Swap the positions of two tracks in the queue.",
+      "args": [
+        {
+          "name": "index1",
+          "desc": "The position of the first track.",
+          "required": true,
+          "autocomplete": false,
+          "arg_type": "Integer",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "index1",
+              "desc": "The position of the first track."
+            },
+            {
+              "code": "fr",
+              "name": "index1",
+              "desc": "La position de la première piste."
+            },
+            {
+              "code": "de",
+              "name": "index1",
+              "desc": "Die Position des ersten Tracks."
+            },
+            {
+              "code": "ja",
+              "name": "インデックス1",
+              "desc": "最初のトラックの位置。"
+            }
+          ]
+        },
+        {
+          "name": "index2",
+          "desc": "The position of the second track.",
+          "required": true,
+          "autocomplete": false,
+          "arg_type": "Integer",
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "index2",
+              "desc": "The position of the second track."
+            },
+            {
+              "code": "fr",
+              "name": "index2",
+              "desc": "La position de la deuxième piste."
+            },
+            {
+              "code": "de",
+              "name": "index2",
+              "desc": "Die Position des zweiten Tracks."
+            },
+            {
+              "code": "ja",
+              "name": "インデックス2",
+              "desc": "2番目のトラックの位置。"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "swap",
+          "desc": "Swap the positions of two tracks in the queue."
+        },
+        {
+          "code": "fr",
+          "name": "échanger",
+          "desc": "Échanger les positions de deux pistes dans la file d'attente."
+        },
+        {
+          "code": "de",
+          "name": "tauschen",
+          "desc": "Tausche die Positionen von zwei Tracks in der Warteschlange."
+        },
+        {
+          "code": "ja",
+          "name": "スワップ",
+          "desc": "キュー内の2つのトラックの位置を入れ替えます。"
+        }
+      ]
+    },
+    {
+      "name": "join",
+      "desc": "Make the bot join your voice channel.",
+      "args": [],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "join",
+          "desc": "Make the bot join your voice channel."
+        },
+        {
+          "code": "fr",
+          "name": "rejoindre",
+          "desc": "Faire rejoindre votre canal vocal par le bot."
+        },
+        {
+          "code": "de",
+          "name": "beitreten",
+          "desc": "Lasse den Bot deinem Sprachkanal beitreten."
+        },
+        {
+          "code": "ja",
+          "name": "参加",
+          "desc": "ボットをあなたのボイスチャンネルに参加させます。"
+        }
+      ]
+    },
+    {
+      "name": "leave",
+      "desc": "Make the bot leave the voice channel.",
+      "args": [],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "leave",
+          "desc": "Make the bot leave the voice channel."
+        },
+        {
+          "code": "fr",
+          "name": "quitter",
+          "desc": "Faire quitter le canal vocal par le bot."
+        },
+        {
+          "code": "de",
+          "name": "verlassen",
+          "desc": "Lasse den Bot den Sprachkanal verlassen."
+        },
+        {
+          "code": "ja",
+          "name": "退出",
+          "desc": "ボットをボイスチャンネルから退出させます。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "music",
+      "desc": "Command from the Music module"
+    },
+    {
+      "code": "fr",
+      "name": "musique",
+      "desc": "Commande du module Musique"
+    },
+    {
+      "code": "de",
+      "name": "musik",
+      "desc": "Befehl aus dem Musik-Modul"
+    },
+    {
+      "code": "ja",
+      "name": "音楽",
+      "desc": "音楽モジュールからのコマンド"
+    }
+  ]
+}

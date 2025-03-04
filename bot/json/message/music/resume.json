@@ -1,0 +1,22 @@
+{
+  "en": {
+    "title": "Resume",
+    "error_no_voice": "Join the bot to a voice channel first.",
+    "success": "Resumed playback"
+  },
+  "fr": {
+    "title": "Reprendre",
+    "error_no_voice": "Rejoignez d'abord le bot dans un canal vocal.",
+    "success": "Lecture reprise"
+  },
+  "jp": {
+    "title": "再開",
+    "error_no_voice": "まずボットをボイスチャンネルに参加させてください。",
+    "success": "再生を再開しました"
+  },
+  "de": {
+    "title": "Fortsetzen",
+    "error_no_voice": "Fügen Sie den Bot zuerst einem Sprachkanal hinzu.",
+    "success": "Wiedergabe fortgesetzt"
+  }
+}

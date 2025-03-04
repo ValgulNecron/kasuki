@@ -1,4 +1,4 @@
-use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::database::module_activation::Model;
 use crate::database::prelude::ModuleActivation;
 use crate::event_handler::BotData;
@@ -6,7 +6,7 @@ use crate::helper::get_option::subcommand_group::{
 	get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
 use crate::structure::message::admin::server::module::load_localization_module_activation;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sea_orm::ColumnTrait;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -91,18 +91,20 @@ impl SlashCommand for ModuleCommand {
 			&module_localised.off
 		};
 
-		self.send_embed(
-			Vec::new(),
-			None,
-			module.clone(),
-			desc.clone(),
-			None,
-			None,
-			EmbedType::First,
-			None,
-			Vec::new(),
-		)
-		.await
+		let embed_content = EmbedContent {
+			title: module.clone(),
+			description: desc.clone(),
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::First,
+			colour: None,
+			fields: vec![],
+			images: None,
+			action_row: None,
+			images_url: None,
+		};
+
+		self.send_embed(embed_content).await
 	}
 }
 

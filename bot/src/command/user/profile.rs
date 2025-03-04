@@ -5,7 +5,7 @@ use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::structure::message::user::profile::{load_localization_profile, ProfileLocalised};
+use crate::structure::message::user::profile::{ProfileLocalised, load_localization_profile};
 use anyhow::Result;
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,

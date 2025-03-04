@@ -6,7 +6,7 @@ use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::bot::info::load_localization_info;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sea_orm::EntityTrait;
 use serenity::all::{
 	ButtonStyle, CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton,

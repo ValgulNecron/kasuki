@@ -1,5 +1,5 @@
 use crate::command::command_trait::{
-	Command, Embed, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
+	Command, Embed, EmbedContent, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
 };
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
@@ -7,9 +7,9 @@ use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::structure::message::ai::transcript::load_localization_transcript;
-use anyhow::{anyhow, Result};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
-use reqwest::{multipart, Url};
+use anyhow::{Result, anyhow};
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
+use reqwest::{Url, multipart};
 use serde_json::Value;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::trace;
@@ -182,18 +182,18 @@ impl SlashCommand for TranscriptCommand {
 		let res = res_result?;
 
 		let text = res["text"].as_str().unwrap_or("");
-
-		self.send_embed(
-			Vec::new(),
-			None,
-			transcript_localised.title,
-			text.to_string(),
-			None,
-			None,
-			EmbedType::Followup,
-			None,
-			Vec::new(),
-		)
-		.await
+		let embed_content = EmbedContent {
+			title: transcript_localised.title,
+			description: text.to_string(),
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::Followup,
+			colour: None,
+			fields: vec![],
+			images: None,
+			action_row: None,
+			images_url: None,
+		};
+		self.send_embed(embed_content).await
 	}
 }

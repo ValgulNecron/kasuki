@@ -7,7 +7,7 @@ use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
 use crate::structure::message::management::kill_switch::load_localization_kill_switch;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;

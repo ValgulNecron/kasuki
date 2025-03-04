@@ -3,25 +3,26 @@ on:
   schedule:
     # Runs at 00:00 UTC on Monday every two weeks
     - cron: '0 0 */14 * MON'
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
 
 jobs:
-  clear-cache:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
-      - name: Clear GitHub Actions cache
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const caches = await github.rest.actions.getActionsCacheList({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            })
-            for (const cache of caches.data.actions_caches) {
-              console.log('Clearing cache:', cache.id, cache.key)
-              await github.rest.actions.deleteActionsCacheById({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                cache_id: cache.id,
-              })
-            }
+      - name: Cleanup
+        run: |
+          echo "Fetching list of cache key"
+          cacheKeysForPR=$(gh cache list --ref $BRANCH --limit 100 --json id --jq '.[].id')
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches..."
+          for cacheKey in $cacheKeysForPR
+          do
+              gh cache delete $cacheKey
+          done
+          echo "Done"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: refs/pull/${{ github.event.pull_request.number }}/merge

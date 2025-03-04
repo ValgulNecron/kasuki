@@ -13,9 +13,7 @@ use crate::database::prelude::{
 	GuildData, GuildSubscription, ServerUserRelation, UserData, UserSubscription,
 };
 use crate::error_management::error_dispatch;
-use crate::new_member::new_member_message;
 use crate::register::registration_dispatcher::command_registration;
-use crate::removed_member::removed_member_message;
 use chrono::Utc;
 use moka::future::Cache;
 use num_bigint::BigUint;
@@ -23,18 +21,15 @@ use reqwest::Client;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
-use serenity::all::{
-	CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildId, GuildMembersChunkEvent,
-	Interaction, Member, Presence, Ready, User,
-};
+use serenity::all::{CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildMembersChunkEvent, Interaction, Member, Presence, Ready, ShardId, User};
 use serenity::async_trait;
-use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardManager};
+use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardManager, ShardRunnerInfo};
 use serenity::prelude::{Context as SerenityContext, EventHandler};
 use songbird::Songbird;
 use std::collections::HashMap;
 use std::ops::{Add, AddAssign};
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use std::sync::{Arc, Mutex};
+use tokio::sync::{ RwLock};
 use tracing::{debug, error, info, trace};
 
 pub struct BotData {
@@ -49,9 +44,15 @@ pub struct BotData {
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
 	pub http_client: Client,
-	pub shard_manager: Arc<RwLock<Option<Arc<ShardManager>>>>,
+	pub shard_manager: Arc<RwLock<Option<Arc<HashMap<ShardId, Arc<Mutex<ShardRunnerInfo>>>>>>>,
+	pub lavalink: Arc<RwLock<Option<LavalinkClient>>>,
 }
+use crate::music_events;
 use anyhow::{Context, Result};
+use lavalink_rs::client::LavalinkClient;
+use lavalink_rs::model::events;
+use lavalink_rs::node::NodeBuilder;
+use lavalink_rs::prelude::NodeDistributionStrategy;
 
 pub struct Handler;
 
@@ -240,11 +241,6 @@ impl EventHandler for Handler {
 					false
 				});
 
-		match new_member_message(&ctx, &member).await {
-			Ok(_) => {},
-			Err(e) => error!(?e),
-		};
-
 		color_management(
 			&ctx.cache.guilds(),
 			&ctx,
@@ -270,32 +266,6 @@ impl EventHandler for Handler {
 			Ok(_) => {},
 			Err(e) => error!("Failed to insert user data. {}", e),
 		};
-	}
-
-	async fn guild_member_removal(
-		&self, ctx: SerenityContext, guild_id: GuildId, user: User,
-		_member_data_if_available: Option<Member>,
-	) {
-		let bot_data = ctx.data::<BotData>().clone();
-
-		let is_module_on = check_if_module_is_on(
-			guild_id.to_string().clone(),
-			"NEW_MEMBER",
-			bot_data.config.db.clone(),
-		)
-		.await
-		.unwrap_or_else(|e| {
-			error!("{}", e);
-
-			false
-		});
-
-		if is_module_on {
-			match removed_member_message(&ctx, guild_id, user).await {
-				Ok(_) => {},
-				Err(e) => error!(?e),
-			}
-		}
 	}
 
 	async fn guild_members_chunk(&self, ctx: SerenityContext, chunk: GuildMembersChunkEvent) {
@@ -380,7 +350,43 @@ impl EventHandler for Handler {
 
 	async fn ready(&self, ctx: SerenityContext, ready: Ready) {
 		let bot_data = ctx.data::<BotData>().clone();
+		let guard = bot_data.lavalink.read().await;
+		match *guard {
+			None => {
+				drop(guard);
+				let events = events::Events {
+					raw: Some(music_events::raw_event),
+					ready: Some(music_events::ready_event),
+					track_start: Some(music_events::track_start),
+					..Default::default()
+				};
 
+				let user_id = lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
+
+				let node_local = NodeBuilder {
+					hostname: bot_data.config.music.lavalink_hostname.clone(),
+					is_ssl: bot_data.config.music.https,
+					events: events::Events::default(),
+					password: bot_data.config.music.lavalink_password.clone(),
+					user_id,
+					session_id: None,
+				};
+
+				let client = LavalinkClient::new(
+					events,
+					vec![node_local],
+					NodeDistributionStrategy::round_robin(),
+				)
+				.await;
+				let mut write_guard = bot_data.lavalink.write().await;
+
+				*write_guard = Some(client);
+				drop(write_guard)
+			},
+			_ => {
+				drop(guard);
+			},
+		}
 		// Iterates over each guild the bot is in
 		let shard = ctx.shard.clone();
 
@@ -405,7 +411,14 @@ impl EventHandler for Handler {
 			)
 		}
 
-		// Spawns a new thread for managing various tasks
+		// Logs a message indicating that the shard is connected
+		info!(
+			"Shard {:?} of {} is connected!",
+			ready.shard, ready.user.name
+		);
+		ctx.set_activity(Some(ActivityData::custom(
+			bot_data.config.bot.bot_activity.clone(),
+		)));
 		let guard = bot_data.already_launched.read().await;
 
 		if !(*guard) {
@@ -421,30 +434,12 @@ impl EventHandler for Handler {
 				bot_data.config.db.clone(),
 			));
 
-			drop(write_guard)
+			drop(write_guard);
+
+			let remove_old_command = bot_data.config.bot.remove_old_commands;
+
+			command_registration(&ctx.http, remove_old_command).await;
 		}
-
-		// Sets the bot's activity
-		ctx.set_activity(Some(ActivityData::custom(
-			bot_data.config.bot.bot_activity.clone(),
-		)));
-
-		// Logs a message indicating that the shard is connected
-		info!(
-			"Shard {:?} of {} is connected!",
-			ready.shard, ready.user.name
-		);
-
-		// Logs the number of servers the bot is in
-		let server_number = ctx.cache.guilds().len();
-
-		info!(server_number);
-
-		// Checks if the "REMOVE_OLD_COMMAND" environment variable is set to "true" (case-insensitive)
-		let remove_old_command = bot_data.config.bot.remove_old_commands;
-
-		// Creates commands based on the value of the "REMOVE_OLD_COMMAND" environment variable
-		command_registration(&ctx.http, remove_old_command).await;
 	}
 
 	async fn interaction_create(&self, ctx: SerenityContext, interaction: Interaction) {
@@ -588,9 +583,11 @@ async fn insert_guild_subscription(
 			crate::database::guild_subscription::Column::GuildId,
 			crate::database::guild_subscription::Column::SkuId,
 		])
-		.update_column(crate::database::guild_subscription::Column::EntitlementId)
-		.update_column(crate::database::guild_subscription::Column::ExpiredAt)
-		.update_column(crate::database::user_subscription::Column::UpdatedAt)
+		.update_columns([
+			crate::database::guild_subscription::Column::EntitlementId,
+			crate::database::guild_subscription::Column::ExpiredAt,
+			crate::database::guild_subscription::Column::UpdatedAt,
+		])
 		.to_owned(),
 	)
 	.exec(&*connection.clone())
@@ -617,9 +614,11 @@ async fn insert_user_subscription(
 			crate::database::user_subscription::Column::UserId,
 			crate::database::user_subscription::Column::SkuId,
 		])
-		.update_column(crate::database::user_subscription::Column::EntitlementId)
-		.update_column(crate::database::user_subscription::Column::ExpiredAt)
-		.update_column(crate::database::user_subscription::Column::UpdatedAt)
+		.update_columns([
+			crate::database::user_subscription::Column::EntitlementId,
+			crate::database::user_subscription::Column::ExpiredAt,
+			crate::database::user_subscription::Column::UpdatedAt,
+		])
 		.to_owned(),
 	)
 	.exec(&*connection.clone())
@@ -640,9 +639,11 @@ pub async fn add_user_data_to_db(user: User, connection: Arc<DatabaseConnection>
 	})
 	.on_conflict(
 		sea_orm::sea_query::OnConflict::column(crate::database::user_data::Column::UserId)
-			.update_column(crate::database::user_data::Column::Username)
-			.update_column(crate::database::user_data::Column::Banner)
-			.update_column(crate::database::user_data::Column::IsBot)
+			.update_columns([
+				crate::database::user_data::Column::Username,
+				crate::database::user_data::Column::Banner,
+				crate::database::user_data::Column::IsBot,
+			])
 			.to_owned(),
 	)
 	.exec(&*connection)

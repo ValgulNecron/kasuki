@@ -1,16 +1,14 @@
 use std::fmt::Display;
 
+use crate::command::command_trait::{EmbedContent, EmbedType};
 use crate::config::DbConfig;
-use crate::constant::{COLOR, UNKNOWN};
+use crate::constant::UNKNOWN;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
-use anyhow::{anyhow, Result};
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateEmbed, CreateInteractionResponse,
-	CreateInteractionResponseMessage, Timestamp,
-};
+use anyhow::{Result, anyhow};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 #[cynic::schema("anilist")]
 
@@ -573,10 +571,10 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
 	character_text
 }
 
-pub async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, data: Media,
+pub async fn media_content<'a>(
+	ctx: &'a SerenityContext, command_interaction: &'a CommandInteraction, data: Media,
 	db_config: DbConfig,
-) -> Result<()> {
+) -> Result<EmbedContent<'a, 'a>> {
 	let is_adult = data.is_adult.unwrap_or(true);
 
 	if is_adult && !get_nsfw(command_interaction, ctx).await {
@@ -701,27 +699,24 @@ pub async fn send_embed(
 		None => return Err(anyhow!("No title")),
 	};
 
-	let mut builder_embed = CreateEmbed::new()
-		.timestamp(Timestamp::now())
-		.color(COLOR)
-		.title(embed_title(&title))
-		.url(get_url(&data.clone()))
-		.image(get_banner(&data.clone()))
-		.fields(fields);
+	let mut content = EmbedContent {
+		title: embed_title(&title),
+		description: "".to_string(),
+		thumbnail: None,
+		url: Some(get_url(&data.clone())),
+		command_type: EmbedType::First,
+		colour: None,
+		fields,
+		images: None,
+		action_row: None,
+		images_url: Some(get_banner(&data.clone())),
+	};
 
 	if let Some(image) = data.cover_image {
 		if let Some(extra_large) = image.extra_large {
-			builder_embed = builder_embed.thumbnail(extra_large);
+			content.thumbnail = Some(extra_large);
 		}
 	}
 
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	command_interaction
-		.create_response(&ctx.http, builder)
-		.await?;
-
-	Ok(())
+	Ok(content)
 }

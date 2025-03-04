@@ -1,102 +1,53 @@
-# General bot configuration
 [bot]
-# The Discord bot token used for authentication with Discord's servers.
 discord_token = ""
-
-# The activity message displayed on the bot's status in Discord.
 bot_activity = "Let you get info from anilist."
-
-# Configuration settings for various bot functionalities
-[bot.config]
-# Whether to remove old commands on startup. Set to true to enable.
 remove_old_commands = false
-# Whether the bot should respect the prenium status of some command invocations. the command in question are ai module (image, transcript, translation, question) because it cost money.
-# and the "graph" command that generate graph from user stats.
-# the guild image command is not impacted by this it's not costly enought to be considered.
 respect_premium = true
 
+[api]
+enabled = true
+port = 8080
+api_key = "your_secure_api_key_here"
 
-# Image saving settings
+[music]
+lavalink_hostname = ""
+lavalink_password = ""
+
+[db]
+db_type = "postgresql"
+host = ""
+port = 1
+user = ""
+password = ""
+database = ""
+
 [image]
-# Determines where to save generated images. Options include local, remote, or false.
-save_image = "local"
-
-# The server to save media to. Options include catbox.
+save_image = "false"
 save_server = ""
-
-# Authentication token required for the chosen media saving server.
 token = ""
 
-# Logging and retention settings
 [logging]
-# The log level to display. Options include info, warn, error, debug, trace.
-log_level = "info"
-
-# The maximum number of days to retain logs.
+log_level = "trace"
 max_log_retention = 30
 
-# Artificial Intelligence (AI) configurations
 [ai]
-# The AI API token used for authentication with the AI service.
 ai_token = ""
-
-# The base URL for the AI API.
 ai_base_url = ""
 
-# Specific configurations for image generation using AI
 [ai.image]
-# The AI API token specifically for image generation.
 ai_image_token = ""
-
-# The base URL for the AI image generation API.
 ai_image_base_url = ""
-
-# The model(s) used for image generation. Defaults to dall-e-3.
 ai_image_model = ""
-
-# The quality setting for generated images. Defaults to hd.
 ai_image_quality = ""
-
-# The size of generated images. Defaults to 1024x1024.
 ai_image_size = ""
-
-# The style setting for generated images. Defaults to vivid.
 ai_image_style = ""
 
-# Specific configurations for text-based AI queries
 [ai.question]
-# The AI API token specifically for text-based queries.
 ai_question_token = ""
-
-# The base URL for the AI text query API.
 ai_question_base_url = ""
-
-# The model used for text-based AI queries. Defaults to gpt-3.5-turbo.
 ai_question_model = ""
 
-# Specific configurations for transcription services
 [ai.transcription]
-# The AI API token specifically for transcription services.
 ai_transcription_token = ""
-
-# The base URL for the AI transcription API.
 ai_transcription_base_url = ""
-
-# The model used for transcription services. Defaults to whisper-1.
 ai_transcription_model = ""
-
-# gRPC server configurations
-[grpc]
-# Whether the gRPC server is enabled.
-grpc_is_on = true
-
-# The port for the gRPC server.
-grpc_port = 443
-
-# Whether to use TLS encryption for the gRPC server.
-use_tls = true
-
-# Paths to the SSL certificate and key for TLS encryption.
-tls_cert_path = "cert/cert.pem"
-tls_key_path = "cert/key.pem"
-

@@ -4,7 +4,6 @@ use std::env;
 use once_cell::sync::Lazy;
 use serenity::all::Colour;
 
-
 /// Delay before a new thread is spawned.
 /// Delay between ping updates.
 
@@ -45,6 +44,8 @@ pub const TIME_BETWEEN_ACTIVITY_CHECK: u64 = 1;
 /// time between random stats update.
 
 pub const TIME_BETWEEN_RANDOM_STATS_UPDATE: u64 = 86_400;
+/// time between anisong db update
+pub const TIME_BETWEEN_ANISONG_UPDATE: u64 = 604_800;
 
 /// Max capacity for the cache.
 
@@ -125,7 +126,6 @@ pub const DEFAULT_STRING: &String = &String::new();
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Vec of all available bot commands.
-
 
 /// Used library.
 

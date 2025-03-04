@@ -6,28 +6,46 @@ use std::time::Duration;
 use crate::config::DbConfig;
 use crate::database::prelude::UserColor;
 use crate::database::user_color::{ActiveModel, Column, Model};
-use crate::event_handler::{add_user_data_to_db, BotData};
+use crate::event_handler::{BotData, add_user_data_to_db};
 use crate::get_url;
-use crate::new_member::change_to_x128_url;
-use base64::engine::general_purpose;
 use base64::Engine;
-use futures::stream::FuturesUnordered;
+use base64::engine::general_purpose;
 use futures::StreamExt;
-use image::codecs::png::PngEncoder;
+use futures::stream::FuturesUnordered;
 use image::ImageReader;
+use image::codecs::png::PngEncoder;
 use image::{DynamicImage, ExtendedColorType, ImageEncoder};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
-use sea_orm::sea_query::OnConflict;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
+use sea_orm::sea_query::OnConflict;
 use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
 use serenity::nonmax::NonMaxU16;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, trace};
+
+pub fn change_to_x128_url(url: String) -> String {
+	debug!("Changing URL size to 128x128: {}", url);
+
+	let mut url = url
+		.replace("?size=4096", "?size=128")
+		.replace("?size=2048", "?size=128")
+		.replace("?size=1024", "?size=128")
+		.replace("?size=512", "?size=128")
+		.replace("?size=256", "?size=128")
+		.replace("?size=128", "?size=128")
+		.replace("?size=64", "?size=128");
+
+	if !url.ends_with("?size=128") {
+		url = format!("{}?size=128", url)
+	}
+
+	url
+}
 
 pub async fn calculate_users_color(
 	members: Vec<Member>, user_blacklist_server_image: Arc<RwLock<Vec<String>>>,

@@ -1,0 +1,22 @@
+{
+  "en": {
+    "title": "Pause",
+    "error_no_voice": "Join the bot to a voice channel first.",
+    "success": "Paused"
+  },
+  "fr": {
+    "title": "Pause",
+    "error_no_voice": "Rejoignez d'abord le bot dans un canal vocal.",
+    "success": "En pause"
+  },
+  "jp": {
+    "title": "一時停止",
+    "error_no_voice": "まずボットをボイスチャンネルに参加させてください。",
+    "success": "一時停止しました"
+  },
+  "de": {
+    "title": "Pause",
+    "error_no_voice": "Fügen Sie den Bot zuerst einem Sprachkanal hinzu.",
+    "success": "Pausiert"
+  }
+}

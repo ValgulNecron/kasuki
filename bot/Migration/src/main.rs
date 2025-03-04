@@ -5,6 +5,7 @@ use std::env;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+	println!("Database url: {}", database_url);
 	let db_name = database_url
 		.split("/")
 		.last()
@@ -23,6 +24,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		},
 	};
 	cli::run_cli(migration::Migrator).await;
-
+	print!("\x1B[2J\x1B[1;1H");
 	Ok(())
 }

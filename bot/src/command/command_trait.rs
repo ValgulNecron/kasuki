@@ -5,11 +5,12 @@ use crate::constant::{
 };
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, CreateInteractionResponseMessage, SkuFlags, SkuId};
 use serenity::builder::{
-	CreateAttachment, CreateButton, CreateInteractionResponse, CreateInteractionResponseFollowup,
+	CreateActionRow, CreateAttachment, CreateButton, CreateInteractionResponse,
+	CreateInteractionResponseFollowup,
 };
 use serenity::model::Colour;
 use serenity::prelude::Context as SerenityContext;
@@ -33,11 +34,7 @@ pub trait UserCommand {
 }
 
 pub trait Embed {
-	async fn send_embed(
-		&self, fields: Vec<(String, String, bool)>, images: Option<Vec<String>>, title: String,
-		description: String, thumbnail: Option<String>, url: Option<String>,
-		command_type: EmbedType, colour: Option<Colour>, attachments: Vec<CreateAttachment>,
-	) -> Result<()>;
+	async fn send_embed(&self, content: EmbedContent) -> Result<()>;
 
 	async fn defer(&self) -> Result<()>;
 }
@@ -49,66 +46,130 @@ pub trait PremiumCommand {
 	) -> Result<bool>;
 }
 
+#[derive(Clone)]
+pub struct EmbedContent<'a, 'b> {
+	pub title: String,
+	pub description: String,
+	pub thumbnail: Option<String>,
+	pub url: Option<String>,
+	pub command_type: EmbedType,
+	pub colour: Option<Colour>,
+	pub fields: Vec<(String, String, bool)>,
+	pub images: Option<Vec<EmbedImage<'a>>>,
+	pub action_row: Option<CreateActionRow<'b>>,
+	pub images_url: Option<String>,
+}
+
+#[derive(Clone)]
+pub struct EmbedImage<'a> {
+	pub attachment: CreateAttachment<'a>,
+	pub image: String,
+}
+
 impl<T: Command> Embed for T {
-	async fn send_embed(
-		&self, fields: Vec<(String, String, bool)>, images: Option<Vec<String>>, title: String,
-		description: String, thumbnail: Option<String>, url: Option<String>,
-		command_type: EmbedType, colour: Option<Colour>, attachments: Vec<CreateAttachment<'_>>,
-	) -> Result<()> {
+	async fn send_embed(&self, content: EmbedContent<'_, '_>) -> Result<()> {
 		let ctx = self.get_ctx();
 
 		let command_interaction = self.get_command_interaction();
 
-		let mut builder_embed = get_default_embed(colour);
+		let mut embed = get_default_embed(content.colour.clone());
 
-		builder_embed = builder_embed.title(title);
-
-		builder_embed = builder_embed.description(description);
-
-		if let Some(thumbnail) = thumbnail {
-			builder_embed = builder_embed.thumbnail(thumbnail);
+		embed = embed.title(content.title).description(content.description);
+		if let Some(thumbnail) = content.thumbnail {
+			embed = embed.thumbnail(thumbnail);
+		}
+		if let Some(url) = content.url {
+			embed = embed.url(url);
 		}
 
-		if let Some(url) = url {
-			builder_embed = builder_embed.url(url);
-		}
-
-		builder_embed = builder_embed.fields(fields);
-
-		let mut builders_embeds = Vec::new();
-
-		if let Some(images) = images {
-			if images.len() == 1 {
-				builder_embed = builder_embed.image(images[0].clone());
-				builders_embeds.push(builder_embed)
-			} else {
+		match (content.command_type, content.images, content.images_url) {
+			(EmbedType::First, Some(images), None) => {
+				let mut embeds = Vec::new();
+				let mut attachments = Vec::new();
+				let mut first = true;
 				for image in images {
-					let builder_embed = builder_embed.clone().image(image.clone());
-					builders_embeds.push(builder_embed)
+					attachments.push(image.attachment);
+					if first {
+						first = false;
+						embed = embed.image(image.image.clone()).attachment(image.image);
+						embeds.push(embed.clone());
+					} else {
+						let mut embed = get_default_embed(content.colour.clone());
+						embed = embed.image(image.image.clone()).attachment(image.image);
+						embeds.push(embed);
+					}
 				}
-			}
-		}
-
-		match command_type {
-			EmbedType::First => {
 				let builder = CreateInteractionResponseMessage::new()
-					.embeds(builders_embeds)
+					.embeds(embeds)
 					.files(attachments);
 
 				let builder = CreateInteractionResponse::Message(builder);
-
 				command_interaction
 					.create_response(&ctx.http, builder)
 					.await?;
 			},
-			EmbedType::Followup => {
+			(EmbedType::First, None, None) => {
+				let embeds = vec![embed];
+				let builder = CreateInteractionResponseMessage::new().embeds(embeds);
+
+				let builder = CreateInteractionResponse::Message(builder);
+				command_interaction
+					.create_response(&ctx.http, builder)
+					.await?;
+			},
+			(EmbedType::Followup, Some(images), None) => {
+				let mut embeds = Vec::new();
+				let mut attachments = Vec::new();
+				let mut first = true;
+				for image in images {
+					attachments.push(image.attachment);
+					if first {
+						first = false;
+						embed = embed.image(image.image.clone()).attachment(image.image);
+						embeds.push(embed.clone());
+					} else {
+						let mut embed = get_default_embed(content.colour.clone());
+						embed = embed.image(image.image.clone()).attachment(image.image);
+						embeds.push(embed);
+					}
+				}
 				let builder = CreateInteractionResponseFollowup::new()
-					.embeds(builders_embeds)
+					.embeds(embeds)
 					.files(attachments);
 
 				command_interaction
 					.create_followup(&ctx.http, builder)
 					.await?;
+			},
+			(EmbedType::Followup, None, None) => {
+				let embeds = vec![embed];
+				let builder = CreateInteractionResponseFollowup::new().embeds(embeds);
+
+				command_interaction
+					.create_followup(&ctx.http, builder)
+					.await?;
+			},
+
+			(EmbedType::First, None, Some(image_link)) => {
+				let embeds = vec![embed.image(image_link.clone())];
+				let builder = CreateInteractionResponseMessage::new().embeds(embeds);
+
+				let builder = CreateInteractionResponse::Message(builder);
+				command_interaction
+					.create_response(&ctx.http, builder)
+					.await?;
+			},
+
+			(EmbedType::Followup, None, Some(image_link)) => {
+				let embeds = vec![embed.image(image_link.clone())];
+				let builder = CreateInteractionResponseFollowup::new().embeds(embeds);
+
+				command_interaction
+					.create_followup(&ctx.http, builder)
+					.await?;
+			},
+			_ => {
+				return Err(anyhow!("There is both image."));
 			},
 		}
 
@@ -120,7 +181,7 @@ impl<T: Command> Embed for T {
 
 		let command_interaction = self.get_command_interaction();
 
-		let builder_message = Defer(CreateInteractionResponseMessage::new());
+		let builder_message = Defer(Default::default());
 
 		command_interaction
 			.create_response(&ctx.http, builder_message)
@@ -130,6 +191,7 @@ impl<T: Command> Embed for T {
 	}
 }
 
+#[derive(Clone)]
 pub enum EmbedType {
 	First,
 	Followup,

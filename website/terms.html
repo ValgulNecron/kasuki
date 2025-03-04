@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Kasuki - Terms of Service</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff6b9d;
+            --primary-dark: #e05288;
+            --secondary: #8f68c9;
+            --light: #ffebf3;
+            --dark: #2a2438;
+            --text: #333344;
+            --text-light: #777788;
+            --background: #fcf8ff;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --shadow: 0 4px 20px rgba(255, 107, 157, 0.1);
+        }
+        
+        [data-theme="dark"] {
+            --background: #1a1a2e;
+            --card-bg: #212134;
+            --text: #f1f1f1;
+            --text-light: #b0b0b0;
+            --light: #2a2a45;
+            --dark: #121220;
+            --shadow: 0 4px 20px rgba(143, 104, 201, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        header h1 {
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        header .last-updated {
+            color: var(--text-light);
+            font-style: italic;
+        }
+        
+        h2 {
+            color: var(--primary-dark);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light);
+        }
+        
+        h3 {
+            color: var(--secondary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        p, ul, ol {
+            margin-bottom: 15px;
+        }
+        
+        ul, ol {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        .back-to-top {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .back-to-top:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--light);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .theme-toggle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.2);
+        }
+        
+        [data-theme="dark"] .theme-toggle {
+            background-color: var(--secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Terms of Service</h1>
+        <p class="last-updated">Last updated: February 26, 2025</p>
+    </header>
+
+    <h2>1. Introduction</h2>
+    <p>Welcome to Kasuki ("the Bot"), a Discord bot created by Valgul. These Terms of Service ("Terms") govern your
+        access to and use of Kasuki, including any associated services, features, content, and websites (collectively,
+        the "Service"). By adding Kasuki to your Discord server or using the Service in any way, you agree to be bound
+        by these Terms.</p>
+
+    <h2>2. Basic Terms</h2>
+    <p>2.1. You must be at least 13 years old and comply with Discord's Terms of Service to use Kasuki.</p>
+    <p>2.2. You are responsible for all activity that occurs under your account or on your Discord server related to the
+        use of Kasuki.</p>
+    <p>2.3. You may not use the Service for any illegal or unauthorized purpose, including but not limited to violation
+        of any laws in your jurisdiction.</p>
+    <p>2.4. You agree to provide accurate information when using the Service, particularly when registering AniList
+        accounts with the bot.</p>
+
+    <h2>3. User Content and Conduct</h2>
+    <p>3.1. You are solely responsible for your conduct and any data, text, files, information, usernames, images, or
+        other content that you submit, post, or display through Kasuki.</p>
+    <p>3.2. You must not modify, adapt, or hack Kasuki or attempt to breach any security or authentication measures.</p>
+    <p>3.3. You must not intentionally overload or flood the Service with requests, or introduce malicious code or
+        viruses into the Service.</p>
+    <p>3.4. You must not use Kasuki for spamming, harassment, or any abusive behavior as outlined in the bot's Code of
+        Conduct.</p>
+
+    <h2>4. API Usage and Rate Limits</h2>
+    <p>4.1. Kasuki connects to various third-party APIs including AniList, Steam, and potentially AI services based on
+        configuration. Your use of the Service is also subject to the terms of service of these third-party
+        providers.</p>
+    <p>4.2. The Service implements rate limits to ensure fair usage. Premium limits may apply to certain AI-based
+        features as described in the documentation. Attempting to circumvent these limits is prohibited.</p>
+
+    <h2>5. Self-Hosting</h2>
+    <p>5.1. Kasuki is available for self-hosting under the Apache License 2.0. If you choose to self-host the bot:</p>
+    <p>5.1.1. You must comply with the terms of the Apache License 2.0.</p>
+    <p>5.1.2. You are responsible for your own infrastructure, security, and compliance with applicable laws.</p>
+    <p>5.1.3. Official support is only provided for the current master version and dev version.</p>
+    <p>5.1.4. You must not use Kasuki's name, logo, or identity in a way that suggests your self-hosted instance is the
+        official bot without explicit permission.</p>
+
+    <h2>6. Service Availability and Modifications</h2>
+    <p>6.1. The Service is provided "as is" without warranties of any kind, either express or implied.</p>
+    <p>6.2. We reserve the right to modify or discontinue, temporarily or permanently, the Service (or any part thereof)
+        with or without notice.</p>
+    <p>6.3. We shall not be liable to you or any third party for any modification, suspension, or discontinuance of the
+        Service.</p>
+
+    <h2>7. Third-Party Services and Content</h2>
+    <p>7.1. The Service may contain links to third-party websites, services, or other content that are not owned or
+        controlled by Kasuki's creator.</p>
+    <p>7.2. We have no control over, and assume no responsibility for, the content, privacy policies, or practices of
+        any third-party websites or services. We strongly advise you to read the terms and privacy policies of any
+        third-party websites or services that you visit or use.</p>
+
+    <h2>8. Limitations of Liability</h2>
+    <p>8.1. To the maximum extent permitted by applicable law, in no event shall Kasuki, its creator, or contributors be
+        liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation,
+        loss of profits, data, use, goodwill, or other intangible losses, resulting from:</p>
+    <p>8.1.1. Your access to or use of or inability to access or use the Service;</p>
+    <p>8.1.2. Any conduct or content of any third party on the Service;</p>
+    <p>8.1.3. Any content obtained from the Service; and</p>
+    <p>8.1.4. Unauthorized access, use, or alteration of your transmissions or content.</p>
+
+    <h2>9. Indemnification</h2>
+    <p>9.1. You agree to defend, indemnify, and hold harmless Kasuki, its creator, and contributors from and against any
+        claims, liabilities, damages, losses, and expenses, including, without limitation, reasonable attorney's fees
+        and costs, arising out of or in any way connected with your access to or use of the Service or your violation of
+        these Terms.</p>
+
+    <h2>10. Changes to Terms</h2>
+    <p>10.1. We reserve the right to modify or replace these Terms at any time. If a revision is material, we will try
+        to provide at least 30 days' notice prior to any new terms taking effect.</p>
+    <p>10.2. By continuing to access or use our Service after those revisions become effective, you agree to be bound by
+        the revised terms.</p>
+
+    <h2>11. Governing Law</h2>
+    <p>11.1. These Terms shall be governed and construed in accordance with applicable international laws, without
+        regard to its conflict of law provisions.</p>
+
+    <h2>12. Contact</h2>
+    <p>12.1. For security vulnerability reports, please contact kasukisecurity@valgul.moe or use GitHub as specified in
+        SECURITY.md.</p>
+    <p>12.2. For questions about these Terms, please contact through GitHub issues on the Kasuki repository.</p>
+
+    <a class="back-to-top" href="#">Back to Top</a>
+
+    <footer>
+        <p>These Terms of Service were created for Kasuki and may be updated from time to time. The latest version will
+            always be available on the bot's GitHub repository.</p>
+    </footer>
+</div>
+
+<div class="theme-toggle">
+    <i class="fas fa-moon"></i>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+<script>
+    // Back to top button functionality
+    document.querySelector('.back-to-top').addEventListener('click', function(e) {
+        e.preventDefault();
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // Theme toggle functionality
+    const themeToggle = document.querySelector('.theme-toggle');
+    let isDarkMode = localStorage.getItem('kasuki-theme') === 'dark';
+
+    // Set initial theme
+    if (isDarkMode) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+
+    // Toggle theme
+    themeToggle.addEventListener('click', () => {
+        isDarkMode = !isDarkMode;
+
+        if (isDarkMode) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            localStorage.setItem('kasuki-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            localStorage.setItem('kasuki-theme', 'light');
+        }
+    });
+</script>
+</body>
+</html>

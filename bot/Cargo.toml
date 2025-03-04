@@ -1,7 +1,7 @@
 [package]
 name = "kasuki"
-version = "3.0.1"
-edition = "2021"
+version = "3.0.3"
+edition = "2024"
 authors = ["Valgul <contact@valgul.moe>"]
 description = "A discord bot written in rust that get info from anilist API"
 readme = "../readme.md"
@@ -12,55 +12,56 @@ license-file = "../LICENSE"
 
 [dependencies]
 regex = "1.11.1"
-reqwest = { version = "0.12.9", features = ["json", "multipart", "blocking"] }
-serde = "1.0.214"
-serde_json = "1.0.132"
+reqwest = { version = "0.12.12", features = ["json", "multipart", "blocking"] }
+serde = "1.0.218"
+serde_json = "1.0.139"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "voice", "cache", "http", "unstable"] }
-tokio = { version = "1.41.1", features = ["full"] }
-rand = "0.9.0-alpha.2"
-chrono = "0.4.38"
-uuid = { version = "1.11.0", features = ["v4"] }
+tokio = { version = "1.43.0", features = ["full"] }
+rand = "0.9.0"
+chrono = "0.4.40"
+uuid = { version = "1.15.1", features = ["v4"] }
 image = "0.25.5"
 base64 = "0.22.1"
-tracing = { version = "0.1.40" }
-once_cell = "1.20.2 "
-tracing-subscriber = { version = "0.3.18", features = ["default", "env-filter"] }
-serde_with = { version = "3.11.0", features = ["macros"] }
+tracing = { version = "0.1.41" }
+once_cell = "1.20.3 "
+tracing-subscriber = { version = "0.3.19", features = ["default", "env-filter"] }
+serde_with = { version = "3.12.0", features = ["macros"] }
 rust-fuzzy-search = "0.1.1"
 palette = "0.7.6"
 tracing-appender = "0.2.3"
 rayon = "1.10.0"
-prost = "0.13.3"
+prost = "0.13.5"
 markdown_converter = "0.3.4"
 futures = "0.3.31"
 rapidfuzz = "0.5.0"
-cynic = { version = "3.9.0", features = ["reqwest", "http-reqwest", "serde_json"] }
-moka = { version = "0.12.8", features = ["future"] }
-toml = "0.8.19"
+cynic = { version = "3.10.0", features = ["reqwest", "http-reqwest", "serde_json"] }
+moka = { version = "0.12.10", features = ["future"] }
+toml = "0.8.20"
 num-bigint = "0.4.6"
-text-to-png = "0.2.0"
 songbird = { git = "https://github.com/serenity-rs/songbird.git", branch = "serenity-next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
-symphonia = { features = ["aac", "mp3", "isomp4", "alac", "symphonia-format-isomp4"], version = "0.5.4" }
-dashmap = "6.1.0"
-sea-orm = { version = "1.1.0", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
+sea-orm = { version = "1.1.6", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
 serde_urlencoded = "0.7.1"
 catbox = "0.8.2"
-tempfile = "3.14.0"
-rusty_ytdl = { version = "0.7.4", features = ["rustls-tls"] }
-anyhow = "1.0.92"
-small-fixed-array = "0.4.6"
+tempfile = "3.17.1"
+anyhow = "1.0.96"
+small-fixed-array = "0.4.8"
+lavalink-rs = { git = "https://gitlab.com/vicky5124/lavalink-rs/", branch = "main", features = ["serenity"]}
+async-trait = "0.1.86"
+axum = "0.8.1"
+http = "1.2.0"
 
 [build-dependencies]
-cynic-codegen = { version = "3.8.0" }
+cynic-codegen = { version = "3.9.1" }
 
 [profile.dev]
-codegen-units = 512
 debug = 2
 
 [profile.release]
 lto = true
-strip = "symbols"
+strip = true
+opt-level = "s"
 panic = "abort"
+codegen-units = 1
 
 [[bin]]
 name = "kasuki"

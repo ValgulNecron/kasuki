@@ -1,22 +1,23 @@
+use crate::api::rest::start_api_server;
 use crate::config::{Config, DbConfig};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::event_handler::{BotData, Handler, RootUsage};
 use crate::logger::{create_log_directory, init_logger};
 use anyhow::{Context, Result};
 use moka::future::Cache;
-use serenity::gateway::ShardManager;
-use serenity::prelude::GatewayIntents;
 use serenity::Client;
+use serenity::prelude::GatewayIntents;
+use serenity::secrets::Token;
 use songbird::driver::DecodeMode;
 use std::process;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use serenity::secrets::Token;
+use tokio::io::AsyncWriteExt;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
-mod audio;
+mod api;
 pub mod autocomplete;
 mod background_task;
 mod command;
@@ -29,9 +30,8 @@ pub mod error_management;
 mod event_handler;
 mod helper;
 mod logger;
-mod new_member;
+mod music_events;
 mod register;
-mod removed_member;
 mod structure;
 
 #[tokio::main]
@@ -175,7 +175,7 @@ async fn main() {
 
 	let bot_data: Arc<BotData> = Arc::new(BotData {
 		number_of_command_use_per_command,
-		config,
+		config: config.clone(),
 		bot_info: Arc::new(RwLock::new(None)),
 		anilist_cache,
 		vndb_cache,
@@ -186,6 +186,7 @@ async fn main() {
 		manager: Arc::clone(&manager),
 		http_client: reqwest::Client::new(),
 		shard_manager: Arc::new(Default::default()),
+		lavalink: Arc::new(Default::default()),
 	});
 
 	let mut client = Client::builder(discord_token, gateway_intent)
@@ -199,24 +200,30 @@ async fn main() {
 			process::exit(5);
 		});
 
-	let shard_manager = client.shard_manager.clone();
-
-	let bot_data_manager = bot_data.shard_manager.clone();
-	let mut guard = bot_data_manager.write().await;
-
-	*guard = Some(shard_manager);
-	// Clone the shard manager from the client.
-	let shard_manager = client.shard_manager.clone();
-
-	let shutdown = shard_manager.clone();
-
+	let data = bot_data.clone();
 	// Spawn a new asynchronous task for starting the client.
 	// If the client fails to start, log the error.
+
+	let bot_data = data;
+	let mut guard = bot_data.shard_manager.write().await;
+	let runner = client.shard_manager.runner_info();
+	let arc = Arc::from(runner);
+	*guard = Some(arc);
+
 	tokio::spawn(async move {
 		if let Err(why) = client.start_autosharded().await {
 			error!("Client error: {:?}", why);
 
 			process::exit(6);
+		}
+	});
+
+	info!("test");
+
+	let data = bot_data.clone();
+	tokio::spawn(async move {
+		if let Err(e) = start_api_server(config.clone(), data.clone()).await {
+			error!("API server error: {:?}", e);
 		}
 	});
 
@@ -250,9 +257,7 @@ async fn main() {
 
 		info!("Received bot shutdown signal. Shutting down bot.");
 
-		ShardManager::shutdown_all(&shutdown).await;
-
-		std::process::exit(0);
+		process::exit(0)
 	}
 
 	#[cfg(windows)]
@@ -280,8 +285,6 @@ async fn main() {
 
 		info!("Received bot shutdown signal. Shutting down bot.");
 
-		ShardManager::shutdown_all(&shutdown).await;
-
 		process::exit(0);
 	}
 }
@@ -290,8 +293,9 @@ async fn init_db(config: Arc<Config>) -> Result<()> {
 	let db_config = config.db.clone();
 
 	let url = get_url(db_config);
-
-	std::env::set_var("DATABASE_URL", url);
+	unsafe {
+		std::env::set_var("DATABASE_URL", url);
+	}
 
 	#[cfg(windows)]
 	{

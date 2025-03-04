@@ -1,10 +1,10 @@
-use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::database::guild_lang;
 use crate::database::prelude::GuildLang;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::server::lang::load_localization_lang;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -52,17 +52,19 @@ impl SlashCommand for LangCommand {
 
 		let lang_localised = load_localization_lang(guild_id, bot_data.config.db.clone()).await?;
 
-		self.send_embed(
-			Vec::new(),
-			None,
-			lang_localised.title.clone(),
-			lang_localised.desc.replace("$lang$", lang.as_str()),
-			None,
-			None,
-			EmbedType::First,
-			None,
-			Vec::new(),
-		)
-		.await
+		let embed_content = EmbedContent {
+			title: lang_localised.title.clone(),
+			description: lang_localised.desc.replace("$lang$", lang.as_str()),
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::First,
+			colour: None,
+			fields: vec![],
+			images: None,
+			action_row: None,
+			images_url: None,
+		};
+
+		self.send_embed(embed_content).await
 	}
 }

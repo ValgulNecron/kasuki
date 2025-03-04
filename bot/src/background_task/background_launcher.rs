@@ -1,29 +1,29 @@
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, PoisonError};
 use std::time::Duration;
-
+use anyhow::anyhow;
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
-use serenity::all::Context as SerenityContext;
-use tokio::sync::RwLock;
+use serenity::all::{Context as SerenityContext, CurrentApplicationInfo, ShardRunnerInfo};
+use tokio::sync::{MutexGuard, RwLock};
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
 
 use crate::background_task::activity::anime_activity::manage_activity;
-use crate::background_task::server_image::calculate_user_color::color_management;
+use crate::background_task::get_anisong_db::get_anisong;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::background_task::update_random_stats::update_random_stats_launcher;
-use crate::config::{ DbConfig, ImageConfig};
+use crate::config::{DbConfig, ImageConfig};
 use crate::constant::{
 	TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_BLACKLISTED_USER_UPDATE,
 	TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
-	TIME_BETWEEN_SERVER_IMAGE_UPDATE, TIME_BETWEEN_USER_COLOR_UPDATE,
+	TIME_BETWEEN_SERVER_IMAGE_UPDATE,
 };
 use crate::database::ping_history::ActiveModel;
 use crate::database::prelude::PingHistory;
-use crate::event_handler::{BotData};
+use crate::event_handler::BotData;
 use crate::get_url;
 use crate::structure::steam_game_id_struct::get_game;
 pub async fn thread_management_launcher(
@@ -36,6 +36,8 @@ pub async fn thread_management_launcher(
 	let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
 
 	let connection = bot_data.db_connection.clone();
+
+	//tokio::spawn(update_anisong_db(connection.clone()));
 
 	tokio::spawn(launch_activity_management_thread(
 		ctx.clone(),
@@ -51,17 +53,9 @@ pub async fn thread_management_launcher(
 
 	tokio::spawn(update_random_stats_launcher(anilist_cache.clone()));
 
-	tokio::spawn(update_bot_info(ctx.clone(), bot_data.clone()));
+	tokio::spawn(update_bot_info(ctx.clone(), bot_data.bot_info.clone()));
 
 	sleep(Duration::from_secs(1)).await;
-
-	sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
-
-	tokio::spawn(launch_user_color_management_thread(
-		ctx.clone(),
-		user_blacklist_server_image.clone(),
-		bot_data.clone(),
-	));
 
 	sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
 
@@ -74,6 +68,15 @@ pub async fn thread_management_launcher(
 	));
 
 	info!("Done spawning thread manager.");
+}
+
+async fn update_anisong_db(db: Arc<DatabaseConnection>) {
+	info!("Launching the anisongdb thread!");
+	let mut interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_PING_UPDATE));
+	loop {
+		interval.tick().await;
+		get_anisong(db.clone()).await;
+	}
 }
 
 async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
@@ -115,13 +118,28 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 		interval.tick().await;
 
 		// Lock the shard manager and iterate over the runners
-		let runner = shard_manager.runners.lock().await;
+		let runner = &shard_manager;
 
-		for (shard_id, shard) in runner.iter() {
+		for (shard_id, (shard)) in runner.iter() {
 			// Extract latency and current timestamp information
-			let latency = shard.latency.unwrap_or_default().as_millis().to_string();
+			let (now, latency) = {
+				let shard_info = match shard.lock() {
+					Ok(shard_runner_info) => {shard_runner_info}
+					Err(_) => {
+						error!("failed to get the shard runner info");
+						continue
+					}
+				};
 
-			let now = chrono::Utc::now().naive_utc();
+				let latency = shard_info
+					.latency
+					.unwrap_or_default()
+					.as_millis()
+					.to_string();
+				drop(shard_info);
+				let now = chrono::Utc::now().naive_utc();
+				(now, latency)
+			};
 
 			match PingHistory::insert(ActiveModel {
 				shard_id: Set(shard_id.to_string()),
@@ -143,46 +161,6 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 				},
 			}
 		}
-
-		drop(runner);
-	}
-}
-
-/// Asynchronously launches the user color management thread.
-///
-/// # Arguments
-///
-/// * `ctx` - A `Context` instance used to access the bot's data and cache.
-/// * `db_type` - A `String` representing the type of database being used.
-/// * `user_blacklist_server_image` - An `Arc` wrapped `RwLock` containing a list of strings for user blacklist and server image management.
-///
-
-async fn launch_user_color_management_thread(
-	ctx: SerenityContext, user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-	bot_data: Arc<BotData>,
-) {
-	// Create an interval for periodic updates
-	let mut interval = interval(Duration::from_secs(TIME_BETWEEN_USER_COLOR_UPDATE));
-
-	// Log a message indicating that the user color management thread is being launched
-	info!("Launching the user color management thread!");
-
-	// Enter a loop that waits for the next interval tick and triggers color management
-	loop {
-		// Wait for the next interval tick
-		interval.tick().await;
-
-		// Get the guilds from the context cache
-		let guilds = ctx.cache.guilds();
-
-		// Perform color management for the guilds
-		color_management(
-			&guilds,
-			&ctx,
-			user_blacklist_server_image.clone(),
-			bot_data.clone(),
-		)
-		.await;
 	}
 }
 
@@ -343,7 +321,9 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>) {
 /// * `bot_data` - An `Arc` reference to the `BotData` struct.
 ///
 
-async fn update_bot_info(context: SerenityContext, bot_data: Arc<BotData>) {
+async fn update_bot_info(
+	context: SerenityContext, bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
+) {
 	// Create a time interval for updating bot info
 	let mut update_interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_BOT_INFO));
 
@@ -362,7 +342,7 @@ async fn update_bot_info(context: SerenityContext, bot_data: Arc<BotData>) {
 		};
 
 		// Acquire a lock on bot info and update it with the current information
-		let mut bot_info_lock = bot_data.bot_info.write().await;
+		let mut bot_info_lock = bot_info.write().await;
 
 		*bot_info_lock = Some(current_bot_info);
 	}

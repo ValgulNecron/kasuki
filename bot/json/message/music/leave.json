@@ -1,0 +1,18 @@
+{
+  "en": {
+    "title": "Leave",
+    "success": "Left voice channel."
+  },
+  "fr": {
+    "title": "Quitter",
+    "success": "Quitté le canal vocal."
+  },
+  "jp": {
+    "title": "退出",
+    "success": "ボイスチャンネルを退出しました。"
+  },
+  "de": {
+    "title": "Verlassen",
+    "success": "Sprachkanal verlassen."
+  }
+}

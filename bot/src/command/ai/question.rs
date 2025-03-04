@@ -1,12 +1,12 @@
 use crate::command::command_trait::{
-	Command, Embed, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
+	Command, Embed, EmbedContent, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
 };
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use anyhow::{anyhow, Result};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use serde_json::{json, Value};
+use anyhow::{Result, anyhow};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+use serde_json::{Value, json};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::trace;
 pub struct QuestionCommand {
@@ -74,18 +74,19 @@ impl SlashCommand for QuestionCommand {
 
 		let text = question(prompt, api_key, api_base_url, model).await?;
 
-		self.send_embed(
-			Vec::new(),
-			None,
-			String::new(),
-			text,
-			None,
-			None,
-			EmbedType::Followup,
-			None,
-			Vec::new(),
-		)
-		.await
+		let embed_content = EmbedContent {
+			title: String::new(),
+			description: text,
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::Followup,
+			colour: None,
+			fields: vec![],
+			images: None,
+			action_row: None,
+			images_url: None,
+		};
+		self.send_embed(embed_content).await
 	}
 }
 

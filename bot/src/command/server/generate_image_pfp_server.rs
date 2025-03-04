@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::sync::Arc;
 
 use crate::command::command_trait::{Command, SlashCommand};
@@ -9,8 +9,8 @@ use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
-use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
+use base64::engine::general_purpose::STANDARD as BASE64;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;

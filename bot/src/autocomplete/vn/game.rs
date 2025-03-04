@@ -1,6 +1,6 @@
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use crate::helper::vndbapi::game::{get_vn, VN};
+use crate::helper::vndbapi::game::{VN, get_vn};
 use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
 	CreateInteractionResponse,

@@ -1,4 +1,5 @@
 use crate::command::ai::question::question_api_url;
+use crate::command::command_trait::EmbedContent;
 use crate::command::command_trait::{
 	Command, Embed, EmbedType, PremiumCommand, PremiumCommandType, SlashCommand,
 };
@@ -8,10 +9,10 @@ use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::structure::message::ai::translation::load_localization_translation;
-use anyhow::{anyhow, Result};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use reqwest::{multipart, Url};
-use serde_json::{json, Value};
+use anyhow::{Result, anyhow};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+use reqwest::{Url, multipart};
+use serde_json::{Value, json};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::trace;
 use uuid::Uuid;
@@ -213,19 +214,19 @@ impl SlashCommand for TranslationCommand {
 		} else {
 			String::from(text)
 		};
-
-		self.send_embed(
-			Vec::new(),
-			None,
-			translation_localised.title,
-			text,
-			None,
-			None,
-			EmbedType::Followup,
-			None,
-			Vec::new(),
-		)
-		.await
+		let embed_content = EmbedContent {
+			title: translation_localised.title,
+			description: text.to_string(),
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::Followup,
+			colour: None,
+			fields: vec![],
+			images: None,
+			action_row: None,
+			images_url: None,
+		};
+		self.send_embed(embed_content).await
 	}
 }
 pub async fn translation(

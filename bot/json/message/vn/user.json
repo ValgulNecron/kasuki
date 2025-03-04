@@ -3,28 +3,28 @@
     "title": "Here the info on $user$",
     "id": "ID",
     "name": "Name",
-    "playtimesum": "play time votes (in minutes)",
+    "playtimesum": "play time votes sum (in minutes)",
     "playtime": "play time votes"
   },
   "de": {
     "title": "Hier die Infos zu $user$",
     "id": "ID",
     "name": "Name",
-    "playtimesum": "Spielzeit (in Minuten)",
-    "playtime": "Spielzeit"
+    "playtimesum": "Spielzeit-Stimmen Summe (in Minuten)",
+    "playtime": "Spielzeit-Stimmen"
   },
   "fr": {
     "title": "Voici les infos sur $user$",
     "id": "ID",
     "name": "Nom",
-    "playtimesum": "temps de jeu (en minutes)",
-    "playtime": "temps de jeu"
+    "playtimesum": "somme des votes de temps de jeu (en minutes)",
+    "playtime": "votes de temps de jeu"
   },
   "jp": {
     "title": "$user$の情報",
     "id": "ID",
     "name": "名前",
-    "playtimesum": "プレイ時間 (分)",
-    "playtime": "プレイ時間"
+    "playtimesum": "プレイ時間の投票合計（分）",
+    "playtime": "プレイ時間の投票"
   }
 }

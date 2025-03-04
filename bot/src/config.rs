@@ -4,11 +4,29 @@ use serde::Deserialize;
 
 pub struct Config {
 	pub bot: BotConfig,
+	pub music: MusicConfig,
+	pub api: ApiConfig,
 	pub db: DbConfig,
 	pub image: ImageConfig,
 	pub logging: LoggingConfig,
 	pub ai: AICfg,
-	pub grpc: GrpcCfg,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ApiConfig {
+	pub enabled: bool,
+	pub port: u16,
+	pub api_key: String,
+}
+
+impl Default for ApiConfig {
+	fn default() -> Self {
+		Self {
+			enabled: false,
+			port: 8080,
+			api_key: String::from(""),
+		}
+	}
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -18,6 +36,13 @@ pub struct BotConfig {
 	pub bot_activity: String,
 	pub remove_old_commands: bool,
 	pub respect_premium: bool,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct MusicConfig {
+	pub lavalink_hostname: String,
+	pub lavalink_password: String,
+	pub https: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -83,16 +108,6 @@ pub struct AICfgTranscription {
 	pub ai_transcription_model: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-
-pub struct GrpcCfg {
-	pub grpc_is_on: bool,
-	pub grpc_port: u16,
-	pub use_tls: bool,
-	pub tls_cert_path: String,
-	pub tls_key_path: String,
-}
-
 impl Default for Config {
 	fn default() -> Self {
 		Config {
@@ -102,6 +117,12 @@ impl Default for Config {
 				remove_old_commands: false,
 				respect_premium: false,
 			},
+			music: MusicConfig {
+				lavalink_hostname: "".to_string(),
+				lavalink_password: "".to_string(),
+				https: false,
+			},
+			api: Default::default(),
 			db: DbConfig {
 				db_type: "sqlite".to_string(),
 				host: None,
@@ -140,13 +161,6 @@ impl Default for Config {
 					ai_transcription_base_url: None,
 					ai_transcription_model: None,
 				},
-			},
-			grpc: GrpcCfg {
-				grpc_is_on: false,
-				grpc_port: 443,
-				use_tls: false,
-				tls_cert_path: "cert/cert.pem".to_string(),
-				tls_key_path: "cert/key.pem".to_string(),
 			},
 		}
 	}

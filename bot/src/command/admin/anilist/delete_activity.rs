@@ -1,12 +1,12 @@
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
-use crate::command::command_trait::{Command, Embed, EmbedType, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::config::DbConfig;
 use crate::database::prelude::ActivityData;
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, ModelTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -67,20 +67,22 @@ impl SlashCommand for DeleteActivityCommand {
 
 		let url = format!("https://anilist.co/anime/{}", media.id);
 
-		self.send_embed(
-			Vec::new(),
-			None,
-			delete_activity_localised_text.success.clone(),
-			delete_activity_localised_text
+		let embed_content = EmbedContent {
+			title: delete_activity_localised_text.success.clone(),
+			description: delete_activity_localised_text
 				.success_desc
 				.replace("$anime$", anime_name.as_str()),
-			None,
-			Some(url),
-			EmbedType::Followup,
-			None,
-			Vec::new(),
-		)
-		.await?;
+			thumbnail: None,
+			url: Some(url),
+			command_type: EmbedType::Followup,
+			colour: None,
+			fields: vec![],
+			images: None,
+			action_row: None,
+			images_url: None,
+		};
+
+		self.send_embed(embed_content).await?;
 
 		Ok(())
 	}

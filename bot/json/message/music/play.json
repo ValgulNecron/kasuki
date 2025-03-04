@@ -1,0 +1,26 @@
+{
+  "en": {
+    "title": "Play",
+    "error_no_voice": "Join the bot to a voice channel first.",
+    "added_to_queue": "Added to queue: [{0} - {1}](<{2}>)",
+    "added_playlist": "Added playlist to queue: {0}"
+  },
+  "fr": {
+    "title": "Jouer",
+    "error_no_voice": "Rejoignez d'abord le bot dans un canal vocal.",
+    "added_to_queue": "Ajouté à la file d'attente: [{0} - {1}](<{2}>)",
+    "added_playlist": "Playlist ajoutée à la file d'attente: {0}"
+  },
+  "jp": {
+    "title": "再生",
+    "error_no_voice": "まずボットをボイスチャンネルに参加させてください。",
+    "added_to_queue": "キューに追加: [{0} - {1}](<{2}>)",
+    "added_playlist": "プレイリストをキューに追加: {0}"
+  },
+  "de": {
+    "title": "Abspielen",
+    "error_no_voice": "Fügen Sie den Bot zuerst einem Sprachkanal hinzu.",
+    "added_to_queue": "Zur Warteschlange hinzugefügt: [{0} - {1}](<{2}>)",
+    "added_playlist": "Playlist zur Warteschlange hinzugefügt: {0}"
+  }
+}

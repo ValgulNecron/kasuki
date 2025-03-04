@@ -10,7 +10,7 @@ use crate::database::prelude::ActivityData;
 use crate::get_url;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use chrono::{DateTime, Utc};
@@ -207,8 +207,7 @@ async fn update_info(
 async fn remove_activity(row: &Model, guild_id: &str, db_config: DbConfig) -> Result<DeleteResult> {
 	trace!(
 		"Attempting to remove activity for anime_id: {} in guild: {}",
-		row.anime_id,
-		guild_id
+		row.anime_id, guild_id
 	);
 
 	let connection: DatabaseConnection = sea_orm::Database::connect(get_url(db_config)).await?;
@@ -223,9 +222,7 @@ async fn remove_activity(row: &Model, guild_id: &str, db_config: DbConfig) -> Re
 
 	trace!(
 		"Removed {} row(s) for anime_id: {} in guild: {}",
-		delete_result.rows_affected,
-		row.anime_id,
-		guild_id
+		delete_result.rows_affected, row.anime_id, guild_id
 	);
 
 	Ok(delete_result)

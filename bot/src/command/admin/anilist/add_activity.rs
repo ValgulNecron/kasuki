@@ -1,9 +1,9 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-use crate::command::command_trait::Embed;
 use crate::command::command_trait::{Command, EmbedType, SlashCommand};
+use crate::command::command_trait::{Embed, EmbedContent};
 use crate::config::DbConfig;
 use crate::database::activity_data;
 use crate::database::activity_data::Column;
@@ -18,13 +18,13 @@ use crate::structure::run::anilist::minimal_anime::{
 	Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
 	MinimalAnimeSearchVariables,
 };
+use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
-use base64::Engine as _;
 use chrono::Utc;
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
-use image::{guess_format, GenericImageView, ImageFormat};
+use image::{GenericImageView, ImageFormat, guess_format};
 use moka::future::Cache;
 use prost::bytes::Bytes;
 use reqwest::get;
@@ -98,21 +98,26 @@ impl SlashCommand for AddActivityCommand {
 		let anime_name = get_name(title);
 
 		if exist {
-			self.send_embed(
-				Vec::new(),
-				None,
-				add_activity_localised.fail.clone(),
-				add_activity_localised
+			trace!("already added");
+			trace!(?anime_name);
+			let embed_content = EmbedContent {
+				title: add_activity_localised.fail.clone(),
+				description: add_activity_localised
 					.fail_desc
 					.replace("$anime$", anime_name.as_str()),
-				None,
-				Some(url),
-				EmbedType::Followup,
-				None,
-				Vec::new(),
-			)
-			.await?;
+				thumbnail: None,
+				url: Some(url),
+				command_type: EmbedType::Followup,
+				colour: None,
+				fields: vec![],
+				images: None,
+				action_row: None,
+				images_url: None,
+			};
+			self.send_embed(embed_content).await?;
 		} else {
+			trace!("adding");
+			trace!(?anime_name);
 			let channel_id = command_interaction.channel_id;
 
 			let delay = map
@@ -127,14 +132,14 @@ impl SlashCommand for AddActivityCommand {
 				anime_name.clone()
 			};
 
-			let bytes = get(media.cover_image.ok_or(
-                anyhow!("No cover image for this media".to_string()),
-            )?.extra_large.
-                unwrap_or(
-                    "https://imgs.search.brave.com/ CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
-                        .to_string()
-                )
-            ).await?.bytes().await?;
+			let image_url = media.cover_image.ok_or(
+				anyhow!("No cover image for this media".to_string()),
+			)?.extra_large.
+				unwrap_or(
+					"https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+						.to_string()
+				);
+			let bytes = get(image_url.clone()).await?.bytes().await?;
 
 			let buf = resize_image(&bytes).await?;
 
@@ -172,25 +177,26 @@ impl SlashCommand for AddActivityCommand {
 				episode: Set(next_airing.episode),
 				name: Set(trimmed_anime_name),
 				delay: Set(delay),
-				image: Set(image),
+				image: Set(image.clone()),
 			})
 			.exec(&*connection)
 			.await?;
 
-			self.send_embed(
-				Vec::new(),
-				None,
-				add_activity_localised.success.clone(),
-				add_activity_localised
+			let embed_content = EmbedContent {
+				title: add_activity_localised.success.clone(),
+				description: add_activity_localised
 					.success_desc
 					.replace("$anime$", anime_name.as_str()),
-				None,
-				Some(url),
-				EmbedType::Followup,
-				None,
-				Vec::new(),
-			)
-			.await?;
+				thumbnail: Some(image_url),
+				url: Some(url),
+				command_type: EmbedType::Followup,
+				colour: None,
+				fields: vec![],
+				images: None,
+				action_row: None,
+				images_url: None,
+			};
+			self.send_embed(embed_content).await?;
 		}
 
 		Ok(())
