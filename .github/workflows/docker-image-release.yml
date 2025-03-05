@@ -1,4 +1,4 @@
-name: Build & Publish Release Docker Image
+name: Build & Publish Dev Docker Images
 
 on:
   push:
@@ -7,18 +7,22 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: "release_docker"
+  group: "master_docker"
   cancel-in-progress: false
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure system
+        run: |
+          sudo sysctl -w vm.max_map_count=262144
+          sudo sysctl -w fs.file-max=262144
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Set up QEMU
@@ -30,7 +34,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
       - name: Build and push amd64
         id: docker_build_amd64
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: bot
           file: bot/Dockerfile
