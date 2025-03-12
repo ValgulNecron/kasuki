@@ -16,7 +16,8 @@ mod m20240831_134027_guild_subscription;
 mod m20241221_192311_command_list;
 mod m20241221_192314_command_usage;
 mod m20241221_192339_random_stats;
-mod m20241225_163933_anime_song;
+mod m20241225_163933_anime_song;mod m20250312_195747_update_unique;
+
 
 pub struct Migrator;
 

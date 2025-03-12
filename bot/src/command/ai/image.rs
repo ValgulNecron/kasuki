@@ -134,7 +134,7 @@ impl SlashCommand for ImageCommand {
 
 		let images = if n == 1 {
 			let attachment = image_with_n_equal_1(filename.clone(), bytes.clone()).await;
-			let name = format!("attachment://{}", &filename);
+			let name = filename;
 			vec![EmbedImage {
 				attachment,
 				image: name,

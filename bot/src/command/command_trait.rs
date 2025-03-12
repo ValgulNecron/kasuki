@@ -91,7 +91,7 @@ impl<T: Command> Embed for T {
 					attachments.push(image.attachment);
 					if first {
 						first = false;
-						embed = embed.image(image.image.clone()).attachment(image.image);
+						embed = embed.image(format!("attachment://{}", &image.image)).attachment(image.image);
 						embeds.push(embed.clone());
 					} else {
 						let mut embed = get_default_embed(content.colour.clone());
