@@ -21,7 +21,10 @@ use reqwest::Client;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
-use serenity::all::{CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildMembersChunkEvent, Interaction, Member, Presence, Ready, ShardId, User};
+use serenity::all::{
+	CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildMembersChunkEvent, Interaction,
+	Member, Presence, Ready, ShardId, User,
+};
 use serenity::async_trait;
 use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardManager, ShardRunnerInfo};
 use serenity::prelude::{Context as SerenityContext, EventHandler};
@@ -29,7 +32,7 @@ use songbird::Songbird;
 use std::collections::HashMap;
 use std::ops::{Add, AddAssign};
 use std::sync::{Arc, Mutex};
-use tokio::sync::{ RwLock};
+use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
 pub struct BotData {
