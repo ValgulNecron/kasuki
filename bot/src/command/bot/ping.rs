@@ -71,10 +71,10 @@ async fn send_embed(
 		// Format the latency as a string
 		let shard_runner_info = shard_runner_info;
 		let shard_runner_info = match shard_runner_info.lock() {
-			Ok(shard_runner_info) => {shard_runner_info}
+			Ok(shard_runner_info) => shard_runner_info,
 			Err(_) => {
 				return Err(anyhow!("failed to get the shard runner info"));
-			}
+			},
 		};
 		let latency = match shard_runner_info.latency {
 			Some(latency) => format!("{:.2}ms", latency.as_millis()),

@@ -10,8 +10,7 @@ use axum::{
 	routing::get,
 };
 use sea_orm::{
-	ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryOrder,
-	QuerySelect,
+	ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryOrder, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

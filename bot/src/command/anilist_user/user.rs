@@ -46,42 +46,33 @@ impl SlashCommand for UserCommand {
 
 		let anilist_cache = bot_data.anilist_cache.clone();
 
-		send_embed(ctx, command_interaction, config, anilist_cache).await
+		let map = get_option_map_string(command_interaction);
+
+		let user = map.get(&FixedString::from_str_trunc("username"));
+
+		// If the username is provided, fetch the user's data from AniList and send it as a response
+		if let Some(value) = user {
+			let data: User = get_user(value, anilist_cache.clone()).await?;
+
+			return user::send_embed(ctx, command_interaction, data, config.db.clone()).await;
+		}
+
+		let user_id = &command_interaction.user.id.to_string();
+
+		let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+
+		let row = RegisteredUser::find()
+			.filter(Column::UserId.eq(user_id))
+			.one(&connection)
+			.await?;
+
+		let user = row.ok_or(anyhow!("No user found"))?;
+
+		// Fetch the user's data from AniList and send it as a response
+		let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
+
+		user::send_embed(ctx, command_interaction, data, config.db.clone()).await
 	}
-}
-
-async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
-	anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<()> {
-	// Retrieve the username from the command interaction
-	let map = get_option_map_string(command_interaction);
-
-	let user = map.get(&FixedString::from_str_trunc("username"));
-
-	// If the username is provided, fetch the user's data from AniList and send it as a response
-	if let Some(value) = user {
-		let data: User = get_user(value, anilist_cache.clone()).await?;
-
-		return user::send_embed(ctx, command_interaction, data, config.db.clone()).await;
-	}
-
-	// If the username is not provided, fetch the data of the user who triggered the command interaction
-	let user_id = &command_interaction.user.id.to_string();
-
-	let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
-
-	let row = RegisteredUser::find()
-		.filter(Column::UserId.eq(user_id))
-		.one(&connection)
-		.await?;
-
-	let user = row.ok_or(anyhow!("No user found"))?;
-
-	// Fetch the user's data from AniList and send it as a response
-	let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
-
-	user::send_embed(ctx, command_interaction, data, config.db.clone()).await
 }
 
 pub async fn get_user(

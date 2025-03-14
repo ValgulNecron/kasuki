@@ -1,12 +1,12 @@
-use std::collections::HashMap;
-use std::sync::{Arc, PoisonError};
-use std::time::Duration;
 use anyhow::anyhow;
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
 use serenity::all::{Context as SerenityContext, CurrentApplicationInfo, ShardRunnerInfo};
+use std::collections::HashMap;
+use std::sync::{Arc, PoisonError};
+use std::time::Duration;
 use tokio::sync::{MutexGuard, RwLock};
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
@@ -124,11 +124,11 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 			// Extract latency and current timestamp information
 			let (now, latency) = {
 				let shard_info = match shard.lock() {
-					Ok(shard_runner_info) => {shard_runner_info}
+					Ok(shard_runner_info) => shard_runner_info,
 					Err(_) => {
 						error!("failed to get the shard runner info");
-						continue
-					}
+						continue;
+					},
 				};
 
 				let latency = shard_info

@@ -116,6 +116,8 @@ impl SlashCommand for PlayCommand {
 					.replace("{1}", &track.info.title)
 					.replace("{2}", "");
 			}
+
+			return self.send_embed(content).await;
 		}
 
 		let author_id = command_interaction.user.id;

@@ -44,7 +44,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum GuildSubscription {
+pub enum GuildSubscription {
 	Table,
 	GuildId,
 	EntitlementId,

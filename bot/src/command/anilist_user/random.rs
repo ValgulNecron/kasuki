@@ -151,7 +151,7 @@ impl SlashCommand for RandomCommand {
 			description: full_desc,
 			thumbnail: None,
 			url: Some(url),
-			command_type: EmbedType::First,
+			command_type: EmbedType::Followup,
 			colour: None,
 			fields: vec![],
 			images: None,
